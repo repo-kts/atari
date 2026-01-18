@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '../ui/Card'
 import { useAuthStore } from '../../stores/authStore'
 import {
@@ -8,6 +9,8 @@ import {
     GraduationCap,
     Tag,
     Building2,
+    CreditCard,
+    UserCircle,
 } from 'lucide-react'
 
 // Mock data for KVK User (their own KVK data)
@@ -21,6 +24,7 @@ const mockKVKData = {
 }
 
 export const KVKDashboard: React.FC = () => {
+    const navigate = useNavigate()
     const { user } = useAuthStore()
     const [selectedYear, setSelectedYear] = useState('All')
 
@@ -184,6 +188,72 @@ export const KVKDashboard: React.FC = () => {
                                         style={{ width: `${fldProgress}%` }}
                                     />
                                 </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Management Navigation Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate('/kvk/details')}
+                >
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                <Building2 className="w-8 h-8 text-emerald-700" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-[#212121] mb-1">
+                                    KVK Details
+                                </h3>
+                                <p className="text-sm text-[#757575]">
+                                    View and edit KVK information
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate('/kvk/bank-accounts')}
+                >
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                <CreditCard className="w-8 h-8 text-emerald-700" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-[#212121] mb-1">
+                                    Bank Accounts
+                                </h3>
+                                <p className="text-sm text-[#757575]">
+                                    Manage bank account details
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => navigate('/kvk/staff')}
+                >
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                                <UserCircle className="w-8 h-8 text-emerald-700" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-[#212121] mb-1">
+                                    Staff Members
+                                </h3>
+                                <p className="text-sm text-[#757575]">
+                                    Manage staff and employees
+                                </p>
                             </div>
                         </div>
                     </CardContent>

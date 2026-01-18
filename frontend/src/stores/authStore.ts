@@ -36,6 +36,17 @@ const MOCK_USERS: Record<string, { user: User; password: string }> = {
             name: 'KVK User',
             email: 'kvk@atari.gov.in',
             role: 'kvk',
+            kvk_id: 13, // Links to KVK Patna
+        },
+        password: 'kvk123',
+    },
+    'kvk.patna@atari.gov.in': {
+        user: {
+            id: '3',
+            name: 'KVK Patna User',
+            email: 'kvk.patna@atari.gov.in',
+            role: 'kvk',
+            kvk_id: 13, // Links to KVK Patna
         },
         password: 'kvk123',
     },

@@ -22,6 +22,12 @@ import { Targets } from './pages/Targets'
 import { LogHistory } from './pages/LogHistory'
 import { Notifications } from './pages/Notifications'
 import { Reports } from './pages/Reports'
+import { ViewKVKDetails } from './components/kvk/KVKDetails/ViewKVKDetails'
+import { BankAccountList } from './components/kvk/BankAccounts/BankAccountList'
+import { StaffList } from './components/kvk/Staff/StaffList'
+import { KVKListView } from './components/admin/ViewKVK/KVKListView'
+import { KVKDetailView } from './components/admin/ViewKVK/KVKDetailView'
+import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 
 
 function App() {
@@ -136,6 +142,59 @@ function App() {
                         path="/forms/*"
                         element={<FormManagement />}
                     />
+
+                    {/* About KVK Routes - Nested under /forms/about-kvk/* */}
+                    <Route
+                        path="/forms/about-kvk/view-kvks"
+                        element={<KVKListView />}
+                    />
+                    <Route
+                        path="/forms/about-kvk/view-kvks/:id"
+                        element={<KVKDetailView />}
+                    />
+                    <Route
+                        path="/forms/about-kvk/bank-account"
+                        element={<BankAccountList />}
+                    />
+                    <Route
+                        path="/forms/about-kvk/employee-details"
+                        element={<StaffList />}
+                    />
+                    <Route
+                        path="/forms/about-kvk/details"
+                        element={<ViewKVKDetails />}
+                    />
+
+                    {/* Legacy routes - redirect to new paths */}
+                    <Route
+                        path="/kvk/details"
+                        element={<Navigate to="/forms/about-kvk/details" replace />}
+                    />
+                    <Route
+                        path="/kvk/bank-accounts"
+                        element={<Navigate to="/forms/about-kvk/bank-account" replace />}
+                    />
+                    <Route
+                        path="/kvk/staff"
+                        element={<Navigate to="/forms/about-kvk/employee-details" replace />}
+                    />
+                    <Route
+                        path="/admin/kvk"
+                        element={<Navigate to="/forms/about-kvk/view-kvks" replace />}
+                    />
+                    <Route
+                        path="/admin/kvk/:id"
+                        element={<AdminKVKRedirect />}
+                    />
+                    <Route
+                        path="/admin/bank-accounts"
+                        element={<Navigate to="/forms/about-kvk/bank-account" replace />}
+                    />
+                    <Route
+                        path="/admin/staff"
+                        element={<Navigate to="/forms/about-kvk/employee-details" replace />}
+                    />
+
                     <Route
                         path="*"
                         element={<Navigate to="/dashboard" replace />}

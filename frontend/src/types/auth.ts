@@ -6,6 +6,7 @@ export interface User {
     email: string
     role: UserRole
     avatar?: string
+    kvk_id?: number // For KVK users, links to their KVK ID
 }
 
 export interface LoginCredentials {
