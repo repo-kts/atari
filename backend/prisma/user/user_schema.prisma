@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum PermissionAction {
+  VIEW
+  ADD
+  EDIT
+  DELETE
+}
+
+model Role {
+  roleId          Int              @id @default(autoincrement()) @map("role_id")
+  roleName        String           @map("role_name")
+  description     String?
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Module {
+  moduleId     Int          @id @default(autoincrement()) @map("module_id")
+  menuName     String       @map("menu_name")
+  subMenuName  String       @map("sub_menu_name")
+  moduleCode   String       @unique @map("module_code")
+
+  permissions  Permission[]
+
+  @@map("modules")
+}
+
+
+model Permission {
+  permissionId Int               @id @default(autoincrement()) @map("permission_id")
+  moduleId     Int               @map("module_id")
+  action       PermissionAction
+
+  module       Module            @relation(fields: [moduleId], references: [moduleId])
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+
+model RolePermission {
+  roleId        Int @map("role_id")
+  permissionId  Int @map("permission_id")
+
+  role          Role        @relation(fields: [roleId], references: [roleId])
+  permission    Permission @relation(fields: [permissionId], references: [permissionId])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model User {
+  userId    Int    @id @default(autoincrement()) @map("user_id")
+  name      String
+  email     String @unique
+  roleId    Int    @map("role_id")
+
+  role      Role   @relation(fields: [roleId], references: [roleId])
+
+  @@map("users")
+}
