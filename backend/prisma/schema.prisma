@@ -6,6 +6,9 @@ datasource db {
   provider = "postgresql"
 }
 
+// ============================================
+// Enums
+// ============================================
 
 enum PermissionAction {
   VIEW
@@ -13,6 +16,10 @@ enum PermissionAction {
   EDIT
   DELETE
 }
+
+// ============================================
+// User & Authentication Models
+// ============================================
 
 model Role {
   roleId          Int              @id @default(autoincrement()) @map("role_id")
@@ -36,7 +43,6 @@ model Module {
   @@map("modules")
 }
 
-
 model Permission {
   permissionId Int               @id @default(autoincrement()) @map("permission_id")
   moduleId     Int               @map("module_id")
@@ -47,7 +53,6 @@ model Permission {
 
   @@map("permissions")
 }
-
 
 model RolePermission {
   roleId        Int @map("role_id")
@@ -101,11 +106,65 @@ model User {
   role         Role         @relation(fields: [roleId], references: [roleId])
   refreshTokens RefreshToken[]
   
-  // Hierarchy relations (will work when schemas are merged/combined)
+  // Hierarchy relations
   zone         Zone?        @relation(fields: [zoneId], references: [zoneId])
   state        StateMaster? @relation(fields: [stateId], references: [stateId])
   district     DistrictMaster? @relation(fields: [districtId], references: [districtId])
   org          OrgMaster?   @relation(fields: [orgId], references: [orgId])
 
   @@map("users")
+}
+
+// ============================================
+// Zone & Hierarchy Models
+// ============================================
+
+model Zone {
+  zoneId   Int    @id @default(autoincrement()) @map("zone_id")
+  zoneName String @unique @map("zone_name")
+
+  states    StateMaster[]
+  districts DistrictMaster[]
+  users     User[]  // Users assigned to this zone
+
+  @@map("zone")
+}
+
+model StateMaster {
+  stateId   Int    @id @default(autoincrement()) @map("state_id")
+  stateName String @map("state_name")
+
+  zoneId    Int
+  zone      Zone   @relation(fields: [zoneId], references: [zoneId])
+
+  districts DistrictMaster[]
+  orgs      OrgMaster[]
+  users     User[]  // Users assigned to this state
+
+  @@map("stateMaster")
+}
+
+model DistrictMaster {
+  districtId   Int    @id @default(autoincrement()) @map("district_id")
+  districtName String @map("district_name")
+
+  stateId      Int
+  zoneId       Int
+
+  state        StateMaster @relation(fields: [stateId], references: [stateId])
+  zone         Zone        @relation(fields: [zoneId], references: [zoneId])
+  users        User[]  // Users assigned to this district
+
+  @@map("districtMaster")
+}
+
+model OrgMaster {
+  orgId   Int    @id @default(autoincrement()) @map("org_id")
+  uniName String @map("uni_name")
+
+  stateId Int
+  state   StateMaster @relation(fields: [stateId], references: [stateId])
+  users   User[]  // Users assigned to this organization
+
+  @@map("orgMaster")
 }

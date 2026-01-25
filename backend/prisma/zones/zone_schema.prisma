@@ -1,11 +1,9 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 
@@ -15,6 +13,7 @@ model Zone {
 
   states    StateMaster[]
   districts DistrictMaster[]
+  users     User[]  // Users assigned to this zone
 
   @@map("zone")
 }
@@ -28,6 +27,7 @@ model StateMaster {
 
   districts DistrictMaster[]
   orgs      OrgMaster[]
+  users     User[]  // Users assigned to this state
 
   @@map("stateMaster")
 }
@@ -41,6 +41,7 @@ model DistrictMaster {
 
   state        StateMaster @relation(fields: [stateId], references: [stateId])
   zone         Zone        @relation(fields: [zoneId], references: [zoneId])
+  users        User[]  // Users assigned to this district
 
   @@map("districtMaster")
 }
@@ -51,6 +52,7 @@ model OrgMaster {
 
   stateId Int
   state   StateMaster @relation(fields: [stateId], references: [stateId])
+  users   User[]  // Users assigned to this organization
 
   @@map("orgMaster")
 }

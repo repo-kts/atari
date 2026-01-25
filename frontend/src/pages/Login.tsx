@@ -7,7 +7,7 @@ import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export const Login: React.FC = () => {
     const navigate = useNavigate()
-    const { login, isAuthenticated } = useAuthStore()
+    const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore()
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -18,32 +18,25 @@ export const Login: React.FC = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const [error, setError] = useState('')
-    const [loading, setLoading] = useState(false)
+
+    // Clear error when user starts typing
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => clearError(), 5000) // Auto-clear after 5s
+            return () => clearTimeout(timer)
+        }
+    }, [error, clearError])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        setError('')
-        setLoading(true)
+        clearError()
 
-        try {
-            const success = await login({ email, password })
-            if (success) {
-                navigate('/dashboard')
-            } else {
-                setError('Invalid email or password')
-            }
-        } catch {
-            setError('An error occurred. Please try again.')
-        } finally {
-            setLoading(false)
+        const success = await login({ email, password })
+        if (success) {
+            navigate('/dashboard')
         }
     }
 
-    const quickLogin = (userEmail: string, userPassword: string) => {
-        setEmail(userEmail)
-        setPassword(userPassword)
-    }
 
     return (
         <div className="min-h-screen flex">
@@ -159,9 +152,9 @@ export const Login: React.FC = () => {
                             type="submit"
                             variant="primary"
                             className="w-full"
-                            disabled={loading}
+                            disabled={isLoading}
                         >
-                            {loading ? 'Logging in...' : 'Continue'}
+                            {isLoading ? 'Logging in...' : 'Continue'}
                         </Button>
                     </form>
 
@@ -193,47 +186,7 @@ export const Login: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Quick Login (Demo) - Collapsible */}
-                    <details className="mt-8 pt-6 border-t border-[#E0E0E0]">
-                        <summary className="text-xs text-[#757575] mb-3 cursor-pointer hover:text-[#487749] transition-colors">
-                            Quick Login (Demo)
-                        </summary>
-                        <div className="space-y-2 mt-3">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                className="w-full text-sm"
-                                onClick={() =>
-                                    quickLogin(
-                                        'superadmin@atari.gov.in',
-                                        'superadmin123'
-                                    )
-                                }
-                            >
-                                Login as Super Admin
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                className="w-full text-sm"
-                                onClick={() =>
-                                    quickLogin('admin@atari.gov.in', 'admin123')
-                                }
-                            >
-                                Login as Admin
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                className="w-full text-sm"
-                                onClick={() =>
-                                    quickLogin('kvk@atari.gov.in', 'kvk123')
-                                }
-                            >
-                                Login as KVK
-                            </Button>
-                        </div>
-                    </details>
+                    {/* Quick Login (Demo) - Removed: Use real API authentication */}
                 </div>
             </div>
         </div>

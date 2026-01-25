@@ -1,12 +1,24 @@
-export type UserRole = 'super_admin' | 'admin' | 'kvk'
+export type UserRole =
+    | 'super_admin'
+    | 'zone_admin'
+    | 'state_admin'
+    | 'district_admin'
+    | 'org_admin'
+    | 'kvk'
 
 export interface User {
-    id: string
+    userId: number
     name: string
     email: string
-    role: UserRole
-    avatar?: string
-    kvk_id?: number // For KVK users, links to their KVK ID
+    roleId: number
+    role: UserRole // Derived from roleName
+    zoneId?: number | null
+    stateId?: number | null
+    districtId?: number | null
+    orgId?: number | null
+    kvkId?: number | null
+    createdAt?: string
+    lastLoginAt?: string | null
 }
 
 export interface LoginCredentials {

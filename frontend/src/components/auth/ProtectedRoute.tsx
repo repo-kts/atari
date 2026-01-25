@@ -1,26 +1,53 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '../../stores/authStore'
+import { UserRole } from '../../types/auth'
 
 interface ProtectedRouteProps {
     children: React.ReactNode
-    requiredRole?:
-        | 'super_admin'
-        | 'admin'
-        | 'kvk'
-        | ('super_admin' | 'admin' | 'kvk')[]
+    requiredRole?: UserRole | UserRole[]
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     children,
     requiredRole,
 }) => {
-    const { isAuthenticated, user, hasRole } = useAuthStore()
+    const { isAuthenticated, user, hasRole, checkAuth, isLoading } = useAuthStore()
+    const [isChecking, setIsChecking] = useState(true)
 
+    // Check authentication on mount
+    useEffect(() => {
+        const verifyAuth = async () => {
+            if (!isAuthenticated) {
+                const authenticated = await checkAuth()
+                if (!authenticated) {
+                    // Not authenticated, will redirect below
+                }
+            }
+            setIsChecking(false)
+        }
+
+        verifyAuth()
+    }, [isAuthenticated, checkAuth])
+
+    // Show loading state while checking auth
+    if (isChecking || isLoading) {
+        return (
+            <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#487749]"></div>
+                    <p className="mt-4 text-[#757575]">Loading...</p>
+                </div>
+            </div>
+        )
+    }
+
+    // Redirect to login if not authenticated
     if (!isAuthenticated || !user) {
         return <Navigate to="/login" replace />
     }
 
+    // Check role-based access
     if (requiredRole && !hasRole(requiredRole)) {
         return (
             <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center p-4">
