@@ -6,6 +6,7 @@ import { apiClient, ApiError } from './api';
 export interface CreateUserData {
   name: string;
   email: string;
+  phoneNumber?: string | null;
   roleId: number;
   password: string;
   zoneId?: number | null;
@@ -18,6 +19,7 @@ export interface CreateUserData {
 export interface UpdateUserData {
   name?: string;
   email?: string;
+  phoneNumber?: string | null;
   roleId?: number;
   zoneId?: number | null;
   stateId?: number | null;

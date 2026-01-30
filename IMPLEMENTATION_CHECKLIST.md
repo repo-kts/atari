@@ -80,7 +80,7 @@
 - [x] Update `backend/index.js`
   - [x] Add `cookie-parser` middleware
   - [x] Configure CORS with credentials
-  - [x] Add rate limiting middleware (in auth routes)
+  - [x] Add rate-limiting middleware (in auth routes)
 
 ### Phase 3: User Management - Repository ✅
 - [x] Update `backend/repositories/userRepository.js`

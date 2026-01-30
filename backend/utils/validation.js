@@ -52,20 +52,21 @@ function validatePassword(password) {
 }
 
 /**
- * Sanitize string input (basic XSS prevention)
- * @param {string} input - String to sanitize
- * @returns {string} Sanitized string
+ * Normalize string input (trim only). Blocklist-based sanitization was removed:
+ * it is insufficient for XSS (bypassable via encoded chars, mixed case,
+ * whitespace, etc.). This API serves JSON with Content-Type: application/json;
+ * XSS prevention relies on that and on context-aware output encoding at
+ * render time (frontend). Use a vetted library (e.g. DOMPurify/sanitize-html)
+ * where output is injected into HTML.
+ *
+ * @param {string} input - String to normalize
+ * @returns {string} Trimmed string
  */
 function sanitizeInput(input) {
   if (typeof input !== 'string') {
     return String(input);
   }
-
-  return input
-    .trim()
-    .replace(/[<>]/g, '') // Remove < and > characters
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+=/gi, ''); // Remove event handlers like onclick=
+  return input.trim();
 }
 
 /**
@@ -78,9 +79,44 @@ function validateRoleId(roleId) {
   return typeof roleId === 'number' && validRoleIds.includes(roleId);
 }
 
+/**
+ * Validate phone number (Indian format)
+ * @param {string} phoneNumber - Phone number to validate
+ * @returns {object} { valid: boolean, errors: string[] }
+ */
+function validatePhoneNumber(phoneNumber) {
+  const errors = [];
+
+  if (!phoneNumber) {
+    // Phone number is optional
+    return { valid: true, errors: [] };
+  }
+
+  if (typeof phoneNumber !== 'string') {
+    errors.push('Phone number must be a string');
+    return { valid: false, errors };
+  }
+
+  // Remove spaces, dashes, and common separators
+  const cleaned = phoneNumber.replace(/[\s\-()]/g, '');
+
+  // Check if it's a valid Indian phone number (10 digits, starting with 6-9)
+  const phoneRegex = /^[6-9]\d{9}$/;
+  
+  if (!phoneRegex.test(cleaned)) {
+    errors.push('Phone number must be a valid 10-digit Indian mobile number starting with 6-9');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
 module.exports = {
   validateEmail,
   validatePassword,
   sanitizeInput,
   validateRoleId,
+  validatePhoneNumber,
 };

@@ -1,5 +1,4 @@
 const authRepository = require('../repositories/authRepository');
-const prisma = require('../config/prisma');
 const { comparePassword } = require('../utils/password');
 const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt');
 const { validateEmail } = require('../utils/validation');
@@ -38,36 +37,21 @@ const authService = {
       throw new Error('Invalid email or password');
     }
 
-    // Generate tokens
+    // Generate access token
     const accessToken = generateAccessToken(user.userId, user.roleId);
 
     // Calculate refresh token expiration (7 days from now)
     const refreshExpiresAt = new Date();
     refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 7);
 
-    // Create refresh token record with temporary placeholder to get tokenId
-    const tempToken = `temp_${Date.now()}_${Math.random()}`;
+    // Create refresh token: create with placeholder, then update with real JWT (all DB ops via repository)
     const refreshTokenRecord = await authRepository.createRefreshToken(
       user.userId,
-      tempToken,
+      'placeholder',
       refreshExpiresAt
     );
-
-    // Generate refresh token JWT with the actual tokenId
     const refreshToken = generateRefreshToken(user.userId, refreshTokenRecord.tokenId);
-
-    // Update refresh token record with the actual JWT token
-    // We need to delete the temp one and create a new one, or update it
-    // Since token is unique, we'll delete and recreate
-    await prisma.refreshToken.delete({
-      where: { tokenId: refreshTokenRecord.tokenId },
-    });
-
-    await authRepository.createRefreshToken(
-      user.userId,
-      refreshToken,
-      refreshExpiresAt
-    );
+    await authRepository.updateRefreshToken(refreshTokenRecord.tokenId, refreshToken);
 
     // Update last login timestamp
     await authRepository.updateLastLogin(user.userId);

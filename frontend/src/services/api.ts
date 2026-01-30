@@ -49,23 +49,34 @@ class ApiClient {
         return null as T;
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new ApiError(
-          response.status,
-          response.statusText,
-          data,
-        );
+      // Check response.ok before parsing so we preserve status on error paths
+      if (response.ok) {
+        try {
+          return (await response.json()) as T;
+        } catch (parseError) {
+          throw new ApiError(
+            response.status,
+            response.statusText,
+            { error: parseError instanceof Error ? parseError.message : 'Invalid JSON response' },
+          );
+        }
       }
 
-      return data;
+      // Error response: read body once (text), then parse or use as message
+      const text = await response.text();
+      let body: unknown;
+      try {
+        body = text ? JSON.parse(text) : {};
+      } catch {
+        body = { error: text || response.statusText };
+      }
+      throw new ApiError(response.status, response.statusText, body as { error?: string });
     } catch (error) {
       if (error instanceof ApiError) {
         throw error;
       }
 
-      // Network or other errors
+      // Network or other errors (e.g. fetch failed or body already consumed)
       throw new ApiError(
         0,
         'Network error',

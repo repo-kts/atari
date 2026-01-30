@@ -25,6 +25,7 @@ interface User {
     userId: number
     name: string
     email: string
+    phoneNumber?: string | null
     roleId: number
     roleName: string
     zoneId?: number | null
@@ -205,6 +206,9 @@ export const UserManagement: React.FC = () => {
                                         Email
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-[#487749] uppercase tracking-wider">
+                                        Phone
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-semibold text-[#487749] uppercase tracking-wider">
                                         Role
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-[#487749] uppercase tracking-wider">
@@ -237,8 +241,13 @@ export const UserManagement: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-[#757575]">
+                                                {user.phoneNumber || '—'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="px-2 py-1 text-xs font-medium rounded-lg bg-[#E8F5E9] text-[#487749]">
-                                                {ROLE_MAP[user.roleName]?.label || user.roleName}
+                                                {ROLE_MAP[user.roleName]?.label ?? user.roleName ?? '—'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
@@ -256,6 +265,7 @@ export const UserManagement: React.FC = () => {
                                                             alert('Edit functionality coming soon')
                                                         }}
                                                         className="p-2 rounded-lg hover:bg-[#F5F5F5] text-[#757575] hover:text-[#487749] transition-colors"
+                                                        aria-label="Edit user"
                                                         title="Edit user"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -264,6 +274,7 @@ export const UserManagement: React.FC = () => {
                                                         onClick={() => handleDelete(user.userId)}
                                                         disabled={isDeleting === user.userId}
                                                         className="p-2 rounded-lg hover:bg-red-50 text-[#757575] hover:text-red-600 transition-colors disabled:opacity-50"
+                                                        aria-label="Delete user"
                                                         title="Delete user"
                                                     >
                                                         <Trash2 className="w-4 h-4" />

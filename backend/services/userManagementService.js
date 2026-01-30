@@ -1,6 +1,6 @@
 const userRepository = require('../repositories/userRepository');
 const { hashPassword } = require('../utils/password');
-const { validateEmail, validatePassword, validateRoleId, sanitizeInput } = require('../utils/validation');
+const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation');
 const prisma = require('../config/prisma');
 
 /**
@@ -37,6 +37,14 @@ const userManagementService = {
       throw new Error('Invalid role ID');
     }
 
+    // Validate phone number (optional)
+    if (userData.phoneNumber) {
+      const phoneValidation = validatePhoneNumber(userData.phoneNumber);
+      if (!phoneValidation.valid) {
+        throw new Error(phoneValidation.errors.join(', '));
+      }
+    }
+
     // Check if email already exists
     const existingUser = await userRepository.findByEmail(userData.email);
     if (existingUser) {
@@ -53,10 +61,11 @@ const userManagementService = {
       userData.kvkId
     );
 
-    // Sanitize inputs
+    // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
     const sanitizedData = {
       name: sanitizeInput(userData.name),
       email: userData.email.toLowerCase().trim(),
+      phoneNumber: userData.phoneNumber ? userData.phoneNumber.replace(/[\s\-()]/g, '') : null,
       roleId: userData.roleId,
       zoneId: userData.zoneId || null,
       stateId: userData.stateId || null,
@@ -75,6 +84,7 @@ const userManagementService = {
       userId: user.userId,
       name: user.name,
       email: user.email,
+      phoneNumber: user.phoneNumber,
       roleId: user.roleId,
       roleName: user.role.roleName,
       zoneId: user.zoneId,
@@ -114,7 +124,7 @@ const userManagementService = {
         // Super admin can have any hierarchy or none
         break;
 
-      case 'zone_admin':
+      case 'zone_admin': {
         if (!zoneId) {
           throw new Error('Zone admin must be assigned to a zone');
         }
@@ -124,8 +134,9 @@ const userManagementService = {
           throw new Error('Invalid zone ID');
         }
         break;
+      }
 
-      case 'state_admin':
+      case 'state_admin': {
         if (!stateId) {
           throw new Error('State admin must be assigned to a state');
         }
@@ -135,8 +146,9 @@ const userManagementService = {
           throw new Error('Invalid state ID');
         }
         break;
+      }
 
-      case 'district_admin':
+      case 'district_admin': {
         if (!districtId) {
           throw new Error('District admin must be assigned to a district');
         }
@@ -146,8 +158,9 @@ const userManagementService = {
           throw new Error('Invalid district ID');
         }
         break;
+      }
 
-      case 'org_admin':
+      case 'org_admin': {
         if (!orgId) {
           throw new Error('Organization admin must be assigned to an organization');
         }
@@ -157,6 +170,7 @@ const userManagementService = {
           throw new Error('Invalid organization ID');
         }
         break;
+      }
 
       case 'kvk':
         if (!kvkId) {
@@ -226,8 +240,8 @@ const userManagementService = {
         throw new Error('User does not have permission to view users');
     }
 
-    // Merge with additional filters
-    const finalFilters = { ...hierarchyFilters, ...filters };
+    // Merge with additional filters (hierarchyFilters take precedence so enforced scope cannot be bypassed)
+    const finalFilters = { ...filters, ...hierarchyFilters };
 
     // Get users
     let users = await userRepository.findUsersByHierarchy(finalFilters);
@@ -282,24 +296,37 @@ const userManagementService = {
       }
     }
 
-    // Validate role if provided
-    if (userData.roleId && userData.roleId !== existingUser.roleId) {
-      if (!validateRoleId(userData.roleId)) {
+    const nextRoleId = userData.roleId ?? existingUser.roleId;
+    const nextZoneId = userData.zoneId !== undefined ? userData.zoneId : existingUser.zoneId;
+    const nextStateId = userData.stateId !== undefined ? userData.stateId : existingUser.stateId;
+    const nextDistrictId =
+      userData.districtId !== undefined ? userData.districtId : existingUser.districtId;
+    const nextOrgId = userData.orgId !== undefined ? userData.orgId : existingUser.orgId;
+    const nextKvkId = userData.kvkId !== undefined ? userData.kvkId : existingUser.kvkId;
+
+    const hierarchyChanged =
+      userData.roleId !== undefined ||
+      userData.zoneId !== undefined ||
+      userData.stateId !== undefined ||
+      userData.districtId !== undefined ||
+      userData.orgId !== undefined ||
+      userData.kvkId !== undefined;
+
+    if (hierarchyChanged) {
+      if (!validateRoleId(nextRoleId)) {
         throw new Error('Invalid role ID');
       }
-
-      // Validate hierarchy assignment for new role
       await userManagementService.validateHierarchyAssignment(
-        userData.roleId,
-        userData.zoneId,
-        userData.stateId,
-        userData.districtId,
-        userData.orgId,
-        userData.kvkId
+        nextRoleId,
+        nextZoneId,
+        nextStateId,
+        nextDistrictId,
+        nextOrgId,
+        nextKvkId
       );
     }
 
-    // Sanitize inputs
+    // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
     const sanitizedData = {};
     if (userData.name) sanitizedData.name = sanitizeInput(userData.name);
     if (userData.email) sanitizedData.email = userData.email.toLowerCase().trim();
