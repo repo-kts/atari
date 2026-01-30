@@ -1,6 +1,13 @@
 const bcrypt = require('bcrypt');
 
-const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+const DEFAULT_BCRYPT_ROUNDS = 12;
+const parsedRounds = Number.parseInt(process.env.BCRYPT_ROUNDS ?? '', 10);
+const BCRYPT_ROUNDS = Number.isFinite(parsedRounds)
+  ? parsedRounds
+  : DEFAULT_BCRYPT_ROUNDS;
+if (BCRYPT_ROUNDS < 10 || BCRYPT_ROUNDS > 14) {
+  throw new Error('BCRYPT_ROUNDS must be between 10 and 14');
+}
 
 /**
  * Hash a password using bcrypt

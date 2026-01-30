@@ -7,8 +7,8 @@ const authRepository = {
    * @returns {Promise<object|null>} User object with role or null
    */
   findUserByEmail: async (email) => {
-    return await prisma.user.findUnique({
-      where: { email },
+    return await prisma.user.findFirst({
+      where: { email, deletedAt: null },
       include: {
         role: true,
       },
@@ -21,8 +21,8 @@ const authRepository = {
    * @returns {Promise<object|null>} User object with role or null
    */
   findUserById: async (userId) => {
-    return await prisma.user.findUnique({
-      where: { userId },
+    return await prisma.user.findFirst({
+      where: { userId, deletedAt: null },
       include: {
         role: true,
       },
@@ -47,13 +47,29 @@ const authRepository = {
   },
 
   /**
+   * Update refresh token value (e.g. after generating JWT with tokenId)
+   * @param {number} tokenId - Refresh token ID
+   * @param {string} token - JWT refresh token string
+   * @returns {Promise<object>} Updated refresh token
+   */
+  updateRefreshToken: async (tokenId, token) => {
+    return await prisma.refreshToken.update({
+      where: { tokenId },
+      data: { token },
+    });
+  },
+
+  /**
    * Find refresh token by token string
    * @param {string} token - JWT refresh token string
    * @returns {Promise<object|null>} Refresh token with user or null
    */
   findRefreshToken: async (token) => {
-    return await prisma.refreshToken.findUnique({
-      where: { token },
+    return await prisma.refreshToken.findFirst({
+      where: {
+        token,
+        user: { deletedAt: null },
+      },
       include: {
         user: {
           include: {
@@ -131,25 +147,16 @@ const authRepository = {
    * @returns {Promise<boolean>} True if token is valid
    */
   isRefreshTokenValid: async (token) => {
-    const refreshToken = await prisma.refreshToken.findUnique({
-      where: { token },
+    const refreshToken = await prisma.refreshToken.findFirst({
+      where: {
+        token,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+        user: { deletedAt: null },
+      },
     });
 
-    if (!refreshToken) {
-      return false;
-    }
-
-    // Check if revoked
-    if (refreshToken.revokedAt) {
-      return false;
-    }
-
-    // Check if expired
-    if (refreshToken.expiresAt < new Date()) {
-      return false;
-    }
-
-    return true;
+    return !!refreshToken;
   },
 };
 

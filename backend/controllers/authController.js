@@ -33,7 +33,6 @@ const authController = {
       res.cookie('accessToken', result.accessToken, cookieOptions);
       res.cookie('refreshToken', result.refreshToken, refreshCookieOptions);
 
-      // Return user data (tokens are in cookies)
       res.status(200).json({
         message: 'Login successful',
         user: result.user,

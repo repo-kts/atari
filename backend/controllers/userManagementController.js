@@ -50,14 +50,49 @@ const userManagementController = {
       const adminUserId = req.user.userId;
 
       const filters = {};
-      if (req.query.roleId) filters.roleId = parseInt(req.query.roleId, 10);
+      if (req.query.roleId) {
+        const roleId = Number(req.query.roleId);
+        if (!Number.isInteger(roleId)) {
+          return res.status(400).json({ error: 'Invalid roleId' });
+        }
+        filters.roleId = roleId;
+      }
       if (req.query.search) filters.search = req.query.search;
-      if (req.query.zoneId) filters.zoneId = parseInt(req.query.zoneId, 10);
-      if (req.query.stateId) filters.stateId = parseInt(req.query.stateId, 10);
-      if (req.query.districtId)
-        filters.districtId = parseInt(req.query.districtId, 10);
-      if (req.query.orgId) filters.orgId = parseInt(req.query.orgId, 10);
-      if (req.query.kvkId) filters.kvkId = parseInt(req.query.kvkId, 10);
+      if (req.query.zoneId) {
+        const zoneId = Number(req.query.zoneId);
+        if (!Number.isInteger(zoneId)) {
+          return res.status(400).json({ error: 'Invalid zoneId' });
+        }
+        filters.zoneId = zoneId;
+      }
+      if (req.query.stateId) {
+        const stateId = Number(req.query.stateId);
+        if (!Number.isInteger(stateId)) {
+          return res.status(400).json({ error: 'Invalid stateId' });
+        }
+        filters.stateId = stateId;
+      }
+      if (req.query.districtId) {
+        const districtId = Number(req.query.districtId);
+        if (!Number.isInteger(districtId)) {
+          return res.status(400).json({ error: 'Invalid districtId' });
+        }
+        filters.districtId = districtId;
+      }
+      if (req.query.orgId) {
+        const orgId = Number(req.query.orgId);
+        if (!Number.isInteger(orgId)) {
+          return res.status(400).json({ error: 'Invalid orgId' });
+        }
+        filters.orgId = orgId;
+      }
+      if (req.query.kvkId) {
+        const kvkId = Number(req.query.kvkId);
+        if (!Number.isInteger(kvkId)) {
+          return res.status(400).json({ error: 'Invalid kvkId' });
+        }
+        filters.kvkId = kvkId;
+      }
 
       const users = await userManagementService.getUsersForAdmin(
         adminUserId,

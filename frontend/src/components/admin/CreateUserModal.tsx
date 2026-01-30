@@ -300,8 +300,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="text-[#757575] hover:text-[#487749] transition-colors focus:outline-none"
-                                tabIndex={-1}
+                                className="text-[#757575] hover:text-[#487749] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#487749]"
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                aria-pressed={showPassword}
                             >
                                 {showPassword ? (
                                     <EyeOff className="w-5 h-5" />

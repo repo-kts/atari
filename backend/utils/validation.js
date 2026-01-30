@@ -52,20 +52,21 @@ function validatePassword(password) {
 }
 
 /**
- * Sanitize string input (basic XSS prevention)
- * @param {string} input - String to sanitize
- * @returns {string} Sanitized string
+ * Normalize string input (trim only). Blocklist-based sanitization was removed:
+ * it is insufficient for XSS (bypassable via encoded chars, mixed case,
+ * whitespace, etc.). This API serves JSON with Content-Type: application/json;
+ * XSS prevention relies on that and on context-aware output encoding at
+ * render time (frontend). Use a vetted library (e.g. DOMPurify/sanitize-html)
+ * where output is injected into HTML.
+ *
+ * @param {string} input - String to normalize
+ * @returns {string} Trimmed string
  */
 function sanitizeInput(input) {
   if (typeof input !== 'string') {
     return String(input);
   }
-
-  return input
-    .trim()
-    .replace(/[<>]/g, '') // Remove < and > characters
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+=/gi, ''); // Remove event handlers like onclick=
+  return input.trim();
 }
 
 /**

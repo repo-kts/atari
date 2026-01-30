@@ -256,6 +256,7 @@ export const UserManagement: React.FC = () => {
                                                             alert('Edit functionality coming soon')
                                                         }}
                                                         className="p-2 rounded-lg hover:bg-[#F5F5F5] text-[#757575] hover:text-[#487749] transition-colors"
+                                                        aria-label="Edit user"
                                                         title="Edit user"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -264,6 +265,7 @@ export const UserManagement: React.FC = () => {
                                                         onClick={() => handleDelete(user.userId)}
                                                         disabled={isDeleting === user.userId}
                                                         className="p-2 rounded-lg hover:bg-red-50 text-[#757575] hover:text-red-600 transition-colors disabled:opacity-50"
+                                                        aria-label="Delete user"
                                                         title="Delete user"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
