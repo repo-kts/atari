@@ -63,10 +63,13 @@ function validatePassword(password) {
  * @returns {string} Trimmed string
  */
 function sanitizeInput(input) {
-  if (typeof input !== 'string') {
-    return String(input);
+  if (input === null || input === undefined) {
+    return '';
   }
-  return input.trim();
+  if (typeof input === 'string') {
+    return input.trim();
+  }
+  return String(input);
 }
 
 /**

@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
     BrowserRouter as Router,
     Routes,
     Route,
     Navigate,
 } from 'react-router-dom'
+import { setOnSessionExpired } from './services/api'
+import { useAuthStore } from './stores/authStore'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './components/dashboard/Dashboard'
 import { Login } from './pages/Login'
@@ -40,6 +42,13 @@ import { getAllMastersMockData } from './mocks/allMastersMockData'
 import { RouteWrapper } from './components/common/RouteWrapper'
 
 function App() {
+    // When access token expires and refresh fails, clear auth state so user is sent to login
+    useEffect(() => {
+        setOnSessionExpired(() => {
+            useAuthStore.getState().logout()
+        })
+    }, [])
+
     return (
         <Router>
             <Routes>
