@@ -15,7 +15,9 @@
     "seed:superadmin": "node scripts/seedSuperAdmin.js",
     "seed:hierarchy": "node scripts/seedHierarchy.js",
     "seed:all": "node scripts/seedRoles.js && node scripts/seedHierarchy.js && node scripts/seedSuperAdmin.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "prisma generate",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check-imports": "node scripts/check-imports.js"
   },
   "keywords": [],
   "author": "",
