@@ -30,6 +30,32 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api', routes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export the app for serverless environments (Vercel, AWS Lambda, etc.)
+module.exports = app;
+
+// Only start the server if not in a serverless environment
+if (process.env.VERCEL !== '1' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`🔐 API endpoint: http://localhost:${PORT}/api`);
+  });
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use. Please stop the other process or use a different port.`);
+      console.error(`   To find and kill the process: lsof -ti:${PORT} | xargs kill -9`);
+    } else {
+      console.error('❌ Failed to start server:', error.message);
+    }
+    process.exit(1);
+  });
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+      console.log('HTTP server closed');
+    });
+  });
+}

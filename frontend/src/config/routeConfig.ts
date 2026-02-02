@@ -21,7 +21,6 @@ const basicMastersPaths = [
     '/all-master/zones',
     '/all-master/states',
     '/all-master/organizations',
-    '/all-master/universities',
     '/all-master/districts',
 ]
 
@@ -85,18 +84,9 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
-        fields: ['stateName', 'universityName'],
+        fields: ['zoneName', 'stateName', 'uniName'],
     },
-    {
-        path: '/all-master/universities',
-        title: 'University Master',
-        category: 'All Masters',
-        subcategory: 'Basic Masters',
-        parent: '/all-master',
-        subcategoryPath: '/all-master/basic',
-        siblings: basicMastersPaths,
-        fields: ['stateName', 'universityName'],
-    },
+
     {
         path: '/all-master/districts',
         title: 'District Master',

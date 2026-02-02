@@ -48,6 +48,7 @@ export interface InfrastructureRecord {
     deleted_at?: string | null
 }
 
+// DELETE THIS FILE LATER
 export const localStorageService = {
     // KVK Details
     getKVKDetails: (kvkId?: number): KVKDetails[] => {

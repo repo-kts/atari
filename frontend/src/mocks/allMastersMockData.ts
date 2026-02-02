@@ -4,7 +4,7 @@
 
 export interface MasterMockRecord {
   id: number
-  // Other fields are dynamic (zoneName, stateName, etc.)
+  // Other fields are dynamic (zoneName, stateName, etc.) 
   [key: string]: any
 }
 

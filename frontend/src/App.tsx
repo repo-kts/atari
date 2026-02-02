@@ -59,9 +59,9 @@ function App() {
 
                     {/* All Masters - Dynamic MasterView routes */}
                     {allMastersRoutes.map(route => (
-                            <Route
-                                key={route.path}
-                                path={route.path}
+                        <Route
+                            key={route.path}
+                            path={route.path}
                             element={
                                 <MasterView
                                     title={route.title}
@@ -70,7 +70,7 @@ function App() {
                                     mockData={getAllMastersMockData(route.path)}
                                 />
                             }
-                            />
+                        />
                     ))}
 
                     {/* All Masters Catch-all */}

@@ -55,7 +55,7 @@ async function authenticateToken(req, res, next) {
     } else if (error.message === 'Invalid token') {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    
+
     console.error('Authentication error:', error);
     return res.status(500).json({ error: 'Authentication failed' });
   }
@@ -76,7 +76,7 @@ function requireRole(allowedRoles) {
     const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
     if (!roles.includes(userRole)) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Insufficient permissions',
         message: `This action requires one of the following roles: ${roles.join(', ')}`,
       });
