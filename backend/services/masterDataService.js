@@ -1,4 +1,4 @@
-const masterDataRepository = require('../repositories/masterDataRepository');
+const masterDataRepository = require('../repositories/masterDataRepository.js');
 
 /**
  * Generic Master Data Service

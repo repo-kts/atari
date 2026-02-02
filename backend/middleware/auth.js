@@ -1,5 +1,5 @@
-const { verifyToken } = require('../utils/jwt');
-const prisma = require('../config/prisma');
+const { verifyToken } = require('../utils/jwt.js');
+const prisma = require('../config/prisma.js');
 
 /**
  * Middleware to authenticate JWT token from HTTP-only cookie

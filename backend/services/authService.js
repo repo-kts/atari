@@ -1,7 +1,7 @@
-const authRepository = require('../repositories/authRepository');
-const { comparePassword } = require('../utils/password');
-const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt');
-const { validateEmail } = require('../utils/validation');
+const authRepository = require('../repositories/authRepository.js');
+const { comparePassword } = require('../utils/password.js');
+const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt.js');
+const { validateEmail } = require('../utils/validation.js');
 
 /**
  * Service layer for authentication operations

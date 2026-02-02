@@ -1,4 +1,4 @@
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 const authRepository = {
     /**
@@ -8,7 +8,7 @@ const authRepository = {
      */
     findUserByEmail: async (email) => {
         const startTime = performance.now();
-        
+
         const result = await prisma.user.findFirst({
             where: { email, deletedAt: null },
             include: {

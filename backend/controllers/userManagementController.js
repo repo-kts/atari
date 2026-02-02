@@ -1,6 +1,6 @@
 // Controller layer - handles HTTP requests/responses for user management (admin)
-const userManagementService = require('../services/userManagementService');
-const userRepository = require('../repositories/userRepository');
+const userManagementService = require('../services/userManagementService.js');
+const userRepository = require('../repositories/userRepository.js');
 
 const userManagementController = {
   /**

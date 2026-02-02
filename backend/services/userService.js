@@ -1,5 +1,5 @@
 // Service layer - handles business logic
-const userRepository = require('../repositories/userRepository');
+const userRepository = require('../repositories/userRepository.js');
 
 const userService = {
   getAllUsers: async () => {

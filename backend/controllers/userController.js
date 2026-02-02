@@ -1,5 +1,5 @@
 // Controller layer - handles HTTP requests/responses
-const userService = require('../services/userService');
+const userService = require('../services/userService.js');
 
 const userController = {
   getAll: async (req, res) => {

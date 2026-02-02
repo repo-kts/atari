@@ -1,5 +1,5 @@
 // Controller layer - handles HTTP requests/responses for authentication
-const authService = require('../services/authService');
+const authService = require('../services/authService.js');
 
 const authController = {
   /**

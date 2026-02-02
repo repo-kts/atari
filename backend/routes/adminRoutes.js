@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const userManagementController = require('../controllers/userManagementController');
-const { authenticateToken, requireRole } = require('../middleware/auth');
-const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter');
+const userManagementController = require('../controllers/userManagementController.js');
+const { authenticateToken, requireRole } = require('../middleware/auth.js');
+const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
 
 // Apply authentication and admin role check to all admin routes
 router.use(

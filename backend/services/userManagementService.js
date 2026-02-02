@@ -1,7 +1,8 @@
-const userRepository = require('../repositories/userRepository');
-const { hashPassword } = require('../utils/password');
-const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation');
-const prisma = require('../config/prisma');
+const userRepository = require('../repositories/userRepository.js');
+const { hashPassword } = require('../utils/password.js');
+const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
+const prisma = require('../config/prisma.js');
+const authRepository = require('../repositories/authRepository.js');
 
 /**
  * Service layer for user management operations
@@ -382,7 +383,6 @@ const userManagementService = {
     await userRepository.softDeleteUser(userId);
 
     // Revoke all refresh tokens for the user
-    const authRepository = require('../repositories/authRepository');
     await authRepository.revokeAllUserTokens(userId);
 
     return true;

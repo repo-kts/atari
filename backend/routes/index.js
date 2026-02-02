@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const userRoutes = require('./userRoutes');
-const authRoutes = require('./authRoutes');
-const adminRoutes = require('./adminRoutes');
-const masterDataRoutes = require('./masterDataRoutes');
+const userRoutes = require('./userRoutes.js');
+const authRoutes = require('./authRoutes.js');
+const adminRoutes = require('./adminRoutes.js');
+const masterDataRoutes = require('./masterDataRoutes.js');
 
 // Mount routes
 router.use('/auth', authRoutes);

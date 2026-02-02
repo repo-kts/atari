@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireRole } = require('../middleware/auth');
-const masterDataController = require('../controllers/masterDataController');
+const { authenticateToken, requireRole } = require('../middleware/auth.js');
+const masterDataController = require('../controllers/masterDataController.js');
 
 /**
  * Master Data Routes
