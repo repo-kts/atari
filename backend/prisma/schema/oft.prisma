@@ -1,12 +1,6 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// ============================================
+// OFT (On Farm Trial) MODELS
+// ============================================
 
 model OftSubject {
   oftSubjectId   Int    @id @default(autoincrement()) @map("oft_subject_id")
@@ -16,9 +10,7 @@ model OftSubject {
 
   @@map("oft_subject")
   @@index([subjectName])
-} 
-
-
+}
 
 model OftThematicArea {
   oftThematicAreaId Int    @id @default(autoincrement()) @map("oft_thematic_area_id")

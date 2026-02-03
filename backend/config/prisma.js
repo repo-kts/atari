@@ -9,11 +9,12 @@ if (!process.env.DATABASE_URL) {
 // Create a PostgreSQL connection pool optimized for high concurrency
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
     // Optimized pool settings for high-performance concurrent requests
     max: 20, // Increased for better concurrency
     min: 5, // Keep more connections ready
     idleTimeoutMillis: 30000, // Faster cleanup of idle connections
-    connectionTimeoutMillis: 5000, // Reduced timeout for faster failure detection
+    connectionTimeoutMillis: 20000, // Reduced timeout for faster failure detection
     // Performance optimizations
     allowExitOnIdle: false,
     keepAlive: false, // Disable to reduce overhead

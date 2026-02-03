@@ -1,4 +1,4 @@
-const masterDataService = require('../services/masterDataService.js');
+const masterDataService = require('../../services/all-masters/masterDataService.js');
 
 /**
  * Generic Master Data Controller

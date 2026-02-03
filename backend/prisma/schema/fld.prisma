@@ -1,12 +1,6 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// ============================================
+// FLD (Front Line Demonstration) MODELS
+// ============================================
 
 model Sector {
   sectorId   Int    @id @default(autoincrement()) @map("sector_id")
@@ -14,12 +8,12 @@ model Sector {
 
   thematicAreas FldThematicArea[]
   categories    FldCategory[]
+  subCategories FldSubcategory[]
+  crops         FldCrop[]
 
   @@map("sector")
   @@index([sectorName])
 }
-
- 
 
 model FldThematicArea {
   thematicAreaId   Int    @id @default(autoincrement()) @map("thematic_area_id")
@@ -41,12 +35,12 @@ model FldCategory {
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   subCategories FldSubcategory[]
+  crops         FldCrop[]
 
   @@map("category")
   @@index([sectorId])
   @@index([categoryName])
 }
-
 
 model FldSubcategory {
   subCategoryId   Int    @id @default(autoincrement()) @map("sub_category_id")
@@ -55,11 +49,17 @@ model FldSubcategory {
   categoryId Int
   category   FldCategory @relation(fields: [categoryId], references: [categoryId])
 
+  sectorId Int @map("sector_id")
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
   crops FldCrop[]
 
   @@map("sub_category")
   @@index([categoryId])
+  @@index([sectorId])
   @@index([subCategoryName])
+  @@index([categoryId, subCategoryId])
+  @@index([subCategoryId, subCategoryName])
 }
 
 model FldCrop {
@@ -69,7 +69,16 @@ model FldCrop {
   subCategoryId Int
   subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
+  categoryId Int @map("category_id")
+  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
+
+  sectorId Int @map("sector_id")
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
   @@map("crop")
   @@index([subCategoryId])
+  @@index([categoryId])
+  @@index([sectorId])
   @@index([cropName])
+  @@index([subCategoryId, cropName])
 }

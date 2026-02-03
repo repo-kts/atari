@@ -57,7 +57,7 @@ function App() {
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
 
-                    {/* All Masters - Dynamic MasterView routes */}
+                    {/* All Masters - Dynamic MasterView routes (includes basic masters AND OFT/FLD masters) */}
                     {allMastersRoutes.map(route => (
                         <Route
                             key={route.path}

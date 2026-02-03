@@ -107,7 +107,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['subjectName', 'thematicAreasCount'],
     },
     {
         path: '/all-master/oft/thematic-area',
@@ -117,7 +117,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['thematicAreaName', 'subjectName'],
     },
 
     // FLD Master
@@ -129,7 +129,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['sectorName', 'categoriesCount'],
     },
     {
         path: '/all-master/fld/thematic-area',
@@ -139,7 +139,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['thematicAreaName', 'sectorName'],
     },
     {
         path: '/all-master/fld/category',
@@ -149,7 +149,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['categoryName', 'sectorName', 'subCategoriesCount'],
     },
     {
         path: '/all-master/fld/sub-category',
@@ -159,7 +159,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['subCategoryName', 'categoryName', 'sectorName', 'cropsCount'],
     },
     {
         path: '/all-master/fld/crop',
@@ -169,7 +169,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['cropName', 'subCategoryName', 'categoryName'],
     },
 
     // CFLD Master
@@ -181,8 +181,9 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/oft-fld',
         siblings: oftFldMastersPaths,
-        fields: ['name'],
+        fields: ['seasonName', 'cropTypeName', 'cropName'],
     },
+
 
     // Training Master
     {
@@ -193,7 +194,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/training-extension',
         siblings: trainingExtensionMastersPaths,
-        fields: ['name'],
+        fields: ['trainingType'],
     },
     {
         path: '/all-master/training-area',
@@ -203,7 +204,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/training-extension',
         siblings: trainingExtensionMastersPaths,
-        fields: ['name'],
+        fields: ['trainingType', 'trainingAreaName'],
     },
     {
         path: '/all-master/training-thematic',
@@ -213,7 +214,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/training-extension',
         siblings: trainingExtensionMastersPaths,
-        fields: ['name'],
+        fields: ['trainingAreaName', 'trainingThematicArea'],
     },
 
     // Extension & Events
@@ -245,7 +246,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/training-extension',
         siblings: trainingExtensionMastersPaths,
-        fields: ['name'],
+        fields: ['eventName'],
     },
 
     // Production
@@ -257,7 +258,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['productCategoryName'],
     },
     {
         path: '/all-master/product-type',
@@ -267,7 +268,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['productCategoryName', 'productCategoryType'],
     },
     {
         path: '/all-master/product',
@@ -277,7 +278,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['productCategoryName', 'productCategoryType', 'productName'],
     },
 
     // CRA
@@ -289,7 +290,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['season', 'cropName'],
     },
     {
         path: '/all-master/cra-farming-system',
@@ -299,7 +300,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['season', 'farmingSystemName'],
     },
 
     // ARYA
@@ -311,7 +312,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['name'],
+        fields: ['EnterpriseName'],
     },
 
     // Publications
@@ -323,7 +324,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/publications',
         siblings: ['/all-master/publication-item'],
-        fields: ['name'],
+        fields: ['publicationItem'],
     },
 ]
 

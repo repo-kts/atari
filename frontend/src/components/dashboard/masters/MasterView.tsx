@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Search, Download, Edit2, Trash2, X, ChevronLeft } from 'lucide-react'
+import { Plus, Search, Download, Edit2, Trash2, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../common/Breadcrumbs'
 import { TabNavigation } from '../../common/TabNavigation'
 import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '../../../config/routeConfig'
 import { getAllMastersMockData } from '../../../mocks/allMastersMockData'
 import { Card, CardContent } from '../../ui/Card'
 import { useMasterData } from '../../../hooks/useMasterData'
-import type { EntityType, Zone, State } from '../../../types/masterData'
+import type { EntityType } from '../../../types/masterData'
+import { MasterDataModal } from './MasterDataModal'
+
+import {
+    useOftSubjects,
+    useOftThematicAreas,
+    useSectors,
+    useFldThematicAreas,
+    useFldCategories,
+    useFldSubcategories,
+    useFldCrops,
+    useCfldCrops,
+} from '../../../hooks/useOftFldData'
 
 interface MasterViewProps {
     title: string
@@ -16,29 +28,52 @@ interface MasterViewProps {
     mockData?: any[]
 }
 
+// Extended entity type for OFT/FLD masters
+type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops'
+
 // Map route paths to entity types
-const getEntityTypeFromPath = (path: string): EntityType | null => {
+const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
+    // Basic masters
     if (path.includes('/zones')) return 'zones'
     if (path.includes('/states')) return 'states'
     if (path.includes('/districts')) return 'districts'
     if (path.includes('/organizations') || path.includes('/universities')) return 'organizations'
+
+    // OFT/FLD masters
+    if (path === '/all-master/oft/subject') return 'oft-subjects'
+    if (path === '/all-master/oft/thematic-area') return 'oft-thematic-areas'
+    if (path === '/all-master/fld/sector') return 'fld-sectors'
+    if (path === '/all-master/fld/thematic-area') return 'fld-thematic-areas'
+    if (path === '/all-master/fld/category') return 'fld-categories'
+    if (path === '/all-master/fld/sub-category') return 'fld-subcategories'
+    if (path === '/all-master/fld/crop') return 'fld-crops'
+    if (path === '/all-master/cfld-crop') return 'cfld-crops'
+
     return null
 }
 
 // Get ID field name based on entity type
-const getIdField = (entityType: EntityType): string => {
+const getIdField = (entityType: ExtendedEntityType): string => {
     switch (entityType) {
         case 'zones': return 'zoneId'
         case 'states': return 'stateId'
         case 'districts': return 'districtId'
         case 'organizations': return 'orgId'
+        case 'oft-subjects': return 'oftSubjectId'
+        case 'oft-thematic-areas': return 'oftThematicAreaId'
+        case 'fld-sectors': return 'sectorId'
+        case 'fld-thematic-areas': return 'thematicAreaId'
+        case 'fld-categories': return 'categoryId'
+        case 'fld-subcategories': return 'subCategoryId'
+        case 'fld-crops': return 'cropId'
+        case 'cfld-crops': return 'cfldId'
     }
 }
 
 // Get field value from item, handling nested objects
 const getFieldValue = (item: any, field: string): string => {
     // Direct field access
-    if (item[field]) return item[field]
+    if (item[field] !== undefined && item[field] !== null) return String(item[field])
 
     // Handle nested fields for related data
     if (field === 'zoneName') {
@@ -50,6 +85,39 @@ const getFieldValue = (item: any, field: string): string => {
 
     if (field === 'stateName' && item.state?.stateName) return item.state.stateName
     if (field === 'uniName' && item.uniName) return item.uniName
+
+
+    // OFT/FLD specific nested fields
+    if (field === 'subjectName' && item.subject?.subjectName) return item.subject.subjectName
+
+    // Handle sectorName - can be direct or nested through category
+    if (field === 'sectorName') {
+        if (item.sector?.sectorName) return item.sector.sectorName
+        // For subcategories: item.category.sector.sectorName
+        if (item.category?.sector?.sectorName) return item.category.sector.sectorName
+    }
+
+    if (field === 'categoryName' && item.category?.categoryName) return item.category.categoryName
+    if (field === 'subCategoryName' && item.subCategory?.subCategoryName) return item.subCategory.subCategoryName
+
+    // CFLD specific fields
+    if (field === 'seasonName' && item.season?.seasonName) return item.season.seasonName
+    if (field === 'cropTypeName' && item.cropType?.typeName) return item.cropType.typeName
+    if (field === 'cropName' && item.CropName) return item.CropName
+
+    // Handle count fields from _count object
+    if (field === 'thematicAreasCount' && item._count?.thematicAreas !== undefined) {
+        return String(item._count.thematicAreas)
+    }
+    if (field === 'categoriesCount' && item._count?.categories !== undefined) {
+        return String(item._count.categories)
+    }
+    if (field === 'subCategoriesCount' && item._count?.subCategories !== undefined) {
+        return String(item._count.subCategories)
+    }
+    if (field === 'cropsCount' && item._count?.crops !== undefined) {
+        return String(item._count.crops)
+    }
 
     return '-'
 }
@@ -76,10 +144,24 @@ export const MasterView: React.FC<MasterViewProps> = ({
 
     // Determine if this is a master data entity
     const entityType = getEntityTypeFromPath(location.pathname)
+    const isBasicMasterEntity = entityType && ['zones', 'states', 'districts', 'organizations'].includes(entityType)
     const isMasterDataEntity = entityType !== null
 
-    // Use real API for master data entities, mock data for others
-    const masterDataHook = isMasterDataEntity ? useMasterData(entityType!) : null
+    // Use appropriate hooks based on entity type
+    const basicMasterHook = isBasicMasterEntity ? useMasterData(entityType as EntityType) : null
+    const oftSubjectsHook = entityType === 'oft-subjects' ? useOftSubjects() : null
+    const oftThematicAreasHook = entityType === 'oft-thematic-areas' ? useOftThematicAreas() : null
+    const sectorsHook = entityType === 'fld-sectors' ? useSectors() : null
+    const fldThematicAreasHook = entityType === 'fld-thematic-areas' ? useFldThematicAreas() : null
+    const fldCategoriesHook = entityType === 'fld-categories' ? useFldCategories() : null
+    const fldSubcategoriesHook = entityType === 'fld-subcategories' ? useFldSubcategories() : null
+    const fldCropsHook = entityType === 'fld-crops' ? useFldCrops() : null
+    const cfldCropsHook = entityType === 'cfld-crops' ? useCfldCrops() : null
+
+    // Get the active hook
+    const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
+        fldThematicAreasHook || fldCategoriesHook || fldSubcategoriesHook ||
+        fldCropsHook || cfldCropsHook
 
     // Initialize items based on entity type
     const [items, setItems] = useState<any[]>(() => {
@@ -106,9 +188,9 @@ export const MasterView: React.FC<MasterViewProps> = ({
 
     // Sync data from API or mock
     useEffect(() => {
-        if (isMasterDataEntity && masterDataHook) {
+        if (isMasterDataEntity && activeHook) {
             // Use real API data for master data entities
-            setItems(masterDataHook.data)
+            setItems(activeHook.data)
         } else {
             // Use mock data for non-master entities
             if (mockData && mockData.length) {
@@ -117,7 +199,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
                 setItems(getAllMastersMockData(location.pathname))
             }
         }
-    }, [mockData, location.pathname, isMasterDataEntity, masterDataHook?.data])
+    }, [mockData, location.pathname, isMasterDataEntity, activeHook?.data])
 
     // Debounce search
     useEffect(() => {
@@ -155,10 +237,10 @@ export const MasterView: React.FC<MasterViewProps> = ({
             return
         }
 
-        if (isMasterDataEntity && masterDataHook && entityType) {
+        if (isMasterDataEntity && activeHook && entityType) {
             try {
                 const idField = getIdField(entityType)
-                await masterDataHook.remove(item[idField])
+                await activeHook.remove(item[idField])
             } catch (err: any) {
                 alert(err.message || 'Failed to delete. This item may have dependent records.')
             }
@@ -175,17 +257,23 @@ export const MasterView: React.FC<MasterViewProps> = ({
     }
 
     const handleSaveModal = async () => {
-        if (isMasterDataEntity && masterDataHook && entityType) {
+        if (isMasterDataEntity && activeHook && entityType) {
             try {
                 if (editingItem) {
                     // Update - filter out read-only fields (ID, _count, nested objects)
                     const idField = getIdField(entityType)
-                    const { [idField]: _, _count, zone, state, ...updateData } = formData
-                    await masterDataHook.update(editingItem[idField], updateData)
+                    const { [idField]: _, _count, zone, state, subject, sector, category, subCategory, season, cropType, ...updateData } = formData
+
+                    // Different update signatures for different hooks
+                    if (isBasicMasterEntity) {
+                        await (activeHook as any).update(editingItem[idField], updateData)
+                    } else {
+                        await (activeHook as any).update({ id: editingItem[idField], data: updateData })
+                    }
                 } else {
                     // Create - remove read-only nested objects but keep foreign key IDs
-                    const { _count, zone, state, ...createData } = formData
-                    await masterDataHook.create(createData)
+                    const { _count, zone, state, subject, sector, category, subCategory, season, cropType, ...createData } = formData
+                    await activeHook.create(createData)
                 }
                 setIsModalOpen(false)
                 setEditingItem(null)
@@ -225,8 +313,8 @@ export const MasterView: React.FC<MasterViewProps> = ({
         window.URL.revokeObjectURL(url)
     }
 
-    const loading = isMasterDataEntity && masterDataHook ? masterDataHook.loading : false
-    const error = isMasterDataEntity && masterDataHook ? masterDataHook.error : null
+    const loading = isMasterDataEntity && activeHook ? ('isLoading' in activeHook ? activeHook.isLoading : activeHook.loading) : false
+    const error = isMasterDataEntity && activeHook ? (activeHook.error ? (activeHook.error instanceof Error ? activeHook.error.message : activeHook.error) : null) : null
 
     return (
         <div className="bg-white rounded-2xl p-1">
@@ -477,213 +565,6 @@ export const MasterView: React.FC<MasterViewProps> = ({
                     }}
                 />
             )}
-        </div>
-    )
-}
-
-// Modal Component
-function MasterDataModal({
-    entityType,
-    title,
-    formData,
-    setFormData,
-    onSave,
-    onClose,
-}: {
-    entityType: EntityType | null
-    title: string
-    formData: any
-    setFormData: (data: any) => void
-    onSave: () => void
-    onClose: () => void
-}) {
-    const { data: zones } = useMasterData<Zone>('zones')
-    const { data: states } = useMasterData<State>('states')
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        onSave()
-    }
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between p-6 border-b border-[#E0E0E0]">
-                    <h2 className="text-xl font-semibold text-[#212121]">{title}</h2>
-                    <button
-                        onClick={onClose}
-                        className="p-1 hover:bg-[#F5F5F5] rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5 text-[#757575]" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {entityType === 'zones' && (
-                        <div>
-                            <label className="block text-sm font-medium text-[#212121] mb-2">
-                                Zone Name <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                value={formData.zoneName || ''}
-                                onChange={(e) => setFormData({ ...formData, zoneName: e.target.value })}
-                                required
-                                placeholder="Enter zone name"
-                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                            />
-                        </div>
-                    )}
-
-                    {entityType === 'states' && (
-                        <>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    State Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.stateName || ''}
-                                    onChange={(e) => setFormData({ ...formData, stateName: e.target.value })}
-                                    required
-                                    placeholder="Enter state name"
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    Zone <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    value={formData.zoneId || ''}
-                                    onChange={(e) => setFormData({ ...formData, zoneId: parseInt(e.target.value) })}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                >
-                                    <option value="">Select zone</option>
-                                    {zones.map((zone) => (
-                                        <option key={zone.zoneId} value={zone.zoneId}>
-                                            {zone.zoneName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </>
-                    )}
-
-                    {entityType === 'districts' && (
-                        <>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    District Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.districtName || ''}
-                                    onChange={(e) => setFormData({ ...formData, districtName: e.target.value })}
-                                    required
-                                    placeholder="Enter district name"
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    Zone <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    value={formData.zoneId || ''}
-                                    onChange={(e) => {
-                                        const zoneId = parseInt(e.target.value)
-                                        setFormData({ ...formData, zoneId, stateId: '' })
-                                    }}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                >
-                                    <option value="">Select zone</option>
-                                    {zones.map((zone) => (
-                                        <option key={zone.zoneId} value={zone.zoneId}>
-                                            {zone.zoneName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    State <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    value={formData.stateId || ''}
-                                    onChange={(e) => setFormData({ ...formData, stateId: parseInt(e.target.value) })}
-                                    required
-                                    disabled={!formData.zoneId}
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all disabled:bg-[#F5F5F5] disabled:cursor-not-allowed"
-                                >
-                                    <option value="">Select state</option>
-                                    {states
-                                        .filter((state) => state.zoneId === formData.zoneId)
-                                        .map((state) => (
-                                            <option key={state.stateId} value={state.stateId}>
-                                                {state.stateName}
-                                            </option>
-                                        ))}
-                                </select>
-                            </div>
-                        </>
-                    )}
-
-                    {entityType === 'organizations' && (
-                        <>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    Organization Name <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={formData.uniName || ''}
-                                    onChange={(e) => setFormData({ ...formData, uniName: e.target.value })}
-                                    required
-                                    placeholder="Enter organization name"
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-[#212121] mb-2">
-                                    State <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    value={formData.stateId || ''}
-                                    onChange={(e) => setFormData({ ...formData, stateId: parseInt(e.target.value) })}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
-                                >
-                                    <option value="">Select state</option>
-                                    {states.map((state) => (
-                                        <option key={state.stateId} value={state.stateId}>
-                                            {state.stateName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </>
-                    )}
-
-                    <div className="flex justify-end gap-3 pt-4 border-t border-[#E0E0E0]">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#757575] hover:bg-[#F5F5F5] transition-all"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all shadow-sm hover:shadow-md"
-                        >
-                            {formData.zoneId || formData.stateId || formData.districtId || formData.orgId ? 'Update' : 'Create'}
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     )
 }

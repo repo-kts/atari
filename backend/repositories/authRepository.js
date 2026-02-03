@@ -7,7 +7,6 @@ const authRepository = {
      * @returns {Promise<object|null>} User object with role or null
      */
     findUserByEmail: async (email) => {
-        const startTime = performance.now();
 
         const result = await prisma.user.findFirst({
             where: { email, deletedAt: null },
@@ -15,8 +14,6 @@ const authRepository = {
                 role: true,
             },
         });
-        const endTime = performance.now();
-        console.log(`[DB TIMER] findUserByEmail took ${(endTime - startTime).toFixed(2)}ms`);
         return result;
     },
 

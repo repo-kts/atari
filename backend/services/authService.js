@@ -16,7 +16,7 @@ const authService = {
      */
     login: async (email, password) => {
         const loginStartTime = performance.now();
-        console.log('[LOGIN TIMER] Starting login process...');
+        console.log('[LOGIN TIMER] Starting login processaaa...');
 
         // Validate email format
         if (!validateEmail(email)) {
@@ -24,7 +24,10 @@ const authService = {
         }
 
         // Find user by email
+        const findUserStart = performance.now();
         const user = await authRepository.findUserByEmail(email);
+        const findUserEnd = performance.now();
+        console.log(`[LOGIN TIMER] Finding user took ${(findUserEnd - findUserStart).toFixed(2)}ms`);
         if (!user) {
             throw new Error('Invalid email or password');
         }
@@ -35,10 +38,7 @@ const authService = {
         }
 
         // Verify password
-        const passwordStartTime = performance.now();
         const isPasswordValid = await comparePassword(password, user.passwordHash);
-        const passwordEndTime = performance.now();
-        console.log(`[LOGIN TIMER] Password comparison took ${(passwordEndTime - passwordStartTime).toFixed(2)}ms`);
 
         if (!isPasswordValid) {
             throw new Error('Invalid email or password');
@@ -56,6 +56,7 @@ const authService = {
         const crypto = require('crypto');
         const tempToken = `temp_${user.userId}_${Date.now()}_${crypto.randomBytes(16).toString('hex')}`;
 
+        const refreshTokenStart = performance.now();
         const refreshTokenRecord = await authRepository.createRefreshToken(
             user.userId,
             tempToken,
@@ -63,9 +64,14 @@ const authService = {
         );
         const refreshToken = generateRefreshToken(user.userId, refreshTokenRecord.tokenId);
         await authRepository.updateRefreshToken(refreshTokenRecord.tokenId, refreshToken);
+        const refreshTokenEnd = performance.now();
+        console.log(`[LOGIN TIMER] Refresh token DB operations took ${(refreshTokenEnd - refreshTokenStart).toFixed(2)}ms`);
 
         // Update last login timestamp
+        const lastLoginStart = performance.now();
         await authRepository.updateLastLogin(user.userId);
+        const lastLoginEnd = performance.now();
+        console.log(`[LOGIN TIMER] Updating last login took ${(lastLoginEnd - lastLoginStart).toFixed(2)}ms`);
 
         const loginEndTime = performance.now();
         console.log(`[LOGIN TIMER] Total login process took ${(loginEndTime - loginStartTime).toFixed(2)}ms`);

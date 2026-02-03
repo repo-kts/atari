@@ -1,0 +1,97 @@
+// ============================================
+// AUTHENTICATION & AUTHORIZATION MODELS
+// ============================================
+
+model Role {
+  roleId          Int              @id @default(autoincrement()) @map("role_id")
+  roleName        String           @map("role_name")
+  description     String?
+  rolePermissions RolePermission[]
+  users           User[]
+
+  @@map("roles")
+}
+
+model Module {
+  moduleId    Int          @id @default(autoincrement()) @map("module_id")
+  menuName    String       @map("menu_name")
+  subMenuName String       @map("sub_menu_name")
+  moduleCode  String       @unique @map("module_code")
+  permissions Permission[]
+
+  @@map("modules")
+}
+
+model Permission {
+  permissionId    Int              @id @default(autoincrement()) @map("permission_id")
+  moduleId        Int              @map("module_id")
+  action          PermissionAction
+  module          Module           @relation(fields: [moduleId], references: [moduleId])
+  rolePermissions RolePermission[]
+
+  @@index([moduleId])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  permission   Permission @relation(fields: [permissionId], references: [permissionId])
+  role         Role       @relation(fields: [roleId], references: [roleId])
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshToken {
+  tokenId   Int       @id @default(autoincrement()) @map("token_id")
+  userId    Int       @map("user_id")
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenId])
+  @@index([token])
+  @@index([userId, revokedAt, expiresAt])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+
+model User {
+  userId        Int             @id @default(autoincrement()) @map("user_id")
+  name          String
+  email         String          @unique
+  passwordHash  String          @map("password_hash")
+  roleId        Int             @map("role_id")
+  zoneId        Int?            @map("zone_id")
+  stateId       Int?            @map("state_id")
+  districtId    Int?            @map("district_id")
+  orgId         Int?            @map("org_id")
+  kvkId         Int?            @map("kvk_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+  lastLoginAt   DateTime?       @map("last_login_at")
+  deletedAt     DateTime?       @map("deleted_at")
+  phoneNumber   String?         @map("phone_number")
+  refreshTokens RefreshToken[]
+  district      DistrictMaster? @relation(fields: [districtId], references: [districtId])
+  org           OrgMaster?      @relation(fields: [orgId], references: [orgId])
+  role          Role            @relation(fields: [roleId], references: [roleId])
+  state         StateMaster?    @relation(fields: [stateId], references: [stateId])
+  zone          Zone?           @relation(fields: [zoneId], references: [zoneId])
+
+  @@index([userId])
+  @@index([email, deletedAt])
+  @@index([roleId])
+  @@index([deletedAt])
+  @@index([zoneId])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([orgId])
+  @@index([lastLoginAt])
+  @@map("users")
+}

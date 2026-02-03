@@ -1,7 +1,7 @@
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
-}
+} 
 
 datasource db {
   provider = "postgresql"
@@ -15,4 +15,7 @@ model FLDCropMaster {
   CropName  String @map("crop_name")
 
   @@map("fld_crop_master")
+  @@index([Season])
+  @@index([Type])
+  @@index([CropName])
 }
