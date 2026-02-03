@@ -1,7 +1,4 @@
-// ============================================
-// AUTHENTICATION & AUTHORIZATION MODELS
-// ============================================
-// Models only; generator/datasource in prisma/schema.prisma
+// User, Role, Module, Permission, RefreshToken - auth & RBAC
 
 enum PermissionAction {
   VIEW

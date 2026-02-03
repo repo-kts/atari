@@ -1,12 +1,4 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// Training (Type → Area → ThematicArea) - models only; generator/datasource in schema.prisma
 
 model TrainingType {
   trainingTypeId   Int    @id @default(autoincrement()) @map("training_type_id")

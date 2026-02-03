@@ -1,10 +1,6 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-}
+// ============================================
+// AUTHENTICATION & AUTHORIZATION MODELS
+// ============================================
 
 model Role {
   roleId          Int              @id @default(autoincrement()) @map("role_id")
@@ -33,7 +29,7 @@ model Permission {
   module          Module           @relation(fields: [moduleId], references: [moduleId])
   rolePermissions RolePermission[]
 
-  @@index([moduleId]) // Index for module-based permission lookups
+  @@index([moduleId])
   @@map("permissions")
 }
 
@@ -56,8 +52,8 @@ model RefreshToken {
   revokedAt DateTime? @map("revoked_at")
   user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  // Indexes for performance optimization
   @@index([userId])
+  @@index([tokenId])
   @@index([token])
   @@index([userId, revokedAt, expiresAt])
   @@index([expiresAt])
@@ -88,7 +84,7 @@ model User {
   state         StateMaster?    @relation(fields: [stateId], references: [stateId])
   zone          Zone?           @relation(fields: [zoneId], references: [zoneId])
 
-  // Indexes for performance optimization
+  @@index([userId])
   @@index([email, deletedAt])
   @@index([roleId])
   @@index([deletedAt])
@@ -98,62 +94,4 @@ model User {
   @@index([orgId])
   @@index([lastLoginAt])
   @@map("users")
-}
-
-model Zone {
-  zoneId    Int              @id @default(autoincrement()) @map("zone_id")
-  zoneName  String           @unique @map("zone_name")
-  districts DistrictMaster[]
-  states    StateMaster[]
-  users     User[]
-
-  @@map("zone")
-}
-
-model StateMaster {
-  stateId   Int              @id @default(autoincrement()) @map("state_id")
-  stateName String           @map("state_name")
-  zoneId    Int
-  districts DistrictMaster[]
-  orgs      OrgMaster[]
-  zone      Zone             @relation(fields: [zoneId], references: [zoneId])
-  users     User[]
-
-  @@index([zoneId])
-  @@index([stateName])
-  @@map("stateMaster")
-}
-
-model DistrictMaster {
-  districtId   Int         @id @default(autoincrement()) @map("district_id")
-  districtName String      @map("district_name")
-  stateId      Int
-  zoneId       Int
-  state        StateMaster @relation(fields: [stateId], references: [stateId])
-  zone         Zone        @relation(fields: [zoneId], references: [zoneId])
-  users        User[]
-
-  @@index([stateId])
-  @@index([zoneId])
-  @@index([districtName])
-  @@map("districtMaster")
-}
-
-model OrgMaster {
-  orgId   Int         @id @default(autoincrement()) @map("org_id")
-  uniName String      @map("uni_name")
-  stateId Int
-  state   StateMaster @relation(fields: [stateId], references: [stateId])
-  users   User[]
-
-  @@index([stateId])
-  @@index([uniName])
-  @@map("orgMaster")
-}
-
-enum PermissionAction {
-  VIEW
-  ADD
-  EDIT
-  DELETE
 }

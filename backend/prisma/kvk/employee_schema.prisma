@@ -1,12 +1,4 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
+// KVK staff / employee - models only; generator/datasource in schema.prisma
 
 enum StaffCategory {
   SC
@@ -43,8 +35,8 @@ enum PayLevel {
 }
 
 model SanctionedPost {
-  sanctionedPostId Int    @id @default(autoincrement()) @map("sanctioned_post_id")
-  postName         String @unique @map("post_name")
+  sanctionedPostId Int       @id @default(autoincrement()) @map("sanctioned_post_id")
+  postName         String    @unique @map("post_name")
 
   staff KvkStaff[]
 
@@ -66,25 +58,23 @@ model KvkStaff {
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  staffName String @map("staff_name")
-  email     String? @map("email")
-  mobile    String  @map("mobile")
+  staffName   String    @map("staff_name")
+  email      String?   @map("email")
+  mobile     String    @map("mobile")
   dateOfBirth DateTime @map("date_of_birth")
 
   photoPath  String? @map("photo_path")
   resumePath String? @map("resume_path")
 
   sanctionedPostId Int
-  sanctionedPost   SanctionedPost
-    @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+  sanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
 
   positionOrder Int @map("position_order")
 
   disciplineId Int
-  discipline   Discipline
-    @relation(fields: [disciplineId], references: [disciplineId])
+  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
 
-  payScale String? @map("pay_scale")
+  payScale String?  @map("pay_scale")
   payLevel PayLevel @map("pay_level")
 
   dateOfJoining DateTime @map("date_of_joining")
