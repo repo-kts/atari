@@ -9,6 +9,8 @@
     "dev": "node --watch index.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:baseline:user-permissions": "prisma db execute --file ./prisma/migrations/20260204000000_add_user_permissions/migration.sql && prisma migrate resolve --applied \"20260204000000_add_user_permissions\"",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed:roles": "node scripts/seedRoles.js",

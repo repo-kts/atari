@@ -8,6 +8,15 @@ const authRepository = require('../repositories/authRepository.js');
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 
+/** Non-admin roles that each creator role can assign (admins cannot create other admins) */
+const ALLOWED_ROLES_FOR_CREATOR = {
+  zone_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
+  state_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
+  district_admin: ['district_user', 'org_user', 'kvk'],
+  org_admin: ['org_user', 'kvk'],
+  kvk: ['kvk'],
+};
+
 /**
  * Service layer for user management operations
  */
@@ -74,7 +83,13 @@ const userManagementService = {
     }
     const creatorRoleName = creator.role?.roleName;
 
-    // When creator is not super_admin: require permissions and enforce hierarchy scope
+    let effectiveRoleId = userData.roleId;
+    let effectiveZoneId = userData.zoneId || null;
+    let effectiveStateId = userData.stateId || null;
+    let effectiveDistrictId = userData.districtId || null;
+    let effectiveOrgId = userData.orgId || null;
+    let effectiveKvkId = userData.kvkId || null;
+
     if (creatorRoleName !== 'super_admin') {
       const permissions = options.permissions;
       if (!permissions || !Array.isArray(permissions) || permissions.length === 0) {
@@ -84,7 +99,39 @@ const userManagementService = {
       if (invalid.length > 0) {
         throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
       }
-      await userManagementService.validateCreatorHierarchyScope(createdBy, userData);
+      // New user gets same zone/state/district/org as the creating admin; only kvkId may differ (e.g. when role is kvk)
+      effectiveZoneId = creator.zoneId ?? null;
+      effectiveStateId = creator.stateId ?? null;
+      effectiveDistrictId = creator.districtId ?? null;
+      effectiveOrgId = creator.orgId ?? null;
+      effectiveKvkId = userData.kvkId || creator.kvkId || null;
+
+      const effectiveUserData = {
+        zoneId: effectiveZoneId,
+        stateId: effectiveStateId,
+        districtId: effectiveDistrictId,
+        orgId: effectiveOrgId,
+        kvkId: effectiveKvkId,
+      };
+      await userManagementService.validateCreatorHierarchyScope(createdBy, effectiveUserData);
+      // Non–super-admin can only assign non-admin roles (state_user, district_user, org_user, kvk) per their level
+      const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
+      if (!requestedRole) {
+        throw new Error('Invalid role');
+      }
+      const allowed = ALLOWED_ROLES_FOR_CREATOR[creatorRoleName];
+      if (!allowed || !allowed.includes(requestedRole.roleName)) {
+        throw new Error(`You can only create users with the following roles: ${(allowed || []).join(', ')}`);
+      }
+      effectiveRoleId = userData.roleId;
+      await userManagementService.validateHierarchyAssignment(
+        effectiveRoleId,
+        effectiveZoneId,
+        effectiveStateId,
+        effectiveDistrictId,
+        effectiveOrgId,
+        effectiveKvkId
+      );
     }
 
     // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
@@ -92,12 +139,12 @@ const userManagementService = {
       name: sanitizeInput(userData.name),
       email: userData.email.toLowerCase().trim(),
       phoneNumber: userData.phoneNumber ? userData.phoneNumber.replace(/[\s\-()]/g, '') : null,
-      roleId: userData.roleId,
-      zoneId: userData.zoneId || null,
-      stateId: userData.stateId || null,
-      districtId: userData.districtId || null,
-      orgId: userData.orgId || null,
-      kvkId: userData.kvkId || null,
+      roleId: effectiveRoleId,
+      zoneId: effectiveZoneId,
+      stateId: effectiveStateId,
+      districtId: effectiveDistrictId,
+      orgId: effectiveOrgId,
+      kvkId: effectiveKvkId,
     };
 
     // Hash password
@@ -166,28 +213,104 @@ const userManagementService = {
     const roleName = creator.role.roleName;
 
     switch (roleName) {
-      case 'zone_admin':
+      case 'zone_admin': {
         if (creator.zoneId == null) throw new Error('Creator must be assigned to a zone');
-        if (Number(userData.zoneId) !== Number(creator.zoneId)) {
+        const creatorZoneId = Number(creator.zoneId);
+        if (userData.zoneId != null && Number(userData.zoneId) !== creatorZoneId) {
           throw new Error('You can only create users within your zone');
         }
+        if (userData.stateId != null) {
+          const state = await prisma.stateMaster.findUnique({ where: { stateId: userData.stateId } });
+          if (!state || Number(state.zoneId) !== creatorZoneId) {
+            throw new Error('You can only create users within your zone');
+          }
+        }
+        if (userData.districtId != null) {
+          const district = await prisma.districtMaster.findUnique({ where: { districtId: userData.districtId } });
+          if (!district) throw new Error('Invalid district');
+          const state = await prisma.stateMaster.findUnique({ where: { stateId: district.stateId } });
+          if (!state || Number(state.zoneId) !== creatorZoneId) {
+            throw new Error('You can only create users within your zone');
+          }
+        }
+        if (userData.orgId != null) {
+          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
+          if (!org) throw new Error('Invalid organization');
+          const district = await prisma.districtMaster.findUnique({ where: { districtId: org.districtId } });
+          if (!district) throw new Error('Invalid district');
+          const state = await prisma.stateMaster.findUnique({ where: { stateId: district.stateId } });
+          if (!state || Number(state.zoneId) !== creatorZoneId) {
+            throw new Error('You can only create users within your zone');
+          }
+        }
+        if (userData.kvkId != null) {
+          const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
+          if (!kvk || Number(kvk.zoneId) !== creatorZoneId) {
+            throw new Error('You can only create users within your zone');
+          }
+        }
         break;
-      case 'state_admin':
+      }
+      case 'state_admin': {
         if (creator.stateId == null) throw new Error('Creator must be assigned to a state');
-        if (Number(userData.stateId) !== Number(creator.stateId)) {
+        const creatorStateId = Number(creator.stateId);
+        if (userData.stateId != null && Number(userData.stateId) !== creatorStateId) {
           throw new Error('You can only create users within your state');
         }
-        break;
-      case 'district_admin':
-        if (creator.districtId == null) throw new Error('Creator must be assigned to a district');
-        if (Number(userData.districtId) !== Number(creator.districtId)) {
-          throw new Error('You can only create users within your district');
+        if (userData.districtId != null) {
+          const district = await prisma.districtMaster.findUnique({ where: { districtId: userData.districtId } });
+          if (!district || Number(district.stateId) !== creatorStateId) {
+            throw new Error('You can only create users within your state');
+          }
+        }
+        if (userData.orgId != null) {
+          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
+          if (!org) throw new Error('Invalid organization');
+          const district = await prisma.districtMaster.findUnique({ where: { districtId: org.districtId } });
+          if (!district || Number(district.stateId) !== creatorStateId) {
+            throw new Error('You can only create users within your state');
+          }
+        }
+        if (userData.kvkId != null) {
+          const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
+          if (!kvk || Number(kvk.stateId) !== creatorStateId) {
+            throw new Error('You can only create users within your state');
+          }
         }
         break;
+      }
+      case 'district_admin': {
+        if (creator.districtId == null) throw new Error('Creator must be assigned to a district');
+        const creatorDistrictId = Number(creator.districtId);
+        if (userData.districtId != null && Number(userData.districtId) !== creatorDistrictId) {
+          throw new Error('You can only create users within your district');
+        }
+        if (userData.orgId != null) {
+          const org = await prisma.orgMaster.findUnique({ where: { orgId: userData.orgId } });
+          if (!org) throw new Error('Invalid organization');
+          const creatorDistrict = await prisma.districtMaster.findUnique({ where: { districtId: creatorDistrictId } });
+          if (!creatorDistrict || Number(org.stateId) !== Number(creatorDistrict.stateId)) {
+            throw new Error('You can only create users within your district');
+          }
+        }
+        if (userData.kvkId != null) {
+          const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
+          if (!kvk || Number(kvk.districtId) !== creatorDistrictId) {
+            throw new Error('You can only create users within your district');
+          }
+        }
+        break;
+      }
       case 'org_admin':
         if (creator.orgId == null) throw new Error('Creator must be assigned to an organization');
         if (Number(userData.orgId) !== Number(creator.orgId)) {
           throw new Error('You can only create users within your organization');
+        }
+        if (userData.kvkId != null) {
+          const kvk = await prisma.kvk.findUnique({ where: { kvkId: userData.kvkId } });
+          if (!kvk || Number(kvk.orgId) !== Number(creator.orgId)) {
+            throw new Error('You can only create users within your organization');
+          }
         }
         break;
       case 'kvk':
@@ -281,9 +404,40 @@ const userManagementService = {
         if (!kvkId) {
           throw new Error('KVK user must be assigned to a KVK');
         }
-        // Note: KVK model might not exist yet, so we'll skip validation for now
-        // You can add KVK validation when the KVK schema is ready
         break;
+
+      case 'state_user': {
+        if (!stateId) {
+          throw new Error('State user must be assigned to a state');
+        }
+        const stateForUser = await prisma.stateMaster.findUnique({ where: { stateId } });
+        if (!stateForUser) {
+          throw new Error('Invalid state ID');
+        }
+        break;
+      }
+
+      case 'district_user': {
+        if (!districtId) {
+          throw new Error('District user must be assigned to a district');
+        }
+        const districtForUser = await prisma.districtMaster.findUnique({ where: { districtId } });
+        if (!districtForUser) {
+          throw new Error('Invalid district ID');
+        }
+        break;
+      }
+
+      case 'org_user': {
+        if (!orgId) {
+          throw new Error('Organization user must be assigned to an organization');
+        }
+        const orgForUser = await prisma.orgMaster.findUnique({ where: { orgId } });
+        if (!orgForUser) {
+          throw new Error('Invalid organization ID');
+        }
+        break;
+      }
 
       default:
         throw new Error('Unknown role');
