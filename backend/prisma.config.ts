@@ -5,8 +5,8 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  // Multi-file schema: all .prisma files under prisma/ are loaded (generator/datasource only in schema.prisma)
-  schema: "prisma",
+  // Superadmin folder structure: all .prisma files under prisma/superadmin/ are loaded
+  schema: "prisma/superadmin",
   migrations: {
     path: "prisma/migrations",
   },

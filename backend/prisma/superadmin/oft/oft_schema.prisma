@@ -1,4 +1,4 @@
-// OFT (Subject → ThematicArea) - models only; generator/datasource in schema/base.prisma
+// OFT (Subject → ThematicArea) - models only; generator/datasource in schema.prisma
 
 model OftSubject {
   oftSubjectId  Int    @id @default(autoincrement()) @map("oft_subject_id")

@@ -1,4 +1,5 @@
 // Zone, State, District, Org - hierarchy / geography
+// Models only; generator/datasource in schema.prisma
 
 model Zone {
   zoneId    Int              @id @default(autoincrement()) @map("zone_id")

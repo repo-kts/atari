@@ -1,8 +1,0 @@
-// Other extension activity - models only; generator/datasource in schema/base.prisma
-
-model OtherExtensionActivity {
-  otherExtensionActivityId Int    @id @default(autoincrement()) @map("other_extension_activity_id")
-  otherExtensionName       String @map("other_extension_name")
-
-  @@map("other_extension_activity")
-}

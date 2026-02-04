@@ -1,6 +1,12 @@
-// ============================================
-// AUTHENTICATION & AUTHORIZATION MODELS
-// ============================================
+// User, Role, Module, Permission, UserPermission, RefreshToken - auth & RBAC
+// Models only; generator/datasource in schema.prisma
+
+enum PermissionAction {
+  VIEW
+  ADD
+  EDIT
+  DELETE
+}
 
 model Role {
   roleId          Int              @id @default(autoincrement()) @map("role_id")
@@ -28,6 +34,7 @@ model Permission {
   action          PermissionAction
   module          Module           @relation(fields: [moduleId], references: [moduleId])
   rolePermissions RolePermission[]
+  userPermissions UserPermission[]
 
   @@index([moduleId])
   @@map("permissions")
@@ -43,6 +50,16 @@ model RolePermission {
   @@map("role_permissions")
 }
 
+model UserPermission {
+  userId       Int   @map("user_id")
+  permissionId Int  @map("permission_id")
+  user        User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  permission  Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
+}
+
 model RefreshToken {
   tokenId   Int       @id @default(autoincrement()) @map("token_id")
   userId    Int       @map("user_id")
@@ -53,7 +70,6 @@ model RefreshToken {
   user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([userId])
-  @@index([tokenId])
   @@index([token])
   @@index([userId, revokedAt, expiresAt])
   @@index([expiresAt])
@@ -62,29 +78,30 @@ model RefreshToken {
 }
 
 model User {
-  userId        Int             @id @default(autoincrement()) @map("user_id")
-  name          String
-  email         String          @unique
-  passwordHash  String          @map("password_hash")
-  roleId        Int             @map("role_id")
-  zoneId        Int?            @map("zone_id")
-  stateId       Int?            @map("state_id")
-  districtId    Int?            @map("district_id")
-  orgId         Int?            @map("org_id")
-  kvkId         Int?            @map("kvk_id")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @updatedAt @map("updated_at")
-  lastLoginAt   DateTime?       @map("last_login_at")
-  deletedAt     DateTime?       @map("deleted_at")
-  phoneNumber   String?         @map("phone_number")
-  refreshTokens RefreshToken[]
-  district      DistrictMaster? @relation(fields: [districtId], references: [districtId])
-  org           OrgMaster?      @relation(fields: [orgId], references: [orgId])
-  role          Role            @relation(fields: [roleId], references: [roleId])
-  state         StateMaster?    @relation(fields: [stateId], references: [stateId])
-  zone          Zone?           @relation(fields: [zoneId], references: [zoneId])
+  userId       Int       @id @default(autoincrement()) @map("user_id")
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  roleId       Int       @map("role_id")
+  zoneId       Int?      @map("zone_id")
+  stateId      Int?      @map("state_id")
+  districtId   Int?      @map("district_id")
+  orgId        Int?      @map("org_id")
+  kvkId        Int?      @map("kvk_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  lastLoginAt  DateTime? @map("last_login_at")
+  deletedAt    DateTime? @map("deleted_at")
+  phoneNumber  String?   @map("phone_number")
 
-  @@index([userId])
+  refreshTokens   RefreshToken[]
+  userPermissions UserPermission[]
+  district        DistrictMaster? @relation(fields: [districtId], references: [districtId])
+  org             OrgMaster?      @relation(fields: [orgId], references: [orgId])
+  role            Role            @relation(fields: [roleId], references: [roleId])
+  state           StateMaster?    @relation(fields: [stateId], references: [stateId])
+  zone            Zone?           @relation(fields: [zoneId], references: [zoneId])
+
   @@index([email, deletedAt])
   @@index([roleId])
   @@index([deletedAt])

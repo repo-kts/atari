@@ -1,4 +1,5 @@
 // CFLD (Cluster Front Line Demonstration) - normalized: Season, CropType, FLDCropMaster with relations
+// Models only; generator/datasource in schema.prisma
 
 model Season {
   seasonId   Int             @id @default(autoincrement()) @map("season_id")

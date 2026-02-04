@@ -1,4 +1,5 @@
-// Generator and datasource - required for Prisma CLI (db push, migrate).
+// Main schema: only generator and datasource.
+// All models live in modular files under prisma/superadmin/ (user/, zones/, fld/, kvk/, etc.)
 // URL is provided via prisma.config.ts in Prisma 7.
 
 generator client {

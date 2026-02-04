@@ -1,3 +1,5 @@
+// Publication - models only; generator/datasource in schema.prisma
+
 model Publication {
   publicationId   Int    @id @default(autoincrement()) @map("publication_id")
   publicationName String @map("publication_name")

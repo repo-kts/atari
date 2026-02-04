@@ -1,3 +1,5 @@
+// Production & project masters - models only; generator/datasource in schema.prisma
+
 model ProductCategory {
   productCategoryId   Int    @id @default(autoincrement()) @map("product_category_id")
   productCategoryName String @unique @map("product_category_name")
