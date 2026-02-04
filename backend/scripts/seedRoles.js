@@ -31,7 +31,19 @@ async function seedRoles() {
     },
     {
       roleName: 'kvk',
-      description: 'KVK User - Can view and edit own KVK data',
+      description: 'KVK User - Can view and edit own KVK data (custom permissions)',
+    },
+    {
+      roleName: 'state_user',
+      description: 'State-level user - No admin rights; access by custom permissions only, scoped to state',
+    },
+    {
+      roleName: 'district_user',
+      description: 'District-level user - No admin rights; access by custom permissions only, scoped to district',
+    },
+    {
+      roleName: 'org_user',
+      description: 'Organization-level user - No admin rights; access by custom permissions only, scoped to org',
     },
   ];
 

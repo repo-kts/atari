@@ -16,6 +16,9 @@ const ROLE_MAP: Record<string, { id: number; name: string; label: string }> = {
     district_admin: { id: 4, name: 'district_admin', label: 'District Admin' },
     org_admin: { id: 5, name: 'org_admin', label: 'Org Admin' },
     kvk: { id: 6, name: 'kvk', label: 'KVK' },
+    state_user: { id: 7, name: 'state_user', label: 'State User' },
+    district_user: { id: 8, name: 'district_user', label: 'District User' },
+    org_user: { id: 9, name: 'org_user', label: 'Org User' },
 }
 
 /**

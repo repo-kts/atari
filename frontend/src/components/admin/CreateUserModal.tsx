@@ -23,6 +23,18 @@ const ROLE_MAP: Record<string, { id: number; name: string; label: string }> = {
     district_admin: { id: 4, name: 'district_admin', label: 'District Admin' },
     org_admin: { id: 5, name: 'org_admin', label: 'Org Admin' },
     kvk: { id: 6, name: 'kvk', label: 'KVK' },
+    state_user: { id: 7, name: 'state_user', label: 'State User' },
+    district_user: { id: 8, name: 'district_user', label: 'District User' },
+    org_user: { id: 9, name: 'org_user', label: 'Org User' },
+}
+
+/** Non-admin roles each creator can assign (admins cannot create other admins). Run seed to ensure state_user, district_user, org_user exist (IDs 7,8,9). */
+const ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR: Record<string, string[]> = {
+    zone_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
+    state_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
+    district_admin: ['district_user', 'org_user', 'kvk'],
+    org_admin: ['org_user', 'kvk'],
+    kvk: ['kvk'],
 }
 
 interface CreateUserModalProps {
@@ -89,17 +101,25 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const [submitSuccess, setSubmitSuccess] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
 
+    // Allowed non-admin roles for current creator (when not Super Admin)
+    const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
+    const allowedRolesForDropdown = allowedRoleNames
+        .map(name => ROLE_MAP[name])
+        .filter(Boolean)
+
     // Reset form when modal opens/closes
     useEffect(() => {
         if (!isOpen) {
-            // Reset form when closing
+            const defaultRoleId = showPermissionsSection && allowedRolesForDropdown.length
+                ? allowedRolesForDropdown[0].id
+                : ''
             setFormData({
                 name: '',
                 email: '',
                 phoneNumber: '',
                 password: '',
                 confirmPassword: '',
-                roleId: '',
+                roleId: defaultRoleId as number | '',
                 zoneId: '',
                 stateId: '',
                 districtId: '',
@@ -112,25 +132,32 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setSubmitSuccess(false)
             setShowPassword(false)
         }
-    }, [isOpen])
+    }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
 
-    // Get selected role name
+    // When non–super-admin opens modal, default role to first allowed option
+    useEffect(() => {
+        if (isOpen && showPermissionsSection && allowedRolesForDropdown.length > 0 && !formData.roleId) {
+            setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].id }))
+        }
+    }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
+
+    // Effective role from selection (both Super Admin and other admins choose or have a role)
     const selectedRole = formData.roleId
         ? Object.values(ROLE_MAP).find(r => r.id === formData.roleId)?.name
         : null
 
-    // Determine which hierarchy fields to show based on role
+    // Determine which hierarchy fields to show based on role (incl. state_user, district_user, org_user)
     const showZoneField = selectedRole === 'super_admin' || selectedRole === 'zone_admin'
-    const showStateField = selectedRole === 'super_admin' || selectedRole === 'state_admin'
-    const showDistrictField = selectedRole === 'super_admin' || selectedRole === 'district_admin'
-    const showOrgField = selectedRole === 'super_admin' || selectedRole === 'org_admin'
+    const showStateField = selectedRole === 'super_admin' || selectedRole === 'state_admin' || selectedRole === 'state_user'
+    const showDistrictField = selectedRole === 'super_admin' || selectedRole === 'district_admin' || selectedRole === 'district_user'
+    const showOrgField = selectedRole === 'super_admin' || selectedRole === 'org_admin' || selectedRole === 'org_user'
     const showKvkField = selectedRole === 'super_admin' || selectedRole === 'kvk'
 
     // Determine which hierarchy fields are required
     const zoneRequired = selectedRole === 'zone_admin'
-    const stateRequired = selectedRole === 'state_admin'
-    const districtRequired = selectedRole === 'district_admin'
-    const orgRequired = selectedRole === 'org_admin'
+    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user'
+    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user'
+    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user'
     const kvkRequired = selectedRole === 'kvk'
 
     // Validate form
@@ -180,18 +207,20 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             newErrors.roleId = 'Role is required'
         }
 
-        // Hierarchy validation based on role
-        if (zoneRequired && !formData.zoneId) {
-            newErrors.zoneId = 'Zone is required for Zone Admin'
-        }
-        if (stateRequired && !formData.stateId) {
-            newErrors.stateId = 'State is required for State Admin'
-        }
-        if (districtRequired && !formData.districtId) {
-            newErrors.districtId = 'District is required for District Admin'
-        }
-        if (orgRequired && !formData.orgId) {
-            newErrors.orgId = 'Organization is required for Org Admin'
+        // Hierarchy validation (when creator is Super Admin, hierarchy comes from form; otherwise from creator)
+        if (!showPermissionsSection) {
+            if (zoneRequired && !formData.zoneId) {
+                newErrors.zoneId = 'Zone is required for Zone Admin'
+            }
+            if (stateRequired && !formData.stateId) {
+                newErrors.stateId = 'State is required for State Admin'
+            }
+            if (districtRequired && !formData.districtId) {
+                newErrors.districtId = 'District is required for District Admin'
+            }
+            if (orgRequired && !formData.orgId) {
+                newErrors.orgId = 'Organization is required for Org Admin'
+            }
         }
         if (kvkRequired && !formData.kvkId) {
             newErrors.kvkId = 'KVK is required for KVK user'
@@ -238,17 +267,20 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
         try {
             // Prepare user data
+            const effectiveRoleId = formData.roleId as number
             const userData: CreateUserData = {
                 name: formData.name.trim(),
                 email: formData.email.trim().toLowerCase(),
                 phoneNumber: formData.phoneNumber.trim() || null,
                 password: formData.password,
-                roleId: formData.roleId as number,
-                zoneId: formData.zoneId ? (formData.zoneId as number) : null,
-                stateId: formData.stateId ? (formData.stateId as number) : null,
-                districtId: formData.districtId ? (formData.districtId as number) : null,
-                orgId: formData.orgId ? (formData.orgId as number) : null,
-                kvkId: formData.kvkId ? (formData.kvkId as number) : null,
+                roleId: effectiveRoleId,
+                zoneId: showPermissionsSection ? (currentUser?.zoneId ?? null) : (formData.zoneId ? (formData.zoneId as number) : null),
+                stateId: showPermissionsSection ? (currentUser?.stateId ?? null) : (formData.stateId ? (formData.stateId as number) : null),
+                districtId: showPermissionsSection ? (currentUser?.districtId ?? null) : (formData.districtId ? (formData.districtId as number) : null),
+                orgId: showPermissionsSection ? (currentUser?.orgId ?? null) : (formData.orgId ? (formData.orgId as number) : null),
+                kvkId: showPermissionsSection && selectedRole === 'kvk'
+                    ? (formData.kvkId ? (formData.kvkId as number) : null)
+                    : (formData.kvkId ? (formData.kvkId as number) : null),
             }
             if (showPermissionsSection && formData.permissions.length > 0) {
                 userData.permissions = formData.permissions
@@ -374,7 +406,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     disabled={isSubmitting || submitSuccess}
                 />
 
-                {/* Role */}
+                {/* Role: Super Admin sees all roles; other admins see only non-admin roles (state/district/org/KVK user) */}
                 <div>
                     <label className="block text-sm font-medium text-[#487749] mb-2">
                         Role <span className="text-red-500">*</span>
@@ -384,7 +416,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         onChange={e => {
                             const roleId = e.target.value ? parseInt(e.target.value) : ''
                             handleChange('roleId', roleId)
-                            // Clear hierarchy fields when role changes
                             setFormData(prev => ({
                                 ...prev,
                                 roleId: roleId as number | '',
@@ -404,12 +435,17 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         disabled={isSubmitting || submitSuccess}
                     >
                         <option value="">Select a role</option>
-                        {Object.values(ROLE_MAP).map(role => (
+                        {(showPermissionsSection ? allowedRolesForDropdown : Object.values(ROLE_MAP)).map(role => (
                             <option key={role.id} value={role.id}>
                                 {role.label}
                             </option>
                         ))}
                     </select>
+                    {showPermissionsSection && (
+                        <p className="mt-1.5 text-xs text-[#757575]">
+                            You can only create non-admin users (with custom permissions below).
+                        </p>
+                    )}
                     {errors.roleId && (
                         <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
                             {errors.roleId}
@@ -462,8 +498,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </div>
                 )}
 
-                {/* Hierarchy Fields - Shown based on role */}
-                {showZoneField && (
+                {/* Hierarchy: when non–Super Admin creates user, they get admin's zone/state/district/org; only KVK ID shown for KVK role */}
+                {showPermissionsSection && (
+                    <p className="text-sm text-[#757575]">
+                        New user will have the same <strong className="text-[#212121]">Zone, State, District &amp; Organization</strong> as you.
+                    </p>
+                )}
+
+                {!showPermissionsSection && showZoneField && (
                     <Input
                         label={`Zone ID${zoneRequired ? ' *' : ''}`}
                         type="number"
@@ -478,7 +520,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {showStateField && (
+                {!showPermissionsSection && showStateField && (
                     <Input
                         label={`State ID${stateRequired ? ' *' : ''}`}
                         type="number"
@@ -493,7 +535,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {showDistrictField && (
+                {!showPermissionsSection && showDistrictField && (
                     <Input
                         label={`District ID${districtRequired ? ' *' : ''}`}
                         type="number"
@@ -511,7 +553,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {showOrgField && (
+                {!showPermissionsSection && showOrgField && (
                     <Input
                         label={`Organization ID${orgRequired ? ' *' : ''}`}
                         type="number"
@@ -526,7 +568,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {showKvkField && (
+                {((showKvkField && !showPermissionsSection) || (showPermissionsSection && selectedRole === 'kvk')) && (
                     <Input
                         label={`KVK ID${kvkRequired ? ' *' : ''}`}
                         type="number"
