@@ -1,0 +1,38 @@
+model TrainingType {
+  trainingTypeId   Int    @id @default(autoincrement()) @map("training_type_id")
+  trainingTypeName String @unique @map("training_type_name")
+
+  trainingAreas TrainingArea[]
+
+  @@map("training_type")
+  @@index([trainingTypeId])
+  @@index([trainingTypeName])
+}
+
+model TrainingArea {
+  trainingAreaId   Int    @id @default(autoincrement()) @map("training_area_id")
+  trainingAreaName String @map("training_area_name")
+
+  trainingTypeId Int
+  trainingType   TrainingType @relation(fields: [trainingTypeId], references: [trainingTypeId])
+
+  thematicAreas TrainingThematicArea[]
+
+  @@map("training_area")
+  @@index([trainingAreaId])
+  @@index([trainingTypeId])
+  @@index([trainingAreaName])
+}
+
+model TrainingThematicArea {
+  trainingThematicAreaId   Int    @id @default(autoincrement()) @map("training_thematic_area_id")
+  trainingThematicAreaName String @map("training_thematic_area_name")
+
+  trainingAreaId Int
+  trainingArea   TrainingArea @relation(fields: [trainingAreaId], references: [trainingAreaId])
+
+  @@map("training_thematic_area")
+  @@index([trainingThematicAreaId])
+  @@index([trainingAreaId])
+  @@index([trainingThematicAreaName])
+}

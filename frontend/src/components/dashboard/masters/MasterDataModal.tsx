@@ -10,9 +10,13 @@ import {
     useSeasons,
     useCropTypes,
 } from '../../../hooks/useOftFldData'
+import {
+    useTrainingTypes,
+    useTrainingAreas,
+} from '../../../hooks/useTrainingExtensionEventsData'
 
-// Extended entity type for OFT/FLD masters
-type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops'
+// Extended entity type for OFT/FLD masters and Training/Extension/Events
+type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events'
 
 interface MasterDataModalProps {
     entityType: ExtendedEntityType | null
@@ -42,6 +46,10 @@ export function MasterDataModal({
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
+
+    // Training, Extension & Events master data hooks for dropdowns
+    const { data: trainingTypes = [] } = useTrainingTypes()
+    const { data: trainingAreas = [] } = useTrainingAreas()
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -549,6 +557,143 @@ export function MasterDataModal({
                                 />
                             </div>
                         </>
+                    )}
+
+                    {/* Training, Extension & Events Masters */}
+                    {entityType === 'training-types' && (
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">
+                                Training Type Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.trainingTypeName || ''}
+                                onChange={(e) => setFormData({ ...formData, trainingTypeName: e.target.value })}
+                                required
+                                placeholder="Enter training type name"
+                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                            />
+                        </div>
+                    )}
+
+                    {entityType === 'training-areas' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-[#212121] mb-2">
+                                    Training Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.trainingTypeId || ''}
+                                    onChange={(e) => setFormData({ ...formData, trainingTypeId: parseInt(e.target.value) })}
+                                    required
+                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                                >
+                                    <option value="">Select training type</option>
+                                    {trainingTypes.map((type: any) => (
+                                        <option key={type.trainingTypeId} value={type.trainingTypeId}>
+                                            {type.trainingTypeName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[#212121] mb-2">
+                                    Training Area Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.trainingAreaName || ''}
+                                    onChange={(e) => setFormData({ ...formData, trainingAreaName: e.target.value })}
+                                    required
+                                    placeholder="Enter training area name"
+                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {entityType === 'training-thematic-areas' && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-[#212121] mb-2">
+                                    Training Area <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.trainingAreaId || ''}
+                                    onChange={(e) => setFormData({ ...formData, trainingAreaId: parseInt(e.target.value) })}
+                                    required
+                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                                >
+                                    <option value="">Select training area</option>
+                                    {trainingAreas.map((area: any) => (
+                                        <option key={area.trainingAreaId} value={area.trainingAreaId}>
+                                            {area.trainingAreaName}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-[#212121] mb-2">
+                                    Thematic Area Name <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={formData.trainingThematicAreaName || ''}
+                                    onChange={(e) => setFormData({ ...formData, trainingThematicAreaName: e.target.value })}
+                                    required
+                                    placeholder="Enter thematic area name"
+                                    className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {entityType === 'extension-activities' && (
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">
+                                Extension Activity Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.extensionName || ''}
+                                onChange={(e) => setFormData({ ...formData, extensionName: e.target.value })}
+                                required
+                                placeholder="Enter extension activity name"
+                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                            />
+                        </div>
+                    )}
+
+                    {entityType === 'other-extension-activities' && (
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">
+                                Other Extension Activity Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.otherExtensionName || ''}
+                                onChange={(e) => setFormData({ ...formData, otherExtensionName: e.target.value })}
+                                required
+                                placeholder="Enter other extension activity name"
+                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                            />
+                        </div>
+                    )}
+
+                    {entityType === 'events' && (
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">
+                                Event Name <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.eventName || ''}
+                                onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
+                                required
+                                placeholder="Enter event name"
+                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                            />
+                        </div>
                     )}
 
 

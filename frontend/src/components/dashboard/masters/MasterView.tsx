@@ -20,6 +20,14 @@ import {
     useFldCrops,
     useCfldCrops,
 } from '../../../hooks/useOftFldData'
+import {
+    useTrainingTypes,
+    useTrainingAreas,
+    useTrainingThematicAreas,
+    useExtensionActivities,
+    useOtherExtensionActivities,
+    useEvents,
+} from '../../../hooks/useTrainingExtensionEventsData'
 
 interface MasterViewProps {
     title: string
@@ -28,8 +36,8 @@ interface MasterViewProps {
     mockData?: any[]
 }
 
-// Extended entity type for OFT/FLD masters
-type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops'
+// Extended entity type for OFT/FLD masters and Training/Extension/Events
+type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events'
 
 // Map route paths to entity types
 const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
@@ -49,6 +57,14 @@ const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
     if (path === '/all-master/fld/crop') return 'fld-crops'
     if (path === '/all-master/cfld-crop') return 'cfld-crops'
 
+    // Training, Extension & Events masters
+    if (path === '/all-master/training-type') return 'training-types'
+    if (path === '/all-master/training-area') return 'training-areas'
+    if (path === '/all-master/training-thematic') return 'training-thematic-areas'
+    if (path === '/all-master/extension-activity') return 'extension-activities'
+    if (path === '/all-master/other-extension-activity') return 'other-extension-activities'
+    if (path === '/all-master/events') return 'events'
+
     return null
 }
 
@@ -67,13 +83,19 @@ const getIdField = (entityType: ExtendedEntityType): string => {
         case 'fld-subcategories': return 'subCategoryId'
         case 'fld-crops': return 'cropId'
         case 'cfld-crops': return 'cfldId'
+        case 'training-types': return 'trainingTypeId'
+        case 'training-areas': return 'trainingAreaId'
+        case 'training-thematic-areas': return 'trainingThematicAreaId'
+        case 'extension-activities': return 'extensionActivityId'
+        case 'other-extension-activities': return 'otherExtensionActivityId'
+        case 'events': return 'eventId'
     }
 }
 
 // Get field value from item, handling nested objects
 const getFieldValue = (item: any, field: string): string => {
     // Direct field access
-    if (item[field] !== undefined && item[field] !== null) return String(item[field])
+    if (item[field] !== undefined && item[field] !== null && typeof item[field] !== 'object') return String(item[field])
 
     // Handle nested fields for related data
     if (field === 'zoneName') {
@@ -104,6 +126,28 @@ const getFieldValue = (item: any, field: string): string => {
     if (field === 'seasonName' && item.season?.seasonName) return item.season.seasonName
     if (field === 'cropTypeName' && item.cropType?.typeName) return item.cropType.typeName
     if (field === 'cropName' && item.CropName) return item.CropName
+
+    // Training fields
+    // Training fields
+    if (field === 'trainingType') {
+        if (item.trainingTypeName) return item.trainingTypeName
+        if (item.trainingType?.trainingTypeName) return item.trainingType.trainingTypeName
+    }
+    if (field === 'trainingAreaName') {
+        if (item.trainingAreaName) return item.trainingAreaName
+        if (item.trainingArea?.trainingAreaName) return item.trainingArea.trainingAreaName
+    }
+    if (field === 'trainingThematicArea') {
+        if (item.trainingThematicAreaName) return item.trainingThematicAreaName
+        if (item.trainingThematicArea?.trainingThematicAreaName) return item.trainingThematicArea.trainingThematicAreaName
+    }
+
+    // Extension & Events fields
+    if (field === 'name') {
+        if (item.extensionName) return item.extensionName
+        if (item.otherExtensionName) return item.otherExtensionName
+    }
+    if (field === 'eventName' && item.eventName) return item.eventName
 
     // Handle count fields from _count object
     if (field === 'thematicAreasCount' && item._count?.thematicAreas !== undefined) {
@@ -157,11 +201,18 @@ export const MasterView: React.FC<MasterViewProps> = ({
     const fldSubcategoriesHook = entityType === 'fld-subcategories' ? useFldSubcategories() : null
     const fldCropsHook = entityType === 'fld-crops' ? useFldCrops() : null
     const cfldCropsHook = entityType === 'cfld-crops' ? useCfldCrops() : null
+    const trainingTypesHook = entityType === 'training-types' ? useTrainingTypes() : null
+    const trainingAreasHook = entityType === 'training-areas' ? useTrainingAreas() : null
+    const trainingThematicAreasHook = entityType === 'training-thematic-areas' ? useTrainingThematicAreas() : null
+    const extensionActivitiesHook = entityType === 'extension-activities' ? useExtensionActivities() : null
+    const otherExtensionActivitiesHook = entityType === 'other-extension-activities' ? useOtherExtensionActivities() : null
+    const eventsHook = entityType === 'events' ? useEvents() : null
 
     // Get the active hook
     const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
         fldThematicAreasHook || fldCategoriesHook || fldSubcategoriesHook ||
-        fldCropsHook || cfldCropsHook
+        fldCropsHook || cfldCropsHook || trainingTypesHook || trainingAreasHook ||
+        trainingThematicAreasHook || extensionActivitiesHook || otherExtensionActivitiesHook || eventsHook
 
     // Initialize items based on entity type
     const [items, setItems] = useState<any[]>(() => {
