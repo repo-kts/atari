@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model KvkInfrastructureMaster {
+  infraMasterId Int    @id @default(autoincrement()) @map("infra_master_id")
+  name          String @unique @map("name")
+
+  infrastructures KvkInfrastructure[]
+
+  @@map("kvk_infrastructure_master")
+}
+
+model KvkInfrastructure {
+  infraId Int @id @default(autoincrement()) @map("infra_id")
+
+  kvkId Int
+  kvk   KvkMaster @relation(fields: [kvkId], references: [kvkId])
+
+  infraMasterId Int
+  infraMaster   KvkInfrastructureMaster
+    @relation(fields: [infraMasterId], references: [infraMasterId])
+
+  notYetStarted         Boolean @map("not_yet_started")
+  completedPlinthLevel  Boolean @map("completed_plinth_level")
+  completedLintelLevel  Boolean @map("completed_lintel_level")
+  completedRoofLevel    Boolean @map("completed_roof_level")
+  totallyCompleted     Boolean @map("totally_completed")
+
+  plinthAreaSqM Float   @default(0) @map("plinth_area_sqm")
+  underUse      Boolean @map("under_use")
+
+  sourceOfFunding String @map("source_of_funding")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("kvk_infrastructure")
+}
