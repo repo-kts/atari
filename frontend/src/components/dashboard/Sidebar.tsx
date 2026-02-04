@@ -81,7 +81,7 @@ const superAdminMenuItems: MenuItem[] = [
     },
 ]
 
-// Regular menu items for other roles - Simplified
+// Regular menu items for non-admin roles
 const regularMenuItems: MenuItem[] = [
     {
         label: 'Dashboard',
@@ -110,8 +110,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
     const searchInputRef = useRef<HTMLInputElement>(null)
 
-    // Determine which menu items to show based on user role
-    const menuItems = user?.role === 'super_admin' ? superAdminMenuItems : regularMenuItems
+    // Roles that get admin UI (Create User, Role Management, User Management)
+    const adminRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk']
+    const isAdmin = user?.role && adminRoles.includes(user.role)
+
+    // Admins get full admin menu; others get regular menu
+    const menuItems = isAdmin ? superAdminMenuItems : regularMenuItems
 
     // Debounce search query
     useEffect(() => {
@@ -585,9 +589,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                     <p className="text-white/70">
                                         {user.role === 'super_admin'
                                             ? 'ATARI Super Admin'
-                                            : user.role === 'admin'
+                                            : ['zone_admin', 'state_admin', 'district_admin', 'org_admin'].includes(user.role)
                                             ? 'Admin'
-                                            : 'KVK User'}
+                                            : user.role === 'kvk'
+                                            ? 'KVK User'
+                                            : 'User'}
                                     </p>
                                 </div>
                             )}

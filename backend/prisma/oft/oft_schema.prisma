@@ -1,0 +1,23 @@
+// OFT (Subject → ThematicArea) - models only; generator/datasource in schema/base.prisma
+
+model OftSubject {
+  oftSubjectId  Int    @id @default(autoincrement()) @map("oft_subject_id")
+  subjectName   String @map("oft_subject_name")
+
+  thematicAreas OftThematicArea[]
+
+  @@map("oft_subject")
+  @@index([subjectName])
+}
+
+model OftThematicArea {
+  oftThematicAreaId Int    @id @default(autoincrement()) @map("oft_thematic_area_id")
+  thematicAreaName  String @map("oft_thematic_area_name")
+
+  oftSubjectId Int         @map("oft_subject_id")
+  subject      OftSubject  @relation(fields: [oftSubjectId], references: [oftSubjectId])
+
+  @@map("oft_thematic_area")
+  @@index([oftSubjectId])
+  @@index([thematicAreaName])
+}

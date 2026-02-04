@@ -1,6 +1,7 @@
 // Controller layer - handles HTTP requests/responses for user management (admin)
 const userManagementService = require('../services/userManagementService.js');
 const userRepository = require('../repositories/userRepository.js');
+const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 
 const userManagementController = {
   /**
@@ -12,6 +13,7 @@ const userManagementController = {
       const {
         name,
         email,
+        phoneNumber,
         roleId,
         zoneId,
         stateId,
@@ -19,6 +21,7 @@ const userManagementController = {
         orgId,
         kvkId,
         password,
+        permissions,
       } = req.body;
 
       if (!name || !email || !roleId || !password) {
@@ -28,11 +31,11 @@ const userManagementController = {
       }
 
       const createdBy = req.user.userId;
-
       const user = await userManagementService.createUser(
-        { name, email, roleId, zoneId, stateId, districtId, orgId, kvkId },
+        { name, email, phoneNumber, roleId, zoneId, stateId, districtId, orgId, kvkId },
         password,
         createdBy,
+        { permissions: Array.isArray(permissions) ? permissions : undefined },
       );
 
       res.status(201).json(user);
@@ -99,7 +102,10 @@ const userManagementController = {
         filters,
       );
 
-      // Map to safe response: flat roleName, include phoneNumber, exclude passwordHash and nested role
+      const userIds = users.map((u) => u.userId);
+      const permissionsMap = await userPermissionRepository.getPermissionsForUserIds(userIds);
+
+      // Map to safe response: flat roleName, include phoneNumber and permissions
       const safeUsers = users.map((u) => ({
         userId: u.userId,
         name: u.name,
@@ -114,6 +120,7 @@ const userManagementController = {
         kvkId: u.kvkId,
         createdAt: u.createdAt,
         lastLoginAt: u.lastLoginAt,
+        permissions: permissionsMap[u.userId] ?? [],
       }));
 
       res.status(200).json(safeUsers);
@@ -135,7 +142,25 @@ const userManagementController = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      res.status(200).json(user);
+      const permissions = await userPermissionRepository.getUserPermissionActions(user.userId);
+
+      const safeUser = {
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber ?? null,
+        roleId: user.roleId,
+        roleName: user.role?.roleName ?? null,
+        zoneId: user.zoneId,
+        stateId: user.stateId,
+        districtId: user.districtId,
+        orgId: user.orgId,
+        kvkId: user.kvkId,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
+        permissions,
+      };
+      res.status(200).json(safeUser);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }

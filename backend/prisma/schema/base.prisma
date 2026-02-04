@@ -1,8 +1,5 @@
-// ============================================
-// BASE CONFIGURATION
-// ============================================
-// This file contains the generator and datasource configuration
-// All schema files in this directory will be merged into a single Prisma Client
+// Generator and datasource - required for Prisma CLI (db push, migrate).
+// URL is provided via prisma.config.ts in Prisma 7.
 
 generator client {
   provider = "prisma-client-js"
@@ -10,15 +7,4 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-}
-
-// ============================================
-// ENUMS
-// ============================================
-
-enum PermissionAction {
-  VIEW
-  ADD
-  EDIT
-  DELETE
 }

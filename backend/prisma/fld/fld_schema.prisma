@@ -1,12 +1,4 @@
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// FLD (Sector → ThematicArea, Category → SubCategory → Crop) - models only; generator/datasource in schema/base.prisma
 
 model Sector {
   sectorId   Int    @id @default(autoincrement()) @map("sector_id")
@@ -18,8 +10,6 @@ model Sector {
   @@map("sector")
   @@index([sectorName])
 }
-
- 
 
 model FldThematicArea {
   thematicAreaId   Int    @id @default(autoincrement()) @map("thematic_area_id")
@@ -46,7 +36,6 @@ model FldCategory {
   @@index([sectorId])
   @@index([categoryName])
 }
-
 
 model FldSubcategory {
   subCategoryId   Int    @id @default(autoincrement()) @map("sub_category_id")

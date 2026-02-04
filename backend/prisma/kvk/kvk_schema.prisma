@@ -1,12 +1,4 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
+// KVK - models only; generator/datasource in schema.prisma
 
 model Kvk {
   kvkId   Int    @id @default(autoincrement()) @map("kvk_id")
@@ -16,20 +8,22 @@ model Kvk {
   stateId    Int
   districtId Int
 
-  zone     Zone          @relation(fields: [zoneId], references: [zoneId])
-  state    StateMaster   @relation(fields: [stateId], references: [stateId])
+  zone     Zone           @relation(fields: [zoneId], references: [zoneId])
+  state    StateMaster    @relation(fields: [stateId], references: [stateId])
   district DistrictMaster @relation(fields: [districtId], references: [districtId])
 
-  orgId      Int                 @map("org_id")
-  hostOrg    String              @map("host_org_name")
+  orgId   Int        @map("org_id")
+  hostOrg String     @map("host_org_name")
 
-  org        OrgMaster @relation(fields: [orgId], references: [orgId])
+  org OrgMaster @relation(fields: [orgId], references: [orgId])
 
   mobile  String @map("mobile")
   email   String @map("email")
   address String @map("address")
 
   yearOfSanction Int @map("year_of_sanction")
+
+  staff KvkStaff[]
 
   @@map("kvk")
 }

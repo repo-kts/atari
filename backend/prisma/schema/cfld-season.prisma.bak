@@ -1,13 +1,14 @@
-// CFLD (Cluster Front Line Demonstration) - normalized: Season, CropType, FLDCropMaster with relations
+// ============================================
+// CFLD (Cluster Front Line Demonstration) MODELS
+// ============================================
 
 model Season {
   seasonId   Int             @id @default(autoincrement()) @map("season_id")
   seasonName String          @unique @map("season_name")
   cfldCrops  FLDCropMaster[]
-  craCropingSystems CraCropingSystem[]
-  craFarmingSystems CraFarmingSystem[]
 
   @@map("season")
+  @@index([seasonId])
   @@index([seasonName])
 }
 
@@ -17,6 +18,7 @@ model CropType {
   cfldCrops FLDCropMaster[]
 
   @@map("crop_type")
+  @@index([typeId])
   @@index([typeName])
 }
 
@@ -29,10 +31,11 @@ model FLDCropMaster {
   typeId   Int      @map("type_id")
   cropType CropType @relation(fields: [typeId], references: [typeId])
 
-  cropName String   @map("crop_name")
+  CropName String   @map("crop_name")
 
   @@map("fld_crop_master")
+  @@index([cfldId])
   @@index([seasonId])
   @@index([typeId])
-  @@index([cropName])
+  @@index([CropName])
 }

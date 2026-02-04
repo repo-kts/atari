@@ -1,0 +1,8 @@
+// Events - models only; generator/datasource in schema.prisma
+
+model Event {
+  eventId   Int    @id @default(autoincrement()) @map("event_id")
+  eventName String @map("event_name")
+
+  @@map("event")
+}

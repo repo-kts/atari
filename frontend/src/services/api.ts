@@ -15,7 +15,28 @@ export class ApiError extends Error {
 }
 
 /**
- * Base API client with error handling and cookie support
+ * Call refresh endpoint with cookies; used on 401 to get new access token.
+ * Uses raw fetch to avoid circular dependency with authApi.
+ */
+async function callRefreshEndpoint(baseUrl: string): Promise<boolean> {
+  const url = `${baseUrl}/auth/refresh`;
+  const response = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  return response.ok;
+}
+
+/** Called when a 401 occurs and refresh failed (session expired). Set by app to logout. */
+let onSessionExpired: (() => void) | null = null;
+
+export function setOnSessionExpired(callback: () => void): void {
+  onSessionExpired = callback;
+}
+
+/**
+ * Base API client with error handling, cookie support, and 401 refresh-and-retry
  */
 class ApiClient {
   private baseUrl: string;
@@ -25,11 +46,14 @@ class ApiClient {
   }
 
   /**
-   * Make a request to the API
+   * Make a request to the API.
+   * On 401 (except for auth/refresh and auth/login), attempts to refresh the access token
+   * and retries the request once.
    */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
+    isRetry = false,
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const config: RequestInit = {
@@ -60,6 +84,23 @@ class ApiClient {
             { error: parseError instanceof Error ? parseError.message : 'Invalid JSON response' },
           );
         }
+      }
+
+      // 401: try refresh once, then retry this request (except for refresh/login endpoints)
+      const isAuthRefresh = endpoint.includes('/auth/refresh');
+      const isAuthLogin = endpoint.includes('/auth/login');
+      if (
+        response.status === 401 &&
+        !isRetry &&
+        !isAuthRefresh &&
+        !isAuthLogin
+      ) {
+        const refreshed = await callRefreshEndpoint(this.baseUrl);
+        if (refreshed) {
+          return this.request<T>(endpoint, options, true);
+        }
+        // Refresh failed (e.g. refresh token expired) – notify app to logout
+        onSessionExpired?.();
       }
 
       // Error response: read body once (text), then parse or use as message

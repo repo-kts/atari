@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const authRepository = require('../repositories/authRepository.js');
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt.js');

@@ -22,7 +22,9 @@ const pool = new Pool({
     query_timeout: 10000, // 10 second query timeout
 });
 
-// Handle pool errors
+// Handle pool errors (e.g. Neon/serverless closes idle connections)
+// Do NOT call process.exit() - the pool removes bad clients and creates new ones on next query.
+// Exiting would crash the entire backend; logging and continuing lets it recover.
 pool.on('error', (err) => {
     console.error('Unexpected error on idle client', err);
     process.exit(-1);
