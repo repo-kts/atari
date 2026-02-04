@@ -36,6 +36,7 @@ model Permission {
   action          PermissionAction
   module          Module           @relation(fields: [moduleId], references: [moduleId])
   rolePermissions RolePermission[]
+  userPermissions UserPermission[]
 
   @@index([moduleId])
   @@map("permissions")
@@ -49,6 +50,16 @@ model RolePermission {
 
   @@id([roleId, permissionId])
   @@map("role_permissions")
+}
+
+model UserPermission {
+  userId       Int   @map("user_id")
+  permissionId Int  @map("permission_id")
+  user        User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  permission  Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
 }
 
 model RefreshToken {
@@ -85,12 +96,13 @@ model User {
   deletedAt    DateTime? @map("deleted_at")
   phoneNumber  String?   @map("phone_number")
 
-  refreshTokens RefreshToken[]
-  district      DistrictMaster? @relation(fields: [districtId], references: [districtId])
-  org           OrgMaster?      @relation(fields: [orgId], references: [orgId])
-  role          Role            @relation(fields: [roleId], references: [roleId])
-  state         StateMaster?    @relation(fields: [stateId], references: [stateId])
-  zone          Zone?           @relation(fields: [zoneId], references: [zoneId])
+  refreshTokens   RefreshToken[]
+  userPermissions UserPermission[]
+  district        DistrictMaster? @relation(fields: [districtId], references: [districtId])
+  org             OrgMaster?      @relation(fields: [orgId], references: [orgId])
+  role            Role            @relation(fields: [roleId], references: [roleId])
+  state           StateMaster?    @relation(fields: [stateId], references: [stateId])
+  zone            Zone?           @relation(fields: [zoneId], references: [zoneId])
 
   @@index([email, deletedAt])
   @@index([roleId])

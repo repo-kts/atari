@@ -1,8 +1,12 @@
 const userRepository = require('../repositories/userRepository.js');
+const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
+
+const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
+const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 
 /**
  * Service layer for user management operations
@@ -13,10 +17,11 @@ const userManagementService = {
    * @param {object} userData - User data (name, email, roleId, etc.)
    * @param {string} password - Plain text password
    * @param {number} createdBy - User ID of the creator
-   * @returns {Promise<object>} Created user
+   * @param {object} [options] - Optional: { permissions: string[] } (VIEW, ADD, EDIT, DELETE). Required when creator is not super_admin.
+   * @returns {Promise<object>} Created user (with permissions array when user-level permissions were set)
    * @throws {Error} If validation fails or user creation fails
    */
-  createUser: async (userData, password, createdBy) => {
+  createUser: async (userData, password, createdBy, options = {}) => {
     // Validate required fields
     if (!userData.name || !userData.email || !password) {
       throw new Error('Name, email, and password are required');
@@ -62,6 +67,26 @@ const userManagementService = {
       userData.kvkId
     );
 
+    // Load creator to check role and enforce hierarchy scope
+    const creator = await userRepository.findById(createdBy);
+    if (!creator) {
+      throw new Error('Creator user not found');
+    }
+    const creatorRoleName = creator.role?.roleName;
+
+    // When creator is not super_admin: require permissions and enforce hierarchy scope
+    if (creatorRoleName !== 'super_admin') {
+      const permissions = options.permissions;
+      if (!permissions || !Array.isArray(permissions) || permissions.length === 0) {
+        throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a user as an admin');
+      }
+      const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      }
+      await userManagementService.validateCreatorHierarchyScope(createdBy, userData);
+    }
+
     // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
     const sanitizedData = {
       name: sanitizeInput(userData.name),
@@ -81,6 +106,16 @@ const userManagementService = {
     // Create user
     const user = await userRepository.createUserWithPassword(sanitizedData, passwordHash);
 
+    // If creator is not super_admin, assign user-level permissions
+    let permissionActions = [];
+    if (creatorRoleName !== 'super_admin' && options.permissions?.length) {
+      const permissionIds = await userManagementService.getPermissionIdsForActions(options.permissions);
+      if (permissionIds.length) {
+        await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
+        permissionActions = options.permissions;
+      }
+    }
+
     return {
       userId: user.userId,
       name: user.name,
@@ -94,7 +129,76 @@ const userManagementService = {
       orgId: user.orgId,
       kvkId: user.kvkId,
       createdAt: user.createdAt,
+      ...(permissionActions.length ? { permissions: permissionActions } : {}),
     };
+  },
+
+  /**
+   * Get permission IDs for USER_SCOPE module and given actions (VIEW, ADD, EDIT, DELETE).
+   * @param {string[]} actions - e.g. ['VIEW', 'EDIT']
+   * @returns {Promise<number[]>} Permission IDs
+   */
+  getPermissionIdsForActions: async (actions) => {
+    const module = await prisma.module.findUnique({
+      where: { moduleCode: USER_SCOPE_MODULE_CODE },
+      include: {
+        permissions: {
+          where: { action: { in: actions } },
+          select: { permissionId: true },
+        },
+      },
+    });
+    if (!module) return [];
+    return module.permissions.map((p) => p.permissionId);
+  },
+
+  /**
+   * Validate that the new user's hierarchy is within the creator's scope (for non–super_admin creators).
+   * @param {number} creatorUserId - Creator user ID
+   * @param {object} userData - New user data (zoneId, stateId, districtId, orgId, kvkId)
+   * @throws {Error} If new user is outside creator's scope
+   */
+  validateCreatorHierarchyScope: async (creatorUserId, userData) => {
+    const creator = await userRepository.findById(creatorUserId);
+    if (!creator || !creator.role) {
+      throw new Error('Creator not found');
+    }
+    const roleName = creator.role.roleName;
+
+    switch (roleName) {
+      case 'zone_admin':
+        if (creator.zoneId == null) throw new Error('Creator must be assigned to a zone');
+        if (Number(userData.zoneId) !== Number(creator.zoneId)) {
+          throw new Error('You can only create users within your zone');
+        }
+        break;
+      case 'state_admin':
+        if (creator.stateId == null) throw new Error('Creator must be assigned to a state');
+        if (Number(userData.stateId) !== Number(creator.stateId)) {
+          throw new Error('You can only create users within your state');
+        }
+        break;
+      case 'district_admin':
+        if (creator.districtId == null) throw new Error('Creator must be assigned to a district');
+        if (Number(userData.districtId) !== Number(creator.districtId)) {
+          throw new Error('You can only create users within your district');
+        }
+        break;
+      case 'org_admin':
+        if (creator.orgId == null) throw new Error('Creator must be assigned to an organization');
+        if (Number(userData.orgId) !== Number(creator.orgId)) {
+          throw new Error('You can only create users within your organization');
+        }
+        break;
+      case 'kvk':
+        if (creator.kvkId == null) throw new Error('Creator must be assigned to a KVK');
+        if (Number(userData.kvkId) !== Number(creator.kvkId)) {
+          throw new Error('You can only create users within your KVK');
+        }
+        break;
+      default:
+        throw new Error('You do not have permission to create users');
+    }
   },
 
   /**
