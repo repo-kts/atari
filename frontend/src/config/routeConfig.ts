@@ -33,6 +33,8 @@ const oftFldMastersPaths = [
     '/all-master/fld/sub-category',
     '/all-master/fld/crop',
     '/all-master/cfld-crop',
+    // FUTURE: Season Master
+    // '/all-master/season',
 ]
 
 const trainingExtensionMastersPaths = [
@@ -183,6 +185,17 @@ export const allMastersRoutes: RouteConfig[] = [
         siblings: oftFldMastersPaths,
         fields: ['seasonName', 'cropTypeName', 'cropName'],
     },
+    // FUTURE: Season Master
+    // {
+    //     path: '/all-master/season',
+    //     title: 'Season Master',
+    //     category: 'All Masters',
+    //     subcategory: 'OFT & FLD Masters',
+    //     parent: '/all-master',
+    //     subcategoryPath: '/all-master/oft-fld',
+    //     siblings: oftFldMastersPaths,
+    //     fields: ['seasonName'],
+    // },
 
 
     // Training Master
@@ -290,7 +303,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['season', 'cropName'],
+        fields: ['seasonName', 'cropName'],
     },
     {
         path: '/all-master/cra-farming-system',
@@ -300,7 +313,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['season', 'farmingSystemName'],
+        fields: ['seasonName', 'farmingSystemName'],
     },
 
     // ARYA
@@ -312,7 +325,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/production-projects',
         siblings: productionProjectsMastersPaths,
-        fields: ['EnterpriseName'],
+        fields: ['enterpriseName'],
     },
 
     // Publications

@@ -1,0 +1,78 @@
+model ProductCategory {
+  productCategoryId   Int    @id @default(autoincrement()) @map("product_category_id")
+  productCategoryName String @unique @map("product_category_name")
+  
+  productTypes ProductType[]
+  products     Product[]
+
+  @@map("product_category")
+  @@index([productCategoryId])
+  @@index([productCategoryName])
+}
+
+model ProductType {
+  productTypeId       Int    @id @default(autoincrement()) @map("product_type_id")
+  productCategoryType String @map("product_category_type")
+  
+  productCategoryId   Int    @map("product_category_id")
+  productCategory     ProductCategory @relation(fields: [productCategoryId], references: [productCategoryId])
+  
+  products Product[]
+
+  @@map("product_type")
+  @@index([productTypeId])
+  @@index([productCategoryType])
+  @@index([productCategoryId])
+}
+
+model Product {
+  productId   Int    @id @default(autoincrement()) @map("product_id")
+  productName String @map("product_name")
+
+  productCategoryId Int @map("product_category_id")
+  productCategory   ProductCategory @relation(fields: [productCategoryId], references: [productCategoryId])
+  
+  productTypeId Int @map("product_type_id")
+  productType   ProductType @relation(fields: [productTypeId], references: [productTypeId])
+
+  @@map("product")
+  @@index([productId])
+  @@index([productName])
+  @@index([productTypeId])
+  @@index([productCategoryId])
+}
+
+model CraCropingSystem {
+  craCropingSystemId Int    @id @default(autoincrement()) @map("cra_croping_system_id")
+  cropName           String @map("crop_name")
+  
+  seasonId Int    @map("season_id")
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+  
+  @@map("cra_croping_system")
+  @@index([craCropingSystemId])
+  @@index([cropName])
+  @@index([seasonId])
+}
+
+model CraFarmingSystem {
+  craFarmingSystemId Int    @id @default(autoincrement()) @map("cra_farming_system_id")
+  farmingSystemName  String @map("farming_system_name")
+
+  seasonId Int    @map("season_id")
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+  
+  @@map("cra_farming_system")
+  @@index([craFarmingSystemId])
+  @@index([farmingSystemName])
+  @@index([seasonId])
+}
+
+model AryaEnterprise {
+  aryaEnterpriseId Int    @id @default(autoincrement()) @map("arya_enterprise_id")
+  enterpriseName   String @unique @map("enterprise_name")
+  
+  @@map("arya_enterprise")
+  @@index([aryaEnterpriseId])
+  @@index([enterpriseName])
+}

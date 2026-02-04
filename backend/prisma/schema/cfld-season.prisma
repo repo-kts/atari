@@ -4,6 +4,8 @@ model Season {
   seasonId   Int             @id @default(autoincrement()) @map("season_id")
   seasonName String          @unique @map("season_name")
   cfldCrops  FLDCropMaster[]
+  craCropingSystems CraCropingSystem[]
+  craFarmingSystems CraFarmingSystem[]
 
   @@map("season")
   @@index([seasonName])
