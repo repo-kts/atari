@@ -9,7 +9,12 @@ const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter
 // Module code for user management (same as USER_SCOPE for role-based permission fallback)
 const USER_MANAGEMENT_MODULE = 'USER_SCOPE';
 
-// Apply authentication and admin role check to all admin routes
+// Apply authentication and role check to all admin routes.
+// Note: 'kvk' is included here intentionally so KVK users can access specific
+// admin-scoped endpoints where their scope is enforced in the service layer.
+// See:
+//   - seedRoles.js for role definitions (kvk is a non-admin, scoped role)
+//   - userManagementService.js for per-role hierarchy validations and access checks
 router.use(
   authenticateToken,
   requireRole(['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk']),
