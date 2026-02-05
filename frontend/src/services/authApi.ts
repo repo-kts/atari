@@ -9,6 +9,11 @@ export interface LoginCredentials {
 }
 
 /**
+ * Granular permission actions (user management)
+ */
+export type PermissionAction = 'VIEW' | 'ADD' | 'EDIT' | 'DELETE';
+
+/**
  * User data returned from API
  */
 export interface ApiUser {
@@ -24,6 +29,8 @@ export interface ApiUser {
   kvkId?: number | null;
   createdAt?: string;
   lastLoginAt?: string | null;
+  /** Granular permissions; absent = full access for role */
+  permissions?: PermissionAction[];
 }
 
 /**

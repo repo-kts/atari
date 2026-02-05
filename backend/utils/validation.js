@@ -34,16 +34,15 @@ function validatePassword(password) {
     errors.push('Password must be less than 128 characters');
   }
 
-  // Optional: Add more complexity requirements
-  // if (!/[A-Z]/.test(password)) {
-  //   errors.push('Password must contain at least one uppercase letter');
-  // }
-  // if (!/[a-z]/.test(password)) {
-  //   errors.push('Password must contain at least one lowercase letter');
-  // }
-  // if (!/[0-9]/.test(password)) {
-  //   errors.push('Password must contain at least one number');
-  // }
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
 
   return {
     valid: errors.length === 0,
@@ -78,8 +77,8 @@ function sanitizeInput(input) {
  * @returns {boolean} True if roleId is valid
  */
 function validateRoleId(roleId) {
-  const validRoleIds = [1, 2, 3, 4, 5, 6]; // Based on seeded roles
-  return typeof roleId === 'number' && validRoleIds.includes(roleId);
+  // Accept any positive integer; existence is checked via DB in the service layer
+  return typeof roleId === 'number' && Number.isInteger(roleId) && roleId > 0;
 }
 
 /**

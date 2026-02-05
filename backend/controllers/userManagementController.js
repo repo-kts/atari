@@ -131,12 +131,19 @@ const userManagementController = {
 
   /**
    * GET /api/admin/users/:id
-   * Get a single user by ID
+   * Get a single user by ID (enforces hierarchy scope)
    */
   getUserById: async (req, res) => {
     try {
       const { id } = req.params;
-      const user = await userRepository.findById(id);
+      const userId = Number(id);
+      if (Number.isNaN(userId) || !Number.isInteger(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      await userManagementService.ensureAdminCanAccessUser(req.user.userId, userId);
+
+      const user = await userRepository.findById(userId);
 
       if (!user || user.deletedAt) {
         return res.status(404).json({ error: 'User not found' });
@@ -174,7 +181,10 @@ const userManagementController = {
     try {
       const { id } = req.params;
       const updatedBy = req.user.userId;
-      const userId = parseInt(id, 10);
+      const userId = Number(id);
+      if (Number.isNaN(userId) || !Number.isInteger(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
 
       const updatedUser = await userManagementService.updateUser(
         userId,
@@ -196,7 +206,10 @@ const userManagementController = {
     try {
       const { id } = req.params;
       const deletedBy = req.user.userId;
-      const userId = parseInt(id, 10);
+      const userId = Number(id);
+      if (Number.isNaN(userId) || !Number.isInteger(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
 
       await userManagementService.deleteUser(userId, deletedBy);
 

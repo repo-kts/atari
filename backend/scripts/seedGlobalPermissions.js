@@ -31,6 +31,7 @@ async function seedGlobalPermissions() {
     }
 
     // 2. Create the four Permission rows (VIEW, ADD, EDIT, DELETE) for this module
+    const permissionIds = {};
     for (const action of PERMISSION_ACTIONS) {
       const existing = await prisma.permission.findFirst({
         where: {
@@ -41,6 +42,7 @@ async function seedGlobalPermissions() {
 
       if (existing) {
         console.log(`⏭️  Permission ${action} for ${GLOBAL_MODULE_CODE} already exists (ID: ${existing.permissionId})`);
+        permissionIds[action] = existing.permissionId;
       } else {
         const created = await prisma.permission.create({
           data: {
@@ -49,7 +51,42 @@ async function seedGlobalPermissions() {
           },
         });
         console.log(`✅ Created permission: ${action} (ID: ${created.permissionId})`);
+        permissionIds[action] = created.permissionId;
       }
+    }
+
+    // 3. Assign USER_SCOPE permissions to admin roles (for requirePermission role fallback)
+    const adminRoleNames = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+    const adminRoles = await prisma.role.findMany({
+      where: { roleName: { in: adminRoleNames } },
+      select: { roleId: true, roleName: true },
+    });
+
+    const foundRoleNames = adminRoles.map((r) => r.roleName);
+    const missingRoles = adminRoleNames.filter((name) => !foundRoleNames.includes(name));
+
+    if (missingRoles.length > 0) {
+      console.warn(
+        `⚠️  The following admin roles were not found in the database and will not receive USER_SCOPE permissions: ${missingRoles.join(
+          ', ',
+        )}`,
+      );
+      // Uncomment the next line if you prefer to fail hard instead of warning:
+      // throw new Error(`Missing required admin roles: ${missingRoles.join(', ')}`);
+    }
+
+    for (const role of adminRoles) {
+      for (const action of PERMISSION_ACTIONS) {
+        const permissionId = permissionIds[action];
+        await prisma.rolePermission.upsert({
+          where: {
+            roleId_permissionId: { roleId: role.roleId, permissionId },
+          },
+          create: { roleId: role.roleId, permissionId },
+          update: {},
+        });
+      }
+      console.log(`✅ Assigned USER_SCOPE (VIEW, ADD, EDIT, DELETE) to role: ${role.roleName}`);
     }
 
     console.log('\n✨ Global permissions seeding completed.\n');

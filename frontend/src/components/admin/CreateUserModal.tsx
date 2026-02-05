@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { userApi, CreateUserData, PermissionAction } from '../../services/userApi'
+import { userApi, CreateUserData, PermissionAction, RoleInfo, getRoleLabel } from '../../services/userApi'
 import { useAuthStore } from '../../stores/authStore'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
@@ -12,21 +12,6 @@ const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
     { value: 'EDIT', label: 'Edit' },
     { value: 'DELETE', label: 'Delete' },
 ]
-
-/**
- * Role mapping
- */
-const ROLE_MAP: Record<string, { id: number; name: string; label: string }> = {
-    super_admin: { id: 1, name: 'super_admin', label: 'Super Admin' },
-    zone_admin: { id: 2, name: 'zone_admin', label: 'Zone Admin' },
-    state_admin: { id: 3, name: 'state_admin', label: 'State Admin' },
-    district_admin: { id: 4, name: 'district_admin', label: 'District Admin' },
-    org_admin: { id: 5, name: 'org_admin', label: 'Org Admin' },
-    kvk: { id: 6, name: 'kvk', label: 'KVK' },
-    state_user: { id: 7, name: 'state_user', label: 'State User' },
-    district_user: { id: 8, name: 'district_user', label: 'District User' },
-    org_user: { id: 9, name: 'org_user', label: 'Org User' },
-}
 
 /** Non-admin roles each creator can assign (admins cannot create other admins). Run seed to ensure state_user, district_user, org_user exist (IDs 7,8,9). */
 const ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR: Record<string, string[]> = {
@@ -100,18 +85,22 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [submitSuccess, setSubmitSuccess] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [allRoles, setAllRoles] = useState<RoleInfo[]>([])
+
+    // Fetch roles from API
+    useEffect(() => {
+        userApi.getRoles().then(setAllRoles).catch(() => {})
+    }, [])
 
     // Allowed non-admin roles for current creator (when not Super Admin)
     const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
-    const allowedRolesForDropdown = allowedRoleNames
-        .map(name => ROLE_MAP[name])
-        .filter(Boolean)
+    const allowedRolesForDropdown = allRoles.filter(r => allowedRoleNames.includes(r.roleName))
 
     // Reset form when modal opens/closes
     useEffect(() => {
         if (!isOpen) {
             const defaultRoleId = showPermissionsSection && allowedRolesForDropdown.length
-                ? allowedRolesForDropdown[0].id
+                ? allowedRolesForDropdown[0].roleId
                 : ''
             setFormData({
                 name: '',
@@ -137,13 +126,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // When non–super-admin opens modal, default role to first allowed option
     useEffect(() => {
         if (isOpen && showPermissionsSection && allowedRolesForDropdown.length > 0 && !formData.roleId) {
-            setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].id }))
+            setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].roleId }))
         }
     }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
 
     // Effective role from selection (both Super Admin and other admins choose or have a role)
     const selectedRole = formData.roleId
-        ? Object.values(ROLE_MAP).find(r => r.id === formData.roleId)?.name
+        ? allRoles.find(r => r.roleId === formData.roleId)?.roleName ?? null
         : null
 
     // Determine which hierarchy fields to show based on role (incl. state_user, district_user, org_user)
@@ -435,9 +424,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         disabled={isSubmitting || submitSuccess}
                     >
                         <option value="">Select a role</option>
-                        {(showPermissionsSection ? allowedRolesForDropdown : Object.values(ROLE_MAP)).map(role => (
-                            <option key={role.id} value={role.id}>
-                                {role.label}
+                        {(showPermissionsSection ? allowedRolesForDropdown : allRoles).map(role => (
+                            <option key={role.roleId} value={role.roleId}>
+                                {getRoleLabel(role.roleName)}
                             </option>
                         ))}
                     </select>

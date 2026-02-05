@@ -6,6 +6,8 @@ export type UserRole =
     | 'org_admin'
     | 'kvk'
 
+export type PermissionAction = 'VIEW' | 'ADD' | 'EDIT' | 'DELETE'
+
 export interface User {
     userId: number
     name: string
@@ -20,6 +22,8 @@ export interface User {
     kvkId?: number | null
     createdAt?: string
     lastLoginAt?: string | null
+    /** Granular permissions (VIEW/ADD/EDIT/DELETE). Absent = full access for role. */
+    permissions?: PermissionAction[]
 }
 
 export interface LoginCredentials {

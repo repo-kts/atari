@@ -155,6 +155,16 @@ const userRepository = {
     if (filters.kvkId !== undefined) {
       where.kvkId = filters.kvkId;
     }
+    if (filters.roleId !== undefined) {
+      where.roleId = filters.roleId;
+    }
+    if (filters.search) {
+      const term = filters.search.trim();
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { email: { contains: term, mode: 'insensitive' } },
+      ];
+    }
 
     return await prisma.user.findMany({
       where,

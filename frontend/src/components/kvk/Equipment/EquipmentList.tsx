@@ -8,8 +8,10 @@ import { Modal } from '../../ui/Modal'
 import { Input } from '../../ui/Input'
 
 export const EquipmentList: React.FC = () => {
-    const { user } = useAuthStore()
-    const isKvkUser = user?.role !== 'admin' && user?.role !== 'super_admin'
+    const { hasPermission } = useAuthStore()
+    const canAdd = hasPermission('ADD')
+    const canEdit = hasPermission('EDIT')
+    const canDelete = hasPermission('DELETE')
     const [data, setData] = useState<EquipmentRecord[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editing, setEditing] = useState<EquipmentRecord | null>(null)
@@ -96,7 +98,7 @@ export const EquipmentList: React.FC = () => {
     const buttons: ButtonOption[] = [
         { label: 'Download Report', icon: <Download className="w-4 h-4" />, onClick: () => {} },
         { label: 'Download Excel Report', icon: <FileSpreadsheet className="w-4 h-4" />, onClick: () => {} },
-        ...(isKvkUser
+        ...(canAdd
             ? [{
                 label: 'Add Equipment',
                 icon: <Plus className="w-4 h-4" />,
@@ -117,11 +119,11 @@ export const EquipmentList: React.FC = () => {
                 showTabs={false}
                 showBreadcrumbs={false}
                 showBack={true}
-                onEdit={isKvkUser ? handleEdit : undefined}
-                onDelete={isKvkUser ? handleDelete : undefined}
+                onEdit={canEdit ? handleEdit : undefined}
+                onDelete={canDelete ? handleDelete : undefined}
             />
 
-            {isKvkUser && (
+            {(canAdd || canEdit) && (
                 <Modal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}

@@ -22,7 +22,7 @@ const posts = [
 export const AddStaff: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { user } = useAuthStore()
+    const { user, hasPermission } = useAuthStore()
     const [saving, setSaving] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -97,6 +97,11 @@ export const AddStaff: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!hasPermission('ADD')) {
+            alert('You do not have permission to add staff members.')
+            return
+        }
 
         if (!validateForm()) {
             return

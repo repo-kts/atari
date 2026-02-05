@@ -91,10 +91,11 @@ const userManagementService = {
     let effectiveKvkId = userData.kvkId || null;
 
     if (creatorRoleName !== 'super_admin') {
-      const permissions = options.permissions;
-      if (!permissions || !Array.isArray(permissions) || permissions.length === 0) {
+      const rawPermissions = options.permissions;
+      if (!rawPermissions || !Array.isArray(rawPermissions) || rawPermissions.length === 0) {
         throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a user as an admin');
       }
+      const permissions = rawPermissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
       const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
       if (invalid.length > 0) {
         throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
@@ -156,10 +157,11 @@ const userManagementService = {
     // If creator is not super_admin, assign user-level permissions
     let permissionActions = [];
     if (creatorRoleName !== 'super_admin' && options.permissions?.length) {
-      const permissionIds = await userManagementService.getPermissionIdsForActions(options.permissions);
+      const normalizedPerms = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
+      const permissionIds = await userManagementService.getPermissionIdsForActions(normalizedPerms);
       if (permissionIds.length) {
         await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
-        permissionActions = options.permissions;
+        permissionActions = normalizedPerms;
       }
     }
 
@@ -445,6 +447,56 @@ const userManagementService = {
   },
 
   /**
+   * Ensure the admin can access the target user (hierarchy scope).
+   * @param {number} adminUserId - Admin user ID
+   * @param {number} targetUserId - Target user ID to access (view/edit/delete)
+   * @throws {Error} If target user not found or outside admin's scope
+   */
+  ensureAdminCanAccessUser: async (adminUserId, targetUserId) => {
+    const adminUser = await userRepository.findById(adminUserId);
+    if (!adminUser) {
+      throw new Error('Admin user not found');
+    }
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser || targetUser.deletedAt) {
+      throw new Error('User not found');
+    }
+    const adminRole = adminUser.role.roleName;
+    if (adminRole === 'super_admin') {
+      return;
+    }
+    switch (adminRole) {
+      case 'zone_admin':
+        if (adminUser.zoneId == null || Number(targetUser.zoneId) !== Number(adminUser.zoneId)) {
+          throw new Error('You do not have access to this user');
+        }
+        break;
+      case 'state_admin':
+        if (adminUser.stateId == null || Number(targetUser.stateId) !== Number(adminUser.stateId)) {
+          throw new Error('You do not have access to this user');
+        }
+        break;
+      case 'district_admin':
+        if (adminUser.districtId == null || Number(targetUser.districtId) !== Number(adminUser.districtId)) {
+          throw new Error('You do not have access to this user');
+        }
+        break;
+      case 'org_admin':
+        if (adminUser.orgId == null || Number(targetUser.orgId) !== Number(adminUser.orgId)) {
+          throw new Error('You do not have access to this user');
+        }
+        break;
+      case 'kvk':
+        if (adminUser.kvkId == null || Number(targetUser.kvkId) !== Number(adminUser.kvkId)) {
+          throw new Error('You do not have access to this user');
+        }
+        break;
+      default:
+        throw new Error('You do not have permission to access this user');
+    }
+  },
+
+  /**
    * Get users for admin based on their scope
    * @param {number} adminUserId - Admin user ID
    * @param {object} filters - Additional filters (roleId, search, etc.)
@@ -495,6 +547,13 @@ const userManagementService = {
         hierarchyFilters.orgId = adminUser.orgId;
         break;
 
+      case 'kvk':
+        if (!adminUser.kvkId) {
+          throw new Error('User must be assigned to a KVK');
+        }
+        hierarchyFilters.kvkId = adminUser.kvkId;
+        break;
+
       default:
         throw new Error('User does not have permission to view users');
     }
@@ -502,23 +561,8 @@ const userManagementService = {
     // Merge with additional filters (hierarchyFilters take precedence so enforced scope cannot be bypassed)
     const finalFilters = { ...filters, ...hierarchyFilters };
 
-    // Get users
-    let users = await userRepository.findUsersByHierarchy(finalFilters);
-
-    // Apply role filter if provided
-    if (filters.roleId) {
-      users = users.filter((user) => user.roleId === filters.roleId);
-    }
-
-    // Apply search filter if provided
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      users = users.filter(
-        (user) =>
-          user.name.toLowerCase().includes(searchTerm) ||
-          user.email.toLowerCase().includes(searchTerm)
-      );
-    }
+    // Get users (roleId and search are handled at the DB level by the repository)
+    const users = await userRepository.findUsersByHierarchy(finalFilters);
 
     return users;
   },
@@ -532,6 +576,9 @@ const userManagementService = {
    * @throws {Error} If validation fails or user not found
    */
   updateUser: async (userId, userData, updatedBy) => {
+    // Enforce hierarchy scope: updater must be allowed to access this user
+    await userManagementService.ensureAdminCanAccessUser(updatedBy, userId);
+
     // Check if user exists
     const existingUser = await userRepository.findById(userId);
     if (!existingUser) {
@@ -552,6 +599,23 @@ const userManagementService = {
       const emailUser = await userRepository.findByEmail(userData.email);
       if (emailUser && emailUser.userId !== userId) {
         throw new Error('Email already exists');
+      }
+    }
+
+    // Prevent role escalation by non-super_admin
+    const updater = await userRepository.findById(updatedBy);
+    const updaterRoleName = updater?.role?.roleName;
+
+    if (userData.roleId !== undefined && userData.roleId !== existingUser.roleId) {
+      if (updaterRoleName !== 'super_admin') {
+        const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
+        if (!requestedRole) {
+          throw new Error('Invalid role');
+        }
+        const allowed = ALLOWED_ROLES_FOR_CREATOR[updaterRoleName];
+        if (!allowed || !allowed.includes(requestedRole.roleName)) {
+          throw new Error(`You can only assign the following roles: ${(allowed || []).join(', ')}`);
+        }
       }
     }
 
@@ -599,6 +663,23 @@ const userManagementService = {
     // Update user
     const updatedUser = await userRepository.update(userId, sanitizedData);
 
+    // Update permissions if provided
+    let permissionActions = [];
+    if (Array.isArray(userData.permissions)) {
+      const normalized = userData.permissions.map((a) =>
+        typeof a === 'string' ? a.toUpperCase().trim() : a
+      );
+      const invalid = normalized.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      }
+      const permissionIds = await userManagementService.getPermissionIdsForActions(normalized);
+      await userPermissionRepository.setUserPermissions(userId, permissionIds);
+      permissionActions = normalized;
+    } else {
+      permissionActions = await userPermissionRepository.getUserPermissionActions(userId);
+    }
+
     return {
       userId: updatedUser.userId,
       name: updatedUser.name,
@@ -611,6 +692,7 @@ const userManagementService = {
       orgId: updatedUser.orgId,
       kvkId: updatedUser.kvkId,
       updatedAt: updatedUser.updatedAt,
+      ...(permissionActions.length ? { permissions: permissionActions } : {}),
     };
   },
 
@@ -622,6 +704,9 @@ const userManagementService = {
    * @throws {Error} If user not found
    */
   deleteUser: async (userId, deletedBy) => {
+    // Enforce hierarchy scope: deleter must be allowed to access this user
+    await userManagementService.ensureAdminCanAccessUser(deletedBy, userId);
+
     // Check if user exists
     const user = await userRepository.findById(userId);
     if (!user) {

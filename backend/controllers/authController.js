@@ -83,8 +83,8 @@ const authController = {
       });
     } catch (error) {
       // Clear cookies on error
-      res.clearCookie('accessToken');
-      res.clearCookie('refreshToken');
+      res.clearCookie('accessToken', { path: '/' });
+      res.clearCookie('refreshToken', { path: '/' });
       res.status(401).json({ error: error.message });
     }
   },

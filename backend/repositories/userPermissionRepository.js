@@ -66,8 +66,21 @@ const userPermissionRepository = {
    * @returns {Promise<{ count: number }>} Number of records created
    */
   setUserPermissions: async (userId, permissionIds) => {
-    await userPermissionRepository.removeAllUserPermissions(userId);
-    return userPermissionRepository.addUserPermissions(userId, permissionIds);
+    return prisma.$transaction(async (tx) => {
+      await tx.userPermission.deleteMany({ where: { userId } });
+      if (!permissionIds?.length) {
+        return { count: 0 };
+      }
+      const data = permissionIds.map((permissionId) => ({
+        userId,
+        permissionId,
+      }));
+      const result = await tx.userPermission.createMany({
+        data,
+        skipDuplicates: true,
+      });
+      return { count: result.count };
+    });
   },
 
   /**

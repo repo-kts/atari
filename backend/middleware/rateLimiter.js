@@ -49,8 +49,24 @@ const strictRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+/**
+ * Rate limiter for token refresh endpoint
+ * Limits: 30 requests per 15 minutes per IP
+ */
+const refreshRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // Limit each IP to 30 refresh requests per windowMs
+  message: {
+    error: 'Too many refresh attempts',
+    message: 'Please try again later',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 module.exports = {
   loginRateLimiter,
   apiRateLimiter,
   strictRateLimiter,
+  refreshRateLimiter,
 };

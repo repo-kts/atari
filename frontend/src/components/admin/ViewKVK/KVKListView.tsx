@@ -10,11 +10,14 @@ import { getMockKVKs } from '../../../mocks/kvkMockData'
 
 export const KVKListView: React.FC = () => {
     const navigate = useNavigate()
-    const { user } = useAuthStore()
+    const { user, hasPermission } = useAuthStore()
     const [kvks, setKvks] = useState<KVKDetails[]>([])
     const [exporting, setExporting] = useState(false)
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+    const canView = hasPermission('VIEW')
+    const canEdit = hasPermission('EDIT')
+    const canDelete = hasPermission('DELETE')
+    const isAdmin = user?.role === 'super_admin' || user?.role === 'zone_admin' || user?.role === 'state_admin' || user?.role === 'district_admin' || user?.role === 'org_admin'
 
     useEffect(() => {
         loadKVKs()
@@ -113,9 +116,9 @@ export const KVKListView: React.FC = () => {
             columns={columns}
             data={kvks}
             buttonOptions={buttonOptions}
-            onView={isAdmin ? handleView : undefined}
-            onEdit={!isAdmin ? handleEdit : undefined}
-            onDelete={handleDelete}
+            onView={canView ? handleView : undefined}
+            onEdit={canEdit ? handleEdit : undefined}
+            onDelete={canDelete ? handleDelete : undefined}
             searchPlaceholder="Search by KVK name, email, mobile, state, district..."
             showBreadcrumbs={true}
             showTabs={true}

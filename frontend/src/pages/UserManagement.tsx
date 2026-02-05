@@ -1,25 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '../stores/authStore'
-import { userApi, UserFilters } from '../services/userApi'
+import { userApi, UserFilters, RoleInfo, getRoleLabel } from '../services/userApi'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { CreateUserModal } from '../components/admin/CreateUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle } from 'lucide-react'
-
-/**
- * Role mapping for display
- */
-const ROLE_MAP: Record<string, { id: number; name: string; label: string }> = {
-    super_admin: { id: 1, name: 'super_admin', label: 'Super Admin' },
-    zone_admin: { id: 2, name: 'zone_admin', label: 'Zone Admin' },
-    state_admin: { id: 3, name: 'state_admin', label: 'State Admin' },
-    district_admin: { id: 4, name: 'district_admin', label: 'District Admin' },
-    org_admin: { id: 5, name: 'org_admin', label: 'Org Admin' },
-    kvk: { id: 6, name: 'kvk', label: 'KVK' },
-    state_user: { id: 7, name: 'state_user', label: 'State User' },
-    district_user: { id: 8, name: 'district_user', label: 'District User' },
-    org_user: { id: 9, name: 'org_user', label: 'Org User' },
-}
 
 /**
  * User interface matching API response
@@ -41,7 +26,7 @@ interface User {
 }
 
 export const UserManagement: React.FC = () => {
-    const { user: currentUser, hasRole } = useAuthStore()
+    const { hasPermission } = useAuthStore()
     const [users, setUsers] = useState<User[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -49,15 +34,18 @@ export const UserManagement: React.FC = () => {
     const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState<number | null>(null)
+    const [allRoles, setAllRoles] = useState<RoleInfo[]>([])
 
-    // Check if user can create users
-    const canCreateUsers = hasRole([
-        'super_admin',
-        'zone_admin',
-        'state_admin',
-        'district_admin',
-        'org_admin',
-    ])
+    // Fetch roles from API
+    useEffect(() => {
+        userApi.getRoles().then(setAllRoles).catch(() => {})
+    }, [])
+
+    // Granular permissions (VIEW = list/detail, ADD = create, EDIT = update, DELETE = delete)
+    const canCreateUsers = hasPermission('ADD')
+    const canEditUser = hasPermission('EDIT')
+    const canDeleteUser = hasPermission('DELETE')
+    const showActionsColumn = canEditUser || canDeleteUser
 
     // Fetch users
     const fetchUsers = async () => {
@@ -168,9 +156,9 @@ export const UserManagement: React.FC = () => {
                             className="w-full h-12 px-4 py-3 border border-[#E0E0E0] rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
                         >
                             <option value="">All Roles</option>
-                            {Object.values(ROLE_MAP).map(role => (
-                                <option key={role.id} value={role.id}>
-                                    {role.label}
+                            {allRoles.map(role => (
+                                <option key={role.roleId} value={role.roleId}>
+                                    {getRoleLabel(role.roleName)}
                                 </option>
                             ))}
                         </select>
@@ -220,7 +208,7 @@ export const UserManagement: React.FC = () => {
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-[#487749] uppercase tracking-wider">
                                         Last Login
                                     </th>
-                                    {canCreateUsers && (
+                                    {showActionsColumn && (
                                         <th className="px-6 py-3 text-right text-xs font-semibold text-[#487749] uppercase tracking-wider">
                                             Actions
                                         </th>
@@ -250,7 +238,7 @@ export const UserManagement: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="px-2 py-1 text-xs font-medium rounded-lg bg-[#E8F5E9] text-[#487749]">
-                                                {ROLE_MAP[user.roleName]?.label ?? user.roleName ?? '—'}
+                                                {user.roleName ? getRoleLabel(user.roleName) : '—'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
@@ -259,29 +247,33 @@ export const UserManagement: React.FC = () => {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#757575]">
                                             {formatDate(user.lastLoginAt)}
                                         </td>
-                                        {canCreateUsers && (
+                                        {showActionsColumn && (
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() => {
-                                                            // TODO: Implement edit
-                                                            alert('Edit functionality coming soon')
-                                                        }}
-                                                        className="p-2 rounded-lg hover:bg-[#F5F5F5] text-[#757575] hover:text-[#487749] transition-colors"
-                                                        aria-label="Edit user"
-                                                        title="Edit user"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(user.userId)}
-                                                        disabled={isDeleting === user.userId}
-                                                        className="p-2 rounded-lg hover:bg-red-50 text-[#757575] hover:text-red-600 transition-colors disabled:opacity-50"
-                                                        aria-label="Delete user"
-                                                        title="Delete user"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    {canEditUser && (
+                                                        <button
+                                                            onClick={() => {
+                                                                // TODO: Implement edit
+                                                                alert('Edit functionality coming soon')
+                                                            }}
+                                                            className="p-2 rounded-lg hover:bg-[#F5F5F5] text-[#757575] hover:text-[#487749] transition-colors"
+                                                            aria-label="Edit user"
+                                                            title="Edit user"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    {canDeleteUser && (
+                                                        <button
+                                                            onClick={() => handleDelete(user.userId)}
+                                                            disabled={isDeleting === user.userId}
+                                                            className="p-2 rounded-lg hover:bg-red-50 text-[#757575] hover:text-red-600 transition-colors disabled:opacity-50"
+                                                            aria-label="Delete user"
+                                                            title="Delete user"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         )}

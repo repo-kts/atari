@@ -12,7 +12,7 @@ import { searchService } from '../../../utils/searchService'
 import { Plus, Search, Edit2, Trash2, Download, FileSpreadsheet } from 'lucide-react'
 
 export const BankAccountList: React.FC = () => {
-    const { user } = useAuthStore()
+    const { user, hasPermission } = useAuthStore()
     const [accounts, setAccounts] = useState<BankAccount[]>([])
     const [filteredAccounts, setFilteredAccounts] = useState<BankAccount[]>([])
     const [searchQuery, setSearchQuery] = useState('')
@@ -20,7 +20,10 @@ export const BankAccountList: React.FC = () => {
     const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null)
     const [exporting, setExporting] = useState(false)
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+    const canAdd = hasPermission('ADD')
+    const canEdit = hasPermission('EDIT')
+    const canDelete = hasPermission('DELETE')
+    const isAdmin = user?.role === 'super_admin' || user?.role === 'zone_admin' || user?.role === 'state_admin' || user?.role === 'district_admin' || user?.role === 'org_admin'
 
     useEffect(() => {
         loadAccounts()
@@ -126,7 +129,7 @@ export const BankAccountList: React.FC = () => {
                                 <FileSpreadsheet className="w-4 h-4 mr-2 shrink-0" />
                                 <span>Export Excel</span>
                             </Button>
-                            {!isAdmin && (
+                            {canAdd && (
                                 <Button
                                     variant="primary"
                                     size="sm"
@@ -182,7 +185,7 @@ export const BankAccountList: React.FC = () => {
                                         <th className="px-4 py-3 text-left text-sm font-semibold text-[#487749]">
                                             Account Number
                                         </th>
-                                        {!isAdmin && (
+                                        {(canEdit || canDelete) && (
                                             <th className="px-4 py-3 text-left text-sm font-semibold text-[#487749]">
                                                 Actions
                                             </th>
@@ -215,9 +218,10 @@ export const BankAccountList: React.FC = () => {
                                             <td className="px-4 py-3 text-[#212121]">
                                                 {account.account_number}
                                             </td>
-                                            {!isAdmin && (
+                                            {(canEdit || canDelete) && (
                                                 <td className="px-4 py-3">
                                                 <div className="flex gap-2">
+                                                    {canEdit && (
                                                     <button
                                                         onClick={() => setEditingAccount(account)}
                                                         className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
@@ -225,6 +229,8 @@ export const BankAccountList: React.FC = () => {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
+                                                    )}
+                                                    {canDelete && (
                                                     <button
                                                         onClick={() => handleDelete(account.id)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
@@ -232,6 +238,7 @@ export const BankAccountList: React.FC = () => {
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
+                                                    )}
                                                 </div>
                                             </td>
                                             )}

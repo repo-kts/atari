@@ -12,13 +12,16 @@ import { Plus, Search, Edit2, Trash2, Download, FileSpreadsheet } from 'lucide-r
 export const StaffList: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { user } = useAuthStore()
+    const { user, hasPermission } = useAuthStore()
     const [staff, setStaff] = useState<Staff[]>([])
     const [filteredStaff, setFilteredStaff] = useState<Staff[]>([])
     const [searchQuery, setSearchQuery] = useState('')
     const [exporting, setExporting] = useState(false)
 
-    const isAdmin = user?.role === 'admin' || user?.role === 'super_admin'
+    const canAdd = hasPermission('ADD')
+    const canEdit = hasPermission('EDIT')
+    const canDelete = hasPermission('DELETE')
+    const isAdmin = user?.role === 'super_admin' || user?.role === 'zone_admin' || user?.role === 'state_admin' || user?.role === 'district_admin' || user?.role === 'org_admin'
     const isTransferredPage = location.pathname.includes('staff-transferred')
 
     // Determine the add path based on current location
@@ -147,7 +150,7 @@ export const StaffList: React.FC = () => {
                                 <FileSpreadsheet className="w-4 h-4 mr-2 shrink-0" />
                                 <span>Export Excel</span>
                             </Button>
-                            {!isAdmin && !isTransferredPage && (
+                            {canAdd && !isTransferredPage && (
                                 <Button
                                     variant="primary"
                                     size="sm"
@@ -206,7 +209,7 @@ export const StaffList: React.FC = () => {
                                         <th className="px-4 py-3 text-left text-sm font-semibold text-[#487749]">
                                             Job Type
                                         </th>
-                                        {!isAdmin && !isTransferredPage && (
+                                        {(canEdit || canDelete) && !isTransferredPage && (
                                             <th className="px-4 py-3 text-left text-sm font-semibold text-[#487749]">
                                                 Actions
                                             </th>
@@ -242,9 +245,10 @@ export const StaffList: React.FC = () => {
                                             <td className="px-4 py-3 text-[#212121]">
                                                 {member.job_type}
                                             </td>
-                                            {!isAdmin && !isTransferredPage && (
+                                            {(canEdit || canDelete) && !isTransferredPage && (
                                                 <td className="px-4 py-3">
                                                 <div className="flex gap-2">
+                                                    {canEdit && (
                                                     <button
                                                         onClick={() => alert('Edit feature coming soon')}
                                                         className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
@@ -252,7 +256,8 @@ export const StaffList: React.FC = () => {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
-                                                    {member.is_transferred === 0 && (
+                                                    )}
+                                                    {canEdit && member.is_transferred === 0 && (
                                                         <button
                                                             onClick={() => handleTransfer(member.id)}
                                                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
@@ -261,6 +266,7 @@ export const StaffList: React.FC = () => {
                                                             Transfer
                                                         </button>
                                                     )}
+                                                    {canDelete && (
                                                     <button
                                                         onClick={() => handleDelete(member.id)}
                                                         className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
@@ -268,6 +274,7 @@ export const StaffList: React.FC = () => {
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
+                                                    )}
                                                 </div>
                                             </td>
                                             )}

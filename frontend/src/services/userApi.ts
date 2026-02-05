@@ -33,6 +33,12 @@ export interface UpdateUserData {
   kvkId?: number | null;
 }
 
+export interface RoleInfo {
+  roleId: number;
+  roleName: string;
+  description: string | null;
+}
+
 /**
  * User filters for listing
  */
@@ -49,7 +55,37 @@ export interface UserFilters {
 /**
  * User API service
  */
+/** Display labels for known role names */
+const ROLE_LABELS: Record<string, string> = {
+  super_admin: 'Super Admin',
+  zone_admin: 'Zone Admin',
+  state_admin: 'State Admin',
+  district_admin: 'District Admin',
+  org_admin: 'Org Admin',
+  kvk: 'KVK',
+  state_user: 'State User',
+  district_user: 'District User',
+  org_user: 'Org User',
+};
+
+export const getRoleLabel = (roleName: string): string =>
+  ROLE_LABELS[roleName] ?? roleName;
+
 export const userApi = {
+  /**
+   * Get all roles from the backend
+   */
+  getRoles: async (): Promise<RoleInfo[]> => {
+    try {
+      return await apiClient.get<RoleInfo[]>('/admin/roles');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to fetch roles');
+      }
+      throw error;
+    }
+  },
+
   /**
    * Create a new user (admin only)
    * @param userData - User data including password

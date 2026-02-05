@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const authRepository = require('../repositories/authRepository.js');
+const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt.js');
 const { validateEmail } = require('../utils/validation.js');
@@ -16,26 +17,18 @@ const authService = {
      * @throws {Error} If credentials are invalid
      */
     login: async (email, password) => {
-        const loginStartTime = performance.now();
-        console.log('[LOGIN TIMER] Starting login processaaa...');
-
         // Validate email format
         if (!validateEmail(email)) {
             throw new Error('Invalid email format');
         }
 
         // Find user by email
-        const findUserStart = performance.now();
         const user = await authRepository.findUserByEmail(email);
-        const findUserEnd = performance.now();
-        console.log(`[LOGIN TIMER] Finding user took ${(findUserEnd - findUserStart).toFixed(2)}ms`);
-        if (!user) {
-            throw new Error('Invalid email or password');
-        }
 
-        // Check if user is soft-deleted
-        if (user.deletedAt) {
-            throw new Error('User account has been deleted');
+        if (!user || user.deletedAt) {
+            // Always run bcrypt even when user not found to prevent timing attacks
+            await comparePassword(password, '$2b$10$invalidhashfortimingatttack000000000000000000');
+            throw new Error('Invalid email or password');
         }
 
         // Verify password
@@ -53,11 +46,8 @@ const authService = {
         refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 7);
 
         // Create refresh token with unique temporary value, then update with real JWT
-        // Using crypto to generate unique temporary token to avoid unique constraint violations
-        const crypto = require('crypto');
         const tempToken = `temp_${user.userId}_${Date.now()}_${crypto.randomBytes(16).toString('hex')}`;
 
-        const refreshTokenStart = performance.now();
         const refreshTokenRecord = await authRepository.createRefreshToken(
             user.userId,
             tempToken,
@@ -65,17 +55,12 @@ const authService = {
         );
         const refreshToken = generateRefreshToken(user.userId, refreshTokenRecord.tokenId);
         await authRepository.updateRefreshToken(refreshTokenRecord.tokenId, refreshToken);
-        const refreshTokenEnd = performance.now();
-        console.log(`[LOGIN TIMER] Refresh token DB operations took ${(refreshTokenEnd - refreshTokenStart).toFixed(2)}ms`);
 
         // Update last login timestamp
-        const lastLoginStart = performance.now();
         await authRepository.updateLastLogin(user.userId);
-        const lastLoginEnd = performance.now();
-        console.log(`[LOGIN TIMER] Updating last login took ${(lastLoginEnd - lastLoginStart).toFixed(2)}ms`);
 
-        const loginEndTime = performance.now();
-        console.log(`[LOGIN TIMER] Total login process took ${(loginEndTime - loginStartTime).toFixed(2)}ms`);
+        // User-level permissions (granular VIEW/ADD/EDIT/DELETE for admin-created users)
+        const permissionActions = await userPermissionRepository.getUserPermissionActions(user.userId);
 
         // Return user data (without password hash) and tokens
         return {
@@ -90,6 +75,7 @@ const authService = {
                 districtId: user.districtId,
                 orgId: user.orgId,
                 kvkId: user.kvkId,
+                permissions: permissionActions.length ? permissionActions : undefined,
             },
             accessToken,
             refreshToken,
@@ -136,13 +122,24 @@ const authService = {
         // Generate new access token
         const accessToken = generateAccessToken(tokenRecord.userId, tokenRecord.user.roleId);
 
-        // Optionally rotate refresh token (generate new one and revoke old)
-        // For now, we'll keep the same refresh token until it expires
-        // You can implement token rotation here if needed
+        // Rotate refresh token: revoke old, create new
+        await authRepository.revokeRefreshToken(refreshToken);
+
+        const newRefreshExpiresAt = new Date();
+        newRefreshExpiresAt.setDate(newRefreshExpiresAt.getDate() + 7);
+
+        const tempToken = `temp_${tokenRecord.userId}_${Date.now()}_${crypto.randomBytes(16).toString('hex')}`;
+        const newTokenRecord = await authRepository.createRefreshToken(
+            tokenRecord.userId,
+            tempToken,
+            newRefreshExpiresAt
+        );
+        const newRefreshToken = generateRefreshToken(tokenRecord.userId, newTokenRecord.tokenId);
+        await authRepository.updateRefreshToken(newTokenRecord.tokenId, newRefreshToken);
 
         return {
             accessToken,
-            refreshToken, // Return same refresh token (or new one if rotating)
+            refreshToken: newRefreshToken,
         };
     },
 
@@ -154,13 +151,16 @@ const authService = {
     logout: async (refreshToken) => {
         try {
             // Verify token format first
-            const decoded = verifyToken(refreshToken, 'refresh');
+            verifyToken(refreshToken, 'refresh');
 
-            // Revoke the token
-            await authRepository.revokeRefreshToken(refreshToken);
+            // Revoke the token — use findFirst to avoid throwing if already revoked/missing
+            const tokenRecord = await authRepository.findRefreshToken(refreshToken);
+            if (tokenRecord && !tokenRecord.revokedAt) {
+                await authRepository.revokeRefreshToken(refreshToken);
+            }
             return true;
         } catch (error) {
-            // If token is invalid, consider logout successful (token already invalid)
+            // If token is invalid/expired, consider logout successful
             if (error.message.includes('Invalid') || error.message.includes('expired')) {
                 return true;
             }
@@ -215,6 +215,8 @@ const authService = {
             throw new Error('User account has been deleted');
         }
 
+        const permissionActions = await userPermissionRepository.getUserPermissionActions(user.userId);
+
         return {
             userId: user.userId,
             name: user.name,
@@ -228,6 +230,7 @@ const authService = {
             kvkId: user.kvkId,
             createdAt: user.createdAt,
             lastLoginAt: user.lastLoginAt,
+            permissions: permissionActions.length ? permissionActions : undefined,
         };
     },
 };

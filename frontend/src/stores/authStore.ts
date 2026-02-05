@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User, UserRole, LoginCredentials } from '../types/auth'
+import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
 import { authApi, ApiUser } from '../services/authApi'
 
 interface AuthState {
@@ -13,6 +13,8 @@ interface AuthState {
     checkAuth: () => Promise<boolean>
     refreshToken: () => Promise<boolean>
     hasRole: (role: UserRole | UserRole[]) => boolean
+    /** Check granular permission (VIEW/ADD/EDIT/DELETE). No permissions array = full access. */
+    hasPermission: (action: PermissionAction) => boolean
     clearError: () => void
 }
 
@@ -32,6 +34,7 @@ const mapApiUserToUser = (apiUser: ApiUser): User => ({
     kvkId: apiUser.kvkId,
     createdAt: apiUser.createdAt,
     lastLoginAt: apiUser.lastLoginAt,
+    permissions: apiUser.permissions,
 })
 
 export const useAuthStore = create<AuthState>()(
@@ -157,6 +160,30 @@ export const useAuthStore = create<AuthState>()(
                     return role.includes(user.role)
                 }
                 return user.role === role
+            },
+
+            /**
+             * Check granular permission (VIEW/ADD/EDIT/DELETE).
+             * Fail closed for empty arrays; treat explicit admin roles as full access.
+             */
+            hasPermission: (action: PermissionAction): boolean => {
+                const { user } = get()
+                if (!user) return false
+
+                // Explicit admin roles always have full access
+                if (
+                    user.role === 'super_admin' ||
+                    user.role === 'zone_admin' ||
+                    user.role === 'state_admin' ||
+                    user.role === 'district_admin' ||
+                    user.role === 'org_admin'
+                ) {
+                    return true
+                }
+
+                // Non-admins: require explicit permission; empty/undefined = no access
+                if (!user.permissions || user.permissions.length === 0) return false
+                return user.permissions.includes(action)
             },
 
             /**
