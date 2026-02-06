@@ -21,8 +21,7 @@
     "seed:global-permissions": "node scripts/seedGlobalPermissions.js",
     "seed:all": "node scripts/seedRoles.js && node scripts/seedHierarchy.js && node scripts/seedSuperAdmin.js",
     "build": "prisma generate",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "check-imports": "node scripts/check-imports.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +30,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
-    "bcryptjs": "^3.0.3",
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
