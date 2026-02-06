@@ -87,4 +87,10 @@ model KvkStaff {
   transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
 
   @@map("kvk_staff")
+  @@index([kvkId])
+  @@index([sanctionedPostId])
+  @@index([disciplineId])
+  @@index([staffName])
+  @@index([email])
+  @@index([mobile])
 }

@@ -6,6 +6,7 @@ const prisma = require('../../config/prisma.js');
  */
 
 // Entity configuration mapping
+// Entity model types for each entity would be good for error cathing ---- TODO
 const ENTITY_CONFIG = {
     // OFT Entities
     'oft-subjects': {
@@ -118,12 +119,6 @@ const ENTITY_CONFIG = {
                 select: {
                     categoryId: true,
                     categoryName: true,
-                },
-            },
-            sector: {
-                select: {
-                    sectorId: true,
-                    sectorName: true,
                 },
             },
         },

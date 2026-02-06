@@ -6,8 +6,10 @@ model Sector {
 
   thematicAreas FldThematicArea[]
   categories    FldCategory[]
+  subCategories FldSubcategory[]
 
   @@map("sector")
+  @@index([sectorId])
   @@index([sectorName])
 }
 
@@ -31,6 +33,7 @@ model FldCategory {
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   subCategories FldSubcategory[]
+  crops         FldCrop[]
 
   @@map("category")
   @@index([sectorId])
@@ -44,16 +47,24 @@ model FldSubcategory {
   categoryId Int
   category   FldCategory @relation(fields: [categoryId], references: [categoryId])
 
+  sectorId Int
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
   crops FldCrop[]
 
   @@map("sub_category")
+  @@index([subCategoryId])
   @@index([categoryId])
+  @@index([sectorId])
   @@index([subCategoryName])
 }
 
 model FldCrop {
   cropId   Int    @id @default(autoincrement()) @map("crop_id")
   cropName String @map("crop_name")
+
+  categoryId    Int
+  category      FldCategory @relation(fields: [categoryId], references: [categoryId])
 
   subCategoryId Int
   subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])

@@ -13,15 +13,18 @@ import {
 import {
     useTrainingTypes,
     useTrainingAreas,
+    useEvents, // Added useEvents import
 } from '../../../hooks/useTrainingExtensionEventsData'
 import {
     useProductCategories,
     useProductTypes,
 } from '../../../hooks/useProductionProjectsData'
+import {
+    usePublicationItems,
+} from '../../../hooks/usePublicationData'
 
-// Extended entity type for OFT/FLD masters and Training/Extension/Events and Production/Projects
-type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events' | 'product-categories' | 'product-types' | 'products' | 'cra-cropping-systems' | 'cra-farming-systems' | 'arya-enterprises'
-
+// Extended entity type for OFT/FLD masters and Training/Extension/Events and Production/Projects and Publications
+type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events' | 'product-categories' | 'product-types' | 'products' | 'cra-cropping-systems' | 'cra-farming-systems' | 'arya-enterprises' | 'seasons' | 'publication-items'
 interface MasterDataModalProps {
     entityType: ExtendedEntityType | null
     title: string
@@ -48,12 +51,14 @@ export function MasterDataModal({
     const { data: fldSectors = [] } = useSectors()
     const { data: fldCategories = [] } = useFldCategories()
     const { data: fldSubcategories = [] } = useFldSubcategories()
-    const { data: seasons = [] } = useSeasons()
+    const { data: seasons = [] } = useSeasons() // Kept direct call for seasons as it's used in multiple places
     const { data: cropTypes = [] } = useCropTypes()
 
     // Training, Extension & Events master data hooks for dropdowns
     const { data: trainingTypes = [] } = useTrainingTypes()
     const { data: trainingAreas = [] } = useTrainingAreas()
+    const { data: events = [] } = useEvents() // Added direct call for events
+    const { data: publicationItems = [] } = usePublicationItems() // Added direct call for publicationItems
 
     // Production & Projects master data hooks for dropdowns
     const { data: productCategories = [] } = useProductCategories()
@@ -905,8 +910,24 @@ export function MasterDataModal({
                         </div>
                     )}
 
+                    {/* Publication Masters */}
+                    {entityType === 'publication-items' && (
+                        <div>
+                            <label className="block text-sm font-medium text-[#212121] mb-2">
+                                Publication Item <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.publicationName || ''}
+                                onChange={(e) => setFormData({ ...formData, publicationName: e.target.value })}
+                                required
+                                placeholder="Enter publication item"
+                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all"
+                            />
+                        </div>
+                    )}
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-[#E0E0E0]">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-[#E0E0E0] mt-6">
                         <button
                             type="button"
                             onClick={onClose}

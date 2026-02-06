@@ -24,6 +24,7 @@ model Kvk {
   yearOfSanction Int @map("year_of_sanction")
 
   staff KvkStaff[]
+  infrastructures KvkInfrastructure[]
 
   @@map("kvk")
 }

@@ -8,6 +8,7 @@ const oftFldRoutes = require('./all-masters/oftFldRoutes.js');
 const masterDataRoutes = require('./all-masters/masterDataRoutes.js');
 const trainingExtensionEventsRoutes = require('./all-masters/trainingExtensionEventsRoutes.js');
 const productionProjectsRoutes = require('./all-masters/productionProjectsRoutes.js');
+const publicationRoutes = require('./all-masters/publicationRoutes.js');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -16,6 +17,7 @@ router.use('/admin', masterDataRoutes); // Master data routes under /admin
 router.use('/admin/masters', oftFldRoutes); // OFT/FLD master data routes
 router.use('/admin/masters', trainingExtensionEventsRoutes); // Training, Extension & Events master data routes
 router.use('/admin/masters', productionProjectsRoutes); // Production & Projects master data routes
+router.use('/admin/masters', publicationRoutes); // Publication master data routes
 router.use('/users', userRoutes);
 
 module.exports = router;

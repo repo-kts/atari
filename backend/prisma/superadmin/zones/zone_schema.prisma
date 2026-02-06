@@ -10,6 +10,7 @@ model Zone {
   kvks      Kvk[]
 
   @@map("zone")
+  @@index([zoneId])
 }
 
 model StateMaster {
@@ -22,6 +23,7 @@ model StateMaster {
   users     User[]
   kvks      Kvk[]
 
+  @@index([stateId])
   @@index([zoneId])
   @@index([stateName])
   @@map("stateMaster")
@@ -37,6 +39,7 @@ model DistrictMaster {
   users        User[]
   kvks         Kvk[]
 
+  @@index([districtId])
   @@index([stateId])
   @@index([zoneId])
   @@index([districtName])
@@ -51,6 +54,7 @@ model OrgMaster {
   users   User[]
   kvks    Kvk[]
 
+  @@index([orgId])
   @@index([stateId])
   @@index([uniName])
   @@map("orgMaster")

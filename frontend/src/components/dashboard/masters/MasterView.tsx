@@ -19,7 +19,11 @@ import {
     useFldSubcategories,
     useFldCrops,
     useCfldCrops,
+    useSeasons,
 } from '../../../hooks/useOftFldData'
+import {
+    usePublicationItems,
+} from '../../../hooks/usePublicationData'
 import {
     useTrainingTypes,
     useTrainingAreas,
@@ -44,9 +48,8 @@ interface MasterViewProps {
     mockData?: any[]
 }
 
-// Extended entity type for OFT/FLD masters and Training/Extension/Events and Production/Projects
-export type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events' | 'product-categories' | 'product-types' | 'products' | 'cra-cropping-systems' | 'cra-farming-systems' | 'arya-enterprises'
-
+// Extended entity type for OFT/FLD masters and Training/Extension/Events and Production/Projects and Publications
+export type ExtendedEntityType = EntityType | 'oft-subjects' | 'oft-thematic-areas' | 'fld-sectors' | 'fld-thematic-areas' | 'fld-categories' | 'fld-subcategories' | 'fld-crops' | 'cfld-crops' | 'training-types' | 'training-areas' | 'training-thematic-areas' | 'extension-activities' | 'other-extension-activities' | 'events' | 'product-categories' | 'product-types' | 'products' | 'cra-cropping-systems' | 'cra-farming-systems' | 'arya-enterprises' | 'seasons' | 'publication-items'
 // Map route paths to entity types
 const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
     // Basic masters
@@ -81,6 +84,9 @@ const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
     if (path === '/all-master/cra-farming-system') return 'cra-farming-systems'
     if (path === '/all-master/arya-enterprise') return 'arya-enterprises'
 
+    // Publication masters
+    if (path === '/all-master/publication-item') return 'publication-items'
+
     return null
 }
 
@@ -109,8 +115,10 @@ const getIdField = (entityType: ExtendedEntityType): string => {
         case 'product-types': return 'productTypeId'
         case 'products': return 'productId'
         case 'cra-cropping-systems': return 'craCropingSystemId'
-        case 'cra-farming-systems': return 'craFarmingSystemId'
+        case 'cra-farming-systems': return 'farmingSystemId'
         case 'arya-enterprises': return 'aryaEnterpriseId'
+        case 'publication-items': return 'publicationId'
+        default: return 'id'
     }
 }
 
@@ -183,7 +191,10 @@ const getFieldValue = (item: any, field: string): string => {
     if (field === 'productName' && item.productName) return item.productName
     if (field === 'cropName' && item.cropName) return item.cropName
     if (field === 'farmingSystemName' && item.farmingSystemName) return item.farmingSystemName
-    if (field === 'enterpriseName' && item.enterpriseName) return item.enterpriseName
+    if (field === 'enterpriseName' && item.enterpriseName) return item.enterpriseName // Lowercase field match
+
+    // Publication specific fields
+    if (field === 'publicationItem' && item.publicationName) return item.publicationName
 
     // Handle count fields from _count object
     if (field === 'thematicAreasCount' && item._count?.thematicAreas !== undefined) {
@@ -237,6 +248,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
     const fldSubcategoriesHook = entityType === 'fld-subcategories' ? useFldSubcategories() : null
     const fldCropsHook = entityType === 'fld-crops' ? useFldCrops() : null
     const cfldCropsHook = entityType === 'cfld-crops' ? useCfldCrops() : null
+    const seasonsHook = entityType === 'seasons' ? useSeasons() : null
     const trainingTypesHook = entityType === 'training-types' ? useTrainingTypes() : null
     const trainingAreasHook = entityType === 'training-areas' ? useTrainingAreas() : null
     const trainingThematicAreasHook = entityType === 'training-thematic-areas' ? useTrainingThematicAreas() : null
@@ -249,13 +261,15 @@ export const MasterView: React.FC<MasterViewProps> = ({
     const craCroppingSystemsHook = entityType === 'cra-cropping-systems' ? useCraCroppingSystems() : null
     const craFarmingSystemsHook = entityType === 'cra-farming-systems' ? useCraFarmingSystems() : null
     const aryaEnterprisesHook = entityType === 'arya-enterprises' ? useAryaEnterprises() : null
+    const publicationItemsHook = entityType === 'publication-items' ? usePublicationItems() : null
 
     // Get the active hook
     const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
         fldThematicAreasHook || fldCategoriesHook || fldSubcategoriesHook ||
         fldCropsHook || cfldCropsHook || trainingTypesHook || trainingAreasHook ||
-        trainingThematicAreasHook || extensionActivitiesHook || otherExtensionActivitiesHook || eventsHook ||
-        productCategoriesHook || productTypesHook || productsHook || craCroppingSystemsHook || craFarmingSystemsHook || aryaEnterprisesHook
+        trainingThematicAreasHook || extensionActivitiesHook || otherExtensionActivitiesHook || eventsHook || seasonsHook ||
+        productCategoriesHook || productTypesHook || productsHook || craCroppingSystemsHook || craFarmingSystemsHook || aryaEnterprisesHook ||
+        publicationItemsHook
 
     // Initialize items based on entity type
     const [items, setItems] = useState<any[]>(() => {
