@@ -34,6 +34,7 @@ function validatePassword(password) {
     errors.push('Password must be less than 128 characters');
   }
 
+<<<<<<< HEAD
   if (!/[A-Z]/.test(password)) {
     errors.push('Password must contain at least one uppercase letter');
   }
@@ -43,6 +44,18 @@ function validatePassword(password) {
   if (!/[0-9]/.test(password)) {
     errors.push('Password must contain at least one number');
   }
+=======
+  // Optional: Add more complexity requirements
+  // if (!/[A-Z]/.test(password)) {
+  //   errors.push('Password must contain at least one uppercase letter');
+  // }
+  // if (!/[a-z]/.test(password)) {
+  //   errors.push('Password must contain at least one lowercase letter');
+  // }
+  // if (!/[0-9]/.test(password)) {
+  //   errors.push('Password must contain at least one number');
+  // }
+>>>>>>> my-merged-work
 
   return {
     valid: errors.length === 0,
@@ -62,6 +75,7 @@ function validatePassword(password) {
  * @returns {string} Trimmed string
  */
 function sanitizeInput(input) {
+<<<<<<< HEAD
   if (input === null || input === undefined) {
     return '';
   }
@@ -69,6 +83,12 @@ function sanitizeInput(input) {
     return input.trim();
   }
   return String(input);
+=======
+  if (typeof input !== 'string') {
+    return String(input);
+  }
+  return input.trim();
+>>>>>>> my-merged-work
 }
 
 /**
@@ -77,8 +97,13 @@ function sanitizeInput(input) {
  * @returns {boolean} True if roleId is valid
  */
 function validateRoleId(roleId) {
+<<<<<<< HEAD
   // Accept any positive integer; existence is checked via DB in the service layer
   return typeof roleId === 'number' && Number.isInteger(roleId) && roleId > 0;
+=======
+  const validRoleIds = [1, 2, 3, 4, 5, 6]; // Based on seeded roles
+  return typeof roleId === 'number' && validRoleIds.includes(roleId);
+>>>>>>> my-merged-work
 }
 
 /**

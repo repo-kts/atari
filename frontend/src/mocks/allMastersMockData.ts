@@ -4,7 +4,7 @@
 
 export interface MasterMockRecord {
   id: number
-  // Other fields are dynamic (zoneName, stateName, etc.) 
+  // Other fields are dynamic (zoneName, stateName, etc.)
   [key: string]: any
 }
 
@@ -98,4 +98,3 @@ const allMastersMockRegistry: Record<string, MasterMockRecord[]> = {
 export const getAllMastersMockData = (path: string): MasterMockRecord[] => {
   return allMastersMockRegistry[path] ? [...allMastersMockRegistry[path]] : []
 }
-

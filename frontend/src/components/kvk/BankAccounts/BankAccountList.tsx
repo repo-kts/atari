@@ -62,6 +62,10 @@ export const BankAccountList: React.FC = () => {
     }
 
     const handleDelete = (id: number) => {
+        if (!canDelete) {
+            alert('You do not have permission to delete bank accounts.')
+            return
+        }
         if (confirm('Are you sure you want to delete this bank account?')) {
             localStorageService.deleteBankAccount(id)
             loadAccounts()
@@ -151,7 +155,7 @@ export const BankAccountList: React.FC = () => {
                                 placeholder="Search by account type, bank name, account number, location..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full h-12 pl-10 pr-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9]0/20 focus:border-[#487749] bg-white text-[#212121]"
+                                className="w-full h-12 pl-10 pr-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121]"
                             />
                         </div>
                     </div>
@@ -220,27 +224,27 @@ export const BankAccountList: React.FC = () => {
                                             </td>
                                             {(canEdit || canDelete) && (
                                                 <td className="px-4 py-3">
-                                                <div className="flex gap-2">
-                                                    {canEdit && (
-                                                    <button
-                                                        onClick={() => setEditingAccount(account)}
-                                                        className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    )}
-                                                    {canDelete && (
-                                                    <button
-                                                        onClick={() => handleDelete(account.id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                    )}
-                                                </div>
-                                            </td>
+                                                    <div className="flex gap-2">
+                                                        {canEdit && (
+                                                            <button
+                                                                onClick={() => setEditingAccount(account)}
+                                                                className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <button
+                                                                onClick={() => handleDelete(account.id)}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
                                             )}
                                         </tr>
                                     ))}
@@ -286,3 +290,5 @@ export const BankAccountList: React.FC = () => {
         </div>
     )
 }
+
+export default BankAccountList

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Search, ChevronLeft, ChevronRight, Edit2, Trash2, Eye } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight, Edit2, Trash2, Eye, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
 import { Card, CardContent } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { RouteWrapper } from './RouteWrapper'
@@ -122,11 +122,11 @@ export const DynamicTablePage: React.FC<DynamicTablePageProps> = ({
 
     return (
         <RouteWrapper showBreadcrumbs={showBreadcrumbs} showTabs={showTabs} showBack={showBack}>
-            <div className="space-y-6 bg-[#FAF9F6] rounded-2xl">
+            <div className="space-y-6 bg-[#FAF9F6] rounded-2xl w-full min-w-0">
                 {/* Page Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-semibold text-[#487749]">{title}</h1>
+                        <h1 className="text-xl font-medium text-gray-800">{title}</h1>
                         {description && (
                             <p className="text-sm text-[#757575] mt-1">{description}</p>
                         )}
@@ -152,7 +152,7 @@ export const DynamicTablePage: React.FC<DynamicTablePageProps> = ({
                 </div>
 
                 {/* Main Content */}
-                <Card className="bg-[#FAF9F6]">
+                <Card className="bg-[#FAF9F6] w-full overflow-hidden">
                     <CardContent className="p-6">
                         {customContent ? (
                             customContent
@@ -177,26 +177,36 @@ export const DynamicTablePage: React.FC<DynamicTablePageProps> = ({
                                 {/* Table */}
                                 {columns.length > 0 && sortedData.length > 0 ? (
                                     <>
-                                        <div className="overflow-x-auto">
+                                        <div className="overflow-x-auto w-full">
                                             <table className="w-full border-collapse">
                                                 <thead>
-                                                    <tr className="bg-[#E8F5E9] border-b border-[#E0E0E0]">
+                                                    <tr className="bg-[#CFE1D1] border-b border-[#E0E0E0]">
                                                         {columns.map(col => (
                                                             <th
                                                                 key={col.key}
-                                                                className={`px-4 py-3 text-left text-sm font-semibold text-[#487749] ${col.sortable ? 'cursor-pointer hover:bg-[#C8E6C9]' : ''}`}
+                                                                className={`px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider whitespace-nowrap border-r border-white border-b border-gray-200 ${col.sortable ? 'cursor-pointer hover:bg-[#C8E6C9]' : ''}`}
                                                                 onClick={() => col.sortable && handleSort(col.key)}
                                                             >
-                                                                <div className="flex items-center gap-1">
+                                                                <div className="flex items-center gap-1.5">
                                                                     {col.label}
-                                                                    {col.sortable && sortConfig?.key === col.key && (
-                                                                        <span>{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                                                    {col.sortable && (
+                                                                        <div className="flex flex-col">
+                                                                            {sortConfig?.key === col.key ? (
+                                                                                sortConfig.direction === 'asc' ? (
+                                                                                    <ChevronUp className="w-3 h-3 text-gray-600" />
+                                                                                ) : (
+                                                                                    <ChevronDown className="w-3 h-3 text-gray-600" />
+                                                                                )
+                                                                            ) : (
+                                                                                <ChevronsUpDown className="w-3 h-3 text-gray-600" />
+                                                                            )}
+                                                                        </div>
                                                                     )}
                                                                 </div>
                                                             </th>
                                                         ))}
                                                         {(onEdit || onDelete || onView) && (
-                                                            <th className="px-4 py-3 text-left text-sm font-semibold text-[#487749]">
+                                                            <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 tracking-wider whitespace-nowrap border-b border-gray-200">
                                                                 Actions
                                                             </th>
                                                         )}

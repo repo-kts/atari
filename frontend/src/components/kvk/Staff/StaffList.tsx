@@ -76,6 +76,10 @@ export const StaffList: React.FC = () => {
     }
 
     const handleDelete = (id: number) => {
+        if (!canDelete) {
+            alert('You do not have permission to delete staff members.')
+            return
+        }
         if (confirm('Are you sure you want to delete this staff member?')) {
             localStorageService.deleteStaff(id)
             loadStaff()
@@ -83,6 +87,10 @@ export const StaffList: React.FC = () => {
     }
 
     const handleTransfer = (id: number) => {
+        if (!canEdit) {
+            alert('You do not have permission to edit staff members.')
+            return
+        }
         if (confirm('Mark this staff member as transferred?')) {
             localStorageService.transferStaff(id)
             loadStaff()
@@ -172,7 +180,7 @@ export const StaffList: React.FC = () => {
                                 placeholder="Search by name, email, mobile, post..."
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full h-12 pl-10 pr-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9]0/20 focus:border-[#487749] bg-white text-[#212121]"
+                                className="w-full h-12 pl-10 pr-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121]"
                             />
                         </div>
                     </div>
@@ -239,7 +247,7 @@ export const StaffList: React.FC = () => {
                                             <td className="px-4 py-3 text-[#212121]">
                                                 {member.email}
                                             </td>
-                                                <td className="px-4 py-3 text-[#212121]">
+                                            <td className="px-4 py-3 text-[#212121]">
                                                 {member.discipline}
                                             </td>
                                             <td className="px-4 py-3 text-[#212121]">
@@ -247,36 +255,36 @@ export const StaffList: React.FC = () => {
                                             </td>
                                             {(canEdit || canDelete) && !isTransferredPage && (
                                                 <td className="px-4 py-3">
-                                                <div className="flex gap-2">
-                                                    {canEdit && (
-                                                    <button
-                                                        onClick={() => alert('Edit feature coming soon')}
-                                                        className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
-                                                        title="Edit"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </button>
-                                                    )}
-                                                    {canEdit && member.is_transferred === 0 && (
-                                                        <button
-                                                            onClick={() => handleTransfer(member.id)}
-                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                                                            title="Transfer"
-                                                        >
-                                                            Transfer
-                                                        </button>
-                                                    )}
-                                                    {canDelete && (
-                                                    <button
-                                                        onClick={() => handleDelete(member.id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                    )}
-                                                </div>
-                                            </td>
+                                                    <div className="flex gap-2">
+                                                        {canEdit && (
+                                                            <button
+                                                                onClick={() => alert('Edit feature coming soon')}
+                                                                className="p-2 text-[#487749] hover:bg-[#E8F5E9] rounded-xl transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        {canEdit && member.is_transferred === 0 && (
+                                                            <button
+                                                                onClick={() => handleTransfer(member.id)}
+                                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                                                                title="Transfer"
+                                                            >
+                                                                Transfer
+                                                            </button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <button
+                                                                onClick={() => handleDelete(member.id)}
+                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
                                             )}
                                         </tr>
                                     ))}
@@ -289,3 +297,5 @@ export const StaffList: React.FC = () => {
         </div>
     )
 }
+
+export default StaffList

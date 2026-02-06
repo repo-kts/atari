@@ -5,8 +5,12 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
+<<<<<<< HEAD
   // Superadmin folder structure: all .prisma files under prisma/superadmin/ are loaded
   schema: "prisma/superadmin",
+=======
+  schema: "prisma/schema.prisma",
+>>>>>>> my-merged-work
   migrations: {
     path: "prisma/migrations",
   },

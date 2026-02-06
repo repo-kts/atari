@@ -89,7 +89,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
     // Fetch roles from API
     useEffect(() => {
-        userApi.getRoles().then(setAllRoles).catch(() => {})
+        userApi.getRoles().then(setAllRoles).catch(() => { })
     }, [])
 
     // Allowed non-admin roles for current creator (when not Super Admin)
@@ -415,11 +415,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 kvkId: '',
                             }))
                         }}
-                        className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                            errors.roleId
+                        className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${errors.roleId
                                 ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
                                 : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                        } ${isSubmitting || submitSuccess ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            } ${isSubmitting || submitSuccess ? 'opacity-50 cursor-not-allowed' : ''}`}
                         required
                         disabled={isSubmitting || submitSuccess}
                     >

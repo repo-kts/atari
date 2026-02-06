@@ -150,7 +150,6 @@ const getFieldValue = (item: any, field: string): string => {
     if (field === 'cropName' && item.CropName) return item.CropName
 
     // Training fields
-    // Training fields
     if (field === 'trainingType') {
         if (item.trainingTypeName) return item.trainingTypeName
         if (item.trainingType?.trainingTypeName) return item.trainingType.trainingTypeName
@@ -251,11 +250,11 @@ export const MasterView: React.FC<MasterViewProps> = ({
     const aryaEnterprisesHook = entityType === 'arya-enterprises' ? useAryaEnterprises() : null
 
     // Get the active hook
-    const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
+    const activeHook = (basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
         fldThematicAreasHook || fldCategoriesHook || fldSubcategoriesHook ||
         fldCropsHook || cfldCropsHook || trainingTypesHook || trainingAreasHook ||
         trainingThematicAreasHook || extensionActivitiesHook || otherExtensionActivitiesHook || eventsHook ||
-        productCategoriesHook || productTypesHook || productsHook || craCroppingSystemsHook || craFarmingSystemsHook || aryaEnterprisesHook
+        productCategoriesHook || productTypesHook || productsHook || craCroppingSystemsHook || craFarmingSystemsHook || aryaEnterprisesHook) as any
 
     // Initialize items based on entity type
     const [items, setItems] = useState<any[]>(() => {
@@ -282,7 +281,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
 
     // Sync data from API or mock
     useEffect(() => {
-        if (isMasterDataEntity && activeHook) {
+        if (isMasterDataEntity && activeHook && activeHook.data) {
             // Use real API data for master data entities
             setItems(activeHook.data)
         } else {
@@ -360,9 +359,9 @@ export const MasterView: React.FC<MasterViewProps> = ({
 
                     // Different update signatures for different hooks
                     if (isBasicMasterEntity) {
-                        await (activeHook as any).update(editingItem[idField], updateData)
+                        await activeHook.update(editingItem[idField], updateData)
                     } else {
-                        await (activeHook as any).update({ id: editingItem[idField], data: updateData })
+                        await activeHook.update({ id: editingItem[idField], data: updateData })
                     }
                 } else {
                     // Create - remove read-only nested objects but keep foreign key IDs
@@ -394,7 +393,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
             ['S.No.', ...fields.map(f => f.charAt(0).toUpperCase() + f.slice(1))],
             ...filteredData.map((item, index) => [
                 index + 1,
-                ...fields.map(field => item[field] || '')
+                ...fields.map(field => getFieldValue(item, field) || '')
             ])
         ].map(row => row.join(',')).join('\n')
 
@@ -477,7 +476,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder={`Search ${title.toLowerCase()}...`}
-                                className="w-full pl-10 pr-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9]0/20 focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
+                                className="w-full pl-10 pr-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
                             />
                         </div>
                     </div>
@@ -648,7 +647,7 @@ export const MasterView: React.FC<MasterViewProps> = ({
             {isModalOpen && (
                 <MasterDataModal
                     entityType={entityType}
-                    title={editingItem ? `Edit ${title.slice(0, -7)}` : `Add ${title.slice(0, -7)}`}
+                    title={editingItem ? `Edit ${title.replace(/ Master$/, '')}` : `Add ${title.replace(/ Master$/, '')}`}
                     formData={formData}
                     setFormData={setFormData}
                     onSave={handleSaveModal}
@@ -662,3 +661,5 @@ export const MasterView: React.FC<MasterViewProps> = ({
         </div>
     )
 }
+
+export default MasterView

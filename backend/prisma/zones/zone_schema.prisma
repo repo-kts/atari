@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Zone {
+  zoneId   Int    @id @default(autoincrement()) @map("zone_id")
+  zoneName String @unique @map("zone_name")
+
+  states    StateMaster[]
+  districts DistrictMaster[]
+  users     User[]  // Users assigned to this zone
+
+  @@map("zone")
+}
+
+model StateMaster {
+  stateId   Int    @id @default(autoincrement()) @map("state_id")
+  stateName String @map("state_name")
+
+  zoneId    Int
+  zone      Zone   @relation(fields: [zoneId], references: [zoneId])
+
+  districts DistrictMaster[]
+  orgs      OrgMaster[]
+  users     User[]  // Users assigned to this state
+
+  @@map("stateMaster")
+}
+
+model DistrictMaster {
+  districtId   Int    @id @default(autoincrement()) @map("district_id")
+  districtName String @map("district_name")
+
+  stateId      Int
+  zoneId       Int
+
+  state        StateMaster @relation(fields: [stateId], references: [stateId])
+  zone         Zone        @relation(fields: [zoneId], references: [zoneId])
+  users        User[]  // Users assigned to this district
+
+  @@map("districtMaster")
+}
+
+model OrgMaster {
+  orgId   Int    @id @default(autoincrement()) @map("org_id")
+  uniName String @map("uni_name")
+
+  stateId Int
+  state   StateMaster @relation(fields: [stateId], references: [stateId])
+  users   User[]  // Users assigned to this organization
+
+  @@map("orgMaster")
+}

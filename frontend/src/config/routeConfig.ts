@@ -21,6 +21,7 @@ const basicMastersPaths = [
     '/all-master/zones',
     '/all-master/states',
     '/all-master/organizations',
+    '/all-master/universities',
     '/all-master/districts',
 ]
 
@@ -88,7 +89,16 @@ export const allMastersRoutes: RouteConfig[] = [
         siblings: basicMastersPaths,
         fields: ['zoneName', 'stateName', 'uniName'],
     },
-
+    {
+        path: '/all-master/universities',
+        title: 'University Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master',
+        subcategoryPath: '/all-master/basic',
+        siblings: basicMastersPaths,
+        fields: ['stateName', 'universityName'],
+    },
     {
         path: '/all-master/districts',
         title: 'District Master',
@@ -185,18 +195,6 @@ export const allMastersRoutes: RouteConfig[] = [
         siblings: oftFldMastersPaths,
         fields: ['seasonName', 'cropTypeName', 'cropName'],
     },
-    // FUTURE: Season Master
-    // {
-    //     path: '/all-master/season',
-    //     title: 'Season Master',
-    //     category: 'All Masters',
-    //     subcategory: 'OFT & FLD Masters',
-    //     parent: '/all-master',
-    //     subcategoryPath: '/all-master/oft-fld',
-    //     siblings: oftFldMastersPaths,
-    //     fields: ['seasonName'],
-    // },
-
 
     // Training Master
     {

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const userRepository = require('../repositories/userRepository.js');
 const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 const { hashPassword } = require('../utils/password.js');
@@ -16,6 +17,12 @@ const ALLOWED_ROLES_FOR_CREATOR = {
   org_admin: ['org_user', 'kvk'],
   kvk: ['kvk'],
 };
+=======
+const userRepository = require('../repositories/userRepository');
+const { hashPassword } = require('../utils/password');
+const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation');
+const prisma = require('../config/prisma');
+>>>>>>> my-merged-work
 
 /**
  * Service layer for user management operations
@@ -26,11 +33,18 @@ const userManagementService = {
    * @param {object} userData - User data (name, email, roleId, etc.)
    * @param {string} password - Plain text password
    * @param {number} createdBy - User ID of the creator
+<<<<<<< HEAD
    * @param {object} [options] - Optional: { permissions: string[] } (VIEW, ADD, EDIT, DELETE). Required when creator is not super_admin.
    * @returns {Promise<object>} Created user (with permissions array when user-level permissions were set)
    * @throws {Error} If validation fails or user creation fails
    */
   createUser: async (userData, password, createdBy, options = {}) => {
+=======
+   * @returns {Promise<object>} Created user
+   * @throws {Error} If validation fails or user creation fails
+   */
+  createUser: async (userData, password, createdBy) => {
+>>>>>>> my-merged-work
     // Validate required fields
     if (!userData.name || !userData.email || !password) {
       throw new Error('Name, email, and password are required');
@@ -76,6 +90,7 @@ const userManagementService = {
       userData.kvkId
     );
 
+<<<<<<< HEAD
     // Load creator to check role and enforce hierarchy scope
     const creator = await userRepository.findById(createdBy);
     if (!creator) {
@@ -135,17 +150,28 @@ const userManagementService = {
       );
     }
 
+=======
+>>>>>>> my-merged-work
     // Normalize inputs (trim). XSS handled by JSON responses and frontend output encoding.
     const sanitizedData = {
       name: sanitizeInput(userData.name),
       email: userData.email.toLowerCase().trim(),
       phoneNumber: userData.phoneNumber ? userData.phoneNumber.replace(/[\s\-()]/g, '') : null,
+<<<<<<< HEAD
       roleId: effectiveRoleId,
       zoneId: effectiveZoneId,
       stateId: effectiveStateId,
       districtId: effectiveDistrictId,
       orgId: effectiveOrgId,
       kvkId: effectiveKvkId,
+=======
+      roleId: userData.roleId,
+      zoneId: userData.zoneId || null,
+      stateId: userData.stateId || null,
+      districtId: userData.districtId || null,
+      orgId: userData.orgId || null,
+      kvkId: userData.kvkId || null,
+>>>>>>> my-merged-work
     };
 
     // Hash password
@@ -154,6 +180,7 @@ const userManagementService = {
     // Create user
     const user = await userRepository.createUserWithPassword(sanitizedData, passwordHash);
 
+<<<<<<< HEAD
     // If creator is not super_admin, assign user-level permissions
     let permissionActions = [];
     if (creatorRoleName !== 'super_admin' && options.permissions?.length) {
@@ -165,6 +192,8 @@ const userManagementService = {
       }
     }
 
+=======
+>>>>>>> my-merged-work
     return {
       userId: user.userId,
       name: user.name,
@@ -178,11 +207,15 @@ const userManagementService = {
       orgId: user.orgId,
       kvkId: user.kvkId,
       createdAt: user.createdAt,
+<<<<<<< HEAD
       ...(permissionActions.length ? { permissions: permissionActions } : {}),
+=======
+>>>>>>> my-merged-work
     };
   },
 
   /**
+<<<<<<< HEAD
    * Get permission IDs for USER_SCOPE module and given actions (VIEW, ADD, EDIT, DELETE).
    * @param {string[]} actions - e.g. ['VIEW', 'EDIT']
    * @returns {Promise<number[]>} Permission IDs
@@ -327,6 +360,8 @@ const userManagementService = {
   },
 
   /**
+=======
+>>>>>>> my-merged-work
    * Validate hierarchy assignment based on role
    * @param {number} roleId - Role ID
    * @param {number|null} zoneId - Zone ID
@@ -406,6 +441,7 @@ const userManagementService = {
         if (!kvkId) {
           throw new Error('KVK user must be assigned to a KVK');
         }
+<<<<<<< HEAD
         break;
 
       case 'state_user': {
@@ -441,12 +477,19 @@ const userManagementService = {
         break;
       }
 
+=======
+        // Note: KVK model might not exist yet, so we'll skip validation for now
+        // You can add KVK validation when the KVK schema is ready
+        break;
+
+>>>>>>> my-merged-work
       default:
         throw new Error('Unknown role');
     }
   },
 
   /**
+<<<<<<< HEAD
    * Ensure the admin can access the target user (hierarchy scope).
    * @param {number} adminUserId - Admin user ID
    * @param {number} targetUserId - Target user ID to access (view/edit/delete)
@@ -497,6 +540,8 @@ const userManagementService = {
   },
 
   /**
+=======
+>>>>>>> my-merged-work
    * Get users for admin based on their scope
    * @param {number} adminUserId - Admin user ID
    * @param {object} filters - Additional filters (roleId, search, etc.)
@@ -547,6 +592,7 @@ const userManagementService = {
         hierarchyFilters.orgId = adminUser.orgId;
         break;
 
+<<<<<<< HEAD
       case 'kvk':
         if (!adminUser.kvkId) {
           throw new Error('User must be assigned to a KVK');
@@ -554,6 +600,8 @@ const userManagementService = {
         hierarchyFilters.kvkId = adminUser.kvkId;
         break;
 
+=======
+>>>>>>> my-merged-work
       default:
         throw new Error('User does not have permission to view users');
     }
@@ -561,8 +609,28 @@ const userManagementService = {
     // Merge with additional filters (hierarchyFilters take precedence so enforced scope cannot be bypassed)
     const finalFilters = { ...filters, ...hierarchyFilters };
 
+<<<<<<< HEAD
     // Get users (roleId and search are handled at the DB level by the repository)
     const users = await userRepository.findUsersByHierarchy(finalFilters);
+=======
+    // Get users
+    let users = await userRepository.findUsersByHierarchy(finalFilters);
+
+    // Apply role filter if provided
+    if (filters.roleId) {
+      users = users.filter((user) => user.roleId === filters.roleId);
+    }
+
+    // Apply search filter if provided
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      users = users.filter(
+        (user) =>
+          user.name.toLowerCase().includes(searchTerm) ||
+          user.email.toLowerCase().includes(searchTerm)
+      );
+    }
+>>>>>>> my-merged-work
 
     return users;
   },
@@ -576,9 +644,12 @@ const userManagementService = {
    * @throws {Error} If validation fails or user not found
    */
   updateUser: async (userId, userData, updatedBy) => {
+<<<<<<< HEAD
     // Enforce hierarchy scope: updater must be allowed to access this user
     await userManagementService.ensureAdminCanAccessUser(updatedBy, userId);
 
+=======
+>>>>>>> my-merged-work
     // Check if user exists
     const existingUser = await userRepository.findById(userId);
     if (!existingUser) {
@@ -602,6 +673,7 @@ const userManagementService = {
       }
     }
 
+<<<<<<< HEAD
     // Prevent role escalation by non-super_admin
     const updater = await userRepository.findById(updatedBy);
     const updaterRoleName = updater?.role?.roleName;
@@ -619,6 +691,8 @@ const userManagementService = {
       }
     }
 
+=======
+>>>>>>> my-merged-work
     const nextRoleId = userData.roleId ?? existingUser.roleId;
     const nextZoneId = userData.zoneId !== undefined ? userData.zoneId : existingUser.zoneId;
     const nextStateId = userData.stateId !== undefined ? userData.stateId : existingUser.stateId;
@@ -663,6 +737,7 @@ const userManagementService = {
     // Update user
     const updatedUser = await userRepository.update(userId, sanitizedData);
 
+<<<<<<< HEAD
     // Update permissions if provided
     let permissionActions = [];
     if (Array.isArray(userData.permissions)) {
@@ -680,6 +755,8 @@ const userManagementService = {
       permissionActions = await userPermissionRepository.getUserPermissionActions(userId);
     }
 
+=======
+>>>>>>> my-merged-work
     return {
       userId: updatedUser.userId,
       name: updatedUser.name,
@@ -692,7 +769,10 @@ const userManagementService = {
       orgId: updatedUser.orgId,
       kvkId: updatedUser.kvkId,
       updatedAt: updatedUser.updatedAt,
+<<<<<<< HEAD
       ...(permissionActions.length ? { permissions: permissionActions } : {}),
+=======
+>>>>>>> my-merged-work
     };
   },
 
@@ -704,9 +784,12 @@ const userManagementService = {
    * @throws {Error} If user not found
    */
   deleteUser: async (userId, deletedBy) => {
+<<<<<<< HEAD
     // Enforce hierarchy scope: deleter must be allowed to access this user
     await userManagementService.ensureAdminCanAccessUser(deletedBy, userId);
 
+=======
+>>>>>>> my-merged-work
     // Check if user exists
     const user = await userRepository.findById(userId);
     if (!user) {
@@ -726,6 +809,10 @@ const userManagementService = {
     await userRepository.softDeleteUser(userId);
 
     // Revoke all refresh tokens for the user
+<<<<<<< HEAD
+=======
+    const authRepository = require('../repositories/authRepository');
+>>>>>>> my-merged-work
     await authRepository.revokeAllUserTokens(userId);
 
     return true;

@@ -36,9 +36,9 @@ const sections: MasterSection[] = [
             { label: 'Instructional Farm (crops)', path: '/forms/performance/infrastructure/instructional-farm-crops' },
             { label: 'Production Units', path: '/forms/performance/infrastructure/production-units' },
             { label: 'Instructional Farm (livestock)', path: '/forms/performance/infrastructure/instructional-farm-livestock' },
-            { label: 'Hostel Facilities', path: '/forms/performance/infrastructure/hostel' },
+            { label: 'Hostel Facilities', path: '/forms/performance/infrastructure/hostel-facilities' },
             { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters' },
-            { label: 'Rain Water Harvesting', path: '/forms/performance/infrastructure/rainwater-harvesting' },
+            { label: 'Rain Water Harvesting', path: '/forms/performance/infrastructure/rain-water-harvesting' },
         ],
     },
     {

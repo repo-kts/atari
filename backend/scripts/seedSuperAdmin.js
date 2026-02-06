@@ -15,6 +15,11 @@ async function seedSuperAdmin() {
   console.log('🌱 Starting super admin seeding...\n');
 
   // Get configuration from environment or use defaults
+<<<<<<< HEAD
+=======
+  // user@atari.com
+  // User@123
+>>>>>>> my-merged-work
   const defaultEmail = process.env.SUPER_ADMIN_EMAIL || 'superadmin@atari.gov.in';
   const defaultPassword = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin@123';
   const defaultName = process.env.SUPER_ADMIN_NAME || 'Super Administrator';
@@ -47,7 +52,11 @@ async function seedSuperAdmin() {
       console.log(`   Email: ${existingSuperAdmin.email}`);
       console.log(`   Name: ${existingSuperAdmin.name}`);
       console.log(`   User ID: ${existingSuperAdmin.userId}\n`);
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> my-merged-work
       const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -56,7 +65,11 @@ async function seedSuperAdmin() {
       return new Promise((resolve, reject) => {
         rl.question('Do you want to create another super admin? (y/N): ', async (answer) => {
           rl.close();
+<<<<<<< HEAD
           
+=======
+
+>>>>>>> my-merged-work
           if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
             console.log('✨ Skipping super admin creation.\n');
             resolve();
@@ -67,7 +80,11 @@ async function seedSuperAdmin() {
           try {
             await createSuperAdmin(defaultEmail, defaultPassword, defaultName, superAdminRole.roleId);
             resolve()
+<<<<<<< HEAD
           } catch(err) {
+=======
+          } catch (err) {
+>>>>>>> my-merged-work
             reject(err)
           }
         });

@@ -2,7 +2,7 @@ import { KVKDetails } from '../types/kvk'
 import { BankAccount } from '../types/bankAccount'
 import { Staff } from '../types/staff'
 import { localStorageService } from './localStorageService'
-import { mockVehicleDetails, mockEquipmentDetails, mockInfrastructureList } from '../mocks/kvkMockData'
+import { mockVehicleDetails, mockEquipmentDetails, mockInfrastructureList, mockTechnologyWeek } from '../mocks/kvkMockData'
 
 // Mock KVK Data
 export const mockKVKData: KVKDetails[] = [
@@ -268,11 +268,14 @@ export const initializeMockData = () => {
         mockEquipmentDetails as any,
         mockInfrastructureList as any
     )
+    localStorageService.initializeAchievementsMockData(
+        mockTechnologyWeek
+    )
 
     // Set up KVK user mapping
     const mapping: Record<string, number> = {
         '3': 13, // KVK user ID 3 maps to KVK ID 13 (Patna)
         '4': 14, // KVK user ID 4 maps to KVK ID 14 (Araria)
     }
-    localStorage.setItem('atari-kvk-user-mapping', JSON.stringify(mapping))
+    localStorage.setItem('atari_kvk_user_mapping', JSON.stringify(mapping))
 }

@@ -249,9 +249,8 @@ export const AddStaff: React.FC = () => {
                                         name="post_id"
                                         value={formData.post_id}
                                         onChange={handleChange}
-                                        className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] bg-white text-[#212121] ${
-                                            errors.post_id ? 'border-red-300' : 'border-[#E0E0E0]'
-                                        }`}
+                                        className={`w-full h-12 px-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] bg-white text-[#212121] ${errors.post_id ? 'border-red-300' : 'border-[#E0E0E0]'
+                                            }`}
                                     >
                                         <option value="">Select Post</option>
                                         {posts.map(post => (
@@ -372,3 +371,5 @@ export const AddStaff: React.FC = () => {
         </div>
     )
 }
+
+export default AddStaff

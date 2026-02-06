@@ -1,12 +1,12 @@
 import React from 'react'
 import {
-    Bug,
+    Activity,
     Users,
     Shield,
     GraduationCap,
-    UserCircle,
+    Crown,
     Smartphone,
-    Sparkles,
+    Recycle,
     Calendar,
 } from 'lucide-react'
 import { MastersTabLayout, MasterSection } from '../masters/MastersTabLayout'
@@ -14,10 +14,10 @@ import { MastersTabLayout, MasterSection } from '../masters/MastersTabLayout'
 const sections: MasterSection[] = [
     {
         title: 'Prevalent Diseases',
-        icon: <Bug className="w-5 h-5" />,
+        icon: <Activity className="w-5 h-5" />,
         items: [
-            { label: 'Prevalent diseases (Crops)', path: '/forms/miscellaneous/diseases/crops' },
-            { label: 'Prevalent diseases (Livestock/Fishery)', path: '/forms/miscellaneous/diseases/livestock' },
+            { label: 'Prevalent diseases (Crops)', path: '/forms/miscellaneous/prevalent-diseases/crops' },
+            { label: 'Prevalent diseases (Livestock/Fishery)', path: '/forms/miscellaneous/prevalent-diseases/livestock' },
         ],
     },
     {
@@ -31,7 +31,7 @@ const sections: MasterSection[] = [
         title: 'PPV & FRA Sensitization',
         icon: <Shield className="w-5 h-5" />,
         items: [
-            { label: 'Training & Awareness Program', path: '/forms/miscellaneous/ppv-fra/training' },
+            { label: 'Training & Awareness Program', path: '/forms/miscellaneous/ppv-fra/training-awareness' },
             { label: 'Details of Plant Varieties', path: '/forms/miscellaneous/ppv-fra/plant-varieties' },
         ],
     },
@@ -44,7 +44,7 @@ const sections: MasterSection[] = [
     },
     {
         title: 'VIP Visitors',
-        icon: <UserCircle className="w-5 h-5" />,
+        icon: <Crown className="w-5 h-5" />,
         items: [
             { label: 'VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
         ],
@@ -62,11 +62,11 @@ const sections: MasterSection[] = [
     },
     {
         title: 'Swachhta Bharat Abhiyaan',
-        icon: <Sparkles className="w-5 h-5" />,
+        icon: <Recycle className="w-5 h-5" />,
         items: [
-            { label: 'Swachhta hi Sewa', path: '/forms/miscellaneous/swachhta/sewa' },
-            { label: 'Swachta Pakhwada', path: '/forms/miscellaneous/swachhta/pakhwada' },
-            { label: 'Budget expenditure', path: '/forms/miscellaneous/swachhta/budget' },
+            { label: 'Swachhta hi Sewa', path: '/forms/miscellaneous/swachhta-bharat/sewa' },
+            { label: 'Swachhta Pakhwada', path: '/forms/miscellaneous/swachhta-bharat/pakhwada' },
+            { label: 'Budget expenditure', path: '/forms/miscellaneous/swachhta-bharat/budget' },
         ],
     },
     {

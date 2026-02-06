@@ -12,6 +12,7 @@ export const InfrastructureList: React.FC = () => {
     const canAdd = hasPermission('ADD')
     const canEdit = hasPermission('EDIT')
     const canDelete = hasPermission('DELETE')
+
     const [data, setData] = useState<InfrastructureRecord[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editing, setEditing] = useState<InfrastructureRecord | null>(null)
@@ -108,8 +109,8 @@ export const InfrastructureList: React.FC = () => {
     ]
 
     const buttons: ButtonOption[] = [
-        { label: 'Download Report', icon: <Download className="w-4 h-4" />, onClick: () => {} },
-        { label: 'Download Excel Report', icon: <FileSpreadsheet className="w-4 h-4" />, onClick: () => {} },
+        { label: 'Download Report', icon: <Download className="w-4 h-4" />, onClick: () => { } },
+        { label: 'Download Excel Report', icon: <FileSpreadsheet className="w-4 h-4" />, onClick: () => { } },
         ...(canAdd
             ? [{
                 label: 'Add Infrastructure',

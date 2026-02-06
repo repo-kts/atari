@@ -18,6 +18,7 @@ import {
     Target,
     History,
     FileBarChart,
+    Building2,
 } from 'lucide-react'
 
 interface MenuItem {
@@ -331,9 +332,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                     onMouseDown={(e) => e.preventDefault()}
                                     data-menu-item
                                     tabIndex={debouncedSearchQuery ? 0 : -1}
-                                    className={`flex-1 flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2.5 mx-1 rounded-xl transition-all duration-200 ${getItemStyles()} ${isItemActive ? 'font-medium' : ''} ${
-                                        level > 0 ? 'text-sm' : ''
-                                    } outline-none focus:outline-none active:outline-none`}
+                                    className={`flex-1 flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2.5 mx-1 rounded-xl transition-all duration-200 ${getItemStyles()} ${isItemActive ? 'font-medium' : ''} ${level > 0 ? 'text-sm' : ''
+                                        } outline-none focus:outline-none active:outline-none`}
                                     aria-label={`Navigate to ${item.label}`}
                                     aria-current={isItemActive ? 'page' : undefined}
                                     onKeyDown={(e) => {
@@ -356,9 +356,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                     )}
                                 </Link>
                             ) : (
-                                <div className={`flex-1 flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2 mx-1 rounded-md transition-all duration-200 ${getItemStyles()} ${
-                                    level > 0 ? 'text-sm' : ''
-                                }`}>
+                                <div className={`flex-1 flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2 mx-1 rounded-md transition-all duration-200 ${getItemStyles()} ${level > 0 ? 'text-sm' : ''
+                                    }`}>
                                     {item.icon && (
                                         <span className={`shrink-0 flex items-center justify-center ${level > 0 ? 'w-4 h-4' : 'w-5 h-5'}`}>
                                             {item.icon}
@@ -400,9 +399,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         </div>
                         {isOpen && (
                             <div
-                                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                    isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-                                }`}
+                                className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+                                    }`}
                             >
                                 <div className="mt-1 space-y-0.5">
                                     {item.children?.map((child) =>
@@ -419,9 +417,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         onMouseDown={(e) => e.preventDefault()}
                         data-menu-item
                         tabIndex={debouncedSearchQuery ? 0 : -1}
-                        className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2.5 mx-1 rounded-xl transition-all duration-200 ${getItemStyles()} ${isItemActive ? 'font-medium' : ''} ${
-                            level > 0 ? 'text-sm' : ''
-                        } outline-none focus:outline-none active:outline-none`}
+                        className={`flex items-center ${isOpen ? 'gap-2.5' : 'justify-center'} ${paddingClass} py-2.5 mx-1 rounded-xl transition-all duration-200 ${getItemStyles()} ${isItemActive ? 'font-medium' : ''} ${level > 0 ? 'text-sm' : ''
+                            } outline-none focus:outline-none active:outline-none`}
                         aria-label={`Navigate to ${item.label}`}
                         aria-current={isItemActive ? 'page' : undefined}
                         onKeyDown={(e) => {
@@ -476,13 +473,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             {/* Sidebar */}
             <aside
                 id="main-sidebar"
-                className={`fixed top-0 left-0 h-screen bg-[#487749] border-r border-[#3d6540] z-40 transition-all duration-300 ${
-                    isOpen ? 'w-64' : 'w-16'
-                } ${
-                    isMobileMenuOpen
+                className={`fixed top-0 left-0 h-screen bg-[#487749] border-r border-[#3d6540] z-40 transition-all duration-300 ${isOpen ? 'w-64' : 'w-16'
+                    } ${isMobileMenuOpen
                         ? 'translate-x-0'
                         : '-translate-x-full lg:translate-x-0'
-                } overflow-y-auto shadow-sm`}
+                    } overflow-y-auto shadow-sm`}
                 role="navigation"
                 aria-label="Main navigation"
                 style={{ height: '100vh' }}
@@ -573,7 +568,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                 </div>
                             ))
                         ) : (
-                                <div className="px-4 py-8 text-center text-white/60">
+                            <div className="px-4 py-8 text-center text-white/60">
                                 <p className="text-sm">No menu items found</p>
                                 <p className="text-xs mt-1">Try a different search term</p>
                             </div>
@@ -581,19 +576,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                     </nav>
 
                     {/* Logout Button - Always visible at bottom */}
-                        {user && (
+                    {user && (
                         <div className="p-3 border-t border-[#3d6540]">
-                                {isOpen && user && (
+                            {isOpen && user && (
                                 <div className="mb-3 px-1 text-xs text-white/70">
                                     <p className="font-medium text-white">{user.name}</p>
                                     <p className="text-white/70">
                                         {user.role === 'super_admin'
                                             ? 'ATARI Super Admin'
                                             : ['zone_admin', 'state_admin', 'district_admin', 'org_admin'].includes(user.role)
-                                            ? 'Admin'
-                                            : user.role === 'kvk'
-                                            ? 'KVK User'
-                                            : 'User'}
+                                                ? 'Admin'
+                                                : user.role === 'kvk'
+                                                    ? 'KVK User'
+                                                    : 'User'}
                                     </p>
                                 </div>
                             )}

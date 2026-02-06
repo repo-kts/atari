@@ -27,8 +27,8 @@ export const KVKListView: React.FC = () => {
         let data: KVKDetails[] = []
         if (isAdmin) {
             data = localStorageService.getKVKDetails()
-        } else if (user?.kvk_id) {
-            data = localStorageService.getKVKDetails(user.kvk_id)
+        } else if (user?.kvkId) {
+            data = localStorageService.getKVKDetails(user.kvkId)
         }
 
         if (!data || data.length === 0) {

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const prisma = require('../config/prisma.js');
+=======
+const prisma = require('../config/prisma');
+>>>>>>> my-merged-work
 
 const userRepository = {
   /**
@@ -155,6 +159,7 @@ const userRepository = {
     if (filters.kvkId !== undefined) {
       where.kvkId = filters.kvkId;
     }
+<<<<<<< HEAD
     if (filters.roleId !== undefined) {
       where.roleId = filters.roleId;
     }
@@ -165,6 +170,8 @@ const userRepository = {
         { email: { contains: term, mode: 'insensitive' } },
       ];
     }
+=======
+>>>>>>> my-merged-work
 
     return await prisma.user.findMany({
       where,

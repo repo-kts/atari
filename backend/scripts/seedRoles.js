@@ -31,6 +31,7 @@ async function seedRoles() {
     },
     {
       roleName: 'kvk',
+<<<<<<< HEAD
       description: 'KVK User - Can view and edit own KVK data (custom permissions)',
     },
     {
@@ -44,6 +45,9 @@ async function seedRoles() {
     {
       roleName: 'org_user',
       description: 'Organization-level user - No admin rights; access by custom permissions only, scoped to org',
+=======
+      description: 'KVK User - Can view and edit own KVK data',
+>>>>>>> my-merged-work
     },
   ];
 

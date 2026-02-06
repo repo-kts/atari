@@ -1,6 +1,7 @@
 import { KVKDetails } from '../types/kvk'
 import { BankAccount } from '../types/bankAccount'
 import { Staff } from '../types/staff'
+import { TechnologyWeek } from '../types/technologyWeek'
 
 export interface Vehicle {
     id: number
@@ -189,6 +190,33 @@ export const mockInfrastructureList = [
     { id: 4, kvk_name: 'KVK Arwal', infrastructure: 'Farm godown', not_started: 'No', plinth: 'No', lintel: 'No', roof: 'No', total_completed: 'Yes', plinth_area: '0', under_use: 'Yes' },
 ]
 
+export const mockTechnologyWeek: TechnologyWeek[] = [
+    {
+        id: 1,
+        kvk_id: 1,
+        kvk_name: 'Demo KVK',
+        reporting_year: '2026',
+        start_date: '2024-05-15',
+        end_date: '2024-05-22',
+        type_of_activity: 'Celebration of Technology Week 2024',
+        no_of_activities: 7,
+        related_technology: 'Crop Protection, Organic Farming',
+        no_of_participants: 250
+    },
+    {
+        id: 2,
+        kvk_id: 2,
+        kvk_name: 'KVK Nawada',
+        reporting_year: '2026',
+        start_date: '2024-06-01',
+        end_date: '2024-06-07',
+        type_of_activity: 'Technology Demonstration Week',
+        no_of_activities: 5,
+        related_technology: 'Drip Irrigation, Hydroponics',
+        no_of_participants: 180
+    }
+]
+
 export const getMockKVKs = () => mockKVKs
 export const getMockKVKById = (id: number) => mockKVKs.find(k => k.id === id) || null
 export const getMockBankAccounts = (kvkId: number) => mockBankAccounts.filter(acc => acc.kvk_id === kvkId)
@@ -200,3 +228,4 @@ export const getMockVehicleDetails = () => mockVehicleDetails
 export const getMockEquipmentList = () => mockEquipmentList
 export const getMockEquipmentDetails = () => mockEquipmentDetails
 export const getMockInfrastructureList = () => mockInfrastructureList
+export const getMockTechnologyWeek = () => mockTechnologyWeek

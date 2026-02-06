@@ -1,9 +1,13 @@
 const jwt = require('jsonwebtoken');
 
+<<<<<<< HEAD
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 const JWT_SECRET = process.env.JWT_SECRET;
+=======
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production';
+>>>>>>> my-merged-work
 const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '1h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 

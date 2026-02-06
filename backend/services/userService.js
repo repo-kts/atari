@@ -1,5 +1,9 @@
 // Service layer - handles business logic
+<<<<<<< HEAD
 const userRepository = require('../repositories/userRepository.js');
+=======
+const userRepository = require('../repositories/userRepository');
+>>>>>>> my-merged-work
 
 const userService = {
   getAllUsers: async () => {

@@ -74,9 +74,9 @@ const sections: MasterSection[] = [
         title: 'Award and Recognition',
         icon: <Award className="w-5 h-5" />,
         items: [
-            { label: 'KVK Awards', path: '/forms/achievements/awards/kvk' },
-            { label: 'Scientist Awards', path: '/forms/achievements/awards/scientist' },
-            { label: 'Farmer Awards', path: '/forms/achievements/awards/farmer' },
+            { label: 'KVK Awards', path: '/forms/achievements/award-recognition/kvk' },
+            { label: 'Scientist Awards', path: '/forms/achievements/award-recognition/scientist' },
+            { label: 'Farmer Awards', path: '/forms/achievements/award-recognition/farmer' },
         ],
     },
     {
