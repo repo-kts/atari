@@ -1,0 +1,68 @@
+{
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.trimAutoWhitespace": true,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "javascript.preferences.quoteStyle": "single",
+    "typescript.preferences.quoteStyle": "single",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "eslint.validate": [
+        "typescript",
+        "typescriptreact"
+    ],
+    "eslint.options": {
+        "rules": {
+            "react-hooks/exhaustive-deps": "off",
+            "react-hooks/rules-of-hooks": "off",
+            "react-compiler/react-compiler": "off"
+        }
+    },
+    "eslint.rules.customizations": [
+        {
+            "rule": "react-hooks/exhaustive-deps",
+            "severity": "off"
+        },
+        {
+            "rule": "react-hooks/rules-of-hooks",
+            "severity": "off"
+        }
+    ],
+    "tailwindCSS.experimental.classRegex": [
+        ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+        ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^\"'`]*)(?:'|\"|`)"]
+    ]
+}

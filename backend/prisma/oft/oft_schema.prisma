@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OftSubject {
+  oftSubjectId   Int    @id @default(autoincrement()) @map("oft_subject_id")
+  subjectName    String @map("oft_subject_name")
+
+  thematicAreas  OftThematicArea[]
+
+  @@map("oft_subject")
+}
+
+
+model OftThematicArea {
+  oftThematicAreaId Int    @id @default(autoincrement()) @map("oft_thematic_area_id")
+  thematicAreaName  String @map("oft_thematic_area_name")
+
+  oftSubjectId      Int    @map("oft_subject_id")
+  subject           OftSubject @relation(fields: [oftSubjectId], references: [oftSubjectId])
+
+  @@map("oft_thematic_area")
+}

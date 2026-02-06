@@ -1,0 +1,25 @@
+# Bun configuration file
+# https://bun.sh/docs/cli/bunfig
+
+[install]
+# Use exact versions for consistent installs
+exact = false
+
+# Auto-install peer dependencies
+peer = true
+
+# Production dependencies only
+production = false
+
+# Optional dependencies
+optional = true
+
+[install.scopes]
+# Scope-specific configuration can be added here
+
+[run]
+# Bun run configuration
+
+[test]
+# Test configuration
+preload = []

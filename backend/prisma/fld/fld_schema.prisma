@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Sector {
+  sectorId   Int    @id @default(autoincrement()) @map("sector_id")
+  sectorName String @unique @map("sector_name")
+
+  thematicAreas ThematicArea[]
+  categories    Category[]
+
+  @@map("sector")
+}
+
+
+model ThematicArea {
+  thematicAreaId   Int    @id @default(autoincrement()) @map("thematic_area_id")
+  thematicAreaName String @map("thematic_area_name")
+
+  sectorId Int
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
+  @@map("thematic_area")
+}
+
+model Category {
+  categoryId   Int    @id @default(autoincrement()) @map("category_id")
+  categoryName String @map("category_name")
+
+  sectorId Int
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
+  subCategories SubCategory[]
+
+  @@map("category")
+}
+
+model SubCategory {
+  subCategoryId   Int    @id @default(autoincrement()) @map("sub_category_id")
+  subCategoryName String @map("sub_category_name")
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [categoryId])
+
+  crops Crop[]
+
+  @@map("sub_category")
+}
+
+model Crop {
+  cropId   Int    @id @default(autoincrement()) @map("crop_id")
+  cropName String @map("crop_name")
+
+  subCategoryId Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [subCategoryId])
+
+  @@map("crop")
+}

@@ -1,0 +1,43 @@
+{
+    "name": "frontend",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "bun run vite build",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md,html}\" --ignore-path .prettierignore",
+        "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md,html}\" --ignore-path .prettierignore",
+        "type-check": "tsc --noEmit",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@tanstack/react-table": "^8.21.3",
+        "date-fns": "^4.1.0",
+        "html2pdf.js": "^0.14.0",
+        "lucide-react": "^0.562.0",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "react-router-dom": "^7.12.0",
+        "xlsx": "^0.18.5",
+        "zustand": "^5.0.10"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.18",
+        "@types/react": "^19.2.5",
+        "@types/react-dom": "^19.2.3",
+        "@typescript-eslint/eslint-plugin": "^8.18.2",
+        "@typescript-eslint/parser": "^8.18.2",
+        "@vitejs/plugin-react": "^5.1.1",
+        "eslint": "^9.39.1",
+        "eslint-config-prettier": "^9.1.2",
+        "eslint-plugin-react-refresh": "^0.4.24",
+        "globals": "^16.5.0",
+        "prettier": "^3.7.4",
+        "tailwindcss": "^4.1.18",
+        "typescript": "^5.7.2",
+        "vite": "^7.2.4"
+    }
+}

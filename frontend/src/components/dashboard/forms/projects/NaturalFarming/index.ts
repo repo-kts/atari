@@ -1,0 +1,7 @@
+export { NaturalFarmingGeographical } from './NaturalFarmingGeographical'
+export { NaturalFarmingPhysical } from './NaturalFarmingPhysical'
+export { NaturalFarmingDemonstration } from './NaturalFarmingDemonstration'
+export { NaturalFarmingPracticing } from './NaturalFarmingPracticing'
+export { NaturalFarmingBeneficiaries } from './NaturalFarmingBeneficiaries'
+export { NaturalFarmingSoilData } from './NaturalFarmingSoilData'
+export { NaturalFarmingBudget } from './NaturalFarmingBudget'
