@@ -1,0 +1,20 @@
+enum EquipmentPresentStatus {
+  WORKING
+  GOOD_CONDITION
+  NEW
+}
+
+model KvkEquipment {
+  equipmentId Int @id @default(autoincrement()) @map("equipment_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  equipmentName    String @map("equipment_name")
+  yearOfPurchase Int    @map("year_of_purchase")
+  totalCost Float @map("total_cost")
+  presentStatus EquipmentPresentStatus @map("present_status")
+  sourceOfFunding String @map("source_of_funding")
+
+  @@map("kvk_equipment")
+}
