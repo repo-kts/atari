@@ -1,0 +1,49 @@
+import React from 'react'
+import { useAuthStore } from '../../stores/authStore'
+import { SuperAdminDashboard } from './SuperAdminDashboard'
+import { AdminDashboard } from './AdminDashboard'
+import { KVKDashboard } from './KVKDashboard'
+
+export const Dashboard: React.FC = () => {
+    const { user } = useAuthStore()
+
+    // Render dashboard based on user role
+    const renderDashboard = () => {
+        if (!user) return null
+
+        switch (user.role) {
+            case 'super_admin':
+                return <SuperAdminDashboard />
+            case 'zone_admin':
+            case 'state_admin':
+            case 'district_admin':
+            case 'org_admin':
+                return <AdminDashboard />
+            case 'kvk':
+                return <KVKDashboard />
+            default:
+                return <SuperAdminDashboard />
+        }
+    }
+
+    return (
+        <div className="bg-white rounded-2xl p-1">
+            {/* Header Section */}
+            <div className="mb-6 px-6 pt-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-[#487749]">
+                        Dashboard
+                    </h1>
+                    <p className="text-sm text-[#757575] mt-1 font-medium">
+                        Central overview of system activities and performance metrics
+                    </p>
+                </div>
+            </div>
+
+            <div className="px-6 pb-6">
+                {/* Role-based Dashboard Content */}
+                {renderDashboard()}
+            </div>
+        </div>
+    )
+}

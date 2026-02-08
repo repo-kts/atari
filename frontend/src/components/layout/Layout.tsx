@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { Sidebar } from '../dashboard/Sidebar'
+import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 
 export const Layout: React.FC = () => {

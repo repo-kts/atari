@@ -1,6 +1,6 @@
 // Centralized mock data for All Masters (Basic, OFT/FLD, etc.)
 // This consolidates the mock tables used in the legacy View* components
-// so that `MasterView` and route-based pages can consume them dynamically.
+// so that `DataManagementView` and route-based pages can consume them dynamically.
 
 export interface MasterMockRecord {
   id: number

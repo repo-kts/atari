@@ -1,14 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { oftFldApi } from '../services/oftFldApi';
 import type {
-    OftSubject,
-    OftThematicArea,
-    Sector,
-    FldThematicArea,
-    FldCategory,
-    FldSubcategory,
-    FldCrop,
-    CfldCrop,
     OftSubjectFormData,
     OftThematicAreaFormData,
     SectorFormData,

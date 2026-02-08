@@ -44,8 +44,8 @@ export const SidebarLayout: React.FC<SidebarLayoutProps> = ({
                                     key={tab.id}
                                     onClick={() => onTabClick?.(tab.id)}
                                     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-all duration-200 ${isActive
-                                            ? 'bg-white text-[#487749] shadow-sm'
-                                            : 'text-white hover:text-[#487749] hover:bg-white/50'
+                                        ? 'bg-white text-[#487749] shadow-sm'
+                                        : 'text-white hover:text-[#487749] hover:bg-white/50'
                                         }`}
                                     role="tab"
                                     aria-selected={isActive}

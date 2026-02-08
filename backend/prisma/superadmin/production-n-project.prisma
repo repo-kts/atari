@@ -7,9 +7,9 @@ model ProductCategory {
   productTypes ProductType[]
   products     Product[]
 
-  @@map("product_category")
   @@index([productCategoryId])
   @@index([productCategoryName])
+  @@map("product_category")
 }
 
 model ProductType {
@@ -21,10 +21,10 @@ model ProductType {
   
   products Product[]
 
-  @@map("product_type")
   @@index([productTypeId])
   @@index([productCategoryType])
   @@index([productCategoryId])
+  @@map("product_type")
 }
 
 model Product {
@@ -37,11 +37,11 @@ model Product {
   productTypeId Int @map("product_type_id")
   productType   ProductType @relation(fields: [productTypeId], references: [productTypeId])
 
-  @@map("product")
   @@index([productId])
   @@index([productName])
   @@index([productTypeId])
   @@index([productCategoryId])
+  @@map("product")
 }
 
 model CraCropingSystem {
@@ -51,10 +51,10 @@ model CraCropingSystem {
   seasonId Int    @map("season_id")
   season   Season @relation(fields: [seasonId], references: [seasonId])
   
-  @@map("cra_croping_system")
   @@index([craCropingSystemId])
   @@index([cropName])
   @@index([seasonId])
+  @@map("cra_croping_system")
 }
 
 model CraFarmingSystem {
@@ -64,17 +64,17 @@ model CraFarmingSystem {
   seasonId Int    @map("season_id")
   season   Season @relation(fields: [seasonId], references: [seasonId])
   
-  @@map("cra_farming_system")
   @@index([craFarmingSystemId])
   @@index([farmingSystemName])
   @@index([seasonId])
+  @@map("cra_farming_system")
 }
 
 model AryaEnterprise {
   aryaEnterpriseId Int    @id @default(autoincrement()) @map("arya_enterprise_id")
   enterpriseName   String @unique @map("enterprise_name")
   
-  @@map("arya_enterprise")
   @@index([aryaEnterpriseId])
   @@index([enterpriseName])
+  @@map("arya_enterprise")
 }

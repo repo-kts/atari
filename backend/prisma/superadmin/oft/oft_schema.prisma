@@ -6,9 +6,9 @@ model OftSubject {
 
   thematicAreas OftThematicArea[]
 
-  @@map("oft_subject")
   @@index([oftSubjectId])
   @@index([subjectName])
+  @@map("oft_subject")
 }
 
 model OftThematicArea {
@@ -18,8 +18,8 @@ model OftThematicArea {
   oftSubjectId Int         @map("oft_subject_id")
   subject      OftSubject  @relation(fields: [oftSubjectId], references: [oftSubjectId])
 
-  @@map("oft_thematic_area")
   @@index([oftThematicAreaId])
   @@index([oftSubjectId])
   @@index([thematicAreaName])
+  @@map("oft_thematic_area")
 }

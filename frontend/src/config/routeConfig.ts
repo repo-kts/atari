@@ -1,5 +1,6 @@
 // Route configuration for all forms and pages
 // This centralizes all route definitions to avoid bloating App.tsx
+import { ENTITY_PATHS } from '../constants/entityTypes'
 
 export interface RouteConfig {
     path: string
@@ -18,48 +19,48 @@ export interface RouteConfig {
 
 // Sibling groups for All Masters
 const basicMastersPaths = [
-    '/all-master/zones',
-    '/all-master/states',
-    '/all-master/organizations',
-    '/all-master/districts',
+    ENTITY_PATHS.ZONES,
+    ENTITY_PATHS.STATES,
+    ENTITY_PATHS.ORGANIZATIONS,
+    ENTITY_PATHS.DISTRICTS,
 ]
 
 const oftFldMastersPaths = [
-    '/all-master/oft/subject',
-    '/all-master/oft/thematic-area',
-    '/all-master/fld/sector',
-    '/all-master/fld/thematic-area',
-    '/all-master/fld/category',
-    '/all-master/fld/sub-category',
-    '/all-master/fld/crop',
-    '/all-master/cfld-crop',
+    ENTITY_PATHS.OFT_SUBJECT,
+    ENTITY_PATHS.OFT_THEMATIC_AREA,
+    ENTITY_PATHS.FLD_SECTOR,
+    ENTITY_PATHS.FLD_THEMATIC_AREA,
+    ENTITY_PATHS.FLD_CATEGORY,
+    ENTITY_PATHS.FLD_SUBCATEGORY,
+    ENTITY_PATHS.FLD_CROP,
+    ENTITY_PATHS.CFLD_CROP,
     // FUTURE: Season Master
     // '/all-master/season',
 ]
 
 const trainingExtensionMastersPaths = [
-    '/all-master/training-type',
-    '/all-master/training-area',
-    '/all-master/training-thematic',
-    '/all-master/extension-activity',
-    '/all-master/other-extension-activity',
-    '/all-master/events',
+    ENTITY_PATHS.TRAINING_TYPE,
+    ENTITY_PATHS.TRAINING_AREA,
+    ENTITY_PATHS.TRAINING_THEMATIC,
+    ENTITY_PATHS.EXTENSION_ACTIVITY,
+    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
+    ENTITY_PATHS.EVENTS,
 ]
 
 const productionProjectsMastersPaths = [
-    '/all-master/product-category',
-    '/all-master/product-type',
-    '/all-master/product',
-    '/all-master/cra-croping-system',
-    '/all-master/cra-farming-system',
-    '/all-master/arya-enterprise',
+    ENTITY_PATHS.PRODUCT_CATEGORY,
+    ENTITY_PATHS.PRODUCT_TYPE,
+    ENTITY_PATHS.PRODUCT,
+    ENTITY_PATHS.CRA_CROPPING_SYSTEM,
+    ENTITY_PATHS.CRA_FARMING_SYSTEM,
+    ENTITY_PATHS.ARYA_ENTERPRISE,
 ]
 
 // All Masters Routes
 export const allMastersRoutes: RouteConfig[] = [
     // Basic Masters
     {
-        path: '/all-master/zones',
+        path: ENTITY_PATHS.ZONES,
         title: 'Zone Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
@@ -69,7 +70,7 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: ['zoneName'],
     },
     {
-        path: '/all-master/states',
+        path: ENTITY_PATHS.STATES,
         title: 'State Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
@@ -79,7 +80,7 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: ['zoneName', 'stateName'],
     },
     {
-        path: '/all-master/organizations',
+        path: ENTITY_PATHS.ORGANIZATIONS,
         title: 'Organization Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
@@ -90,98 +91,98 @@ export const allMastersRoutes: RouteConfig[] = [
     },
 
     {
-        path: '/all-master/districts',
+        path: ENTITY_PATHS.DISTRICTS,
         title: 'District Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/basic',
+        subcategoryPath: ENTITY_PATHS.BASIC_MASTERS,
         siblings: basicMastersPaths,
         fields: ['zoneName', 'stateName', 'districtName'],
     },
 
     // OFT Master
     {
-        path: '/all-master/oft/subject',
+        path: ENTITY_PATHS.OFT_SUBJECT,
         title: 'Subject Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['subjectName', 'thematicAreasCount'],
     },
     {
-        path: '/all-master/oft/thematic-area',
+        path: ENTITY_PATHS.OFT_THEMATIC_AREA,
         title: 'OFT Thematic Area Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['thematicAreaName', 'subjectName'],
     },
 
     // FLD Master
     {
-        path: '/all-master/fld/sector',
+        path: ENTITY_PATHS.FLD_SECTOR,
         title: 'Sector Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['sectorName', 'categoriesCount'],
     },
     {
-        path: '/all-master/fld/thematic-area',
+        path: ENTITY_PATHS.FLD_THEMATIC_AREA,
         title: 'FLD Thematic Area Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['thematicAreaName', 'sectorName'],
     },
     {
-        path: '/all-master/fld/category',
+        path: ENTITY_PATHS.FLD_CATEGORY,
         title: 'Category Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['categoryName', 'sectorName', 'subCategoriesCount'],
     },
     {
-        path: '/all-master/fld/sub-category',
+        path: ENTITY_PATHS.FLD_SUBCATEGORY,
         title: 'Sub-category Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['subCategoryName', 'categoryName', 'sectorName', 'cropsCount'],
     },
     {
-        path: '/all-master/fld/crop',
+        path: ENTITY_PATHS.FLD_CROP,
         title: 'Crop Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['cropName', 'subCategoryName', 'categoryName'],
     },
 
     // CFLD Master
     {
-        path: '/all-master/cfld-crop',
+        path: ENTITY_PATHS.CFLD_CROP,
         title: 'CFLD Crop Master',
         category: 'All Masters',
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/oft-fld',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftFldMastersPaths,
         fields: ['seasonName', 'cropTypeName', 'cropName'],
     },
@@ -200,144 +201,379 @@ export const allMastersRoutes: RouteConfig[] = [
 
     // Training Master
     {
-        path: '/all-master/training-type',
+        path: ENTITY_PATHS.TRAINING_TYPE,
         title: 'Training Type Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['trainingType'],
     },
     {
-        path: '/all-master/training-area',
+        path: ENTITY_PATHS.TRAINING_AREA,
         title: 'Training Area Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['trainingType', 'trainingAreaName'],
     },
     {
-        path: '/all-master/training-thematic',
+        path: ENTITY_PATHS.TRAINING_THEMATIC,
         title: 'Training Thematic Area Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['trainingAreaName', 'trainingThematicArea'],
     },
 
     // Extension & Events
     {
-        path: '/all-master/extension-activity',
+        path: ENTITY_PATHS.EXTENSION_ACTIVITY,
         title: 'Extension Activity Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['name'],
     },
     {
-        path: '/all-master/other-extension-activity',
+        path: ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
         title: 'Other Extension Activity Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['name'],
     },
     {
-        path: '/all-master/events',
+        path: ENTITY_PATHS.EVENTS,
         title: 'Events Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/training-extension',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersPaths,
         fields: ['eventName'],
     },
 
     // Production
     {
-        path: '/all-master/product-category',
+        path: ENTITY_PATHS.PRODUCT_CATEGORY,
         title: 'Product Category Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['productCategoryName'],
     },
     {
-        path: '/all-master/product-type',
+        path: ENTITY_PATHS.PRODUCT_TYPE,
         title: 'Product Type Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['productCategoryName', 'productCategoryType'],
     },
     {
-        path: '/all-master/product',
+        path: ENTITY_PATHS.PRODUCT,
         title: 'Products Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['productCategoryName', 'productCategoryType', 'productName'],
     },
 
     // CRA
     {
-        path: '/all-master/cra-croping-system',
+        path: ENTITY_PATHS.CRA_CROPPING_SYSTEM,
         title: 'Cropping System Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['seasonName', 'cropName'],
     },
     {
-        path: '/all-master/cra-farming-system',
+        path: ENTITY_PATHS.CRA_FARMING_SYSTEM,
         title: 'Farming System Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['seasonName', 'farmingSystemName'],
     },
 
     // ARYA
     {
-        path: '/all-master/arya-enterprise',
+        path: ENTITY_PATHS.ARYA_ENTERPRISE,
         title: 'ARYA Enterprise Master',
         category: 'All Masters',
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/production-projects',
+        subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productionProjectsMastersPaths,
         fields: ['enterpriseName'],
     },
 
     // Publications
     {
-        path: '/all-master/publication-item',
+        path: ENTITY_PATHS.PUBLICATION_ITEM,
         title: 'Publication Items Master',
         category: 'All Masters',
         subcategory: 'Publications Masters',
         parent: '/all-master',
-        subcategoryPath: '/all-master/publications',
-        siblings: ['/all-master/publication-item'],
+        subcategoryPath: ENTITY_PATHS.PUBLICATIONS_MASTERS,
+        siblings: [ENTITY_PATHS.PUBLICATION_ITEM],
         fields: ['publicationItem'],
+    },
+]
+
+// FORMS
+// About KVK Routes
+export const aboutKvkRoutes: RouteConfig[] = [
+    // View KVKs
+    {
+        path: ENTITY_PATHS.KVK_VIEW,
+        title: 'View KVKs',
+        description: 'View and manage all KVKs',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'hostOrganizationName', 'yearOfSanction'],
+    },
+    {
+        path: ENTITY_PATHS.KVK_BANK_ACCOUNT,
+        title: 'Bank Account Details',
+        description: 'Manage bank account information',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_BANK_ACCOUNT,
+            ENTITY_PATHS.KVK_EMPLOYEES,
+            ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+            ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        ],
+        fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
+    },
+    {
+        path: ENTITY_PATHS.KVK_EMPLOYEES,
+        title: 'Employee Details',
+        description: 'Manage employee and staff information',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_BANK_ACCOUNT,
+            ENTITY_PATHS.KVK_EMPLOYEES,
+            ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+            ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        ],
+        fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
+    },
+    {
+        path: ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+        title: 'Staff Transferred',
+        description: 'Manage transferred staff records',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_BANK_ACCOUNT,
+            ENTITY_PATHS.KVK_EMPLOYEES,
+            ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+            ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        ],
+        fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName']
+    },
+    {
+        path: ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        title: 'Infrastructure Details',
+        description: 'Manage infrastructure information',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_BANK_ACCOUNT,
+            ENTITY_PATHS.KVK_EMPLOYEES,
+            ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+            ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        ],
+        fields: ['kvkName', 'nameOfInfrastructure', 'notStartedYet', 'completedUptoPinthLevel', 'completedUptoLintelLevel', 'completedUptoRoofLevel', 'totallyCompleted', 'pinthAreaInMeterSq.', 'underUsedOrNot', 'sourceOfFunding'],
+    },
+    // Vehicles - siblings
+    {
+        path: ENTITY_PATHS.KVK_VEHICLES,
+        title: 'View Vehicles',
+        description: 'View all vehicles',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_VEHICLES,
+            ENTITY_PATHS.KVK_VEHICLE_DETAILS,
+        ],
+        fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'presentStatus'],
+    },
+    {
+        path: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
+        title: 'Vehicle Details',
+        description: 'Manage vehicle details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_VEHICLES,
+            ENTITY_PATHS.KVK_VEHICLE_DETAILS,
+        ],
+        fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'presentStatus'],
+    },
+    // Equipments - siblings
+    {
+        path: ENTITY_PATHS.KVK_EQUIPMENTS,
+        title: 'View Equipments',
+        description: 'View all equipments',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_EQUIPMENTS,
+            ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
+        ],
+        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+    },
+    {
+        path: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
+        title: 'Equipment Details',
+        description: 'Manage equipment details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        siblings: [
+            ENTITY_PATHS.KVK_EQUIPMENTS,
+            ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
+        ],
+        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+    },
+    // Farm Implements
+    {
+        path: ENTITY_PATHS.KVK_FARM_IMPLEMENTS,
+        title: 'Farm Implement Details',
+        description: 'Manage farm implement details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+    },
+    // Add Staff (sub-route)
+    {
+        path: '/forms/about-kvk/employee-details/add',
+        title: 'Add Staff',
+        description: 'Add new staff member',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk/employee-details',
+    },
+]
+
+// View KVK Routes (Admin)
+export const viewKvkRoutes: RouteConfig[] = [
+    {
+        path: ENTITY_PATHS.KVK_VIEW,
+        title: 'View KVKs',
+        description: 'View and manage all KVKs',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: '/forms/about-kvk',
+    },
+    {
+        path: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        title: 'KVK Information',
+        description: 'View detailed KVK information',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: ENTITY_PATHS.KVK_VIEW,
+        siblings: [
+            '/forms/about-kvk/view-kvks/:id',
+            '/forms/about-kvk/view-kvks/:id/bank',
+            '/forms/about-kvk/view-kvks/:id/employees',
+            '/forms/about-kvk/view-kvks/:id/vehicles',
+            '/forms/about-kvk/view-kvks/:id/equipments',
+        ],
+    },
+    {
+        path: '/forms/about-kvk/view-kvks/:id/bank',
+        title: 'Bank Accounts',
+        description: 'View bank account details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        siblings: [
+            '/forms/about-kvk/view-kvks/:id',
+            '/forms/about-kvk/view-kvks/:id/bank',
+            '/forms/about-kvk/view-kvks/:id/employees',
+            '/forms/about-kvk/view-kvks/:id/vehicles',
+            '/forms/about-kvk/view-kvks/:id/equipments',
+        ],
+    },
+    {
+        path: '/forms/about-kvk/view-kvks/:id/employees',
+        title: 'Employees',
+        description: 'View employee details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        siblings: [
+            '/forms/about-kvk/view-kvks/:id',
+            '/forms/about-kvk/view-kvks/:id/bank',
+            '/forms/about-kvk/view-kvks/:id/employees',
+            '/forms/about-kvk/view-kvks/:id/vehicles',
+            '/forms/about-kvk/view-kvks/:id/equipments',
+        ],
+    },
+    {
+        path: '/forms/about-kvk/view-kvks/:id/vehicles',
+        title: 'Vehicles',
+        description: 'Vehicle details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        siblings: [
+            '/forms/about-kvk/view-kvks/:id',
+            '/forms/about-kvk/view-kvks/:id/bank',
+            '/forms/about-kvk/view-kvks/:id/employees',
+            '/forms/about-kvk/view-kvks/:id/vehicles',
+            '/forms/about-kvk/view-kvks/:id/equipments',
+        ],
+    },
+    {
+        path: '/forms/about-kvk/view-kvks/:id/equipments',
+        title: 'Equipments',
+        description: 'Equipment details',
+        category: 'Form Management',
+        subcategory: 'About KVK',
+        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        siblings: [
+            '/forms/about-kvk/view-kvks/:id',
+            '/forms/about-kvk/view-kvks/:id/bank',
+            '/forms/about-kvk/view-kvks/:id/employees',
+            '/forms/about-kvk/view-kvks/:id/vehicles',
+            '/forms/about-kvk/view-kvks/:id/equipments',
+        ],
     },
 ]
 
@@ -944,7 +1180,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: '/forms/achievements/projects'
     },
     {
-        path: '/forms/achievements/projects/other-program',
+        path: '/forms/achievements/other-program',
         title: 'Other Programmes',
         description: 'Other programmes organized by KVK',
         category: 'Projects',
@@ -953,250 +1189,60 @@ export const projectsRoutes: RouteConfig[] = [
     },
 ]
 
-// About KVK Routes
-export const aboutKvkRoutes: RouteConfig[] = [
-    // View KVKs
+// Admin Management Routes
+export const adminManagementRoutes: RouteConfig[] = [
     {
-        path: '/forms/about-kvk/view-kvks',
-        title: 'View KVKs',
-        description: 'View and manage all KVKs',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
+        path: '/role-view',
+        title: 'Role Management',
+        description: 'Manage system roles and permissions',
+        category: 'Admin',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id',
-        title: 'KVK Details',
-        description: 'View KVK details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks',
-    },
-    // Basic Information - siblings
-    {
-        path: '/forms/about-kvk/bank-account',
-        title: 'Bank Account Details',
-        description: 'Manage bank account information',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/bank-account',
-            '/forms/about-kvk/employee-details',
-            '/forms/about-kvk/staff-transferred',
-            '/forms/about-kvk/infrastructure',
-        ],
+        path: '/view-users',
+        title: 'User Management',
+        description: 'Manage system users',
+        category: 'Admin',
     },
     {
-        path: '/forms/about-kvk/employee-details',
-        title: 'Employee Details',
-        description: 'Manage employee and staff information',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/bank-account',
-            '/forms/about-kvk/employee-details',
-            '/forms/about-kvk/staff-transferred',
-            '/forms/about-kvk/infrastructure',
-        ],
+        path: '/role-view/:roleId/permissions',
+        title: 'Role Permissions',
+        description: 'Edit role permissions',
+        category: 'Admin',
+        parent: '/role-view',
     },
     {
-        path: '/forms/about-kvk/details',
-        title: 'KVK Details',
-        description: 'View and edit KVK basic details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/bank-account',
-            '/forms/about-kvk/employee-details',
-            '/forms/about-kvk/staff-transferred',
-            '/forms/about-kvk/infrastructure',
-        ],
+        path: '/view-log-history',
+        title: 'Log History',
+        description: 'View system activity logs',
+        category: 'Admin',
     },
     {
-        path: '/forms/about-kvk/staff-transferred',
-        title: 'Staff Transferred',
-        description: 'Manage transferred staff records',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/bank-account',
-            '/forms/about-kvk/employee-details',
-            '/forms/about-kvk/staff-transferred',
-            '/forms/about-kvk/infrastructure',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/infrastructure',
-        title: 'Infrastructure Details',
-        description: 'Manage infrastructure information',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/bank-account',
-            '/forms/about-kvk/employee-details',
-            '/forms/about-kvk/staff-transferred',
-            '/forms/about-kvk/infrastructure',
-        ],
-    },
-    // Vehicles - siblings
-    {
-        path: '/forms/about-kvk/vehicles',
-        title: 'View Vehicles',
-        description: 'View all vehicles',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/vehicles',
-            '/forms/about-kvk/vehicle-details',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/vehicle-details',
-        title: 'Vehicle Details',
-        description: 'Manage vehicle details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/vehicles',
-            '/forms/about-kvk/vehicle-details',
-        ],
-    },
-    // Equipments - siblings
-    {
-        path: '/forms/about-kvk/equipments',
-        title: 'View Equipments',
-        description: 'View all equipments',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/equipments',
-            '/forms/about-kvk/equipment-details',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/equipment-details',
-        title: 'Equipment Details',
-        description: 'Manage equipment details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        siblings: [
-            '/forms/about-kvk/equipments',
-            '/forms/about-kvk/equipment-details',
-        ],
-    },
-    // Farm Implements
-    {
-        path: '/forms/about-kvk/farm-implements',
-        title: 'Farm Implement Details',
-        description: 'Manage farm implement details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-    },
-    // Add Staff (sub-route)
-    {
-        path: '/forms/about-kvk/employee-details/add',
-        title: 'Add Staff',
-        description: 'Add new staff member',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/employee-details',
+        path: '/view-email-notifications',
+        title: 'Notifications',
+        description: 'Manage email notifications',
+        category: 'Admin',
     },
 ]
 
-// View KVK Routes (Admin)
-export const viewKvkRoutes: RouteConfig[] = [
+// Feature Routes
+export const featureRoutes: RouteConfig[] = [
     {
-        path: '/forms/about-kvk/view-kvks',
-        title: 'View KVKs',
-        description: 'View and manage all KVKs',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
+        path: '/module-images',
+        title: 'Module Images',
+        description: 'Manage module images and media assets',
+        category: 'Features',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id',
-        title: 'KVK Information',
-        description: 'View detailed KVK information',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks',
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        path: '/targets',
+        title: 'Targets',
+        description: 'View and manage system targets',
+        category: 'Features',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id/bank',
-        title: 'Bank Accounts',
-        description: 'View bank account details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks/:id',
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/view-kvks/:id/employees',
-        title: 'Employees',
-        description: 'View employee details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks/:id',
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/view-kvks/:id/vehicles',
-        title: 'Vehicles',
-        description: 'Vehicle details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks/:id',
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
-    },
-    {
-        path: '/forms/about-kvk/view-kvks/:id/equipments',
-        title: 'Equipments',
-        description: 'Equipment details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk/view-kvks/:id',
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        path: '/all-reports',
+        title: 'Reports',
+        description: 'View and generate system reports',
+        category: 'Features',
     },
 ]
 
@@ -1206,6 +1252,8 @@ export const allRoutes: RouteConfig[] = [
     ...projectsRoutes,
     ...aboutKvkRoutes,
     ...viewKvkRoutes,
+    ...adminManagementRoutes,
+    ...featureRoutes,
 ]
 
 // Helper functions
@@ -1288,6 +1336,12 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
         if (config.subcategory) {
             breadcrumbs.push({ label: config.subcategory, path: config.parent || '/forms' })
         }
+        breadcrumbs.push({ label: config.title, path: config.path })
+    } else if (config.category === 'Admin') {
+        breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
+        breadcrumbs.push({ label: config.title, path: config.path })
+    } else if (config.category === 'Features') {
+        breadcrumbs.push({ label: 'Dashboard', path: '/dashboard' })
         breadcrumbs.push({ label: config.title, path: config.path })
     }
 

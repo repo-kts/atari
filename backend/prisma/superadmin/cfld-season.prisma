@@ -8,9 +8,9 @@ model Season {
   craCropingSystems CraCropingSystem[]
   craFarmingSystems CraFarmingSystem[]
 
-  @@map("season")
   @@index([seasonId])
   @@index([seasonName])
+  @@map("season")
 }
 
 model CropType {
@@ -18,9 +18,9 @@ model CropType {
   typeName  String          @unique @map("type_name")
   cfldCrops FLDCropMaster[]
 
-  @@map("crop_type")
   @@index([typeId])
   @@index([typeName])
+  @@map("crop_type")
 }
 
 model FLDCropMaster {
@@ -34,9 +34,9 @@ model FLDCropMaster {
 
   cropName String   @map("crop_name")
 
-  @@map("fld_crop_master")
   @@index([cfldId])
   @@index([seasonId])
   @@index([typeId])
   @@index([cropName])
+  @@map("fld_crop_master")
 }

@@ -4,7 +4,7 @@ model ExtensionActivity {
   extensionActivityId   Int    @id @default(autoincrement()) @map("extension_activity_id")
   extensionName    String @map("extension_name")
 
-  @@map("extension_activity")
   @@index([extensionActivityId])
   @@index([extensionName])
+  @@map("extension_activity")
 }

@@ -4,7 +4,7 @@ model Publication {
   publicationId   Int    @id @default(autoincrement()) @map("publication_id")
   publicationName String @map("publication_name")
   
-  @@map("publication")
   @@index([publicationId])
   @@index([publicationName])
+  @@map("publication")
 }

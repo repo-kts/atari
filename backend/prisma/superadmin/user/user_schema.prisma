@@ -16,6 +16,7 @@ model Role {
   users           User[]
 
   @@map("roles")
+  @@index([roleName])
 }
 
 model Module {
@@ -110,5 +111,7 @@ model User {
   @@index([districtId])
   @@index([orgId])
   @@index([lastLoginAt])
+  @@index([kvkId])
+  @@index([name])
   @@map("users")
 }

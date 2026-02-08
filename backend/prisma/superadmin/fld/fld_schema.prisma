@@ -8,9 +8,9 @@ model Sector {
   categories    FldCategory[]
   subCategories FldSubcategory[]
 
-  @@map("sector")
   @@index([sectorId])
   @@index([sectorName])
+  @@map("sector")
 }
 
 model FldThematicArea {
@@ -52,11 +52,11 @@ model FldSubcategory {
 
   crops FldCrop[]
 
-  @@map("sub_category")
   @@index([subCategoryId])
   @@index([categoryId])
   @@index([sectorId])
   @@index([subCategoryName])
+  @@map("sub_category")
 }
 
 model FldCrop {
@@ -69,7 +69,8 @@ model FldCrop {
   subCategoryId Int
   subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
-  @@map("crop")
+  @@index([categoryId])
   @@index([subCategoryId])
   @@index([cropName])
+  @@map("crop")
 }

@@ -17,5 +17,6 @@ model KvkVehicle {
   totalRun String @map("total_run")
   presentStatus VehiclePresentStatus @map("present_status")
 
+  @@index([kvkId])
   @@map("kvk_vehicle")
 }
