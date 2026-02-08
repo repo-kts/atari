@@ -16,6 +16,7 @@ import { AllMasters } from './components/dashboard/AllMasters'
 import { FormManagement } from './components/dashboard/FormManagement'
 import { MasterView } from './components/dashboard/masters/MasterView'
 import { RoleManagement } from './pages/RoleManagement'
+import { RolePermissionEditor } from './pages/RolePermissionEditor'
 import { UserManagement } from './pages/UserManagement'
 import { ModuleImages } from './pages/ModuleImages'
 import { Targets } from './pages/Targets'
@@ -89,6 +90,7 @@ function App() {
                     {/* Admin Pages - Restricted to Admin Roles */}
                     <Route element={<ProtectedRoute requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}><Outlet /></ProtectedRoute>}>
                         <Route path="/role-view" element={<RoleManagement />} />
+                        <Route path="/role-view/:roleId/permissions" element={<RolePermissionEditor />} />
                         <Route path="/view-users" element={<UserManagement />} />
                         <Route path="/view-log-history" element={<LogHistory />} />
                         <Route path="/view-email-notifications" element={<Notifications />} />

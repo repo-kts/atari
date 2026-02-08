@@ -71,6 +71,27 @@ const ROLE_LABELS: Record<string, string> = {
 export const getRoleLabel = (roleName: string): string =>
   ROLE_LABELS[roleName] ?? roleName;
 
+export interface ModulePermission {
+  permissionId: number;
+  action: 'VIEW' | 'ADD' | 'EDIT' | 'DELETE';
+  hasPermission: boolean;
+}
+
+export interface ModuleWithPermissions {
+  moduleId: number;
+  menuName: string;
+  subMenuName: string;
+  moduleCode: string;
+  permissions: ModulePermission[];
+}
+
+export interface RolePermissionsResponse {
+  roleId: number;
+  roleName: string;
+  description: string | null;
+  modules: ModuleWithPermissions[];
+}
+
 export const userApi = {
   /**
    * Get all roles from the backend
@@ -81,6 +102,36 @@ export const userApi = {
     } catch (error) {
       if (error instanceof ApiError) {
         throw new Error(error.data?.error || 'Failed to fetch roles');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get role permissions (all modules with hasPermission flags)
+   */
+  getRolePermissions: async (roleId: number): Promise<RolePermissionsResponse> => {
+    try {
+      return await apiClient.get<RolePermissionsResponse>(`/admin/roles/${roleId}/permissions`);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to fetch role permissions');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Update role permissions (bulk update)
+   * @param roleId - Role ID
+   * @param permissionIds - Array of permission IDs to assign to this role
+   */
+  updateRolePermissions: async (roleId: number, permissionIds: number[]): Promise<void> => {
+    try {
+      await apiClient.put(`/admin/roles/${roleId}/permissions`, { permissionIds });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to update role permissions');
       }
       throw error;
     }

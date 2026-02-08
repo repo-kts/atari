@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const userManagementController = require('../controllers/userManagementController.js');
+const rolePermissionController = require('../controllers/rolePermissionController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requireRole, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -51,6 +52,22 @@ router.get(
       res.status(500).json({ error: 'Failed to fetch roles' });
     }
   },
+);
+
+// Get role permissions (all modules with hasPermission flags) – requires VIEW
+router.get(
+  '/roles/:roleId/permissions',
+  apiRateLimiter,
+  requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'),
+  rolePermissionController.getRolePermissions,
+);
+
+// Update role permissions (bulk update) – requires EDIT
+router.put(
+  '/roles/:roleId/permissions',
+  strictRateLimiter,
+  requirePermission(USER_MANAGEMENT_MODULE, 'EDIT'),
+  rolePermissionController.updateRolePermissions,
 );
 
 module.exports = router;
