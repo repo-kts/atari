@@ -11,6 +11,7 @@ import type { EntityType } from '../../../types/masterData'
 import { DataManagementModal } from './DataManagementModal'
 import { ENTITY_TYPES } from '../../../constants/entityTypes'
 import { ExtendedEntityType, getEntityTypeFromPath, getIdField, getFieldValue } from '../../../utils/masterUtils'
+import { useAuthStore } from '../../../stores/authStore'
 
 import {
     useOftSubjects,
@@ -66,6 +67,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [editingItem, setEditingItem] = useState<any | null>(null)
     const [formData, setFormData] = useState<any>({})
 
+    // Get user from auth store
+    const { user } = useAuthStore()
+
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
@@ -111,6 +115,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     ]
     const isAboutKvkEntity = entityType && aboutKvkEntities.includes(entityType)
     const aboutKvkHook = isAboutKvkEntity ? useAboutKvkData(entityType as AboutKvkEntity) : null
+
+    // Determine if "Add New" button should be shown based on route config
+    const canUserCreate = () => {
+        if (!routeConfig?.canCreate) return true // No restriction = all can create
+        if (!user) return false // No user = can't create
+        return routeConfig.canCreate.includes(user.role) // Check if user's role is in allowed list
+    }
+    const showAddButton = canUserCreate()
 
     // Get the active hook
     const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
@@ -359,13 +371,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 Export Word
                             </button>
 
-                            <button
-                                onClick={handleAddNew}
-                                className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#487749] border border-[#487749] hover:border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add New
-                            </button>
+                            {showAddButton && (
+                                <button
+                                    onClick={handleAddNew}
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#487749] border border-[#487749] hover:border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add New
+                                </button>
+                            )}
                         </div>
                     </div>
 

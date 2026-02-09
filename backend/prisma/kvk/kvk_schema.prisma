@@ -27,6 +27,8 @@ model Kvk {
   infrastructures KvkInfrastructure[]
   equipments      KvkEquipment[]
   vehicles        KvkVehicle[]
+  bankAccounts    KvkBankAccount[]
+  farmImplements  KvkFarmImplement[]
 
   @@index([zoneId])
   @@index([stateId])

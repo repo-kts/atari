@@ -13,6 +13,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, cl
         </label>
         <input
             {...props}
+            required={required}
             className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${className}`}
         />
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
@@ -33,6 +34,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
         </label>
         <select
             {...props}
+            required={required}
             className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white ${className}`}
         >
             <option value="">Select {label}</option>
@@ -73,6 +75,7 @@ export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, err
         </label>
         <textarea
             {...props}
+            required={required}
             className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none ${className}`}
         />
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}

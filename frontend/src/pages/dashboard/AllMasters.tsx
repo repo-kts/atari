@@ -82,7 +82,6 @@ export const AllMasters: React.FC = () => {
         if (currentPath.startsWith('/all-master/zones') ||
             currentPath.startsWith('/all-master/states') ||
             currentPath.startsWith('/all-master/organizations') ||
-            currentPath.startsWith('/all-master/universities') ||
             currentPath.startsWith('/all-master/districts')) {
             return 'basic'
         }

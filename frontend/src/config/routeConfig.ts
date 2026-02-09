@@ -1,6 +1,7 @@
 // Route configuration for all forms and pages
 // This centralizes all route definitions to avoid bloating App.tsx
 import { ENTITY_PATHS } from '../constants/entityTypes'
+import { UserRole } from '../types/auth'
 
 export interface RouteConfig {
     path: string
@@ -15,6 +16,8 @@ export interface RouteConfig {
     siblings?: string[]
     // Optional field configuration for generic master views
     fields?: string[]
+    // Authorization: which roles can create new items (undefined = all roles can create)
+    canCreate?: UserRole[]
 }
 
 // Sibling groups for All Masters
@@ -354,6 +357,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'hostOrganizationName', 'yearOfSanction'],
+        canCreate: ['super_admin'], // Only super_admin can create KVKs
     },
     {
         path: ENTITY_PATHS.KVK_BANK_ACCOUNT,
@@ -369,6 +373,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
+        canCreate: ['kvk'],
     },
     {
         path: ENTITY_PATHS.KVK_EMPLOYEES,
@@ -384,6 +389,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
+        canCreate: ['kvk'],
     },
     {
         path: ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
@@ -398,7 +404,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName']
+        fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName'],
+        canCreate: ['kvk'],
     },
     {
         path: ENTITY_PATHS.KVK_INFRASTRUCTURE,
@@ -414,6 +421,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvkName', 'nameOfInfrastructure', 'notStartedYet', 'completedUptoPinthLevel', 'completedUptoLintelLevel', 'completedUptoRoofLevel', 'totallyCompleted', 'pinthAreaInMeterSq.', 'underUsedOrNot', 'sourceOfFunding'],
+        canCreate: ['kvk'],
     },
     // Vehicles - siblings
     {
@@ -428,6 +436,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
         fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'presentStatus'],
+        canCreate: ['kvk'],
     },
     {
         path: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
@@ -441,6 +450,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
         fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'presentStatus'],
+        canCreate: ['kvk'],
     },
     // Equipments - siblings
     {
@@ -455,6 +465,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        canCreate: ['kvk'],
     },
     {
         path: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
@@ -468,6 +479,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        canCreate: ['kvk'],
     },
     // Farm Implements
     {
@@ -478,6 +490,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        canCreate: ['kvk'],
     },
     // Add Staff (sub-route)
     {

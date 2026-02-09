@@ -91,7 +91,6 @@ const allMastersMockRegistry: Record<string, MasterMockRecord[]> = {
   '/all-master/zones': zones,
   '/all-master/states': states,
   '/all-master/organizations': organizations,
-  '/all-master/universities': organizations, // reuse for universities view
   '/all-master/districts': districts,
 }
 

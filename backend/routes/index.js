@@ -10,6 +10,7 @@ const trainingExtensionEventsRoutes = require('./all-masters/trainingExtensionEv
 const productionProjectsRoutes = require('./all-masters/productionProjectsRoutes.js');
 const publicationRoutes = require('./all-masters/publicationRoutes.js');
 const exportRoutes = require('./exportRoutes.js');
+const aboutKvkRoutes = require('./forms/aboutKvkRoutes.js');
 
 
 // Mount routes
@@ -22,6 +23,8 @@ router.use('/admin/masters', productionProjectsRoutes); // Production & Projects
 router.use('/admin/masters', publicationRoutes); // Publication master data routes
 router.use('/admin/masters', exportRoutes); // Export routes
 router.use('/users', userRoutes);
+router.use('/forms/about-kvk', aboutKvkRoutes);
+
 
 
 
