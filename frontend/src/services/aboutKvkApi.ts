@@ -68,7 +68,9 @@ export const aboutKvkApi = {
 
     // Vehicle Details (Alias)
     getKvkVehicleDetails: (params?: any) => apiClient.get<PaginatedResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details`, { ...params }),
-    // Uses same model as vehicles
+    createKvkVehicleDetails: (data: KvkVehicleFormData) => apiClient.post<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details`, data),
+    updateKvkVehicleDetails: (id: number, data: Partial<KvkVehicleFormData>) => apiClient.put<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details/${id}`, data),
+    deleteKvkVehicleDetails: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicle-details/${id}`),
 
     // Equipments
     getKvkEquipments: (params?: any) => apiClient.get<PaginatedResponse<KvkEquipment>>(`${BASE_URL}/equipments`, { ...params }),
@@ -79,6 +81,9 @@ export const aboutKvkApi = {
 
     // Equipment Details (Alias)
     getKvkEquipmentDetails: (params?: any) => apiClient.get<PaginatedResponse<KvkEquipment>>(`${BASE_URL}/equipment-details`, { ...params }),
+    createKvkEquipmentDetails: (data: KvkEquipmentFormData) => apiClient.post<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipment-details`, data),
+    updateKvkEquipmentDetails: (id: number, data: Partial<KvkEquipmentFormData>) => apiClient.put<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipment-details/${id}`, data),
+    deleteKvkEquipmentDetails: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-details/${id}`),
 
     // Farm Implements
     getKvkFarmImplements: (params?: any) => apiClient.get<PaginatedResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements`, { ...params }),
