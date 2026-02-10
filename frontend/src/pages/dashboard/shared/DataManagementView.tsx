@@ -72,6 +72,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
+    console.log('DEBUG: DataManagementView pathname:', location.pathname)
+    console.log('DEBUG: DataManagementView routeConfig:', routeConfig)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
     const siblingRoutes = getSiblingRoutes(location.pathname)
     const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -220,6 +222,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleAddNew = () => {
+        if (routeConfig?.createPath) {
+            navigate(routeConfig.createPath)
+            return
+        }
+
+        // Temporary fix for vehicle details navigation
+        if (location.pathname === '/forms/about-kvk/vehicle-details') {
+            navigate('/forms/about-kvk/vehicle-details/add')
+            return
+        }
+
+        // Temporary fix for equipments navigation
+        if (location.pathname === '/forms/about-kvk/equipments') {
+            navigate('/forms/about-kvk/equipments/add')
+            return
+        }
+
+        // Temporary fix for equipment details navigation
+        if (location.pathname === '/forms/about-kvk/equipment-details') {
+            navigate('/forms/about-kvk/equipment-details/add')
+            return
+        }
+
+        // Temporary fix for farm implements navigation
+        if (location.pathname === '/forms/about-kvk/farm-implements') {
+            navigate('/forms/about-kvk/farm-implements/add')
+            return
+        }
+
         setEditingItem(null)
         setFormData({})
         setIsModalOpen(true)
@@ -309,63 +340,64 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const error = isMasterDataEntity && activeHook ? (activeHook.error ? (activeHook.error instanceof Error ? activeHook.error.message : activeHook.error) : null) : null
 
     return (
-        <div className="bg-white rounded-2xl p-1">
-            {/* Back + Breadcrumbs */}
-            {breadcrumbs.length > 0 && (
-                <div className="mb-6 flex items-center gap-4 px-6 pt-4">
-                    <button
-                        onClick={() => {
-                            if (routeConfig?.parent) {
-                                navigate(routeConfig.parent)
-                            } else {
-                                navigate('/all-master')
-                            }
-                        }}
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                        Back
-                    </button>
-                    <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
-                </div>
-            )}
+        <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">
+            {/* Back + Breadcrumbs + Tabs - Fixed Header */}
+            <div className="flex-none">
+                {breadcrumbs.length > 0 && (
+                    <div className="flex items-center gap-4 px-6 pt-4 pb-4">
+                        <button
+                            onClick={() => {
+                                if (routeConfig?.parent) {
+                                    navigate(routeConfig.parent)
+                                } else {
+                                    navigate('/all-master')
+                                }
+                            }}
+                            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            Back
+                        </button>
+                        <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
+                    </div>
+                )}
 
-            {/* Sibling Tabs for related masters */}
-            {siblingRoutes.length > 1 && (
-                <div className="mb-6">
-                    <TabNavigation
-                        tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
-                        currentPath={location.pathname}
-                    />
-                </div>
-            )}
+                {siblingRoutes.length > 1 && (
+                    <div className="mb-4">
+                        <TabNavigation
+                            tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
+                            currentPath={location.pathname}
+                        />
+                    </div>
+                )}
+            </div>
 
-            {/* Header with Actions */}
-            <Card className="bg-[#FAF9F6]">
-                <CardContent className="p-6">
+            {/* Main Content Area - Flexible height */}
+            <div className="flex-1 flex flex-col min-h-0 bg-[#FAF9F6] rounded-xl overflow-hidden shadow-sm m-1">
+                <div className="flex-none p-6 pb-2">
                     <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
                             <p className="text-sm text-[#757575] mt-1">{description}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <button
                                 onClick={() => handleExport('pdf')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200"
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
                             >
                                 <Download className="w-4 h-4" />
                                 Export PDF
                             </button>
                             <button
                                 onClick={() => handleExport('excel')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200"
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
                             >
                                 <Download className="w-4 h-4" />
                                 Export Excel
                             </button>
                             <button
                                 onClick={() => handleExport('word')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200"
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
                             >
                                 <Download className="w-4 h-4" />
                                 Export Word
@@ -374,7 +406,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             {showAddButton && (
                                 <button
                                     onClick={handleAddNew}
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#487749] border border-[#487749] hover:border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
+                                    className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] shadow-sm transition-all duration-200"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Add New
@@ -383,7 +415,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         </div>
                     </div>
 
-                    {/* Search Bar */}
                     <div className="my-2">
                         <div className="relative max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#757575]" />
@@ -392,134 +423,76 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 placeholder={`Search ${title.toLowerCase()}...`}
-                                className="w-full pl-10 pr-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9]0/20 focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
+                                className="w-full pl-10 pr-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200"
                             />
                         </div>
                     </div>
 
-                    {/* Error Message */}
                     {error && (
                         <div className="my-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                             {error}
                         </div>
                     )}
+                </div>
 
-                    {/* Loading State */}
+                <div className="flex-1 flex flex-col min-h-0 px-6 pb-6 overflow-hidden">
                     {loading ? (
-                        <div className="flex items-center justify-center py-12">
+                        <div className="flex items-center justify-center h-full">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#487749]"></div>
                             <span className="ml-3 text-[#757575]">Loading...</span>
                         </div>
                     ) : (
                         <>
-                            {/* Pagination */}
-                            {filteredData.length > 0 && (
-                                <div className="my-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <div className="text-sm text-[#757575]">
-                                        Showing <span className="font-medium text-[#212121]">{startIndex + 1}</span> to{' '}
-                                        <span className="font-medium text-[#212121]">{Math.min(endIndex, filteredData.length)}</span> of{' '}
-                                        <span className="font-medium text-[#212121]">{filteredData.length}</span> entries
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                            disabled={currentPage === 1}
-                                            className="px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                        >
-                                            Previous
-                                        </button>
-                                        <div className="flex gap-1">
-                                            {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                                                let page: number
-                                                if (totalPages <= 5) {
-                                                    page = i + 1
-                                                } else if (currentPage <= 3) {
-                                                    page = i + 1
-                                                } else if (currentPage >= totalPages - 2) {
-                                                    page = totalPages - 4 + i
-                                                } else {
-                                                    page = currentPage - 2 + i
-                                                }
+                            {/* Pagination (Top) - Optional, put here if desired */}
 
-                                                return (
-                                                    <button
-                                                        key={page}
-                                                        onClick={() => setCurrentPage(page)}
-                                                        className={`px-3 py-2 min-w-[2.5rem] border rounded-xl text-sm font-medium transition-all duration-200 ${currentPage === page
-                                                            ? 'bg-[#487749] text-white border-[#487749]'
-                                                            : 'border-[#E0E0E0] text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD]'
-                                                            }`}
-                                                    >
-                                                        {page}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                setCurrentPage(prev => Math.min(totalPages, prev + 1))
-                                            }
-                                            disabled={currentPage === totalPages}
-                                            className="px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                                        >
-                                            Next
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Table */}
-                            <div className="bg-white rounded-xl border border-[#E0E0E0] overflow-hidden">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr className="bg-[#F5F5F5] border-b border-[#E0E0E0]">
-                                                <th className="px-6 py-4 text-left text-xs font-semibold text-[#212121] uppercase tracking-wider">
+                            {/* Table Container */}
+                            <div className="flex-1 bg-white rounded-xl border border-[#E0E0E0] overflow-hidden flex flex-col min-h-0 relative shadow-sm">
+                                <div className="absolute inset-0 overflow-auto">
+                                    <table className="w-full border-collapse min-w-max text-left">
+                                        <thead className="sticky top-0 z-20 bg-[#F5F5F5] shadow-sm">
+                                            <tr>
+                                                <th className="px-6 py-4 text-xs font-semibold text-[#212121] uppercase tracking-wider bg-[#F5F5F5] whitespace-nowrap sticky left-0 z-30 border-b border-[#E0E0E0]">
                                                     S.No.
                                                 </th>
                                                 {fields.map((field, idx) => (
-                                                    <th key={idx} className="px-6 py-4 text-left text-xs font-semibold text-[#212121] uppercase tracking-wider">
-                                                        {field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                                                    <th key={idx} className="px-6 py-4 text-xs font-semibold text-[#212121] uppercase tracking-wider bg-[#F5F5F5] whitespace-nowrap border-b border-[#E0E0E0]">
+                                                        {field.replace(/([A-Z])/g, ' $1').trim()}
                                                     </th>
                                                 ))}
-                                                <th className="px-6 py-4 text-right text-xs font-semibold text-[#212121] uppercase tracking-wider">
+                                                <th className="px-6 py-4 text-right text-xs font-semibold text-[#212121] uppercase tracking-wider bg-[#F5F5F5] whitespace-nowrap sticky right-0 z-30 border-b border-[#E0E0E0]">
                                                     Actions
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-[#E0E0E0]">
+                                        <tbody className="divide-y divide-[#E0E0E0]">
                                             {paginatedData.length > 0 ? (
                                                 paginatedData.map((item, index) => {
-                                                    // Generate unique key that includes route to prevent mixing
-                                                    const itemId = item.zoneId || item.stateId || item.districtId || item.orgId || item.id || index
-                                                    const uniqueKey = `${location.pathname}-${itemId}-${index}`
-
+                                                    const uniqueKey = `${location.pathname}-${index}`
                                                     return (
-                                                        <tr
-                                                            key={uniqueKey}
-                                                            className="hover:bg-[#F5F5F5] transition-colors"
-                                                        >
-                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#212121]">
+                                                        <tr key={uniqueKey} className="hover:bg-[#F9FAFB] transition-colors group">
+                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[#212121] sticky left-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-r border-transparent group-hover:border-gray-100">
                                                                 {startIndex + index + 1}
                                                             </td>
                                                             {fields.map((field, fieldIdx) => (
-                                                                <td key={fieldIdx} className="px-6 py-4 text-sm text-[#212121]">
-                                                                    <span className="font-medium">{getFieldValue(item, field)}</span>
+                                                                <td key={fieldIdx} className="px-6 py-4 text-sm text-[#212121] whitespace-nowrap">
+                                                                    {typeof getFieldValue(item, field) === 'object'
+                                                                        ? JSON.stringify(getFieldValue(item, field))
+                                                                        : getFieldValue(item, field)}
                                                                 </td>
                                                             ))}
-                                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm sticky right-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-l border-transparent group-hover:border-gray-100">
                                                                 <div className="flex items-center justify-end gap-2">
                                                                     <button
                                                                         onClick={() => handleEdit(item)}
-                                                                        className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-transparent hover:border-[#E0E0E0] transition-all duration-200"
-                                                                        aria-label="Edit"
+                                                                        className="p-1.5 text-[#487749] hover:bg-[#F0FDF4] rounded-lg transition-colors"
+                                                                        title="Edit"
                                                                     >
                                                                         <Edit2 className="w-4 h-4" />
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleDelete(item)}
-                                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-md border border-transparent hover:border-red-200 transition-colors"
-                                                                        aria-label="Delete"
+                                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        title="Delete"
                                                                     >
                                                                         <Trash2 className="w-4 h-4" />
                                                                     </button>
@@ -530,23 +503,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 })
                                             ) : (
                                                 <tr>
-                                                    <td
-                                                        colSpan={fields.length + 2}
-                                                        className="px-6 py-12 text-center"
-                                                    >
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <p className="text-sm font-medium text-[#757575]">
-                                                                {debouncedSearch ? `No items found matching your search` : `No ${title.toLowerCase()} available`}
-                                                            </p>
-                                                            {debouncedSearch && (
-                                                                <button
-                                                                    onClick={() => setSearchQuery('')}
-                                                                    className="text-sm text-[#487749] hover:text-[#3d6540] hover:underline transition-colors"
-                                                                >
-                                                                    Clear search
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                                    <td colSpan={fields.length + 2} className="px-6 py-12 text-center text-gray-500">
+                                                        No data available
                                                     </td>
                                                 </tr>
                                             )}
@@ -554,10 +512,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     </table>
                                 </div>
                             </div>
+
+                            {/* Pagination (Bottom) */}
+                            {filteredData.length > 0 && (
+                                <div className="flex-none mt-4 flex items-center justify-between">
+                                    <div className="text-sm text-[#757575]">
+                                        Showing {startIndex + 1}-{Math.min(endIndex, filteredData.length)} of {filteredData.length}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-3 py-1 border rounded disabled:opacity-50"
+                                        >
+                                            Prev
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-3 py-1 border rounded disabled:opacity-50"
+                                        >
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* Modal for Create/Edit */}
             {isModalOpen && (

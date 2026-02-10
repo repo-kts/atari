@@ -233,10 +233,21 @@ export function useKvkVehicleDetails(params?: any) {
         queryFn: () => aboutKvkApi.getKvkVehicleDetails(params).then(res => res.data),
     });
 
+    const mutations = useEntityMutation<KvkVehicle, KvkVehicleFormData>(
+        ['kvk-vehicle-details'],
+        {
+            create: aboutKvkApi.createKvkVehicleDetails,
+            update: aboutKvkApi.updateKvkVehicleDetails,
+            delete: aboutKvkApi.deleteKvkVehicleDetails,
+        },
+        [['kvk-vehicles']]
+    );
+
     return {
         data: query.data || [],
         isLoading: query.isLoading,
         error: query.error,
+        ...mutations,
     };
 }
 
@@ -274,10 +285,21 @@ export function useKvkEquipmentDetails(params?: any) {
         queryFn: () => aboutKvkApi.getKvkEquipmentDetails(params).then(res => res.data),
     });
 
+    const mutations = useEntityMutation<KvkEquipment, KvkEquipmentFormData>(
+        ['kvk-equipment-details'],
+        {
+            create: aboutKvkApi.createKvkEquipmentDetails,
+            update: aboutKvkApi.updateKvkEquipmentDetails,
+            delete: aboutKvkApi.deleteKvkEquipmentDetails,
+        },
+        [['kvk-equipments']]
+    );
+
     return {
         data: query.data || [],
         isLoading: query.isLoading,
         error: query.error,
+        ...mutations,
     };
 }
 
@@ -347,9 +369,9 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
         case ENTITY_TYPES.KVK_STAFF_TRANSFERRED: return transferred;
         case ENTITY_TYPES.KVK_INFRASTRUCTURE: return infra;
         case ENTITY_TYPES.KVK_VEHICLES: return vehicles;
-        case ENTITY_TYPES.KVK_VEHICLE_DETAILS: return { ...vehicleDetails, create: async () => { }, update: async () => { }, remove: async () => { } };
+        case ENTITY_TYPES.KVK_VEHICLE_DETAILS: return vehicleDetails;
         case ENTITY_TYPES.KVK_EQUIPMENTS: return equipments;
-        case ENTITY_TYPES.KVK_EQUIPMENT_DETAILS: return { ...equipmentDetails, create: async () => { }, update: async () => { }, remove: async () => { } };
+        case ENTITY_TYPES.KVK_EQUIPMENT_DETAILS: return equipmentDetails;
         case ENTITY_TYPES.KVK_FARM_IMPLEMENTS: return implements_;
         default: return kvks;
     }

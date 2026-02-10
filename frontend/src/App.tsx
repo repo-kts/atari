@@ -111,6 +111,17 @@ function App() {
 
                     {/* About KVK Routes - Mapping approach */}
                     {aboutKvkRoutes.map(route => {
+                        const Component = route.component
+                        if (Component) {
+                            return (
+                                <Route
+                                    key={route.path}
+                                    path={route.path}
+                                    element={<Component />}
+                                />
+                            )
+                        }
+
                         return (
                             <Route
                                 key={route.path}
