@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../../stores/authStore'
-import { userApi, UserFilters, RoleInfo, getRoleLabel } from '../../services/userApi'
+import { useAuth } from '../../contexts/AuthContext'
+import { getRoleLabel } from '../../services/userApi'
+import { isAdminRole } from '../../constants/roleHierarchy'
+import { useUsers, useRoles, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
@@ -30,23 +32,34 @@ interface User {
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { hasPermission } = useAuthStore()
-    const [users, setUsers] = useState<User[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { hasPermission, user: currentUser } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-    const [isDeleting, setIsDeleting] = useState<number | null>(null)
-    const [allRoles, setAllRoles] = useState<RoleInfo[]>([])
 
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
 
-    // Fetch roles from API
-    useEffect(() => {
-        userApi.getRoles().then(setAllRoles).catch(() => { })
-    }, [])
+    // Fetch users with filters
+    const { 
+        data: usersData = [], 
+        isLoading, 
+        error: queryError,
+        refetch: refetchUsers 
+    } = useUsers({ 
+        search: searchTerm.trim() || undefined,
+        roleId: selectedRole 
+    })
+    
+    const users = Array.isArray(usersData) ? usersData as User[] : []
+
+    // Fetch roles
+    const { data: allRoles = [] } = useRoles()
+
+    // Delete user mutation
+    const deleteUserMutation = useDeleteUser()
+
+    const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load users') : null
 
     // Granular permissions (VIEW = list/detail, ADD = create, EDIT = update, DELETE = delete)
     const canCreateUsers = hasPermission('ADD')
@@ -54,48 +67,17 @@ export const UserManagement: React.FC = () => {
     const canDeleteUser = hasPermission('DELETE')
     const showActionsColumn = canEditUser || canDeleteUser
 
-    // Fetch users
-    const fetchUsers = async () => {
-        setIsLoading(true)
-        setError(null)
-
-        try {
-            const filters: UserFilters = {}
-            if (searchTerm.trim()) {
-                filters.search = searchTerm.trim()
-            }
-            if (selectedRole) {
-                filters.roleId = selectedRole
-            }
-
-            const data = await userApi.getUsers(filters)
-            setUsers(Array.isArray(data) ? data : [])
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load users')
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    // Load users on mount and when filters change
-    useEffect(() => {
-        fetchUsers()
-    }, [searchTerm, selectedRole])
-
     // Handle delete user
     const handleDelete = async (userId: number) => {
-        if (!confirm(`Are you sure you want to delete user "${users.find(u => u.userId === userId)?.name}"?`)) {
+        const user = users.find(u => u.userId === userId)
+        if (!confirm(`Are you sure you want to delete user "${user?.name}"?`)) {
             return
         }
 
-        setIsDeleting(userId)
         try {
-            await userApi.deleteUser(userId)
-            await fetchUsers() // Refresh list
+            await deleteUserMutation.mutateAsync(userId)
         } catch (err) {
             alert(err instanceof Error ? err.message : 'Failed to delete user')
-        } finally {
-            setIsDeleting(null)
         }
     }
 
@@ -209,7 +191,7 @@ export const UserManagement: React.FC = () => {
                                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#487749]"></div>
                                 <p className="mt-4 text-[#757575]">Loading users...</p>
                             </div>
-                        ) : users.length === 0 ? (
+                        ) : !users || users.length === 0 ? (
                             <div className="p-12 text-center text-[#757575]">
                                 <p>No users found</p>
                             </div>
@@ -278,7 +260,7 @@ export const UserManagement: React.FC = () => {
                                                 {showActionsColumn && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            {canEditUser && (
+                                                            {canEditUser && !(isAdminRole(user.roleName) && currentUser?.role !== 'super_admin') && (
                                                                 <button
                                                                     onClick={() => {
                                                                         alert('Edit functionality coming soon')
@@ -290,10 +272,10 @@ export const UserManagement: React.FC = () => {
                                                                     <Edit className="w-4 h-4" />
                                                                 </button>
                                                             )}
-                                                            {canDeleteUser && (
+                                                            {canDeleteUser && !(isAdminRole(user.roleName) && currentUser?.role !== 'super_admin') && (
                                                                 <button
                                                                     onClick={() => handleDelete(user.userId)}
-                                                                    disabled={isDeleting === user.userId}
+                                                                    disabled={deleteUserMutation.isPending}
                                                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-xl border border-[#E0E0E0] hover:border-red-200 transition-all duration-200 disabled:opacity-50"
                                                                     aria-label="Delete user"
                                                                     title="Delete user"
@@ -319,7 +301,7 @@ export const UserManagement: React.FC = () => {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSuccess={() => {
-                    fetchUsers() // Refresh user list after creation
+                    refetchUsers() // Refresh user list after creation
                 }}
             />
         </div>

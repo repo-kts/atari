@@ -6,8 +6,9 @@ import {
     Navigate,
     Outlet,
 } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { setOnSessionExpired } from './services/api'
-import { useAuthStore } from './stores/authStore'
+import { AuthProvider, getLogoutFunction } from './contexts/AuthContext'
 import { Layout } from './components/layout/Layout'
 import { Dashboard } from './pages/dashboard/Dashboard'
 import { Login } from './pages/auth/Login'
@@ -33,13 +34,14 @@ import { ENTITY_PATHS } from './constants/entityTypes'
 import { getAllMastersMockData } from './mocks/allMastersMockData'
 
 
-function App() {
+function AppRoutes() {
+    const queryClient = useQueryClient()
+
     // When access token expires and refresh fails, clear auth state so user is sent to login
     useEffect(() => {
-        setOnSessionExpired(() => {
-            useAuthStore.getState().logout()
-        })
-    }, [])
+        const logout = getLogoutFunction(queryClient)
+        setOnSessionExpired(logout)
+    }, [queryClient])
 
     return (
         <Router>
@@ -175,6 +177,14 @@ function App() {
                 </Route>
             </Routes>
         </Router>
+    )
+}
+
+function App() {
+    return (
+        <AuthProvider>
+            <AppRoutes />
+        </AuthProvider>
     )
 }
 

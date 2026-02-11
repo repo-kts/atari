@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Modal } from '../ui/Modal';
-import { aboutKvkApi } from '../../services/aboutKvkApi';
-import { KvkEmployee, StaffTransferHistory } from '../../types/aboutKvk';
+import { useStaffTransferHistory } from '../../hooks/forms/useAboutKvkData';
+import { KvkEmployee } from '../../types/aboutKvk';
 import { Loader2, History, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -16,31 +16,16 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
     onClose,
     staff,
 }) => {
-    const [history, setHistory] = useState<StaffTransferHistory[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    // Fetch transfer history using TanStack Query
+    const { 
+        data: history = [], 
+        isLoading: loading, 
+        error: queryError 
+    } = useStaffTransferHistory(open && staff ? staff.kvkStaffId : null);
 
-    useEffect(() => {
-        if (open && staff) {
-            loadHistory();
-        } else {
-            setHistory([]);
-            setError(null);
-        }
-    }, [open, staff]);
-
-    const loadHistory = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await aboutKvkApi.getStaffTransferHistory(staff.kvkStaffId, { limit: 100 });
-            setHistory(response.data);
-        } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Failed to load transfer history.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const error = queryError 
+        ? (queryError instanceof Error ? queryError.message : 'Failed to load transfer history.')
+        : null;
 
     const formatDate = (dateString: string) => {
         try {

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aboutKvkApi } from '@/services/aboutKvkApi';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/contexts/AuthContext';
 import type {
     KvkFormData,
     KvkBankAccountFormData,
@@ -12,9 +12,9 @@ import type {
 } from '../../types/aboutKvk';
 import { ENTITY_TYPES } from '../../constants/entityTypes';
 
-// Helper to get user-aware query keys
-function getUserAwareQueryKey(baseKey: string | string[], params?: any): any[] {
-    const { user } = useAuthStore.getState();
+// Helper to build user-aware query keys
+// Takes user from hook context instead of accessing store directly
+function buildQueryKey(baseKey: string | string[], params?: any, user?: any): any[] {
     const base = Array.isArray(baseKey) ? baseKey : [baseKey];
     return [...base, params, user?.userId ?? null, user?.role ?? null];
 }
@@ -71,14 +71,14 @@ function useEntityMutation<TData>(
 // ============================================
 
 export function useKvks(params?: any) {
-    const { user } = useAuthStore();
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: ['kvks', params, user?.userId, user?.role],
+        queryKey: buildQueryKey('kvks', params, user),
         queryFn: () => aboutKvkApi.getKvks(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkFormData>(
-        getUserAwareQueryKey('kvks'),
+        buildQueryKey('kvks', undefined, user),
         {
             create: aboutKvkApi.createKvk,
             update: aboutKvkApi.updateKvk,
@@ -96,9 +96,9 @@ export function useKvks(params?: any) {
 
 // Hook to fetch ALL KVKs for dropdown (bypasses user filtering)
 export function useAllKvksForDropdown(params?: any) {
-    const { user } = useAuthStore();
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: ['kvks-dropdown', params, user?.userId, user?.role],
+        queryKey: buildQueryKey('kvks-dropdown', params, user),
         queryFn: () => aboutKvkApi.getAllKvksForDropdown(params).then(res => res.data),
         staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     });
@@ -115,13 +115,14 @@ export function useAllKvksForDropdown(params?: any) {
 // ============================================
 
 export function useKvkBankAccounts(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-bank-accounts', params),
+        queryKey: buildQueryKey('kvk-bank-accounts', params, user),
         queryFn: () => aboutKvkApi.getKvkBankAccounts(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkBankAccountFormData>(
-        getUserAwareQueryKey('kvk-bank-accounts'),
+        buildQueryKey('kvk-bank-accounts', undefined, user),
         {
             create: aboutKvkApi.createKvkBankAccount,
             update: aboutKvkApi.updateKvkBankAccount,
@@ -142,19 +143,20 @@ export function useKvkBankAccounts(params?: any) {
 // ============================================
 
 export function useKvkEmployees(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-employees', params),
+        queryKey: buildQueryKey('kvk-employees', params, user),
         queryFn: () => aboutKvkApi.getKvkEmployees(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkEmployeeFormData>(
-        getUserAwareQueryKey('kvk-employees'),
+        buildQueryKey('kvk-employees', undefined, user),
         {
             create: aboutKvkApi.createKvkEmployee,
             update: aboutKvkApi.updateKvkEmployee,
             delete: aboutKvkApi.deleteKvkEmployee,
         },
-        [getUserAwareQueryKey('kvk-staff-transferred')] // Invalidate transferred list too as status might change
+        [buildQueryKey('kvk-staff-transferred', undefined, user)] // Invalidate transferred list too as status might change
     );
 
     return {
@@ -166,20 +168,21 @@ export function useKvkEmployees(params?: any) {
 }
 
 export function useKvkStaffTransferred(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-staff-transferred', params),
+        queryKey: buildQueryKey('kvk-staff-transferred', params, user),
         queryFn: () => aboutKvkApi.getKvkStaffTransferred(params).then(res => res.data),
     });
 
     // Uses same mutations as employees really, but exposed via specific hooks if needed
     const mutations = useEntityMutation<KvkEmployeeFormData>(
-        getUserAwareQueryKey('kvk-staff-transferred'),
+        buildQueryKey('kvk-staff-transferred', undefined, user),
         {
             create: aboutKvkApi.createKvkStaffTransferred,
             update: aboutKvkApi.updateKvkStaffTransferred,
             delete: aboutKvkApi.deleteKvkStaffTransferred,
         },
-        [getUserAwareQueryKey('kvk-employees')]
+        [buildQueryKey('kvk-employees', undefined, user)]
     );
 
     return {
@@ -195,13 +198,14 @@ export function useKvkStaffTransferred(params?: any) {
 // ============================================
 
 export function useKvkInfrastructure(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-infrastructure', params),
+        queryKey: buildQueryKey('kvk-infrastructure', params, user),
         queryFn: () => aboutKvkApi.getKvkInfrastructure(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkInfrastructureFormData>(
-        getUserAwareQueryKey('kvk-infrastructure'),
+        buildQueryKey('kvk-infrastructure', undefined, user),
         {
             create: aboutKvkApi.createKvkInfrastructure,
             update: aboutKvkApi.updateKvkInfrastructure,
@@ -222,19 +226,20 @@ export function useKvkInfrastructure(params?: any) {
 // ============================================
 
 export function useKvkVehicles(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-vehicles', params),
+        queryKey: buildQueryKey('kvk-vehicles', params, user),
         queryFn: () => aboutKvkApi.getKvkVehicles(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkVehicleFormData>(
-        getUserAwareQueryKey('kvk-vehicles'),
+        buildQueryKey('kvk-vehicles', undefined, user),
         {
             create: aboutKvkApi.createKvkVehicle,
             update: aboutKvkApi.updateKvkVehicle,
             delete: aboutKvkApi.deleteKvkVehicle,
         },
-        [getUserAwareQueryKey('kvk-vehicle-details')]
+        [buildQueryKey('kvk-vehicle-details', undefined, user)]
     );
 
     return {
@@ -246,19 +251,20 @@ export function useKvkVehicles(params?: any) {
 }
 
 export function useKvkVehicleDetails(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-vehicle-details', params),
+        queryKey: buildQueryKey('kvk-vehicle-details', params, user),
         queryFn: () => aboutKvkApi.getKvkVehicleDetails(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkVehicleFormData>(
-        getUserAwareQueryKey('kvk-vehicle-details'),
+        buildQueryKey('kvk-vehicle-details', undefined, user),
         {
             create: aboutKvkApi.createKvkVehicleDetails,
             update: aboutKvkApi.updateKvkVehicleDetails,
             delete: aboutKvkApi.deleteKvkVehicleDetails,
         },
-        [getUserAwareQueryKey('kvk-vehicles')]
+        [buildQueryKey('kvk-vehicles', undefined, user)]
     );
 
     return {
@@ -274,19 +280,20 @@ export function useKvkVehicleDetails(params?: any) {
 // ============================================
 
 export function useKvkEquipments(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-equipments', params),
+        queryKey: buildQueryKey('kvk-equipments', params, user),
         queryFn: () => aboutKvkApi.getKvkEquipments(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkEquipmentFormData>(
-        getUserAwareQueryKey('kvk-equipments'),
+        buildQueryKey('kvk-equipments', undefined, user),
         {
             create: aboutKvkApi.createKvkEquipment,
             update: aboutKvkApi.updateKvkEquipment,
             delete: aboutKvkApi.deleteKvkEquipment,
         },
-        [getUserAwareQueryKey('kvk-equipment-details')]
+        [buildQueryKey('kvk-equipment-details', undefined, user)]
     );
 
     return {
@@ -298,19 +305,20 @@ export function useKvkEquipments(params?: any) {
 }
 
 export function useKvkEquipmentDetails(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-equipment-details', params),
+        queryKey: buildQueryKey('kvk-equipment-details', params, user),
         queryFn: () => aboutKvkApi.getKvkEquipmentDetails(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkEquipmentFormData>(
-        getUserAwareQueryKey('kvk-equipment-details'),
+        buildQueryKey('kvk-equipment-details', undefined, user),
         {
             create: aboutKvkApi.createKvkEquipmentDetails,
             update: aboutKvkApi.updateKvkEquipmentDetails,
             delete: aboutKvkApi.deleteKvkEquipmentDetails,
         },
-        [getUserAwareQueryKey('kvk-equipments')]
+        [buildQueryKey('kvk-equipments', undefined, user)]
     );
 
     return {
@@ -322,13 +330,14 @@ export function useKvkEquipmentDetails(params?: any) {
 }
 
 export function useKvkFarmImplements(params?: any) {
+    const { user } = useAuth();
     const query = useQuery({
-        queryKey: getUserAwareQueryKey('kvk-farm-implements', params),
+        queryKey: buildQueryKey('kvk-farm-implements', params, user),
         queryFn: () => aboutKvkApi.getKvkFarmImplements(params).then(res => res.data),
     });
 
     const mutations = useEntityMutation<KvkFarmImplementFormData>(
-        getUserAwareQueryKey('kvk-farm-implements'),
+        buildQueryKey('kvk-farm-implements', undefined, user),
         {
             create: aboutKvkApi.createKvkFarmImplement,
             update: aboutKvkApi.updateKvkFarmImplement,
@@ -342,6 +351,51 @@ export function useKvkFarmImplements(params?: any) {
         error: query.error,
         ...mutations,
     };
+}
+
+// ============================================
+// Staff Transfer Hooks
+// ============================================
+
+/**
+ * Hook to transfer an employee to another KVK
+ */
+export function useTransferEmployee() {
+    const queryClient = useQueryClient();
+    const { user } = useAuth();
+
+    return useMutation({
+        mutationFn: ({ 
+            staffId, 
+            targetKvkId, 
+            reason, 
+            notes 
+        }: { 
+            staffId: number; 
+            targetKvkId: number; 
+            reason?: string; 
+            notes?: string 
+        }) => aboutKvkApi.transferKvkEmployee(staffId, targetKvkId, reason, notes),
+        onSuccess: () => {
+            // Invalidate employee queries to refetch
+            queryClient.invalidateQueries({ queryKey: buildQueryKey('kvk-employees', undefined, user) });
+            queryClient.invalidateQueries({ queryKey: buildQueryKey('kvk-staff-transferred', undefined, user) });
+        },
+    });
+}
+
+/**
+ * Hook to fetch staff transfer history
+ */
+export function useStaffTransferHistory(staffId: number | null) {
+    const { user } = useAuth();
+    
+    return useQuery({
+        queryKey: buildQueryKey('staff-transfer-history', { staffId }, user),
+        queryFn: () => aboutKvkApi.getStaffTransferHistory(staffId!, { limit: 100 }).then(res => res.data),
+        enabled: staffId != null,
+        staleTime: 2 * 60 * 1000, // 2 minutes
+    });
 }
 
 export type AboutKvkEntity =

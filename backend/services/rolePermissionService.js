@@ -1,5 +1,7 @@
 const rolePermissionRepository = require('../repositories/rolePermissionRepository.js');
 const prisma = require('../config/prisma.js');
+const userRepository = require('../repositories/userRepository.js');
+const { outranks, outranksOrEqual } = require('../constants/roleHierarchy.js');
 
 /**
  * Service layer for role permission management
@@ -8,13 +10,27 @@ const rolePermissionService = {
   /**
    * Get all modules with permissions for a role (annotated with hasPermission).
    * @param {number} roleId - Role ID
+   * @param {number} [callerUserId] - User ID of the caller (for hierarchy check)
    * @returns {Promise<object>} { roleId, roleName, modules: [...] }
-   * @throws {Error} If role not found
+   * @throws {Error} If role not found or caller lacks access
    */
-  getRolePermissions: async (roleId) => {
+  getRolePermissions: async (roleId, callerUserId = null) => {
     const role = await prisma.role.findUnique({ where: { roleId } });
     if (!role) {
       throw new Error('Role not found');
+    }
+
+    // Enforce hierarchy: caller must outrank or equal the target role
+    if (callerUserId) {
+      const caller = await userRepository.findById(callerUserId);
+      if (!caller) throw new Error('Caller not found');
+      const callerRole = caller.role.roleName;
+      // super_admin and zone_admin can view any role's permissions
+      if (callerRole !== 'super_admin' && callerRole !== 'zone_admin') {
+        if (!outranksOrEqual(callerRole, role.roleName)) {
+          throw new Error('You can only view permissions for roles at your level or below');
+        }
+      }
     }
 
     const modules = await rolePermissionRepository.getRolePermissionsStructured(roleId);
@@ -40,6 +56,17 @@ const rolePermissionService = {
     const role = await prisma.role.findUnique({ where: { roleId } });
     if (!role) {
       throw new Error('Role not found');
+    }
+
+    // Enforce hierarchy: caller must outrank or equal the target role to edit its permissions
+    const caller = await userRepository.findById(updatedBy);
+    if (!caller) throw new Error('Caller not found');
+    const callerRole = caller.role.roleName;
+    // super_admin and zone_admin can edit any role's permissions
+    if (callerRole !== 'super_admin' && callerRole !== 'zone_admin') {
+      if (!outranksOrEqual(callerRole, role.roleName)) {
+        throw new Error('You can only edit permissions for roles at your level or below');
+      }
     }
 
     // Validate permissionIds exist (all of them)

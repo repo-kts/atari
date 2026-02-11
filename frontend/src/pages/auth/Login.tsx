@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export const Login: React.FC = () => {
     const navigate = useNavigate()
-    const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore()
+    const { login, isAuthenticated, isLoading, error, clearError } = useAuth()
 
     useEffect(() => {
         if (isAuthenticated) {
