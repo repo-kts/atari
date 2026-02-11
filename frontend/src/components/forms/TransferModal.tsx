@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
-import { aboutKvkApi } from '../../services/aboutKvkApi';
-import { KvkEmployee, Kvk } from '../../types/aboutKvk';
+import { useAllKvksForDropdown, useTransferEmployee } from '../../hooks/forms/useAboutKvkData';
+import { KvkEmployee } from '../../types/aboutKvk';
 import { Loader2 } from 'lucide-react';
 
 interface TransferModalProps {
@@ -20,15 +20,20 @@ export const TransferModal: React.FC<TransferModalProps> = ({
     const [targetKvkId, setTargetKvkId] = useState<number | ''>('');
     const [transferReason, setTransferReason] = useState('');
     const [notes, setNotes] = useState('');
-    const [kvkOptions, setKvkOptions] = useState<Kvk[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [loadingKvks, setLoadingKvks] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Fetch all KVKs for dropdown
+    const { data: allKvks = [], isLoading: loadingKvks } = useAllKvksForDropdown({ limit: 1000 });
+    
+    // Filter out current KVK
+    const kvkOptions = allKvks.filter((kvk: any) => kvk.kvkId !== staff.kvkId);
+
+    // Transfer employee mutation
+    const transferMutation = useTransferEmployee();
+    const loading = transferMutation.isPending;
+
     useEffect(() => {
-        if (open) {
-            loadKvks();
-        } else {
+        if (!open) {
             // Reset form when modal closes
             setTargetKvkId('');
             setTransferReason('');
@@ -37,44 +42,25 @@ export const TransferModal: React.FC<TransferModalProps> = ({
         }
     }, [open]);
 
-    const loadKvks = async () => {
-        setLoadingKvks(true);
-        setError(null);
-        try {
-            const response = await aboutKvkApi.getAllKvksForDropdown({ limit: 1000 });
-            // Filter out current KVK
-            const filtered = response.data.filter((kvk: Kvk) => kvk.kvkId !== staff.kvkId);
-            setKvkOptions(filtered);
-        } catch (err: any) {
-            setError('Failed to load KVKs. Please try again.');
-            console.error('Error loading KVKs:', err);
-        } finally {
-            setLoadingKvks(false);
-        }
-    };
-
     const handleTransfer = async () => {
         if (!targetKvkId) {
             setError('Please select a target KVK');
             return;
         }
 
-        setLoading(true);
         setError(null);
 
         try {
-            await aboutKvkApi.transferKvkEmployee(
-                staff.kvkStaffId,
-                targetKvkId as number,
-                transferReason || undefined,
-                notes || undefined
-            );
+            await transferMutation.mutateAsync({
+                staffId: staff.kvkStaffId,
+                targetKvkId: targetKvkId as number,
+                reason: transferReason || undefined,
+                notes: notes || undefined
+            });
             onTransferSuccess();
             onClose();
         } catch (err: any) {
             setError(err.response?.data?.error || err.message || 'Failed to transfer employee. Please try again.');
-        } finally {
-            setLoading(false);
         }
     };
 

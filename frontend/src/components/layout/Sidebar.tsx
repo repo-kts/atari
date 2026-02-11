@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import {
     LayoutDashboard,
     FileText,
@@ -24,6 +24,7 @@ import {
     Briefcase,
     FileCheck,
 } from 'lucide-react'
+import { getRoleLevel } from '../../constants/roleHierarchy'
 
 interface MenuItem {
     label: string
@@ -217,6 +218,22 @@ const kvkMenuItems: MenuItem[] = [
     },
 ]
 
+/**
+ * Build menu for a given admin role by filtering superAdminMenuItems.
+ * - super_admin & zone_admin: see everything
+ * - state_admin & below: no All Masters, Log History, Notifications
+ */
+function getAdminMenuItems(roleName: string): MenuItem[] {
+    const level = getRoleLevel(roleName)
+
+    // super_admin (0) and zone_admin (1) get the full menu
+    if (level <= 1) return superAdminMenuItems
+
+    // state_admin (2) and below: remove All Masters, Log History, Notifications
+    const excludedPaths = new Set(['/all-master', '/view-log-history', '/view-email-notifications'])
+    return superAdminMenuItems.filter(item => !excludedPaths.has(item.path))
+}
+
 interface SidebarProps {
     isOpen: boolean
     onToggle: () => void
@@ -224,7 +241,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const location = useLocation()
-    const { user } = useAuthStore()
+    const { user } = useAuth()
     const [expandedItems, setExpandedItems] = useState<string[]>([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -238,10 +255,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     // Determine menu items based on role
     let menuItems = regularMenuItems
-    if (isAdmin) {
-        menuItems = superAdminMenuItems
-    } else if (isKvk) {
+    if (isKvk) {
         menuItems = kvkMenuItems
+    } else if (isAdmin && user?.role) {
+        menuItems = getAdminMenuItems(user.role)
     }
 
     // Debounce search query

@@ -4,7 +4,7 @@ import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
 import { State, District, Organization } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/contexts/AuthContext'
 import {
     useSanctionedPosts,
     useDisciplines,
@@ -36,7 +36,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: states = [] } = useMasterData<State>('states')
     const { data: organizations = [] } = useMasterData<Organization>('organizations')
     const { data: districts = [] } = useMasterData<District>('districts')
-    const { user } = useAuthStore()
+    const { user } = useAuth()
 
     // Fetch About KVK master data
     const { data: sanctionedPosts = [] } = useSanctionedPosts()

@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { userApi, RolePermissionsResponse, ModuleWithPermissions } from '../../services/userApi'
+import { useAuth } from '../../contexts/AuthContext'
+import { outranksOrEqual } from '../../constants/roleHierarchy'
+import { ModuleWithPermissions } from '../../services/userApi'
+import { useRolePermissions, useUpdateRolePermissions } from '../../hooks/useUserManagement'
 import { AlertCircle, CheckCircle2, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -29,42 +32,48 @@ export const RolePermissionEditor: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>()
     const navigate = useNavigate()
     const location = useLocation()
-    const [data, setData] = useState<RolePermissionsResponse | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const [isSaving, setIsSaving] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { user: currentUser } = useAuth()
     const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [selectedPermissions, setSelectedPermissions] = useState<Set<number>>(new Set())
 
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
 
+    // Fetch role permissions
+    const { 
+        data, 
+        isLoading, 
+        error: queryError 
+    } = useRolePermissions(roleId ? Number(roleId) : null)
+
+    // Update role permissions mutation
+    const updatePermissionsMutation = useUpdateRolePermissions()
+    const isSaving = updatePermissionsMutation.isPending
+    const error = queryError 
+        ? (queryError instanceof Error ? queryError.message : 'Failed to load permissions')
+        : updatePermissionsMutation.error
+        ? (updatePermissionsMutation.error instanceof Error ? updatePermissionsMutation.error.message : 'Failed to save permissions')
+        : null
+
+    // Initialize selected permissions when data loads
     useEffect(() => {
-        if (!roleId) return
-        const fetchData = async () => {
-            setIsLoading(true)
-            setError(null)
-            try {
-                const result = await userApi.getRolePermissions(Number(roleId))
-                setData(result)
-                // Initialize selected permissions from hasPermission flags
-                const selected = new Set<number>()
-                result.modules.forEach((module) =>
-                    module.permissions.forEach((p) => {
-                        if (p.hasPermission) selected.add(p.permissionId)
-                    })
-                )
-                setSelectedPermissions(selected)
-            } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to load permissions')
-            } finally {
-                setIsLoading(false)
-            }
+        if (data) {
+            const selected = new Set<number>()
+            data.modules.forEach((module) => {
+                module.permissions.forEach((p) => {
+                    if (p.hasPermission) selected.add(p.permissionId)
+                })
+            })
+            setSelectedPermissions(selected)
         }
-        fetchData()
-    }, [roleId])
+    }, [data])
+
+    // Determine if current user can edit this role's permissions
+    const canEditThisRole = currentUser?.role === 'super_admin' || currentUser?.role === 'zone_admin' ||
+        (data?.roleName ? outranksOrEqual(currentUser?.role || '', data.roleName) : false)
 
     const togglePermission = (permissionId: number) => {
+        if (!canEditThisRole) return
         setSelectedPermissions((prev) => {
             const next = new Set(prev)
             if (next.has(permissionId)) next.delete(permissionId)
@@ -116,6 +125,7 @@ export const RolePermissionEditor: React.FC = () => {
 
     const allSelected = (ids: number[]) => ids.length > 0 && ids.every((id) => selectedPermissions.has(id))
     const toggleAllForAction = (ids: number[]) => {
+        if (!canEditThisRole) return
         setSelectedPermissions((prev) => {
             const next = new Set(prev)
             const select = !allSelected(ids)
@@ -126,17 +136,17 @@ export const RolePermissionEditor: React.FC = () => {
 
     const handleSave = async () => {
         if (!roleId || !data) return
-        setIsSaving(true)
-        setError(null)
+        
         setSuccessMessage(null)
         try {
-            await userApi.updateRolePermissions(Number(roleId), Array.from(selectedPermissions))
+            await updatePermissionsMutation.mutateAsync({
+                roleId: Number(roleId),
+                permissionIds: Array.from(selectedPermissions)
+            })
             setSuccessMessage('Permissions updated successfully')
             setTimeout(() => setSuccessMessage(null), 3000)
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to save permissions')
-        } finally {
-            setIsSaving(false)
+            // Error is handled by the mutation error state
         }
     }
 
@@ -195,13 +205,19 @@ export const RolePermissionEditor: React.FC = () => {
                                 <p className="text-sm text-[#757575] mt-1">Configure granular access for this role</p>
                             )}
                         </div>
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] disabled:opacity-50 transition-all duration-200 shadow-sm"
-                        >
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                        </button>
+                        {canEditThisRole ? (
+                            <button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] disabled:opacity-50 transition-all duration-200 shadow-sm"
+                            >
+                                {isSaving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        ) : (
+                            <span className="px-4 py-2 text-sm font-medium text-[#757575] bg-[#F5F5F5] rounded-xl border border-[#E0E0E0]">
+                                View Only
+                            </span>
+                        )}
                     </div>
 
                     {/* Messages */}
@@ -237,7 +253,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                     type="checkbox"
                                                     checked={allSelected(viewIds)}
                                                     onChange={() => toggleAllForAction(viewIds)}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                    disabled={!canEditThisRole}
+                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         </th>
@@ -248,7 +265,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                     type="checkbox"
                                                     checked={allSelected(addIds)}
                                                     onChange={() => toggleAllForAction(addIds)}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                    disabled={!canEditThisRole}
+                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         </th>
@@ -259,7 +277,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                     type="checkbox"
                                                     checked={allSelected(editIds)}
                                                     onChange={() => toggleAllForAction(editIds)}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                    disabled={!canEditThisRole}
+                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         </th>
@@ -270,7 +289,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                     type="checkbox"
                                                     checked={allSelected(deleteIds)}
                                                     onChange={() => toggleAllForAction(deleteIds)}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                    disabled={!canEditThisRole}
+                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                 />
                                             </div>
                                         </th>
@@ -304,7 +324,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                                 type="checkbox"
                                                                 checked={selectedPermissions.has(viewPerm.permissionId)}
                                                                 onChange={() => togglePermission(viewPerm.permissionId)}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                                disabled={!canEditThisRole}
+                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                             />
                                                         )}
                                                     </td>
@@ -315,7 +336,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                                 type="checkbox"
                                                                 checked={selectedPermissions.has(addPerm.permissionId)}
                                                                 onChange={() => togglePermission(addPerm.permissionId)}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                                disabled={!canEditThisRole}
+                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                             />
                                                         )}
                                                     </td>
@@ -326,7 +348,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                                 type="checkbox"
                                                                 checked={selectedPermissions.has(editPerm.permissionId)}
                                                                 onChange={() => togglePermission(editPerm.permissionId)}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                                disabled={!canEditThisRole}
+                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                             />
                                                         )}
                                                     </td>
@@ -337,7 +360,8 @@ export const RolePermissionEditor: React.FC = () => {
                                                                 type="checkbox"
                                                                 checked={selectedPermissions.has(deletePerm.permissionId)}
                                                                 onChange={() => togglePermission(deletePerm.permissionId)}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer"
+                                                                disabled={!canEditThisRole}
+                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                                             />
                                                         )}
                                                     </td>

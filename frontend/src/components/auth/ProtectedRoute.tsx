@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import { UserRole } from '../../types/auth'
 import { ShieldAlert } from 'lucide-react'
 
@@ -13,36 +13,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     children,
     requiredRole,
 }) => {
-    const { isAuthenticated, user, hasRole, checkAuth, isLoading, isLoggingOut } = useAuthStore()
-    const [isChecking, setIsChecking] = useState(true)
-
-    // Check authentication on mount
-    useEffect(() => {
-        const verifyAuth = async () => {
-            // Don't check auth if:
-            // 1. Already loading
-            // 2. Currently logging out
-            // 3. User is already authenticated
-            if (isLoading || isLoggingOut || isAuthenticated) {
-                setIsChecking(false)
-                return
-            }
-
-            // Only check auth if we're not authenticated and not in logout flow
-            if (!isAuthenticated && !user) {
-                const authenticated = await checkAuth()
-                if (!authenticated) {
-                    // Not authenticated, will redirect below
-                }
-            }
-            setIsChecking(false)
-        }
-
-        verifyAuth()
-    }, [isAuthenticated, checkAuth, isLoading, isLoggingOut, user])
+    const { isAuthenticated, user, hasRole, isLoading } = useAuth()
 
     // Show loading state while checking auth
-    if (isChecking || isLoading) {
+    if (isLoading) {
         return (
             <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
                 <div className="text-center">

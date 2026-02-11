@@ -6,6 +6,7 @@ const rolePermissionController = require('../controllers/rolePermissionControlle
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requireRole, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
+const { getManageableRoles } = require('../constants/roleHierarchy.js');
 
 // Module code for user management (same as USER_SCOPE for role-based permission fallback)
 const USER_MANAGEMENT_MODULE = 'USER_SCOPE';
@@ -41,9 +42,13 @@ router.get(
   '/roles',
   apiRateLimiter,
   requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'),
-  async (_req, res) => {
+  async (req, res) => {
     try {
+      const callerRole = req.user.roleName;
+      const allowedRoleNames = getManageableRoles(callerRole);
+
       const roles = await prisma.role.findMany({
+        where: { roleName: { in: allowedRoleNames } },
         select: { roleId: true, roleName: true, description: true },
         orderBy: { roleId: 'asc' },
       });

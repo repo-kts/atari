@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { userApi, RoleInfo, getRoleLabel } from '../../services/userApi'
+import { useAuth } from '../../contexts/AuthContext'
+import { getRoleLabel } from '../../services/userApi'
+import { useRoles } from '../../hooks/useUserManagement'
+import { outranksOrEqual } from '../../constants/roleHierarchy'
 import { Plus, MoreVertical, Pencil, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -11,9 +14,7 @@ const PAGE_SIZE = 10
 export const RoleManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const [roles, setRoles] = useState<RoleInfo[]>([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { user: currentUser } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [openActionId, setOpenActionId] = useState<number | null>(null)
@@ -24,22 +25,9 @@ export const RoleManagement: React.FC = () => {
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
 
-    const fetchRoles = async () => {
-        setIsLoading(true)
-        setError(null)
-        try {
-            const data = await userApi.getRoles()
-            setRoles(data ?? [])
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load roles')
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchRoles()
-    }, [])
+    // Fetch roles using TanStack Query
+    const { data: roles = [], isLoading, error: queryError } = useRoles()
+    const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load roles') : null
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -133,13 +121,15 @@ export const RoleManagement: React.FC = () => {
                             <h2 className="text-xl font-semibold text-[#487749]">Role Management</h2>
                             <p className="text-sm text-[#757575] mt-1">Manage system roles and their permissions</p>
                         </div>
-                        <button
-                            onClick={handleAddRole}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] border border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Add Role
-                        </button>
+                        {currentUser?.role === 'super_admin' && (
+                            <button
+                                onClick={handleAddRole}
+                                className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] border border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
+                            >
+                                <Plus className="w-4 h-4" />
+                                Add Role
+                            </button>
+                        )}
                     </div>
 
                     {/* Search Bar */}
@@ -237,24 +227,28 @@ export const RoleManagement: React.FC = () => {
                                                                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#212121] hover:bg-[#F5F5F5] text-left"
                                                                         >
                                                                             <Shield className="w-4 h-4 text-[#757575]" />
-                                                                            Add/Edit Permission
+                                                                            {(currentUser?.role === 'super_admin' || currentUser?.role === 'zone_admin' || outranksOrEqual(currentUser?.role || '', role.roleName)) ? 'Add/Edit Permission' : 'View Permission'}
                                                                         </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleEdit(role)}
-                                                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#212121] hover:bg-[#F5F5F5] text-left"
-                                                                        >
-                                                                            <Pencil className="w-4 h-4 text-[#757575]" />
-                                                                            Edit
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleDelete(role)}
-                                                                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
-                                                                        >
-                                                                            <Trash2 className="w-4 h-4" />
-                                                                            Delete
-                                                                        </button>
+                                                                        {currentUser?.role === 'super_admin' && (
+                                                                            <>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleEdit(role)}
+                                                                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#212121] hover:bg-[#F5F5F5] text-left"
+                                                                                >
+                                                                                    <Pencil className="w-4 h-4 text-[#757575]" />
+                                                                                    Edit
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => handleDelete(role)}
+                                                                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                    Delete
+                                                                                </button>
+                                                                            </>
+                                                                        )}
                                                                     </div>
                                                                 )}
                                                             </div>

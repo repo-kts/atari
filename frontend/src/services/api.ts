@@ -103,6 +103,8 @@ class ApiClient {
       // 401: try refresh once, then retry this request (except for refresh/login endpoints)
       const isAuthRefresh = endpoint.includes('/auth/refresh');
       const isAuthLogin = endpoint.includes('/auth/login');
+      const isAuthMe = endpoint.includes('/auth/me');
+      
       if (
         response.status === 401 &&
         !isRetry &&
@@ -113,8 +115,12 @@ class ApiClient {
         if (refreshed) {
           return this.request<T>(endpoint, options, true);
         }
-        // Refresh failed (e.g. refresh token expired) – notify app to logout
-        onSessionExpired?.();
+        // Refresh failed (e.g. refresh token expired)
+        // Only trigger session expired if this is NOT the initial auth check
+        // (getCurrentUser on app load should fail silently)
+        if (!isAuthMe) {
+          onSessionExpired?.();
+        }
       }
 
       // Error response: read body once (text), then parse or use as message

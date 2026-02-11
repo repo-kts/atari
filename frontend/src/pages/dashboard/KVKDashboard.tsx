@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '../../components/ui/Card'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import {
     FileText,
     BarChart3,
@@ -66,7 +66,7 @@ const mockKVKDataByYear: Record<string, {
 
 export const KVKDashboard: React.FC = () => {
     const navigate = useNavigate()
-    const { user } = useAuthStore()
+    const { user } = useAuth()
     const [selectedYear, setSelectedYear] = useState('All')
 
     // Get data based on selected year

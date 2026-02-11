@@ -1,0 +1,228 @@
+import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { authApi, ApiUser } from '../services/authApi'
+import { ApiError } from '../services/api'
+import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
+import { isAdminRole, outranksOrEqual } from '../constants/roleHierarchy'
+
+/**
+ * Map API user to frontend User type
+ */
+const mapApiUserToUser = (apiUser: ApiUser): User => ({
+    userId: apiUser.userId,
+    name: apiUser.name,
+    email: apiUser.email,
+    roleId: apiUser.roleId,
+    role: apiUser.roleName as UserRole,
+    zoneId: apiUser.zoneId,
+    stateId: apiUser.stateId,
+    districtId: apiUser.districtId,
+    orgId: apiUser.orgId,
+    kvkId: apiUser.kvkId,
+    createdAt: apiUser.createdAt,
+    lastLoginAt: apiUser.lastLoginAt,
+    permissions: apiUser.permissions,
+})
+
+interface AuthContextValue {
+    user: User | null
+    isAuthenticated: boolean
+    isLoading: boolean
+    error: string | null
+    login: (credentials: LoginCredentials) => Promise<boolean>
+    logout: () => Promise<void>
+    checkAuth: () => Promise<boolean>
+    hasRole: (role: UserRole | UserRole[]) => boolean
+    hasPermission: (action: PermissionAction, targetRole?: string) => boolean
+    clearError: () => void
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export const useAuth = () => {
+    const context = useContext(AuthContext)
+    if (!context) {
+        throw new Error('useAuth must be used within AuthProvider')
+    }
+    return context
+}
+
+interface AuthProviderProps {
+    children: ReactNode
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    const queryClient = useQueryClient()
+    const isLoggingOutRef = useRef(false)
+
+    // Query for current user
+    const {
+        data: currentUser,
+        isLoading,
+        error: queryError,
+        refetch,
+    } = useQuery({
+        queryKey: ['currentUser'],
+        queryFn: async () => {
+            try {
+                const apiUser = await authApi.getCurrentUser()
+                return mapApiUserToUser(apiUser)
+            } catch (err) {
+                // 401/403 = not authenticated — return null so the app treats it as logged-out
+                if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+                    return null
+                }
+                // Any other error (network, 500, etc.) — let React Query surface it via queryError
+                throw err
+            }
+        },
+        retry: false,
+        staleTime: Infinity, // User data doesn't change often
+        refetchOnWindowFocus: false,
+        refetchOnMount: false, // Don't refetch on mount if we have cached data
+        refetchOnReconnect: false, // Don't refetch on reconnect
+    })
+
+    const user = currentUser ?? null
+    const isAuthenticated = currentUser != null && !queryError
+
+    // Login mutation
+    const loginMutation = useMutation({
+        mutationFn: async (credentials: LoginCredentials) => {
+            const apiUser = await authApi.login(credentials)
+            return mapApiUserToUser(apiUser)
+        },
+        onSuccess: (user) => {
+            // Set user data in cache
+            queryClient.setQueryData(['currentUser'], user)
+        },
+    })
+
+    // Logout mutation
+    const logoutMutation = useMutation({
+        mutationFn: async () => {
+            await authApi.logout()
+        },
+        onSuccess: () => {
+            // Remove cached data from previous session but keep the currentUser observer intact
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
+            isLoggingOutRef.current = false
+        },
+        onError: () => {
+            // Even on error, clear stale session data
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
+            isLoggingOutRef.current = false
+        },
+    })
+
+    const login = async (credentials: LoginCredentials): Promise<boolean> => {
+        try {
+            await loginMutation.mutateAsync(credentials)
+            return true
+        } catch (error) {
+            return false
+        }
+    }
+
+    const logout = async (): Promise<void> => {
+        // Prevent duplicate logout calls
+        if (isLoggingOutRef.current || logoutMutation.isPending) {
+            return
+        }
+
+        isLoggingOutRef.current = true
+
+        // Cancel any in-flight currentUser fetch to prevent it from overwriting our null
+        queryClient.cancelQueries({ queryKey: ['currentUser'] })
+        // Immediately null out user (observer stays intact, no refetch triggered)
+        queryClient.setQueryData(['currentUser'], null)
+
+        // Then call logout API (mutation callbacks handle cleanup of other cached data)
+        await logoutMutation.mutateAsync()
+    }
+
+    const checkAuth = async (): Promise<boolean> => {
+        const result = await refetch()
+        return result.data != null
+    }
+
+    const hasRole = (role: UserRole | UserRole[]): boolean => {
+        if (!user) return false
+
+        if (Array.isArray(role)) {
+            return role.includes(user.role)
+        }
+        return user.role === role
+    }
+
+    /**
+     * Check if the current user has permission for a given action.
+     *
+     * - General data actions (no targetRole): admin roles get unconditional access.
+     * - Role-management actions (targetRole provided): hierarchy is enforced —
+     *   super_admin/zone_admin always pass; other admins must outranksOrEqual
+     *   the target role to be granted permission.
+     * - Non-admin users always require an explicit entry in their permissions array.
+     */
+    const hasPermission = (action: PermissionAction, targetRole?: string): boolean => {
+        if (!user) return false
+
+        if (isAdminRole(user.role)) {
+            // Role-management context: enforce hierarchy
+            if (targetRole) {
+                if (user.role === 'super_admin' || user.role === 'zone_admin') return true
+                return outranksOrEqual(user.role, targetRole)
+            }
+            // General data actions: admins always have access
+            return true
+        }
+
+        // Non-admins: require explicit permission; empty/undefined = no access
+        if (!user.permissions || user.permissions.length === 0) return false
+        return user.permissions.includes(action)
+    }
+
+    const clearError = () => {
+        // Clear login mutation error
+        loginMutation.reset()
+    }
+
+    const error = loginMutation.error
+        ? loginMutation.error instanceof Error
+            ? loginMutation.error.message
+            : 'An error occurred'
+        : null
+
+    const value: AuthContextValue = {
+        user,
+        isAuthenticated,
+        isLoading: isLoading || loginMutation.isPending,
+        error,
+        login,
+        logout,
+        checkAuth,
+        hasRole,
+        hasPermission,
+        clearError,
+    }
+
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+
+// Export a function to get logout for use in API error handler (session expired).
+// Coordinates with AuthProvider's logout: only nulls ['currentUser'] via setQueryData
+// (keeping the observer intact) and removes other cached data to prevent stale leaks.
+export const getLogoutFunction = (queryClient: ReturnType<typeof useQueryClient>) => {
+    return () => {
+        // Only act if there's a user in the cache (prevent redundant clears)
+        const currentUser = queryClient.getQueryData(['currentUser'])
+        if (currentUser) {
+            // Cancel in-flight currentUser fetch to prevent race with our null
+            queryClient.cancelQueries({ queryKey: ['currentUser'] })
+            // Null out user (observer stays intact, no refetch triggered)
+            queryClient.setQueryData(['currentUser'], null)
+            // Remove cached data from previous session (keep currentUser observer intact)
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
+        }
+    }
+}

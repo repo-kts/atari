@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { setQueryClient } from './stores/authStore'
 import './index.css'
 import App from './App'
 
@@ -16,9 +15,6 @@ const queryClient = new QueryClient({
         },
     },
 })
-
-// Set queryClient instance for authStore to use
-setQueryClient(queryClient)
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>

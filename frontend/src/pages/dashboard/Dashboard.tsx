@@ -1,11 +1,11 @@
 import React from 'react'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import { SuperAdminDashboard } from './SuperAdminDashboard'
 import { AdminDashboard } from './AdminDashboard'
 import { KVKDashboard } from './KVKDashboard'
 
 export const Dashboard: React.FC = () => {
-    const { user } = useAuthStore()
+    const { user } = useAuth()
 
     // Render dashboard based on user role
     const renderDashboard = () => {

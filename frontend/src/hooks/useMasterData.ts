@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterDataApi } from '../services/masterDataApi';
-import { useAuthStore } from '../stores/authStore';
+import { useAuth } from '../contexts/AuthContext';
 import type {
     EntityType,
     Zone,
@@ -21,12 +22,6 @@ import type {
 type EntityData = Zone | State | District | Organization;
 type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto;
 type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto;
-
-// Helper to get user-aware query keys
-function getUserAwareQueryKey(entityType: EntityType, params?: QueryParams): any[] {
-    const { user } = useAuthStore.getState();
-    return ['master-data', entityType, params, user?.userId, user?.role];
-}
 
 // API call mapping
 const apiCalls = {
@@ -62,13 +57,15 @@ const apiCalls = {
  */
 export function useMasterData<T extends EntityData>(entityType: EntityType) {
     const queryClient = useQueryClient();
-    const queryKey = getUserAwareQueryKey(entityType);
+    const { user } = useAuth();
+    const [params, setParams] = useState<QueryParams | undefined>();
+    const queryKey = ['master-data', entityType, params, user?.userId, user?.role];
 
     // Query for fetching data
     const query = useQuery({
         queryKey,
         queryFn: async () => {
-            const response = await apiCalls[entityType].getAll();
+            const response = await apiCalls[entityType].getAll(params);
             return response.data as T[];
         },
         staleTime: 5 * 60 * 1000, // 5 minutes
@@ -81,8 +78,8 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
             return response.data as T;
         },
         onSuccess: () => {
-            // Invalidate and refetch
-            queryClient.invalidateQueries({ queryKey });
+            // Invalidate all param variants for this entity type
+            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
         },
     });
 
@@ -93,8 +90,8 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
             return response.data as T;
         },
         onSuccess: () => {
-            // Invalidate and refetch
-            queryClient.invalidateQueries({ queryKey });
+            // Invalidate all param variants for this entity type
+            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
         },
     });
 
@@ -104,8 +101,8 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
             await apiCalls[entityType].delete(id);
         },
         onSuccess: () => {
-            // Invalidate and refetch
-            queryClient.invalidateQueries({ queryKey });
+            // Invalidate all param variants for this entity type
+            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
         },
     });
 
@@ -114,9 +111,9 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
         loading: query.isLoading,
         error: query.error ? (query.error instanceof Error ? query.error.message : 'Failed to fetch data') : null,
         filters: {}, // Filters are now handled via params in query
-        fetchAll: async (params?: QueryParams) => {
-            // Refetch with new params
-            await queryClient.refetchQueries({ queryKey: getUserAwareQueryKey(entityType, params) });
+        fetchAll: async (newParams?: QueryParams) => {
+            // Update params state — React Query will refetch automatically due to queryKey change
+            setParams(newParams);
         },
         create: async (data: CreateDto) => {
             return await createMutation.mutateAsync(data);
@@ -146,7 +143,7 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
  * Hook for fetching related entities
  */
 export function useRelatedData() {
-    const { user } = useAuthStore();
+    const { user } = useAuth();
     const queryClient = useQueryClient();
 
     const getStatesByZone = async (zoneId: number) => {
@@ -209,7 +206,7 @@ export function useRelatedData() {
  * Hook for statistics
  */
 export function useMasterDataStats() {
-    const { user } = useAuthStore();
+    const { user } = useAuth();
     const query = useQuery({
         queryKey: ['master-data', 'stats', user?.userId, user?.role],
         queryFn: async () => {

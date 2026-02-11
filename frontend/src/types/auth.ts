@@ -5,6 +5,9 @@ export type UserRole =
     | 'district_admin'
     | 'org_admin'
     | 'kvk'
+    | 'state_user'
+    | 'district_user'
+    | 'org_user'
 
 export type PermissionAction = 'VIEW' | 'ADD' | 'EDIT' | 'DELETE'
 

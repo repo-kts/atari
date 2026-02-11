@@ -5,46 +5,49 @@ const masterDataController = require('../../controllers/all-masters/masterDataCo
 
 /**
  * Master Data Routes
- * All routes require super_admin role
+ * GET routes: all admin roles (read access for hierarchy dropdowns etc.)
+ * POST/PUT/DELETE routes: super_admin only (write access)
  */
 
-// Apply authentication and role check to all routes
+// Apply authentication to all routes
 router.use(authenticateToken);
-router.use(requireRole(['super_admin']));
+
+const adminReadRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+const adminWriteRoles = ['super_admin'];
 
 // ============ ZONES ============
-router.get('/zones', masterDataController.getAllZones);
-router.get('/zones/:id', masterDataController.getZoneById);
-router.post('/zones', masterDataController.createZone);
-router.put('/zones/:id', masterDataController.updateZone);
-router.delete('/zones/:id', masterDataController.deleteZone);
+router.get('/zones', requireRole(adminReadRoles), masterDataController.getAllZones);
+router.get('/zones/:id', requireRole(adminReadRoles), masterDataController.getZoneById);
+router.post('/zones', requireRole(adminWriteRoles), masterDataController.createZone);
+router.put('/zones/:id', requireRole(adminWriteRoles), masterDataController.updateZone);
+router.delete('/zones/:id', requireRole(adminWriteRoles), masterDataController.deleteZone);
 
 // ============ STATES ============
-router.get('/states', masterDataController.getAllStates);
-router.get('/states/:id', masterDataController.getStateById);
-router.get('/states/zone/:zoneId', masterDataController.getStatesByZone);
-router.post('/states', masterDataController.createState);
-router.put('/states/:id', masterDataController.updateState);
-router.delete('/states/:id', masterDataController.deleteState);
+router.get('/states', requireRole(adminReadRoles), masterDataController.getAllStates);
+router.get('/states/:id', requireRole(adminReadRoles), masterDataController.getStateById);
+router.get('/states/zone/:zoneId', requireRole(adminReadRoles), masterDataController.getStatesByZone);
+router.post('/states', requireRole(adminWriteRoles), masterDataController.createState);
+router.put('/states/:id', requireRole(adminWriteRoles), masterDataController.updateState);
+router.delete('/states/:id', requireRole(adminWriteRoles), masterDataController.deleteState);
 
 // ============ DISTRICTS ============
-router.get('/districts', masterDataController.getAllDistricts);
-router.get('/districts/:id', masterDataController.getDistrictById);
-router.get('/districts/state/:stateId', masterDataController.getDistrictsByState);
-router.post('/districts', masterDataController.createDistrict);
-router.put('/districts/:id', masterDataController.updateDistrict);
-router.delete('/districts/:id', masterDataController.deleteDistrict);
+router.get('/districts', requireRole(adminReadRoles), masterDataController.getAllDistricts);
+router.get('/districts/:id', requireRole(adminReadRoles), masterDataController.getDistrictById);
+router.get('/districts/state/:stateId', requireRole(adminReadRoles), masterDataController.getDistrictsByState);
+router.post('/districts', requireRole(adminWriteRoles), masterDataController.createDistrict);
+router.put('/districts/:id', requireRole(adminWriteRoles), masterDataController.updateDistrict);
+router.delete('/districts/:id', requireRole(adminWriteRoles), masterDataController.deleteDistrict);
 
 // ============ ORGANIZATIONS ============
-router.get('/organizations', masterDataController.getAllOrganizations);
-router.get('/organizations/:id', masterDataController.getOrganizationById);
-router.get('/organizations/state/:stateId', masterDataController.getOrganizationsByState);
-router.post('/organizations', masterDataController.createOrganization);
-router.put('/organizations/:id', masterDataController.updateOrganization);
-router.delete('/organizations/:id', masterDataController.deleteOrganization);
+router.get('/organizations', requireRole(adminReadRoles), masterDataController.getAllOrganizations);
+router.get('/organizations/:id', requireRole(adminReadRoles), masterDataController.getOrganizationById);
+router.get('/organizations/state/:stateId', requireRole(adminReadRoles), masterDataController.getOrganizationsByState);
+router.post('/organizations', requireRole(adminWriteRoles), masterDataController.createOrganization);
+router.put('/organizations/:id', requireRole(adminWriteRoles), masterDataController.updateOrganization);
+router.delete('/organizations/:id', requireRole(adminWriteRoles), masterDataController.deleteOrganization);
 
 // ============ UTILITY ============
-router.get('/master-data/stats', masterDataController.getStats);
-router.get('/master-data/hierarchy', masterDataController.getHierarchy);
+router.get('/master-data/stats', requireRole(adminReadRoles), masterDataController.getStats);
+router.get('/master-data/hierarchy', requireRole(adminReadRoles), masterDataController.getHierarchy);
 
 module.exports = router;

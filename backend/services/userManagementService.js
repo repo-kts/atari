@@ -4,6 +4,7 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
+const { isAdminRole } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
@@ -452,7 +453,7 @@ const userManagementService = {
    * @param {number} targetUserId - Target user ID to access (view/edit/delete)
    * @throws {Error} If target user not found or outside admin's scope
    */
-  ensureAdminCanAccessUser: async (adminUserId, targetUserId) => {
+  ensureAdminCanAccessUser: async (adminUserId, targetUserId, action = 'access') => {
     const adminUser = await userRepository.findById(adminUserId);
     if (!adminUser) {
       throw new Error('Admin user not found');
@@ -465,6 +466,13 @@ const userManagementService = {
     if (adminRole === 'super_admin') {
       return;
     }
+
+    // Non-super_admin cannot edit/delete admin users
+    const targetRole = targetUser.role.roleName;
+    if ((action === 'edit' || action === 'delete') && isAdminRole(targetRole)) {
+      throw new Error('Only Super Admin can modify other admin users');
+    }
+
     switch (adminRole) {
       case 'zone_admin':
         if (adminUser.zoneId == null || Number(targetUser.zoneId) !== Number(adminUser.zoneId)) {
@@ -577,7 +585,7 @@ const userManagementService = {
    */
   updateUser: async (userId, userData, updatedBy) => {
     // Enforce hierarchy scope: updater must be allowed to access this user
-    await userManagementService.ensureAdminCanAccessUser(updatedBy, userId);
+    await userManagementService.ensureAdminCanAccessUser(updatedBy, userId, 'edit');
 
     // Check if user exists
     const existingUser = await userRepository.findById(userId);
@@ -705,7 +713,7 @@ const userManagementService = {
    */
   deleteUser: async (userId, deletedBy) => {
     // Enforce hierarchy scope: deleter must be allowed to access this user
-    await userManagementService.ensureAdminCanAccessUser(deletedBy, userId);
+    await userManagementService.ensureAdminCanAccessUser(deletedBy, userId, 'delete');
 
     // Check if user exists
     const user = await userRepository.findById(userId);

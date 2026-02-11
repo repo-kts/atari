@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../stores/authStore'
+import { useAuth } from '../../contexts/AuthContext'
 import { Bell, User, LogOut, ChevronDown } from 'lucide-react'
+import { ROLE_DISPLAY_NAMES } from '../../constants/roleHierarchy'
 
 export const Header: React.FC = () => {
     const navigate = useNavigate()
-    const { user, logout } = useAuthStore()
+    const { user, logout } = useAuth()
     const [userMenuOpen, setUserMenuOpen] = useState(false)
 
     const handleLogout = () => {
@@ -14,16 +15,7 @@ export const Header: React.FC = () => {
     }
 
     const getRoleDisplayName = (role: string) => {
-        switch (role) {
-            case 'super_admin':
-                return 'ATARI Super Admin'
-            case 'admin':
-                return 'Admin'
-            case 'kvk':
-                return 'KVK User'
-            default:
-                return role
-        }
+        return ROLE_DISPLAY_NAMES[role] || role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     }
 
     if (!user) return null

@@ -11,7 +11,7 @@ import type { EntityType } from '../../../types/masterData'
 import { DataManagementModal } from './DataManagementModal'
 import { ENTITY_TYPES } from '../../../constants/entityTypes'
 import { ExtendedEntityType, getEntityTypeFromPath, getIdField, getFieldValue } from '../../../utils/masterUtils'
-import { useAuthStore } from '../../../stores/authStore'
+import { useAuth } from '../../../contexts/AuthContext'
 
 import {
     useOftSubjects,
@@ -76,7 +76,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [selectedEmployee, setSelectedEmployee] = useState<KvkEmployee | null>(null)
 
     // Get user from auth store
-    const { user } = useAuthStore()
+    const { user } = useAuth()
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
