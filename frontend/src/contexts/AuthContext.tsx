@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, ApiUser } from '../services/authApi'
+import { ApiError } from '../services/api'
 import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
+import { isAdminRole, outranksOrEqual } from '../constants/roleHierarchy'
 
 /**
  * Map API user to frontend User type
@@ -31,7 +33,7 @@ interface AuthContextValue {
     logout: () => Promise<void>
     checkAuth: () => Promise<boolean>
     hasRole: (role: UserRole | UserRole[]) => boolean
-    hasPermission: (action: PermissionAction) => boolean
+    hasPermission: (action: PermissionAction, targetRole?: string) => boolean
     clearError: () => void
 }
 
@@ -66,8 +68,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 const apiUser = await authApi.getCurrentUser()
                 return mapApiUserToUser(apiUser)
             } catch (err) {
-                // Not authenticated - return null instead of throwing
-                return null
+                // 401/403 = not authenticated — return null so the app treats it as logged-out
+                if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+                    return null
+                }
+                // Any other error (network, 500, etc.) — let React Query surface it via queryError
+                throw err
             }
         },
         retry: false,
@@ -98,13 +104,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             await authApi.logout()
         },
         onSuccess: () => {
-            // Clear all queries and reset cache
-            queryClient.clear()
+            // Remove cached data from previous session but keep the currentUser observer intact
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
             isLoggingOutRef.current = false
         },
         onError: () => {
-            // Even on error, clear the cache
-            queryClient.clear()
+            // Even on error, clear stale session data
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
             isLoggingOutRef.current = false
         },
     })
@@ -126,10 +132,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         isLoggingOutRef.current = true
 
-        // Immediately clear user from cache
+        // Cancel any in-flight currentUser fetch to prevent it from overwriting our null
+        queryClient.cancelQueries({ queryKey: ['currentUser'] })
+        // Immediately null out user (observer stays intact, no refetch triggered)
         queryClient.setQueryData(['currentUser'], null)
 
-        // Then call logout API
+        // Then call logout API (mutation callbacks handle cleanup of other cached data)
         await logoutMutation.mutateAsync()
     }
 
@@ -147,17 +155,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return user.role === role
     }
 
-    const hasPermission = (action: PermissionAction): boolean => {
+    /**
+     * Check if the current user has permission for a given action.
+     *
+     * - General data actions (no targetRole): admin roles get unconditional access.
+     * - Role-management actions (targetRole provided): hierarchy is enforced —
+     *   super_admin/zone_admin always pass; other admins must outranksOrEqual
+     *   the target role to be granted permission.
+     * - Non-admin users always require an explicit entry in their permissions array.
+     */
+    const hasPermission = (action: PermissionAction, targetRole?: string): boolean => {
         if (!user) return false
 
-        // Explicit admin roles always have full access
-        if (
-            user.role === 'super_admin' ||
-            user.role === 'zone_admin' ||
-            user.role === 'state_admin' ||
-            user.role === 'district_admin' ||
-            user.role === 'org_admin'
-        ) {
+        if (isAdminRole(user.role)) {
+            // Role-management context: enforce hierarchy
+            if (targetRole) {
+                if (user.role === 'super_admin' || user.role === 'zone_admin') return true
+                return outranksOrEqual(user.role, targetRole)
+            }
+            // General data actions: admins always have access
             return true
         }
 
@@ -193,15 +209,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// Export a function to get logout for use in API error handler
+// Export a function to get logout for use in API error handler (session expired).
+// Coordinates with AuthProvider's logout: only nulls ['currentUser'] via setQueryData
+// (keeping the observer intact) and removes other cached data to prevent stale leaks.
 export const getLogoutFunction = (queryClient: ReturnType<typeof useQueryClient>) => {
     return () => {
-        // Only clear if there's a user in the cache (prevent redundant clears)
+        // Only act if there's a user in the cache (prevent redundant clears)
         const currentUser = queryClient.getQueryData(['currentUser'])
         if (currentUser) {
-            // Clear currentUser and all cached data
+            // Cancel in-flight currentUser fetch to prevent race with our null
+            queryClient.cancelQueries({ queryKey: ['currentUser'] })
+            // Null out user (observer stays intact, no refetch triggered)
             queryClient.setQueryData(['currentUser'], null)
-            queryClient.clear()
+            // Remove cached data from previous session (keep currentUser observer intact)
+            queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== 'currentUser' })
         }
     }
 }

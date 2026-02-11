@@ -118,7 +118,7 @@ class ApiClient {
         // Refresh failed (e.g. refresh token expired)
         // Only trigger session expired if this is NOT the initial auth check
         // (getCurrentUser on app load should fail silently)
-        if (!isAuthMe || isRetry) {
+        if (!isAuthMe) {
           onSessionExpired?.();
         }
       }

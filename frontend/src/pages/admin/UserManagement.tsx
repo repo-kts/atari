@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel } from '../../services/userApi'
-import { isAdminRole } from '../../constants/roleHierarchy'
 import { useUsers, useRoles, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
@@ -32,7 +31,7 @@ interface User {
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { hasPermission, user: currentUser } = useAuth()
+    const { hasPermission } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -260,7 +259,7 @@ export const UserManagement: React.FC = () => {
                                                 {showActionsColumn && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            {canEditUser && !(isAdminRole(user.roleName) && currentUser?.role !== 'super_admin') && (
+                                                            {hasPermission('EDIT', user.roleName) && (
                                                                 <button
                                                                     onClick={() => {
                                                                         alert('Edit functionality coming soon')
@@ -272,7 +271,7 @@ export const UserManagement: React.FC = () => {
                                                                     <Edit className="w-4 h-4" />
                                                                 </button>
                                                             )}
-                                                            {canDeleteUser && !(isAdminRole(user.roleName) && currentUser?.role !== 'super_admin') && (
+                                                            {hasPermission('DELETE', user.roleName) && (
                                                                 <button
                                                                     onClick={() => handleDelete(user.userId)}
                                                                     disabled={deleteUserMutation.isPending}

@@ -101,6 +101,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const [organizations, setOrganizations] = useState<Organization[]>([])
     const [kvks, setKvks] = useState<Kvk[]>([])
     const [loadingDropdowns, setLoadingDropdowns] = useState(false)
+    const [dropdownError, setDropdownError] = useState<string | null>(null)
 
     // Allowed non-admin roles for current creator (when not Super Admin)
     const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
@@ -144,42 +145,76 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Fetch master data when modal opens
     useEffect(() => {
         if (!isOpen) return
+        setDropdownError(null)
 
         if (!isSubAdmin) {
             // Super Admin: fetch all master data
             setLoadingDropdowns(true)
+            const errors: string[] = []
             Promise.all([
-                masterDataApi.getZones().then(res => setZones(res.data)).catch(() => {}),
-                masterDataApi.getStates().then(res => setStates(res.data)).catch(() => {}),
-                masterDataApi.getDistricts().then(res => setDistricts(res.data)).catch(() => {}),
-                masterDataApi.getOrganizations().then(res => setOrganizations(res.data)).catch(() => {}),
-            ]).finally(() => setLoadingDropdowns(false))
+                masterDataApi.getZones().then(res => setZones(res.data)).catch(err => {
+                    console.error('Failed to fetch zones:', err)
+                    errors.push('zones')
+                }),
+                masterDataApi.getStates().then(res => setStates(res.data)).catch(err => {
+                    console.error('Failed to fetch states:', err)
+                    errors.push('states')
+                }),
+                masterDataApi.getDistricts().then(res => setDistricts(res.data)).catch(err => {
+                    console.error('Failed to fetch districts:', err)
+                    errors.push('districts')
+                }),
+                masterDataApi.getOrganizations().then(res => setOrganizations(res.data)).catch(err => {
+                    console.error('Failed to fetch organizations:', err)
+                    errors.push('organizations')
+                }),
+            ]).finally(() => {
+                setLoadingDropdowns(false)
+                if (errors.length > 0) {
+                    setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
+                }
+            })
         } else {
             // Sub-admin: fetch data for levels below their own (level-based)
             const promises: Promise<void>[] = []
+            const errors: string[] = []
 
             if (creatorLevel < 2 && currentUser?.zoneId) {
                 // zone_admin (level 1): fetch states in their zone
                 promises.push(
-                    masterDataApi.getStatesByZone(currentUser.zoneId).then(res => setStates(res.data)).catch(() => {})
+                    masterDataApi.getStatesByZone(currentUser.zoneId).then(res => setStates(res.data)).catch(err => {
+                        console.error('Failed to fetch states by zone:', err)
+                        errors.push('states')
+                    })
                 )
             }
             if (creatorLevel >= 2 && creatorLevel < 3 && currentUser?.stateId) {
                 // state_admin (level 2): fetch districts in their state
                 promises.push(
-                    masterDataApi.getDistrictsByState(currentUser.stateId).then(res => setDistricts(res.data)).catch(() => {})
+                    masterDataApi.getDistrictsByState(currentUser.stateId).then(res => setDistricts(res.data)).catch(err => {
+                        console.error('Failed to fetch districts by state:', err)
+                        errors.push('districts')
+                    })
                 )
             }
             if (creatorLevel < 4 && currentUser?.stateId) {
                 // state_admin, district_admin: fetch orgs in their state
                 promises.push(
-                    masterDataApi.getOrganizationsByState(currentUser.stateId).then(res => setOrganizations(res.data)).catch(() => {})
+                    masterDataApi.getOrganizationsByState(currentUser.stateId).then(res => setOrganizations(res.data)).catch(err => {
+                        console.error('Failed to fetch organizations by state:', err)
+                        errors.push('organizations')
+                    })
                 )
             }
 
             if (promises.length > 0) {
                 setLoadingDropdowns(true)
-                Promise.all(promises).finally(() => setLoadingDropdowns(false))
+                Promise.all(promises).finally(() => {
+                    setLoadingDropdowns(false)
+                    if (errors.length > 0) {
+                        setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
+                    }
+                })
             }
         }
     }, [isOpen, isSubAdmin, creatorLevel, currentUser?.zoneId, currentUser?.stateId])
@@ -189,10 +224,22 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         if (!isOpen || !isSubAdmin || !showStateForSubAdmin || !formData.stateId) return
 
         const stateId = Number(formData.stateId)
+        const errors: string[] = []
+        setDropdownError(null)
         Promise.all([
-            masterDataApi.getDistrictsByState(stateId).then(res => setDistricts(res.data)).catch(() => {}),
-            masterDataApi.getOrganizationsByState(stateId).then(res => setOrganizations(res.data)).catch(() => {}),
-        ])
+            masterDataApi.getDistrictsByState(stateId).then(res => setDistricts(res.data)).catch(err => {
+                console.error('Failed to fetch districts by state:', err)
+                errors.push('districts')
+            }),
+            masterDataApi.getOrganizationsByState(stateId).then(res => setOrganizations(res.data)).catch(err => {
+                console.error('Failed to fetch organizations by state:', err)
+                errors.push('organizations')
+            }),
+        ]).then(() => {
+            if (errors.length > 0) {
+                setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
+            }
+        })
     }, [isOpen, isSubAdmin, showStateForSubAdmin, formData.stateId])
     
     // Fetch KVKs when needed (for both super admin and sub-admins creating KVK users)
@@ -217,7 +264,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
             aboutKvkApi.getKvks(params).then(res => {
                 setKvks(res.data || [])
-            }).catch(() => setKvks([]))
+            }).catch(err => {
+                console.error('Failed to fetch KVKs:', err)
+                setKvks([])
+                setDropdownError('Failed to load KVKs. Please close and reopen the form to retry.')
+            })
         }
     }, [isOpen, selectedRole, isSubAdmin, currentUser, formData.stateId, formData.districtId, formData.orgId, showStateForSubAdmin, showDistrictForSubAdmin, showOrgForSubAdmin])
 
@@ -245,6 +296,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setSubmitError(null)
             setSubmitSuccess(false)
             setShowPassword(false)
+            setDropdownError(null)
         }
     }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
 
@@ -453,6 +505,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{submitError}</span>
+                    </div>
+                )}
+
+                {/* Dropdown Data Error */}
+                {dropdownError && (
+                    <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{dropdownError}</span>
                     </div>
                 )}
 

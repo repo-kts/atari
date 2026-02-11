@@ -98,16 +98,6 @@ export const authApi = {
    * @returns Current user data
    */
   getCurrentUser: async (): Promise<ApiUser> => {
-    try {
-      return await apiClient.get<ApiUser>('/auth/me');
-    } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.status === 401) {
-          throw new Error('Not authenticated');
-        }
-        throw new Error(error.data?.error || 'Failed to get user');
-      }
-      throw error;
-    }
+    return await apiClient.get<ApiUser>('/auth/me');
   },
 };

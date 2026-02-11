@@ -59,11 +59,11 @@ export const RolePermissionEditor: React.FC = () => {
     useEffect(() => {
         if (data) {
             const selected = new Set<number>()
-            data.modules.forEach((module) =>
+            data.modules.forEach((module) => {
                 module.permissions.forEach((p) => {
                     if (p.hasPermission) selected.add(p.permissionId)
                 })
-            )
+            })
             setSelectedPermissions(selected)
         }
     }, [data])
