@@ -1,0 +1,20 @@
+model HrdProgram {
+  hrdProgramId Int @id @default(autoincrement()) @map("hrd_program_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  kvkStaffId Int
+  staff      KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId])
+
+  courseName String @map("course_name")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  organizerVenue String @map("organizer_venue")
+
+  @@map("hrd_program")
+
+  @@index([kvkId])
+  @@index([kvkStaffId])
+  @@index([startDate])
+}

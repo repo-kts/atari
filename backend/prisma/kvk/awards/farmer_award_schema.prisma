@@ -1,0 +1,18 @@
+model FarmerAward {
+  farmerAwardID Int @id @default(autoincrement()) @map("farmer_award_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  farmerName String @map("farmer_name")
+  contactNumber Int @map("contact_number")
+  address String @map("address")
+  awardName String @map("award_name")
+  amount Int @map("amount")
+  achievement   String @map("achievement")
+  conferringAuthority String @map("conferring_authority")
+
+  @@map("farmer_award")
+
+  @@index([kvkId])
+}

@@ -1,0 +1,15 @@
+model ScientistAward {
+  scientistAwardID Int @id @default(autoincrement()) @map("scientist_award_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  awardName String @map("award_name")
+  amount Int @map("amount")
+  achievement   String @map("achievement")
+  conferringAuthority String @map("conferring_authority")
+
+  @@map("scientist_award")
+
+  @@index([kvkId])
+}
