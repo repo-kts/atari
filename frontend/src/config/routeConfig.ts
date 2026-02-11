@@ -2,14 +2,6 @@
 // This centralizes all route definitions to avoid bloating App.tsx
 import { ENTITY_PATHS } from '../constants/entityTypes'
 import { UserRole } from '../types/auth'
-import { AddBankAccount } from '../pages/dashboard/forms/about-kvk/AddBankAccount'
-import { AddEmployee } from '../pages/dashboard/forms/about-kvk/AddEmployee'
-import AddInfrastructure from '../pages/dashboard/forms/about-kvk/AddInfrastructure'
-import AddVehicle from '../pages/dashboard/forms/about-kvk/AddVehicle'
-import AddVehicleDetails from '../pages/dashboard/forms/about-kvk/AddVehicleDetails'
-import AddEquipment from '../pages/dashboard/forms/about-kvk/AddEquipment'
-import AddEquipmentDetails from '../pages/dashboard/forms/about-kvk/AddEquipmentDetails'
-import AddFarmImplement from '../pages/dashboard/forms/about-kvk/AddFarmImplement'
 
 
 export interface RouteConfig {
@@ -26,11 +18,9 @@ export interface RouteConfig {
     // Optional field configuration for generic master views
     fields?: string[]
     // Authorization: which roles can create new items (undefined = all roles can create)
-    canCreate?: UserRole[]
+    canCreate?: UserRole[] | 'none'
     // Optional component to render instead of DataManagementView
     component?: React.ComponentType<any>
-    // Optional path to redirect to when "Add New" is clicked
-    createPath?: string
 }
 
 // Sibling groups for All Masters
@@ -387,16 +377,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/bank-account/add',
-    },
-    {
-        path: '/forms/about-kvk/bank-account/add',
-        title: 'Add Bank Account',
-        description: 'Add new bank account',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_BANK_ACCOUNT,
-        component: AddBankAccount,
     },
     {
         path: ENTITY_PATHS.KVK_EMPLOYEES,
@@ -413,25 +393,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionedPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/employee-details/add',
-    },
-    {
-        path: '/forms/about-kvk/infrastructure/add',
-        title: 'Add Infra Structure',
-        description: 'Add new infrastructure details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_INFRASTRUCTURE,
-        component: AddInfrastructure,
-    },
-    {
-        path: '/forms/about-kvk/employee-details/add',
-        title: 'Add Staff',
-        description: 'Add new staff member',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_EMPLOYEES,
-        component: AddEmployee,
     },
     {
         path: ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
@@ -447,7 +408,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName'],
-        canCreate: ['kvk'],
+        canCreate: 'none',
     },
     {
         path: ENTITY_PATHS.KVK_INFRASTRUCTURE,
@@ -462,9 +423,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['kvkName', 'nameOfInfrastructure', 'notStartedYet', 'completedUptoPinthLevel', 'completedUptoLintelLevel', 'completedUptoRoofLevel', 'totallyCompleted', 'pinthAreaInMeterSq.', 'underUsedOrNot', 'sourceOfFunding'],
+        fields: ['kvk', 'infraMasterName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/infrastructure/add',
     },
 
     // Vehicles - siblings
@@ -481,16 +441,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost', 'totalRun', 'presentStatus'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/vehicles/add',
-    },
-    {
-        path: '/forms/about-kvk/vehicles/add',
-        title: 'Create Vehicle',
-        description: 'Add new vehicle',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VEHICLES,
-        component: AddVehicle,
     },
     {
         path: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
@@ -503,18 +453,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLES,
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
-        fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'presentStatus'],
+        fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'reportingYear', 'presentStatus'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/vehicle-details/add',
-    },
-    {
-        path: '/forms/about-kvk/vehicle-details/add',
-        title: 'Create Vehicle Details',
-        description: 'Add new vehicle detail',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
-        component: AddVehicleDetails,
     },
     // Equipments - siblings
     {
@@ -530,16 +470,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/equipments/add',
-    },
-    {
-        path: '/forms/about-kvk/equipments/add',
-        title: 'Create Equipment',
-        description: 'Add new equipment',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_EQUIPMENTS,
-        component: AddEquipment,
     },
     {
         path: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
@@ -552,18 +482,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENTS,
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
-        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'reportingYear', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/equipment-details/add',
-    },
-    {
-        path: '/forms/about-kvk/equipment-details/add',
-        title: 'Create Equipment Details',
-        description: 'Add new equipment detail',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
-        component: AddEquipmentDetails,
     },
     // Farm Implements
     {
@@ -573,18 +493,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        fields: ['kvkName', 'implementName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
-        createPath: '/forms/about-kvk/farm-implements/add',
-    },
-    {
-        path: '/forms/about-kvk/farm-implements/add',
-        title: 'Create Farm Implement',
-        description: 'Add new farm implement',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_FARM_IMPLEMENTS,
-        component: AddFarmImplement,
     },
     // Add Staff (sub-route) - REMOVED placeholder
 

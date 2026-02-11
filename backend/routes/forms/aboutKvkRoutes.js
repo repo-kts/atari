@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../../middleware/auth.js');
 const aboutKvkController = require('../../controllers/forms/aboutKvkController.js');
+const exportController = require('../../controllers/exportController.js');
 
 // Apply authentication middleware
 router.use(authenticateToken);
@@ -30,6 +31,9 @@ router.get('/employees/:id', aboutKvkController.getKvkEmployeeById);
 router.post('/employees', aboutKvkController.createKvkEmployee);
 router.put('/employees/:id', aboutKvkController.updateKvkEmployee);
 router.delete('/employees/:id', aboutKvkController.deleteKvkEmployee);
+router.post('/employees/:id/transfer', aboutKvkController.transferEmployee);
+router.get('/employees/:id/transfer-history', aboutKvkController.getStaffTransferHistory);
+router.post('/employees/:id/transfer/revert', aboutKvkController.revertTransfer);
 
 // KVK Staff Transferred Routes
 router.get('/staff-transferred', aboutKvkController.getAllKvkStaffTransferred);
@@ -79,5 +83,31 @@ router.get('/farm-implements/:id', aboutKvkController.getKvkFarmImplementById);
 router.post('/farm-implements', aboutKvkController.createKvkFarmImplement);
 router.put('/farm-implements/:id', aboutKvkController.updateKvkFarmImplement);
 router.delete('/farm-implements/:id', aboutKvkController.deleteKvkFarmImplement);
+
+// ============================================
+// Master Data Routes (for dropdowns)
+// ============================================
+
+// Sanctioned Posts
+router.get('/sanctioned-posts', aboutKvkController.getAllSanctionedPosts);
+
+// Disciplines
+router.get('/disciplines', aboutKvkController.getAllDisciplines);
+
+// Infrastructure Masters
+router.get('/infra-masters', aboutKvkController.getAllInfraMasters);
+
+// Get all KVKs for dropdown (without user filtering)
+router.get('/kvks-dropdown', aboutKvkController.getAllKvksForDropdown);
+
+// ============================================
+// Transfer History Routes
+// ============================================
+router.get('/staff-transfers', aboutKvkController.getAllTransfers);
+
+// ============================================
+// Export Route (for About KVK forms)
+// ============================================
+router.post('/export', exportController.exportData);
 
 module.exports = router;

@@ -47,6 +47,39 @@ export interface KvkBankAccount {
     kvk?: { kvkId: number; kvkName: string };
 }
 
+export interface StaffTransferHistory {
+    transferId: number;
+    kvkStaffId: number;
+    fromKvkId: number;
+    toKvkId: number;
+    transferredBy?: number;
+    transferDate: string;
+    transferReason?: string;
+    notes?: string;
+    isReversal: boolean;
+    reversedTransferId?: number;
+    createdAt: string;
+    updatedAt: string;
+    // Relations
+    staff?: {
+        kvkStaffId: number;
+        staffName: string;
+    };
+    fromKvk?: {
+        kvkId: number;
+        kvkName: string;
+    };
+    toKvk?: {
+        kvkId: number;
+        kvkName: string;
+    };
+    transferredByUser?: {
+        userId: number;
+        name: string;
+        email: string;
+    };
+}
+
 export interface KvkEmployee {
     kvkStaffId: number;
     kvkId: number;
@@ -60,15 +93,20 @@ export interface KvkEmployee {
     positionOrder: number;
     disciplineId: number;
     payScale?: string;
-    payLevel: 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3' | 'LEVEL_4' | 'LEVEL_5' | 'LEVEL_6' | 'LEVEL_10' | 'LEVEL_10R' | 'LEVEL_11' | 'LEVEL_11R' | 'LEVEL_12' | 'LEVEL_12R' | 'LEVEL_13A' | 'LEVEL_14';
-    dateOfJoining: string; // DateTime
+    payLevel?: 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3' | 'LEVEL_4' | 'LEVEL_5' | 'LEVEL_6' | 'LEVEL_10' | 'LEVEL_10R' | 'LEVEL_11' | 'LEVEL_11R' | 'LEVEL_12' | 'LEVEL_12R' | 'LEVEL_13A' | 'LEVEL_14';
+    dateOfJoining: string;
     jobType: 'PERMANENT' | 'TEMPORARY';
     allowances?: string;
     category: 'SC' | 'ST' | 'OBC' | 'GENERAL';
     transferStatus: 'ACTIVE' | 'TRANSFERRED';
+    sourceKvkIds?: number[]; // Array of KVK IDs tracking transfer chain
+    originalKvkId?: number;
+    transferCount?: number;
+    lastTransferDate?: string;
     kvk?: { kvkId: number; kvkName: string };
     sanctionedPost?: { sanctionedPostId: number; postName: string };
     discipline?: { disciplineId: number; disciplineName: string };
+    originalKvk?: { kvkId: number; kvkName: string };
 }
 
 export interface KvkInfrastructure {

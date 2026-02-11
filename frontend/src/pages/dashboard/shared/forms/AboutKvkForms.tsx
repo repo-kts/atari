@@ -1,11 +1,24 @@
 import React from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
+import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
-import { State, District, Organization } from '../../../../types/masterData'
-import { useMasterData } from '../../../../hooks/useMasterData'
-
-import { useAuthStore } from '../../../../stores/authStore'
+import { State, District, Organization } from '@/types/masterData'
+import { useMasterData } from '@/hooks/useMasterData'
+import { useAuthStore } from '@/stores/authStore'
+import {
+    useSanctionedPosts,
+    useDisciplines,
+    useInfraMasters,
+    useKvkVehiclesForDropdown,
+    useKvkEquipmentsForDropdown,
+    enumToOptions,
+    AccountTypeEnum,
+    PayLevelEnum,
+    StaffCategoryEnum,
+    VehiclePresentStatusEnum,
+    EquipmentPresentStatusEnum,
+    ImplementPresentStatusEnum
+} from '@/hooks/forms/useAboutKvkData'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -25,24 +38,49 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: districts = [] } = useMasterData<District>('districts')
     const { user } = useAuthStore()
 
-    // Auto-set kvkId from user session if not already set
+    // Fetch About KVK master data
+    const { data: sanctionedPosts = [] } = useSanctionedPosts()
+    const { data: disciplines = [] } = useDisciplines()
+    const { data: infraMasters = [] } = useInfraMasters()
+
+    const activeKvkId = user?.kvkId || formData.kvkId;
+    const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
+    const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId)
+
     React.useEffect(() => {
         if (user?.kvkId && !formData.kvkId) {
             setFormData({ ...formData, kvkId: user.kvkId })
         }
     }, [user?.kvkId, formData.kvkId, setFormData])
 
-    if (!entityType) return null
 
-    const posts = [
-        { id: 1, post_name: 'Senior Scientist & Head' },
-        { id: 2, post_name: 'Subject Matter Specialist' },
-        { id: 3, post_name: 'Programme Assistant' },
-        { id: 4, post_name: 'Farm Manager' },
-        { id: 5, post_name: 'Stenographer Grade III' },
-        { id: 6, post_name: 'Driver' },
-        { id: 7, post_name: 'Skilled Support Staff' },
-    ]
+    // Extract nested IDs from related objects when editing (for select fields)
+    React.useEffect(() => {
+        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+            const updates: any = {}
+
+            // Extract sanctionedPostId from nested sanctionedPost object
+            if (formData.sanctionedPost && formData.sanctionedPost.sanctionedPostId && !formData.sanctionedPostId) {
+                updates.sanctionedPostId = formData.sanctionedPost.sanctionedPostId
+            }
+
+            // Extract disciplineId from nested discipline object
+            if (formData.discipline && formData.discipline.disciplineId && !formData.disciplineId) {
+                updates.disciplineId = formData.discipline.disciplineId
+            }
+
+            // Extract kvkId from nested kvk object
+            if (formData.kvk && formData.kvk.kvkId && !formData.kvkId) {
+                updates.kvkId = formData.kvk.kvkId
+            }
+
+            if (Object.keys(updates).length > 0) {
+                setFormData((prev: any) => ({ ...prev, ...updates }))
+            }
+        }
+    }, [entityType, formData.sanctionedPost, formData.discipline, formData.kvk, setFormData])
+
+    if (!entityType) return null
 
     return (
         <div className="space-y-4">
@@ -53,11 +91,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         required
                         value={formData.accountType || ''}
                         onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
-                        options={[
-                            { value: 'KVK', label: 'KVK' },
-                            { value: 'REVOLVING_FUND', label: 'Revolving Fund' },
-                            { value: 'OTHER', label: 'Other' }
-                        ]}
+                        options={enumToOptions(AccountTypeEnum)}
                     />
                     <FormInput
                         label="Account Name"
@@ -90,9 +124,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                 </>
             )}
 
-            {(entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) && (
+            {(entityType === ENTITY_TYPES.KVK_EMPLOYEES) && (
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Sanctioned Post"
+                            required
+                            value={formData.sanctionedPostId || ''}
+                            onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
+                            options={sanctionedPosts.map((p: any) => ({ value: p.sanctionedPostId, label: p.postName }))}
+                        />
                         <FormInput
                             label="Staff Name"
                             required
@@ -100,15 +141,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
                             placeholder="Enter staff name"
                         />
-                        <FormSelect
-                            label="Post"
-                            required
-                            value={formData.sanctionedPostId || ''}
-                            onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
-                            options={posts.map(p => ({ value: p.id, label: p.post_name }))}
-                        />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
+                        <FormInput
+                            label="Position Order"
+                            required
+                            value={formData.positionOrder || ''}
+                            onChange={(e) => setFormData({ ...formData, positionOrder: parseInt(e.target.value) })}
+                            placeholder="Position Order"
+                        />
                         <FormInput
                             label="Mobile"
                             required
@@ -116,36 +157,35 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                             placeholder="Mobile number"
                         />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                         <FormInput
                             label="Email"
-                            required
                             type="email"
                             value={formData.email || ''}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             placeholder="Email address"
                         />
+                        <FormSelect
+                            label="Pay Level"
+                            value={formData.payLevel || ''}
+                            onChange={(e) => setFormData({ ...formData, payLevel: e.target.value || '' })}
+                            options={enumToOptions(PayLevelEnum)}
+                        />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
+                        <FormInput
+                            label="Pay Scale"
+                            value={formData.payScale || ''}
+                            onChange={(e) => setFormData({ ...formData, payScale: e.target.value })}
+                            placeholder="e.g., 15600-39100"
+                        />
                         <FormSelect
                             label="Discipline"
                             required
                             value={formData.disciplineId || ''}
                             onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
-                            options={[
-                                { value: 1, label: 'Agronomy' },
-                                { value: 2, label: 'Horticulture' },
-                                { value: 3, label: 'Plant Protection' },
-                                { value: 4, label: 'Agricultural Extension' },
-                                { value: 5, label: 'Animal Science' },
-                                { value: 6, label: 'Soil Science' },
-                                { value: 7, label: 'Home Science' }
-                            ]}
-                        />
-                        <FormInput
-                            label="Designation"
-                            value={formData.designation || ''}
-                            onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                            placeholder="Designation"
+                            options={disciplines.map((d: any) => ({ value: d.disciplineId, label: d.disciplineName }))}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -156,59 +196,51 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, dateOfBirth: new Date(e.target.value).toISOString() })}
                         />
-                        <FormSelect
-                            label="Caste Category"
-                            value={formData.category || 'GENERAL'}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            options={[
-                                { value: 'GENERAL', label: 'General' },
-                                { value: 'OBC', label: 'OBC' },
-                                { value: 'SC', label: 'SC' },
-                                { value: 'ST', label: 'ST' }
-                            ]}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
                         <FormInput
-                            label="Joining Date"
+                            label="Date of Joining"
                             required
                             type="date"
                             value={formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString().split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, dateOfJoining: new Date(e.target.value).toISOString() })}
                         />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                         <FormSelect
                             label="Job Type"
-                            required
-                            value={formData.jobType || 'PERMANENT'}
-                            onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
+                            value={formData.jobType || ''}
+                            onChange={(e) => setFormData({ ...formData, jobType: e.target.value || '' })}
                             options={[
                                 { value: 'PERMANENT', label: 'Permanent' },
                                 { value: 'TEMPORARY', label: 'Temporary' }
                             ]}
                         />
+                        <FormInput
+                            label="Details of Allowances"
+                            value={formData.allowances || ''}
+                            onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
+                            placeholder="Allowances"
+                        />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
-                            label="Pay Level"
+                            label="Category"
                             required
-                            value={formData.payLevel || 'LEVEL_10'}
-                            onChange={(e) => setFormData({ ...formData, payLevel: e.target.value })}
-                            options={[
-                                { value: 'LEVEL_1', label: 'Level 1' },
-                                { value: 'LEVEL_2', label: 'Level 2' },
-                                { value: 'LEVEL_6', label: 'Level 6' },
-                                { value: 'LEVEL_10', label: 'Level 10' },
-                                { value: 'LEVEL_11', label: 'Level 11' },
-                                { value: 'LEVEL_12', label: 'Level 12' },
-                                { value: 'LEVEL_13A', label: 'Level 13A' },
-                                { value: 'LEVEL_14', label: 'Level 14' }
-                            ]}
+                            value={formData.category || ''}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value || '' })}
+                            options={enumToOptions(StaffCategoryEnum)}
                         />
                         <FormInput
-                            label="Pay Scale"
-                            value={formData.payScale || ''}
-                            onChange={(e) => setFormData({ ...formData, payScale: e.target.value })}
-                            placeholder="e.g., 15600-39100"
+                            label="Resume"
+                            value={formData.resumePath || ''}
+                            onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
+                            placeholder="Resume link"
+                        />
+                        <FormInput
+                            label="Photo"
+                            required
+                            value={formData.photoPath || ''}
+                            onChange={(e) => setFormData({ ...formData, photoPath: e.target.value })}
+                            placeholder="Photo link"
                         />
                     </div>
                 </div>
@@ -217,50 +249,99 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {entityType === ENTITY_TYPES.KVK_INFRASTRUCTURE && (
                 <div className="space-y-4">
                     <FormSelect
-                        label="Infrastructure Master"
+                        label="Name of Infrastructure"
                         required
                         value={formData.infraMasterId || ''}
                         onChange={(e) => setFormData({ ...formData, infraMasterId: parseInt(e.target.value) })}
-                        options={[
-                            { value: 1, label: 'Administrative Building' },
-                            { value: 2, label: 'Farmers Hostel' },
-                            { value: 3, label: 'Staff Quarters' },
-                            { value: 4, label: 'Soil Testing Lab' }
-                        ]}
+                        options={infraMasters.map((i: any) => ({ value: i.infraMasterId, label: i.name }))}
                     />
                     <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Plinth Area (m²)"
+                        <FormSelect
+                            label="Completed upto plinth level"
                             required
-                            type="number"
-                            value={formData.plinthAreaSqM || ''}
-                            onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
+                            value={formData.completedPlinthLevel !== undefined ? (formData.completedPlinthLevel ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, completedPlinthLevel: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
                         />
                         <FormSelect
-                            label="Totally Completed"
+                            label="Completed upto lintel level"
                             required
-                            value={formData.totallyCompleted ? 'Yes' : 'No'}
-                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                            value={formData.completedLintelLevel !== undefined ? (formData.completedLintelLevel ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, completedLintelLevel: e.target.value === 'Yes' })}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
                                 { value: 'No', label: 'No' }
                             ]}
                         />
                     </div>
-                    <FormSelect
-                        label="Under Use"
-                        required
-                        value={formData.underUse ? 'Yes' : 'No'}
-                        onChange={(e) => setFormData({ ...formData, underUse: e.target.value === 'Yes' })}
-                        options={[
-                            { value: 'Yes', label: 'Yes' },
-                            { value: 'No', label: 'No' }
-                        ]}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Completed upto roof level"
+                            required
+                            value={formData.completedRoofLevel !== undefined ? (formData.completedRoofLevel ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, completedRoofLevel: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                        <FormSelect
+                            label="Not Yet Started"
+                            required
+                            value={formData.notYetStarted !== undefined ? (formData.notYetStarted ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, notYetStarted: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Totally Completed"
+                            required
+                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                        <FormInput
+                            label="Plinth Area (m²)"
+                            required
+                            type="number"
+                            step="0.01"
+                            value={formData.plinthAreaSqM || ''}
+                            onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Under use or not"
+                            required
+                            value={formData.underUse !== undefined ? (formData.underUse ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, underUse: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                        <FormInput
+                            label="Source of Funding"
+                            required
+                            value={formData.sourceOfFunding || ''}
+                            onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
+                            placeholder="Enter source of funding"
+                        />
+                    </div>
                 </div>
             )}
 
-            {(entityType === ENTITY_TYPES.KVK_VEHICLES || entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS) && (
+            {(entityType === ENTITY_TYPES.KVK_VEHICLES) && (
                 <div className="space-y-4">
                     <FormInput
                         label="Vehicle Name"
@@ -284,28 +365,38 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.yearOfPurchase || ''}
                             onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
                         />
+                        <FormInput
+                            label="Total Cost (Rs.)"
+                            type="number"
+                            value={formData.totalCost || ''}
+                            onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormInput
+                            label="Total Run (Kms)"
+                            type="number"
+                            value={formData.totalRun || ''}
+                            onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
+                        />
                         <FormSelect
-                            label="Status"
+                            label="Present Status"
                             required
-                            value={formData.presentStatus || 'WORKING'}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value })}
-                            options={[
-                                { value: 'WORKING', label: 'Working' },
-                                { value: 'NOT_WORKING', label: 'Not Working' },
-                                { value: 'UNDER_REPAIR', label: 'Under Repair' }
-                            ]}
+                            value={formData.presentStatus || ''}
+                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
+                            options={enumToOptions(VehiclePresentStatusEnum)}
                         />
                     </div>
                 </div>
             )}
 
-            {(entityType === ENTITY_TYPES.KVK_EQUIPMENTS || entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS || entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS) && (
+            {(entityType === ENTITY_TYPES.KVK_EQUIPMENTS) && (
                 <div className="space-y-4">
                     <FormInput
-                        label="Equipment/Implement Name"
+                        label={"Equipment Name"}
                         required
-                        value={formData.equipmentName || formData.implementName || ''}
-                        onChange={(e) => setFormData({ ...formData, [entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS ? 'implementName' : 'equipmentName']: e.target.value })}
+                        value={formData.equipmentName || ''}
+                        onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
                         placeholder="Enter name"
                     />
                     <div className="grid grid-cols-2 gap-4">
@@ -317,7 +408,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
                         />
                         <FormInput
-                            label="Total Cost"
+                            label="Total Cost (Rs.)"
                             required
                             type="number"
                             value={formData.totalCost || ''}
@@ -326,32 +417,138 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
-                            label="Status"
+                            label="Present Status"
                             required
-                            value={formData.presentStatus || 'WORKING'}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value })}
-                            options={entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS ? [
-                                { value: 'WORKING', label: 'Working' },
-                                { value: 'GOOD_CONDITION', label: 'Good Condition' },
-                                { value: 'NEW', label: 'New' },
-                                { value: 'REPAIRABLE', label: 'Repairable' },
-                                { value: 'NOT_WORKING', label: 'Not Working' }
-                            ] : [
-                                { value: 'WORKING', label: 'Working' },
-                                { value: 'GOOD_CONDITION', label: 'Good Condition' },
-                                { value: 'NEW', label: 'New' }
-                            ]}
+                            value={formData.presentStatus || ''}
+                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
+                            options={enumToOptions(EquipmentPresentStatusEnum)}
                         />
                         <FormInput
                             label="Source of Funding"
                             required
-                            value={formData.sourceOfFunding || formData.sourceOfFund || ''}
-                            onChange={(e) => setFormData({ ...formData, [entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS ? 'sourceOfFund' : 'sourceOfFunding']: e.target.value })}
+                            value={formData.sourceOfFunding || ''}
+                            onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
+                            placeholder="Enter source"
                         />
                     </div>
                 </div>
             )}
 
+
+            {/* Vehicle Details Form */}
+            {entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Reporting Year"
+                        required
+                        value={formData.reportingYear || ''}
+                        onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                        placeholder="e.g., 2023-24"
+                    />
+                    <FormSelect
+                        label="Vehicle"
+                        required
+                        value={formData.vehicleId || ''}
+                        onChange={(e) => setFormData({ ...formData, vehicleId: parseInt(e.target.value) })}
+                        options={vehicles.map((v: any) => ({ value: v.vehicleId, label: v.vehicleName }))}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormInput
+                            label="Total Run (km)"
+                            required
+                            value={formData.totalRun || ''}
+                            onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
+                            placeholder="Enter total run"
+                        />
+                        <FormSelect
+                            label="Present Status"
+                            required
+                            value={formData.presentStatus || ''}
+                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
+                            options={enumToOptions(VehiclePresentStatusEnum)}
+                        />
+                    </div>
+                    <FormInput
+                        label="Repairing Cost (Rs.)"
+                        type="number"
+                        value={formData.repairingCost || ''}
+                        onChange={(e) => setFormData({ ...formData, repairingCost: parseFloat(e.target.value) })}
+                        placeholder="Enter repairing cost (optional)"
+                    />
+                </div>
+            )}
+
+            {/* Equipment Details Form */}
+            {entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Reporting Year"
+                        required
+                        value={formData.reportingYear || ''}
+                        onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                        placeholder="e.g., 2023-24"
+                    />
+                    <FormSelect
+                        label="Equipment"
+                        required
+                        value={formData.equipmentId || ''}
+                        onChange={(e) => setFormData({ ...formData, equipmentId: parseInt(e.target.value) })}
+                        options={equipments.map((eq: any) => ({ value: eq.equipmentId, label: eq.equipmentName }))}
+                    />
+                    <FormSelect
+                        label="Present Status"
+                        required
+                        value={formData.presentStatus || ''}
+                        onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
+                        options={enumToOptions(EquipmentPresentStatusEnum)}
+                    />
+                </div>
+            )}
+
+            {/* Farm Implements Form */}
+            {entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Name of Implement"
+                        required
+                        value={formData.implementName || ''}
+                        onChange={(e) => setFormData({ ...formData, implementName: e.target.value })}
+                        placeholder="Enter implement name"
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormInput
+                            label="Year of Purchase"
+                            required
+                            type="number"
+                            value={formData.yearOfPurchase || ''}
+                            onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
+                        />
+                        <FormInput
+                            label="Total Cost (Rs.)"
+                            required
+                            type="number"
+                            value={formData.totalCost || ''}
+                            onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Present Status"
+                            required
+                            value={formData.presentStatus || ''}
+                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
+                            options={enumToOptions(ImplementPresentStatusEnum)}
+                        />
+                        <FormInput
+                            label="Source of Fund"
+                            required
+                            value={formData.sourceOfFund || ''}
+                            onChange={(e) => setFormData({ ...formData, sourceOfFund: e.target.value })}
+                            placeholder="Enter source of fund"
+                        />
+                    </div>
+                </div>
+            )}
             {entityType === ENTITY_TYPES.KVKS && (
                 <div className="space-y-8">
                     <FormSection title="Add KVK Details">

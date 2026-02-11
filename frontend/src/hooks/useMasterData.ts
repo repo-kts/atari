@@ -1,6 +1,6 @@
-import { useCallback, useEffect } from 'react';
-import { useMasterDataStore } from '../stores/masterDataStore';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { masterDataApi } from '../services/masterDataApi';
+import { useAuthStore } from '../stores/authStore';
 import type {
     EntityType,
     Zone,
@@ -22,227 +22,123 @@ type EntityData = Zone | State | District | Organization;
 type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto;
 type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto;
 
+// Helper to get user-aware query keys
+function getUserAwareQueryKey(entityType: EntityType, params?: QueryParams): any[] {
+    const { user } = useAuthStore.getState();
+    return ['master-data', entityType, params, user?.userId, user?.role];
+}
+
+// API call mapping
+const apiCalls = {
+    zones: {
+        getAll: (params?: QueryParams) => masterDataApi.getZones(params),
+        create: (data: CreateZoneDto) => masterDataApi.createZone(data),
+        update: (id: number, data: UpdateZoneDto) => masterDataApi.updateZone(id, data),
+        delete: (id: number) => masterDataApi.deleteZone(id),
+    },
+    states: {
+        getAll: (params?: QueryParams) => masterDataApi.getStates(params),
+        create: (data: CreateStateDto) => masterDataApi.createState(data),
+        update: (id: number, data: UpdateStateDto) => masterDataApi.updateState(id, data),
+        delete: (id: number) => masterDataApi.deleteState(id),
+    },
+    districts: {
+        getAll: (params?: QueryParams) => masterDataApi.getDistricts(params),
+        create: (data: CreateDistrictDto) => masterDataApi.createDistrict(data),
+        update: (id: number, data: UpdateDistrictDto) => masterDataApi.updateDistrict(id, data),
+        delete: (id: number) => masterDataApi.deleteDistrict(id),
+    },
+    organizations: {
+        getAll: (params?: QueryParams) => masterDataApi.getOrganizations(params),
+        create: (data: CreateOrganizationDto) => masterDataApi.createOrganization(data),
+        update: (id: number, data: UpdateOrganizationDto) => masterDataApi.updateOrganization(id, data),
+        delete: (id: number) => masterDataApi.deleteOrganization(id),
+    },
+};
+
 /**
- * Generic hook for master data CRUD operations
- * Provides type-safe, reusable functionality for all entities
+ * Generic hook for master data CRUD operations using TanStack Query
+ * Replaces Zustand store with React Query for better caching and state management
  */
 export function useMasterData<T extends EntityData>(entityType: EntityType) {
-    const store = useMasterDataStore();
+    const queryClient = useQueryClient();
+    const queryKey = getUserAwareQueryKey(entityType);
 
-    // Get entity-specific data from store
-    const data = store[entityType] as T[];
-    const loading = store.loading[entityType];
-    const error = store.errors[entityType];
-    const filters = store.filters[entityType];
-
-    /**
-     * Fetch all entities
-     */
-    const fetchAll = useCallback(
-        async (params?: QueryParams) => {
-            store.setLoading(entityType, true);
-            store.setError(entityType, null);
-
-            try {
-                const queryParams = { ...filters, ...params };
-                let response;
-
-                switch (entityType) {
-                    case 'zones':
-                        response = await masterDataApi.getZones(queryParams);
-                        store.setZones(response.data as Zone[]);
-                        break;
-                    case 'states':
-                        response = await masterDataApi.getStates(queryParams);
-                        store.setStates(response.data as State[]);
-                        break;
-                    case 'districts':
-                        response = await masterDataApi.getDistricts(queryParams);
-                        store.setDistricts(response.data as District[]);
-                        break;
-                    case 'organizations':
-                        response = await masterDataApi.getOrganizations(queryParams);
-                        store.setOrganizations(response.data as Organization[]);
-                        break;
-                }
-
-                return response.data;
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to fetch data';
-                store.setError(entityType, message);
-                throw err;
-            } finally {
-                store.setLoading(entityType, false);
-            }
+    // Query for fetching data
+    const query = useQuery({
+        queryKey,
+        queryFn: async () => {
+            const response = await apiCalls[entityType].getAll();
+            return response.data as T[];
         },
-        [entityType, filters, store]
-    );
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    /**
-     * Create entity
-     */
-    const create = useCallback(
-        async (data: CreateDto) => {
-            store.setLoading(entityType, true);
-            store.setError(entityType, null);
-
-            try {
-                let response;
-
-                switch (entityType) {
-                    case 'zones':
-                        response = await masterDataApi.createZone(data as CreateZoneDto);
-                        store.addZone(response.data);
-                        break;
-                    case 'states':
-                        response = await masterDataApi.createState(data as CreateStateDto);
-                        store.addState(response.data);
-                        break;
-                    case 'districts':
-                        response = await masterDataApi.createDistrict(data as CreateDistrictDto);
-                        store.addDistrict(response.data);
-                        break;
-                    case 'organizations':
-                        response = await masterDataApi.createOrganization(data as CreateOrganizationDto);
-                        store.addOrganization(response.data);
-                        break;
-                }
-
-                return response.data;
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to create';
-                store.setError(entityType, message);
-                throw err;
-            } finally {
-                store.setLoading(entityType, false);
-            }
+    // Create mutation
+    const createMutation = useMutation({
+        mutationFn: async (data: CreateDto) => {
+            const response = await apiCalls[entityType].create(data as any);
+            return response.data as T;
         },
-        [entityType, store]
-    );
-
-    /**
-     * Update entity
-     */
-    const update = useCallback(
-        async (id: number, data: UpdateDto) => {
-            store.setLoading(entityType, true);
-            store.setError(entityType, null);
-
-            try {
-                let response;
-
-                switch (entityType) {
-                    case 'zones':
-                        response = await masterDataApi.updateZone(id, data as UpdateZoneDto);
-                        store.updateZone(id, response.data);
-                        break;
-                    case 'states':
-                        response = await masterDataApi.updateState(id, data as UpdateStateDto);
-                        store.updateState(id, response.data);
-                        break;
-                    case 'districts':
-                        response = await masterDataApi.updateDistrict(id, data as UpdateDistrictDto);
-                        store.updateDistrict(id, response.data);
-                        break;
-                    case 'organizations':
-                        response = await masterDataApi.updateOrganization(id, data as UpdateOrganizationDto);
-                        store.updateOrganization(id, response.data);
-                        break;
-                }
-
-                return response.data;
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to update';
-                store.setError(entityType, message);
-                throw err;
-            } finally {
-                store.setLoading(entityType, false);
-            }
+        onSuccess: () => {
+            // Invalidate and refetch
+            queryClient.invalidateQueries({ queryKey });
         },
-        [entityType, store]
-    );
+    });
 
-    /**
-     * Delete entity
-     */
-    const remove = useCallback(
-        async (id: number) => {
-            store.setLoading(entityType, true);
-            store.setError(entityType, null);
-
-            try {
-                switch (entityType) {
-                    case 'zones':
-                        await masterDataApi.deleteZone(id);
-                        store.deleteZone(id);
-                        break;
-                    case 'states':
-                        await masterDataApi.deleteState(id);
-                        store.deleteState(id);
-                        break;
-                    case 'districts':
-                        await masterDataApi.deleteDistrict(id);
-                        store.deleteDistrict(id);
-                        break;
-                    case 'organizations':
-                        await masterDataApi.deleteOrganization(id);
-                        store.deleteOrganization(id);
-                        break;
-                }
-            } catch (err) {
-                const message = err instanceof Error ? err.message : 'Failed to delete';
-                store.setError(entityType, message);
-                throw err;
-            } finally {
-                store.setLoading(entityType, false);
-            }
+    // Update mutation
+    const updateMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: number; data: UpdateDto }) => {
+            const response = await apiCalls[entityType].update(id, data as any);
+            return response.data as T;
         },
-        [entityType, store]
-    );
-
-    /**
-     * Set filters
-     */
-    const setFilters = useCallback(
-        (newFilters: Partial<typeof filters>) => {
-            store.setFilter(entityType, newFilters);
+        onSuccess: () => {
+            // Invalidate and refetch
+            queryClient.invalidateQueries({ queryKey });
         },
-        [entityType, store]
-    );
+    });
 
-    /**
-     * Reset filters
-     */
-    const resetFilters = useCallback(() => {
-        store.resetFilters(entityType);
-    }, [entityType, store]);
-
-    /**
-     * Clear error
-     */
-    const clearError = useCallback(() => {
-        store.setError(entityType, null);
-    }, [entityType, store]);
-
-    // Auto-fetch on mount and when entity type changes
-    useEffect(() => {
-        if (data.length === 0 && !loading && !error) {
-            fetchAll();
-        }
-    }, [entityType]); // Refetch when entity type changes (tab switch)
+    // Delete mutation
+    const deleteMutation = useMutation({
+        mutationFn: async (id: number) => {
+            await apiCalls[entityType].delete(id);
+        },
+        onSuccess: () => {
+            // Invalidate and refetch
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
 
     return {
-        data,
-        loading,
-        error,
-        filters,
-        fetchAll,
-        create,
-        update,
-        remove,
-        setFilters,
-        resetFilters,
-        clearError,
+        data: (query.data || []) as T[],
+        loading: query.isLoading,
+        error: query.error ? (query.error instanceof Error ? query.error.message : 'Failed to fetch data') : null,
+        filters: {}, // Filters are now handled via params in query
+        fetchAll: async (params?: QueryParams) => {
+            // Refetch with new params
+            await queryClient.refetchQueries({ queryKey: getUserAwareQueryKey(entityType, params) });
+        },
+        create: async (data: CreateDto) => {
+            return await createMutation.mutateAsync(data);
+        },
+        update: async (id: number, data: UpdateDto) => {
+            return await updateMutation.mutateAsync({ id, data });
+        },
+        remove: async (id: number) => {
+            await deleteMutation.mutateAsync(id);
+        },
+        setFilters: () => {
+            // Filters are now handled via params in fetchAll
+            console.warn('setFilters is deprecated. Use fetchAll with params instead.');
+        },
+        resetFilters: () => {
+            // Filters are now handled via params in fetchAll
+            console.warn('resetFilters is deprecated. Use fetchAll with params instead.');
+        },
+        clearError: () => {
+            // Error is managed by React Query
+            console.warn('clearError is deprecated. Errors are managed by React Query.');
+        },
     };
 }
 
@@ -250,55 +146,62 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
  * Hook for fetching related entities
  */
 export function useRelatedData() {
-    const store = useMasterDataStore();
+    const { user } = useAuthStore();
+    const queryClient = useQueryClient();
 
-    const getStatesByZone = useCallback(
-        async (zoneId: number) => {
-            try {
-                const response = await masterDataApi.getStatesByZone(zoneId);
-                return response.data;
-            } catch (err) {
-                console.error('Error fetching states by zone:', err);
-                throw err;
-            }
-        },
-        []
-    );
+    const getStatesByZone = async (zoneId: number) => {
+        const queryKey = ['master-data', 'states-by-zone', zoneId, user?.userId, user?.role];
+        const cached = queryClient.getQueryData(queryKey);
+        if (cached) return cached as State[];
 
-    const getDistrictsByState = useCallback(
-        async (stateId: number) => {
-            try {
-                const response = await masterDataApi.getDistrictsByState(stateId);
-                return response.data;
-            } catch (err) {
-                console.error('Error fetching districts by state:', err);
-                throw err;
-            }
-        },
-        []
-    );
+        const response = await masterDataApi.getStatesByZone(zoneId);
+        queryClient.setQueryData(queryKey, response.data);
+        return response.data;
+    };
 
-    const getOrganizationsByState = useCallback(
-        async (stateId: number) => {
-            try {
-                const response = await masterDataApi.getOrganizationsByState(stateId);
-                return response.data;
-            } catch (err) {
-                console.error('Error fetching organizations by state:', err);
-                throw err;
-            }
-        },
-        []
-    );
+    const getDistrictsByState = async (stateId: number) => {
+        const queryKey = ['master-data', 'districts-by-state', stateId, user?.userId, user?.role];
+        const cached = queryClient.getQueryData(queryKey);
+        if (cached) return cached as District[];
+
+        const response = await masterDataApi.getDistrictsByState(stateId);
+        queryClient.setQueryData(queryKey, response.data);
+        return response.data;
+    };
+
+    const getOrganizationsByState = async (stateId: number) => {
+        const queryKey = ['master-data', 'organizations-by-state', stateId, user?.userId, user?.role];
+        const cached = queryClient.getQueryData(queryKey);
+        if (cached) return cached as Organization[];
+
+        const response = await masterDataApi.getOrganizationsByState(stateId);
+        queryClient.setQueryData(queryKey, response.data);
+        return response.data;
+    };
+
+    // Computed selectors - now using query cache
+    const getStatesByZoneFromStore = (zoneId: number): State[] => {
+        const queryKey = ['master-data', 'states-by-zone', zoneId, user?.userId, user?.role];
+        return (queryClient.getQueryData(queryKey) as State[]) || [];
+    };
+
+    const getDistrictsByStateFromStore = (stateId: number): District[] => {
+        const queryKey = ['master-data', 'districts-by-state', stateId, user?.userId, user?.role];
+        return (queryClient.getQueryData(queryKey) as District[]) || [];
+    };
+
+    const getOrganizationsByStateFromStore = (stateId: number): Organization[] => {
+        const queryKey = ['master-data', 'organizations-by-state', stateId, user?.userId, user?.role];
+        return (queryClient.getQueryData(queryKey) as Organization[]) || [];
+    };
 
     return {
         getStatesByZone,
         getDistrictsByState,
         getOrganizationsByState,
-        // Computed selectors from store
-        getStatesByZoneFromStore: store.getStatesByZone,
-        getDistrictsByStateFromStore: store.getDistrictsByState,
-        getOrganizationsByStateFromStore: store.getOrganizationsByState,
+        getStatesByZoneFromStore,
+        getDistrictsByStateFromStore,
+        getOrganizationsByStateFromStore,
     };
 }
 
@@ -306,15 +209,23 @@ export function useRelatedData() {
  * Hook for statistics
  */
 export function useMasterDataStats() {
-    const fetchStats = useCallback(async () => {
-        try {
+    const { user } = useAuthStore();
+    const query = useQuery({
+        queryKey: ['master-data', 'stats', user?.userId, user?.role],
+        queryFn: async () => {
             const response = await masterDataApi.getStats();
             return response.data;
-        } catch (err) {
-            console.error('Error fetching stats:', err);
-            throw err;
-        }
-    }, []);
+        },
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
-    return { fetchStats };
+    return {
+        fetchStats: async () => {
+            await query.refetch();
+            return query.data;
+        },
+        stats: query.data,
+        loading: query.isLoading,
+        error: query.error,
+    };
 }

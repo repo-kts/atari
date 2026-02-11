@@ -14,7 +14,7 @@ export interface User {
     email: string
     phoneNumber?: string | null
     roleId: number
-    role: UserRole // Derived from roleName
+    role: UserRole
     zoneId?: number | null
     stateId?: number | null
     districtId?: number | null

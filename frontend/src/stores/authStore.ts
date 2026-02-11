@@ -2,6 +2,14 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
 import { authApi, ApiUser } from '../services/authApi'
+import { QueryClient } from '@tanstack/react-query'
+
+// Export queryClient instance for cache invalidation
+let queryClientInstance: QueryClient | null = null
+
+export const setQueryClient = (client: QueryClient) => {
+    queryClientInstance = client
+}
 
 interface AuthState {
     user: User | null
@@ -57,6 +65,11 @@ export const useAuthStore = create<AuthState>()(
                     const apiUser = await authApi.login(credentials)
                     const user = mapApiUserToUser(apiUser)
 
+                    // Invalidate all queries on login to clear previous user's cache
+                    if (queryClientInstance) {
+                        queryClientInstance.clear()
+                    }
+
                     set({
                         user,
                         isAuthenticated: true,
@@ -94,7 +107,12 @@ export const useAuthStore = create<AuthState>()(
                     isLoggingOut: true,
                     error: null,
                 })
-                
+
+                // Clear all queries on logout
+                if (queryClientInstance) {
+                    queryClientInstance.clear()
+                }
+
                 try {
                     await authApi.logout()
                 } catch (error) {

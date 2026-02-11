@@ -97,6 +97,7 @@ model User {
 
   refreshTokens   RefreshToken[]
   userPermissions UserPermission[]
+  transfersPerformed StaffTransferHistory[]
   district        DistrictMaster? @relation(fields: [districtId], references: [districtId])
   org             OrgMaster?      @relation(fields: [orgId], references: [orgId])
   role            Role            @relation(fields: [roleId], references: [roleId])

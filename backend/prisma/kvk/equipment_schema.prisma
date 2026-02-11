@@ -20,7 +20,7 @@ model KvkEquipment {
   totalCost         Float  @map("total_cost")
   presentStatus     EquipmentPresentStatus @map("present_status")
   sourceOfFunding   String @map("source_of_funding")
-  reportingYear     Int    @map("reporting_year")
+  reportingYear     Int?    @map("reporting_year")
   
   type        EquipmentType @default(EQUIPMENT) @map("type")
 

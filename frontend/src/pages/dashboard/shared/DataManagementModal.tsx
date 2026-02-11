@@ -169,7 +169,7 @@ export function DataManagementModal({
                         type="submit"
                         className="px-8 py-2.5 bg-[#487749] text-white rounded-xl text-sm font-semibold hover:bg-[#3d6540] transition-all shadow-sm hover:shadow-lg active:scale-95"
                     >
-                        {formData.id ? 'Save Changes' : `Create ${title.split(' ').pop()}`}
+                        {title.startsWith('Edit') || title.startsWith('Update') ? 'Update' : 'Create'}
                     </button>
                 </div>
             </div>

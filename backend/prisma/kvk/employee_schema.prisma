@@ -75,16 +75,25 @@ model KvkStaff {
   discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
 
   payScale String?  @map("pay_scale")
-  payLevel PayLevel @map("pay_level")
+  payLevel PayLevel? @map("pay_level")
 
   dateOfJoining DateTime @map("date_of_joining")
-  jobType       JobType  @map("job_type")
+  jobType       JobType?  @map("job_type")
 
   allowances String? @map("allowances")
 
   category StaffCategory @map("category")
 
   transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
+  
+  sourceKvkIds Json? @map("source_kvk_ids")
+  
+  originalKvkId    Int?      @map("original_kvk_id")
+  transferCount    Int       @default(0) @map("transfer_count")
+  lastTransferDate DateTime? @map("last_transfer_date")
+  
+  transferHistory  StaffTransferHistory[]
+  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
 
   @@map("kvk_staff")
   @@index([kvkId])
@@ -93,4 +102,6 @@ model KvkStaff {
   @@index([staffName])
   @@index([email])
   @@index([mobile])
+  @@index([transferStatus])
+  @@index([originalKvkId])
 }

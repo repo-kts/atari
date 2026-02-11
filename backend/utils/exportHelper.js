@@ -8,19 +8,60 @@ const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, Bord
  * @returns {Promise<Buffer>}
  */
 async function generatePDF(html) {
-    const browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: { top: '20mm', right: '10mm', bottom: '20mm', left: '10mm' },
-        printBackground: true
-    });
-    await browser.close();
-    return pdfBuffer;
+    let browser;
+    try {
+        // Try to launch with default settings first
+        browser = await puppeteer.launch({
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--disable-gpu'
+            ]
+        });
+    } catch (error) {
+        // If launch fails, try to install Chrome and retry
+        console.log('Chrome not found, attempting to install...');
+        try {
+            const { install } = require('@puppeteer/browsers');
+            await install({
+                browser: 'chrome',
+                path: require('os').homedir() + '/.cache/puppeteer'
+            });
+            browser = await puppeteer.launch({
+                headless: 'new',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--disable-gpu'
+                ]
+            });
+        } catch (installError) {
+            console.error('Failed to install Chrome:', installError);
+            throw new Error('Could not launch Chrome browser. Please ensure Chrome is installed or run: npx puppeteer browsers install chrome');
+        }
+    }
+
+    try {
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: 'networkidle0' });
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            margin: { top: '20mm', right: '10mm', bottom: '20mm', left: '10mm' },
+            printBackground: true
+        });
+        await browser.close();
+        return pdfBuffer;
+    } catch (error) {
+        if (browser) {
+            await browser.close();
+        }
+        throw error;
+    }
 }
 
 /**

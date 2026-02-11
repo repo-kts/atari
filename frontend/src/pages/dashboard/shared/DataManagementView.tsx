@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, Search, Download, Edit2, Trash2, ChevronLeft } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Plus, Search, Download, Edit2, Trash2, ChevronLeft, ArrowRight, History } from 'lucide-react'
 import { Breadcrumbs } from '../../../components/common/Breadcrumbs'
 import { TabNavigation } from '../../../components/common/TabNavigation'
 import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '../../../config/routeConfig'
 import { getAllMastersMockData } from '../../../mocks/allMastersMockData'
-import { Card, CardContent } from '../../../components/ui/Card'
 import { useMasterData } from '../../../hooks/useMasterData'
 import type { EntityType } from '../../../types/masterData'
 import { DataManagementModal } from './DataManagementModal'
@@ -44,7 +44,10 @@ import {
     useCraFarmingSystems,
     useAryaEnterprises,
 } from '../../../hooks/useProductionProjectsData'
-import { useAboutKvkData, AboutKvkEntity } from '../../../hooks/useAboutKvkData'
+import { useAboutKvkData, AboutKvkEntity } from '../../../hooks/forms/useAboutKvkData'
+import { TransferModal } from '../../../components/forms/TransferModal'
+import { TransferHistoryModal } from '../../../components/forms/TransferHistoryModal'
+import type { KvkEmployee } from '../../../types/aboutKvk'
 
 interface DataManagementViewProps {
     title: string
@@ -62,18 +65,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 }) => {
     const navigate = useNavigate()
     const location = useLocation()
+    const queryClient = useQueryClient()
     const [searchQuery, setSearchQuery] = useState('')
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingItem, setEditingItem] = useState<any | null>(null)
     const [formData, setFormData] = useState<any>({})
+    const [exportLoading, setExportLoading] = useState<string | null>(null) // 'pdf' | 'excel' | 'word' | null
+    const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+    const [selectedEmployee, setSelectedEmployee] = useState<KvkEmployee | null>(null)
 
     // Get user from auth store
     const { user } = useAuthStore()
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
-    console.log('DEBUG: DataManagementView pathname:', location.pathname)
-    console.log('DEBUG: DataManagementView routeConfig:', routeConfig)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
     const siblingRoutes = getSiblingRoutes(location.pathname)
     const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -117,6 +123,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     ]
     const isAboutKvkEntity = entityType && aboutKvkEntities.includes(entityType)
     const aboutKvkHook = isAboutKvkEntity ? useAboutKvkData(entityType as AboutKvkEntity) : null
+
+    // Check if this is Employee Details view
+    const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
 
     // Determine if "Add New" button should be shown based on route config
     const canUserCreate = () => {
@@ -199,7 +208,26 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleEdit = (item: any) => {
         setEditingItem(item)
-        setFormData({ ...item })
+
+        // Extract nested IDs for form fields (especially for KVK employees)
+        const formDataWithIds = { ...item }
+
+        // Extract sanctionedPostId from nested sanctionedPost object
+        if (item.sanctionedPost && item.sanctionedPost.sanctionedPostId) {
+            formDataWithIds.sanctionedPostId = item.sanctionedPost.sanctionedPostId
+        }
+
+        // Extract disciplineId from nested discipline object
+        if (item.discipline && item.discipline.disciplineId) {
+            formDataWithIds.disciplineId = item.discipline.disciplineId
+        }
+
+        // Extract kvkId from nested kvk object
+        if (item.kvk && item.kvk.kvkId) {
+            formDataWithIds.kvkId = item.kvk.kvkId
+        }
+
+        setFormData(formDataWithIds)
         setIsModalOpen(true)
     }
 
@@ -221,35 +249,29 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         }
     }
 
+    const handleTransfer = (item: any) => {
+        setSelectedEmployee(item as KvkEmployee)
+        setIsTransferModalOpen(true)
+    }
+
+    const handleViewHistory = (item: any) => {
+        setSelectedEmployee(item as KvkEmployee)
+        setIsHistoryModalOpen(true)
+    }
+
+    const handleTransferSuccess = async () => {
+        // Invalidate queries to refresh data for all users
+        // This ensures the target KVK sees the transferred employee immediately
+        queryClient.invalidateQueries({ queryKey: ['kvk-employees'] })
+        queryClient.invalidateQueries({ queryKey: ['kvk-staff-transferred'] })
+
+        // Also refetch current data
+        if (activeHook && 'refetch' in activeHook) {
+            await (activeHook as any).refetch()
+        }
+    }
+
     const handleAddNew = () => {
-        if (routeConfig?.createPath) {
-            navigate(routeConfig.createPath)
-            return
-        }
-
-        // Temporary fix for vehicle details navigation
-        if (location.pathname === '/forms/about-kvk/vehicle-details') {
-            navigate('/forms/about-kvk/vehicle-details/add')
-            return
-        }
-
-        // Temporary fix for equipments navigation
-        if (location.pathname === '/forms/about-kvk/equipments') {
-            navigate('/forms/about-kvk/equipments/add')
-            return
-        }
-
-        // Temporary fix for equipment details navigation
-        if (location.pathname === '/forms/about-kvk/equipment-details') {
-            navigate('/forms/about-kvk/equipment-details/add')
-            return
-        }
-
-        // Temporary fix for farm implements navigation
-        if (location.pathname === '/forms/about-kvk/farm-implements') {
-            navigate('/forms/about-kvk/farm-implements/add')
-            return
-        }
 
         setEditingItem(null)
         setFormData({})
@@ -259,10 +281,38 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const handleSaveModal = async () => {
         if (isMasterDataEntity && activeHook && entityType) {
             try {
+                // Check if category should be kept (it's a direct field for KVK employees, not a nested object)
+                const shouldKeepCategory = entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED
+
                 if (editingItem) {
                     // Update - filter out read-only fields (ID, _count, nested objects)
                     const idField = getIdField(entityType)
-                    const { [idField]: _, _count, zone, state, subject, sector, category, subCategory, season, cropType, ...updateData } = formData
+                    const {
+                        [idField]: _,
+                        _count,
+                        // Basic master nested objects
+                        zone, state, subject, sector, subCategory, season, cropType,
+                        // About KVK nested objects
+                        kvk, organization, district, org, sanctionedPost, discipline, infraMaster, vehicle, equipment,
+                        // Timestamps
+                        createdAt, updatedAt,
+                        ...restData
+                    } = formData
+
+                    // Conditionally exclude category only if it's not a direct field for this entity
+                    let updateData = restData
+                    if (!shouldKeepCategory && 'category' in restData) {
+                        const { category: _, ...dataWithoutCategory } = restData
+                        updateData = dataWithoutCategory
+                    }
+
+                    // Sanitize optional enum fields: convert empty strings to null
+                    // Prisma requires null for optional enum fields, not empty strings
+                    if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+                        if (updateData.payLevel === '') {
+                            updateData.payLevel = null
+                        }
+                    }
 
                     // Different update signatures for different hooks
                     if (isBasicMasterEntity) {
@@ -272,7 +322,28 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     }
                 } else {
                     // Create - remove read-only nested objects but keep foreign key IDs
-                    const { _count, zone, state, subject, sector, category, subCategory, season, cropType, ...createData } = formData
+                    const {
+                        _count,
+                        zone, state, subject, sector, subCategory, season, cropType,
+                        kvk, organization, district, org, sanctionedPost, discipline, infraMaster, vehicle, equipment,
+                        ...restData
+                    } = formData
+
+                    // Conditionally exclude category only if it's not a direct field for this entity
+                    let createData = restData
+                    if (!shouldKeepCategory && 'category' in restData) {
+                        const { category: _, ...dataWithoutCategory } = restData
+                        createData = dataWithoutCategory
+                    }
+
+                    // Sanitize optional enum fields: convert empty strings to null
+                    // Prisma requires null for optional enum fields, not empty strings
+                    if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+                        if (createData.payLevel === '') {
+                            createData.payLevel = null
+                        }
+                    }
+
                     await activeHook.create(createData)
                 }
                 setIsModalOpen(false)
@@ -315,13 +386,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             return
         }
 
+        setExportLoading(format)
         try {
             const blob = await exportApi.exportData({
                 title,
                 headers: headerLabels,
                 rows,
                 format: format as 'pdf' | 'excel' | 'word'
-            })
+            }, location.pathname)
 
             const url = window.URL.createObjectURL(blob)
             const a = document.createElement('a')
@@ -333,6 +405,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         } catch (error: any) {
             console.error('Export failed:', error)
             alert(error.message || 'Failed to export. Please try again.')
+        } finally {
+            setExportLoading(null)
         }
     }
 
@@ -383,24 +457,54 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex gap-2 flex-wrap">
                             <button
                                 onClick={() => handleExport('pdf')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
+                                disabled={exportLoading !== null}
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Download className="w-4 h-4" />
-                                Export PDF
+                                {exportLoading === 'pdf' ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#487749]"></div>
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        Export PDF
+                                    </>
+                                )}
                             </button>
                             <button
                                 onClick={() => handleExport('excel')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
+                                disabled={exportLoading !== null}
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Download className="w-4 h-4" />
-                                Export Excel
+                                {exportLoading === 'excel' ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#487749]"></div>
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        Export Excel
+                                    </>
+                                )}
                             </button>
                             <button
                                 onClick={() => handleExport('word')}
-                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white"
+                                disabled={exportLoading !== null}
+                                className="flex items-center gap-2 px-4 py-2 border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] hover:border-[#BDBDBD] transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Download className="w-4 h-4" />
-                                Export Word
+                                {exportLoading === 'word' ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#487749]"></div>
+                                        Exporting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-4 h-4" />
+                                        Export Word
+                                    </>
+                                )}
                             </button>
 
                             {showAddButton && (
@@ -469,33 +573,114 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 paginatedData.map((item, index) => {
                                                     const uniqueKey = `${location.pathname}-${index}`
                                                     return (
-                                                        <tr key={uniqueKey} className="hover:bg-[#F9FAFB] transition-colors group">
+                                                        <tr key={uniqueKey} className={`hover:bg-[#F9FAFB] transition-colors group ${
+                                                            (isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) &&
+                                                            item.transferStatus === 'TRANSFERRED'
+                                                                ? 'bg-blue-50/30'
+                                                                : ''
+                                                        }`}>
                                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-[#212121] sticky left-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-r border-transparent group-hover:border-gray-100">
                                                                 {startIndex + index + 1}
                                                             </td>
-                                                            {fields.map((field, fieldIdx) => (
-                                                                <td key={fieldIdx} className="px-6 py-4 text-sm text-[#212121] whitespace-nowrap">
-                                                                    {typeof getFieldValue(item, field) === 'object'
-                                                                        ? JSON.stringify(getFieldValue(item, field))
-                                                                        : getFieldValue(item, field)}
-                                                                </td>
-                                                            ))}
+                                                            {fields.map((field, fieldIdx) => {
+                                                                const fieldValue = getFieldValue(item, field)
+                                                                const isPhotoField = field === 'photo' || field === 'photoPath'
+                                                                const photoPath = item.photoPath || item.photo
+                                                                const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
+
+                                                                return (
+                                                                    <td key={fieldIdx} className="px-6 py-4 text-sm text-[#212121] whitespace-nowrap">
+                                                                        {isPhotoField && photoPath && photoPath !== '-' ? (
+                                                                            <div className="flex items-center">
+                                                                                <img
+                                                                                    src={photoPath}
+                                                                                    alt="Staff photo"
+                                                                                    className="w-20 h-full object-cover"
+                                                                                    onError={(e) => {
+                                                                                        // Hide image and show fallback
+                                                                                        const target = e.currentTarget as HTMLImageElement
+                                                                                        target.style.display = 'none'
+                                                                                        const fallback = target.nextElementSibling as HTMLElement
+                                                                                        if (fallback) {
+                                                                                            fallback.classList.remove('hidden')
+                                                                                        }
+                                                                                    }}
+                                                                                />
+                                                                                <span className="hidden text-xs text-gray-500 ml-2 truncate max-w-xs">No image</span>
+                                                                            </div>
+                                                                        ) : isTransferStatusField ? (
+                                                                            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                                                                                item.transferStatus === 'TRANSFERRED'
+                                                                                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                                                                    : 'bg-green-100 text-green-700 border border-green-200'
+                                                                            }`}>
+                                                                                {item.transferStatus || 'ACTIVE'}
+                                                                            </span>
+                                                                        ) : typeof fieldValue === 'object' ? (
+                                                                            JSON.stringify(fieldValue)
+                                                                        ) : (
+                                                                            fieldValue
+                                                                        )}
+                                                                    </td>
+                                                                )
+                                                            })}
                                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm sticky right-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-l border-transparent group-hover:border-gray-100">
                                                                 <div className="flex items-center justify-end gap-2">
-                                                                    <button
-                                                                        onClick={() => handleEdit(item)}
-                                                                        className="p-1.5 text-[#487749] hover:bg-[#F0FDF4] rounded-lg transition-colors"
-                                                                        title="Edit"
-                                                                    >
-                                                                        <Edit2 className="w-4 h-4" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleDelete(item)}
-                                                                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                        title="Delete"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+                                                                    {/* Only show Edit/Delete if employee belongs to current KVK or is not transferred */}
+                                                                    {(!item.transferStatus || item.transferStatus === 'ACTIVE' ||
+                                                                      (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId)) && (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => handleEdit(item)}
+                                                                                className="p-1.5 text-[#487749] hover:bg-[#F0FDF4] rounded-lg transition-colors"
+                                                                                title="Edit"
+                                                                            >
+                                                                                <Edit2 className="w-4 h-4" />
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleDelete(item)}
+                                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                                title="Delete"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                    {/* Transfer button - only for active employees in Employee Details or transferred employees in current KVK */}
+                                                                    {isEmployeeDetails && user?.role === 'kvk' &&
+                                                                     (item.transferStatus === 'ACTIVE' ||
+                                                                      (item.transferStatus === 'TRANSFERRED' && (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId))) && (
+                                                                        <button
+                                                                            onClick={() => handleTransfer(item)}
+                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                            title="Transfer"
+                                                                        >
+                                                                            <ArrowRight className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                    {/* Transfer button for current KVK to transfer further (Staff Transferred view) */}
+                                                                    {entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED &&
+                                                                     user?.role === 'kvk' &&
+                                                                     (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId) && (
+                                                                        <button
+                                                                            onClick={() => handleTransfer(item)}
+                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                            title="Transfer Further"
+                                                                        >
+                                                                            <ArrowRight className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                    {/* View History button - for all employees with transfer history */}
+                                                                    {(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) &&
+                                                                     (item.transferStatus === 'TRANSFERRED' || item.transferCount > 0) && (
+                                                                        <button
+                                                                            onClick={() => handleViewHistory(item)}
+                                                                            className="p-1.5 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                                                                            title="View Transfer History"
+                                                                        >
+                                                                            <History className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -555,6 +740,31 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         setEditingItem(null)
                         setFormData({})
                     }}
+                />
+            )}
+
+            {/* Transfer Modal */}
+            {isTransferModalOpen && selectedEmployee && (
+                <TransferModal
+                    open={isTransferModalOpen}
+                    onClose={() => {
+                        setIsTransferModalOpen(false)
+                        setSelectedEmployee(null)
+                    }}
+                    staff={selectedEmployee}
+                    onTransferSuccess={handleTransferSuccess}
+                />
+            )}
+
+            {/* Transfer History Modal */}
+            {isHistoryModalOpen && selectedEmployee && (
+                <TransferHistoryModal
+                    open={isHistoryModalOpen}
+                    onClose={() => {
+                        setIsHistoryModalOpen(false)
+                        setSelectedEmployee(null)
+                    }}
+                    staff={selectedEmployee}
                 />
             )}
         </div>

@@ -15,9 +15,6 @@ const exportData = async (req, res) => {
         switch (format.toLowerCase()) {
             case 'pdf':
                 const html = generateHTML(title, headers, rows);
-                console.log('--- GENERATED HTML START ---');
-                console.log(html);
-                console.log('--- GENERATED HTML END ---');
                 buffer = await exportHelper.generatePDF(html);
                 contentType = 'application/pdf';
                 fileName += '.pdf';

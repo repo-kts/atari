@@ -5,6 +5,7 @@ import type {
     Kvk,
     KvkBankAccount,
     KvkEmployee,
+    StaffTransferHistory,
     KvkInfrastructure,
     KvkVehicle,
     KvkEquipment,
@@ -23,6 +24,7 @@ const BASE_URL = '/forms/about-kvk';
 export const aboutKvkApi = {
     // KVKs
     getKvks: (params?: any) => apiClient.get<PaginatedResponse<Kvk>>(`${BASE_URL}/kvks`, { ...params }),
+    getAllKvksForDropdown: (params?: any) => apiClient.get<PaginatedResponse<Kvk>>(`${BASE_URL}/kvks-dropdown`, { ...params }),
     getKvkById: (id: number) => apiClient.get<ApiResponse<Kvk>>(`${BASE_URL}/kvks/${id}`),
     createKvk: (data: KvkFormData) => apiClient.post<ApiResponse<Kvk>>(`${BASE_URL}/kvks`, data),
     updateKvk: (id: number, data: Partial<KvkFormData>) => apiClient.put<ApiResponse<Kvk>>(`${BASE_URL}/kvks/${id}`, data),
@@ -41,11 +43,23 @@ export const aboutKvkApi = {
     createKvkEmployee: (data: KvkEmployeeFormData) => apiClient.post<ApiResponse<KvkEmployee>>(`${BASE_URL}/employees`, data),
     updateKvkEmployee: (id: number, data: Partial<KvkEmployeeFormData>) => apiClient.put<ApiResponse<KvkEmployee>>(`${BASE_URL}/employees/${id}`, data),
     deleteKvkEmployee: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/employees/${id}`),
+    transferKvkEmployee: (id: number, targetKvkId: number, transferReason?: string, notes?: string) =>
+        apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
+            `${BASE_URL}/employees/${id}/transfer`,
+            { targetKvkId, transferReason, notes }
+        ),
+    getStaffTransferHistory: (staffId: number, params?: any) =>
+        apiClient.get<PaginatedResponse<StaffTransferHistory>>(`${BASE_URL}/employees/${staffId}/transfer-history`, { ...params }),
+    revertTransfer: (transferId: number, targetKvkId?: number, reason?: string, notes?: string) =>
+        apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
+            `${BASE_URL}/employees/${transferId}/transfer/revert`,
+            { targetKvkId, reason, notes }
+        ),
 
     // Staff Transferred
     getKvkStaffTransferred: (params?: any) => apiClient.get<PaginatedResponse<KvkEmployee>>(`${BASE_URL}/staff-transferred`, { ...params }),
     // Use employee methods for create/update/delete as it's the same entity, just filtered view
-    // Or if backend has specific endpoints for transfer logic, use them. 
+    // Or if backend has specific endpoints for transfer logic, use them.
     // For now assuming we manage them via employee endpoints or specific transfer endpoints if created.
     // The backend routes exist for staff-transferred, so we use them:
     createKvkStaffTransferred: (data: KvkEmployeeFormData) => apiClient.post<ApiResponse<KvkEmployee>>(`${BASE_URL}/staff-transferred`, data),
@@ -91,4 +105,16 @@ export const aboutKvkApi = {
     createKvkFarmImplement: (data: KvkFarmImplementFormData) => apiClient.post<ApiResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements`, data),
     updateKvkFarmImplement: (id: number, data: Partial<KvkFarmImplementFormData>) => apiClient.put<ApiResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements/${id}`, data),
     deleteKvkFarmImplement: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/farm-implements/${id}`),
+
+    // Master Data (for dropdowns)
+    getSanctionedPosts: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/sanctioned-posts`),
+    getDisciplines: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/disciplines`),
+    getInfraMasters: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/infra-masters`),
+
+    // Dropdown helpers for vehicle/equipment details
+    getVehiclesDropdown: (kvkId?: number) => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/vehicles${kvkId ? `?kvkId=${kvkId}` : ''}`),
+    getEquipmentsDropdown: (kvkId?: number) => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/equipments${kvkId ? `?kvkId=${kvkId}` : ''}`),
+
+    // Transfer History
+    getStaffTransfers: (params?: any) => apiClient.get<PaginatedResponse<StaffTransferHistory>>(`${BASE_URL}/staff-transfers`, { ...params }),
 };
