@@ -19,7 +19,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://atari-client.vercel.app/"
         },
         {
           "key": "Access-Control-Allow-Methods",
