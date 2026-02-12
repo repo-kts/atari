@@ -25,8 +25,8 @@ const rolePermissionService = {
       const caller = await userRepository.findById(callerUserId);
       if (!caller) throw new Error('Caller not found');
       const callerRole = caller.role.roleName;
-      // super_admin and zone_admin can view any role's permissions
-      if (callerRole !== 'super_admin' && callerRole !== 'zone_admin') {
+      // Only super_admin can view any role's permissions; others must outrank or equal
+      if (callerRole !== 'super_admin') {
         if (!outranksOrEqual(callerRole, role.roleName)) {
           throw new Error('You can only view permissions for roles at your level or below');
         }
@@ -62,8 +62,8 @@ const rolePermissionService = {
     const caller = await userRepository.findById(updatedBy);
     if (!caller) throw new Error('Caller not found');
     const callerRole = caller.role.roleName;
-    // super_admin and zone_admin can edit any role's permissions
-    if (callerRole !== 'super_admin' && callerRole !== 'zone_admin') {
+    // Only super_admin can edit any role's permissions; others must outrank or equal
+    if (callerRole !== 'super_admin') {
       if (!outranksOrEqual(callerRole, role.roleName)) {
         throw new Error('You can only edit permissions for roles at your level or below');
       }

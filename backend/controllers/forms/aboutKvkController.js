@@ -254,7 +254,7 @@ exports.getAllKvksForDropdown = async (req, res) => {
             sortOrder: req.query.sortOrder || 'asc',
         };
 
-        const result = await aboutKvkService.getAllKvksForDropdown(options);
+        const result = await aboutKvkService.getAllKvksForDropdown(options, req.user);
         res.json({
             success: true,
             data: result.data,

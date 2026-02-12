@@ -61,7 +61,7 @@ model TrainingAchievement {
   trainingAchievementId Int @id @default(autoincrement()) @map("training_achievement_id")
 
   kvkId Int
-  kvk   KvkMaster @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
   // ---- FK Relations ----
   clienteleId Int

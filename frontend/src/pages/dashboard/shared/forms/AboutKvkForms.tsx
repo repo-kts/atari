@@ -47,38 +47,32 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
     const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId)
 
+    // Sync kvkId from user when KVK role - use functional update to avoid dependency on formData
     React.useEffect(() => {
-        if (user?.kvkId && !formData.kvkId) {
-            setFormData({ ...formData, kvkId: user.kvkId })
+        if (user?.kvkId) {
+            setFormData((prev: any) => (prev.kvkId ? prev : { ...prev, kvkId: user.kvkId }))
         }
-    }, [user?.kvkId, formData.kvkId, setFormData])
-
+    }, [user?.kvkId])
 
     // Extract nested IDs from related objects when editing (for select fields)
+    // Use functional update to avoid dependency on formData which causes infinite loops
     React.useEffect(() => {
-        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+        if (entityType !== ENTITY_TYPES.KVK_EMPLOYEES && entityType !== ENTITY_TYPES.KVK_STAFF_TRANSFERRED) return
+        setFormData((prev: any) => {
             const updates: any = {}
-
-            // Extract sanctionedPostId from nested sanctionedPost object
-            if (formData.sanctionedPost && formData.sanctionedPost.sanctionedPostId && !formData.sanctionedPostId) {
-                updates.sanctionedPostId = formData.sanctionedPost.sanctionedPostId
+            if (prev.sanctionedPost?.sanctionedPostId && !prev.sanctionedPostId) {
+                updates.sanctionedPostId = prev.sanctionedPost.sanctionedPostId
             }
-
-            // Extract disciplineId from nested discipline object
-            if (formData.discipline && formData.discipline.disciplineId && !formData.disciplineId) {
-                updates.disciplineId = formData.discipline.disciplineId
+            if (prev.discipline?.disciplineId && !prev.disciplineId) {
+                updates.disciplineId = prev.discipline.disciplineId
             }
-
-            // Extract kvkId from nested kvk object
-            if (formData.kvk && formData.kvk.kvkId && !formData.kvkId) {
-                updates.kvkId = formData.kvk.kvkId
+            if (prev.kvk?.kvkId && !prev.kvkId) {
+                updates.kvkId = prev.kvk.kvkId
             }
-
-            if (Object.keys(updates).length > 0) {
-                setFormData((prev: any) => ({ ...prev, ...updates }))
-            }
-        }
-    }, [entityType, formData.sanctionedPost, formData.discipline, formData.kvk, setFormData])
+            if (Object.keys(updates).length === 0) return prev
+            return { ...prev, ...updates }
+        })
+    }, [entityType])
 
     if (!entityType) return null
 

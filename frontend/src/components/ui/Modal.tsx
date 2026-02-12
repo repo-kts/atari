@@ -26,15 +26,17 @@ export const Modal: React.FC<ModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay */}
+            {/* Overlay - closes on click */}
             <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                 onClick={onClose}
+                aria-hidden="true"
             />
 
-            {/* Modal */}
+            {/* Modal - stop propagation so clicks inside don't close */}
             <div
-                className={`relative bg-white rounded-xl border border-[#E0E0E0] shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+                className={`relative z-10 bg-white rounded-xl border border-[#E0E0E0] shadow-xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+                onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
                 {title && (

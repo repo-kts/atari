@@ -126,6 +126,7 @@ export const UserManagement: React.FC = () => {
                         </div>
                         {canCreateUsers && (
                             <button
+                                type="button"
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] border border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
                             >

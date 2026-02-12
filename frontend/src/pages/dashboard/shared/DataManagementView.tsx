@@ -12,6 +12,7 @@ import { DataManagementModal } from './DataManagementModal'
 import { ENTITY_TYPES } from '../../../constants/entityTypes'
 import { ExtendedEntityType, getEntityTypeFromPath, getIdField, getFieldValue } from '../../../utils/masterUtils'
 import { useAuth } from '../../../contexts/AuthContext'
+import { isAdminRole } from '../../../constants/roleHierarchy'
 
 import {
     useOftSubjects,
@@ -127,13 +128,51 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Check if this is Employee Details view
     const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
 
-    // Determine if "Add New" button should be shown based on route config
+    // Determine if "Add New" button should be shown
     const canUserCreate = () => {
-        if (!routeConfig?.canCreate) return true // No restriction = all can create
-        if (!user) return false // No user = can't create
-        return routeConfig.canCreate.includes(user.role) // Check if user's role is in allowed list
+        if (!user) return false
+        // About KVK entities: only KVK role can add details; no one adds KVKs from UI
+        if (isAboutKvkEntity) {
+            if (entityType === ENTITY_TYPES.KVKS) return false
+            return user.role === 'kvk'
+        }
+        if (!routeConfig?.canCreate) return true
+        return routeConfig.canCreate.includes(user.role)
     }
     const showAddButton = canUserCreate()
+
+    // Determine if Edit button should be shown for a given item
+    const canEditItem = (item: any) => {
+        if (!user) return false
+        if (isAboutKvkEntity) {
+            if (entityType === ENTITY_TYPES.KVKS) {
+                // Admins can edit KVKs
+                return isAdminRole(user.role)
+            }
+            // KVK details: only KVK role can edit their own data
+            if (user.role !== 'kvk') return false
+            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
+            return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+        }
+        // Master data entities: only super_admin can edit
+        return user.role === 'super_admin'
+    }
+
+    // Determine if Delete button should be shown for a given item
+    const canDeleteItem = (item: any) => {
+        if (!user) return false
+        if (isAboutKvkEntity) {
+            if (entityType === ENTITY_TYPES.KVKS) {
+                return user.role === 'super_admin'
+            }
+            // KVK details: only KVK role can delete their own data
+            if (user.role !== 'kvk') return false
+            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
+            return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+        }
+        // Master data entities: only super_admin can delete
+        return user.role === 'super_admin'
+    }
 
     // Get the active hook
     const activeHook = basicMasterHook || oftSubjectsHook || oftThematicAreasHook || sectorsHook ||
@@ -626,25 +665,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                             })}
                                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm sticky right-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-l border-transparent group-hover:border-gray-100">
                                                                 <div className="flex items-center justify-end gap-2">
-                                                                    {/* Only show Edit/Delete if employee belongs to current KVK or is not transferred */}
-                                                                    {(!item.transferStatus || item.transferStatus === 'ACTIVE' ||
-                                                                      (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId)) && (
-                                                                        <>
-                                                                            <button
-                                                                                onClick={() => handleEdit(item)}
-                                                                                className="p-1.5 text-[#487749] hover:bg-[#F0FDF4] rounded-lg transition-colors"
-                                                                                title="Edit"
-                                                                            >
-                                                                                <Edit2 className="w-4 h-4" />
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => handleDelete(item)}
-                                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                                                title="Delete"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
-                                                                        </>
+                                                                    {canEditItem(item) && (
+                                                                        <button
+                                                                            onClick={() => handleEdit(item)}
+                                                                            className="p-1.5 text-[#487749] hover:bg-[#F0FDF4] rounded-lg transition-colors"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Edit2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                    {canDeleteItem(item) && (
+                                                                        <button
+                                                                            onClick={() => handleDelete(item)}
+                                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
                                                                     )}
                                                                     {/* Transfer button - only for active employees in Employee Details or transferred employees in current KVK */}
                                                                     {isEmployeeDetails && user?.role === 'kvk' &&

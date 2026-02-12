@@ -8,17 +8,26 @@ const prisma = require('../../config/prisma.js');
 
 class AboutKvkService {
     async getAll(entityName, options = {}, user = null) {
-        // If user has kvkId (KVK role), filter by their KVK
+        options.filters = options.filters || {};
+
         if (user && user.kvkId) {
-            options.filters = options.filters || {};
-            
+            // KVK role: filter by their specific KVK
             if (entityName === 'kvk-staff-transferred') {
-                // For staff-transferred, filter by sourceKvkIds to show employees
-                // that were transferred FROM this KVK (tracking transfer chain)
                 options.filters.sourceKvkIds = user.kvkId;
             } else {
-                // For other entities, filter by current kvkId
                 options.filters.kvkId = user.kvkId;
+            }
+        } else if (user && user.roleName !== 'super_admin') {
+            // Admin with geographic scope: filter to KVKs within their area
+            if (entityName === 'kvks') {
+                // For KVKs entity, filter directly on geographic columns
+                this._applyGeoFilter(options.filters, user);
+            } else {
+                // For other entities, look up kvkIds in scope then filter
+                const scopedKvkIds = await this._getScopedKvkIds(user);
+                if (scopedKvkIds !== null) {
+                    options.filters.kvkId = { in: scopedKvkIds };
+                }
             }
         }
 
@@ -40,10 +49,10 @@ class AboutKvkService {
         // Exception: For transferred employees, allow source KVKs to view (but not edit/delete)
         if (user && user.kvkId && entity.kvkId && entity.kvkId !== user.kvkId) {
             // Check if this is a transferred employee and user's KVK is in sourceKvkIds
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && 
+            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
                 entity.transferStatus === 'TRANSFERRED' && entity.sourceKvkIds) {
-                const sourceIds = Array.isArray(entity.sourceKvkIds) 
-                    ? entity.sourceKvkIds 
+                const sourceIds = Array.isArray(entity.sourceKvkIds)
+                    ? entity.sourceKvkIds
                     : (typeof entity.sourceKvkIds === 'string' ? JSON.parse(entity.sourceKvkIds) : []);
                 if (Array.isArray(sourceIds) && sourceIds.includes(user.kvkId)) {
                     // Allow view access for source KVK
@@ -51,6 +60,17 @@ class AboutKvkService {
                 }
             }
             throw new Error('Access denied: You can only access your own KVK data');
+        }
+
+        // Admin with geographic scope: ensure entity's KVK is within their area
+        if (user && !user.kvkId && user.roleName !== 'super_admin') {
+            const entityKvkId = entity.kvkId;
+            if (entityKvkId) {
+                const scopedKvkIds = await this._getScopedKvkIds(user);
+                if (scopedKvkIds !== null && !scopedKvkIds.includes(entityKvkId)) {
+                    throw new Error('Access denied: This data is outside your geographic scope');
+                }
+            }
         }
 
         return entity;
@@ -90,14 +110,14 @@ class AboutKvkService {
     }
 
     async update(entityName, id, data, user = null) {
-        // Ensure entity exists and user has access
+        // Ensure entity exists and user has access (getById enforces geographic scope)
         const currentEntity = await this.getById(entityName, id, user);
 
         // Authorization checks
         if (entityName === 'kvks') {
-            // Only super_admin can update KVKs
-            if (!user || user.roleName !== 'super_admin') {
-                throw new Error('Only super admin can update KVKs');
+            // Admin roles can update KVKs (scope already enforced by getById)
+            if (!user || user.kvkId) {
+                throw new Error('Only admin users can update KVKs');
             }
         } else {
             // For all other About KVK entities, only KVK role can update their own data
@@ -310,10 +330,18 @@ class AboutKvkService {
     }
 
     /**
-     * Get all KVKs without user filtering (for dropdowns like transfer)
-     * This bypasses the normal filtering to allow KVK admins to see all KVKs
+     * Get all KVKs for dropdowns (e.g. transfer target selection).
+     * Scoped by user's geographic area; super_admin sees all.
      */
-    async getAllKvksForDropdown(options = {}) {
+    async getAllKvksForDropdown(options = {}, user = null) {
+        options.filters = options.filters || {};
+
+        if (user && user.kvkId) {
+            // KVK role: no kvkId filter — they need to see other KVKs for transfers
+        } else if (user && user.roleName !== 'super_admin') {
+            this._applyGeoFilter(options.filters, user);
+        }
+
         const result = await aboutKvkRepository.findAll('kvks', options);
         return {
             ...result,
@@ -464,6 +492,57 @@ class AboutKvkService {
             page: options.page || 1,
             limit: options.limit || 100,
         };
+    }
+
+    /**
+     * Single source of truth: role → geographic field mapping.
+     * Returns e.g. { zoneId: 5 } or null if the role is unmapped
+     * or the user lacks the corresponding field value (deny-by-default).
+     */
+    _getGeoScope(user) {
+        const ROLE_GEO_FIELD = {
+            zone_admin: 'zoneId',
+            state_admin: 'stateId',
+            state_user: 'stateId',
+            district_admin: 'districtId',
+            district_user: 'districtId',
+            org_admin: 'orgId',
+            org_user: 'orgId',
+        };
+
+        const field = ROLE_GEO_FIELD[user.roleName];
+        if (!field || !user[field]) return null;
+        return { [field]: user[field] };
+    }
+
+    /**
+     * Get KVK IDs within the user's geographic scope.
+     * Returns null for super_admin (no filter needed).
+     * Returns [] for unknown/unmapped roles (deny-by-default).
+     * @param {object} user
+     * @returns {Promise<number[]|null>}
+     */
+    async _getScopedKvkIds(user) {
+        if (!user || user.roleName === 'super_admin') return null;
+        if (user.kvkId) return [user.kvkId];
+
+        const scope = this._getGeoScope(user);
+        if (!scope) return []; // deny-by-default for unmapped roles
+
+        const kvks = await prisma.kvk.findMany({
+            where: scope,
+            select: { kvkId: true },
+        });
+        return kvks.map(k => k.kvkId);
+    }
+
+    /**
+     * Apply geographic filter directly on the KVK entity's columns.
+     * Used when querying the 'kvks' entity itself.
+     */
+    _applyGeoFilter(filters, user) {
+        const scope = this._getGeoScope(user);
+        Object.assign(filters, scope || {});
     }
 
     /**

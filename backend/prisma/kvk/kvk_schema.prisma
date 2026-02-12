@@ -33,6 +33,12 @@ model Kvk {
   transfersFrom    StaffTransferHistory[] @relation("TransferFrom")
   transfersTo      StaffTransferHistory[] @relation("TransferTo")
   originalStaff    KvkStaff[]            @relation("OriginalKvk")
+  
+  trainingAchievements TrainingAchievement[]
+  farmerAwards         FarmerAward[]
+  kvkAwards            KvkAward[]
+  scientistAwards      ScientistAward[]
+  hrdPrograms          HrdProgram[]
 
   @@index([zoneId])
   @@index([stateId])

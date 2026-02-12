@@ -137,9 +137,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         isSubAdmin || 
         (selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole))
 
-    // Fetch roles from API
+    // Fetch roles from API (required for dropdown; without roles, create cannot proceed)
     useEffect(() => {
-        userApi.getRoles().then(setAllRoles).catch(() => {})
+        userApi.getRoles()
+            .then(setAllRoles)
+            .catch(err => {
+                console.error('Failed to fetch roles:', err)
+                setDropdownError('Failed to load roles. You may need VIEW permission on User Management. Run: npm run seed:global-permissions')
+            })
     }, [])
     
     // Fetch master data when modal opens
@@ -244,32 +249,34 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     
     // Fetch KVKs when needed (for both super admin and sub-admins creating KVK users)
     useEffect(() => {
-        if (isOpen && selectedRole === 'kvk') {
-            const params: any = {}
+        if (!isOpen || selectedRole !== 'kvk') return
+        // Super admin: wait until org is selected before fetching KVKs
+        if (!isSubAdmin && !formData.orgId) return
 
-            if (isSubAdmin) {
-                // Sub-admin: use creator's fields for levels at/above, form selections for levels below
-                const stateId = showStateForSubAdmin ? formData.stateId : currentUser?.stateId
-                const districtId = showDistrictForSubAdmin ? formData.districtId : currentUser?.districtId
-                const orgId = showOrgForSubAdmin ? formData.orgId : currentUser?.orgId
-                if (stateId) params.stateId = Number(stateId)
-                if (districtId) params.districtId = Number(districtId)
-                if (orgId) params.orgId = Number(orgId)
-            } else {
-                // Super admin: use form selections
-                if (formData.stateId) params.stateId = formData.stateId
-                if (formData.districtId) params.districtId = formData.districtId
-                if (formData.orgId) params.orgId = formData.orgId
-            }
+        const params: any = {}
 
-            aboutKvkApi.getKvks(params).then(res => {
-                setKvks(res.data || [])
-            }).catch(err => {
-                console.error('Failed to fetch KVKs:', err)
-                setKvks([])
-                setDropdownError('Failed to load KVKs. Please close and reopen the form to retry.')
-            })
+        if (isSubAdmin) {
+            // Sub-admin: use creator's fields for levels at/above, form selections for levels below
+            const stateId = showStateForSubAdmin ? formData.stateId : currentUser?.stateId
+            const districtId = showDistrictForSubAdmin ? formData.districtId : currentUser?.districtId
+            const orgId = showOrgForSubAdmin ? formData.orgId : currentUser?.orgId
+            if (stateId) params.stateId = Number(stateId)
+            if (districtId) params.districtId = Number(districtId)
+            if (orgId) params.orgId = Number(orgId)
+        } else {
+            // Super admin: use form selections
+            if (formData.stateId) params.stateId = formData.stateId
+            if (formData.districtId) params.districtId = formData.districtId
+            if (formData.orgId) params.orgId = formData.orgId
         }
+
+        aboutKvkApi.getKvks(params).then(res => {
+            setKvks(res.data || [])
+        }).catch(err => {
+            console.error('Failed to fetch KVKs:', err)
+            setKvks([])
+            setDropdownError('Failed to load KVKs. Please close and reopen the form to retry.')
+        })
     }, [isOpen, selectedRole, isSubAdmin, currentUser, formData.stateId, formData.districtId, formData.orgId, showStateForSubAdmin, showDistrictForSubAdmin, showOrgForSubAdmin])
 
     // Reset form when modal opens/closes
@@ -307,18 +314,23 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         }
     }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
 
-    // Determine which hierarchy fields to show based on role (incl. state_user, district_user, org_user)
-    const showZoneField = selectedRole === 'super_admin' || selectedRole === 'zone_admin'
-    const showStateField = selectedRole === 'super_admin' || selectedRole === 'state_admin' || selectedRole === 'state_user'
-    const showDistrictField = selectedRole === 'super_admin' || selectedRole === 'district_admin' || selectedRole === 'district_user'
-    const showOrgField = selectedRole === 'super_admin' || selectedRole === 'org_admin' || selectedRole === 'org_user'
-
-    // Determine which hierarchy fields are required
-    const zoneRequired = selectedRole === 'zone_admin'
-    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user'
-    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user'
+    // Determine which hierarchy fields are required (full cascade: each level needs all parents)
+    const zoneRequired = selectedRole === 'zone_admin' ||
+        selectedRole === 'state_admin' || selectedRole === 'state_user' ||
+        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
+        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk'
+    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
     const kvkRequired = selectedRole === 'kvk'
+
+    // Show hierarchy fields that are required — ensures every required field has a visible dropdown
+    const showZoneField = zoneRequired
+    const showStateField = stateRequired
+    const showDistrictField = districtRequired
+    const showOrgField = orgRequired
 
     // Validate form
     const validateForm = (): boolean => {
@@ -367,20 +379,20 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             newErrors.roleId = 'Role is required'
         }
 
-        // Hierarchy validation
+        // Hierarchy validation (full cascade: Zone → State → District → Org → KVK)
         if (!isSubAdmin) {
-            // Super Admin must provide hierarchy from form
+            // Super Admin must provide full hierarchy from form
             if (zoneRequired && !formData.zoneId) {
-                newErrors.zoneId = 'Zone is required for Zone Admin'
+                newErrors.zoneId = 'Zone is required'
             }
             if (stateRequired && !formData.stateId) {
-                newErrors.stateId = 'State is required for this role'
+                newErrors.stateId = 'State is required'
             }
             if (districtRequired && !formData.districtId) {
-                newErrors.districtId = 'District is required for this role'
+                newErrors.districtId = 'District is required'
             }
             if (orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Organization is required for this role'
+                newErrors.orgId = 'Organization is required'
             }
         } else {
             // Sub-admin: validate form-selected hierarchy fields below their level
@@ -780,6 +792,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             onChange={e => {
                                 const orgId = e.target.value ? parseInt(e.target.value) : ''
                                 handleChange('orgId', orgId)
+                                // Reset dependent fields
+                                setFormData(prev => ({
+                                    ...prev,
+                                    orgId: orgId as number | '',
+                                    kvkId: '',
+                                }))
+                                setKvks([])
                             }}
                             className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
                                 errors.orgId ? 'border-red-300' : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
@@ -804,6 +823,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 )}
 
                 {/* Super Admin hierarchy dropdowns */}
+                {!isSubAdmin && showZoneField && (showStateField || showDistrictField || showOrgField) && (
+                    <p className="text-xs text-[#757575]">
+                        Select <strong>Zone → State → District → Organization → KVK</strong> in order. Higher-level selections filter the options below.
+                    </p>
+                )}
+
+                {/* Super Admin: Zone → State → District cascade - select in order */}
                 {!isSubAdmin && showZoneField && (
                     <div>
                         <label className="block text-sm font-medium text-[#487749] mb-2">
@@ -821,7 +847,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                     stateId: '',
                                     districtId: '',
                                     orgId: '',
+                                    kvkId: '',
                                 }))
+                                setKvks([])
                             }}
                             className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
                                 errors.zoneId
@@ -862,7 +890,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                     stateId: stateId as number | '',
                                     districtId: '',
                                     orgId: '',
+                                    kvkId: '',
                                 }))
+                                setKvks([])
                             }}
                             className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
                                 errors.stateId
@@ -906,7 +936,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 setFormData(prev => ({
                                     ...prev,
                                     districtId: districtId as number | '',
+                                    kvkId: '',
                                 }))
+                                setKvks([])
                             }}
                             className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
                                 errors.districtId
@@ -946,6 +978,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             onChange={e => {
                                 const orgId = e.target.value ? parseInt(e.target.value) : ''
                                 handleChange('orgId', orgId)
+                                // Reset dependent fields
+                                setFormData(prev => ({
+                                    ...prev,
+                                    orgId: orgId as number | '',
+                                    kvkId: '',
+                                }))
+                                setKvks([])
                             }}
                             className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
                                 errors.orgId
@@ -992,9 +1031,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                     : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
                             } ${isSubmitting || submitSuccess ? 'opacity-50 cursor-not-allowed' : ''}`}
                             required={kvkRequired}
-                            disabled={isSubmitting || submitSuccess}
+                            disabled={isSubmitting || submitSuccess || (!isSubAdmin && !formData.orgId)}
                         >
-                            <option value="">Select a KVK</option>
+                            <option value="">
+                                {!isSubAdmin && !formData.orgId ? 'Select zone, state, district and organization first' : 'Select a KVK'}
+                            </option>
                             {kvks.map(kvk => (
                                 <option key={kvk.kvkId} value={kvk.kvkId}>
                                     {kvk.kvkName}
@@ -1005,7 +1046,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             <p className="mt-1.5 text-xs text-[#757575]">
                                 {isSubAdmin 
                                     ? 'No KVKs available for your location'
-                                    : 'No KVKs found. Please select state, district, or organization first.'}
+                                    : 'No KVKs found. Please select Zone, State, District and Organization first.'}
                             </p>
                         )}
                         {errors.kvkId && (

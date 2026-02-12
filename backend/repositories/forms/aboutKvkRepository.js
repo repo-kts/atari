@@ -47,9 +47,6 @@ const ENTITY_CONFIG = {
             kvk: {
                 select: { kvkId: true, kvkName: true }
             },
-            originalKvk: {
-                select: { kvkId: true, kvkName: true }
-            },
             sanctionedPost: {
                 select: { sanctionedPostId: true, postName: true }
             },
@@ -65,9 +62,6 @@ const ENTITY_CONFIG = {
         nameField: 'staffName',
         includes: {
             kvk: {
-                select: { kvkId: true, kvkName: true }
-            },
-            originalKvk: {
                 select: { kvkId: true, kvkName: true }
             },
             sanctionedPost: {
@@ -158,6 +152,11 @@ function getEntityConfig(entityName) {
 
 async function findAll(entityName, options = {}, user = null) {
     const config = getEntityConfig(entityName);
+    const model = prisma[config.model];
+    if (!model) {
+        console.warn(`[AboutKVK] Prisma model '${config.model}' not found - schema may need regeneration. Returning empty.`);
+        return { data: [], total: 0 };
+    }
     const {
         page = 1,
         limit = 100,
@@ -242,9 +241,10 @@ async function findAll(entityName, options = {}, user = null) {
         }
     }
 
-    if (entityName === 'kvk-equipments' || entityName === 'kvk-equipment-details') {
-        where.type = 'EQUIPMENT';
-    }
+    // Note: Generated Prisma schema may not have 'type' field on KvkEquipment - omit filter if not present
+    // if (entityName === 'kvk-equipments' || entityName === 'kvk-equipment-details') {
+    //     where.type = 'EQUIPMENT';
+    // }
 
     // For staff-transferred with sourceKvkIds filter, we need to handle JSON array filtering
     // Prisma's JSON filtering varies by database, so we'll fetch and filter if needed
@@ -253,7 +253,7 @@ async function findAll(entityName, options = {}, user = null) {
     if (entityName === 'kvk-staff-transferred' && filters.sourceKvkIds) {
         // Fetch all transferred employees and filter in memory
         // This is less efficient but works across all databases
-        const allData = await prisma[config.model].findMany({
+        const allData = await model.findMany({
             where: {
                 transferStatus: 'TRANSFERRED',
                 ...(search && config.nameField ? {
@@ -296,7 +296,7 @@ async function findAll(entityName, options = {}, user = null) {
         }
         
         [data, total] = await Promise.all([
-            prisma[config.model].findMany({
+            model.findMany({
                 where,
                 include: config.includes,
                 skip,
@@ -305,7 +305,7 @@ async function findAll(entityName, options = {}, user = null) {
                     [actualSortBy]: sortOrder,
                 },
             }),
-            prisma[config.model].count({ where }),
+            model.count({ where }),
         ]);
         
         // Debug log for kvk-employees to verify results
@@ -342,10 +342,11 @@ async function findById(entityName, id) {
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
 
-    // Auto-set type for equipments/farm implements if not present
-    if (entityName === 'kvk-equipments' || entityName === 'kvk-equipment-details') {
-        data.type = 'EQUIPMENT';
-    }
+    // Auto-set type for equipments/farm implements if schema has type field
+    // (Generated schema may not include type - omit if Prisma validation fails)
+    // if (entityName === 'kvk-equipments' || entityName === 'kvk-equipment-details') {
+    //     data.type = 'EQUIPMENT';
+    // }
 
     // For vehicle-details and equipment-details: if vehicleId/equipmentId is provided,
     // update the existing record instead of creating a new one
