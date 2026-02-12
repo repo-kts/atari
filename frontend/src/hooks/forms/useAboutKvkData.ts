@@ -227,12 +227,13 @@ export function useKvkInfrastructure(params?: any) {
 
 export function useKvkVehicles(params?: any) {
     const { user } = useAuth();
+    const queryClient = useQueryClient();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-vehicles', params, user),
         queryFn: () => aboutKvkApi.getKvkVehicles(params).then(res => res.data),
     });
 
-    const mutations = useEntityMutation<KvkVehicleFormData>(
+    const baseMutations = useEntityMutation<KvkVehicleFormData>(
         buildQueryKey('kvk-vehicles', undefined, user),
         {
             create: aboutKvkApi.createKvkVehicle,
@@ -241,6 +242,29 @@ export function useKvkVehicles(params?: any) {
         },
         [buildQueryKey('kvk-vehicle-details', undefined, user)]
     );
+
+    // Wrap mutations to also invalidate dropdown queries
+    const mutations = {
+        ...baseMutations,
+        create: async (data: KvkVehicleFormData) => {
+            const result = await baseMutations.create(data);
+            // Invalidate all vehicle dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-vehicles-dropdown'] });
+            return result;
+        },
+        update: async ({ id, data }: { id: number; data: Partial<KvkVehicleFormData> }) => {
+            const result = await baseMutations.update({ id, data });
+            // Invalidate all vehicle dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-vehicles-dropdown'] });
+            return result;
+        },
+        remove: async (id: number) => {
+            const result = await baseMutations.remove(id);
+            // Invalidate all vehicle dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-vehicles-dropdown'] });
+            return result;
+        },
+    };
 
     return {
         data: query.data || [],
@@ -281,12 +305,13 @@ export function useKvkVehicleDetails(params?: any) {
 
 export function useKvkEquipments(params?: any) {
     const { user } = useAuth();
+    const queryClient = useQueryClient();
     const query = useQuery({
         queryKey: buildQueryKey('kvk-equipments', params, user),
         queryFn: () => aboutKvkApi.getKvkEquipments(params).then(res => res.data),
     });
 
-    const mutations = useEntityMutation<KvkEquipmentFormData>(
+    const baseMutations = useEntityMutation<KvkEquipmentFormData>(
         buildQueryKey('kvk-equipments', undefined, user),
         {
             create: aboutKvkApi.createKvkEquipment,
@@ -295,6 +320,29 @@ export function useKvkEquipments(params?: any) {
         },
         [buildQueryKey('kvk-equipment-details', undefined, user)]
     );
+
+    // Wrap mutations to also invalidate dropdown queries
+    const mutations = {
+        ...baseMutations,
+        create: async (data: KvkEquipmentFormData) => {
+            const result = await baseMutations.create(data);
+            // Invalidate all equipment dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-equipments-dropdown'] });
+            return result;
+        },
+        update: async ({ id, data }: { id: number; data: Partial<KvkEquipmentFormData> }) => {
+            const result = await baseMutations.update({ id, data });
+            // Invalidate all equipment dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-equipments-dropdown'] });
+            return result;
+        },
+        remove: async (id: number) => {
+            const result = await baseMutations.remove(id);
+            // Invalidate all equipment dropdown queries
+            queryClient.invalidateQueries({ queryKey: ['kvk-equipments-dropdown'] });
+            return result;
+        },
+    };
 
     return {
         data: query.data || [],
@@ -365,16 +413,16 @@ export function useTransferEmployee() {
     const { user } = useAuth();
 
     return useMutation({
-        mutationFn: ({ 
-            staffId, 
-            targetKvkId, 
-            reason, 
-            notes 
-        }: { 
-            staffId: number; 
-            targetKvkId: number; 
-            reason?: string; 
-            notes?: string 
+        mutationFn: ({
+            staffId,
+            targetKvkId,
+            reason,
+            notes
+        }: {
+            staffId: number;
+            targetKvkId: number;
+            reason?: string;
+            notes?: string
         }) => aboutKvkApi.transferKvkEmployee(staffId, targetKvkId, reason, notes),
         onSuccess: () => {
             // Invalidate employee queries to refetch
@@ -389,7 +437,7 @@ export function useTransferEmployee() {
  */
 export function useStaffTransferHistory(staffId: number | null) {
     const { user } = useAuth();
-    
+
     return useQuery({
         queryKey: buildQueryKey('staff-transfer-history', { staffId }, user),
         queryFn: () => aboutKvkApi.getStaffTransferHistory(staffId!, { limit: 100 }).then(res => res.data),

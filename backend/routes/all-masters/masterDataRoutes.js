@@ -41,10 +41,19 @@ router.delete('/districts/:id', requireRole(adminWriteRoles), masterDataControll
 // ============ ORGANIZATIONS ============
 router.get('/organizations', requireRole(adminReadRoles), masterDataController.getAllOrganizations);
 router.get('/organizations/:id', requireRole(adminReadRoles), masterDataController.getOrganizationById);
-router.get('/organizations/state/:stateId', requireRole(adminReadRoles), masterDataController.getOrganizationsByState);
+// router.get('/organizations/state/:stateId', requireRole(adminReadRoles), masterDataController.getOrganizationsByState);
+router.get('/organizations/district/:districtId', requireRole(adminReadRoles), masterDataController.getOrganizationsByDistrict);
 router.post('/organizations', requireRole(adminWriteRoles), masterDataController.createOrganization);
 router.put('/organizations/:id', requireRole(adminWriteRoles), masterDataController.updateOrganization);
 router.delete('/organizations/:id', requireRole(adminWriteRoles), masterDataController.deleteOrganization);
+
+// ============ UNIVERSITIES ============
+router.get('/universities', masterDataController.getAllUniversities);
+router.get('/universities/:id', masterDataController.getUniversityById);
+router.get('/universities/organization/:orgId', masterDataController.getUniversitiesByOrganization);
+router.post('/universities', masterDataController.createUniversity);
+router.put('/universities/:id', masterDataController.updateUniversity);
+router.delete('/universities/:id', masterDataController.deleteUniversity);
 
 // ============ UTILITY ============
 router.get('/master-data/stats', requireRole(adminReadRoles), masterDataController.getStats);

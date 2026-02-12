@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { getRoleLabel } from '../../services/userApi'
+import { getRoleLabel, type RoleInfo } from '../../services/userApi'
 import { useRoles } from '../../hooks/useUserManagement'
 import { outranksOrEqual } from '../../constants/roleHierarchy'
 import { Plus, MoreVertical, Pencil, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
+import { useConfirm } from '@/hooks/useConfirm'
+import { useAlert } from '@/hooks/useAlert'
 
 const PAGE_SIZE = 10
 
@@ -28,6 +30,10 @@ export const RoleManagement: React.FC = () => {
     // Fetch roles using TanStack Query
     const { data: roles = [], isLoading, error: queryError } = useRoles()
     const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load roles') : null
+
+    // Modal hooks
+    const { confirm, ConfirmDialog } = useConfirm()
+    const { alert, AlertDialog } = useAlert()
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -72,7 +78,11 @@ export const RoleManagement: React.FC = () => {
     }
 
     const handleAddRole = () => {
-        alert('Add Role – coming soon')
+        alert({
+            title: 'Coming Soon',
+            message: 'Add Role – coming soon',
+            variant: 'info',
+        })
     }
 
     const handleAddEditPermission = (role: RoleInfo) => {
@@ -82,13 +92,31 @@ export const RoleManagement: React.FC = () => {
 
     const handleEdit = (role: RoleInfo) => {
         setOpenActionId(null)
-        alert(`Edit "${getRoleLabel(role.roleName)}" – coming soon`)
+        alert({
+            title: 'Coming Soon',
+            message: `Edit "${getRoleLabel(role.roleName)}" – coming soon`,
+            variant: 'info',
+        })
     }
 
     const handleDelete = (role: RoleInfo) => {
         setOpenActionId(null)
-        if (!confirm(`Delete role "${getRoleLabel(role.roleName)}"? This may affect existing users.`)) return
-        alert('Delete role – coming soon')
+        confirm(
+            {
+                title: 'Delete Role',
+                message: `Delete role "${getRoleLabel(role.roleName)}"? This may affect existing users.`,
+                variant: 'danger',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            },
+            () => {
+                alert({
+                    title: 'Coming Soon',
+                    message: 'Delete role – coming soon',
+                    variant: 'info',
+                })
+            }
+        )
     }
 
     return (
@@ -305,6 +333,10 @@ export const RoleManagement: React.FC = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Modals */}
+            <ConfirmDialog />
+            <AlertDialog />
         </div>
     )
 }

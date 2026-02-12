@@ -18,7 +18,6 @@ model StateMaster {
   stateName String           @map("state_name")
   zoneId    Int
   districts DistrictMaster[]
-  orgs      OrgMaster[]
   zone      Zone             @relation(fields: [zoneId], references: [zoneId])
   users     User[]
   kvks      Kvk[]
@@ -36,6 +35,7 @@ model DistrictMaster {
   zoneId       Int
   state        StateMaster @relation(fields: [stateId], references: [stateId])
   zone         Zone        @relation(fields: [zoneId], references: [zoneId])
+  orgs         OrgMaster[]
   users        User[]
   kvks         Kvk[]
 
@@ -47,15 +47,30 @@ model DistrictMaster {
 }
 
 model OrgMaster {
-  orgId   Int         @id @default(autoincrement()) @map("org_id")
-  uniName String      @map("uni_name")
-  stateId Int
-  state   StateMaster @relation(fields: [stateId], references: [stateId])
-  users   User[]
-  kvks    Kvk[]
+  orgId        Int              @id @default(autoincrement()) @map("org_id")
+  orgName      String?          @map("org_name")
+  districtId   Int?             @map("district_id")
+  district     DistrictMaster?  @relation(fields: [districtId], references: [districtId])
+  universities UniversityMaster[]
+  users        User[]
+  kvks         Kvk[]
 
   @@index([orgId])
-  @@index([stateId])
-  @@index([uniName])
+  @@index([districtId])
+  @@index([orgName])
   @@map("orgMaster")
+}
+
+model UniversityMaster {
+  universityId   Int         @id @default(autoincrement()) @map("university_id")
+  universityName String     @map("university_name")
+  orgId          Int         @map("org_id")
+  organization   OrgMaster   @relation(fields: [orgId], references: [orgId])
+  kvks           Kvk[]
+  users          User[]
+
+  @@index([universityId])
+  @@index([orgId])
+  @@index([universityName])
+  @@map("universityMaster")
 }

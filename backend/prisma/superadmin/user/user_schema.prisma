@@ -88,6 +88,7 @@ model User {
   stateId      Int?      @map("state_id")
   districtId   Int?      @map("district_id")
   orgId        Int?      @map("org_id")
+  universityId Int?      @map("university_id")
   kvkId        Int?      @map("kvk_id")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
@@ -98,11 +99,12 @@ model User {
   refreshTokens   RefreshToken[]
   userPermissions UserPermission[]
   transfersPerformed StaffTransferHistory[]
-  district        DistrictMaster? @relation(fields: [districtId], references: [districtId])
-  org             OrgMaster?      @relation(fields: [orgId], references: [orgId])
-  role            Role            @relation(fields: [roleId], references: [roleId])
-  state           StateMaster?    @relation(fields: [stateId], references: [stateId])
-  zone            Zone?           @relation(fields: [zoneId], references: [zoneId])
+  district        DistrictMaster?    @relation(fields: [districtId], references: [districtId])
+  org             OrgMaster?         @relation(fields: [orgId], references: [orgId])
+  university      UniversityMaster?  @relation(fields: [universityId], references: [universityId])
+  role            Role               @relation(fields: [roleId], references: [roleId])
+  state           StateMaster?       @relation(fields: [stateId], references: [stateId])
+  zone            Zone?              @relation(fields: [zoneId], references: [zoneId])
 
   @@index([email, deletedAt])
   @@index([roleId])
@@ -111,6 +113,7 @@ model User {
   @@index([stateId])
   @@index([districtId])
   @@index([orgId])
+  @@index([universityId])
   @@index([lastLoginAt])
   @@index([kvkId])
   @@index([name])

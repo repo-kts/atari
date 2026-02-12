@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { masterDataApi } from '../services/masterDataApi';
 import { useAuth } from '../contexts/AuthContext';
 import type {
@@ -8,20 +9,23 @@ import type {
     State,
     District,
     Organization,
+    University,
     QueryParams,
     CreateZoneDto,
     CreateStateDto,
     CreateDistrictDto,
     CreateOrganizationDto,
+    CreateUniversityDto,
     UpdateZoneDto,
     UpdateStateDto,
     UpdateDistrictDto,
     UpdateOrganizationDto,
+    UpdateUniversityDto,
 } from '../types/masterData';
 
-type EntityData = Zone | State | District | Organization;
-type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto;
-type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto;
+type EntityData = Zone | State | District | Organization | University;
+type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto | CreateUniversityDto;
+type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto | UpdateUniversityDto;
 
 // API call mapping
 const apiCalls = {
@@ -29,7 +33,7 @@ const apiCalls = {
         getAll: (params?: QueryParams) => masterDataApi.getZones(params),
         create: (data: CreateZoneDto) => masterDataApi.createZone(data),
         update: (id: number, data: UpdateZoneDto) => masterDataApi.updateZone(id, data),
-        delete: (id: number) => masterDataApi.deleteZone(id),
+        delete: (id: number, cascade?: boolean) => masterDataApi.deleteZone(id, cascade),
     },
     states: {
         getAll: (params?: QueryParams) => masterDataApi.getStates(params),
@@ -47,7 +51,13 @@ const apiCalls = {
         getAll: (params?: QueryParams) => masterDataApi.getOrganizations(params),
         create: (data: CreateOrganizationDto) => masterDataApi.createOrganization(data),
         update: (id: number, data: UpdateOrganizationDto) => masterDataApi.updateOrganization(id, data),
-        delete: (id: number) => masterDataApi.deleteOrganization(id),
+        delete: (id: number, cascade?: boolean) => masterDataApi.deleteOrganization(id, cascade),
+    },
+    universities: {
+        getAll: (params?: QueryParams) => masterDataApi.getUniversities(params),
+        create: (data: CreateUniversityDto) => masterDataApi.createUniversity(data),
+        update: (id: number, data: UpdateUniversityDto) => masterDataApi.updateUniversity(id, data),
+        delete: (id: number) => masterDataApi.deleteUniversity(id),
     },
 };
 
@@ -55,20 +65,34 @@ const apiCalls = {
  * Generic hook for master data CRUD operations using TanStack Query
  * Replaces Zustand store with React Query for better caching and state management
  */
-export function useMasterData<T extends EntityData>(entityType: EntityType) {
+export function useMasterData<T extends EntityData>(
+    entityType: EntityType,
+    options?: { enabled?: boolean }
+) {
     const queryClient = useQueryClient();
     const { user } = useAuth();
     const [params, setParams] = useState<QueryParams | undefined>();
     const queryKey = ['master-data', entityType, params, user?.userId, user?.role];
 
-    // Query for fetching data
+    // Query for fetching data with error handling
     const query = useQuery({
         queryKey,
         queryFn: async () => {
-            const response = await apiCalls[entityType].getAll(params);
-            return response.data as T[];
+            try {
+                const response = await apiCalls[entityType].getAll(params);
+                return response.data as T[];
+            } catch (error) {
+                console.error(`Error fetching ${entityType}:`, error);
+                // Return empty array on error instead of throwing
+                // This prevents the app from getting stuck
+                return [] as T[];
+            }
         },
+        enabled: options?.enabled !== false, // Default to true, can be disabled
         staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: 1, // Only retry once
+        retryDelay: 1000, // Wait 1 second before retry
+        refetchOnWindowFocus: false, // Don't refetch on window focus to avoid stuck states
     });
 
     // Create mutation
@@ -97,8 +121,13 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
 
     // Delete mutation
     const deleteMutation = useMutation({
-        mutationFn: async (id: number) => {
-            await apiCalls[entityType].delete(id);
+        mutationFn: async ({ id, cascade }: { id: number; cascade?: boolean }) => {
+            // For zones and organizations, pass cascade parameter
+            if (entityType === 'zones' || entityType === 'organizations') {
+                await apiCalls[entityType].delete(id, cascade || false);
+            } else {
+                await apiCalls[entityType].delete(id);
+            }
         },
         onSuccess: () => {
             // Invalidate all param variants for this entity type
@@ -108,7 +137,7 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
 
     return {
         data: (query.data || []) as T[],
-        loading: query.isLoading,
+        loading: query.isLoading && !query.isError, // Don't show loading if there's an error
         error: query.error ? (query.error instanceof Error ? query.error.message : 'Failed to fetch data') : null,
         filters: {}, // Filters are now handled via params in query
         fetchAll: async (newParams?: QueryParams) => {
@@ -121,8 +150,8 @@ export function useMasterData<T extends EntityData>(entityType: EntityType) {
         update: async (id: number, data: UpdateDto) => {
             return await updateMutation.mutateAsync({ id, data });
         },
-        remove: async (id: number) => {
-            await deleteMutation.mutateAsync(id);
+        remove: async (id: number, cascade?: boolean) => {
+            await deleteMutation.mutateAsync({ id, cascade });
         },
         setFilters: () => {
             // Filters are now handled via params in fetchAll
@@ -146,7 +175,7 @@ export function useRelatedData() {
     const { user } = useAuth();
     const queryClient = useQueryClient();
 
-    const getStatesByZone = async (zoneId: number) => {
+    const getStatesByZone = useCallback(async (zoneId: number) => {
         const queryKey = ['master-data', 'states-by-zone', zoneId, user?.userId, user?.role];
         const cached = queryClient.getQueryData(queryKey);
         if (cached) return cached as State[];
@@ -154,9 +183,9 @@ export function useRelatedData() {
         const response = await masterDataApi.getStatesByZone(zoneId);
         queryClient.setQueryData(queryKey, response.data);
         return response.data;
-    };
+    }, [user?.userId, user?.role, queryClient]);
 
-    const getDistrictsByState = async (stateId: number) => {
+    const getDistrictsByState = useCallback(async (stateId: number) => {
         const queryKey = ['master-data', 'districts-by-state', stateId, user?.userId, user?.role];
         const cached = queryClient.getQueryData(queryKey);
         if (cached) return cached as District[];
@@ -164,41 +193,58 @@ export function useRelatedData() {
         const response = await masterDataApi.getDistrictsByState(stateId);
         queryClient.setQueryData(queryKey, response.data);
         return response.data;
-    };
+    }, [user?.userId, user?.role, queryClient]);
 
-    const getOrganizationsByState = async (stateId: number) => {
-        const queryKey = ['master-data', 'organizations-by-state', stateId, user?.userId, user?.role];
+    const getOrganizationsByDistrict = useCallback(async (districtId: number) => {
+        const queryKey = ['master-data', 'organizations-by-district', districtId, user?.userId, user?.role];
         const cached = queryClient.getQueryData(queryKey);
         if (cached) return cached as Organization[];
 
-        const response = await masterDataApi.getOrganizationsByState(stateId);
+        const response = await masterDataApi.getOrganizationsByDistrict(districtId);
         queryClient.setQueryData(queryKey, response.data);
         return response.data;
-    };
+    }, [user?.userId, user?.role, queryClient]);
+
+    const getUniversitiesByOrganization = useCallback(async (orgId: number) => {
+        const queryKey = ['master-data', 'universities-by-organization', orgId, user?.userId, user?.role];
+        const cached = queryClient.getQueryData(queryKey);
+        if (cached) return cached as University[];
+
+        const response = await masterDataApi.getUniversitiesByOrganization(orgId);
+        queryClient.setQueryData(queryKey, response.data);
+        return response.data;
+    }, [user?.userId, user?.role, queryClient]);
 
     // Computed selectors - now using query cache
-    const getStatesByZoneFromStore = (zoneId: number): State[] => {
+    const getStatesByZoneFromStore = useCallback((zoneId: number): State[] => {
         const queryKey = ['master-data', 'states-by-zone', zoneId, user?.userId, user?.role];
         return (queryClient.getQueryData(queryKey) as State[]) || [];
-    };
+    }, [user?.userId, user?.role, queryClient]);
 
-    const getDistrictsByStateFromStore = (stateId: number): District[] => {
+    const getDistrictsByStateFromStore = useCallback((stateId: number): District[] => {
         const queryKey = ['master-data', 'districts-by-state', stateId, user?.userId, user?.role];
         return (queryClient.getQueryData(queryKey) as District[]) || [];
-    };
+    }, [user?.userId, user?.role, queryClient]);
 
-    const getOrganizationsByStateFromStore = (stateId: number): Organization[] => {
-        const queryKey = ['master-data', 'organizations-by-state', stateId, user?.userId, user?.role];
+    const getOrganizationsByDistrictFromStore = useCallback((districtId: number): Organization[] => {
+        const queryKey = ['master-data', 'organizations-by-district', districtId, user?.userId, user?.role];
         return (queryClient.getQueryData(queryKey) as Organization[]) || [];
-    };
+    }, [user?.userId, user?.role, queryClient]);
+
+    const getUniversitiesByOrganizationFromStore = useCallback((orgId: number): University[] => {
+        const queryKey = ['master-data', 'universities-by-organization', orgId, user?.userId, user?.role];
+        return (queryClient.getQueryData(queryKey) as University[]) || [];
+    }, [user?.userId, user?.role, queryClient]);
 
     return {
         getStatesByZone,
         getDistrictsByState,
-        getOrganizationsByState,
+        getOrganizationsByDistrict,
+        getUniversitiesByOrganization,
         getStatesByZoneFromStore,
         getDistrictsByStateFromStore,
-        getOrganizationsByStateFromStore,
+        getOrganizationsByDistrictFromStore,
+        getUniversitiesByOrganizationFromStore,
     };
 }
 

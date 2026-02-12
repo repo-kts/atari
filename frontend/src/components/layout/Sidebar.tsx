@@ -248,6 +248,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
     const searchInputRef = useRef<HTMLInputElement>(null)
 
+    // Check if form is open (create or edit mode)
+    const isFormOpen = location.pathname.includes('/create') || location.pathname.includes('/edit/')
+
     // Roles that get admin UI
     const adminRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']
     const isAdmin = user?.role && adminRoles.includes(user.role)
@@ -456,14 +459,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     return (
         <>
-            <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#487749] transition-all duration-200"
-                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-                aria-expanded={isMobileMenuOpen}
-            >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+            {/* Hide hamburger menu when form is open */}
+            {!isFormOpen && (
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#487749] transition-all duration-200"
+                    aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+                    aria-expanded={isMobileMenuOpen}
+                >
+                    {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+            )}
 
             {isMobileMenuOpen && (
                 <div

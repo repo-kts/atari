@@ -68,7 +68,7 @@ async function seedMasterData() {
 
         // Create Districts
         console.log('Creating districts...');
-        await prisma.districtMaster.upsert({
+        const ludhianaDistrict = await prisma.districtMaster.upsert({
             where: { districtId: 1 },
             update: {},
             create: {
@@ -78,7 +78,7 @@ async function seedMasterData() {
             },
         });
 
-        await prisma.districtMaster.upsert({
+        const amritsarDistrict = await prisma.districtMaster.upsert({
             where: { districtId: 2 },
             update: {},
             create: {
@@ -88,7 +88,7 @@ async function seedMasterData() {
             },
         });
 
-        await prisma.districtMaster.upsert({
+        const gurugramDistrict = await prisma.districtMaster.upsert({
             where: { districtId: 3 },
             update: {},
             create: {
@@ -98,7 +98,7 @@ async function seedMasterData() {
             },
         });
 
-        await prisma.districtMaster.upsert({
+        const bangaloreDistrict = await prisma.districtMaster.upsert({
             where: { districtId: 4 },
             update: {},
             create: {
@@ -108,7 +108,7 @@ async function seedMasterData() {
             },
         });
 
-        await prisma.districtMaster.upsert({
+        const chennaiDistrict = await prisma.districtMaster.upsert({
             where: { districtId: 5 },
             update: {},
             create: {
@@ -122,12 +122,13 @@ async function seedMasterData() {
 
         // Create Organizations
         console.log('Creating organizations...');
+
         await prisma.orgMaster.upsert({
             where: { orgId: 1 },
             update: {},
             create: {
-                uniName: 'Punjab Agricultural University',
-                stateId: punjab.stateId,
+                orgName: 'Punjab Agricultural University',
+                districtId: ludhianaDistrict.districtId,
             },
         });
 
@@ -135,8 +136,8 @@ async function seedMasterData() {
             where: { orgId: 2 },
             update: {},
             create: {
-                uniName: 'CCS Haryana Agricultural University',
-                stateId: haryana.stateId,
+                orgName: 'CCS Haryana Agricultural University',
+                districtId: gurugramDistrict.districtId,
             },
         });
 
@@ -144,8 +145,8 @@ async function seedMasterData() {
             where: { orgId: 3 },
             update: {},
             create: {
-                uniName: 'University of Agricultural Sciences, Bangalore',
-                stateId: karnataka.stateId,
+                orgName: 'University of Agricultural Sciences, Bangalore',
+                districtId: bangaloreDistrict.districtId,
             },
         });
 
@@ -153,8 +154,8 @@ async function seedMasterData() {
             where: { orgId: 4 },
             update: {},
             create: {
-                uniName: 'Tamil Nadu Agricultural University',
-                stateId: tamilNadu.stateId,
+                orgName: 'Tamil Nadu Agricultural University',
+                districtId: chennaiDistrict.districtId,
             },
         });
 

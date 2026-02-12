@@ -100,6 +100,32 @@ class AboutKvkService {
         // Validate required fields based on entity type
         this.validateRequiredFields(entityName, data);
 
+        // Additional validation for KVK: validate university belongs to organization
+        if (entityName === 'kvks' && data.orgId) {
+            const org = await prisma.orgMaster.findUnique({
+                where: { orgId: parseInt(data.orgId) }
+            });
+            
+            if (!org) {
+                throw new Error('Organization not found');
+            }
+            
+            // Validate that university belongs to the organization
+            if (data.universityId) {
+                const university = await prisma.universityMaster.findUnique({
+                    where: { universityId: parseInt(data.universityId) }
+                });
+                
+                if (!university) {
+                    throw new Error('University not found');
+                }
+                
+                if (university.orgId !== parseInt(data.orgId)) {
+                    throw new Error('University does not belong to the selected organization');
+                }
+            }
+        }
+
         // Sanitize optional enum fields: convert empty strings to null
         const sanitizedData = this.sanitizeEnumFields(entityName, data);
         
@@ -281,6 +307,7 @@ class AboutKvkService {
     validateRequiredFields(entityName, data) {
         const requiredFields = {
             'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
+            // Note: universityId is optional (can be required based on business rules)
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
             'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],

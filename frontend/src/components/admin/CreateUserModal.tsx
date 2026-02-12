@@ -7,6 +7,7 @@ import { getRoleLevel } from '../../constants/roleHierarchy'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
+import { LoadingButton } from '../common/LoadingButton'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import type { Zone, State, District, Organization } from '../../types/masterData'
 import type { Kvk } from '../../types/aboutKvk'
@@ -47,6 +48,7 @@ interface FormData {
     stateId: number | ''
     districtId: number | ''
     orgId: number | ''
+    universityId: number | ''
     kvkId: number | ''
     permissions: PermissionAction[]
 }
@@ -82,6 +84,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         stateId: '',
         districtId: '',
         orgId: '',
+        universityId: '',
         kvkId: '',
         permissions: [],
     })
@@ -93,7 +96,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const [submitSuccess, setSubmitSuccess] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [allRoles, setAllRoles] = useState<RoleInfo[]>([])
-    
+
     // Dropdown data
     const [zones, setZones] = useState<Zone[]>([])
     const [states, setStates] = useState<State[]>([])
@@ -106,12 +109,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Allowed non-admin roles for current creator (when not Super Admin)
     const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
     const allowedRolesForDropdown = allRoles.filter(r => allowedRoleNames.includes(r.roleName))
-    
+
     // Effective role from selection (both Super Admin and other admins choose or have a role)
     const selectedRole = formData.roleId
         ? allRoles.find(r => r.roleId === formData.roleId)?.roleName ?? null
         : null
-    
+
     // Check if current user is a sub-admin (not super_admin)
     const isSubAdmin = currentUser?.role !== 'super_admin'
     const creatorLevel = getRoleLevel(currentUser?.role || '')
@@ -133,8 +136,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Show permissions section for:
     // 1. Sub-admins (always, they can only create non-admin users)
     // 2. Super Admin when creating non-admin users (state_user, district_user, org_user, kvk)
-    const showPermissionsSection = 
-        isSubAdmin || 
+    const showPermissionsSection =
+        isSubAdmin ||
         (selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole))
 
     // Fetch roles from API (required for dropdown; without roles, create cannot proceed)
@@ -146,7 +149,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 setDropdownError('Failed to load roles. You may need VIEW permission on User Management. Run: npm run seed:global-permissions')
             })
     }, [])
-    
+
     // Fetch master data when modal opens
     useEffect(() => {
         if (!isOpen) return
@@ -202,11 +205,23 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     })
                 )
             }
-            if (creatorLevel < 4 && currentUser?.stateId) {
-                // state_admin, district_admin: fetch orgs in their state
+            if (creatorLevel < 4 && currentUser?.districtId) {
+                // district_admin: fetch orgs in their district
                 promises.push(
-                    masterDataApi.getOrganizationsByState(currentUser.stateId).then(res => setOrganizations(res.data)).catch(err => {
-                        console.error('Failed to fetch organizations by state:', err)
+                    masterDataApi.getOrganizationsByDistrict(currentUser.districtId).then(res => setOrganizations(res.data)).catch(err => {
+                        console.error('Failed to fetch organizations by district:', err)
+                        errors.push('organizations')
+                    })
+                )
+            } else if (creatorLevel < 4 && currentUser?.stateId) {
+                // state_admin: fetch all orgs (will be filtered by state via district)
+                promises.push(
+                    masterDataApi.getOrganizations().then(res => {
+                        // Filter organizations by state through their district
+                        const filtered = res.data.filter(org => org.district?.state?.stateId === currentUser?.stateId)
+                        setOrganizations(filtered)
+                    }).catch(err => {
+                        console.error('Failed to fetch organizations:', err)
                         errors.push('organizations')
                     })
                 )
@@ -236,8 +251,12 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 console.error('Failed to fetch districts by state:', err)
                 errors.push('districts')
             }),
-            masterDataApi.getOrganizationsByState(stateId).then(res => setOrganizations(res.data)).catch(err => {
-                console.error('Failed to fetch organizations by state:', err)
+            masterDataApi.getOrganizations().then(res => {
+                // Filter organizations by state through their district
+                const filtered = res.data.filter(org => org.district?.state?.stateId === stateId)
+                setOrganizations(filtered)
+            }).catch(err => {
+                console.error('Failed to fetch organizations:', err)
                 errors.push('organizations')
             }),
         ]).then(() => {
@@ -246,7 +265,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             }
         })
     }, [isOpen, isSubAdmin, showStateForSubAdmin, formData.stateId])
-    
+
     // Fetch KVKs when needed (for both super admin and sub-admins creating KVK users)
     useEffect(() => {
         if (!isOpen || selectedRole !== 'kvk') return
@@ -296,6 +315,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 stateId: '',
                 districtId: '',
                 orgId: '',
+                universityId: '',
                 kvkId: '',
                 permissions: [],
             })
@@ -473,6 +493,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 orgId: isSubAdmin
                     ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
                     : (formData.orgId ? (formData.orgId as number) : null),
+                universityId: !showPermissionsSection && selectedRole === 'kvk' ? (formData.universityId ? (formData.universityId as number) : null) : null,
                 kvkId: formData.kvkId ? (formData.kvkId as number) : null,
             }
             if (showPermissionsSection && formData.permissions.length > 0) {
@@ -624,6 +645,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 stateId: '',
                                 districtId: '',
                                 orgId: '',
+                                universityId: '',
                                 kvkId: '',
                             }))
                         }}
@@ -810,11 +832,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 {showStateForSubAdmin && !formData.stateId ? 'Select a state first' : 'Select an organization'}
                             </option>
                             {(effectiveStateId
-                                ? organizations.filter(o => o.stateId === effectiveStateId)
+                                ? organizations.filter(o => o.district?.state?.stateId === effectiveStateId)
                                 : organizations
                             ).map(org => (
                                 <option key={org.orgId} value={org.orgId}>
-                                    {org.uniName}
+                                    {org.orgName}
                                 </option>
                             ))}
                         </select>
@@ -998,11 +1020,11 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                                 {showStateField && !formData.stateId ? 'Select a state first' : 'Select an organization'}
                             </option>
                             {(showStateField && formData.stateId
-                                ? organizations.filter(o => o.stateId === formData.stateId)
+                                ? organizations.filter(o => o.district?.state?.stateId === formData.stateId)
                                 : organizations
                             ).map(org => (
                                 <option key={org.orgId} value={org.orgId}>
-                                    {org.uniName}
+                                    {org.orgName}
                                 </option>
                             ))}
                         </select>
@@ -1044,7 +1066,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         </select>
                         {kvks.length === 0 && selectedRole === 'kvk' && (
                             <p className="mt-1.5 text-xs text-[#757575]">
-                                {isSubAdmin 
+                                {isSubAdmin
                                     ? 'No KVKs available for your location'
                                     : 'No KVKs found. Please select Zone, State, District and Organization first.'}
                             </p>
@@ -1067,13 +1089,15 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     >
                         Cancel
                     </Button>
-                    <Button
+                    <LoadingButton
                         type="submit"
                         variant="primary"
-                        disabled={isSubmitting || submitSuccess}
+                        isLoading={isSubmitting}
+                        loadingText="Creating..."
+                        disabled={submitSuccess}
                     >
-                        {isSubmitting ? 'Creating...' : submitSuccess ? 'Created!' : 'Create User'}
-                    </Button>
+                        {submitSuccess ? 'Created!' : 'Create User'}
+                    </LoadingButton>
                 </div>
             </form>
         </Modal>

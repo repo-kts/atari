@@ -27,8 +27,9 @@ export interface RouteConfig {
 const basicMastersPaths = [
     ENTITY_PATHS.ZONES,
     ENTITY_PATHS.STATES,
-    ENTITY_PATHS.ORGANIZATIONS,
     ENTITY_PATHS.DISTRICTS,
+    ENTITY_PATHS.ORGANIZATIONS,
+    ENTITY_PATHS.UNIVERSITIES,
 ]
 
 const oftFldMastersPaths = [
@@ -93,9 +94,18 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
-        fields: ['zoneName', 'stateName', 'uniName'],
+        fields: ['zoneName', 'stateName', 'districtName', 'orgName'],
     },
-
+    {
+        path: ENTITY_PATHS.UNIVERSITIES,
+        title: 'University Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master',
+        subcategoryPath: '/all-master/basic',
+        siblings: basicMastersPaths,
+        fields: ['organization.orgName', 'universityName'],
+    },
     {
         path: ENTITY_PATHS.DISTRICTS,
         title: 'District Master',
@@ -359,7 +369,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'hostOrganizationName', 'yearOfSanction'],
+        fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'yearOfSanction'],
         canCreate: ['super_admin'], // Only super_admin can create KVKs
     },
     {

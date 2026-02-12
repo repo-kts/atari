@@ -3,104 +3,20 @@ import { ENTITY_TYPES } from '../constants/entityTypes';
 // Extended entity type for all masters
 export type ExtendedEntityType = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
 
-// Map route paths to entity types
-export const getEntityTypeFromPath = (path: string): ExtendedEntityType | null => {
-    // Basic masters
-    if (path.includes('/zones')) return ENTITY_TYPES.ZONES
-    if (path.includes('/states')) return ENTITY_TYPES.STATES
-    if (path.includes('/districts')) return ENTITY_TYPES.DISTRICTS
-    if (path.includes('/organizations') || path.includes('/universities')) return ENTITY_TYPES.ORGANIZATIONS
+// Re-export from entityTypeUtils for backward compatibility
+import { getEntityTypeFromPathMap } from './entityTypeUtils';
+export const getEntityTypeFromPath = getEntityTypeFromPathMap;
 
-    // OFT/FLD masters
-    if (path === '/all-master/oft/subject') return ENTITY_TYPES.OFT_SUBJECTS
-    if (path === '/all-master/oft/thematic-area') return ENTITY_TYPES.OFT_THEMATIC_AREAS
-    if (path === '/all-master/fld/sector') return ENTITY_TYPES.FLD_SECTORS
-    if (path === '/all-master/fld/thematic-area') return ENTITY_TYPES.FLD_THEMATIC_AREAS
-    if (path === '/all-master/fld/category') return ENTITY_TYPES.FLD_CATEGORIES
-    if (path === '/all-master/fld/sub-category') return ENTITY_TYPES.FLD_SUBCATEGORIES
-    if (path === '/all-master/fld/crop') return ENTITY_TYPES.FLD_CROPS
-    if (path === '/all-master/cfld-crop') return ENTITY_TYPES.CFLD_CROPS
+// Re-export from idFieldMap for backward compatibility
+import { getIdFieldFromMap } from './idFieldMap';
+export const getIdField = getIdFieldFromMap;
 
-    // Training, Extension & Events masters
-    if (path === '/all-master/training-type') return ENTITY_TYPES.TRAINING_TYPES
-    if (path === '/all-master/training-area') return ENTITY_TYPES.TRAINING_AREAS
-    if (path === '/all-master/training-thematic') return ENTITY_TYPES.TRAINING_THEMATIC_AREAS
-    if (path === '/all-master/extension-activity') return ENTITY_TYPES.EXTENSION_ACTIVITIES
-    if (path === '/all-master/other-extension-activity') return ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES
-    if (path === '/all-master/events') return ENTITY_TYPES.EVENTS
+// Re-export from fieldValueUtils for backward compatibility
+import { getFieldValueConfig } from './fieldValueUtils';
+export const getFieldValue = getFieldValueConfig;
 
-    // Production & Projects masters
-    if (path === '/all-master/product-category') return ENTITY_TYPES.PRODUCT_CATEGORIES
-    if (path === '/all-master/product-type') return ENTITY_TYPES.PRODUCT_TYPES
-    if (path === '/all-master/product') return ENTITY_TYPES.PRODUCTS
-    if (path === '/all-master/cra-croping-system') return ENTITY_TYPES.CRA_CROPPING_SYSTEMS
-    if (path === '/all-master/cra-farming-system') return ENTITY_TYPES.CRA_FARMING_SYSTEMS
-    if (path === '/all-master/arya-enterprise') return ENTITY_TYPES.ARYA_ENTERPRISES
-
-    // Publication masters
-    if (path === '/all-master/publication-item') return ENTITY_TYPES.PUBLICATION_ITEMS
-
-    // About KVK entities
-    if (path === '/forms/about-kvk/bank-account') return ENTITY_TYPES.KVK_BANK_ACCOUNTS
-    if (path === '/forms/about-kvk/employee-details') return ENTITY_TYPES.KVK_EMPLOYEES
-    if (path === '/forms/about-kvk/staff-transferred') return ENTITY_TYPES.KVK_STAFF_TRANSFERRED
-    if (path === '/forms/about-kvk/infrastructure') return ENTITY_TYPES.KVK_INFRASTRUCTURE
-    if (path === '/forms/about-kvk/vehicles') return ENTITY_TYPES.KVK_VEHICLES
-    if (path === '/forms/about-kvk/vehicle-details') return ENTITY_TYPES.KVK_VEHICLE_DETAILS
-    if (path === '/forms/about-kvk/equipments') return ENTITY_TYPES.KVK_EQUIPMENTS
-    if (path === '/forms/about-kvk/equipment-details') return ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
-    if (path === '/forms/about-kvk/farm-implements') return ENTITY_TYPES.KVK_FARM_IMPLEMENTS
-    if (path === '/forms/about-kvk/details') return ENTITY_TYPES.KVKS
-    if (path === '/forms/about-kvk/view-kvks') return ENTITY_TYPES.KVKS
-
-    return null
-}
-
-// Get ID field name based on entity type
-export const getIdField = (entityType: ExtendedEntityType): string => {
-    switch (entityType) {
-        case ENTITY_TYPES.ZONES: return 'zoneId'
-        case ENTITY_TYPES.STATES: return 'stateId'
-        case ENTITY_TYPES.DISTRICTS: return 'districtId'
-        case ENTITY_TYPES.ORGANIZATIONS: return 'orgId'
-        case ENTITY_TYPES.OFT_SUBJECTS: return 'oftSubjectId'
-        case ENTITY_TYPES.OFT_THEMATIC_AREAS: return 'oftThematicAreaId'
-        case ENTITY_TYPES.FLD_SECTORS: return 'sectorId'
-        case ENTITY_TYPES.FLD_THEMATIC_AREAS: return 'thematicAreaId'
-        case ENTITY_TYPES.FLD_CATEGORIES: return 'categoryId'
-        case ENTITY_TYPES.FLD_SUBCATEGORIES: return 'subCategoryId'
-        case ENTITY_TYPES.FLD_CROPS: return 'cropId'
-        case ENTITY_TYPES.CFLD_CROPS: return 'cfldId'
-        case ENTITY_TYPES.TRAINING_TYPES: return 'trainingTypeId'
-        case ENTITY_TYPES.TRAINING_AREAS: return 'trainingAreaId'
-        case ENTITY_TYPES.TRAINING_THEMATIC_AREAS: return 'trainingThematicAreaId'
-        case ENTITY_TYPES.EXTENSION_ACTIVITIES: return 'extensionActivityId'
-        case ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES: return 'otherExtensionActivityId'
-        case ENTITY_TYPES.EVENTS: return 'eventId'
-        case ENTITY_TYPES.PRODUCT_CATEGORIES: return 'productCategoryId'
-        case ENTITY_TYPES.PRODUCT_TYPES: return 'productTypeId'
-        case ENTITY_TYPES.PRODUCTS: return 'productId'
-        case ENTITY_TYPES.CRA_CROPPING_SYSTEMS: return 'craCropingSystemId'
-        case ENTITY_TYPES.CRA_FARMING_SYSTEMS: return 'farmingSystemId'
-        case ENTITY_TYPES.ARYA_ENTERPRISES: return 'aryaEnterpriseId'
-        case ENTITY_TYPES.PUBLICATION_ITEMS: return 'publicationId'
-        // About KVK entities
-        case ENTITY_TYPES.KVKS: return 'kvkId'
-        case ENTITY_TYPES.KVK_BANK_ACCOUNTS: return 'bankAccountId'
-        case ENTITY_TYPES.KVK_EMPLOYEES: return 'kvkStaffId'
-        case ENTITY_TYPES.KVK_STAFF_TRANSFERRED: return 'kvkStaffId'
-        case ENTITY_TYPES.KVK_INFRASTRUCTURE: return 'infraId'
-        case ENTITY_TYPES.KVK_VEHICLES: return 'vehicleId'
-        case ENTITY_TYPES.KVK_VEHICLE_DETAILS: return 'vehicleId'
-        case ENTITY_TYPES.KVK_EQUIPMENTS: return 'equipmentId'
-        case ENTITY_TYPES.KVK_EQUIPMENT_DETAILS: return 'equipmentId'
-        case ENTITY_TYPES.KVK_FARM_IMPLEMENTS: return 'implementId'
-        default: return 'id'
-    }
-}
-
-// Get field value from item, handling nested objects
-export const getFieldValue = (item: any, field: string): string => {
+// Legacy implementation (kept for reference, will be removed)
+const getFieldValueLegacy = (item: any, field: string): string => {
     // Handle date fields first (before early return)
     if (field === 'dateOfJoining') {
         if (!item.dateOfJoining) return '-'
@@ -160,11 +76,45 @@ export const getFieldValue = (item: any, field: string): string => {
     if (field === 'zoneName') {
         // For states and districts: item.zone.zoneName
         if (item.zone?.zoneName) return item.zone.zoneName
-        // For organizations: item.state.zone.zoneName
+        // For organizations: item.district.state.zone.zoneName
+        if (item.district?.state?.zone?.zoneName) return item.district.state.zone.zoneName
+        // Legacy: item.state.zone.zoneName (for backward compatibility)
         if (item.state?.zone?.zoneName) return item.state.zone.zoneName
     }
 
-    if (field === 'stateName' && item.state?.stateName) return item.state.stateName
+    if (field === 'stateName') {
+        // For districts: item.state.stateName
+        if (item.state?.stateName) return item.state.stateName
+        // For organizations: item.district.state.stateName
+        if (item.district?.state?.stateName) return item.district.state.stateName
+    }
+
+    if (field === 'districtName') {
+        // Direct field
+        if (item.districtName) return item.districtName
+        // Nested: item.district.districtName
+        if (item.district?.districtName) return item.district.districtName
+    }
+
+    if (field === 'orgName') {
+        // Direct field
+        if (item.orgName) return item.orgName
+    }
+
+
+    if (field === 'universityName') {
+        // Direct field
+        if (item.universityName) return item.universityName
+    }
+
+    // Handle nested organization.orgName for universities
+    if (field === 'organization.orgName' || field === 'organizationName') {
+        if (item.organization?.orgName) return item.organization.orgName
+        // Legacy: item.organization.uniName (for backward compatibility)
+        if (item.organization?.uniName) return item.organization.uniName
+    }
+
+    // Legacy support
     if (field === 'uniName' && item.uniName) return item.uniName
 
 
@@ -229,7 +179,7 @@ export const getFieldValue = (item: any, field: string): string => {
     if (field === 'casteName') return item.caste?.caste_name || item.cast_category || '-'
     if (field === 'kvkName') return item.kvk?.kvkName || item.kvkName || '-'
     if (field === 'kvk') return item.kvk?.kvkName || '-'
-    if (field === 'organizationName') return item.organization?.uniName || item.uniName || '-'
+    if (field === 'organizationName') return item.org?.orgName || item.organization?.orgName || item.organization?.uniName || item.uniName || '-'
     if (field === 'districtName') {
         if (item.districtName) return item.districtName
         if (item.district?.districtName) return item.district.districtName

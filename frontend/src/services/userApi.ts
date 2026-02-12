@@ -16,6 +16,7 @@ export interface CreateUserData {
   stateId?: number | null;
   districtId?: number | null;
   orgId?: number | null;
+  universityId?: number | null;
   kvkId?: number | null;
   /** Required when creator is not Super Admin; at least one action */
   permissions?: PermissionAction[];

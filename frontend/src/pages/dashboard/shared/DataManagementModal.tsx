@@ -2,6 +2,7 @@ import React from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../utils/masterUtils'
+import { getEntityTypeChecks } from '../../../utils/entityTypeUtils'
 
 // Form Components
 import { BasicMasterForms } from './forms/BasicMasterForms'
@@ -35,55 +36,9 @@ export function DataManagementModal({
 
     if (!entityType) return null
 
-    // Determine which form group to show
-    const isBasicMaster = [
-        ENTITY_TYPES.ZONES,
-        ENTITY_TYPES.STATES,
-        ENTITY_TYPES.DISTRICTS,
-        ENTITY_TYPES.ORGANIZATIONS
-    ].includes(entityType as any)
-
-    const isOftFld = [
-        ENTITY_TYPES.OFT_SUBJECTS,
-        ENTITY_TYPES.OFT_THEMATIC_AREAS,
-        ENTITY_TYPES.FLD_SECTORS,
-        ENTITY_TYPES.FLD_THEMATIC_AREAS,
-        ENTITY_TYPES.FLD_CATEGORIES,
-        ENTITY_TYPES.FLD_SUBCATEGORIES,
-        ENTITY_TYPES.FLD_CROPS,
-        ENTITY_TYPES.CFLD_CROPS,
-    ].includes(entityType as any)
-
-    const isTrainingExtension = [
-        ENTITY_TYPES.TRAINING_TYPES,
-        ENTITY_TYPES.TRAINING_AREAS,
-        ENTITY_TYPES.TRAINING_THEMATIC_AREAS,
-        ENTITY_TYPES.EXTENSION_ACTIVITIES,
-        ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
-        ENTITY_TYPES.EVENTS,
-    ].includes(entityType as any)
-
-    const isProductionProject = [
-        ENTITY_TYPES.PRODUCT_CATEGORIES,
-        ENTITY_TYPES.PRODUCT_TYPES,
-        ENTITY_TYPES.PRODUCTS,
-        ENTITY_TYPES.CRA_CROPPING_SYSTEMS,
-        ENTITY_TYPES.CRA_FARMING_SYSTEMS,
-        ENTITY_TYPES.ARYA_ENTERPRISES,
-    ].includes(entityType as any)
-
-    const isAboutKvk = [
-        ENTITY_TYPES.KVK_BANK_ACCOUNTS,
-        ENTITY_TYPES.KVK_EMPLOYEES,
-        ENTITY_TYPES.KVK_STAFF_TRANSFERRED,
-        ENTITY_TYPES.KVK_INFRASTRUCTURE,
-        ENTITY_TYPES.KVK_VEHICLES,
-        ENTITY_TYPES.KVK_VEHICLE_DETAILS,
-        ENTITY_TYPES.KVK_EQUIPMENTS,
-        ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
-        ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
-        ENTITY_TYPES.KVKS,
-    ].includes(entityType as any)
+    // Use centralized entity type checks
+    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk } =
+        getEntityTypeChecks(entityType)
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 py-10 px-4" onClick={onClose}>

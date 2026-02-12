@@ -12,10 +12,12 @@ model Kvk {
   state    StateMaster    @relation(fields: [stateId], references: [stateId])
   district DistrictMaster @relation(fields: [districtId], references: [districtId])
 
-  orgId   Int        @map("org_id")
-  hostOrg String     @map("host_org_name")
+  orgId       Int                @map("org_id")
+  universityId Int?              @map("university_id")
+  hostOrg     String            @map("host_org_name")
 
-  org OrgMaster @relation(fields: [orgId], references: [orgId])
+  org        OrgMaster          @relation(fields: [orgId], references: [orgId])
+  university UniversityMaster?  @relation(fields: [universityId], references: [universityId])
 
   mobile  String @map("mobile")
   email   String @map("email")
@@ -44,6 +46,7 @@ model Kvk {
   @@index([stateId])
   @@index([districtId])
   @@index([orgId])
+  @@index([universityId])
   @@index([kvkName])
   @@index([email])
   @@map("kvk")

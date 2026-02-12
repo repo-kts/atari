@@ -109,8 +109,10 @@ async function updateZone(req, res) {
  */
 async function deleteZone(req, res) {
     try {
-        await masterDataService.deleteEntity('zones', req.params.id, req.user.userId);
-        return successResponse(res, { message: 'Zone deleted successfully' });
+        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
+        await masterDataService.deleteEntity('zones', req.params.id, req.user.userId, cascade);
+        return successResponse(res, { message: cascade ? 'Zone and all related records deleted successfully' : 'Zone deleted successfully' });
     } catch (error) {
         console.error('Error in deleteZone:', error);
         const statusCode = error.message.includes('not found') ? 404 :
@@ -204,8 +206,10 @@ async function updateState(req, res) {
  */
 async function deleteState(req, res) {
     try {
-        await masterDataService.deleteEntity('states', req.params.id, req.user.userId);
-        return successResponse(res, { message: 'State deleted successfully' });
+        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
+        await masterDataService.deleteEntity('states', req.params.id, req.user.userId, cascade);
+        return successResponse(res, { message: cascade ? 'State and all related records deleted successfully' : 'State deleted successfully' });
     } catch (error) {
         console.error('Error in deleteState:', error);
         const statusCode = error.message.includes('not found') ? 404 :
@@ -303,8 +307,10 @@ async function updateDistrict(req, res) {
  */
 async function deleteDistrict(req, res) {
     try {
-        await masterDataService.deleteEntity('districts', req.params.id, req.user.userId);
-        return successResponse(res, { message: 'District deleted successfully' });
+        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
+        await masterDataService.deleteEntity('districts', req.params.id, req.user.userId, cascade);
+        return successResponse(res, { message: cascade ? 'District and all related records deleted successfully' : 'District deleted successfully' });
     } catch (error) {
         console.error('Error in deleteDistrict:', error);
         const statusCode = error.message.includes('not found') ? 404 :
@@ -320,13 +326,16 @@ async function deleteDistrict(req, res) {
  */
 async function getAllOrganizations(req, res) {
     try {
+        const filters = {};
+        if (req.query.districtId) filters.districtId = parseInt(req.query.districtId);
+
         const options = {
             page: req.query.page,
             limit: req.query.limit,
             search: req.query.search,
             sortBy: req.query.sortBy,
             sortOrder: req.query.sortOrder,
-            filters: req.query.stateId ? { stateId: parseInt(req.query.stateId) } : {},
+            filters,
         };
 
         const result = await masterDataService.getAllEntities('organizations', options);
@@ -352,14 +361,14 @@ async function getOrganizationById(req, res) {
 }
 
 /**
- * Get organizations by state
+ * Get organizations by district
  */
-async function getOrganizationsByState(req, res) {
+async function getOrganizationsByDistrict(req, res) {
     try {
-        const organizations = await masterDataService.getOrgsByState(req.params.stateId);
+        const organizations = await masterDataService.getOrgsByDistrict(req.params.districtId);
         return successResponse(res, organizations);
     } catch (error) {
-        console.error('Error in getOrganizationsByState:', error);
+        console.error('Error in getOrganizationsByDistrict:', error);
         return errorResponse(res, error);
     }
 }
@@ -398,12 +407,116 @@ async function updateOrganization(req, res) {
  */
 async function deleteOrganization(req, res) {
     try {
-        await masterDataService.deleteEntity('organizations', req.params.id, req.user.userId);
-        return successResponse(res, { message: 'Organization deleted successfully' });
+        // Check cascade parameter from query string or body
+        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
+                
+        await masterDataService.deleteEntity('organizations', req.params.id, req.user.userId, cascade);
+        return successResponse(res, { message: cascade ? 'Organization and all related records deleted successfully' : 'Organization deleted successfully' });
     } catch (error) {
         console.error('Error in deleteOrganization:', error);
         const statusCode = error.message.includes('not found') ? 404 :
             error.message.includes('dependent') ? 409 : 400;
+        return errorResponse(res, error, statusCode);
+    }
+}
+
+// ============ UNIVERSITIES ============
+
+/**
+ * Get all universities
+ */
+async function getAllUniversities(req, res) {
+    try {
+        const filters = {};
+        if (req.query.orgId) filters.orgId = parseInt(req.query.orgId);
+
+        const options = {
+            page: req.query.page,
+            limit: req.query.limit,
+            search: req.query.search,
+            sortBy: req.query.sortBy,
+            sortOrder: req.query.sortOrder,
+            filters,
+        };
+
+        const result = await masterDataService.getAllEntities('universities', options);
+        return successResponse(res, result.data, result.meta);
+    } catch (error) {
+        console.error('Error in getAllUniversities:', error);
+        return errorResponse(res, error);
+    }
+}
+
+/**
+ * Get university by ID
+ */
+async function getUniversityById(req, res) {
+    try {
+        const university = await masterDataService.getEntityById('universities', req.params.id);
+        return successResponse(res, university);
+    } catch (error) {
+        console.error('Error in getUniversityById:', error);
+        const statusCode = error.message.includes('not found') ? 404 : 500;
+        return errorResponse(res, error, statusCode);
+    }
+}
+
+/**
+ * Get universities by organization
+ */
+async function getUniversitiesByOrganization(req, res) {
+    try {
+        const universities = await masterDataService.getUniversitiesByOrg(req.params.orgId);
+        return successResponse(res, universities);
+    } catch (error) {
+        console.error('Error in getUniversitiesByOrganization:', error);
+        return errorResponse(res, error);
+    }
+}
+
+/**
+ * Create university
+ */
+async function createUniversity(req, res) {
+    try {
+        const university = await masterDataService.createEntity('universities', req.body, req.user.userId);
+        return successResponse(res, university, null, 201);
+    } catch (error) {
+        console.error('Error in createUniversity:', error);
+        const statusCode = error.message.includes('already exists') || error.message.includes('NGO') ? 409 : 400;
+        return errorResponse(res, error, statusCode);
+    }
+}
+
+/**
+ * Update university
+ */
+async function updateUniversity(req, res) {
+    try {
+        const university = await masterDataService.updateEntity('universities', req.params.id, req.body, req.user.userId);
+        return successResponse(res, university);
+    } catch (error) {
+        console.error('Error in updateUniversity:', error);
+        const statusCode = error.message.includes('not found') ?
+            404 : error.message.includes('already exists') ? 409 : 400;
+        return errorResponse(res, error, statusCode);
+    }
+}
+
+/**
+ * Delete university
+ */
+async function deleteUniversity(req, res) {
+    try {
+        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
+        await masterDataService.deleteEntity('universities', req.params.id, req.user.userId, cascade);
+        return successResponse(res, { message: cascade ? 'University and all related records deleted successfully' : 'University deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteUniversity:', error);
+        const statusCode = error.message.includes('not found') ?
+            404 : error.message.includes('dependent') ? 409 : 400;
         return errorResponse(res, error, statusCode);
     }
 }
@@ -463,10 +576,18 @@ module.exports = {
     // Organizations
     getAllOrganizations,
     getOrganizationById,
-    getOrganizationsByState,
+    getOrganizationsByDistrict,
     createOrganization,
     updateOrganization,
     deleteOrganization,
+
+    // Universities
+    getAllUniversities,
+    getUniversityById,
+    getUniversitiesByOrganization,
+    createUniversity,
+    updateUniversity,
+    deleteUniversity,
 
     // Utility
     getStats,

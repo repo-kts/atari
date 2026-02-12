@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -23,24 +23,81 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
     const [showLeftArrow, setShowLeftArrow] = useState(false)
     const [showRightArrow, setShowRightArrow] = useState(false)
 
-    // Check if we need scroll arrows
+    // Refs for optimization
+    const rafIdRef = useRef<number | null>(null)
+    const tabsStringRef = useRef<string>('')
+    const checkScrollRef = useRef<(() => void) | undefined>(undefined)
+
+    // Optimized checkScroll function that only updates state when values change
+    const checkScroll = useCallback(() => {
+        if (!containerRef.current) return
+
+        const { scrollLeft, scrollWidth, clientWidth } = containerRef.current
+        const newShowLeft = scrollLeft > 0
+        const newShowRight = scrollLeft + clientWidth < scrollWidth - 5
+
+        // Only update state if values actually changed (prevents unnecessary re-renders)
+        setShowLeftArrow(prev => prev !== newShowLeft ? newShowLeft : prev)
+        setShowRightArrow(prev => prev !== newShowRight ? newShowRight : prev)
+    }, [])
+
+    // Store checkScroll in ref for stable reference
+    checkScrollRef.current = checkScroll
+
+    // Throttled scroll handler using requestAnimationFrame
+    const handleScroll = useCallback(() => {
+        if (rafIdRef.current !== null) {
+            cancelAnimationFrame(rafIdRef.current)
+        }
+        rafIdRef.current = requestAnimationFrame(() => {
+            checkScrollRef.current?.()
+            rafIdRef.current = null
+        })
+    }, [])
+
+    // Create stable tabs string for comparison
+    const tabsString = useMemo(() =>
+        JSON.stringify(tabs.map(t => ({ path: t.path, label: t.label }))),
+        [tabs]
+    )
+
+    // Setup scroll detection with proper cleanup - only depends on container mount
     useEffect(() => {
-        const checkScroll = () => {
-            if (containerRef.current) {
-                const { scrollLeft, scrollWidth, clientWidth } = containerRef.current
-                setShowLeftArrow(scrollLeft > 0)
-                setShowRightArrow(scrollLeft + clientWidth < scrollWidth - 5)
+        const container = containerRef.current
+        if (!container) return
+
+        // Initial check after a brief delay to ensure DOM is ready
+        const timeoutId = setTimeout(() => {
+            checkScroll()
+        }, 0)
+
+        // Add event listeners
+        window.addEventListener('resize', checkScroll, { passive: true })
+        container.addEventListener('scroll', handleScroll, { passive: true })
+
+        // Cleanup function
+        return () => {
+            clearTimeout(timeoutId)
+            window.removeEventListener('resize', checkScroll)
+            container.removeEventListener('scroll', handleScroll)
+            if (rafIdRef.current !== null) {
+                cancelAnimationFrame(rafIdRef.current)
             }
         }
+    }, [checkScroll, handleScroll]) // Only re-run if handlers change (they're memoized)
 
-        checkScroll()
-        window.addEventListener('resize', checkScroll)
-        containerRef.current?.addEventListener('scroll', checkScroll)
-
-        return () => {
-            window.removeEventListener('resize', checkScroll)
+    // Separate effect to re-check scroll when tabs actually change
+    useEffect(() => {
+        // Only re-check if tabs actually changed (not just reference)
+        if (tabsString !== tabsStringRef.current) {
+            tabsStringRef.current = tabsString
+            // Use requestAnimationFrame to check after DOM updates
+            // Use ref to avoid dependency on checkScroll
+            requestAnimationFrame(() => {
+                checkScrollRef.current?.()
+            })
         }
-    }, [tabs])
+    }, [tabsString]) // Removed checkScroll from dependencies - using ref instead
 
     const scroll = (direction: 'left' | 'right') => {
         if (containerRef.current) {

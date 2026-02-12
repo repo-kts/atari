@@ -8,6 +8,9 @@ import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-rea
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
+import { useConfirm } from '@/hooks/useConfirm'
+import { useAlert } from '@/hooks/useAlert'
+import { LoadingButton } from '@/components/common/LoadingButton'
 
 /**
  * User interface matching API response
@@ -58,6 +61,10 @@ export const UserManagement: React.FC = () => {
     // Delete user mutation
     const deleteUserMutation = useDeleteUser()
 
+    // Modal hooks
+    const { confirm, ConfirmDialog } = useConfirm()
+    const { alert, AlertDialog } = useAlert()
+
     const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load users') : null
 
     // Granular permissions (VIEW = list/detail, ADD = create, EDIT = update, DELETE = delete)
@@ -69,15 +76,34 @@ export const UserManagement: React.FC = () => {
     // Handle delete user
     const handleDelete = async (userId: number) => {
         const user = users.find(u => u.userId === userId)
-        if (!confirm(`Are you sure you want to delete user "${user?.name}"?`)) {
-            return
-        }
-
+        
+        confirm(
+            {
+                title: 'Delete User',
+                message: `Are you sure you want to delete user "${user?.name}"?\n\nThis action cannot be undone.`,
+                variant: 'danger',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+            },
+            async () => {
         try {
             await deleteUserMutation.mutateAsync(userId)
+                    alert({
+                        title: 'Success',
+                        message: 'User deleted successfully.',
+                        variant: 'success',
+                        autoClose: true,
+                        autoCloseDelay: 2000,
+                    })
         } catch (err) {
-            alert(err instanceof Error ? err.message : 'Failed to delete user')
+                    alert({
+                        title: 'Error',
+                        message: err instanceof Error ? err.message : 'Failed to delete user',
+                        variant: 'error',
+                    })
         }
+            }
+        )
     }
 
     // Format date
@@ -263,7 +289,11 @@ export const UserManagement: React.FC = () => {
                                                             {hasPermission('EDIT', user.roleName) && (
                                                                 <button
                                                                     onClick={() => {
-                                                                        alert('Edit functionality coming soon')
+                                                                        alert({
+                                                                            title: 'Coming Soon',
+                                                                            message: 'Edit functionality coming soon',
+                                                                            variant: 'info',
+                                                                        })
                                                                     }}
                                                                     className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
                                                                     aria-label="Edit user"
@@ -304,6 +334,10 @@ export const UserManagement: React.FC = () => {
                     refetchUsers() // Refresh user list after creation
                 }}
             />
+
+            {/* Modals */}
+            <ConfirmDialog />
+            <AlertDialog />
         </div>
     )
 }

@@ -22,7 +22,10 @@ const ENTITY_CONFIG = {
                 select: { districtId: true, districtName: true }
             },
             org: {
-                select: { orgId: true, uniName: true }
+                select: { orgId: true, orgName: true }
+            },
+            university: {
+                select: { universityId: true, universityName: true }
             }
         }
     },
@@ -62,6 +65,9 @@ const ENTITY_CONFIG = {
         nameField: 'staffName',
         includes: {
             kvk: {
+                select: { kvkId: true, kvkName: true }
+            },
+            originalKvk: {
                 select: { kvkId: true, kvkName: true }
             },
             sanctionedPost: {
@@ -290,10 +296,6 @@ async function findAll(entityName, options = {}, user = null) {
         data = sortedData.slice(skip, skip + take);
     } else {
         // Standard query for other cases
-        // Debug log for kvk-employees to verify filtering
-        if (entityName === 'kvk-employees') {
-            console.log('🔍 [KVK Employees Query] Entity:', entityName, 'Where clause:', JSON.stringify(where, null, 2));
-        }
         
         [data, total] = await Promise.all([
             model.findMany({
@@ -308,13 +310,6 @@ async function findAll(entityName, options = {}, user = null) {
             model.count({ where }),
         ]);
         
-        // Debug log for kvk-employees to verify results
-        if (entityName === 'kvk-employees') {
-            console.log('✅ [KVK Employees Query] Found', data.length, 'employees. Total:', total);
-            if (data.length > 0) {
-                console.log('📋 Employees:', data.map(e => ({ id: e.kvkStaffId, name: e.staffName, kvkId: e.kvkId, transferStatus: e.transferStatus })));
-            }
-        }
     }
 
     return { data, total };
@@ -339,22 +334,47 @@ async function findById(entityName, id) {
     });
 }
 
+/**
+ * Sanitize data by removing fields that don't exist in the Prisma schema
+ * @param {string} entityName - Entity name
+ * @param {object} data - Data to sanitize
+ * @returns {object} Sanitized data
+ */
+function sanitizeData(entityName, data) {
+    const sanitized = { ...data };
+
+    // Remove fields that don't exist in Prisma schema for KVK
+    if (entityName === 'kvks') {
+        // Prisma schema only has: kvkName, zoneId, stateId, districtId, orgId, universityId,
+        // hostOrg, mobile, email, address, yearOfSanction
+        // Remove all fields that don't exist in the schema
+        const invalidFields = ['hostMobile', 'hostLandline', 'hostFax', 'hostEmail'];
+        invalidFields.forEach(field => {
+            delete sanitized[field];
+        });
+        
+        // Handle optional fields: convert empty strings to null
+        if (sanitized.universityId === null || sanitized.universityId === undefined || sanitized.universityId === '') {
+            sanitized.universityId = null;
+        }
+    }
+
+    return sanitized;
+}
+
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
 
-    // Auto-set type for equipments/farm implements if schema has type field
-    // (Generated schema may not include type - omit if Prisma validation fails)
-    // if (entityName === 'kvk-equipments' || entityName === 'kvk-equipment-details') {
-    //     data.type = 'EQUIPMENT';
-    // }
+    // Sanitize data to remove fields not in Prisma schema
+    const sanitizedData = sanitizeData(entityName, data);
 
     // For vehicle-details and equipment-details: if vehicleId/equipmentId is provided,
     // update the existing record instead of creating a new one
-    if (entityName === 'kvk-vehicle-details' && data.vehicleId) {
+    if (entityName === 'kvk-vehicle-details' && sanitizedData.vehicleId) {
         // Update existing vehicle with the details
-        const vehicleId = data.vehicleId;
+        const vehicleId = sanitizedData.vehicleId;
         // Remove vehicleId from update data as it's used in where clause
-        const { vehicleId: _, ...updateData } = data;
+        const { vehicleId: _, ...updateData } = sanitizedData;
         return await prisma[config.model].update({
             where: { [config.idField]: vehicleId },
             data: updateData,
@@ -362,11 +382,11 @@ async function create(entityName, data) {
         });
     }
 
-    if (entityName === 'kvk-equipment-details' && data.equipmentId) {
+    if (entityName === 'kvk-equipment-details' && sanitizedData.equipmentId) {
         // Update existing equipment with the details
-        const equipmentId = data.equipmentId;
+        const equipmentId = sanitizedData.equipmentId;
         // Remove equipmentId from update data as it's used in where clause
-        const { equipmentId: _, ...updateData } = data;
+        const { equipmentId: _, ...updateData } = sanitizedData;
         return await prisma[config.model].update({
             where: { [config.idField]: equipmentId },
             data: updateData,
@@ -375,7 +395,7 @@ async function create(entityName, data) {
     }
 
     return await prisma[config.model].create({
-        data,
+        data: sanitizedData,
         include: config.includes,
     });
 }
@@ -393,12 +413,15 @@ async function update(entityName, id, data) {
         throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
     
+    // Sanitize data to remove fields not in Prisma schema
+    const sanitizedData = sanitizeData(entityName, data);
+    
     // For vehicle-details and equipment-details, only update the fields provided
     // Don't require base fields like vehicleName/equipmentName
     if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
         // Filter out any undefined/null values and only keep the fields that are being updated
         const updateData = {};
-        for (const [key, value] of Object.entries(data)) {
+        for (const [key, value] of Object.entries(sanitizedData)) {
             // Only include fields that have actual values (not undefined, but allow null for optional fields)
             if (value !== undefined) {
                 updateData[key] = value;
@@ -413,7 +436,7 @@ async function update(entityName, id, data) {
     
     return await prisma[config.model].update({
         where: { [config.idField]: parsedId },
-        data,
+        data: sanitizedData,
         include: config.includes,
     });
 }

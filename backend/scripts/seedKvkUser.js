@@ -68,13 +68,16 @@ async function seedKvkUser() {
             console.log(`   ℹ️  Using existing Test District (ID: ${district.districtId})`);
         }
 
-        // Organization (Linked to State)
+        // Organization (Linked to District)
         let org = await prisma.orgMaster.findFirst({
-            where: { uniName: 'Test University', stateId: state.stateId }
+            where: { orgName: 'Test University', districtId: district.districtId }
         });
         if (!org) {
             org = await prisma.orgMaster.create({
-                data: { uniName: 'Test University', stateId: state.stateId }
+                data: { 
+                    orgName: 'Test University', 
+                    districtId: district.districtId,
+                }
             });
             console.log(`   ✅ Created Test Organization (ID: ${org.orgId})`);
         } else {

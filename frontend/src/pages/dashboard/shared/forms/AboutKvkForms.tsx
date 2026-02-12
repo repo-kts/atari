@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityTypes'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
-import { State, District, Organization } from '@/types/masterData'
-import { useMasterData } from '@/hooks/useMasterData'
+import { State, District, Organization, University } from '@/types/masterData'
+import { useMasterData, useRelatedData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
 import {
     useSanctionedPosts,
@@ -36,7 +36,70 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: states = [] } = useMasterData<State>('states')
     const { data: organizations = [] } = useMasterData<Organization>('organizations')
     const { data: districts = [] } = useMasterData<District>('districts')
+    const { data: universities = [] } = useMasterData<University>('universities')
+    const { getOrganizationsByDistrict, getOrganizationsByDistrictFromStore, getUniversitiesByOrganization, getUniversitiesByOrganizationFromStore } = useRelatedData()
     const { user } = useAuth()
+
+    // State for filtered organizations and universities
+    const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([])
+    const [filteredUniversities, setFilteredUniversities] = useState<University[]>([])
+
+    // Fetch organizations when districtId changes
+    useEffect(() => {
+        if (formData.districtId) {
+            const cached = getOrganizationsByDistrictFromStore(formData.districtId)
+            if (cached && cached.length > 0) {
+                setFilteredOrganizations(cached)
+            } else {
+                // Fetch from API if not cached
+                getOrganizationsByDistrict(formData.districtId)
+                    .then((data: Organization[]) => {
+                        setFilteredOrganizations(data)
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching organizations by district:', error)
+                        // Fallback to client-side filtering
+                        if (organizations.length > 0) {
+                            const filtered = organizations.filter(o => o.districtId === formData.districtId)
+                            setFilteredOrganizations(filtered)
+                        } else {
+                            setFilteredOrganizations([])
+                        }
+                    })
+            }
+        } else {
+            setFilteredOrganizations([])
+        }
+    }, [formData.districtId, getOrganizationsByDistrict, getOrganizationsByDistrictFromStore, organizations])
+
+    // Fetch universities when orgId changes
+    useEffect(() => {
+        if (formData.orgId) {
+            const cached = getUniversitiesByOrganizationFromStore(formData.orgId)
+            if (cached && cached.length > 0) {
+                setFilteredUniversities(cached)
+            } else {
+                // Fetch from API if not cached
+                getUniversitiesByOrganization(formData.orgId)
+                    .then((data: University[]) => {
+                        setFilteredUniversities(data)
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching universities by organization:', error)
+                        // Fallback to client-side filtering
+                        if (universities.length > 0) {
+                            const filtered = universities.filter(u => u.orgId === formData.orgId)
+                            setFilteredUniversities(filtered)
+                        } else {
+                            setFilteredUniversities([])
+                        }
+                    })
+            }
+        } else {
+            setFilteredUniversities([])
+        }
+    }, [formData.orgId, getUniversitiesByOrganization, getUniversitiesByOrganizationFromStore, universities])
+
 
     // Fetch About KVK master data
     const { data: sanctionedPosts = [] } = useSanctionedPosts()
@@ -57,22 +120,39 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     // Extract nested IDs from related objects when editing (for select fields)
     // Use functional update to avoid dependency on formData which causes infinite loops
     React.useEffect(() => {
-        if (entityType !== ENTITY_TYPES.KVK_EMPLOYEES && entityType !== ENTITY_TYPES.KVK_STAFF_TRANSFERRED) return
-        setFormData((prev: any) => {
+        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+            setFormData((prev: any) => {
             const updates: any = {}
-            if (prev.sanctionedPost?.sanctionedPostId && !prev.sanctionedPostId) {
-                updates.sanctionedPostId = prev.sanctionedPost.sanctionedPostId
+                if (prev.sanctionedPost?.sanctionedPostId && !prev.sanctionedPostId) {
+                    updates.sanctionedPostId = prev.sanctionedPost.sanctionedPostId
             }
-            if (prev.discipline?.disciplineId && !prev.disciplineId) {
-                updates.disciplineId = prev.discipline.disciplineId
+                if (prev.discipline?.disciplineId && !prev.disciplineId) {
+                    updates.disciplineId = prev.discipline.disciplineId
+                }
+                if (prev.kvk?.kvkId && !prev.kvkId) {
+                    updates.kvkId = prev.kvk.kvkId
+                }
+                if (Object.keys(updates).length === 0) return prev
+                return { ...prev, ...updates }
+            })
+        } else if (entityType === ENTITY_TYPES.KVKS) {
+            // Extract districtId and orgId from nested objects when editing KVK
+            setFormData((prev: any) => {
+                const updates: any = {}
+                if (prev.district?.districtId && !prev.districtId) {
+                    updates.districtId = prev.district.districtId
+                }
+                if (prev.org?.orgId && !prev.orgId) {
+                    updates.orgId = prev.org.orgId
+                }
+                if (prev.university?.universityId && !prev.universityId) {
+                    updates.universityId = prev.university.universityId
             }
-            if (prev.kvk?.kvkId && !prev.kvkId) {
-                updates.kvkId = prev.kvk.kvkId
-            }
-            if (Object.keys(updates).length === 0) return prev
-            return { ...prev, ...updates }
-        })
-    }, [entityType])
+                if (Object.keys(updates).length === 0) return prev
+                return { ...prev, ...updates }
+            })
+        }
+    }, [entityType, setFormData])
 
     if (!entityType) return null
 
@@ -601,25 +681,55 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 .filter(s => s.zoneId === formData.zoneId)
                                 .map(s => ({ value: s.stateId, label: s.stateName }))}
                         />
-                        <div className="md:col-span-2">
-                            <FormSelect
-                                label="Organization"
-                                required
-                                value={formData.orgId || ''}
-                                onChange={(e) => setFormData({ ...formData, orgId: parseInt(e.target.value) })}
-                                options={organizations.map(org => ({ value: org.orgId, label: org.uniName }))}
-                            />
-                        </div>
                         <FormSelect
                             label="District"
                             required
                             value={formData.districtId || ''}
-                            onChange={(e) => setFormData({ ...formData, districtId: parseInt(e.target.value) })}
+                            onChange={(e) => {
+                                const districtId = parseInt(e.target.value);
+                                setFormData({ ...formData, districtId, orgId: '', universityId: '' });
+                            }}
                             disabled={!formData.stateId}
                             options={districts
                                 .filter((d) => d.stateId === formData.stateId)
                                 .map(d => ({ value: d.districtId, label: d.districtName }))}
                         />
+                        <div className="md:col-span-2">
+                            <FormSelect
+                                label="Organization"
+                                required
+                                value={formData.orgId || ''}
+                                onChange={(e) => {
+                                    const orgId = parseInt(e.target.value);
+                                    setFormData({
+                                        ...formData,
+                                        orgId,
+                                        universityId: '' // Reset university when org changes
+                                    });
+                                }}
+                                disabled={!formData.districtId}
+                                options={filteredOrganizations.map(org => ({
+                                    value: org.orgId,
+                                    label: org.orgName
+                                }))}
+                            />
+                        </div>
+                        {/* University field - always show when organization is selected */}
+                        {formData.orgId && (
+                            <div className="md:col-span-2">
+                                <FormSelect
+                                    label="University"
+                                    required
+                                    value={formData.universityId || ''}
+                                    onChange={(e) => setFormData({ ...formData, universityId: parseInt(e.target.value) })}
+                                    disabled={!formData.orgId}
+                                    options={filteredUniversities.map(u => ({
+                                        value: u.universityId,
+                                        label: u.universityName
+                                    }))}
+                                />
+                            </div>
+                        )}
                         <div className="md:col-span-2 lg:col-span-2">
                             <FormTextArea
                                 label="Address"

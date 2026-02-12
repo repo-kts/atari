@@ -63,6 +63,7 @@ class ApiClient {
    * Make a request to the API.
    * On 401 (except for auth/refresh and auth/login), attempts to refresh the access token
    * and retries the request once.
+   * Supports AbortSignal for request cancellation.
    */
   private async request<T>(
     endpoint: string,
@@ -77,6 +78,8 @@ class ApiClient {
         ...defaultFetchOptions.headers,
         ...options.headers,
       },
+      // Support AbortSignal from options
+      signal: options.signal,
     };
 
     try {
@@ -104,7 +107,7 @@ class ApiClient {
       const isAuthRefresh = endpoint.includes('/auth/refresh');
       const isAuthLogin = endpoint.includes('/auth/login');
       const isAuthMe = endpoint.includes('/auth/me');
-      
+
       if (
         response.status === 401 &&
         !isRetry &&

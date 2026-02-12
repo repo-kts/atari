@@ -86,35 +86,37 @@ async function seedHierarchy() {
 
     // 4. Create Organizations (Universities/Agricultural Institutions)
     console.log('🏛️  Seeding Organizations...');
+    // Get districts for mapping (using first district of each state)
+    const districts = await prisma.districtMaster.findMany({
+      where: {
+        stateId: { in: states.map(s => s.stateId) }
+      },
+      orderBy: { districtId: 'asc' }
+    });
+    
+    // Group districts by state
+    const districtsByState = {};
+    for (const district of districts) {
+      if (!districtsByState[district.stateId]) {
+        districtsByState[district.stateId] = [];
+      }
+      districtsByState[district.stateId].push(district);
+    }
+    
     const orgsData = [
-      // Bihar
-      { uniName: 'Rajendra Agricultural University, Pusa', stateId: states[0].stateId },
-      { uniName: 'Bihar Agricultural University, Sabour', stateId: states[0].stateId },
-      { uniName: 'Dr. Rajendra Prasad Central Agricultural University, Pusa', stateId: states[0].stateId },
-      
-      // Jharkhand
-      { uniName: 'Birsa Agricultural University, Ranchi', stateId: states[1].stateId },
-      
-      // Andaman & Nicobar
-      { uniName: 'Central Agricultural Research Institute, Port Blair', stateId: states[2].stateId },
-      
-      // Odisha
-      { uniName: 'Odisha University of Agriculture and Technology, Bhubaneswar', stateId: states[3].stateId },
-      
-      // West Bengal
-      { uniName: 'Bidhan Chandra Krishi Viswavidyalaya, Nadia', stateId: states[4].stateId },
-      { uniName: 'Uttar Banga Krishi Viswavidyalaya, Cooch Behar', stateId: states[4].stateId },
-    ];
+      // Bihar - using first district (Patna)
+      { orgName: 'ICAR', districtId: districtsByState[states[0].stateId][0].districtId },
+     ];
 
     for (const org of orgsData) {
       const created = await prisma.orgMaster.upsert({
         where: {
-          orgId: await findOrgByName(org.uniName) || 0,
+          orgId: await findOrgByName(org.orgName) || 0,
         },
         update: {},
         create: org,
       });
-      console.log(`  ✅ ${created.uniName} (ID: ${created.orgId})`);
+      console.log(`  ✅ ${created.orgName} (ID: ${created.orgId})`);
     }
     console.log();
 
@@ -157,9 +159,9 @@ async function findDistrictByName(districtName) {
   return district?.districtId;
 }
 
-async function findOrgByName(uniName) {
+async function findOrgByName(orgName) {
   const org = await prisma.orgMaster.findFirst({
-    where: { uniName },
+    where: { orgName },
   });
   return org?.orgId;
 }

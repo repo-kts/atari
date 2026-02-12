@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { useAllKvksForDropdown, useTransferEmployee } from '../../hooks/forms/useAboutKvkData';
 import { KvkEmployee } from '../../types/aboutKvk';
 import { Loader2 } from 'lucide-react';
+import { LoadingButton } from '../common/LoadingButton';
 
 interface TransferModalProps {
     open: boolean;
@@ -24,7 +25,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
     // Fetch all KVKs for dropdown
     const { data: allKvks = [], isLoading: loadingKvks } = useAllKvksForDropdown({ limit: 1000 });
-    
+
     // Filter out current KVK
     const kvkOptions = allKvks.filter((kvk: any) => kvk.kvkId !== staff.kvkId);
 
@@ -152,20 +153,16 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                     >
                         Cancel
                     </button>
-                    <button
+                    <LoadingButton
                         onClick={handleTransfer}
-                        disabled={loading || !targetKvkId || loadingKvks}
-                        className="px-4 py-2 bg-[#487749] text-white font-medium rounded-lg hover:bg-[#3d653e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        isLoading={loading}
+                        loadingText="Transferring..."
+                        disabled={!targetKvkId || loadingKvks}
+                        variant="primary"
+                        size="md"
                     >
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Transferring...
-                            </>
-                        ) : (
-                            'Transfer'
-                        )}
-                    </button>
+                        Transfer
+                    </LoadingButton>
                 </div>
             </div>
         </Modal>

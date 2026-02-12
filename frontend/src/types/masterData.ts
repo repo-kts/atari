@@ -2,6 +2,8 @@
  * Master Data Type Definitions
  */
 
+// ============ Enums ============
+
 // ============ Entity Types ============
 
 export interface Zone {
@@ -44,31 +46,64 @@ export interface District {
     };
     _count?: {
         users: number;
+        orgs?: number;
     };
 }
 
 export interface Organization {
     orgId: number;
-    uniName: string;
-    stateId: number;
-    state?: {
-        stateId: number;
-        stateName: string;
-        zone?: {
-            zoneId: number;
-            zoneName: string;
+    orgName: string;
+    districtId: number;
+    district?: {
+        districtId: number;
+        districtName: string;
+        state?: {
+            stateId: number;
+            stateName: string;
+            zone?: {
+                zoneId: number;
+                zoneName: string;
+            };
         };
     };
     _count?: {
         users: number;
+        universities: number;
+        kvks: number;
+    };
+}
+
+export interface University {
+    universityId: number;
+    universityName: string;
+    orgId: number;
+    organization?: {
+        orgId: number;
+        orgName: string;
+        district?: {
+            districtId: number;
+            districtName: string;
+            state?: {
+                stateId: number;
+                stateName: string;
+                zone?: {
+                    zoneId: number;
+                    zoneName: string;
+                };
+            };
+        };
+    };
+    _count?: {
+        users: number;
+        kvks: number;
     };
 }
 
 // ============ Union Types ============
 
-export type MasterDataEntity = Zone | State | District | Organization;
+export type MasterDataEntity = Zone | State | District | Organization | University;
 
-export type EntityType = 'zones' | 'states' | 'districts' | 'organizations';
+export type EntityType = 'zones' | 'states' | 'districts' | 'organizations' | 'universities';
 
 // ============ API Types ============
 
@@ -104,6 +139,8 @@ export interface QueryParams {
     sortOrder?: 'asc' | 'desc';
     zoneId?: number;
     stateId?: number;
+    districtId?: number;
+    orgId?: number;
     [key: string]: any;
 }
 
@@ -136,6 +173,7 @@ export interface LoadingState {
     states: boolean;
     districts: boolean;
     organizations: boolean;
+    universities: boolean;
 }
 
 export interface ErrorState {
@@ -143,6 +181,7 @@ export interface ErrorState {
     states: string | null;
     districts: string | null;
     organizations: string | null;
+    universities: string | null;
 }
 
 export interface FilterState {
@@ -158,6 +197,7 @@ export interface FiltersState {
     states: FilterState;
     districts: FilterState;
     organizations: FilterState;
+    universities: FilterState;
 }
 
 // ============ Statistics Types ============
@@ -167,6 +207,7 @@ export interface MasterDataStats {
     states: number;
     districts: number;
     organizations: number;
+    universities: number;
 }
 
 // ============ Hierarchy Types ============
@@ -176,8 +217,15 @@ export interface HierarchyZone extends Zone {
 }
 
 export interface HierarchyState extends State {
-    districts: District[];
-    orgs: Organization[];
+    districts: HierarchyDistrict[];
+}
+
+export interface HierarchyDistrict extends District {
+    orgs: HierarchyOrganization[];
+}
+
+export interface HierarchyOrganization extends Organization {
+    universities: University[];
 }
 
 // ============ Create/Update DTOs ============
@@ -213,13 +261,23 @@ export interface UpdateDistrictDto {
 }
 
 export interface CreateOrganizationDto {
-    uniName: string;
-    stateId: number;
+    orgName: string;
+    districtId: number;
 }
 
 export interface UpdateOrganizationDto {
-    uniName?: string;
-    stateId?: number;
+    orgName?: string;
+    districtId?: number;
+}
+
+export interface CreateUniversityDto {
+    universityName: string;
+    orgId: number;
+}
+
+export interface UpdateUniversityDto {
+    universityName?: string;
+    orgId?: number;
 }
 
 // ============ Table Types ============

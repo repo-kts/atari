@@ -154,6 +154,7 @@ const userManagementService = {
     let effectiveStateId = derived.stateId;
     let effectiveDistrictId = derived.districtId;
     let effectiveOrgId = derived.orgId;
+    let effectiveUniversityId = userData.universityId || null;
 
     if (creatorRoleName !== 'super_admin') {
       const rawPermissions = options.permissions;
@@ -165,11 +166,12 @@ const userManagementService = {
       if (invalid.length > 0) {
         throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
       }
-      // New user gets same zone/state/district/org as the creating admin; only kvkId may differ (e.g. when role is kvk)
+      // New user gets same zone/state/district/org/university as the creating admin; only kvkId may differ (e.g. when role is kvk)
       effectiveZoneId = creator.zoneId ?? null;
       effectiveStateId = creator.stateId ?? null;
       effectiveDistrictId = creator.districtId ?? null;
       effectiveOrgId = creator.orgId ?? null;
+      effectiveUniversityId = creator.universityId ?? null;
       effectiveKvkId = userData.kvkId || creator.kvkId || null;
 
       const effectiveUserData = {
@@ -210,6 +212,7 @@ const userManagementService = {
       stateId: effectiveStateId,
       districtId: effectiveDistrictId,
       orgId: effectiveOrgId,
+      universityId: effectiveUniversityId,
       kvkId: effectiveKvkId,
     };
 

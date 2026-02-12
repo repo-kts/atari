@@ -36,7 +36,6 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     districts: true,
-                    orgs: true,
                     users: true,
                 },
             },
@@ -62,6 +61,7 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     users: true,
+                    orgs: true,
                 },
             },
         },
@@ -69,16 +69,22 @@ const ENTITY_CONFIG = {
     organizations: {
         model: 'orgMaster',
         idField: 'orgId',
-        nameField: 'uniName',
+        nameField: 'orgName',
         includes: {
-            state: {
+            district: {
                 select: {
-                    stateId: true,
-                    stateName: true,
-                    zone: {
+                    districtId: true,
+                    districtName: true,
+                    state: {
                         select: {
-                            zoneId: true,
-                            zoneName: true,
+                            stateId: true,
+                            stateName: true,
+                            zone: {
+                                select: {
+                                    zoneId: true,
+                                    zoneName: true,
+                                },
+                            },
                         },
                     },
                 },
@@ -86,6 +92,45 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     users: true,
+                    universities: true,
+                    kvks: true,
+                },
+            },
+        },
+    },
+    universities: {
+        model: 'universityMaster',
+        idField: 'universityId',
+        nameField: 'universityName',
+        includes: {
+            organization: {
+                select: {
+                    orgId: true,
+                    orgName: true,
+                    district: {
+                        select: {
+                            districtId: true,
+                            districtName: true,
+                            state: {
+                                select: {
+                                    stateId: true,
+                                    stateName: true,
+                                    zone: {
+                                        select: {
+                                            zoneId: true,
+                                            zoneName: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            _count: {
+                select: {
+                    users: true,
+                    kvks: true,
                 },
             },
         },
@@ -244,15 +289,28 @@ async function findDistrictsByState(stateId) {
 }
 
 /**
- * Find organizations by state ID
- * @param {number} stateId - State ID
+ * Find organizations by district ID
+ * @param {number} districtId - District ID
  * @returns {Promise<Array>}
  */
-async function findOrgsByState(stateId) {
+async function findOrgsByDistrict(districtId) {
     return await prisma.orgMaster.findMany({
-        where: { stateId: parseInt(stateId) },
+        where: { districtId: parseInt(districtId) },
         include: ENTITY_CONFIG.organizations.includes,
-        orderBy: { uniName: 'asc' },
+        orderBy: { orgName: 'asc' },
+    });
+}
+
+/**
+ * Find universities by organization ID
+ * @param {number} orgId - Organization ID
+ * @returns {Promise<Array>}
+ */
+async function findUniversitiesByOrg(orgId) {
+    return await prisma.universityMaster.findMany({
+        where: { orgId: parseInt(orgId) },
+        include: ENTITY_CONFIG.universities.includes,
+        orderBy: { universityName: 'asc' },
     });
 }
 
@@ -287,11 +345,12 @@ async function nameExists(entityName, name, excludeId = null, additionalFilters 
  * @returns {Promise<object>}
  */
 async function getStats() {
-    const [zones, states, districts, organizations] = await Promise.all([
+    const [zones, states, districts, organizations, universities] = await Promise.all([
         prisma.zone.count(),
         prisma.stateMaster.count(),
         prisma.districtMaster.count(),
         prisma.orgMaster.count(),
+        prisma.universityMaster.count(),
     ]);
 
     return {
@@ -299,6 +358,7 @@ async function getStats() {
         states,
         districts,
         organizations,
+        universities,
     };
 }
 
@@ -311,8 +371,15 @@ async function getHierarchy() {
         include: {
             states: {
                 include: {
-                    districts: true,
-                    orgs: true,
+                    districts: {
+                        include: {
+                            orgs: {
+                                include: {
+                                    universities: true,
+                                },
+                            },
+                        },
+                    },
                 },
             },
         },
@@ -354,11 +421,21 @@ async function validateReferences(entityName, data) {
             break;
 
         case 'organizations':
-            if (data.stateId) {
-                const state = await prisma.stateMaster.findUnique({
-                    where: { stateId: parseInt(data.stateId) },
+            if (data.districtId) {
+                const district = await prisma.districtMaster.findUnique({
+                    where: { districtId: parseInt(data.districtId) },
                 });
-                return !!state;
+                return !!district;
+            }
+            break;
+
+        case 'universities':
+            if (data.orgId) {
+                const org = await prisma.orgMaster.findUnique({
+                    where: { orgId: parseInt(data.orgId) },
+                });
+                if (!org) return false;
+                return true;
             }
             break;
 
@@ -377,7 +454,8 @@ module.exports = {
     deleteEntity,
     findStatesByZone,
     findDistrictsByState,
-    findOrgsByState,
+    findOrgsByDistrict,
+    findUniversitiesByOrg,
     nameExists,
     getStats,
     getHierarchy,

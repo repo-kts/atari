@@ -4,6 +4,7 @@ export const ENTITY_TYPES = {
     STATES: 'states',
     DISTRICTS: 'districts',
     ORGANIZATIONS: 'organizations',
+    UNIVERSITIES: 'universities',
 
     // OFT/FLD Masters
     OFT_SUBJECTS: 'oft-subjects',
@@ -56,6 +57,7 @@ export const ENTITY_PATHS = {
     STATES: '/all-master/states',
     DISTRICTS: '/all-master/districts',
     ORGANIZATIONS: '/all-master/organizations',
+    UNIVERSITIES: '/all-master/universities',
 
     // OFT/FLD Masters
     OFT_SUBJECT: '/all-master/oft/subject',

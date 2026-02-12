@@ -4,6 +4,7 @@ import type {
     State,
     District,
     Organization,
+    University,
     ApiResponse,
     QueryParams,
     MasterDataStats,
@@ -16,6 +17,8 @@ import type {
     UpdateDistrictDto,
     CreateOrganizationDto,
     UpdateOrganizationDto,
+    CreateUniversityDto,
+    UpdateUniversityDto,
 } from '../types/masterData';
 
 /**
@@ -76,9 +79,12 @@ class MasterDataApi {
 
     /**
      * Delete zone
+     * @param id - Zone ID
+     * @param cascade - If true, delete all related records (cascade delete)
      */
-    async deleteZone(id: number): Promise<ApiResponse<{ message: string }>> {
-        return apiClient.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/zones/${id}`);
+    async deleteZone(id: number, cascade: boolean = false): Promise<ApiResponse<{ message: string }>> {
+        const queryString = cascade ? '?cascade=true' : '';
+        return apiClient.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/zones/${id}${queryString}`);
     }
 
     // ============ STATES ============
@@ -101,8 +107,8 @@ class MasterDataApi {
     /**
      * Get states by zone
      */
-    async getStatesByZone(zoneId: number): Promise<ApiResponse<State[]>> {
-        return apiClient.get<ApiResponse<State[]>>(`${this.baseUrl}/states/zone/${zoneId}`);
+    async getStatesByZone(zoneId: number, signal?: AbortSignal): Promise<ApiResponse<State[]>> {
+        return apiClient.get<ApiResponse<State[]>>(`${this.baseUrl}/states/zone/${zoneId}`, { signal });
     }
 
     /**
@@ -146,8 +152,8 @@ class MasterDataApi {
     /**
      * Get districts by state
      */
-    async getDistrictsByState(stateId: number): Promise<ApiResponse<District[]>> {
-        return apiClient.get<ApiResponse<District[]>>(`${this.baseUrl}/districts/state/${stateId}`);
+    async getDistrictsByState(stateId: number, signal?: AbortSignal): Promise<ApiResponse<District[]>> {
+        return apiClient.get<ApiResponse<District[]>>(`${this.baseUrl}/districts/state/${stateId}`, { signal });
     }
 
     /**
@@ -189,10 +195,10 @@ class MasterDataApi {
     }
 
     /**
-     * Get organizations by state
+     * Get organizations by district
      */
-    async getOrganizationsByState(stateId: number): Promise<ApiResponse<Organization[]>> {
-        return apiClient.get<ApiResponse<Organization[]>>(`${this.baseUrl}/organizations/state/${stateId}`);
+    async getOrganizationsByDistrict(districtId: number, signal?: AbortSignal): Promise<ApiResponse<Organization[]>> {
+        return apiClient.get<ApiResponse<Organization[]>>(`${this.baseUrl}/organizations/district/${districtId}`, { signal });
     }
 
     /**
@@ -211,9 +217,57 @@ class MasterDataApi {
 
     /**
      * Delete organization
+     * @param id - Organization ID
+     * @param cascade - If true, delete all related records (cascade delete)
      */
-    async deleteOrganization(id: number): Promise<ApiResponse<{ message: string }>> {
-        return apiClient.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/organizations/${id}`);
+    async deleteOrganization(id: number, cascade: boolean = false): Promise<ApiResponse<{ message: string }>> {
+        const queryString = cascade ? '?cascade=true' : '';
+        return apiClient.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/organizations/${id}${queryString}`);
+    }
+
+    // ============ UNIVERSITIES ============
+
+    /**
+     * Get all universities
+     */
+    async getUniversities(params?: QueryParams): Promise<ApiResponse<University[]>> {
+        const queryString = this.buildQueryString(params);
+        return apiClient.get<ApiResponse<University[]>>(`${this.baseUrl}/universities${queryString}`);
+    }
+
+    /**
+     * Get university by ID
+     */
+    async getUniversityById(id: number): Promise<ApiResponse<University>> {
+        return apiClient.get<ApiResponse<University>>(`${this.baseUrl}/universities/${id}`);
+    }
+
+    /**
+     * Get universities by organization
+     */
+    async getUniversitiesByOrganization(orgId: number, signal?: AbortSignal): Promise<ApiResponse<University[]>> {
+        return apiClient.get<ApiResponse<University[]>>(`${this.baseUrl}/universities/organization/${orgId}`, { signal });
+    }
+
+    /**
+     * Create university
+     */
+    async createUniversity(data: CreateUniversityDto): Promise<ApiResponse<University>> {
+        return apiClient.post<ApiResponse<University>>(`${this.baseUrl}/universities`, data);
+    }
+
+    /**
+     * Update university
+     */
+    async updateUniversity(id: number, data: UpdateUniversityDto): Promise<ApiResponse<University>> {
+        return apiClient.put<ApiResponse<University>>(`${this.baseUrl}/universities/${id}`, data);
+    }
+
+    /**
+     * Delete university
+     */
+    async deleteUniversity(id: number): Promise<ApiResponse<{ message: string }>> {
+        return apiClient.delete<ApiResponse<{ message: string }>>(`${this.baseUrl}/universities/${id}`);
     }
 
     // ============ UTILITY ============

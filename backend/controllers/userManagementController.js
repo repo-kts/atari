@@ -19,6 +19,7 @@ const userManagementController = {
         stateId,
         districtId,
         orgId,
+        universityId,
         kvkId,
         password,
         permissions,
@@ -32,7 +33,7 @@ const userManagementController = {
 
       const createdBy = req.user.userId;
       const user = await userManagementService.createUser(
-        { name, email, phoneNumber, roleId, zoneId, stateId, districtId, orgId, kvkId },
+        { name, email, phoneNumber, roleId, zoneId, stateId, districtId, orgId, universityId, kvkId },
         password,
         createdBy,
         { permissions: Array.isArray(permissions) ? permissions : undefined },
