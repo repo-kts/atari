@@ -154,7 +154,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        return true
+        // Master data entities: only super_admin can edit
+        return user.role === 'super_admin'
     }
 
     // Determine if Delete button should be shown for a given item
@@ -169,7 +170,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        return true
+        // Master data entities: only super_admin can delete
+        return user.role === 'super_admin'
     }
 
     // Get the active hook
