@@ -64,7 +64,7 @@ class AboutKvkService {
 
         // Admin with geographic scope: ensure entity's KVK is within their area
         if (user && !user.kvkId && user.roleName !== 'super_admin') {
-            const entityKvkId = entityName === 'kvks' ? entity.kvkId : entity.kvkId;
+            const entityKvkId = entity.kvkId;
             if (entityKvkId) {
                 const scopedKvkIds = await this._getScopedKvkIds(user);
                 if (scopedKvkIds !== null && !scopedKvkIds.includes(entityKvkId)) {
@@ -330,10 +330,18 @@ class AboutKvkService {
     }
 
     /**
-     * Get all KVKs without user filtering (for dropdowns like transfer)
-     * This bypasses the normal filtering to allow KVK admins to see all KVKs
+     * Get all KVKs for dropdowns (e.g. transfer target selection).
+     * Scoped by user's geographic area; super_admin sees all.
      */
-    async getAllKvksForDropdown(options = {}) {
+    async getAllKvksForDropdown(options = {}, user = null) {
+        options.filters = options.filters || {};
+
+        if (user && user.kvkId) {
+            // KVK role: no kvkId filter — they need to see other KVKs for transfers
+        } else if (user && user.roleName !== 'super_admin') {
+            this._applyGeoFilter(options.filters, user);
+        }
+
         const result = await aboutKvkRepository.findAll('kvks', options);
         return {
             ...result,
@@ -487,8 +495,30 @@ class AboutKvkService {
     }
 
     /**
+     * Single source of truth: role → geographic field mapping.
+     * Returns e.g. { zoneId: 5 } or null if the role is unmapped
+     * or the user lacks the corresponding field value (deny-by-default).
+     */
+    _getGeoScope(user) {
+        const ROLE_GEO_FIELD = {
+            zone_admin: 'zoneId',
+            state_admin: 'stateId',
+            state_user: 'stateId',
+            district_admin: 'districtId',
+            district_user: 'districtId',
+            org_admin: 'orgId',
+            org_user: 'orgId',
+        };
+
+        const field = ROLE_GEO_FIELD[user.roleName];
+        if (!field || !user[field]) return null;
+        return { [field]: user[field] };
+    }
+
+    /**
      * Get KVK IDs within the user's geographic scope.
      * Returns null for super_admin (no filter needed).
+     * Returns [] for unknown/unmapped roles (deny-by-default).
      * @param {object} user
      * @returns {Promise<number[]|null>}
      */
@@ -496,31 +526,11 @@ class AboutKvkService {
         if (!user || user.roleName === 'super_admin') return null;
         if (user.kvkId) return [user.kvkId];
 
-        const where = {};
-        switch (user.roleName) {
-            case 'zone_admin':
-                if (user.zoneId) where.zoneId = user.zoneId;
-                break;
-            case 'state_admin':
-            case 'state_user':
-                if (user.stateId) where.stateId = user.stateId;
-                break;
-            case 'district_admin':
-            case 'district_user':
-                if (user.districtId) where.districtId = user.districtId;
-                break;
-            case 'org_admin':
-            case 'org_user':
-                if (user.orgId) where.orgId = user.orgId;
-                break;
-            default:
-                return null;
-        }
-
-        if (Object.keys(where).length === 0) return null;
+        const scope = this._getGeoScope(user);
+        if (!scope) return []; // deny-by-default for unmapped roles
 
         const kvks = await prisma.kvk.findMany({
-            where,
+            where: scope,
             select: { kvkId: true },
         });
         return kvks.map(k => k.kvkId);
@@ -531,23 +541,8 @@ class AboutKvkService {
      * Used when querying the 'kvks' entity itself.
      */
     _applyGeoFilter(filters, user) {
-        switch (user.roleName) {
-            case 'zone_admin':
-                if (user.zoneId) filters.zoneId = user.zoneId;
-                break;
-            case 'state_admin':
-            case 'state_user':
-                if (user.stateId) filters.stateId = user.stateId;
-                break;
-            case 'district_admin':
-            case 'district_user':
-                if (user.districtId) filters.districtId = user.districtId;
-                break;
-            case 'org_admin':
-            case 'org_user':
-                if (user.orgId) filters.orgId = user.orgId;
-                break;
-        }
+        const scope = this._getGeoScope(user);
+        Object.assign(filters, scope || {});
     }
 
     /**

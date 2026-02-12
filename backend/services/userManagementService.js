@@ -19,6 +19,61 @@ const ALLOWED_ROLES_FOR_CREATOR = {
 };
 
 /**
+ * Derive the full geographic hierarchy from whichever IDs are already present.
+ * Walks KVK → District → Org → State, filling in missing parents via Prisma lookups.
+ * Uses ?? consistently so an explicit 0/null is never silently overwritten.
+ *
+ * @param {{ zoneId?, stateId?, districtId?, orgId?, kvkId? }} ids
+ * @returns {Promise<{ zoneId, stateId, districtId, orgId }>}
+ */
+async function deriveFullHierarchy({ zoneId = null, stateId = null, districtId = null, orgId = null, kvkId = null }) {
+  let z = zoneId ?? null;
+  let s = stateId ?? null;
+  let d = districtId ?? null;
+  let o = orgId ?? null;
+
+  // KVK carries all four parent IDs
+  if (kvkId) {
+    const kvk = await prisma.kvk.findUnique({ where: { kvkId } });
+    if (kvk) {
+      z = z ?? kvk.zoneId;
+      s = s ?? kvk.stateId;
+      d = d ?? kvk.districtId;
+      o = o ?? kvk.orgId;
+    }
+  }
+
+  // District carries stateId and zoneId
+  if (d && (!s || !z)) {
+    const district = await prisma.districtMaster.findUnique({ where: { districtId: d } });
+    if (district) {
+      s = s ?? district.stateId;
+      z = z ?? district.zoneId;
+    }
+  }
+
+  // Org carries stateId; derive zoneId from its state
+  if (o && (!s || !z)) {
+    const org = await prisma.orgMaster.findUnique({ where: { orgId: o } });
+    if (org) {
+      s = s ?? org.stateId;
+      if (!z) {
+        const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId ?? s } });
+        if (state) z = state.zoneId;
+      }
+    }
+  }
+
+  // State carries zoneId
+  if (s && !z) {
+    const state = await prisma.stateMaster.findUnique({ where: { stateId: s } });
+    if (state) z = state.zoneId;
+  }
+
+  return { zoneId: z, stateId: s, districtId: d, orgId: o };
+}
+
+/**
  * Service layer for user management operations
  */
 const userManagementService = {
@@ -85,39 +140,20 @@ const userManagementService = {
     const creatorRoleName = creator.role?.roleName;
 
     let effectiveRoleId = userData.roleId;
-    let effectiveZoneId = userData.zoneId || null;
-    let effectiveStateId = userData.stateId || null;
-    let effectiveDistrictId = userData.districtId || null;
-    let effectiveOrgId = userData.orgId || null;
     let effectiveKvkId = userData.kvkId || null;
 
     // Derive full hierarchy from lower-level selections when missing (Zone → State → District → Org → KVK)
-    if (effectiveKvkId) {
-      const kvk = await prisma.kvk.findUnique({ where: { kvkId: effectiveKvkId } });
-      if (kvk) {
-        effectiveZoneId = effectiveZoneId || kvk.zoneId;
-        effectiveStateId = effectiveStateId || kvk.stateId;
-        effectiveDistrictId = effectiveDistrictId || kvk.districtId;
-        effectiveOrgId = effectiveOrgId || kvk.orgId;
-      }
-    }
-    if (effectiveDistrictId && (!effectiveStateId || !effectiveZoneId)) {
-      const district = await prisma.districtMaster.findUnique({ where: { districtId: effectiveDistrictId } });
-      if (district) {
-        effectiveStateId = effectiveStateId || district.stateId;
-        effectiveZoneId = effectiveZoneId || district.zoneId;
-      }
-    }
-    if (effectiveOrgId && !effectiveStateId) {
-      const org = await prisma.orgMaster.findUnique({ where: { orgId: effectiveOrgId } });
-      if (org) {
-        effectiveStateId = org.stateId;
-        if (!effectiveZoneId) {
-          const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId } });
-          if (state) effectiveZoneId = state.zoneId;
-        }
-      }
-    }
+    const derived = await deriveFullHierarchy({
+      zoneId: userData.zoneId || null,
+      stateId: userData.stateId || null,
+      districtId: userData.districtId || null,
+      orgId: userData.orgId || null,
+      kvkId: effectiveKvkId,
+    });
+    let effectiveZoneId = derived.zoneId;
+    let effectiveStateId = derived.stateId;
+    let effectiveDistrictId = derived.districtId;
+    let effectiveOrgId = derived.orgId;
 
     if (creatorRoleName !== 'super_admin') {
       const rawPermissions = options.permissions;
@@ -596,33 +632,18 @@ const userManagementService = {
     let nextOrgId = userData.orgId !== undefined ? userData.orgId : existingUser.orgId;
     let nextKvkId = userData.kvkId !== undefined ? userData.kvkId : existingUser.kvkId;
 
-    // Derive full hierarchy from lower-level when missing (same as createUser)
-    if (nextKvkId) {
-      const kvk = await prisma.kvk.findUnique({ where: { kvkId: nextKvkId } });
-      if (kvk) {
-        nextZoneId = nextZoneId ?? kvk.zoneId;
-        nextStateId = nextStateId ?? kvk.stateId;
-        nextDistrictId = nextDistrictId ?? kvk.districtId;
-        nextOrgId = nextOrgId ?? kvk.orgId;
-      }
-    }
-    if (nextDistrictId && (!nextStateId || !nextZoneId)) {
-      const district = await prisma.districtMaster.findUnique({ where: { districtId: nextDistrictId } });
-      if (district) {
-        nextStateId = nextStateId ?? district.stateId;
-        nextZoneId = nextZoneId ?? district.zoneId;
-      }
-    }
-    if (nextOrgId && !nextStateId) {
-      const org = await prisma.orgMaster.findUnique({ where: { orgId: nextOrgId } });
-      if (org) {
-        nextStateId = org.stateId;
-        if (!nextZoneId) {
-          const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId } });
-          if (state) nextZoneId = state.zoneId;
-        }
-      }
-    }
+    // Derive full hierarchy from lower-level when missing
+    const derived = await deriveFullHierarchy({
+      zoneId: nextZoneId,
+      stateId: nextStateId,
+      districtId: nextDistrictId,
+      orgId: nextOrgId,
+      kvkId: nextKvkId,
+    });
+    nextZoneId = derived.zoneId;
+    nextStateId = derived.stateId;
+    nextDistrictId = derived.districtId;
+    nextOrgId = derived.orgId;
 
     const hierarchyChanged =
       userData.roleId !== undefined ||
