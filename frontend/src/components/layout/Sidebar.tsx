@@ -253,13 +253,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const isAdmin = user?.role && adminRoles.includes(user.role)
     const isKvk = user?.role === 'kvk'
 
-    // Determine menu items based on role
-    let menuItems = regularMenuItems
-    if (isKvk) {
-        menuItems = kvkMenuItems
-    } else if (isAdmin && user?.role) {
-        menuItems = getAdminMenuItems(user.role)
-    }
+    // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
+    const menuItems = React.useMemo(() => {
+        if (isKvk) return kvkMenuItems
+        if (isAdmin && user?.role) return getAdminMenuItems(user.role)
+        return regularMenuItems
+    }, [isAdmin, isKvk, user?.role])
+
+    const menuItemsRef = useRef(menuItems)
+    menuItemsRef.current = menuItems
 
     // Debounce search query
     useEffect(() => {
@@ -305,11 +307,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     }, [menuItems, debouncedSearchQuery])
 
     // Auto-expand items based on active route or search query
+    // Use menuItemsRef to avoid menuItems in deps (it can change ref on re-renders and cause infinite loop)
     useEffect(() => {
+        const items = menuItemsRef.current
         const itemsToExpand: string[] = []
 
         // 1. Expand active section
-        menuItems.forEach(item => {
+        items.forEach(item => {
             if (item.children && item.dropdown && isSectionActive(item)) {
                 itemsToExpand.push(item.path)
             }
@@ -318,7 +322,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         // 2. Expand search results
         if (debouncedSearchQuery.trim()) {
             const query = debouncedSearchQuery.toLowerCase()
-            menuItems.forEach(item => {
+            items.forEach(item => {
                 if (item.children && item.dropdown) {
                     const hasMatchingChild = item.children.some(child =>
                         child.label.toLowerCase().includes(query) ||
@@ -334,10 +338,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         if (itemsToExpand.length > 0) {
             setExpandedItems(prev => {
                 const newItems = [...new Set([...prev, ...itemsToExpand])]
+                if (newItems.length === prev.length) return prev
                 return newItems
             })
         }
-    }, [location.pathname, menuItems, debouncedSearchQuery])
+    }, [location.pathname, debouncedSearchQuery])
 
     // Keyboard shortcut handler
     useEffect(() => {
@@ -396,9 +401,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         return null
     }
 
+    // Collect all menu paths (including children) for specificity check
+    const allMenuPaths = React.useMemo(() => {
+        const paths: string[] = []
+        for (const item of menuItems) {
+            paths.push(item.path)
+            if (item.children) {
+                for (const child of item.children) {
+                    paths.push(child.path)
+                }
+            }
+        }
+        return paths
+    }, [menuItems])
+
     const isActive = (path: string): boolean => {
         if (path === '#') return false
-        if (location.pathname === path || location.pathname.startsWith(path + '/')) {
+        if (location.pathname === path) return true
+        if (location.pathname.startsWith(path + '/')) {
+            // Check if a more specific menu path matches — if so, this shorter prefix is NOT active
+            const hasMoreSpecificMatch = allMenuPaths.some(
+                p => p !== path && p.length > path.length && p.startsWith(path + '/') &&
+                    (location.pathname === p || location.pathname.startsWith(p + '/'))
+            )
+            if (hasMoreSpecificMatch) return false
             return true
         }
         const effectiveParent = getEffectiveParent(location.pathname)

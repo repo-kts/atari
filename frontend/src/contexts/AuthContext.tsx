@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, ReactNode } from 'react'
+import React, { createContext, useContext, useRef, ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, ApiUser } from '../services/authApi'
 import { ApiError } from '../services/api'
@@ -159,21 +159,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
      * Check if the current user has permission for a given action.
      *
      * - General data actions (no targetRole): admin roles get unconditional access.
-     * - Role-management actions (targetRole provided): hierarchy is enforced —
-     *   super_admin/zone_admin always pass; other admins must outranksOrEqual
-     *   the target role to be granted permission.
+     * - Role-management / user-management (targetRole provided): hierarchy is enforced —
+     *   caller can only act on target if they outrank or equal the target (lower admins cannot modify higher users).
      * - Non-admin users always require an explicit entry in their permissions array.
      */
     const hasPermission = (action: PermissionAction, targetRole?: string): boolean => {
         if (!user) return false
 
-        if (isAdminRole(user.role)) {
-            // Role-management context: enforce hierarchy
+        if (isAdminRole(user.role) || user.role === 'kvk') {
+            // When targeting a specific user/role: enforce hierarchy - lower admin cannot modify higher user
             if (targetRole) {
-                if (user.role === 'super_admin' || user.role === 'zone_admin') return true
                 return outranksOrEqual(user.role, targetRole)
             }
-            // General data actions: admins always have access
+            // General data actions (no target): admins always have access
             return true
         }
 

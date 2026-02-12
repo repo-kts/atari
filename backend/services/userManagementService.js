@@ -4,7 +4,7 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
-const { isAdminRole } = require('../constants/roleHierarchy.js');
+const { isAdminRole, outranksOrEqual } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
@@ -90,6 +90,34 @@ const userManagementService = {
     let effectiveDistrictId = userData.districtId || null;
     let effectiveOrgId = userData.orgId || null;
     let effectiveKvkId = userData.kvkId || null;
+
+    // Derive full hierarchy from lower-level selections when missing (Zone → State → District → Org → KVK)
+    if (effectiveKvkId) {
+      const kvk = await prisma.kvk.findUnique({ where: { kvkId: effectiveKvkId } });
+      if (kvk) {
+        effectiveZoneId = effectiveZoneId || kvk.zoneId;
+        effectiveStateId = effectiveStateId || kvk.stateId;
+        effectiveDistrictId = effectiveDistrictId || kvk.districtId;
+        effectiveOrgId = effectiveOrgId || kvk.orgId;
+      }
+    }
+    if (effectiveDistrictId && (!effectiveStateId || !effectiveZoneId)) {
+      const district = await prisma.districtMaster.findUnique({ where: { districtId: effectiveDistrictId } });
+      if (district) {
+        effectiveStateId = effectiveStateId || district.stateId;
+        effectiveZoneId = effectiveZoneId || district.zoneId;
+      }
+    }
+    if (effectiveOrgId && !effectiveStateId) {
+      const org = await prisma.orgMaster.findUnique({ where: { orgId: effectiveOrgId } });
+      if (org) {
+        effectiveStateId = org.stateId;
+        if (!effectiveZoneId) {
+          const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId } });
+          if (state) effectiveZoneId = state.zoneId;
+        }
+      }
+    }
 
     if (creatorRoleName !== 'super_admin') {
       const rawPermissions = options.permissions;
@@ -463,49 +491,25 @@ const userManagementService = {
       throw new Error('User not found');
     }
     const adminRole = adminUser.role.roleName;
+    const targetRole = targetUser.role.roleName;
+
+    // Super admin can do anything
     if (adminRole === 'super_admin') {
       return;
     }
 
-    // Non-super_admin cannot edit/delete admin users
-    const targetRole = targetUser.role.roleName;
-    if ((action === 'edit' || action === 'delete') && isAdminRole(targetRole)) {
-      throw new Error('Only Super Admin can modify other admin users');
-    }
-
-    switch (adminRole) {
-      case 'zone_admin':
-        if (adminUser.zoneId == null || Number(targetUser.zoneId) !== Number(adminUser.zoneId)) {
-          throw new Error('You do not have access to this user');
-        }
-        break;
-      case 'state_admin':
-        if (adminUser.stateId == null || Number(targetUser.stateId) !== Number(adminUser.stateId)) {
-          throw new Error('You do not have access to this user');
-        }
-        break;
-      case 'district_admin':
-        if (adminUser.districtId == null || Number(targetUser.districtId) !== Number(adminUser.districtId)) {
-          throw new Error('You do not have access to this user');
-        }
-        break;
-      case 'org_admin':
-        if (adminUser.orgId == null || Number(targetUser.orgId) !== Number(adminUser.orgId)) {
-          throw new Error('You do not have access to this user');
-        }
-        break;
-      case 'kvk':
-        if (adminUser.kvkId == null || Number(targetUser.kvkId) !== Number(adminUser.kvkId)) {
-          throw new Error('You do not have access to this user');
-        }
-        break;
-      default:
-        throw new Error('You do not have permission to access this user');
+    // For edit/delete: lower admin cannot modify higher users (role hierarchy)
+    // Admin can only edit/delete if they outrank or equal the target (lower level number = higher authority)
+    if (action === 'edit' || action === 'delete') {
+      if (!outranksOrEqual(adminRole, targetRole)) {
+        throw new Error('You cannot modify users with higher authority than you');
+      }
     }
   },
 
   /**
-   * Get users for admin based on their scope
+   * Get users for admin - all admins can see all users in the platform.
+   * Lower admins cannot edit/delete higher users (enforced in ensureAdminCanAccessUser).
    * @param {number} adminUserId - Admin user ID
    * @param {object} filters - Additional filters (roleId, search, etc.)
    * @returns {Promise<array>} Array of users
@@ -519,58 +523,15 @@ const userManagementService = {
 
     const adminRole = adminUser.role.roleName;
 
-    // Build filters based on admin's scope
-    let hierarchyFilters = {};
-
-    switch (adminRole) {
-      case 'super_admin':
-        // Super admin can see all users
-        break;
-
-      case 'zone_admin':
-        if (!adminUser.zoneId) {
-          throw new Error('Admin user must be assigned to a zone');
-        }
-        hierarchyFilters.zoneId = adminUser.zoneId;
-        break;
-
-      case 'state_admin':
-        if (!adminUser.stateId) {
-          throw new Error('Admin user must be assigned to a state');
-        }
-        hierarchyFilters.stateId = adminUser.stateId;
-        break;
-
-      case 'district_admin':
-        if (!adminUser.districtId) {
-          throw new Error('Admin user must be assigned to a district');
-        }
-        hierarchyFilters.districtId = adminUser.districtId;
-        break;
-
-      case 'org_admin':
-        if (!adminUser.orgId) {
-          throw new Error('Admin user must be assigned to an organization');
-        }
-        hierarchyFilters.orgId = adminUser.orgId;
-        break;
-
-      case 'kvk':
-        if (!adminUser.kvkId) {
-          throw new Error('User must be assigned to a KVK');
-        }
-        hierarchyFilters.kvkId = adminUser.kvkId;
-        break;
-
-      default:
-        throw new Error('User does not have permission to view users');
+    // All admins (super_admin, zone_admin, state_admin, district_admin, org_admin, kvk) can see all users
+    // No hierarchy filters for viewing - everyone sees the full user list
+    const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk'];
+    if (!allowedRoles.includes(adminRole)) {
+      throw new Error('User does not have permission to view users');
     }
 
-    // Merge with additional filters (hierarchyFilters take precedence so enforced scope cannot be bypassed)
-    const finalFilters = { ...filters, ...hierarchyFilters };
-
-    // Get users (roleId and search are handled at the DB level by the repository)
-    const users = await userRepository.findUsersByHierarchy(finalFilters);
+    // Use only the additional filters (roleId, search, etc.) - no hierarchy restriction
+    const users = await userRepository.findUsersByHierarchy(filters);
 
     return users;
   },
@@ -627,13 +588,41 @@ const userManagementService = {
       }
     }
 
-    const nextRoleId = userData.roleId ?? existingUser.roleId;
-    const nextZoneId = userData.zoneId !== undefined ? userData.zoneId : existingUser.zoneId;
-    const nextStateId = userData.stateId !== undefined ? userData.stateId : existingUser.stateId;
-    const nextDistrictId =
+    let nextRoleId = userData.roleId ?? existingUser.roleId;
+    let nextZoneId = userData.zoneId !== undefined ? userData.zoneId : existingUser.zoneId;
+    let nextStateId = userData.stateId !== undefined ? userData.stateId : existingUser.stateId;
+    let nextDistrictId =
       userData.districtId !== undefined ? userData.districtId : existingUser.districtId;
-    const nextOrgId = userData.orgId !== undefined ? userData.orgId : existingUser.orgId;
-    const nextKvkId = userData.kvkId !== undefined ? userData.kvkId : existingUser.kvkId;
+    let nextOrgId = userData.orgId !== undefined ? userData.orgId : existingUser.orgId;
+    let nextKvkId = userData.kvkId !== undefined ? userData.kvkId : existingUser.kvkId;
+
+    // Derive full hierarchy from lower-level when missing (same as createUser)
+    if (nextKvkId) {
+      const kvk = await prisma.kvk.findUnique({ where: { kvkId: nextKvkId } });
+      if (kvk) {
+        nextZoneId = nextZoneId ?? kvk.zoneId;
+        nextStateId = nextStateId ?? kvk.stateId;
+        nextDistrictId = nextDistrictId ?? kvk.districtId;
+        nextOrgId = nextOrgId ?? kvk.orgId;
+      }
+    }
+    if (nextDistrictId && (!nextStateId || !nextZoneId)) {
+      const district = await prisma.districtMaster.findUnique({ where: { districtId: nextDistrictId } });
+      if (district) {
+        nextStateId = nextStateId ?? district.stateId;
+        nextZoneId = nextZoneId ?? district.zoneId;
+      }
+    }
+    if (nextOrgId && !nextStateId) {
+      const org = await prisma.orgMaster.findUnique({ where: { orgId: nextOrgId } });
+      if (org) {
+        nextStateId = org.stateId;
+        if (!nextZoneId) {
+          const state = await prisma.stateMaster.findUnique({ where: { stateId: org.stateId } });
+          if (state) nextZoneId = state.zoneId;
+        }
+      }
+    }
 
     const hierarchyChanged =
       userData.roleId !== undefined ||
@@ -662,11 +651,13 @@ const userManagementService = {
     if (userData.name) sanitizedData.name = sanitizeInput(userData.name);
     if (userData.email) sanitizedData.email = userData.email.toLowerCase().trim();
     if (userData.roleId) sanitizedData.roleId = userData.roleId;
-    if (userData.zoneId !== undefined) sanitizedData.zoneId = userData.zoneId || null;
-    if (userData.stateId !== undefined) sanitizedData.stateId = userData.stateId || null;
-    if (userData.districtId !== undefined) sanitizedData.districtId = userData.districtId || null;
-    if (userData.orgId !== undefined) sanitizedData.orgId = userData.orgId || null;
-    if (userData.kvkId !== undefined) sanitizedData.kvkId = userData.kvkId || null;
+    if (hierarchyChanged) {
+      sanitizedData.zoneId = nextZoneId ?? null;
+      sanitizedData.stateId = nextStateId ?? null;
+      sanitizedData.districtId = nextDistrictId ?? null;
+      sanitizedData.orgId = nextOrgId ?? null;
+      sanitizedData.kvkId = nextKvkId ?? null;
+    }
 
     // Update user
     const updatedUser = await userRepository.update(userId, sanitizedData);
