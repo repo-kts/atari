@@ -1,35 +1,53 @@
-const puppeteer = require('puppeteer');
+// Use puppeteer-core for serverless compatibility
+let puppeteer;
+let chromium;
+
+// Try to load serverless-optimized chromium first (for Vercel/AWS Lambda)
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT;
+
+if (isServerless) {
+    try {
+        chromium = require('@sparticuz/chromium');
+        puppeteer = require('puppeteer-core');
+        // Set chromium font settings for serverless
+        chromium.setGraphicsMode(false);
+    } catch (e) {
+        console.warn('Serverless chromium not available, falling back to regular puppeteer:', e.message);
+        puppeteer = require('puppeteer');
+    }
+} else {
+    // Local development: use regular puppeteer
+    try {
+        puppeteer = require('puppeteer');
+    } catch (err) {
+        console.error('Failed to load puppeteer:', err);
+        throw new Error('Puppeteer is not installed. Please run: npm install puppeteer');
+    }
+}
+
 const ExcelJS = require('exceljs');
 const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType } = require('docx');
 
 /**
  * Generates a PDF buffer from HTML using Puppeteer
+ * Optimized for serverless environments (Vercel, AWS Lambda)
  * @param {string} html 
  * @returns {Promise<Buffer>}
  */
 async function generatePDF(html) {
     let browser;
+    
     try {
-        // Try to launch with default settings first
-        browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu'
-            ]
-        });
-    } catch (error) {
-        // If launch fails, try to install Chrome and retry
-        console.log('Chrome not found, attempting to install...');
-        try {
-            const { install } = require('@puppeteer/browsers');
-            await install({
-                browser: 'chrome',
-                path: require('os').homedir() + '/.cache/puppeteer'
+        // Serverless environment: use chromium
+        if (isServerless && chromium && puppeteer) {
+            browser = await puppeteer.launch({
+                args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+                defaultViewport: chromium.defaultViewport,
+                executablePath: await chromium.executablePath(),
+                headless: chromium.headless,
             });
+        } else {
+            // Local development: use regular puppeteer
             browser = await puppeteer.launch({
                 headless: 'new',
                 args: [
@@ -37,29 +55,41 @@ async function generatePDF(html) {
                     '--disable-setuid-sandbox',
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
-                    '--disable-gpu'
+                    '--disable-gpu',
+                    '--single-process', // Important for serverless
                 ]
             });
-        } catch (installError) {
-            console.error('Failed to install Chrome:', installError);
-            throw new Error('Could not launch Chrome browser. Please ensure Chrome is installed or run: npx puppeteer browsers install chrome');
         }
+    } catch (error) {
+        console.error('Failed to launch browser:', error);
+        // If chromium is not available in serverless, provide helpful error
+        if (isServerless && !chromium) {
+            throw new Error('PDF generation requires @sparticuz/chromium in serverless environments. Please install: npm install @sparticuz/chromium puppeteer-core');
+        }
+        throw new Error(`Could not launch browser: ${error.message}`);
     }
 
     try {
         const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+        await page.setContent(html, { 
+            waitUntil: 'networkidle0',
+            timeout: 30000 // 30 second timeout
+        });
+        
         const pdfBuffer = await page.pdf({
             format: 'A4',
             margin: { top: '20mm', right: '10mm', bottom: '20mm', left: '10mm' },
-            printBackground: true
+            printBackground: true,
+            timeout: 30000
         });
+        
         await browser.close();
         return pdfBuffer;
     } catch (error) {
         if (browser) {
-            await browser.close();
+            await browser.close().catch(() => {}); // Ignore close errors
         }
+        console.error('PDF generation error:', error);
         throw error;
     }
 }
