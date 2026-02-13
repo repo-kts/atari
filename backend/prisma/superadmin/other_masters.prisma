@@ -1,0 +1,8 @@
+model YearMaster {
+  yearId   Int    @id @default(autoincrement()) @map("year_id")
+  yearName String @unique @map("year_name")
+
+  @@index([yearId])
+  @@index([yearName])
+  @@map("year_master")
+}

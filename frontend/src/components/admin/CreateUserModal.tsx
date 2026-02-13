@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { userApi, CreateUserData, PermissionAction, RoleInfo, getRoleLabel } from '../../services/userApi'
+import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../services/userApi'
 import { masterDataApi } from '../../services/masterDataApi'
 import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
@@ -8,9 +8,14 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
+import { DependentDropdown } from '../common/DependentDropdown'
+import { buildKvkFilters } from '../../utils/kvkFilterUtils'
 import { AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
-import type { Zone, State, District, Organization } from '../../types/masterData'
+import type { Zone, State, District, Organization, University } from '../../types/masterData'
 import type { Kvk } from '../../types/aboutKvk'
+import { useMasterData } from '../../hooks/useMasterData'
+import { useRoles } from '../../hooks/useUserManagement'
+import type { RoleInfo } from '../../services/userApi'
 
 const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
     { value: 'VIEW', label: 'View' },
@@ -65,6 +70,7 @@ interface FormErrors {
     districtId?: string
     orgId?: string
     kvkId?: string
+    universityId?: string
     permissions?: string
 }
 
@@ -95,29 +101,43 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const [submitError, setSubmitError] = useState<string | null>(null)
     const [submitSuccess, setSubmitSuccess] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
-    const [allRoles, setAllRoles] = useState<RoleInfo[]>([])
-
-    // Dropdown data
-    const [zones, setZones] = useState<Zone[]>([])
-    const [states, setStates] = useState<State[]>([])
-    const [districts, setDistricts] = useState<District[]>([])
-    const [organizations, setOrganizations] = useState<Organization[]>([])
-    const [kvks, setKvks] = useState<Kvk[]>([])
-    const [loadingDropdowns, setLoadingDropdowns] = useState(false)
-    const [dropdownError, setDropdownError] = useState<string | null>(null)
-
-    // Allowed non-admin roles for current creator (when not Super Admin)
-    const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
-    const allowedRolesForDropdown = allRoles.filter(r => allowedRoleNames.includes(r.roleName))
-
-    // Effective role from selection (both Super Admin and other admins choose or have a role)
-    const selectedRole = formData.roleId
-        ? allRoles.find(r => r.roleId === formData.roleId)?.roleName ?? null
-        : null
 
     // Check if current user is a sub-admin (not super_admin)
     const isSubAdmin = currentUser?.role !== 'super_admin'
     const creatorLevel = getRoleLevel(currentUser?.role || '')
+
+    // Fetch roles using hooks
+    const { data: allRoles = [] } = useRoles()
+
+    // Allowed non-admin roles for current creator (when not Super Admin)
+    const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
+    const allowedRolesForDropdown = allRoles.filter((r: RoleInfo) => allowedRoleNames.includes(r.roleName))
+
+    // Effective role from selection (both Super Admin and other admins choose or have a role)
+    const selectedRole = formData.roleId
+        ? allRoles.find((r: RoleInfo) => r.roleId === formData.roleId)?.roleName ?? null
+        : null
+
+    // Determine which hierarchy fields are required (full cascade: each level needs all parents)
+    const zoneRequired = selectedRole === 'zone_admin' ||
+        selectedRole === 'state_admin' || selectedRole === 'state_user' ||
+        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
+        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk'
+    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+    const kvkRequired = selectedRole === 'kvk'
+
+    // Show hierarchy fields that are required — ensures every required field has a visible dropdown
+    const showZoneField = zoneRequired
+    const showStateField = stateRequired
+    const showDistrictField = districtRequired
+    const showOrgField = orgRequired
+
+    // Fetch zones using hooks
+    const { data: zones = [] } = useMasterData<Zone>('zones', { enabled: !isSubAdmin && showZoneField })
 
     // Sub-admin hierarchy dropdowns: only show dropdowns for levels STRICTLY BELOW the creator's own level
     // Hierarchy levels: zone=1, state=2, district=3, org=4
@@ -130,9 +150,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const showDistrictForSubAdmin = isSubAdmin && creatorLevel < 3 && needsDistrictLevel.includes(selectedRole || '')
     const showOrgForSubAdmin = isSubAdmin && creatorLevel < 4 && needsOrgLevel.includes(selectedRole || '')
 
-    // For sub-admin filtering: use either creator's stateId or form-selected stateId
-    const effectiveStateId = currentUser?.stateId || (formData.stateId ? Number(formData.stateId) : null)
-
     // Show permissions section for:
     // 1. Sub-admins (always, they can only create non-admin users)
     // 2. Super Admin when creating non-admin users (state_user, district_user, org_user, kvk)
@@ -140,163 +157,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         isSubAdmin ||
         (selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole))
 
-    // Fetch roles from API (required for dropdown; without roles, create cannot proceed)
-    useEffect(() => {
-        userApi.getRoles()
-            .then(setAllRoles)
-            .catch(err => {
-                console.error('Failed to fetch roles:', err)
-                setDropdownError('Failed to load roles. You may need VIEW permission on User Management. Run: npm run seed:global-permissions')
-            })
-    }, [])
-
-    // Fetch master data when modal opens
-    useEffect(() => {
-        if (!isOpen) return
-        setDropdownError(null)
-
-        if (!isSubAdmin) {
-            // Super Admin: fetch all master data
-            setLoadingDropdowns(true)
-            const errors: string[] = []
-            Promise.all([
-                masterDataApi.getZones().then(res => setZones(res.data)).catch(err => {
-                    console.error('Failed to fetch zones:', err)
-                    errors.push('zones')
-                }),
-                masterDataApi.getStates().then(res => setStates(res.data)).catch(err => {
-                    console.error('Failed to fetch states:', err)
-                    errors.push('states')
-                }),
-                masterDataApi.getDistricts().then(res => setDistricts(res.data)).catch(err => {
-                    console.error('Failed to fetch districts:', err)
-                    errors.push('districts')
-                }),
-                masterDataApi.getOrganizations().then(res => setOrganizations(res.data)).catch(err => {
-                    console.error('Failed to fetch organizations:', err)
-                    errors.push('organizations')
-                }),
-            ]).finally(() => {
-                setLoadingDropdowns(false)
-                if (errors.length > 0) {
-                    setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
-                }
-            })
-        } else {
-            // Sub-admin: fetch data for levels below their own (level-based)
-            const promises: Promise<void>[] = []
-            const errors: string[] = []
-
-            if (creatorLevel < 2 && currentUser?.zoneId) {
-                // zone_admin (level 1): fetch states in their zone
-                promises.push(
-                    masterDataApi.getStatesByZone(currentUser.zoneId).then(res => setStates(res.data)).catch(err => {
-                        console.error('Failed to fetch states by zone:', err)
-                        errors.push('states')
-                    })
-                )
-            }
-            if (creatorLevel >= 2 && creatorLevel < 3 && currentUser?.stateId) {
-                // state_admin (level 2): fetch districts in their state
-                promises.push(
-                    masterDataApi.getDistrictsByState(currentUser.stateId).then(res => setDistricts(res.data)).catch(err => {
-                        console.error('Failed to fetch districts by state:', err)
-                        errors.push('districts')
-                    })
-                )
-            }
-            if (creatorLevel < 4 && currentUser?.districtId) {
-                // district_admin: fetch orgs in their district
-                promises.push(
-                    masterDataApi.getOrganizationsByDistrict(currentUser.districtId).then(res => setOrganizations(res.data)).catch(err => {
-                        console.error('Failed to fetch organizations by district:', err)
-                        errors.push('organizations')
-                    })
-                )
-            } else if (creatorLevel < 4 && currentUser?.stateId) {
-                // state_admin: fetch all orgs (will be filtered by state via district)
-                promises.push(
-                    masterDataApi.getOrganizations().then(res => {
-                        // Filter organizations by state through their district
-                        const filtered = res.data.filter(org => org.district?.state?.stateId === currentUser?.stateId)
-                        setOrganizations(filtered)
-                    }).catch(err => {
-                        console.error('Failed to fetch organizations:', err)
-                        errors.push('organizations')
-                    })
-                )
-            }
-
-            if (promises.length > 0) {
-                setLoadingDropdowns(true)
-                Promise.all(promises).finally(() => {
-                    setLoadingDropdowns(false)
-                    if (errors.length > 0) {
-                        setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
-                    }
-                })
-            }
-        }
-    }, [isOpen, isSubAdmin, creatorLevel, currentUser?.zoneId, currentUser?.stateId])
-
-    // Sub-admin cascade: when zone_admin selects a state, fetch districts and orgs for that state
-    useEffect(() => {
-        if (!isOpen || !isSubAdmin || !showStateForSubAdmin || !formData.stateId) return
-
-        const stateId = Number(formData.stateId)
-        const errors: string[] = []
-        setDropdownError(null)
-        Promise.all([
-            masterDataApi.getDistrictsByState(stateId).then(res => setDistricts(res.data)).catch(err => {
-                console.error('Failed to fetch districts by state:', err)
-                errors.push('districts')
-            }),
-            masterDataApi.getOrganizations().then(res => {
-                // Filter organizations by state through their district
-                const filtered = res.data.filter(org => org.district?.state?.stateId === stateId)
-                setOrganizations(filtered)
-            }).catch(err => {
-                console.error('Failed to fetch organizations:', err)
-                errors.push('organizations')
-            }),
-        ]).then(() => {
-            if (errors.length > 0) {
-                setDropdownError(`Failed to load ${errors.join(', ')}. Please close and reopen the form to retry.`)
-            }
-        })
-    }, [isOpen, isSubAdmin, showStateForSubAdmin, formData.stateId])
-
-    // Fetch KVKs when needed (for both super admin and sub-admins creating KVK users)
-    useEffect(() => {
-        if (!isOpen || selectedRole !== 'kvk') return
-        // Super admin: wait until org is selected before fetching KVKs
-        if (!isSubAdmin && !formData.orgId) return
-
-        const params: any = {}
-
-        if (isSubAdmin) {
-            // Sub-admin: use creator's fields for levels at/above, form selections for levels below
-            const stateId = showStateForSubAdmin ? formData.stateId : currentUser?.stateId
-            const districtId = showDistrictForSubAdmin ? formData.districtId : currentUser?.districtId
-            const orgId = showOrgForSubAdmin ? formData.orgId : currentUser?.orgId
-            if (stateId) params.stateId = Number(stateId)
-            if (districtId) params.districtId = Number(districtId)
-            if (orgId) params.orgId = Number(orgId)
-        } else {
-            // Super admin: use form selections
-            if (formData.stateId) params.stateId = formData.stateId
-            if (formData.districtId) params.districtId = formData.districtId
-            if (formData.orgId) params.orgId = formData.orgId
-        }
-
-        aboutKvkApi.getKvks(params).then(res => {
-            setKvks(res.data || [])
-        }).catch(err => {
-            console.error('Failed to fetch KVKs:', err)
-            setKvks([])
-            setDropdownError('Failed to load KVKs. Please close and reopen the form to retry.')
-        })
-    }, [isOpen, selectedRole, isSubAdmin, currentUser, formData.stateId, formData.districtId, formData.orgId, showStateForSubAdmin, showDistrictForSubAdmin, showOrgForSubAdmin])
+    // Note: All dropdown data is now loaded dynamically via DependentDropdown components
+    // No need for manual state management or useEffect hooks for fetching dropdown data
 
     // Reset form when modal opens/closes
     useEffect(() => {
@@ -323,7 +185,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setSubmitError(null)
             setSubmitSuccess(false)
             setShowPassword(false)
-            setDropdownError(null)
         }
     }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
 
@@ -333,24 +194,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].roleId }))
         }
     }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
-
-    // Determine which hierarchy fields are required (full cascade: each level needs all parents)
-    const zoneRequired = selectedRole === 'zone_admin' ||
-        selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
-    const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
-        selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk'
-    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
-    const kvkRequired = selectedRole === 'kvk'
-
-    // Show hierarchy fields that are required — ensures every required field has a visible dropdown
-    const showZoneField = zoneRequired
-    const showStateField = stateRequired
-    const showDistrictField = districtRequired
-    const showOrgField = orgRequired
 
     // Validate form
     const validateForm = (): boolean => {
@@ -541,13 +384,6 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     </div>
                 )}
 
-                {/* Dropdown Data Error */}
-                {dropdownError && (
-                    <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{dropdownError}</span>
-                    </div>
-                )}
 
                 {/* Name */}
                 <Input
@@ -629,52 +465,37 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 />
 
                 {/* Role: Super Admin sees all roles; other admins see only non-admin roles (state/district/org/KVK user) */}
-                <div>
-                    <label className="block text-sm font-medium text-[#487749] mb-2">
-                        Role <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                        value={formData.roleId}
-                        onChange={e => {
-                            const roleId = e.target.value ? parseInt(e.target.value) : ''
-                            handleChange('roleId', roleId)
-                            setFormData(prev => ({
-                                ...prev,
-                                roleId: roleId as number | '',
-                                zoneId: '',
-                                stateId: '',
-                                districtId: '',
-                                orgId: '',
-                                universityId: '',
-                                kvkId: '',
-                            }))
-                        }}
-                        className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                            errors.roleId
-                                ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                        } ${isSubmitting || submitSuccess ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        required
-                        disabled={isSubmitting || submitSuccess}
-                    >
-                        <option value="">Select a role</option>
-                        {(isSubAdmin ? allowedRolesForDropdown : allRoles).map(role => (
-                            <option key={role.roleId} value={role.roleId}>
-                                {getRoleLabel(role.roleName)}
-                            </option>
-                        ))}
-                    </select>
-                    {isSubAdmin && (
-                        <p className="mt-1.5 text-xs text-[#757575]">
-                            You can only create non-admin users (with custom permissions below).
-                        </p>
-                    )}
-                    {errors.roleId && (
-                        <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            {errors.roleId}
-                        </p>
-                    )}
-                </div>
+                <DependentDropdown
+                    label="Role"
+                    required
+                    value={formData.roleId || ''}
+                    onChange={(value) => {
+                        const roleId = value ? Number(value) : ''
+                        handleChange('roleId', roleId)
+                        setFormData(prev => ({
+                            ...prev,
+                            roleId: roleId as number | '',
+                            zoneId: '',
+                            stateId: '',
+                            districtId: '',
+                            orgId: '',
+                            universityId: '',
+                            kvkId: '',
+                        }))
+                    }}
+                        options={(isSubAdmin ? allowedRolesForDropdown : allRoles).map((role: RoleInfo) => ({
+                            value: role.roleId,
+                            label: getRoleLabel(role.roleName)
+                        }))}
+                    emptyMessage="No roles available"
+                    error={errors.roleId}
+                    disabled={isSubmitting || submitSuccess}
+                />
+                {isSubAdmin && (
+                    <p className="mt-1.5 text-xs text-[#757575]">
+                        You can only create non-admin users (with custom permissions below).
+                    </p>
+                )}
 
                 {/* Permissions for this user (when creator is not Super Admin) */}
                 {showPermissionsSection && (
@@ -730,118 +551,125 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
                 {/* Sub-admin: State dropdown (e.g., zone_admin creating state_user) */}
                 {showStateForSubAdmin && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            State {stateRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.stateId}
-                            onChange={e => {
-                                const stateId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('stateId', stateId)
-                                setFormData(prev => ({
-                                    ...prev,
-                                    stateId: stateId as number | '',
-                                    districtId: '',
-                                    orgId: '',
-                                    kvkId: '',
-                                }))
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.stateId ? 'border-red-300' : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={stateRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns}
-                        >
-                            <option value="">Select a state</option>
-                            {states.map(state => (
-                                <option key={state.stateId} value={state.stateId}>
-                                    {state.stateName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.stateId && <p className="mt-1.5 text-sm text-red-600">{errors.stateId}</p>}
-                    </div>
+                    <DependentDropdown
+                        label="State"
+                        required={stateRequired}
+                        value={formData.stateId || ''}
+                        onChange={(value) => {
+                            const stateId = value ? Number(value) : ''
+                            handleChange('stateId', stateId)
+                            setFormData(prev => ({
+                                ...prev,
+                                stateId: stateId as number | '',
+                                districtId: '',
+                                orgId: '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: currentUser?.zoneId,
+                            field: 'zoneId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (zoneId, signal) => {
+                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
+                            return response.data.map((s: State) => ({
+                                value: s.stateId,
+                                label: s.stateName
+                            }))
+                        }}
+                        cacheKey="states-by-zone"
+                        emptyMessage="No states available for this zone"
+                        loadingMessage="Loading states..."
+                        error={errors.stateId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {/* Sub-admin: District dropdown */}
                 {showDistrictForSubAdmin && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            District {districtRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.districtId}
-                            onChange={e => {
-                                const districtId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('districtId', districtId)
-                                setFormData(prev => ({
-                                    ...prev,
-                                    districtId: districtId as number | '',
-                                    kvkId: '',
-                                }))
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.districtId ? 'border-red-300' : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={districtRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns || (showStateForSubAdmin && !formData.stateId)}
-                        >
-                            <option value="">
-                                {showStateForSubAdmin && !formData.stateId ? 'Select a state first' : 'Select a district'}
-                            </option>
-                            {(showStateForSubAdmin && formData.stateId
-                                ? districts.filter(d => d.stateId === Number(formData.stateId))
-                                : districts
-                            ).map(district => (
-                                <option key={district.districtId} value={district.districtId}>
-                                    {district.districtName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.districtId && <p className="mt-1.5 text-sm text-red-600">{errors.districtId}</p>}
-                    </div>
+                    <DependentDropdown
+                        label="District"
+                        required={districtRequired}
+                        value={formData.districtId || ''}
+                        onChange={(value) => {
+                            const districtId = value ? Number(value) : ''
+                            handleChange('districtId', districtId)
+                            setFormData(prev => ({
+                                ...prev,
+                                districtId: districtId as number | '',
+                                orgId: '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: showStateForSubAdmin ? formData.stateId : currentUser?.stateId,
+                            field: 'stateId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (stateId, signal) => {
+                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
+                            return response.data.map((d: District) => ({
+                                value: d.districtId,
+                                label: d.districtName
+                            }))
+                        }}
+                        cacheKey="districts-by-state"
+                        emptyMessage="No districts available for this state"
+                        loadingMessage="Loading districts..."
+                        error={errors.districtId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {/* Sub-admin: Organization dropdown */}
                 {showOrgForSubAdmin && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            Organization {orgRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.orgId}
-                            onChange={e => {
-                                const orgId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('orgId', orgId)
-                                // Reset dependent fields
-                                setFormData(prev => ({
-                                    ...prev,
-                                    orgId: orgId as number | '',
-                                    kvkId: '',
+                    <DependentDropdown
+                        label="Organization"
+                        required={orgRequired}
+                        value={formData.orgId || ''}
+                        onChange={(value) => {
+                            const orgId = value ? Number(value) : ''
+                            handleChange('orgId', orgId)
+                            setFormData(prev => ({
+                                ...prev,
+                                orgId: orgId as number | '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: showDistrictForSubAdmin ? formData.districtId : (showStateForSubAdmin ? formData.stateId : currentUser?.districtId),
+                            field: showDistrictForSubAdmin ? 'districtId' : (showStateForSubAdmin ? 'stateId' : 'districtId')
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (depValue, signal) => {
+                            if (showDistrictForSubAdmin) {
+                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
+                                return response.data.map((org: Organization) => ({
+                                    value: org.orgId,
+                                    label: org.orgName
                                 }))
-                                setKvks([])
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.orgId ? 'border-red-300' : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={orgRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns || (showStateForSubAdmin && !formData.stateId)}
-                        >
-                            <option value="">
-                                {showStateForSubAdmin && !formData.stateId ? 'Select a state first' : 'Select an organization'}
-                            </option>
-                            {(effectiveStateId
-                                ? organizations.filter(o => o.district?.state?.stateId === effectiveStateId)
-                                : organizations
-                            ).map(org => (
-                                <option key={org.orgId} value={org.orgId}>
-                                    {org.orgName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.orgId && <p className="mt-1.5 text-sm text-red-600">{errors.orgId}</p>}
-                    </div>
+                            } else {
+                                // Filter by state
+                                const response = await masterDataApi.getOrganizations()
+                                const filtered = response.data.filter((org: Organization) =>
+                                    org.district?.state?.stateId === depValue
+                                )
+                                return filtered.map((org: Organization) => ({
+                                    value: org.orgId,
+                                    label: org.orgName
+                                }))
+                            }
+                        }}
+                        cacheKey="organizations-by-district"
+                        emptyMessage="No organizations available"
+                        loadingMessage="Loading organizations..."
+                        error={errors.orgId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {/* Super Admin hierarchy dropdowns */}
@@ -853,230 +681,222 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
                 {/* Super Admin: Zone → State → District cascade - select in order */}
                 {!isSubAdmin && showZoneField && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            Zone {zoneRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.zoneId}
-                            onChange={e => {
-                                const zoneId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('zoneId', zoneId)
-                                // Reset dependent fields
-                                setFormData(prev => ({
-                                    ...prev,
-                                    zoneId: zoneId as number | '',
-                                    stateId: '',
-                                    districtId: '',
-                                    orgId: '',
-                                    kvkId: '',
-                                }))
-                                setKvks([])
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.zoneId
-                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                    : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={zoneRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns}
-                        >
-                            <option value="">Select a zone</option>
-                            {zones.map(zone => (
-                                <option key={zone.zoneId} value={zone.zoneId}>
-                                    {zone.zoneName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.zoneId && (
-                            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                                {errors.zoneId}
-                            </p>
-                        )}
-                    </div>
+                    <DependentDropdown
+                        label="Zone"
+                        required={zoneRequired}
+                        value={formData.zoneId || ''}
+                        onChange={(value) => {
+                            const zoneId = value ? Number(value) : ''
+                            handleChange('zoneId', zoneId)
+                            setFormData(prev => ({
+                                ...prev,
+                                zoneId: zoneId as number | '',
+                                stateId: '',
+                                districtId: '',
+                                orgId: '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        options={zones.map(z => ({ value: z.zoneId, label: z.zoneName }))}
+                        emptyMessage="No zones available"
+                        error={errors.zoneId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {!isSubAdmin && showStateField && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            State {stateRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.stateId}
-                            onChange={e => {
-                                const stateId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('stateId', stateId)
-                                // Reset dependent fields
-                                setFormData(prev => ({
-                                    ...prev,
-                                    stateId: stateId as number | '',
-                                    districtId: '',
-                                    orgId: '',
-                                    kvkId: '',
-                                }))
-                                setKvks([])
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.stateId
-                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                    : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={stateRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns || (showZoneField && !formData.zoneId)}
-                        >
-                            <option value="">
-                                {showZoneField && !formData.zoneId ? 'Select a zone first' : 'Select a state'}
-                            </option>
-                            {(showZoneField && formData.zoneId
-                                ? states.filter(s => s.zoneId === formData.zoneId)
-                                : states
-                            ).map(state => (
-                                <option key={state.stateId} value={state.stateId}>
-                                    {state.stateName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.stateId && (
-                            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                                {errors.stateId}
-                            </p>
-                        )}
-                    </div>
+                    <DependentDropdown
+                        label="State"
+                        required={stateRequired}
+                        value={formData.stateId || ''}
+                        onChange={(value) => {
+                            const stateId = value ? Number(value) : ''
+                            handleChange('stateId', stateId)
+                            setFormData(prev => ({
+                                ...prev,
+                                stateId: stateId as number | '',
+                                districtId: '',
+                                orgId: '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: showZoneField ? formData.zoneId : undefined,
+                            field: 'zoneId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (zoneId, signal) => {
+                            const response = await masterDataApi.getStatesByZone(zoneId as number, signal)
+                            return response.data.map((s: State) => ({
+                                value: s.stateId,
+                                label: s.stateName
+                            }))
+                        }}
+                        cacheKey="states-by-zone"
+                        emptyMessage="No states available for this zone"
+                        loadingMessage="Loading states..."
+                        error={errors.stateId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {!isSubAdmin && showDistrictField && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            District {districtRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.districtId}
-                            onChange={e => {
-                                const districtId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('districtId', districtId)
-                                // Reset dependent fields
-                                setFormData(prev => ({
-                                    ...prev,
-                                    districtId: districtId as number | '',
-                                    kvkId: '',
-                                }))
-                                setKvks([])
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.districtId
-                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                    : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={districtRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns || (showStateField && !formData.stateId)}
-                        >
-                            <option value="">
-                                {showStateField && !formData.stateId ? 'Select a state first' : 'Select a district'}
-                            </option>
-                            {(showStateField && formData.stateId
-                                ? districts.filter(d => d.stateId === formData.stateId)
-                                : districts
-                            ).map(district => (
-                                <option key={district.districtId} value={district.districtId}>
-                                    {district.districtName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.districtId && (
-                            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                                {errors.districtId}
-                            </p>
-                        )}
-                    </div>
+                    <DependentDropdown
+                        label="District"
+                        required={districtRequired}
+                        value={formData.districtId || ''}
+                        onChange={(value) => {
+                            const districtId = value ? Number(value) : ''
+                            handleChange('districtId', districtId)
+                            setFormData(prev => ({
+                                ...prev,
+                                districtId: districtId as number | '',
+                                orgId: '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: showStateField ? formData.stateId : undefined,
+                            field: 'stateId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (stateId, signal) => {
+                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
+                            return response.data.map((d: District) => ({
+                                value: d.districtId,
+                                label: d.districtName
+                            }))
+                        }}
+                        cacheKey="districts-by-state"
+                        emptyMessage="No districts available for this state"
+                        loadingMessage="Loading districts..."
+                        error={errors.districtId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {!isSubAdmin && showOrgField && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            Organization {orgRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.orgId}
-                            onChange={e => {
-                                const orgId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('orgId', orgId)
-                                // Reset dependent fields
-                                setFormData(prev => ({
-                                    ...prev,
-                                    orgId: orgId as number | '',
-                                    kvkId: '',
+                    <DependentDropdown
+                        label="Organization"
+                        required={orgRequired}
+                        value={formData.orgId || ''}
+                        onChange={(value) => {
+                            const orgId = value ? Number(value) : ''
+                            handleChange('orgId', orgId)
+                            setFormData(prev => ({
+                                ...prev,
+                                orgId: orgId as number | '',
+                                universityId: '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: showDistrictField ? formData.districtId : (showStateField ? formData.stateId : undefined),
+                            field: showDistrictField ? 'districtId' : 'stateId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (depValue, signal) => {
+                            if (showDistrictField) {
+                                const response = await masterDataApi.getOrganizationsByDistrict(depValue as number, signal)
+                                return response.data.map((org: Organization) => ({
+                                    value: org.orgId,
+                                    label: org.orgName
                                 }))
-                                setKvks([])
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.orgId
-                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                    : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess || loadingDropdowns ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={orgRequired}
-                            disabled={isSubmitting || submitSuccess || loadingDropdowns || (showStateField && !formData.stateId)}
-                        >
-                            <option value="">
-                                {showStateField && !formData.stateId ? 'Select a state first' : 'Select an organization'}
-                            </option>
-                            {(showStateField && formData.stateId
-                                ? organizations.filter(o => o.district?.state?.stateId === formData.stateId)
-                                : organizations
-                            ).map(org => (
-                                <option key={org.orgId} value={org.orgId}>
-                                    {org.orgName}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.orgId && (
-                            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                                {errors.orgId}
-                            </p>
-                        )}
-                    </div>
+                            } else {
+                                // Filter by state
+                                const response = await masterDataApi.getOrganizations()
+                                const filtered = response.data.filter((org: Organization) =>
+                                    org.district?.state?.stateId === depValue
+                                )
+                                return filtered.map((org: Organization) => ({
+                                    value: org.orgId,
+                                    label: org.orgName
+                                }))
+                            }
+                        }}
+                        cacheKey="organizations-by-district"
+                        emptyMessage="No organizations available"
+                        loadingMessage="Loading organizations..."
+                        error={errors.orgId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
+                )}
+
+                {/* University dropdown - shown when Organization is visible */}
+                {((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
+                    <DependentDropdown
+                        label="University"
+                        value={formData.universityId || ''}
+                        onChange={(value) => {
+                            const universityId = value ? Number(value) : ''
+                            handleChange('universityId', universityId)
+                            setFormData(prev => ({
+                                ...prev,
+                                universityId: universityId as number | '',
+                                kvkId: '',
+                            }))
+                        }}
+                        dependsOn={{
+                            value: formData.orgId,
+                            field: 'orgId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (orgId, signal) => {
+                            const response = await masterDataApi.getUniversitiesByOrganization(orgId as number, signal)
+                            return response.data.map((u: University) => ({
+                                value: u.universityId,
+                                label: u.universityName
+                            }))
+                        }}
+                        cacheKey="universities-by-org"
+                        emptyMessage="No universities available for this organization"
+                        loadingMessage="Loading universities..."
+                        error={errors.universityId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {selectedRole === 'kvk' && (
-                    <div>
-                        <label className="block text-sm font-medium text-[#487749] mb-2">
-                            KVK {kvkRequired && <span className="text-red-500">*</span>}
-                        </label>
-                        <select
-                            value={formData.kvkId}
-                            onChange={e => {
-                                const kvkId = e.target.value ? parseInt(e.target.value) : ''
-                                handleChange('kvkId', kvkId)
-                            }}
-                            className={`w-full h-12 px-4 py-3 border rounded-xl bg-[#FAF9F6] text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${
-                                errors.kvkId
-                                    ? 'border-red-300 focus:border-red-400 focus:ring-red-200'
-                                    : 'border-[#E0E0E0] hover:border-[#BDBDBD]'
-                            } ${isSubmitting || submitSuccess ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            required={kvkRequired}
-                            disabled={isSubmitting || submitSuccess || (!isSubAdmin && !formData.orgId)}
-                        >
-                            <option value="">
-                                {!isSubAdmin && !formData.orgId ? 'Select zone, state, district and organization first' : 'Select a KVK'}
-                            </option>
-                            {kvks.map(kvk => (
-                                <option key={kvk.kvkId} value={kvk.kvkId}>
-                                    {kvk.kvkName}
-                                </option>
-                            ))}
-                        </select>
-                        {kvks.length === 0 && selectedRole === 'kvk' && (
-                            <p className="mt-1.5 text-xs text-[#757575]">
-                                {isSubAdmin
-                                    ? 'No KVKs available for your location'
-                                    : 'No KVKs found. Please select Zone, State, District and Organization first.'}
-                            </p>
-                        )}
-                        {errors.kvkId && (
-                            <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                                {errors.kvkId}
-                            </p>
-                        )}
-                    </div>
+                    <DependentDropdown
+                        label={`KVK ${kvkRequired ? '*' : ''}`}
+                        value={formData.kvkId || ''}
+                        onChange={(value) => {
+                            const kvkId = value ? Number(value) : ''
+                            handleChange('kvkId', kvkId)
+                        }}
+                        dependsOn={{
+                            value: !isSubAdmin ? formData.universityId : (showOrgForSubAdmin ? formData.universityId : (currentUser as any)?.universityId),
+                            field: 'universityId'
+                        }}
+                        options={[]}
+                        onOptionsLoad={async (universityId, _signal) => {
+                            const params = buildKvkFilters({
+                                isSubAdmin,
+                                currentUser,
+                                formData,
+                                showStateForSubAdmin,
+                                showDistrictForSubAdmin,
+                                showOrgForSubAdmin,
+                                universityId: universityId, // Pass the selected universityId
+                            });
+                            const response = await aboutKvkApi.getKvks(params)
+                            return response.data.map((kvk: Kvk) => ({
+                                value: kvk.kvkId,
+                                label: kvk.kvkName
+                            }))
+                        }}
+                        emptyMessage={isSubAdmin
+                            ? 'No KVKs available for your location'
+                            : 'No KVKs found. Please select Zone, State, District, Organization and University first.'}
+                        loadingMessage="Loading KVKs..."
+                        cacheKey="kvks-by-university"
+                        required={kvkRequired}
+                        error={errors.kvkId}
+                        disabled={isSubmitting || submitSuccess}
+                    />
                 )}
 
                 {/* Form Actions */}

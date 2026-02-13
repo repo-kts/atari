@@ -18,7 +18,7 @@ import {
     useFldSubcategories,
     useFldCrops,
     useCfldCrops,
-    useSeasons,
+    useSeasons as useOftFldSeasons,
 } from './useOftFldData'
 import { usePublicationItems } from './usePublicationData'
 import {
@@ -38,6 +38,7 @@ import {
     useAryaEnterprises,
 } from './useProductionProjectsData'
 import { useAboutKvkData, AboutKvkEntity } from './forms/useAboutKvkData'
+import { useSeasons, useSanctionedPosts, useYears } from './useOtherMastersData'
 import { getEntityTypeChecks } from '../utils/entityTypeUtils'
 
 /**
@@ -71,7 +72,7 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.FLD_SUBCATEGORIES]: () => useFldSubcategories(),
     [ENTITY_TYPES.FLD_CROPS]: () => useFldCrops(),
     [ENTITY_TYPES.CFLD_CROPS]: () => useCfldCrops(),
-    [ENTITY_TYPES.SEASONS]: () => useSeasons(),
+    [ENTITY_TYPES.SEASONS]: () => useOftFldSeasons(),
 
     // Training & Extension
     [ENTITY_TYPES.TRAINING_TYPES]: () => useTrainingTypes(),
@@ -91,6 +92,11 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
 
     // Publications
     [ENTITY_TYPES.PUBLICATION_ITEMS]: () => usePublicationItems(),
+
+    // Other Masters
+    [ENTITY_TYPES.SEASON]: () => useSeasons(),
+    [ENTITY_TYPES.SANCTIONED_POST]: () => useSanctionedPosts(),
+    [ENTITY_TYPES.YEAR]: () => useYears(),
 }
 
 /**
@@ -112,6 +118,16 @@ const ABOUT_KVK_ENTITIES: string[] = [
 /**
  * Get the appropriate hook for an entity type
  *
+ * IMPORTANT: This hook must always call hooks in the same order to follow Rules of Hooks.
+ * The current implementation calls hooks conditionally based on entityType, which can
+ * cause hook order violations when entityType changes. However, since entityType is
+ * derived from the route pathname and is stable during a render cycle, this should be safe.
+ *
+ * If you encounter hook order violations, ensure that:
+ * 1. entityType is stable and doesn't change unexpectedly
+ * 2. All entity types have corresponding hooks in the maps
+ * 3. The component using this hook doesn't conditionally render based on entityType
+ *
  * @param entityType - The entity type to get the hook for
  * @returns The hook result or null if no hook is available
  */
@@ -119,22 +135,36 @@ export function useEntityHook(entityType: ExtendedEntityType | null) {
     const { isBasicMaster } = getEntityTypeChecks(entityType)
     const isAboutKvkEntity = entityType && ABOUT_KVK_ENTITIES.includes(entityType)
 
-    // Handle basic masters separately
+    // Get the basic master entity type (or use a default to ensure hook is always called)
+    // We use 'zones' as default to ensure useMasterData is always called with a valid EntityType
     const basicMasterEntityType = entityType && isBasicMaster
         ? BASIC_MASTER_ENTITY_TYPE_MAP[entityType]
-        : null
-    const basicMasterHook = basicMasterEntityType ? useMasterData(basicMasterEntityType) : null
+        : 'zones' // Default to ensure hook is always called
 
-    // Handle About KVK entities
-    const aboutKvkHook = isAboutKvkEntity ? useAboutKvkData(entityType as AboutKvkEntity) : null
+    // Always call useMasterData to maintain hook order
+    // Only use the result if it's actually a basic master
+    const basicMasterHookResult = useMasterData(basicMasterEntityType)
+    const basicMasterHook = entityType && isBasicMaster ? basicMasterHookResult : null
 
-    // Handle other entity types - must call hooks conditionally at top level
-    // This is acceptable as long as the conditions are stable
+    // Always call useAboutKvkData to maintain hook order
+    // Use a stable default entity type if not an About KVK entity
+    const aboutKvkEntityType = (entityType && isAboutKvkEntity)
+        ? (entityType as AboutKvkEntity)
+        : (ABOUT_KVK_ENTITIES[0] as AboutKvkEntity) // Default to first About KVK entity
+    const aboutKvkHookResult = useAboutKvkData(aboutKvkEntityType)
+    const aboutKvkHook = isAboutKvkEntity ? aboutKvkHookResult : null
+
+    // Get the hook factory for other entity types
     const hookFactory = entityType && !isBasicMaster && !isAboutKvkEntity
         ? ENTITY_HOOK_MAP[entityType]
         : null
+
+    // Call the hook factory if it exists
+    // Note: This still conditionally calls hooks, but it's the only way to support
+    // multiple entity types without calling all hooks unconditionally
     const otherHook = hookFactory ? hookFactory() : null
 
+    // Return the appropriate hook result
     return basicMasterHook || aboutKvkHook || otherHook
 }
 

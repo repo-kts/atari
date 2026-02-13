@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel, type RoleInfo } from '../../services/userApi'
 import { useRoles } from '../../hooks/useUserManagement'
 import { outranksOrEqual } from '../../constants/roleHierarchy'
-import { Plus, MoreVertical, Pencil, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
+import { Plus, MoreVertical, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
@@ -88,15 +88,6 @@ export const RoleManagement: React.FC = () => {
     const handleAddEditPermission = (role: RoleInfo) => {
         setOpenActionId(null)
         navigate(`/role-view/${role.roleId}/permissions`)
-    }
-
-    const handleEdit = (role: RoleInfo) => {
-        setOpenActionId(null)
-        alert({
-            title: 'Coming Soon',
-            message: `Edit "${getRoleLabel(role.roleName)}" – coming soon`,
-            variant: 'info',
-        })
     }
 
     const handleDelete = (role: RoleInfo) => {
@@ -258,24 +249,14 @@ export const RoleManagement: React.FC = () => {
                                                                             {(currentUser?.role === 'super_admin' || currentUser?.role === 'zone_admin' || outranksOrEqual(currentUser?.role || '', role.roleName)) ? 'Add/Edit Permission' : 'View Permission'}
                                                                         </button>
                                                                         {currentUser?.role === 'super_admin' && (
-                                                                            <>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleEdit(role)}
-                                                                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#212121] hover:bg-[#F5F5F5] text-left"
-                                                                                >
-                                                                                    <Pencil className="w-4 h-4 text-[#757575]" />
-                                                                                    Edit
-                                                                                </button>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleDelete(role)}
-                                                                                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
-                                                                                >
-                                                                                    <Trash2 className="w-4 h-4" />
-                                                                                    Delete
-                                                                                </button>
-                                                                            </>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleDelete(role)}
+                                                                                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                                Delete
+                                                                            </button>
                                                                         )}
                                                                     </div>
                                                                 )}

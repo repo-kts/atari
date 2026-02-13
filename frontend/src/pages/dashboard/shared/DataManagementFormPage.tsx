@@ -44,7 +44,7 @@ export function DataManagementFormPage({
     }
 
     // Use centralized entity type checks
-    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk } =
+    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk, isOtherMaster } =
         getEntityTypeChecks(entityType)
 
     return (
@@ -72,7 +72,7 @@ export function DataManagementFormPage({
                     </div>
                 ) : (
                     <form id="masterDataForm" onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {isBasicMaster && (
+                        {(isBasicMaster || isOtherMaster) && (
                             <BasicMasterForms
                                 entityType={entityType}
                                 formData={formData}
@@ -122,7 +122,7 @@ export function DataManagementFormPage({
 
                         {/* Fallback if no form matches */}
                         {!isBasicMaster && !isOftFld && !isTrainingExtension && !isProductionProject &&
-                         entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && !isAboutKvk && (
+                         entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && !isAboutKvk && !isOtherMaster && (
                             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
                                 <p className="font-semibold">Form not configured</p>
                                 <p className="text-sm mt-1">Entity type: {entityType}</p>

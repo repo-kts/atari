@@ -17,6 +17,11 @@ export const ENTITY_TYPES = {
     CFLD_CROPS: 'cfld-crops',
     SEASONS: 'seasons',
 
+    // Other Masters
+    SEASON: 'season',
+    SANCTIONED_POST: 'sanctioned-post',
+    YEAR: 'year',
+
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
     TRAINING_AREAS: 'training-areas',
@@ -105,6 +110,12 @@ export const ENTITY_PATHS = {
     KVK_VIEW_EMPLOYEES: '/forms/about-kvk/view-kvks/:id/employees',
     KVK_VIEW_VEHICLES: '/forms/about-kvk/view-kvks/:id/vehicles',
     KVK_VIEW_EQUIPMENTS: '/forms/about-kvk/view-kvks/:id/equipments',
+
+    // Other Masters
+    SEASON: '/all-master/season',
+    SANCTIONED_POST: '/all-master/sanctioned-post',
+    YEAR: '/all-master/year',
+    OTHER_MASTERS: '/all-master/other-masters',
 
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',

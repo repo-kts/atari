@@ -1,11 +1,63 @@
 const masterDataRepository = require('../../repositories/all-masters/masterDataRepository.js');
+const prisma = require('../../config/prisma.js');
 
 /**
  * Generic Master Data Service
- * Business logic layer with validation and error handling
+ * Business logic layer with validation, error handling, and cascade delete operations
  */
 
-// Validation schemas for each entity
+// ============================================================================
+// CONFIGURATION & CONSTANTS
+// ============================================================================
+
+/**
+ * Entity configuration mapping
+ */
+const ENTITY_CONFIG = {
+    zones: {
+        nameField: 'zoneName',
+        idField: 'zoneId',
+        singular: 'zone',
+        children: ['states', 'districts'],
+        kvkField: 'zoneId',
+    },
+    states: {
+        nameField: 'stateName',
+        idField: 'stateId',
+        singular: 'state',
+        children: ['districts'],
+        kvkField: 'stateId',
+        parentField: 'zoneId',
+    },
+    districts: {
+        nameField: 'districtName',
+        idField: 'districtId',
+        singular: 'district',
+        children: ['organizations'],
+        kvkField: 'districtId',
+        parentField: 'stateId',
+    },
+    organizations: {
+        nameField: 'orgName',
+        idField: 'orgId',
+        singular: 'organization',
+        children: ['universities'],
+        kvkField: 'orgId',
+        parentField: 'districtId',
+    },
+    universities: {
+        nameField: 'universityName',
+        idField: 'universityId',
+        singular: 'university',
+        children: [],
+        kvkField: 'universityId',
+        parentField: 'orgId',
+    },
+};
+
+/**
+ * Validation rules for each entity
+ */
 const VALIDATION_RULES = {
     zones: {
         required: ['zoneName'],
@@ -35,10 +87,118 @@ const VALIDATION_RULES = {
 };
 
 /**
+ * Cascade delete hierarchy mapping
+ */
+const CASCADE_HIERARCHY = {
+    universities: {
+        childModel: null,
+        childIdField: null,
+        cascadeFn: null,
+    },
+    organizations: {
+        childModel: 'universityMaster',
+        childIdField: 'universityId',
+        parentField: 'orgId',
+        cascadeFn: 'cascadeDeleteUniversities',
+    },
+    districts: {
+        childModel: 'orgMaster',
+        childIdField: 'orgId',
+        parentField: 'districtId',
+        cascadeFn: 'cascadeDeleteOrganizations',
+    },
+    states: {
+        childModel: 'districtMaster',
+        childIdField: 'districtId',
+        parentField: 'stateId',
+        cascadeFn: 'cascadeDeleteDistricts',
+    },
+    zones: {
+        childModel: null, // Special case - has both states and districts
+        cascadeFn: 'cascadeDeleteZone',
+    },
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Get entity configuration
+ */
+function getEntityConfig(entityName) {
+    const config = ENTITY_CONFIG[entityName];
+    if (!config) {
+        throw new Error(`Invalid entity name: ${entityName}`);
+    }
+    return config;
+}
+
+/**
+ * Get entity name field
+ */
+function getNameField(entityName) {
+    return getEntityConfig(entityName).nameField;
+}
+
+/**
+ * Get entity ID field
+ */
+function getEntityIdField(entityName) {
+    return getEntityConfig(entityName).idField;
+}
+
+/**
+ * Get entity singular name
+ */
+function getEntitySingular(entityName) {
+    return getEntityConfig(entityName).singular;
+}
+
+/**
+ * Normalize boolean value from various formats
+ */
+function normalizeBoolean(value, defaultValue = true) {
+    if (value === false || value === 'false' || value === 0 || value === '0') {
+        return false;
+    }
+    return defaultValue;
+}
+
+/**
+ * Create user-friendly error message
+ */
+function createUserFriendlyError(error, entityName) {
+    const singular = getEntitySingular(entityName);
+    
+    if (error.code === 'P2025') {
+        return new Error(`${singular} not found or already deleted`);
+    }
+    
+    if (error.message && !error.message.includes('prisma') && !error.message.includes('invocation')) {
+        return error;
+    }
+    
+    return new Error(`Failed to delete ${singular}: ${error.message || 'Unknown error'}`);
+}
+
+/**
+ * Get unique constraint filters for duplicate checking
+ */
+function getUniqueFilters(entityName, data) {
+    const config = getEntityConfig(entityName);
+    if (!config.parentField) return {};
+    
+    const parentValue = data[config.parentField];
+    return parentValue ? { [config.parentField]: parseInt(parentValue) } : {};
+}
+
+// ============================================================================
+// VALIDATION
+// ============================================================================
+
+/**
  * Validate entity data
- * @param {string} entityName - Entity name
- * @param {object} data - Data to validate
- * @throws {Error} Validation error
  */
 function validateData(entityName, data) {
     const rules = VALIDATION_RULES[entityName];
@@ -72,28 +232,23 @@ function validateData(entityName, data) {
     }
 }
 
+// ============================================================================
+// CRUD OPERATIONS
+// ============================================================================
+
 /**
  * Get all entities with pagination and filtering
- * @param {string} entityName - Entity name
- * @param {object} options - Query options
- * @returns {Promise<{data: Array, meta: object}>}
  */
 async function getAllEntities(entityName, options = {}) {
     try {
         const { data, total } = await masterDataRepository.findAll(entityName, options);
-
         const page = parseInt(options.page) || 1;
         const limit = parseInt(options.limit) || 20;
         const totalPages = Math.ceil(total / limit);
 
         return {
             data,
-            meta: {
-                page,
-                limit,
-                total,
-                totalPages,
-            },
+            meta: { page, limit, total, totalPages },
         };
     } catch (error) {
         console.error(`Error fetching ${entityName}:`, error);
@@ -103,18 +258,13 @@ async function getAllEntities(entityName, options = {}) {
 
 /**
  * Get entity by ID
- * @param {string} entityName - Entity name
- * @param {number} id - Entity ID
- * @returns {Promise<object>}
  */
 async function getEntityById(entityName, id) {
     try {
         const entity = await masterDataRepository.findById(entityName, id);
-
         if (!entity) {
-            throw new Error(`${entityName.slice(0, -1)} not found`);
+            throw new Error(`${getEntitySingular(entityName)} not found`);
         }
-
         return entity;
     } catch (error) {
         console.error(`Error fetching ${entityName} by ID:`, error);
@@ -124,23 +274,10 @@ async function getEntityById(entityName, id) {
 
 /**
  * Create new entity
- * @param {string} entityName - Entity name
- * @param {object} data - Entity data
- * @param {number} userId - User ID creating the entity
- * @returns {Promise<object>}
  */
 async function createEntity(entityName, data, userId) {
     try {
-        // Validate data
         validateData(entityName, data);
-
-        // Additional validation for universities
-        if (entityName === 'universities' && data.orgId) {
-            const org = await masterDataRepository.findById('organizations', data.orgId);
-            if (!org) {
-                throw new Error('Organization not found');
-            }
-        }
 
         // Validate foreign key references
         const validRefs = await masterDataRepository.validateReferences(entityName, data);
@@ -162,11 +299,7 @@ async function createEntity(entityName, data, userId) {
             throw new Error(`${nameField} already exists`);
         }
 
-        // Create entity
-        const entity = await masterDataRepository.create(entityName, data);
-
-
-        return entity;
+        return await masterDataRepository.create(entityName, data);
     } catch (error) {
         console.error(`Error creating ${entityName}:`, error);
         throw error;
@@ -175,21 +308,14 @@ async function createEntity(entityName, data, userId) {
 
 /**
  * Update entity
- * @param {string} entityName - Entity name
- * @param {number} id - Entity ID
- * @param {object} data - Updated data
- * @param {number} userId - User ID updating the entity
- * @returns {Promise<object>}
  */
 async function updateEntity(entityName, id, data, userId) {
     try {
-        // Check if entity exists
         const existing = await masterDataRepository.findById(entityName, id);
         if (!existing) {
-            throw new Error(`${entityName.slice(0, -1)} not found`);
+            throw new Error(`${getEntitySingular(entityName)} not found`);
         }
 
-        // Validate data
         validateData(entityName, data);
 
         // Validate foreign key references
@@ -214,97 +340,87 @@ async function updateEntity(entityName, id, data, userId) {
             }
         }
 
-        // Update entity
-        const entity = await masterDataRepository.update(entityName, id, data);
-
-        return entity;
+        return await masterDataRepository.update(entityName, id, data);
     } catch (error) {
         console.error(`Error updating ${entityName}:`, error);
         throw error;
     }
 }
 
+// ============================================================================
+// DELETE OPERATIONS
+// ============================================================================
+
 /**
- * Delete entity
- * @param {string} entityName - Entity name
- * @param {number} id - Entity ID
- * @param {number} userId - User ID deleting the entity
- * @param {boolean} cascade - If true, delete all related records (cascade delete)
- * @returns {Promise<void>}
+ * Check if entity has dependent records
  */
-async function deleteEntity(entityName, id, userId, cascade = false) {
-    try {
-        // Ensure id is an integer
-        const entityId = parseInt(id, 10);
-        if (isNaN(entityId)) {
-            throw new Error(`Invalid ID: ${id}`);
-        }
+async function checkDependents(entityName, entity) {
+    const counts = entity._count || {};
+    const entityId = entity[getEntityIdField(entityName)];
+    const config = getEntityConfig(entityName);
 
-        console.log(`[deleteEntity] Starting delete for ${entityName} ID ${entityId}, cascade=${cascade}, cascade type=${typeof cascade}`);
+    // Model name mapping
+    const modelMap = {
+        zones: 'zone',
+        states: 'stateMaster',
+        districts: 'districtMaster',
+        organizations: 'orgMaster',
+        universities: 'universityMaster',
+    };
 
-        // Check if entity exists
-        const existing = await masterDataRepository.findById(entityName, entityId);
-        if (!existing) {
-            throw new Error(`${entityName.slice(0, -1)} not found`);
-        }
-
-        // Normalize cascade to boolean
-        const shouldCascade = cascade === true || cascade === 'true' || cascade === 1 || cascade === '1';
-        console.log(`[deleteEntity] ${entityName} ID ${entityId} - cascade parameter: ${cascade}, normalized: ${shouldCascade}`);
-        
-        // Check if entity has dependent records
-        const hasDependents = await checkDependents(entityName, existing);
-        console.log(`[deleteEntity] ${entityName} ID ${entityId} has dependents: ${hasDependents}`);
-        
-        // If cascade delete is requested, delete all related records first
-        if (shouldCascade) {
-            console.log(`[deleteEntity] Cascade delete requested for ${entityName} ID ${entityId}`);
-            if (hasDependents) {
-                await cascadeDeleteEntity(entityName, entityId);
-            }
-            // Proceed with deletion regardless of dependents when cascade is true
-        } else if (hasDependents) {
-            // Only throw error if cascade is false and there are dependents
-            console.log(`[deleteEntity] Cannot delete ${entityName} ID ${entityId} - has dependents and cascade is false`);
-            throw new Error(`Cannot delete ${entityName.slice(0, -1)} with existing dependent records`);
-        }
-
-        // Delete entity
-        console.log(`[deleteEntity] Deleting ${entityName} ID ${entityId}`);
-        await masterDataRepository.deleteEntity(entityName, entityId);
-        console.log(`[deleteEntity] Successfully deleted ${entityName} ID ${entityId}`);
-
-    } catch (error) {
-        console.error(`[deleteEntity] Error deleting ${entityName}:`, error);
-        throw error;
+    // If _count is available, use it
+    if (entity._count) {
+        const dependentCounts = config.children.map(child => {
+            const childName = child === 'states' ? 'states' :
+                            child === 'districts' ? 'districts' :
+                            child === 'organizations' ? 'orgs' :
+                            child === 'universities' ? 'universities' : child;
+            return counts[childName] || 0;
+        });
+        const userCount = counts.users || 0;
+        const kvkCount = counts.kvks || 0;
+        return dependentCounts.some(count => count > 0) || userCount > 0 || kvkCount > 0;
     }
+
+    // Otherwise, query directly
+    const queries = [];
+    
+    // Check children entities
+    for (const child of config.children) {
+        const childModel = modelMap[child];
+        if (childModel) {
+            queries.push(
+                prisma[childModel].count({
+                    where: { [config.idField]: entityId }
+                })
+            );
+        }
+    }
+
+    // Check users
+    queries.push(prisma.user.count({ where: { [config.idField]: entityId } }));
+
+    // Check KVKs
+    queries.push(prisma.kvk.count({ where: { [config.kvkField]: entityId } }));
+
+    const results = await Promise.all(queries);
+    return results.some(count => count > 0);
 }
 
 /**
- * Helper: Delete KVKs by a given field
- * This function deletes all KVK-related records before deleting the KVK itself
- * @param {object} prisma - Prisma client
- * @param {string} field - Field name (zoneId, stateId, districtId, orgId, universityId)
- * @param {number} value - Field value
+ * Delete KVKs by a given field
+ * Deletes all KVK-related records in the correct order
  */
-async function deleteKvksByField(prisma, field, value) {
-    // First, find all KVKs that match the field
+async function deleteKvksByField(field, value) {
     const kvks = await prisma.kvk.findMany({
         where: { [field]: value },
         select: { kvkId: true }
     });
 
     const kvkIds = kvks.map(k => k.kvkId);
+    if (kvkIds.length === 0) return;
 
-    if (kvkIds.length === 0) {
-        return; // No KVKs to delete
-    }
-
-    // Delete all KVK-related records in the correct order to respect foreign key constraints
-    // Order matters: delete child records before parent records
-    
-    // 1. Delete staff transfer history first (references kvkStaffId, fromKvkId, toKvkId)
-    //    We need to get all staff IDs first, then delete transfers
+    // Get staff IDs
     const staffWithKvk = await prisma.kvkStaff.findMany({
         where: {
             OR: [
@@ -315,109 +431,67 @@ async function deleteKvksByField(prisma, field, value) {
         select: { kvkStaffId: true }
     });
     const staffIds = staffWithKvk.map(s => s.kvkStaffId);
-    
-    if (staffIds.length > 0) {
-        await prisma.staffTransferHistory.deleteMany({
+
+    // Delete in order: child records first, then parent records
+    const deleteOperations = [
+        // 1. Staff transfer history
+        prisma.staffTransferHistory.deleteMany({
             where: {
-                OR: [
+                OR: staffIds.length > 0 ? [
                     { kvkStaffId: { in: staffIds } },
                     { fromKvkId: { in: kvkIds } },
                     { toKvkId: { in: kvkIds } }
-                ]
-            }
-        });
-    } else {
-        // Delete transfers that reference KVKs even if no staff found
-        await prisma.staffTransferHistory.deleteMany({
-            where: {
-                OR: [
+                ] : [
                     { fromKvkId: { in: kvkIds } },
                     { toKvkId: { in: kvkIds } }
                 ]
             }
-        });
-    }
-
-    // 2. Delete HRD programs (references kvkId and kvkStaffId)
-    if (staffIds.length > 0) {
-        await prisma.hrdProgram.deleteMany({
-            where: {
+        }),
+        // 2. HRD programs
+        prisma.hrdProgram.deleteMany({
+            where: staffIds.length > 0 ? {
                 OR: [
                     { kvkId: { in: kvkIds } },
                     { kvkStaffId: { in: staffIds } }
                 ]
+            } : { kvkId: { in: kvkIds } }
+        }),
+        // 3. KVK staff
+        prisma.kvkStaff.deleteMany({
+            where: {
+                OR: [
+                    { kvkId: { in: kvkIds } },
+                    { originalKvkId: { in: kvkIds } }
+                ]
             }
-        });
-    } else {
-        await prisma.hrdProgram.deleteMany({
-            where: { kvkId: { in: kvkIds } }
-        });
-    }
+        }),
+        // 4. Training achievements
+        prisma.trainingAchievement.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 5. Awards
+        prisma.farmerAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        prisma.kvkAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        prisma.scientistAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 6. Infrastructure
+        prisma.kvkInfrastructure.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 7. Equipment
+        prisma.kvkEquipment.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 8. Vehicles
+        prisma.kvkVehicle.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 9. Bank accounts
+        prisma.kvkBankAccount.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 10. Farm implements
+        prisma.kvkFarmImplement.deleteMany({ where: { kvkId: { in: kvkIds } } }),
+        // 11. KVKs themselves
+        prisma.kvk.deleteMany({ where: { [field]: value } })
+    ];
 
-    // 3. Delete KVK staff (references kvkId and originalKvkId)
-    await prisma.kvkStaff.deleteMany({
-        where: {
-            OR: [
-                { kvkId: { in: kvkIds } },
-                { originalKvkId: { in: kvkIds } }
-            ]
-        }
-    });
-
-    // 4. Delete training achievements
-    await prisma.trainingAchievement.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 5. Delete awards
-    await prisma.farmerAward.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-    await prisma.kvkAward.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-    await prisma.scientistAward.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 6. Delete infrastructure
-    await prisma.kvkInfrastructure.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 7. Delete equipment
-    await prisma.kvkEquipment.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 8. Delete vehicles
-    await prisma.kvkVehicle.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 9. Delete bank accounts
-    await prisma.kvkBankAccount.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // 10. Delete farm implements
-    await prisma.kvkFarmImplement.deleteMany({
-        where: { kvkId: { in: kvkIds } }
-    });
-
-    // Finally, delete the KVKs themselves
-    await prisma.kvk.deleteMany({
-        where: { [field]: value }
-    });
+    await Promise.all(deleteOperations);
 }
 
 /**
- * Helper: Update users to nullify a given field
- * @param {object} prisma - Prisma client
- * @param {string} field - Field name (zoneId, stateId, districtId, orgId, universityId)
- * @param {number} value - Field value
+ * Nullify user field
  */
-async function nullifyUserField(prisma, field, value) {
+async function nullifyUserField(field, value) {
     await prisma.user.updateMany({
         where: { [field]: value },
         data: { [field]: null }
@@ -425,113 +499,179 @@ async function nullifyUserField(prisma, field, value) {
 }
 
 /**
- * Helper: Cascade delete districts and their related records
- * @param {object} prisma - Prisma client
- * @param {Array} districts - Array of districts with districtId
+ * Cascade delete universities (children of organizations)
  */
-async function cascadeDeleteDistricts(prisma, districts) {
-    for (const district of districts) {
-        await deleteKvksByField(prisma, 'districtId', district.districtId);
-        await nullifyUserField(prisma, 'districtId', district.districtId);
-        await prisma.orgMaster.deleteMany({
-            where: { districtId: district.districtId }
-        });
-    }
+async function cascadeDeleteUniversities(universityIds) {
+    if (!universityIds || universityIds.length === 0) return;
+
+    // Delete KVKs and nullify users for each university
+    await Promise.all(
+        universityIds.map(async (universityId) => {
+            await deleteKvksByField('universityId', universityId);
+            await nullifyUserField('universityId', universityId);
+        })
+    );
+
+    // Delete universities
+    await prisma.universityMaster.deleteMany({
+        where: { universityId: { in: universityIds } }
+    });
 }
 
 /**
- * Cascade delete entity and all related records
- * @param {string} entityName - Entity name
- * @param {number} id - Entity ID
- * @returns {Promise<void>}
+ * Cascade delete organizations (children of districts)
  */
-async function cascadeDeleteEntity(entityName, id) {
-    const prisma = require('../../config/prisma.js');
+async function cascadeDeleteOrganizations(orgIds) {
+    if (!orgIds || orgIds.length === 0) return;
 
-    // Ensure id is an integer
-    const entityId = parseInt(id, 10);
-    if (isNaN(entityId)) {
-        throw new Error(`Invalid ID: ${id}`);
+    // Get universities for these organizations
+    const universities = await prisma.universityMaster.findMany({
+        where: { orgId: { in: orgIds } },
+        select: { universityId: true }
+    });
+    const universityIds = universities.map(u => u.universityId);
+
+    // Cascade delete universities
+    if (universityIds.length > 0) {
+        await cascadeDeleteUniversities(universityIds);
+    }
+
+    // Delete KVKs and nullify users for organizations
+    await Promise.all(
+        orgIds.map(async (orgId) => {
+            await deleteKvksByField('orgId', orgId);
+            await nullifyUserField('orgId', orgId);
+        })
+    );
+}
+
+/**
+ * Cascade delete districts (children of states)
+ */
+async function cascadeDeleteDistricts(districtIds) {
+    if (!districtIds || districtIds.length === 0) return;
+
+    // Get organizations for these districts
+    const organizations = await prisma.orgMaster.findMany({
+        where: { districtId: { in: districtIds } },
+        select: { orgId: true }
+    });
+    const orgIds = organizations.map(o => o.orgId);
+
+    // Cascade delete organizations
+    if (orgIds.length > 0) {
+        await cascadeDeleteOrganizations(orgIds);
+        await prisma.orgMaster.deleteMany({
+            where: { orgId: { in: orgIds } }
+        });
+    }
+
+    // Delete KVKs and nullify users for districts
+    await Promise.all(
+        districtIds.map(async (districtId) => {
+            await deleteKvksByField('districtId', districtId);
+            await nullifyUserField('districtId', districtId);
+        })
+    );
+}
+
+/**
+ * Cascade delete states (children of zones)
+ */
+async function cascadeDeleteStates(stateIds) {
+    if (!stateIds || stateIds.length === 0) return;
+
+    // Get districts for these states
+    const districts = await prisma.districtMaster.findMany({
+        where: { stateId: { in: stateIds } },
+        select: { districtId: true }
+    });
+    const districtIds = districts.map(d => d.districtId);
+
+    // Cascade delete districts
+    if (districtIds.length > 0) {
+        await cascadeDeleteDistricts(districtIds);
+        await prisma.districtMaster.deleteMany({
+            where: { districtId: { in: districtIds } }
+        });
+    }
+
+    // Delete KVKs and nullify users for states
+    await Promise.all(
+        stateIds.map(async (stateId) => {
+            await deleteKvksByField('stateId', stateId);
+            await nullifyUserField('stateId', stateId);
+        })
+    );
+}
+
+/**
+ * Cascade delete zone (special case - has both states and districts)
+ */
+async function cascadeDeleteZone(zoneId) {
+    // Get all states and districts for this zone
+    const [states, districts] = await Promise.all([
+        prisma.stateMaster.findMany({
+            where: { zoneId },
+            select: { stateId: true }
+        }),
+        prisma.districtMaster.findMany({
+            where: { zoneId },
+            select: { districtId: true }
+        })
+    ]);
+
+    const stateIds = states.map(s => s.stateId);
+    const districtIds = districts.map(d => d.districtId);
+
+    // Cascade delete states
+    if (stateIds.length > 0) {
+        await cascadeDeleteStates(stateIds);
+        await prisma.stateMaster.deleteMany({
+            where: { stateId: { in: stateIds } }
+        });
+    }
+
+    // Cascade delete districts
+    if (districtIds.length > 0) {
+        await cascadeDeleteDistricts(districtIds);
+        await prisma.districtMaster.deleteMany({
+            where: { districtId: { in: districtIds } }
+        });
+    }
+
+    // Delete KVKs and nullify users for zone
+    await deleteKvksByField('zoneId', zoneId);
+    await nullifyUserField('zoneId', zoneId);
+}
+
+/**
+ * Comprehensive cascade delete entity and all related records
+ */
+async function cascadeDeleteEntity(entityName, entityId) {
+    const id = parseInt(entityId, 10);
+    if (isNaN(id)) {
+        throw new Error(`Invalid ID: ${entityId}`);
     }
 
     try {
         switch (entityName) {
             case 'zones':
-                // Delete KVKs and nullify users for this zone
-                await deleteKvksByField(prisma, 'zoneId', entityId);
-                await nullifyUserField(prisma, 'zoneId', entityId);
-
-                // Get and cascade delete districts
-                const districts = await prisma.districtMaster.findMany({
-                    where: { zoneId: entityId },
-                    select: { districtId: true }
-                });
-                await cascadeDeleteDistricts(prisma, districts);
-
-                // Delete districts
-                await prisma.districtMaster.deleteMany({
-                    where: { zoneId: entityId }
-                });
-
-                // Get and cascade delete states
-                const states = await prisma.stateMaster.findMany({
-                    where: { zoneId: entityId },
-                    select: { stateId: true }
-                });
-
-                for (const state of states) {
-                    await deleteKvksByField(prisma, 'stateId', state.stateId);
-                    await nullifyUserField(prisma, 'stateId', state.stateId);
-                }
-
-                // Delete states
-                await prisma.stateMaster.deleteMany({
-                    where: { zoneId: entityId }
-                });
+                await cascadeDeleteZone(id);
                 break;
-
             case 'states':
-                // Delete KVKs and nullify users for this state
-                await deleteKvksByField(prisma, 'stateId', entityId);
-                await nullifyUserField(prisma, 'stateId', entityId);
-
-                // Get and cascade delete districts
-                const stateDistricts = await prisma.districtMaster.findMany({
-                    where: { stateId: entityId },
-                    select: { districtId: true }
-                });
-                await cascadeDeleteDistricts(prisma, stateDistricts);
-
-                // Delete districts
-                await prisma.districtMaster.deleteMany({
-                    where: { stateId: entityId }
-                });
+                await cascadeDeleteStates([id]);
                 break;
-
             case 'districts':
-                // Delete KVKs, nullify users, and delete organizations
-                await deleteKvksByField(prisma, 'districtId', entityId);
-                await nullifyUserField(prisma, 'districtId', entityId);
-                await prisma.orgMaster.deleteMany({
-                    where: { districtId: entityId }
-                });
+                await cascadeDeleteDistricts([id]);
                 break;
-
             case 'organizations':
-                // Delete KVKs, nullify users, and delete universities
-                await deleteKvksByField(prisma, 'orgId', entityId);
-                await nullifyUserField(prisma, 'orgId', entityId);
-                await prisma.universityMaster.deleteMany({
-                    where: { orgId: entityId }
-                });
+                await cascadeDeleteOrganizations([id]);
                 break;
-
             case 'universities':
-                // Delete KVKs and nullify users
-                await deleteKvksByField(prisma, 'universityId', entityId);
-                await nullifyUserField(prisma, 'universityId', entityId);
+                await deleteKvksByField('universityId', id);
+                await nullifyUserField('universityId', id);
                 break;
-
             default:
                 throw new Error(`Cascade delete not supported for ${entityName}`);
         }
@@ -542,11 +682,51 @@ async function cascadeDeleteEntity(entityName, id) {
 }
 
 /**
+ * Delete entity with cascade support
+ */
+async function deleteEntity(entityName, id, userId, cascade = false) {
+    try {
+        const entityId = parseInt(id, 10);
+        if (isNaN(entityId)) {
+            throw new Error(`Invalid ID: ${id}`);
+        }
+
+        // Check if entity exists
+        const existing = await masterDataRepository.findById(entityName, entityId);
+        if (!existing) {
+            throw new Error(`${getEntitySingular(entityName)} not found`);
+        }
+
+        // Normalize cascade parameter
+        const shouldCascade = normalizeBoolean(cascade, true);
+        const hasDependents = await checkDependents(entityName, existing);
+
+        // Perform cascade delete if needed
+        if (hasDependents || shouldCascade) {
+            await cascadeDeleteEntity(entityName, entityId);
+        }
+
+        // Delete the entity itself
+        try {
+            await masterDataRepository.deleteEntity(entityName, entityId);
+        } catch (deleteError) {
+            if (deleteError.code === 'P2025') {
+                throw new Error(`${getEntitySingular(entityName)} not found or already deleted`);
+            }
+            throw deleteError;
+        }
+    } catch (error) {
+        console.error(`[deleteEntity] Error deleting ${entityName}:`, error);
+        throw createUserFriendlyError(error, entityName);
+    }
+}
+
+// ============================================================================
+// QUERY OPERATIONS
+// ============================================================================
+
+/**
  * Generic error handler wrapper for repository calls
- * @param {Function} fn - Repository function to call
- * @param {string} operation - Operation name for error messages
- * @param {string} entityName - Entity name for error messages
- * @returns {Promise<any>}
  */
 async function handleRepositoryCall(fn, operation, entityName) {
     try {
@@ -559,8 +739,6 @@ async function handleRepositoryCall(fn, operation, entityName) {
 
 /**
  * Get states by zone
- * @param {number} zoneId - Zone ID
- * @returns {Promise<Array>}
  */
 async function getStatesByZone(zoneId) {
     return handleRepositoryCall(
@@ -572,8 +750,6 @@ async function getStatesByZone(zoneId) {
 
 /**
  * Get districts by state
- * @param {number} stateId - State ID
- * @returns {Promise<Array>}
  */
 async function getDistrictsByState(stateId) {
     return handleRepositoryCall(
@@ -585,8 +761,6 @@ async function getDistrictsByState(stateId) {
 
 /**
  * Get organizations by district
- * @param {number} districtId - District ID
- * @returns {Promise<Array>}
  */
 async function getOrgsByDistrict(districtId) {
     return handleRepositoryCall(
@@ -598,8 +772,6 @@ async function getOrgsByDistrict(districtId) {
 
 /**
  * Get universities by organization
- * @param {number} orgId - Organization ID
- * @returns {Promise<Array>}
  */
 async function getUniversitiesByOrg(orgId) {
     return handleRepositoryCall(
@@ -611,7 +783,6 @@ async function getUniversitiesByOrg(orgId) {
 
 /**
  * Get statistics
- * @returns {Promise<object>}
  */
 async function getStats() {
     return handleRepositoryCall(
@@ -623,7 +794,6 @@ async function getStats() {
 
 /**
  * Get hierarchy
- * @returns {Promise<Array>}
  */
 async function getHierarchy() {
     return handleRepositoryCall(
@@ -633,129 +803,9 @@ async function getHierarchy() {
     );
 }
 
-/**
- * Helper: Get name field for entity
- * @param {string} entityName - Entity name
- * @returns {string}
- */
-function getNameField(entityName) {
-    const nameFields = {
-        zones: 'zoneName',
-        states: 'stateName',
-        districts: 'districtName',
-        organizations: 'orgName',
-        universities: 'universityName',
-    };
-    return nameFields[entityName];
-}
-
-/**
- * Helper: Get unique constraint filters for duplicate checking
- * @param {string} entityName - Entity name
- * @param {object} data - Entity data
- * @returns {object}
- */
-function getUniqueFilters(entityName, data) {
-    // For states and districts, name uniqueness is scoped to parent
-    switch (entityName) {
-        case 'states':
-            return data.zoneId ? { zoneId: parseInt(data.zoneId) } : {};
-        case 'districts':
-            return data.stateId ? { stateId: parseInt(data.stateId) } : {};
-        case 'organizations':
-            return data.districtId ? { districtId: parseInt(data.districtId) } : {};
-        case 'universities':
-            return data.orgId ? { orgId: parseInt(data.orgId) } : {};
-        default:
-            return {};
-    }
-}
-
-/**
- * Helper: Check if entity has dependent records
- * @param {string} entityName - Entity name
- * @param {object} entity - Entity object
- * @returns {Promise<boolean>}
- */
-async function checkDependents(entityName, entity) {
-    const prisma = require('../../config/prisma.js');
-    const counts = entity._count || {};
-    
-
-    // If _count is not available, query directly from database
-    if (!entity._count) {
-        const entityId = entity[getEntityIdField(entityName)];
-        
-        switch (entityName) {
-            case 'organizations':
-                const [userCount, universityCount, kvkCount] = await Promise.all([
-                    prisma.user.count({ where: { orgId: entityId } }),
-                    prisma.universityMaster.count({ where: { orgId: entityId } }),
-                    prisma.kvk.count({ where: { orgId: entityId } })
-                ]);
-                console.log(`Direct query - users: ${userCount}, universities: ${universityCount}, kvks: ${kvkCount}`);
-                return userCount > 0 || universityCount > 0 || kvkCount > 0;
-            case 'zones':
-                const [stateCount, districtCount, zoneUserCount] = await Promise.all([
-                    prisma.stateMaster.count({ where: { zoneId: entityId } }),
-                    prisma.districtMaster.count({ where: { zoneId: entityId } }),
-                    prisma.user.count({ where: { zoneId: entityId } })
-                ]);
-                return stateCount > 0 || districtCount > 0 || zoneUserCount > 0;
-            case 'states':
-                const [districtCount2, stateUserCount] = await Promise.all([
-                    prisma.districtMaster.count({ where: { stateId: entityId } }),
-                    prisma.user.count({ where: { stateId: entityId } })
-                ]);
-                return districtCount2 > 0 || stateUserCount > 0;
-            case 'districts':
-                const [orgCount, districtUserCount] = await Promise.all([
-                    prisma.orgMaster.count({ where: { districtId: entityId } }),
-                    prisma.user.count({ where: { districtId: entityId } })
-                ]);
-                return orgCount > 0 || districtUserCount > 0;
-            case 'universities':
-                const [univUserCount, univKvkCount] = await Promise.all([
-                    prisma.user.count({ where: { universityId: entityId } }),
-                    prisma.kvk.count({ where: { universityId: entityId } })
-                ]);
-                return univUserCount > 0 || univKvkCount > 0;
-            default:
-                return false;
-        }
-    }
-
-    // Use _count if available
-    switch (entityName) {
-        case 'zones':
-            return (counts.states || 0) > 0 || (counts.districts || 0) > 0 || (counts.users || 0) > 0;
-        case 'states':
-            return (counts.districts || 0) > 0 || (counts.users || 0) > 0;
-        case 'districts':
-            return (counts.orgs || 0) > 0 || (counts.users || 0) > 0;
-        case 'organizations':
-            const hasDeps = (counts.users || 0) > 0 || (counts.universities || 0) > 0 || (counts.kvks || 0) > 0;
-            return hasDeps;
-        case 'universities':
-            return (counts.users || 0) > 0 || (counts.kvks || 0) > 0;
-        default:
-            return false;
-    }
-}
-
-/**
- * Get the ID field name for an entity
- */
-function getEntityIdField(entityName) {
-    const idFieldMap = {
-        'zones': 'zoneId',
-        'states': 'stateId',
-        'districts': 'districtId',
-        'organizations': 'orgId',
-        'universities': 'universityId',
-    };
-    return idFieldMap[entityName] || 'id';
-}
+// ============================================================================
+// EXPORTS
+// ============================================================================
 
 module.exports = {
     getAllEntities,

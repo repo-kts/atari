@@ -72,6 +72,11 @@ const superAdminMenuItems: MenuItem[] = [
                 path: '/all-master/publications',
                 icon: <Folder className="w-4 h-4" />,
             },
+            {
+                label: 'Other Masters',
+                path: '/all-master/other-masters',
+                icon: <Folder className="w-4 h-4" />,
+            },
         ],
     },
     {
@@ -388,11 +393,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // Mapping of route patterns to their parent dropdown paths
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
         { pattern: /^\/all-master\/(zones|states|organizations|universities|districts)/, parentPath: '/all-master/basic' },
-        { pattern: /^\/all-master\/(oft|fld|cfld-crop|season)/, parentPath: '/all-master/oft-fld' },
+        { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise)/, parentPath: '/all-master/production' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
+        { pattern: /^\/all-master\/(season|sanctioned-post|year)/, parentPath: '/all-master/other-masters' },
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {

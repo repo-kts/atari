@@ -9,6 +9,7 @@ const masterDataRoutes = require('./all-masters/masterDataRoutes.js');
 const trainingExtensionEventsRoutes = require('./all-masters/trainingExtensionEventsRoutes.js');
 const productionProjectsRoutes = require('./all-masters/productionProjectsRoutes.js');
 const publicationRoutes = require('./all-masters/publicationRoutes.js');
+const otherMastersRoutes = require('./all-masters/otherMastersRoutes.js');
 const exportRoutes = require('./exportRoutes.js');
 const aboutKvkRoutes = require('./forms/aboutKvkRoutes.js');
 
@@ -21,6 +22,7 @@ router.use('/admin/masters', oftFldRoutes); // OFT/FLD master data routes
 router.use('/admin/masters', trainingExtensionEventsRoutes); // Training, Extension & Events master data routes
 router.use('/admin/masters', productionProjectsRoutes); // Production & Projects master data routes
 router.use('/admin/masters', publicationRoutes); // Publication master data routes
+router.use('/admin/masters', otherMastersRoutes); // Other Masters routes (Season, Sanctioned Post, Year)
 router.use('/admin/masters', exportRoutes); // Export routes
 router.use('/users', userRoutes);
 router.use('/forms/about-kvk', aboutKvkRoutes);

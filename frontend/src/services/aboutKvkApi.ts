@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { buildUrlWithQuery, type QueryParams } from '../utils/apiQueryBuilder';
 import type {
     ApiResponse,
     PaginatedResponse,
@@ -21,100 +22,177 @@ import type {
 
 const BASE_URL = '/forms/about-kvk';
 
+// ============================================
+// Generic Helper Functions
+// ============================================
+
+/**
+ * Creates a generic GET endpoint for paginated responses
+ */
+function createGetEndpoint<T>(path: string) {
+    return (params?: QueryParams) => {
+        const url = buildUrlWithQuery(`${BASE_URL}${path}`, params);
+        return apiClient.get<PaginatedResponse<T>>(url);
+    };
+}
+
+/**
+ * Creates a generic GET by ID endpoint
+ */
+function createGetByIdEndpoint<T>(path: string) {
+    return (id: number) => {
+        return apiClient.get<ApiResponse<T>>(`${BASE_URL}${path}/${id}`);
+    };
+}
+
+/**
+ * Creates a generic POST endpoint
+ */
+function createPostEndpoint<TData, TResponse = TData>(path: string) {
+    return (data: TData) => {
+        return apiClient.post<ApiResponse<TResponse>>(`${BASE_URL}${path}`, data);
+    };
+}
+
+/**
+ * Creates a generic PUT endpoint
+ */
+function createPutEndpoint<TData, TResponse = TData>(path: string) {
+    return (id: number, data: Partial<TData>) => {
+        return apiClient.put<ApiResponse<TResponse>>(`${BASE_URL}${path}/${id}`, data);
+    };
+}
+
+/**
+ * Creates a generic DELETE endpoint
+ */
+function createDeleteEndpoint(path: string) {
+    return (id: number) => {
+        return apiClient.delete<ApiResponse<void>>(`${BASE_URL}${path}/${id}`);
+    };
+}
+
 export const aboutKvkApi = {
+    // ============================================
     // KVKs
-    getKvks: (params?: any) => apiClient.get<PaginatedResponse<Kvk>>(`${BASE_URL}/kvks`, { ...params }),
-    getAllKvksForDropdown: (params?: any) => apiClient.get<PaginatedResponse<Kvk>>(`${BASE_URL}/kvks-dropdown`, { ...params }),
-    getKvkById: (id: number) => apiClient.get<ApiResponse<Kvk>>(`${BASE_URL}/kvks/${id}`),
-    createKvk: (data: KvkFormData) => apiClient.post<ApiResponse<Kvk>>(`${BASE_URL}/kvks`, data),
-    updateKvk: (id: number, data: Partial<KvkFormData>) => apiClient.put<ApiResponse<Kvk>>(`${BASE_URL}/kvks/${id}`, data),
-    deleteKvk: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/kvks/${id}`),
+    // ============================================
+    getKvks: createGetEndpoint<Kvk>('/kvks'),
+    getAllKvksForDropdown: createGetEndpoint<Kvk>('/kvks-dropdown'),
+    getKvkById: createGetByIdEndpoint<Kvk>('/kvks'),
+    createKvk: createPostEndpoint<KvkFormData, Kvk>('/kvks'),
+    updateKvk: createPutEndpoint<KvkFormData, Kvk>('/kvks'),
+    deleteKvk: createDeleteEndpoint('/kvks'),
 
+    // ============================================
     // Bank Accounts
-    getKvkBankAccounts: (params?: any) => apiClient.get<PaginatedResponse<KvkBankAccount>>(`${BASE_URL}/bank-accounts`, { ...params }),
-    getKvkBankAccountById: (id: number) => apiClient.get<ApiResponse<KvkBankAccount>>(`${BASE_URL}/bank-accounts/${id}`),
-    createKvkBankAccount: (data: KvkBankAccountFormData) => apiClient.post<ApiResponse<KvkBankAccount>>(`${BASE_URL}/bank-accounts`, data),
-    updateKvkBankAccount: (id: number, data: Partial<KvkBankAccountFormData>) => apiClient.put<ApiResponse<KvkBankAccount>>(`${BASE_URL}/bank-accounts/${id}`, data),
-    deleteKvkBankAccount: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/bank-accounts/${id}`),
+    // ============================================
+    getKvkBankAccounts: createGetEndpoint<KvkBankAccount>('/bank-accounts'),
+    getKvkBankAccountById: createGetByIdEndpoint<KvkBankAccount>('/bank-accounts'),
+    createKvkBankAccount: createPostEndpoint<KvkBankAccountFormData, KvkBankAccount>('/bank-accounts'),
+    updateKvkBankAccount: createPutEndpoint<KvkBankAccountFormData, KvkBankAccount>('/bank-accounts'),
+    deleteKvkBankAccount: createDeleteEndpoint('/bank-accounts'),
 
+    // ============================================
     // Employees
-    getKvkEmployees: (params?: any) => apiClient.get<PaginatedResponse<KvkEmployee>>(`${BASE_URL}/employees`, { ...params }),
-    getKvkEmployeeById: (id: number) => apiClient.get<ApiResponse<KvkEmployee>>(`${BASE_URL}/employees/${id}`),
-    createKvkEmployee: (data: KvkEmployeeFormData) => apiClient.post<ApiResponse<KvkEmployee>>(`${BASE_URL}/employees`, data),
-    updateKvkEmployee: (id: number, data: Partial<KvkEmployeeFormData>) => apiClient.put<ApiResponse<KvkEmployee>>(`${BASE_URL}/employees/${id}`, data),
-    deleteKvkEmployee: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/employees/${id}`),
+    // ============================================
+    getKvkEmployees: createGetEndpoint<KvkEmployee>('/employees'),
+    getKvkEmployeeById: createGetByIdEndpoint<KvkEmployee>('/employees'),
+    createKvkEmployee: createPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees'),
+    updateKvkEmployee: createPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees'),
+    deleteKvkEmployee: createDeleteEndpoint('/employees'),
+
     transferKvkEmployee: (id: number, targetKvkId: number, transferReason?: string, notes?: string) =>
         apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
             `${BASE_URL}/employees/${id}/transfer`,
             { targetKvkId, transferReason, notes }
         ),
-    getStaffTransferHistory: (staffId: number, params?: any) =>
-        apiClient.get<PaginatedResponse<StaffTransferHistory>>(`${BASE_URL}/employees/${staffId}/transfer-history`, { ...params }),
+    getStaffTransferHistory: (staffId: number, params?: QueryParams) => {
+        const url = buildUrlWithQuery(`${BASE_URL}/employees/${staffId}/transfer-history`, params);
+        return apiClient.get<PaginatedResponse<StaffTransferHistory>>(url);
+    },
     revertTransfer: (transferId: number, targetKvkId?: number, reason?: string, notes?: string) =>
         apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
             `${BASE_URL}/employees/${transferId}/transfer/revert`,
             { targetKvkId, reason, notes }
         ),
 
+    // ============================================
     // Staff Transferred
-    getKvkStaffTransferred: (params?: any) => apiClient.get<PaginatedResponse<KvkEmployee>>(`${BASE_URL}/staff-transferred`, { ...params }),
-    // Use employee methods for create/update/delete as it's the same entity, just filtered view
-    // Or if backend has specific endpoints for transfer logic, use them.
-    // For now assuming we manage them via employee endpoints or specific transfer endpoints if created.
-    // The backend routes exist for staff-transferred, so we use them:
-    createKvkStaffTransferred: (data: KvkEmployeeFormData) => apiClient.post<ApiResponse<KvkEmployee>>(`${BASE_URL}/staff-transferred`, data),
-    updateKvkStaffTransferred: (id: number, data: Partial<KvkEmployeeFormData>) => apiClient.put<ApiResponse<KvkEmployee>>(`${BASE_URL}/staff-transferred/${id}`, data),
-    deleteKvkStaffTransferred: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/staff-transferred/${id}`),
+    // ============================================
+    getKvkStaffTransferred: createGetEndpoint<KvkEmployee>('/staff-transferred'),
+    createKvkStaffTransferred: createPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred'),
+    updateKvkStaffTransferred: createPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred'),
+    deleteKvkStaffTransferred: createDeleteEndpoint('/staff-transferred'),
 
+    // ============================================
     // Infrastructure
-    getKvkInfrastructure: (params?: any) => apiClient.get<PaginatedResponse<KvkInfrastructure>>(`${BASE_URL}/infrastructure`, { ...params }),
-    getKvkInfrastructureById: (id: number) => apiClient.get<ApiResponse<KvkInfrastructure>>(`${BASE_URL}/infrastructure/${id}`),
-    createKvkInfrastructure: (data: KvkInfrastructureFormData) => apiClient.post<ApiResponse<KvkInfrastructure>>(`${BASE_URL}/infrastructure`, data),
-    updateKvkInfrastructure: (id: number, data: Partial<KvkInfrastructureFormData>) => apiClient.put<ApiResponse<KvkInfrastructure>>(`${BASE_URL}/infrastructure/${id}`, data),
-    deleteKvkInfrastructure: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/infrastructure/${id}`),
+    // ============================================
+    getKvkInfrastructure: createGetEndpoint<KvkInfrastructure>('/infrastructure'),
+    getKvkInfrastructureById: createGetByIdEndpoint<KvkInfrastructure>('/infrastructure'),
+    createKvkInfrastructure: createPostEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure'),
+    updateKvkInfrastructure: createPutEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure'),
+    deleteKvkInfrastructure: createDeleteEndpoint('/infrastructure'),
 
+    // ============================================
     // Vehicles
-    getKvkVehicles: (params?: any) => apiClient.get<PaginatedResponse<KvkVehicle>>(`${BASE_URL}/vehicles`, { ...params }),
-    getKvkVehicleById: (id: number) => apiClient.get<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicles/${id}`),
-    createKvkVehicle: (data: KvkVehicleFormData) => apiClient.post<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicles`, data),
-    updateKvkVehicle: (id: number, data: Partial<KvkVehicleFormData>) => apiClient.put<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicles/${id}`, data),
-    deleteKvkVehicle: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicles/${id}`),
+    // ============================================
+    getKvkVehicles: createGetEndpoint<KvkVehicle>('/vehicles'),
+    getKvkVehicleById: createGetByIdEndpoint<KvkVehicle>('/vehicles'),
+    createKvkVehicle: createPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles'),
+    updateKvkVehicle: createPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles'),
+    deleteKvkVehicle: createDeleteEndpoint('/vehicles'),
 
     // Vehicle Details (Alias)
-    getKvkVehicleDetails: (params?: any) => apiClient.get<PaginatedResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details`, { ...params }),
-    createKvkVehicleDetails: (data: KvkVehicleFormData) => apiClient.post<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details`, data),
-    updateKvkVehicleDetails: (id: number, data: Partial<KvkVehicleFormData>) => apiClient.put<ApiResponse<KvkVehicle>>(`${BASE_URL}/vehicle-details/${id}`, data),
-    deleteKvkVehicleDetails: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicle-details/${id}`),
+    getKvkVehicleDetails: createGetEndpoint<KvkVehicle>('/vehicle-details'),
+    createKvkVehicleDetails: createPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details'),
+    updateKvkVehicleDetails: createPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details'),
+    deleteKvkVehicleDetails: createDeleteEndpoint('/vehicle-details'),
 
+    // ============================================
     // Equipments
-    getKvkEquipments: (params?: any) => apiClient.get<PaginatedResponse<KvkEquipment>>(`${BASE_URL}/equipments`, { ...params }),
-    getKvkEquipmentById: (id: number) => apiClient.get<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipments/${id}`),
-    createKvkEquipment: (data: KvkEquipmentFormData) => apiClient.post<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipments`, data),
-    updateKvkEquipment: (id: number, data: Partial<KvkEquipmentFormData>) => apiClient.put<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipments/${id}`, data),
-    deleteKvkEquipment: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipments/${id}`),
+    // ============================================
+    getKvkEquipments: createGetEndpoint<KvkEquipment>('/equipments'),
+    getKvkEquipmentById: createGetByIdEndpoint<KvkEquipment>('/equipments'),
+    createKvkEquipment: createPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments'),
+    updateKvkEquipment: createPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments'),
+    deleteKvkEquipment: createDeleteEndpoint('/equipments'),
 
     // Equipment Details (Alias)
-    getKvkEquipmentDetails: (params?: any) => apiClient.get<PaginatedResponse<KvkEquipment>>(`${BASE_URL}/equipment-details`, { ...params }),
-    createKvkEquipmentDetails: (data: KvkEquipmentFormData) => apiClient.post<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipment-details`, data),
-    updateKvkEquipmentDetails: (id: number, data: Partial<KvkEquipmentFormData>) => apiClient.put<ApiResponse<KvkEquipment>>(`${BASE_URL}/equipment-details/${id}`, data),
-    deleteKvkEquipmentDetails: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-details/${id}`),
+    getKvkEquipmentDetails: createGetEndpoint<KvkEquipment>('/equipment-details'),
+    createKvkEquipmentDetails: createPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details'),
+    updateKvkEquipmentDetails: createPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details'),
+    deleteKvkEquipmentDetails: createDeleteEndpoint('/equipment-details'),
 
+    // ============================================
     // Farm Implements
-    getKvkFarmImplements: (params?: any) => apiClient.get<PaginatedResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements`, { ...params }),
-    getKvkFarmImplementById: (id: number) => apiClient.get<ApiResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements/${id}`),
-    createKvkFarmImplement: (data: KvkFarmImplementFormData) => apiClient.post<ApiResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements`, data),
-    updateKvkFarmImplement: (id: number, data: Partial<KvkFarmImplementFormData>) => apiClient.put<ApiResponse<KvkFarmImplement>>(`${BASE_URL}/farm-implements/${id}`, data),
-    deleteKvkFarmImplement: (id: number) => apiClient.delete<ApiResponse<void>>(`${BASE_URL}/farm-implements/${id}`),
+    // ============================================
+    getKvkFarmImplements: createGetEndpoint<KvkFarmImplement>('/farm-implements'),
+    getKvkFarmImplementById: createGetByIdEndpoint<KvkFarmImplement>('/farm-implements'),
+    createKvkFarmImplement: createPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements'),
+    updateKvkFarmImplement: createPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements'),
+    deleteKvkFarmImplement: createDeleteEndpoint('/farm-implements'),
 
+    // ============================================
     // Master Data (for dropdowns)
+    // ============================================
     getSanctionedPosts: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/sanctioned-posts`),
     getDisciplines: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/disciplines`),
     getInfraMasters: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/infra-masters`),
 
+    // ============================================
     // Dropdown helpers for vehicle/equipment details
-    getVehiclesDropdown: (kvkId?: number) => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/vehicles${kvkId ? `?kvkId=${kvkId}` : ''}`),
-    getEquipmentsDropdown: (kvkId?: number) => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/equipments${kvkId ? `?kvkId=${kvkId}` : ''}`),
+    // ============================================
+    getVehiclesDropdown: (kvkId?: number) => {
+        const url = buildUrlWithQuery(`${BASE_URL}/vehicles`, kvkId ? { kvkId } : undefined);
+        return apiClient.get<ApiResponse<any[]>>(url);
+    },
+    getEquipmentsDropdown: (kvkId?: number) => {
+        const url = buildUrlWithQuery(`${BASE_URL}/equipments`, kvkId ? { kvkId } : undefined);
+        return apiClient.get<ApiResponse<any[]>>(url);
+    },
 
+    // ============================================
     // Transfer History
-    getStaffTransfers: (params?: any) => apiClient.get<PaginatedResponse<StaffTransferHistory>>(`${BASE_URL}/staff-transfers`, { ...params }),
+    // ============================================
+    getStaffTransfers: createGetEndpoint<StaffTransferHistory>('/staff-transfers'),
 };

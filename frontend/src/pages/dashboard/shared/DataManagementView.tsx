@@ -13,27 +13,22 @@ import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '@/confi
 import { getAllMastersMockData } from '@/mocks/allMastersMockData'
 import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityTypes'
-import { getEntityTypeFromPath, getIdField, getFieldValue } from '@/utils/masterUtils'
+import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { isAdminRole } from '@/constants/roleHierarchy'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
 import { useFormState } from '@/hooks/useFormState'
 import { getHookLoading, getHookError } from '@/hooks/useHookState'
-import { exportApi } from '@/services/exportApi'
 import { getEntityTypeChecks } from '@/utils/entityTypeUtils'
-import {
-    formatHeaderLabel,
-    generateCSV,
-    downloadFile,
-    generateFilename,
-    getExportExtension,
-} from '@/utils/exportUtils'
 import { TransferModal } from '@/components/forms/TransferModal'
 import { TransferHistoryModal } from '@/components/forms/TransferHistoryModal'
 import type { KvkEmployee } from '@/types/aboutKvk'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useAlert } from '@/hooks/useAlert'
+import { useDeleteHandler } from '@/hooks/useDeleteHandler'
+import { useEditHandler } from '@/hooks/useEditHandler'
+import { useExportHandler } from '@/hooks/useExportHandler'
 import { LoadingButton } from '@/components/common/LoadingButton'
 
 interface DataManagementViewProps {
@@ -54,7 +49,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const location = useLocation()
     const queryClient = useQueryClient()
     const [searchQuery, setSearchQuery] = useState('')
-    const [exportLoading, setExportLoading] = useState<string | null>(null) // 'pdf' | 'excel' | 'word' | null
 
     // Form state management
     const {
@@ -75,6 +69,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
     const { alert, AlertDialog } = useAlert()
+
+    // Handler hooks
+    const { handleMasterDataDelete, handleMockDelete } = useDeleteHandler({ confirm, alert })
+    const { handleEdit: handleEditItem } = useEditHandler()
+    const { handleExport: handleExportData, exportLoading: exportLoadingState } = useExportHandler()
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
@@ -163,19 +162,32 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const prevPathRef = useRef<string>(location.pathname)
     const prevDataHashRef = useRef<string | null>(null)
     const prevMockDataHashRef = useRef<string | null>(null)
+    const prevDataRef = useRef<any[] | null>(null) // Track previous data reference
 
-    // Create stable hash for hook data to detect actual changes
+    // Create comprehensive hash for hook data to detect ALL changes
+    // Includes all IDs and a checksum to detect any updates
     const hookDataHash = useMemo(() => {
         if (!activeHook?.data || !Array.isArray(activeHook.data)) return null
-        // Create a hash based on data length and a sample of IDs
-        // This is more efficient than full JSON.stringify for large arrays
         const data = activeHook.data
         if (data.length === 0) return 'empty'
 
-        // Use length + first and last item IDs for quick comparison
-        const firstId = data[0] ? (data[0].id || data[0].zoneId || data[0].stateId || data[0].districtId || data[0].orgId || data[0].universityId || '') : ''
-        const lastId = data[data.length - 1] ? (data[data.length - 1].id || data[data.length - 1].zoneId || data[data.length - 1].stateId || data[data.length - 1].districtId || data[data.length - 1].orgId || data[data.length - 1].universityId || '') : ''
-        return `${data.length}-${firstId}-${lastId}`
+        // Create a hash that includes all IDs to detect changes anywhere in the list
+        // Also include a simple checksum of key fields to detect field updates
+        const ids = data.map((item: any) => {
+            const id = item.id || item.zoneId || item.stateId || item.districtId ||
+                      item.orgId || item.universityId || item.cropId || item.cfldId ||
+                      item.seasonId || item.sanctionedPostId || item.yearId ||
+                      item.publicationId || item.kvkId || item.employeeId || ''
+            // Include a hash of the name field to detect name changes
+            const name = item.name || item.zoneName || item.stateName || item.districtName ||
+                        item.orgName || item.universityName || item.cropName || item.CropName ||
+                        item.seasonName || item.postName || item.yearName ||
+                        item.publicationName || item.kvkName || ''
+            return `${id}:${name ? name.substring(0, 20) : ''}` // Truncate name for performance
+        }).join('|')
+
+        // Use length + all IDs + simple checksum
+        return `${data.length}-${ids.substring(0, 500)}` // Limit length for performance
     }, [activeHook?.data])
 
     // Create stable hash for mock data
@@ -199,17 +211,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             // Reset data refs
             prevDataHashRef.current = null
             prevMockDataHashRef.current = null
+            prevDataRef.current = null
         }
     }, [location.pathname, closeForm])
 
-    // Sync data from API or mock - optimized to prevent infinite loops
-    // Use hash-based dependencies to prevent re-renders when only reference changes
+    // Sync data from API or mock - real-time updates
+    // Check both hash changes AND reference changes (React Query gives new reference on refetch)
     useEffect(() => {
         if (isMasterDataEntity && activeHook?.data) {
-            // Only update if hash changed (indicating actual data change)
-            if (hookDataHash !== null && hookDataHash !== prevDataHashRef.current) {
+            const data = activeHook.data
+            const dataRefChanged = prevDataRef.current !== data
+            const hashChanged = hookDataHash !== null && hookDataHash !== prevDataHashRef.current
+
+            // Update if either the reference changed (React Query refetch) or hash changed (data content changed)
+            if (dataRefChanged || hashChanged) {
+                prevDataRef.current = data
                 prevDataHashRef.current = hookDataHash
-                setItems(activeHook.data)
+                setItems([...data]) // Create new array reference to ensure React detects the change
             }
         } else if (!isMasterDataEntity) {
             // Handle mock data
@@ -230,7 +248,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 }
             }
         }
-    }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname, activeHook]) // Use hookDataHash instead of activeHook?.data
+    }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname, activeHook?.data]) // Include activeHook?.data to detect reference changes
 
     // Debounce search
     useEffect(() => {
@@ -258,178 +276,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const paginatedData = filteredData.slice(startIndex, endIndex)
 
     const handleEdit = (item: any) => {
-        // Extract nested IDs for form fields (especially for KVK employees)
-        const formDataWithIds = { ...item }
-
-        // Extract sanctionedPostId from nested sanctionedPost object
-        if (item.sanctionedPost && item.sanctionedPost.sanctionedPostId) {
-            formDataWithIds.sanctionedPostId = item.sanctionedPost.sanctionedPostId
-        }
-
-        // Extract disciplineId from nested discipline object
-        if (item.discipline && item.discipline.disciplineId) {
-            formDataWithIds.disciplineId = item.discipline.disciplineId
-        }
-
-        // Extract kvkId from nested kvk object
-        if (item.kvk && item.kvk.kvkId) {
-            formDataWithIds.kvkId = item.kvk.kvkId
-        }
-
-        openForm(formDataWithIds)
+        handleEditItem({
+            item,
+            entityType,
+            onOpenForm: openForm,
+        })
     }
 
-    const handleDelete = async (item: any) => {
+    const handleDelete = (item: any) => {
         if (isMasterDataEntity && activeHook && entityType) {
-            const idField = getIdField(entityType)
-            const itemId = item[idField]
-
-            // Check if this is a zone or organization with potential dependents
-            if (entityType === ENTITY_TYPES.ZONES) {
-                // Show warning dialog for cascade delete
-                const confirmMessage = `⚠️ WARNING: This zone has related records (states, districts, organizations, KVKs, users).\n\n` +
-                    `Deleting this zone will permanently delete ALL related data:\n` +
-                    `• All states in this zone\n` +
-                    `• All districts in those states\n` +
-                    `• All organizations in those districts\n` +
-                    `• All KVKs in this zone\n` +
-                    `• User zone assignments will be cleared\n\n` +
-                    `This action CANNOT be undone!\n\n` +
-                    `Are you sure you want to proceed with cascade delete?`
-
-                confirm(
-                    {
-                        title: 'Delete Zone',
-                        message: confirmMessage,
-                        variant: 'danger',
-                        confirmText: 'Delete',
-                        cancelText: 'Cancel',
-                    },
-                    async () => {
-                try {
-                    await activeHook.remove(itemId, true) // Pass cascade=true
-                            alert({
-                                title: 'Success',
-                                message: 'Zone deleted successfully.',
-                                variant: 'success',
-                                autoClose: true,
-                                autoCloseDelay: 2000,
-                            })
-                } catch (err: any) {
-                    const errorMessage = err.message || 'Failed to delete zone.'
-                    if (errorMessage.includes('dependent')) {
-                                alert({
-                                    title: 'Error',
-                                    message: `${errorMessage}\n\nPlease try again or contact support.`,
-                                    variant: 'error',
-                                })
-                    } else {
-                                alert({
-                                    title: 'Error',
-                                    message: errorMessage,
-                                    variant: 'error',
-                                })
-                    }
-                }
-                    }
-                )
-            } else if (entityType === ENTITY_TYPES.ORGANIZATIONS) {
-                // Show warning dialog for cascade delete
-                const confirmMessage = `⚠️ WARNING: This organization has related records (universities, KVKs, users).\n\n` +
-                    `Deleting this organization will permanently delete ALL related data:\n` +
-                    `• All universities in this organization\n` +
-                    `• All KVKs in this organization\n` +
-                    `• User organization assignments will be cleared\n\n` +
-                    `This action CANNOT be undone!\n\n` +
-                    `Are you sure you want to proceed with cascade delete?`
-
-                confirm(
-                    {
-                        title: 'Delete Organization',
-                        message: confirmMessage,
-                        variant: 'danger',
-                        confirmText: 'Delete',
-                        cancelText: 'Cancel',
-                    },
-                    async () => {
-                try {
-                    await activeHook.remove(itemId, true) // Pass cascade=true
-                            alert({
-                                title: 'Success',
-                                message: 'Organization deleted successfully.',
-                                variant: 'success',
-                                autoClose: true,
-                                autoCloseDelay: 2000,
-                            })
-                } catch (err: any) {
-                    const errorMessage = err.message || 'Failed to delete organization.'
-                    if (errorMessage.includes('dependent')) {
-                                alert({
-                                    title: 'Error',
-                                    message: `${errorMessage}\n\nPlease try again or contact support.`,
-                                    variant: 'error',
-                                })
-                    } else {
-                                alert({
-                                    title: 'Error',
-                                    message: errorMessage,
-                                    variant: 'error',
-                                })
-                    }
-                }
-                    }
-                )
-            } else {
-                // For other entities, use regular confirmation
-                confirm(
-                    {
-                        title: 'Delete Item',
-                        message: 'Are you sure you want to delete this item? This action cannot be undone.',
-                        variant: 'danger',
-                        confirmText: 'Delete',
-                        cancelText: 'Cancel',
-                    },
-                    async () => {
-                try {
-                    await activeHook.remove(itemId)
-                            alert({
-                                title: 'Success',
-                                message: 'Item deleted successfully.',
-                                variant: 'success',
-                                autoClose: true,
-                                autoCloseDelay: 2000,
-                            })
-                } catch (err: any) {
-                            alert({
-                                title: 'Error',
-                                message: err.message || 'Failed to delete. This item may have dependent records.',
-                                variant: 'error',
-                            })
-                }
-                    }
-                )
-            }
+            handleMasterDataDelete(item, entityType, activeHook)
         } else {
-            // Mock delete for non-master-data entities
-            confirm(
-                {
-                    title: 'Delete Item',
-                    message: 'Are you sure you want to delete this item? This action cannot be undone.',
-                    variant: 'danger',
-                    confirmText: 'Delete',
-                    cancelText: 'Cancel',
-                },
-                () => {
-            setItems(items.filter(i => i.id !== item.id))
-                    alert({
-                        title: 'Success',
-                        message: 'Item deleted successfully.',
-                        variant: 'success',
-                        autoClose: true,
-                        autoCloseDelay: 2000,
-                    })
-                }
-            )
+            handleMockDelete(item, items, setItems)
         }
     }
 
@@ -494,46 +352,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleExport = async (format: 'pdf' | 'excel' | 'word' | 'csv') => {
-        const headerLabels = fields.map(formatHeaderLabel)
-        const rows = filteredData.map(item => fields.map(field => getFieldValue(item, field)))
-
-        if (format === 'csv') {
-            const csv = generateCSV(headerLabels, rows)
-            const blob = new Blob([csv], { type: 'text/csv' })
-            const filename = generateFilename(title, 'csv')
-            downloadFile(blob, filename, 'text/csv')
-            return
-        }
-
-        setExportLoading(format)
-        try {
-            const blob = await exportApi.exportData({
-                title,
-                headers: headerLabels,
-                rows,
-                format: format as 'pdf' | 'excel' | 'word'
-            }, location.pathname)
-
-            const extension = getExportExtension(format)
-            const filename = generateFilename(title, extension)
-            downloadFile(blob, filename)
-            alert({
-                title: 'Success',
-                message: 'Export completed successfully.',
-                variant: 'success',
-                autoClose: true,
-                autoCloseDelay: 2000,
-            })
-        } catch (error: any) {
-            console.error('Export failed:', error)
-            alert({
-                title: 'Error',
-                message: error.message || 'Failed to export. Please try again.',
-                variant: 'error',
-            })
-        } finally {
-            setExportLoading(null)
-        }
+        await handleExportData(format, {
+            title,
+            fields,
+            data: filteredData,
+            pathname: location.pathname,
+        })
     }
 
     const loading = isMasterDataEntity ? getHookLoading(activeHook) : false
@@ -600,38 +424,38 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex gap-2 flex-wrap">
                             <LoadingButton
                                 onClick={() => handleExport('pdf')}
-                                isLoading={exportLoading === 'pdf'}
+                                isLoading={exportLoadingState === 'pdf'}
                                 loadingText="Exporting..."
                                 variant="outline"
                                 size="sm"
-                                disabled={exportLoading !== null && exportLoading !== 'pdf'}
+                                disabled={exportLoadingState !== null && exportLoadingState !== 'pdf'}
                                 className="flex items-center gap-2"
                             >
-                                {exportLoading !== 'pdf' && <Download className="w-4 h-4" />}
+                                {exportLoadingState !== 'pdf' && <Download className="w-4 h-4" />}
                                         Export PDF
                             </LoadingButton>
                             <LoadingButton
                                 onClick={() => handleExport('excel')}
-                                isLoading={exportLoading === 'excel'}
+                                isLoading={exportLoadingState === 'excel'}
                                 loadingText="Exporting..."
                                 variant="outline"
                                 size="sm"
-                                disabled={exportLoading !== null && exportLoading !== 'excel'}
+                                disabled={exportLoadingState !== null && exportLoadingState !== 'excel'}
                                 className="flex items-center gap-2"
                             >
-                                {exportLoading !== 'excel' && <Download className="w-4 h-4" />}
+                                {exportLoadingState !== 'excel' && <Download className="w-4 h-4" />}
                                         Export Excel
                             </LoadingButton>
                             <LoadingButton
                                 onClick={() => handleExport('word')}
-                                isLoading={exportLoading === 'word'}
+                                isLoading={exportLoadingState === 'word'}
                                 loadingText="Exporting..."
                                 variant="outline"
                                 size="sm"
-                                disabled={exportLoading !== null && exportLoading !== 'word'}
+                                disabled={exportLoadingState !== null && exportLoadingState !== 'word'}
                                 className="flex items-center gap-2"
                             >
-                                {exportLoading !== 'word' && <Download className="w-4 h-4" />}
+                                {exportLoadingState !== 'word' && <Download className="w-4 h-4" />}
                                         Export Word
                             </LoadingButton>
 

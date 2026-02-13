@@ -63,6 +63,12 @@ const productionProjectsMastersPaths = [
     ENTITY_PATHS.ARYA_ENTERPRISE,
 ]
 
+const otherMasterSiblings = [
+    ENTITY_PATHS.SEASON,
+    ENTITY_PATHS.SANCTIONED_POST,
+    ENTITY_PATHS.YEAR,
+]
+
 // All Masters Routes
 export const allMastersRoutes: RouteConfig[] = [
     // Basic Masters
@@ -355,6 +361,38 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PUBLICATIONS_MASTERS,
         siblings: [ENTITY_PATHS.PUBLICATION_ITEM],
         fields: ['publicationItem'],
+    },
+
+    // Other Masters
+    {
+        path: ENTITY_PATHS.SEASON,
+        title: 'Season Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['seasonName'],
+    },
+    {
+        path: ENTITY_PATHS.SANCTIONED_POST,
+        title: 'Sanctioned Post Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['sanctionedPostName'],
+    },
+    {
+        path: ENTITY_PATHS.YEAR,
+        title: 'Year Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['yearName'],
     },
 ]
 

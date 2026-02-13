@@ -66,6 +66,12 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
         ENTITY_TYPES.KVKS,
     ] as ExtendedEntityType[],
+
+    OTHER_MASTERS: [
+        ENTITY_TYPES.SEASON,
+        ENTITY_TYPES.SANCTIONED_POST,
+        ENTITY_TYPES.YEAR,
+    ] as ExtendedEntityType[],
 } as const;
 
 // ============================================
@@ -94,6 +100,7 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isTrainingExtension: isEntityInCategory(entityType, 'TRAINING_EXTENSION'),
         isProductionProject: isEntityInCategory(entityType, 'PRODUCTION_PROJECTS'),
         isAboutKvk: isEntityInCategory(entityType, 'ABOUT_KVK'),
+        isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
     };
 }
 
@@ -154,6 +161,11 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/about-kvk/farm-implements': ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
     '/forms/about-kvk/details': ENTITY_TYPES.KVKS,
     '/forms/about-kvk/view-kvks': ENTITY_TYPES.KVKS,
+
+    // Other Masters
+    '/all-master/season': ENTITY_TYPES.SEASON,
+    '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
+    '/all-master/year': ENTITY_TYPES.YEAR,
 };
 
 /**

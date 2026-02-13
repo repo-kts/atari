@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { masterDataApi } from '../services/masterDataApi';
 import { useAuth } from '../contexts/AuthContext';
+import { invalidateMasterDataEntity } from '../utils/queryInvalidation';
+import { ENTITY_TYPES } from '../constants/entityTypes';
 import type {
     EntityType,
     Zone,
@@ -95,15 +97,37 @@ export function useMasterData<T extends EntityData>(
         refetchOnWindowFocus: false, // Don't refetch on window focus to avoid stuck states
     });
 
+    // Map EntityType to ENTITY_TYPES constant
+    const entityTypeConstant = {
+        'zones': ENTITY_TYPES.ZONES,
+        'states': ENTITY_TYPES.STATES,
+        'districts': ENTITY_TYPES.DISTRICTS,
+        'organizations': ENTITY_TYPES.ORGANIZATIONS,
+        'universities': ENTITY_TYPES.UNIVERSITIES,
+    }[entityType];
+
     // Create mutation
     const createMutation = useMutation({
         mutationFn: async (data: CreateDto) => {
             const response = await apiCalls[entityType].create(data as any);
             return response.data as T;
         },
-        onSuccess: () => {
-            // Invalidate all param variants for this entity type
-            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
+        onSuccess: (data) => {
+            // Invalidate the entity and all dependent entities
+            if (entityTypeConstant) {
+                invalidateMasterDataEntity(
+                    queryClient,
+                    entityTypeConstant,
+                    (data as any)?.zoneId || (data as any)?.stateId || (data as any)?.districtId || (data as any)?.orgId || (data as any)?.universityId,
+                    { userId: user?.userId ?? null, role: user?.role ?? null }
+                );
+            } else {
+                // Fallback to simple invalidation if entity type not found
+                queryClient.invalidateQueries({
+                    queryKey: ['master-data', entityType],
+                    refetchType: 'all' // Force refetch all queries
+                });
+            }
         },
     });
 
@@ -113,9 +137,23 @@ export function useMasterData<T extends EntityData>(
             const response = await apiCalls[entityType].update(id, data as any);
             return response.data as T;
         },
-        onSuccess: () => {
-            // Invalidate all param variants for this entity type
-            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
+        onSuccess: (_, variables) => {
+            // Invalidate the entity and all dependent entities
+            // Use the ID from variables to invalidate related queries
+            if (entityTypeConstant) {
+                invalidateMasterDataEntity(
+                    queryClient,
+                    entityTypeConstant,
+                    variables.id,
+                    { userId: user?.userId ?? null, role: user?.role ?? null }
+                );
+            } else {
+                // Fallback to simple invalidation if entity type not found
+                queryClient.invalidateQueries({
+                    queryKey: ['master-data', entityType],
+                    refetchType: 'all' // Force refetch all queries
+                });
+            }
         },
     });
 
@@ -129,9 +167,23 @@ export function useMasterData<T extends EntityData>(
                 await apiCalls[entityType].delete(id);
             }
         },
-        onSuccess: () => {
-            // Invalidate all param variants for this entity type
-            queryClient.invalidateQueries({ queryKey: ['master-data', entityType] });
+        onSuccess: (_, variables) => {
+            // Invalidate the entity and all dependent entities
+            // Use the ID from variables to invalidate related queries
+            if (entityTypeConstant) {
+                invalidateMasterDataEntity(
+                    queryClient,
+                    entityTypeConstant,
+                    variables.id,
+                    { userId: user?.userId ?? null, role: user?.role ?? null }
+                );
+            } else {
+                // Fallback to simple invalidation if entity type not found
+                queryClient.invalidateQueries({
+                    queryKey: ['master-data', entityType],
+                    refetchType: 'all' // Force refetch all queries
+                });
+            }
         },
     });
 

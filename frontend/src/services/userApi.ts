@@ -50,6 +50,7 @@ export interface UserFilters {
   stateId?: number;
   districtId?: number;
   orgId?: number;
+  universityId?: number;
   kvkId?: number;
 }
 

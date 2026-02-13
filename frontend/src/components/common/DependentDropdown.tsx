@@ -166,8 +166,8 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
     const displayOptions = localOptions.length > 0 ? localOptions : options
     const isActuallyLoading = isLoading || localLoading
     // Don't disable the select during loading - allow user to interact
-    // Only disable if explicitly disabled or parent not selected
-    const isActuallyDisabled = isDisabled || !dependsOn?.value || (dependsOn.value === '')
+    // Only disable if explicitly disabled or (if dependsOn is defined, then check if parent value is missing)
+    const isActuallyDisabled = isDisabled || (dependsOn !== undefined && (!dependsOn?.value || dependsOn.value === ''))
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value

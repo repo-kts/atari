@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
@@ -35,6 +35,45 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
+
+    // Derive sectorId from categoryId when editing FLD_CROPS
+    useEffect(() => {
+        if (entityType === ENTITY_TYPES.FLD_CROPS && formData.categoryId && !formData.sectorId && fldCategories.length > 0) {
+            const category = fldCategories.find((c: any) => c.categoryId === formData.categoryId)
+            if (category && category.sectorId) {
+                setFormData((prev: any) => ({ ...prev, sectorId: category.sectorId }))
+            }
+        }
+    }, [entityType, formData.categoryId, formData.sectorId, fldCategories, setFormData])
+
+    // Ensure CropName, seasonId, and typeId are correctly populated for CFLD_CROPS
+    useEffect(() => {
+        if (entityType === ENTITY_TYPES.CFLD_CROPS && Object.keys(formData).length > 0) {
+            setFormData((prev: any) => {
+                const updates: any = {}
+
+                // Preserve CropName if it exists (check both capital C and lowercase for compatibility)
+                if (prev.CropName && !updates.CropName) {
+                    updates.CropName = prev.CropName
+                } else if (prev.cropName && !updates.CropName) {
+                    updates.CropName = prev.cropName
+                }
+
+                // Extract seasonId from nested season object if not directly available
+                if (!prev.seasonId && prev.season && prev.season.seasonId) {
+                    updates.seasonId = prev.season.seasonId
+                }
+
+                // Extract typeId from nested cropType object if not directly available
+                if (!prev.typeId && prev.cropType && prev.cropType.typeId) {
+                    updates.typeId = prev.cropType.typeId
+                }
+
+                if (Object.keys(updates).length === 0) return prev
+                return { ...prev, ...updates }
+            })
+        }
+    }, [entityType, formData, setFormData])
 
     if (!entityType) return null
 

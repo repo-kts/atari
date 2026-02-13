@@ -6,12 +6,14 @@ import {
     GraduationCap,
     Package,
     BookOpen,
+    Calendar,
 } from 'lucide-react'
 import { BasicMastersTab } from './masters/BasicMastersTab'
 import { OFTFLDTab } from './masters/OFTFLDTab'
 import { TrainingExtensionTab } from './masters/TrainingExtensionTab'
 import { ProductionProjectsTab } from './masters/ProductionProjectsTab'
 import { PublicationsTab } from './masters/PublicationsTab'
+import { OtherMastersTab } from './masters/OtherMastersTab'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
 
 interface Tab {
@@ -58,6 +60,13 @@ const tabs: Tab[] = [
         icon: <BookOpen className="w-4 h-4" />,
         component: <PublicationsTab />,
     },
+    {
+        id: 'other-masters',
+        label: 'Other Masters',
+        path: '/all-master/other-masters',
+        icon: <Calendar className="w-4 h-4" />,
+        component: <OtherMastersTab />,
+    },
 ]
 
 export const AllMasters: React.FC = () => {
@@ -87,9 +96,14 @@ export const AllMasters: React.FC = () => {
         }
         if (currentPath.startsWith('/all-master/oft') ||
             currentPath.startsWith('/all-master/fld') ||
-            currentPath.startsWith('/all-master/cfld-crop') ||
-            currentPath.startsWith('/all-master/season')) {
+            currentPath.startsWith('/all-master/cfld-crop')) {
             return 'oft-fld'
+        }
+        if (currentPath.startsWith('/all-master/season') ||
+            currentPath.startsWith('/all-master/sanctioned-post') ||
+            currentPath.startsWith('/all-master/year') ||
+            currentPath.startsWith('/all-master/other-masters')) {
+            return 'other-masters'
         }
         if (currentPath.startsWith('/all-master/training') ||
             currentPath.startsWith('/all-master/extension-activity') ||
