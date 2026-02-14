@@ -1,0 +1,45 @@
+model ExtensionActivity {
+  extensionActivityId Int @id @default(autoincrement()) @map("extension_activity_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  fldId Int
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [fldId])
+
+  staffId Int
+  staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
+
+  // Nature of Extension Activity
+  activityId Int
+  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+
+  numberOfActivities Int @map("number_of_activities")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  farmersGeneralM Int @map("farmers_general_m")
+  farmersGeneralF Int @map("farmers_general_f")
+  farmersObcM Int @map("farmers_obc_m")
+  farmersObcF Int @map("farmers_obc_f")
+  farmersScM Int @map("farmers_sc_m")
+  farmersScF Int @map("farmers_sc_f")
+  farmersStM Int @map("farmers_st_m")
+  farmersStF Int @map("farmers_st_f")
+
+  officialsGeneralM Int @map("officials_general_m")
+  officialsGeneralF Int @map("officials_general_f")
+  officialsObcM Int @map("officials_obc_m")
+  officialsObcF Int @map("officials_obc_f")
+  officialsScM Int @map("officials_sc_m")
+  officialsScF Int @map("officials_sc_f")
+  officialsStM Int @map("officials_st_m")
+  officialsStF Int @map("officials_st_f")
+
+  @@index([kvkId])
+  @@index([fldId])
+  @@index([staffId])
+  @@index([activityId])
+
+  @@map("extension_activity")
+}

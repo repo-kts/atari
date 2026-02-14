@@ -1,0 +1,44 @@
+model FldActivity {
+  activityId   Int    @id @default(autoincrement()) @map("activity_id")
+  activityName String @unique @map("activity_name")
+
+  extensions FldExtension[]
+
+  @@map("fld_activity")
+}
+
+model FldExtension {
+  extensionId Int @id @default(autoincrement()) @map("extension_id")
+  reportingYear Int @map("reporting_year")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  fldId Int
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [fldId])
+
+  activityId Int
+  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+
+  activityDate DateTime @map("activity_date")
+  numberOfActivities Int @map("number_of_activities")
+  remarks String? @map("remarks")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+  @@index([fldId])
+  @@index([activityId])
+  @@index([reportingYear])
+  @@map("fld_extension")
+}

@@ -1,0 +1,31 @@
+model KvkTechnologyWeekCelebration {
+  techWeekId Int @id @default(autoincrement()) @map("tech_week_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  typeOfActivities String @map("type_of_activities")
+  numberOfActivities Int   @map("number_of_activities")
+
+  relatedTechnology String @map("related_crop_livestock_technology")
+
+  farmersGeneralM Int @map("farmers_general_m")
+  farmersGeneralF Int @map("farmers_general_f")
+
+  farmersObcM Int @map("farmers_obc_m")
+  farmersObcF Int @map("farmers_obc_f")
+
+  farmersScM Int @map("farmers_sc_m")
+  farmersScF Int @map("farmers_sc_f")
+
+  farmersStM Int @map("farmers_st_m")
+  farmersStF Int @map("farmers_st_f")
+
+  @@index([kvkId])
+  @@index([startDate])
+
+  @@map("kvk_technology_week_celebration")
+}

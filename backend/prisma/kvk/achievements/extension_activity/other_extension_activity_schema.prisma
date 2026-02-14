@@ -1,0 +1,27 @@
+model OtherExtensionActivity {
+  otherExtensionActivityId Int @id @default(autoincrement()) @map("other_extension_activity_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  fldId Int
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [fldId])
+
+  staffId Int
+  staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
+
+  // Nature of Extension Activity
+  activityId Int
+  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+
+  numberOfActivities Int @map("number_of_activities")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  @@index([kvkId])
+  @@index([fldId])
+  @@index([staffId])
+  @@index([activityId])
+
+  @@map("other_extension_activity")
+}

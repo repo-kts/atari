@@ -1,7 +1,7 @@
 // Staff Transfer History - models only; generator/datasource in schema.prisma
 
 model StaffTransferHistory {
-  transferId        Int       @id @default(autoincrement()) @map("transfer_id")
+  transferId       Int       @id @default(autoincrement()) @map("transfer_id")
   kvkStaffId       Int       @map("kvk_staff_id")
   staff            KvkStaff  @relation(fields: [kvkStaffId], references: [kvkStaffId])
   

@@ -1,0 +1,61 @@
+enum CfldType {
+  OILSEED
+  PULSES
+  CEREALS
+  MILLETS
+}
+
+model CfldTechnicalParameter {
+    cfl cfldTechId Int @id @default(autoincrement()) @map("cfl cfld_tech_id")
+
+    kvkId Int
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+    cropId Int
+    crop   CropMaster @relation(fields: [cropId], references: [cropId])
+
+    month  DateTime @map("month")
+    type   CfldType @map("type")
+    seasonId Int
+    season   Season @relation(fields: [seasonId], references: [seasonId])
+
+    varietyName String @map("variety_name")
+    areaInHa Float @map("area_in_ha")
+    technologyDemonstrated String @map("technology_demonstrated")
+    existingFarmerPractice  String @map("existing_farmer_practice")
+    farmerYield Float @map("farmer_yield")
+    demoYieldMax Float @map("demo_yield_max")
+    demoYieldMin Float @map("demo_yield_min")
+    demoYieldAvg Float @map("demo_yield_avg")
+    percentIncrease Float @map("percent_increase")
+
+    districtYield  Float @map("district_yield")
+    stateYield     Float @map("state_yield")
+    potentialYield Float @map("potential_yield")
+
+    yieldGapDistrictMinimized  Float @map("yield_gap_district_minimized")
+    yieldGapStateMinimized     Float @map("yield_gap_state_minimized")
+    yieldGapPotentialMinimized Float @map("yield_gap_potential_minimized")
+
+    generalM Int @map("general_m")
+    generalF Int @map("general_f")
+
+    obcM Int @map("obc_m")
+    obcF Int @map("obc_f")
+
+    scM Int @map("sc_m")
+    scF Int @map("sc_f")
+
+    stM Int @map("st_m")
+    stF Int @map("st_f")
+
+    trainingPhotoPath String? @map("training_photo_path")
+    qualityActionPhotoPath String? @map("quality_action_photo_path")
+
+    @@map("cfl cfld_technical_parameter")
+
+    @@index([kvkId])
+    @@index([cropId])
+    @@index([season])
+    @@index([type])
+}
