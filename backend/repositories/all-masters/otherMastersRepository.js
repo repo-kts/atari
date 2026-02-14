@@ -117,6 +117,39 @@ const findById = async (entityType, id) => {
 };
 
 /**
+ * Fix PostgreSQL sequence for a given model
+ * This is needed when records are inserted with explicit IDs and the sequence gets out of sync
+ */
+const fixSequence = async (modelName, idField, tableName, columnName) => {
+    try {
+        // Construct sequence name: {table_name}_{column_name}_seq
+        const sequenceName = `${tableName}_${columnName}_seq`;
+        
+        // Get the current max ID using raw SQL
+        const maxIdResult = await prisma.$queryRawUnsafe(
+            `SELECT COALESCE(MAX(${columnName}), 0) as max_id FROM ${tableName}`
+        );
+        
+        const maxId = maxIdResult[0]?.max_id || 0;
+        const nextId = maxId > 0 ? maxId + 1 : 1;
+        
+        // Reset the sequence to the next available ID
+        // setval(sequence_name, value, is_called)
+        // is_called = false means the next nextval() will return the specified value
+        await prisma.$executeRawUnsafe(
+            `SELECT setval('${sequenceName}', ${nextId}, false)`
+        );
+        
+        console.log(`Fixed sequence ${sequenceName} to ${nextId}`);
+        return nextId;
+    } catch (seqError) {
+        console.error(`Error fixing sequence for ${modelName}:`, seqError);
+        // Don't throw - let the original error be thrown instead
+        return null;
+    }
+};
+
+/**
  * Generic create
  */
 const create = async (entityType, data) => {
@@ -126,9 +159,26 @@ const create = async (entityType, data) => {
     // For simple masters, we only want the name field
     const sanitizedData = {};
     
+    // Explicitly exclude ID fields to prevent conflicts
+    // Never include the ID field - let the database auto-increment handle it
+    const idFieldVariations = [
+        config.idField,
+        'id',
+        '_id',
+        config.idField.toLowerCase(),
+        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
+    ];
+    
     // Only include the name field (these are simple master entities)
     if (data[config.nameField]) {
         sanitizedData[config.nameField] = data[config.nameField];
+    }
+    
+    // Ensure no ID field is accidentally included
+    for (const idField of idFieldVariations) {
+        if (sanitizedData[idField] !== undefined) {
+            delete sanitizedData[idField];
+        }
     }
     
     try {
@@ -144,6 +194,65 @@ const create = async (entityType, data) => {
         // If it's a unique constraint error, provide better message
         if (error.code === 'P2002') {
             const field = error.meta?.target?.[0] || 'unknown field';
+            const fieldName = error.meta?.target?.[0] || 'unknown';
+            
+            // Check if it's an ID field conflict (sequence out of sync issue)
+            // The field name from Prisma error is the database column name (snake_case)
+            const dbColumnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
+            const isIdField = idFieldVariations.some(idField => {
+                const idFieldDbName = idField.replace(/([A-Z])/g, '_$1').toLowerCase();
+                return field === idField || 
+                       field === idFieldDbName ||
+                       field === dbColumnName ||
+                       field.toLowerCase() === dbColumnName;
+            }) || field === dbColumnName || field.toLowerCase() === dbColumnName;
+            
+            if (isIdField) {
+                // This is a sequence synchronization issue in PostgreSQL
+                // Try to automatically fix the sequence
+                const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
+                                 entityType === 'seasons' ? 'season' :
+                                 entityType === 'years' ? 'year_master' : null;
+                
+                const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
+                
+                if (tableName) {
+                    console.log(`Attempting to fix sequence for ${config.model} (table: ${tableName}, column: ${columnName})...`);
+                    const fixed = await fixSequence(config.model, config.idField, tableName, columnName);
+                    
+                    if (fixed !== null) {
+                        // Retry the create operation after fixing the sequence
+                        console.log(`Sequence fixed to ${fixed}, retrying create operation...`);
+                        try {
+                            return await prisma[config.model].create({
+                                data: sanitizedData,
+                            });
+                        } catch (retryError) {
+                            // If retry still fails, provide a more specific error
+                            console.error('Retry after sequence fix failed:', retryError);
+                            const retryErrorMsg = new Error(
+                                `Failed to create ${entityType} after fixing sequence. Please try again or contact support.`
+                            );
+                            retryErrorMsg.statusCode = 500;
+                            retryErrorMsg.code = 'SEQUENCE_FIX_RETRY_FAILED';
+                            throw retryErrorMsg;
+                        }
+                    } else {
+                        // Auto-fix failed
+                        console.error(`Failed to automatically fix sequence for ${config.model}`);
+                    }
+                }
+                
+                // If auto-fix failed or table name is unknown, provide helpful error message
+                const betterError = new Error(
+                    `Database sequence out of sync for ${config.model}. Please contact support to fix the sequence manually.`
+                );
+                betterError.statusCode = 500;
+                betterError.code = 'SEQUENCE_OUT_OF_SYNC';
+                throw betterError;
+            }
+            
+            // Check if it's a name field conflict
             const isNameField = field === config.nameField || 
                                field === config.nameField.replace(/([A-Z])/g, '_$1').toLowerCase() ||
                                field === 'post_name' && config.nameField === 'postName';
