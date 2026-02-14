@@ -9,7 +9,13 @@ export class ApiError extends Error {
     public statusText: string,
     public data?: any,
   ) {
-    super(data?.error || statusText);
+    // Extract error message from API response structure
+    // API returns: { success: false, error: { message: "...", code: "..." } }
+    const errorMessage =
+      (data?.error && typeof data.error === 'object' && data.error.message)
+        ? data.error.message
+        : (typeof data?.error === 'string' ? data.error : statusText);
+    super(errorMessage);
     this.name = 'ApiError';
   }
 }

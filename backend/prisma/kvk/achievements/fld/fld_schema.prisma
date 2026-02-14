@@ -15,16 +15,13 @@ model KvkFldIntroduction {
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   thematicAreaId Int
-  thematicArea   FldThematicArea
-    @relation(fields: [thematicAreaId], references: [thematicAreaId])
+  thematicArea   FldThematicArea @relation(fields: [thematicAreaId], references: [thematicAreaId])
 
   categoryId Int
-  category   FldCategory
-    @relation(fields: [categoryId], references: [categoryId])
+  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
 
   subCategoryId Int
-  subCategory   FldSubcategory
-    @relation(fields: [subCategoryId], references: [subCategoryId])
+  subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
   cropId Int
   crop   FldCrop @relation(fields: [cropId], references: [cropId])
@@ -54,6 +51,11 @@ model KvkFldIntroduction {
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
+
+  kvkExtensionActivities     KvkExtensionActivity[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  fldExtensions              FldExtension[]
+  fldTechnicalFeedbacks      FldTechnicalFeedback[]
 
   @@map("kvk_fld_introduction")
 }

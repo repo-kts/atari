@@ -7,6 +7,10 @@ model Season {
   cfldCrops  FLDCropMaster[]
   craCropingSystems CraCropingSystem[]
   craFarmingSystems CraFarmingSystem[]
+  kvkFldIntroductions       KvkFldIntroduction[]
+  kvkBudgetUtilizations      KvkBudgetUtilization[]
+  extensionActivityOrganized ExtensionActivityOrganized[]
+  cfldTechnicalParameters    CfldTechnicalParameter[]
 
   @@index([seasonId])
   @@index([seasonName])
@@ -16,7 +20,7 @@ model Season {
 model CropType {
   typeId    Int             @id @default(autoincrement()) @map("type_id")
   typeName  String          @unique @map("type_name")
-  cfldCrops FLDCropMaster[]
+  cfldCrops FLDCropMaster[] 
 
   @@index([typeId])
   @@index([typeName])
@@ -33,6 +37,8 @@ model FLDCropMaster {
   cropType CropType @relation(fields: [typeId], references: [typeId])
 
   cropName String   @map("crop_name")
+
+  cfldTechnicalParameters CfldTechnicalParameter[]
 
   @@index([cfldId])
   @@index([seasonId])

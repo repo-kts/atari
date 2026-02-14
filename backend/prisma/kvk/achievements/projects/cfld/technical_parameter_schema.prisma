@@ -6,13 +6,13 @@ enum CfldType {
 }
 
 model CfldTechnicalParameter {
-    cfl cfldTechId Int @id @default(autoincrement()) @map("cfl cfld_tech_id")
+    cfldTechId Int @id @default(autoincrement()) @map("cfl_cfld_tech_id")
 
     kvkId Int
     kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
     cropId Int
-    crop   CropMaster @relation(fields: [cropId], references: [cropId])
+    crop   FLDCropMaster @relation(fields: [cropId], references: [cfldId])
 
     month  DateTime @map("month")
     type   CfldType @map("type")
@@ -56,6 +56,6 @@ model CfldTechnicalParameter {
 
     @@index([kvkId])
     @@index([cropId])
-    @@index([season])
+    @@index([seasonId])
     @@index([type])
 }

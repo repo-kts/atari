@@ -3,6 +3,8 @@ model FldActivity {
   activityName String @unique @map("activity_name")
 
   extensions FldExtension[]
+  kvkExtensionActivities     KvkExtensionActivity[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
 
   @@map("fld_activity")
 }
@@ -15,7 +17,7 @@ model FldExtension {
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
   fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [fldId])
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId]) 
 
   activityId Int
   activity   FldActivity @relation(fields: [activityId], references: [activityId])

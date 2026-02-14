@@ -8,8 +8,7 @@ model ExtensionActivityOrganized {
   season   Season @relation(fields: [seasonId], references: [seasonId])
 
   extensionActivityId Int
-  extensionActivity   ExtensionActivity 
-    @relation(fields: [extensionActivityId], references: [extensionActivityId])
+  extensionActivity   ExtensionActivity @relation(fields: [extensionActivityId], references: [extensionActivityId])
 
   activityDate DateTime @map("activity_date")
   placeOfActivity String @map("place_of_activity")

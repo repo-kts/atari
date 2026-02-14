@@ -1,11 +1,11 @@
-model ExtensionActivity {
-  extensionActivityId Int @id @default(autoincrement()) @map("extension_activity_id")
+model KvkExtensionActivity {
+  extensionActivityId Int @id @default(autoincrement()) @map("kvk_extension_activity_id")
 
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
   fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [fldId])
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId])
 
   staffId Int
   staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
@@ -41,5 +41,5 @@ model ExtensionActivity {
   @@index([staffId])
   @@index([activityId])
 
-  @@map("extension_activity")
+  @@map("kvk_extension_activity")
 }

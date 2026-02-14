@@ -109,7 +109,7 @@ async function updateZone(req, res) {
  */
 async function deleteZone(req, res) {
     try {
-        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascadeParam = (req.query && req.query.cascade) || (req.body && req.body.cascade);
         const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
         await masterDataService.deleteEntity('zones', req.params.id, req.user.userId, cascade);
         return successResponse(res, { message: cascade ? 'Zone and all related records deleted successfully' : 'Zone deleted successfully' });
@@ -149,7 +149,7 @@ async function getAllStates(req, res) {
  * Get state by ID
  */
 async function getStateById(req, res) {
-    try {
+    try {and 
         const state = await masterDataService.getEntityById('states', req.params.id);
         return successResponse(res, state);
     } catch (error) {
@@ -206,7 +206,7 @@ async function updateState(req, res) {
  */
 async function deleteState(req, res) {
     try {
-        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascadeParam = (req.query && req.query.cascade) || (req.body && req.body.cascade);
         const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
         await masterDataService.deleteEntity('states', req.params.id, req.user.userId, cascade);
         return successResponse(res, { message: cascade ? 'State and all related records deleted successfully' : 'State deleted successfully' });
@@ -307,7 +307,7 @@ async function updateDistrict(req, res) {
  */
 async function deleteDistrict(req, res) {
     try {
-        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascadeParam = (req.query && req.query.cascade) || (req.body && req.body.cascade);
         const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
         await masterDataService.deleteEntity('districts', req.params.id, req.user.userId, cascade);
         return successResponse(res, { message: cascade ? 'District and all related records deleted successfully' : 'District deleted successfully' });
@@ -408,7 +408,7 @@ async function updateOrganization(req, res) {
 async function deleteOrganization(req, res) {
     try {
         // Check cascade parameter from query string or body
-        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascadeParam = (req.query && req.query.cascade) || (req.body && req.body.cascade);
         const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
                 
         await masterDataService.deleteEntity('organizations', req.params.id, req.user.userId, cascade);
@@ -509,7 +509,7 @@ async function updateUniversity(req, res) {
  */
 async function deleteUniversity(req, res) {
     try {
-        const cascadeParam = req.query.cascade || req.body.cascade;
+        const cascadeParam = (req.query && req.query.cascade) || (req.body && req.body.cascade);
         const cascade = cascadeParam === 'true' || cascadeParam === true || cascadeParam === '1' || cascadeParam === 1;
         await masterDataService.deleteEntity('universities', req.params.id, req.user.userId, cascade);
         return successResponse(res, { message: cascade ? 'University and all related records deleted successfully' : 'University deleted successfully' });
