@@ -18,6 +18,9 @@ import { TrainingExtensionForms } from './forms/TrainingExtensionForms'
 import { ProductionProjectForms } from './forms/ProductionProjectForms'
 import { PublicationForms } from './forms/PublicationForms'
 import { AboutKvkForms } from './forms/AboutKvkForms'
+import { SoilWaterTesting } from './forms/SoilWaterTesting'
+import { HRD } from './forms/HRD'
+import { AwardRecognition } from './forms/AwardRecognition'
 
 interface DataManagementFormPageProps {
     entityType: ExtendedEntityType | null
@@ -44,7 +47,7 @@ export function DataManagementFormPage({
     }
 
     // Use centralized entity type checks
-    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk } =
+    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk, isSoilWaterTesting, isHrd, isAward } =
         getEntityTypeChecks(entityType)
 
     return (
@@ -104,7 +107,7 @@ export function DataManagementFormPage({
                             />
                         )}
 
-                        {entityType === ENTITY_TYPES.PUBLICATION_ITEMS && (
+                        {(entityType === ENTITY_TYPES.PUBLICATION_ITEMS || entityType === ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS) && (
                             <PublicationForms
                                 entityType={entityType}
                                 formData={formData}
@@ -120,15 +123,39 @@ export function DataManagementFormPage({
                             />
                         )}
 
+                        {isSoilWaterTesting && (
+                            <SoilWaterTesting
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
+                        {isHrd && (
+                            <HRD
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
+                        {isAward && (
+                            <AwardRecognition
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
                         {/* Fallback if no form matches */}
                         {!isBasicMaster && !isOftFld && !isTrainingExtension && !isProductionProject &&
-                         entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && !isAboutKvk && (
-                            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
-                                <p className="font-semibold">Form not configured</p>
-                                <p className="text-sm mt-1">Entity type: {entityType}</p>
-                                <p className="text-xs mt-2">Please contact the development team to add support for this entity type.</p>
-                            </div>
-                        )}
+                            entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && entityType !== ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS && !isAboutKvk && !isSoilWaterTesting && !isHrd && !isAward && (
+                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+                                    <p className="font-semibold">Form not configured</p>
+                                    <p className="text-sm mt-1">Entity type: {entityType}</p>
+                                    <p className="text-xs mt-2">Please contact the development team to add support for this entity type.</p>
+                                </div>
+                            )}
 
                         {/* Form Actions */}
                         <div className="flex justify-end gap-3 pt-6 border-t border-[#F0F0F0]">

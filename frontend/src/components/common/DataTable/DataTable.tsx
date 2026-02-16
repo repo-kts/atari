@@ -90,9 +90,8 @@ export const DataTable: React.FC<DataTableProps> = ({
                             return (
                                 <tr
                                     key={uniqueKey}
-                                    className={`hover:bg-[#F9FAFB] transition-colors group ${
-                                        isTransferred ? 'bg-blue-50/30' : ''
-                                    }`}
+                                    className={`hover:bg-[#F9FAFB] transition-colors group ${isTransferred ? 'bg-blue-50/30' : ''
+                                        }`}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-[#212121] sticky left-0 bg-white group-hover:bg-[#F9FAFB] z-10 border-r border-transparent group-hover:border-gray-100">
                                         {startIndex + index + 1}

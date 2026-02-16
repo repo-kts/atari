@@ -29,7 +29,7 @@ import { DynamicFormPage } from './components/common/DynamicFormPage'
 import { ProjectsOverview } from './pages/dashboard/forms/projects/ProjectsOverview'
 
 // Import route config for dynamic rendering
-import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, viewKvkRoutes } from './config/routeConfig'
+import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, viewKvkRoutes, achievementsRoutes, } from './config/routeConfig'
 import { ENTITY_PATHS } from './constants/entityTypes'
 import { getAllMastersMockData } from './mocks/allMastersMockData'
 
@@ -108,6 +108,50 @@ function AppRoutes() {
                         />
                     ))}
 
+                    {/* Add this block to handle your new Achievements forms */}
+                    {achievementsRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                // This component automatically builds the form from your config
+                                <DataManagementView
+                                    title={route.title}
+                                    fields={route.fields}
+                                    mockData={route.mockData}
+                                />
+                            }
+                        />
+                    ))}
+                    {/* {achievementsRoutes2.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                // This component automatically builds the form from your config
+                                <DataManagementView
+                                    title={route.title}
+                                    fields={route.fields}
+                                    mockData={route.mockData}
+                                />
+                            }
+                        />
+                    ))}
+                    {trainings.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                // This component automatically builds the form from your config
+                                <DataManagementView
+                                    title={route.title}
+                                    fields={route.fields}
+                                    mockData={route.mockData}
+                                />
+                            }
+                        />
+                    ))} */}
+
                     {/* Form Management Catch-all */}
                     <Route path="/forms/*" element={<FormManagement />} />
 
@@ -138,6 +182,8 @@ function AppRoutes() {
                             />
                         )
                     })}
+                    {/* Add this block to handle your new Achievements forms */}
+
 
                     {/* View KVK Routes - Mapping approach */}
                     {/* {viewKvkRoutes.map(route => {

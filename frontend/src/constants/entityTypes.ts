@@ -46,7 +46,25 @@ export const ENTITY_TYPES = {
     KVK_EQUIPMENTS: 'kvk-equipments',
     KVK_EQUIPMENT_DETAILS: 'kvk-equipment-details',
     KVK_FARM_IMPLEMENTS: 'kvk-farm-implements',
-    KVKS: 'kvks'
+    KVKS: 'kvks',
+
+    // Achievements (OFT & FLD)
+    ACHIEVEMENT_OFT: 'achievement-oft',
+    ACHIEVEMENT_FLD: 'achievement-fld',
+    ACHIEVEMENT_TRAINING: 'achievement-training',
+    ACHIEVEMENT_EXTENSION: 'achievement-extension',
+    ACHIEVEMENT_OTHER_EXTENSION: 'achievement-other-extension',
+    ACHIEVEMENT_TECHNOLOGY_WEEK: 'achievement-technology-week',
+    ACHIEVEMENT_CELEBRATION_DAYS: 'achievement-celebration-days',
+    ACHIEVEMENT_PRODUCTION_SUPPLY: 'achievement-production-supply',
+    ACHIEVEMENT_PUBLICATION_DETAILS: 'achievement-publication-details',
+    ACHIEVEMENT_SOIL_EQUIPMENT: 'achievement-soil-equipment',
+    ACHIEVEMENT_SOIL_ANALYSIS: 'achievement-soil-analysis',
+    ACHIEVEMENT_WORLD_SOIL_DAY: 'achievement-world-soil-day',
+    ACHIEVEMENT_HRD: 'achievement-hrd',
+    ACHIEVEMENT_AWARD_KVK: 'achievement-award-kvk',
+    ACHIEVEMENT_AWARD_SCIENTIST: 'achievement-award-scientist',
+    ACHIEVEMENT_AWARD_FARMER: 'achievement-award-farmer',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
