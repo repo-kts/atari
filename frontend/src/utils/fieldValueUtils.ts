@@ -177,7 +177,28 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     seasonName: {
-        extractor: (item) => item.season?.seasonName || null,
+        extractor: (item) => {
+            if (item.seasonName) return item.seasonName;
+            if (item.season?.seasonName) return item.season.seasonName;
+            return null;
+        },
+        priority: 5,
+    },
+    sanctionedPostName: {
+        extractor: (item) => {
+            if (item.postName) return item.postName;
+            if (item.sanctionedPostName) return item.sanctionedPostName;
+            if (item.sanctionedPost?.postName) return item.sanctionedPost.postName;
+            return null;
+        },
+        priority: 5,
+    },
+    yearName: {
+        extractor: (item) => item.yearName || null,
+        priority: 5,
+    },
+    publicationItem: {
+        extractor: (item) => item.publicationName || null,
         priority: 5,
     },
     cropTypeName: {

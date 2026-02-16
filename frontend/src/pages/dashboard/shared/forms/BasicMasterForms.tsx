@@ -198,14 +198,17 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
 
             {entityType === ENTITY_TYPES.ORGANIZATIONS && (
                 <div className="space-y-4">
-                    <FormInput
+                    <FormSelect
                         label="Organization Name"
                         required
                         value={formData.orgName || ''}
-                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                            setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))
-                        }, [setFormData])}
-                        placeholder="Enter organization name"
+                        onChange={(e) => setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))}
+                        options={[
+                            { value: 'ICAR', label: 'ICAR' },
+                            { value: 'SAU', label: 'SAU' },
+                            { value: 'CAU', label: 'CAU' },
+                            { value: 'NGO', label: 'NGO' },
+                        ]}
                     />
                     <FormSelect
                         label="Zone"
@@ -357,6 +360,42 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         loadingMessage="Loading organizations..."
                     />
                 </div>
+            )}
+
+            {entityType === ENTITY_TYPES.SEASON && (
+                <FormInput
+                    label="Season Name"
+                    required
+                    value={formData.seasonName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, seasonName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter season name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.SANCTIONED_POST && (
+                <FormInput
+                    label="Post Name"
+                    required
+                    value={formData.postName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, postName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter sanctioned post name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.YEAR && (
+                <FormInput
+                    label="Year Name"
+                    required
+                    value={formData.yearName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, yearName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter year name"
+                />
             )}
         </>
     )

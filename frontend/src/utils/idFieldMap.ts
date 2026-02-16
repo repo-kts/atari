@@ -29,6 +29,9 @@ export const ENTITY_ID_FIELD_MAP: Record<ExtendedEntityType, string> = {
     [ENTITY_TYPES.FLD_CROPS]: 'cropId',
     [ENTITY_TYPES.CFLD_CROPS]: 'cfldId',
     [ENTITY_TYPES.SEASONS]: 'seasonId',
+    [ENTITY_TYPES.SEASON]: 'seasonId',
+    [ENTITY_TYPES.SANCTIONED_POST]: 'sanctionedPostId',
+    [ENTITY_TYPES.YEAR]: 'yearId',
 
     // Training, Extension & Events
     [ENTITY_TYPES.TRAINING_TYPES]: 'trainingTypeId',

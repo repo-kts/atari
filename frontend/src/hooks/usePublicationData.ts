@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { publicationApi } from '../services/publicationApi';
+import { invalidateEntityType } from '../utils/queryInvalidation';
+import { ENTITY_TYPES } from '../constants/entityTypes';
 import type { PublicationItemFormData } from '../types/publication';
 
 // ============================================
@@ -18,7 +20,7 @@ export function usePublicationItems() {
     const createMutation = useMutation({
         mutationFn: (data: PublicationItemFormData) => publicationApi.createPublicationItem(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['publication-items'] });
+            invalidateEntityType(queryClient, ENTITY_TYPES.PUBLICATION_ITEMS);
         },
     });
 
@@ -26,14 +28,14 @@ export function usePublicationItems() {
         mutationFn: ({ id, data }: { id: number; data: Partial<PublicationItemFormData> }) =>
             publicationApi.updatePublicationItem(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['publication-items'] });
+            invalidateEntityType(queryClient, ENTITY_TYPES.PUBLICATION_ITEMS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => publicationApi.deletePublicationItem(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['publication-items'] });
+            invalidateEntityType(queryClient, ENTITY_TYPES.PUBLICATION_ITEMS);
         },
     });
 

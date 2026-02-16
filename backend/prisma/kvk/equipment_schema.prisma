@@ -1,7 +1,8 @@
 enum EquipmentPresentStatus {
   WORKING
-  GOOD_CONDITION
-  NEW
+  NOT_WORKING
+  CONDEMED
+  AUCTION
 }
 
 enum EquipmentType {

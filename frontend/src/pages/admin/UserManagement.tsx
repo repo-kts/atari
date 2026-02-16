@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel } from '../../services/userApi'
-import { useUsers, useRoles, useDeleteUser } from '../../hooks/useUserManagement'
+import { useUsers, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
@@ -10,7 +10,6 @@ import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useAlert } from '@/hooks/useAlert'
-import { LoadingButton } from '@/components/common/LoadingButton'
 
 /**
  * User interface matching API response
@@ -36,27 +35,23 @@ export const UserManagement: React.FC = () => {
     const location = useLocation()
     const { hasPermission } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
-    const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
 
     // Fetch users with filters
-    const { 
-        data: usersData = [], 
-        isLoading, 
+    const {
+        data: usersData = [],
+        isLoading,
         error: queryError,
-        refetch: refetchUsers 
-    } = useUsers({ 
+        refetch: refetchUsers
+    } = useUsers({
         search: searchTerm.trim() || undefined,
-        roleId: selectedRole 
     })
-    
+
     const users = Array.isArray(usersData) ? usersData as User[] : []
 
-    // Fetch roles
-    const { data: allRoles = [] } = useRoles()
 
     // Delete user mutation
     const deleteUserMutation = useDeleteUser()
@@ -76,7 +71,7 @@ export const UserManagement: React.FC = () => {
     // Handle delete user
     const handleDelete = async (userId: number) => {
         const user = users.find(u => u.userId === userId)
-        
+
         confirm(
             {
                 title: 'Delete User',
@@ -179,28 +174,15 @@ export const UserManagement: React.FC = () => {
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-[#487749] mb-2">
-                                Filter by Role
-                            </label>
-                            <select
-                                value={selectedRole || ''}
-                                onChange={e =>
-                                    setSelectedRole(
-                                        e.target.value ? parseInt(e.target.value) : undefined
-                                    )
-                                }
-                                className="w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl bg-white text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] transition-all duration-200 hover:border-[#BDBDBD]"
-                            >
-                                <option value="">All Roles</option>
-                                {allRoles.map(role => (
-                                    <option key={role.roleId} value={role.roleId}>
-                                        {getRoleLabel(role.roleName)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
                     </div>
+
+                    {/* 0 Results Warning */}
+                    {!isLoading && users.length === 0 && (
+                        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 shrink-0" />
+                            <span>No users found matching the selected filters.</span>
+                        </div>
+                    )}
 
                     {/* Error Message */}
                     {error && (

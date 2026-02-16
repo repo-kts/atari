@@ -1,0 +1,33 @@
+model ExtensionActivityOrganized {
+  organizedId Int @id @default(autoincrement()) @map("organized_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  extensionActivityId Int
+  extensionActivity   ExtensionActivity @relation(fields: [extensionActivityId], references: [extensionActivityId])
+
+  activityDate DateTime @map("activity_date")
+  placeOfActivity String @map("place_of_activity")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+  @@index([seasonId])
+  @@index([extensionActivityId])
+
+  @@map("extension_activity_organized")
+}

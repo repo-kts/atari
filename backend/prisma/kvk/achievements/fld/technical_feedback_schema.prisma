@@ -1,0 +1,22 @@
+model FldTechnicalFeedback {
+  feedbackId Int @id @default(autoincrement()) @map("feedback_id")
+
+  reportingYear Int @map("reporting_year")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  fldId Int
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId])
+
+  cropId Int
+  crop   FldCrop @relation(fields: [cropId], references: [cropId])
+
+  feedback String @map("feedback")
+
+  @@index([kvkId])
+  @@index([fldId])
+  @@index([cropId])
+  @@index([reportingYear])
+  @@map("fld_technical_feedback")
+}

@@ -61,6 +61,15 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.PRODUCTS]: {
         excludeFields: ['productCategory', 'productType'],
     },
+    [ENTITY_TYPES.SEASON]: {
+        excludeFields: ['seasonId', '_count'],
+    },
+    [ENTITY_TYPES.SANCTIONED_POST]: {
+        excludeFields: ['sanctionedPostId', '_count'],
+    },
+    [ENTITY_TYPES.YEAR]: {
+        excludeFields: ['yearId', '_count'],
+    },
 };
 
 // ============================================

@@ -93,6 +93,12 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
         ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
     ] as ExtendedEntityType[],
+
+    OTHER_MASTERS: [
+        ENTITY_TYPES.SEASON,
+        ENTITY_TYPES.SANCTIONED_POST,
+        ENTITY_TYPES.YEAR,
+    ] as ExtendedEntityType[],
 } as const;
 
 // ============================================
@@ -124,6 +130,7 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isSoilWaterTesting: isEntityInCategory(entityType, 'SOIL_WATER_TESTING'),
         isHrd: isEntityInCategory(entityType, 'HRD'),
         isAward: isEntityInCategory(entityType, 'AWARDS'),
+        isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
     };
 }
 
@@ -208,6 +215,11 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/achievements/awards/kvk': ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK,
     '/forms/achievements/awards/scientist': ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
     '/forms/achievements/awards/farmer': ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
+
+    // Other Masters
+    '/all-master/season': ENTITY_TYPES.SEASON,
+    '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
+    '/all-master/year': ENTITY_TYPES.YEAR,
 };
 
 /**

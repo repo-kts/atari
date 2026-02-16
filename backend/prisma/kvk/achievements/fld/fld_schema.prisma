@@ -1,0 +1,61 @@
+model KvkFldIntroduction {
+  kvkFldId Int @id @default(autoincrement()) @map("kvk_fld_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  kvkStaffId Int
+  kvkStaff   KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId])
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  // Sector → Thematic → Category → SubCategory → Crop
+  sectorId Int
+  sector   Sector @relation(fields: [sectorId], references: [sectorId])
+
+  thematicAreaId Int
+  thematicArea   FldThematicArea @relation(fields: [thematicAreaId], references: [thematicAreaId])
+
+  categoryId Int
+  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
+
+  subCategoryId Int
+  subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
+
+  cropId Int
+  crop   FldCrop @relation(fields: [cropId], references: [cropId])
+
+  fldName           String   @map("fld_name")
+  noOfDemonstration Int      @map("no_of_demonstration")
+  areaHa            Float    @map("area_ha")
+  startDate         DateTime @map("start_date")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+  @@index([seasonId])
+  @@index([sectorId])
+  @@index([thematicAreaId])
+  @@index([categoryId])
+  @@index([subCategoryId])
+  @@index([cropId])
+  @@index([kvkStaffId])
+
+  kvkExtensionActivities     KvkExtensionActivity[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  fldExtensions              FldExtension[]
+  fldTechnicalFeedbacks      FldTechnicalFeedback[]
+
+  @@map("kvk_fld_introduction")
+}

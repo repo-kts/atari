@@ -95,6 +95,9 @@ model KvkStaff {
   transferHistory  StaffTransferHistory[]
   originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
   hrdPrograms      HrdProgram[]
+  kvkExtensionActivities     KvkExtensionActivity[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  kvkFldIntroductions         KvkFldIntroduction[]
 
   @@map("kvk_staff")
   @@index([kvkId])

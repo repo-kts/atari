@@ -1,0 +1,55 @@
+model BudgetItem {
+  budgetItemId Int    @id @default(autoincrement()) @map("budget_item_id")
+  itemName     String @unique @map("item_name")
+
+  utilizations KvkBudgetUtilizationItem[]
+
+  @@map("budget_item")
+}
+
+model KvkBudgetUtilization {
+  budgetId Int @id @default(autoincrement()) @map("budget_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  year Int @map("year")
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  cropId Int
+  crop   FldCrop @relation(fields: [cropId], references: [cropId])
+
+  overallFundAllocation Float @map("overall_crop_wise_fund_allocation")
+
+  areaAllotted Float @map("area_ha_allotted")
+  areaAchieved Float @map("area_ha_achieved")
+
+  items KvkBudgetUtilizationItem[]
+
+  @@index([kvkId])
+  @@index([year])
+  @@index([seasonId])
+  @@index([cropId])
+
+  @@map("kvk_budget_utilization")
+}
+
+model KvkBudgetUtilizationItem {
+  utilizationItemId Int @id @default(autoincrement()) @map("utilization_item_id")
+
+  budgetId Int
+  budget   KvkBudgetUtilization @relation(fields: [budgetId], references: [budgetId])
+
+  budgetItemId Int
+  budgetItem   BudgetItem @relation(fields: [budgetItemId], references: [budgetItemId])
+
+  budgetReceived   Float @map("budget_received")
+  budgetUtilized   Float @map("budget_utilization")
+
+  @@index([budgetId])
+  @@index([budgetItemId])
+
+  @@map("kvk_budget_utilization_item")
+}

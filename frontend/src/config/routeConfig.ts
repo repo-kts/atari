@@ -34,17 +34,24 @@ const basicMastersPaths = [
     ENTITY_PATHS.UNIVERSITIES,
 ]
 
-const oftFldMastersPaths = [
+// OFT Masters group
+const oftMastersPaths = [
     ENTITY_PATHS.OFT_SUBJECT,
     ENTITY_PATHS.OFT_THEMATIC_AREA,
+]
+
+// FLD Masters group
+const fldMastersPaths = [
     ENTITY_PATHS.FLD_SECTOR,
     ENTITY_PATHS.FLD_THEMATIC_AREA,
     ENTITY_PATHS.FLD_CATEGORY,
     ENTITY_PATHS.FLD_SUBCATEGORY,
     ENTITY_PATHS.FLD_CROP,
+]
+
+// CFLD Masters group
+const cfldMastersPaths = [
     ENTITY_PATHS.CFLD_CROP,
-    // FUTURE: Season Master
-    // '/all-master/season',
 ]
 
 const trainingExtensionMastersPaths = [
@@ -63,6 +70,12 @@ const productionProjectsMastersPaths = [
     ENTITY_PATHS.CRA_CROPPING_SYSTEM,
     ENTITY_PATHS.CRA_FARMING_SYSTEM,
     ENTITY_PATHS.ARYA_ENTERPRISE,
+]
+
+const otherMasterSiblings = [
+    ENTITY_PATHS.SEASON,
+    ENTITY_PATHS.SANCTIONED_POST,
+    ENTITY_PATHS.YEAR,
 ]
 
 // All Masters Routes
@@ -119,7 +132,7 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: ['zoneName', 'stateName', 'districtName'],
     },
 
-    // OFT Master
+    // OFT Masters
     {
         path: ENTITY_PATHS.OFT_SUBJECT,
         title: 'Subject Master',
@@ -127,7 +140,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: oftMastersPaths,
         fields: ['subjectName', 'thematicAreasCount'],
     },
     {
@@ -137,11 +150,11 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: oftMastersPaths,
         fields: ['thematicAreaName', 'subjectName'],
     },
 
-    // FLD Master
+    // FLD Masters
     {
         path: ENTITY_PATHS.FLD_SECTOR,
         title: 'Sector Master',
@@ -149,7 +162,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: fldMastersPaths,
         fields: ['sectorName', 'categoriesCount'],
     },
     {
@@ -159,7 +172,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: fldMastersPaths,
         fields: ['thematicAreaName', 'sectorName'],
     },
     {
@@ -169,7 +182,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: fldMastersPaths,
         fields: ['categoryName', 'sectorName', 'subCategoriesCount'],
     },
     {
@@ -179,7 +192,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: fldMastersPaths,
         fields: ['subCategoryName', 'categoryName', 'sectorName', 'cropsCount'],
     },
     {
@@ -189,11 +202,11 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: fldMastersPaths,
         fields: ['cropName', 'subCategoryName', 'categoryName'],
     },
 
-    // CFLD Master
+    // CFLD Masters
     {
         path: ENTITY_PATHS.CFLD_CROP,
         title: 'CFLD Crop Master',
@@ -201,20 +214,9 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftFldMastersPaths,
+        siblings: cfldMastersPaths,
         fields: ['seasonName', 'cropTypeName', 'cropName'],
     },
-    // FUTURE: Season Master
-    // {
-    //     path: '/all-master/season',
-    //     title: 'Season Master',
-    //     category: 'All Masters',
-    //     subcategory: 'OFT & FLD Masters',
-    //     parent: '/all-master',
-    //     subcategoryPath: '/all-master/oft-fld',
-    //     siblings: oftFldMastersPaths,
-    //     fields: ['seasonName'],
-    // },
 
 
     // Training Master
@@ -357,6 +359,38 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PUBLICATIONS_MASTERS,
         siblings: [ENTITY_PATHS.PUBLICATION_ITEM],
         fields: ['publicationItem'],
+    },
+
+    // Other Masters
+    {
+        path: ENTITY_PATHS.SEASON,
+        title: 'Season Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['seasonName'],
+    },
+    {
+        path: ENTITY_PATHS.SANCTIONED_POST,
+        title: 'Sanctioned Post Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['sanctionedPostName'],
+    },
+    {
+        path: ENTITY_PATHS.YEAR,
+        title: 'Year Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMasterSiblings,
+        fields: ['yearName'],
     },
 ]
 

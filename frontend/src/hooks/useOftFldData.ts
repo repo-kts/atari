@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { oftFldApi } from '../services/oftFldApi';
+import { invalidateOftFldEntity, invalidateQueriesWithRefetch } from '../utils/queryInvalidation';
+import { ENTITY_TYPES } from '../constants/entityTypes';
 import type {
     OftSubjectFormData,
     OftThematicAreaFormData,
@@ -27,7 +29,7 @@ export function useOftSubjects() {
     const createMutation = useMutation({
         mutationFn: (data: OftSubjectFormData) => oftFldApi.createOftSubject(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['oft-subjects'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.OFT_SUBJECTS);
         },
     });
 
@@ -35,14 +37,14 @@ export function useOftSubjects() {
         mutationFn: ({ id, data }: { id: number; data: Partial<OftSubjectFormData> }) =>
             oftFldApi.updateOftSubject(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['oft-subjects'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.OFT_SUBJECTS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteOftSubject(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['oft-subjects'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.OFT_SUBJECTS);
         },
     });
 
@@ -125,7 +127,7 @@ export function useSectors() {
     const createMutation = useMutation({
         mutationFn: (data: SectorFormData) => oftFldApi.createSector(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -133,14 +135,14 @@ export function useSectors() {
         mutationFn: ({ id, data }: { id: number; data: Partial<SectorFormData> }) =>
             oftFldApi.updateSector(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteSector(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -173,8 +175,8 @@ export function useFldThematicAreas() {
     const createMutation = useMutation({
         mutationFn: (data: FldThematicAreaFormData) => oftFldApi.createFldThematicArea(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-thematic-areas'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_THEMATIC_AREAS);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -182,15 +184,15 @@ export function useFldThematicAreas() {
         mutationFn: ({ id, data }: { id: number; data: Partial<FldThematicAreaFormData> }) =>
             oftFldApi.updateFldThematicArea(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-thematic-areas'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_THEMATIC_AREAS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteFldThematicArea(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-thematic-areas'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_THEMATIC_AREAS);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -223,8 +225,8 @@ export function useFldCategories() {
     const createMutation = useMutation({
         mutationFn: (data: FldCategoryFormData) => oftFldApi.createFldCategory(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-categories'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CATEGORIES);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -232,15 +234,15 @@ export function useFldCategories() {
         mutationFn: ({ id, data }: { id: number; data: Partial<FldCategoryFormData> }) =>
             oftFldApi.updateFldCategory(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-categories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CATEGORIES);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteFldCategory(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-categories'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-sectors'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CATEGORIES);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SECTORS);
         },
     });
 
@@ -273,8 +275,8 @@ export function useFldSubcategories() {
     const createMutation = useMutation({
         mutationFn: (data: FldSubcategoryFormData) => oftFldApi.createFldSubcategory(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-subcategories'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-categories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CATEGORIES);
         },
     });
 
@@ -282,15 +284,15 @@ export function useFldSubcategories() {
         mutationFn: ({ id, data }: { id: number; data: Partial<FldSubcategoryFormData> }) =>
             oftFldApi.updateFldSubcategory(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-subcategories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteFldSubcategory(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-subcategories'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-categories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CATEGORIES);
         },
     });
 
@@ -323,8 +325,8 @@ export function useFldCrops() {
     const createMutation = useMutation({
         mutationFn: (data: FldCropFormData) => oftFldApi.createFldCrop(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-crops'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-subcategories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CROPS);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
         },
     });
 
@@ -332,15 +334,15 @@ export function useFldCrops() {
         mutationFn: ({ id, data }: { id: number; data: Partial<FldCropFormData> }) =>
             oftFldApi.updateFldCrop(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-crops'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CROPS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteFldCrop(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['fld-crops'] });
-            queryClient.invalidateQueries({ queryKey: ['fld-subcategories'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CROPS);
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
         },
     });
 
@@ -373,7 +375,7 @@ export function useSeasons() {
     const createMutation = useMutation({
         mutationFn: (data: any) => oftFldApi.createSeason(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['seasons'] });
+            invalidateQueriesWithRefetch(queryClient, ['seasons']);
         },
     });
 
@@ -381,14 +383,14 @@ export function useSeasons() {
         mutationFn: ({ id, data }: { id: number; data: any }) =>
             oftFldApi.updateSeason(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['seasons'] });
+            invalidateQueriesWithRefetch(queryClient, ['seasons']);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteSeason(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['seasons'] });
+            invalidateQueriesWithRefetch(queryClient, ['seasons']);
         },
     });
 
@@ -421,7 +423,7 @@ export function useCropTypes() {
     const createMutation = useMutation({
         mutationFn: (data: any) => oftFldApi.createCropType(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['crop-types'] });
+            invalidateQueriesWithRefetch(queryClient, ['crop-types']);
         },
     });
 
@@ -429,14 +431,14 @@ export function useCropTypes() {
         mutationFn: ({ id, data }: { id: number; data: any }) =>
             oftFldApi.updateCropType(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['crop-types'] });
+            invalidateQueriesWithRefetch(queryClient, ['crop-types']);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteCropType(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['crop-types'] });
+            invalidateQueriesWithRefetch(queryClient, ['crop-types']);
         },
     });
 
@@ -469,7 +471,7 @@ export function useCfldCrops() {
     const createMutation = useMutation({
         mutationFn: (data: CfldCropFormData) => oftFldApi.createCfldCrop(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cfld-crops'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.CFLD_CROPS);
         },
     });
 
@@ -477,14 +479,14 @@ export function useCfldCrops() {
         mutationFn: ({ id, data }: { id: number; data: Partial<CfldCropFormData> }) =>
             oftFldApi.updateCfldCrop(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cfld-crops'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.CFLD_CROPS);
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number) => oftFldApi.deleteCfldCrop(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['cfld-crops'] });
+            invalidateOftFldEntity(queryClient, ENTITY_TYPES.CFLD_CROPS);
         },
     });
 
