@@ -61,6 +61,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Get user and permission helper from auth store
     const { user, hasPermission } = useAuth()
+    // Get user and permission helper from auth store
+    const { user, hasPermission } = useAuth()
 
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
@@ -75,6 +77,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
     const siblingRoutes = getSiblingRoutes(location.pathname)
+    const moduleCode = routeConfig?.moduleCode
     const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -94,6 +97,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if "Add New" button should be shown
     const canUserCreate = () => {
         if (!user) return false
+        if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
@@ -115,11 +119,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canEditItem = (item: any) => {
         if (!user) return false
         if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
+        if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
                 // For KVKS list, permission check above is enough
                 return true
+                // For KVKS list, permission check above is enough
+                return true
             }
+            // KVK details: super_admin can edit all, KVK role can edit their own data
+            if (user.role === 'super_admin') return true
             // KVK details: super_admin can edit all, KVK role can edit their own data
             if (user.role === 'super_admin') return true
             if (user.role !== 'kvk') return false
@@ -134,11 +143,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canDeleteItem = (item: any) => {
         if (!user) return false
         if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
+        if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
                 // For KVKS list, permission check above is enough
                 return true
+                // For KVKS list, permission check above is enough
+                return true
             }
+            // KVK details: super_admin can delete all, KVK role can delete their own data
+            if (user.role === 'super_admin') return true
             // KVK details: super_admin can delete all, KVK role can delete their own data
             if (user.role === 'super_admin') return true
             if (user.role !== 'kvk') return false
@@ -221,7 +235,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             // If hook exists but has no data and is not loading, set empty array
             setItems([])
         }
-    }, [hookDataHash, location.pathname, activeHook?.data]) // Include activeHook?.data to detect reference changes
+    }, [hookDataHash, location.pathname, activeHook?.isLoading]) // hookDataHash already tracks data changes via useMemo
 
     // Debounce search
     useEffect(() => {

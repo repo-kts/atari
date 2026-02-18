@@ -86,23 +86,6 @@ const aryaMastersPaths = [
     ENTITY_PATHS.ARYA_ENTERPRISE,
 ]
 
-// Employee Masters group
-const employeeMastersPaths = [
-    ENTITY_PATHS.STAFF_CATEGORY,
-    ENTITY_PATHS.PAY_LEVEL,
-    ENTITY_PATHS.SANCTIONED_POST,
-    ENTITY_PATHS.DISCIPLINE,
-]
-
-// Extension Masters group
-const extensionMastersPaths = [
-    ENTITY_PATHS.EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.EXTENSION_ACTIVITY,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
-]
-
-
 // Other Masters - split by tab sections
 const otherMastersPaths = [
     ENTITY_PATHS.SEASON,
@@ -451,28 +434,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['categoryName'],
-    },
-    {
-        path: ENTITY_PATHS.PAY_LEVEL,
-        title: 'Pay Level Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['levelName'],
-    },
-    {
-        path: ENTITY_PATHS.DISCIPLINE,
-        title: 'Discipline Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['disciplineName'],
+        siblings: otherMastersPaths,
+        fields: ['name'],
     },
     {
         path: ENTITY_PATHS.SANCTIONED_POST,
@@ -481,7 +444,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
+        siblings: otherMastersPaths,
         fields: ['postName'],
         moduleCode: 'all_masters_sanctioned_post_master',
     },
@@ -1521,10 +1484,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['Reporting Year', 'KVK Name', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_oft',
     },
     {
         path: '/forms/achievements/fld',
@@ -1533,10 +1493,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['Reporting Year', 'Start Date', 'End Date', 'KVK Name', 'Category', 'Sub-Category', 'Name of Technnology Demonstrated', 'Ongoing/Completed'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_fld',
     },
     {
         path: '/forms/achievements/trainings',
@@ -1545,10 +1502,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Training Program', 'Training Title', 'Venue', 'Training Discipline', 'Thematic Area'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2026', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_trainings',
     },
     {
         path: '/forms/achievements/extension-activities',
@@ -1557,10 +1511,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Name of Extension activities', 'No. of Activities', 'No. of Participants'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_extension_activities',
     },
     {
         path: '/forms/achievements/other-extension',
@@ -1569,10 +1520,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['s.no', 'Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_other_extension_activities',
     },
     {
         path: '/forms/achievements/technology-week',
@@ -1581,10 +1529,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['Start Date', 'End Date', 'KVK', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_technology_week_celebration',
     },
     {
         path: '/forms/achievements/celebration-days',
@@ -1593,10 +1538,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Important Dates', 'Event Date', 'No. of Activities'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_celebration_days',
     },
     {
         path: '/forms/achievements/production-supply',
@@ -1605,21 +1547,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Category', 'Variety', 'Quantity'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
-    },
-    {
-        path: '/forms/achievements/publications',
-        title: 'KVKs Publication Details',
-        category: 'Form Management',
-        subcategory: 'Achievements',
-        parent: '/forms/achievements',
-        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        // ],
+        moduleCode: 'achievements_production_supply_tech_products',
     },
     {
         path: '/forms/achievements/soil-equipment',
@@ -1628,10 +1556,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Analysis', 'Equipment Name', 'Quantity'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_soil_water_testing',
     },
     {
         path: '/forms/achievements/soil-analysis',
@@ -1640,10 +1565,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK NAME', 'Start Date', 'End Date', 'Analysis', 'No. of samples Analyzed', 'No. of Villages Covered', 'Amount Released'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_soil_water_testing',
     },
     {
         path: '/forms/achievements/world-soil-day',
@@ -1652,22 +1574,16 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK NAME', 'No. Of Activities Conducted', 'Soil Health Cards Distributed', 'No. of VIP(s)', 'Name(s) of VIP(s) Involved', 'Total No. of Participants attended the program'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_soil_water_testing',
     },
     {
         path: '/forms/achievements/publications',
-        title: 'Publications',
+        title: 'KVKs Publication Details',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
-        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
+        moduleCode: 'achievements_publications',
     },
     {
         path: '/forms/achievements/awards/kvk',
@@ -1676,10 +1592,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_award_recognition',
     },
     {
         path: '/forms/achievements/awards/scientist',
@@ -1688,10 +1601,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Head Scientist', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_award_recognition',
     },
     {
         path: '/forms/achievements/awards/farmer',
@@ -1700,10 +1610,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Farmer Name', 'Address', 'Contact Number', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_award_recognition',
     },
     {
         path: '/forms/achievements/hrd',
@@ -1712,10 +1619,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         fields: ['KVK Name', 'Staff', 'Course', 'Start Date', 'End Date', 'Organizer'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        moduleCode: 'achievements_hrd',
     },
 ]
 // export const achievementsRoutes2: RouteConfig[] = [

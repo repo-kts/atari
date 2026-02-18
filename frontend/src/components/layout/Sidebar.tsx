@@ -24,7 +24,6 @@ import {
     Briefcase,
     FileCheck,
 } from 'lucide-react'
-import { getRoleLevel } from '../../constants/roleHierarchy'
 
 interface MenuItem {
     label: string
@@ -113,11 +112,13 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Success Stories',
                 path: '/forms/success-stories',
                 icon: <FileCheck className="w-4 h-4" />,
+                moduleCode: 'success_stories',
             },
             {
                 label: 'Projects',
                 path: '/forms/achievements/projects',
                 icon: <Briefcase className="w-4 h-4" />,
+                moduleCode: 'achievements_projects',
             },
         ],
     },
@@ -207,11 +208,13 @@ const kvkMenuItems: MenuItem[] = [
                 label: 'Success Stories',
                 path: '/forms/success-stories',
                 icon: <FileCheck className="w-4 h-4" />,
+                moduleCode: 'success_stories',
             },
             {
                 label: 'Projects',
                 path: '/forms/achievements/projects',
                 icon: <Briefcase className="w-4 h-4" />,
+                moduleCode: 'achievements_projects',
             },
         ],
     },
@@ -219,34 +222,21 @@ const kvkMenuItems: MenuItem[] = [
         label: 'Module Images',
         path: '/module-images',
         icon: <ImageIcon className="w-5 h-5" />,
+        moduleCode: 'module_images',
     },
     {
         label: 'Targets',
         path: '/targets',
         icon: <Target className="w-5 h-5" />,
+        moduleCode: 'targets',
     },
     {
         label: 'Reports',
         path: '/all-reports',
         icon: <FileBarChart className="w-5 h-5" />,
+        moduleCode: 'reports',
     },
 ]
-
-/**
- * Build menu for a given admin role by filtering superAdminMenuItems.
- * - super_admin & zone_admin: see everything
- * - state_admin & below: no All Masters, Log History, Notifications
- */
-function getAdminMenuItems(roleName: string): MenuItem[] {
-    const level = getRoleLevel(roleName)
-
-    // super_admin (0) and zone_admin (1) get the full menu
-    if (level <= 1) return superAdminMenuItems
-
-    // state_admin (2) and below: remove All Masters, Log History, Notifications
-    const excludedPaths = new Set(['/all-master', '/view-log-history', '/view-email-notifications'])
-    return superAdminMenuItems.filter(item => !excludedPaths.has(item.path))
-}
 
 interface SidebarProps {
     isOpen: boolean
@@ -273,9 +263,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
     const rawMenuItems = React.useMemo(() => {
         if (isKvk) return kvkMenuItems
-        if (isAdmin && user?.role) return getAdminMenuItems(user.role)
+        if (isAdmin) return superAdminMenuItems
         return regularMenuItems
-    }, [isAdmin, isKvk, user?.role])
+    }, [isAdmin, isKvk])
+
+    // Filter menu items based on VIEW permission where moduleCode is defined
+    const menuItems = React.useMemo(() => {
+        const filterList = (items: MenuItem[]): MenuItem[] => {
+            const result: MenuItem[] = []
+
+            for (const item of items) {
+                let children: MenuItem[] | undefined
+                if (item.children) {
+                    children = filterList(item.children)
+                }
+
+                const hasViewForItem = !item.moduleCode || hasPermission('VIEW', item.moduleCode)
+                const hasVisibleChildren = !!children && children.length > 0
+
+                if (item.children) {
+                    // Parent / dropdown: only show if at least one child is visible.
+                    // Never show an empty section header.
+                    if (!hasVisibleChildren) continue
+                } else {
+                    // Leaf item: show only if the user has VIEW for this item.
+                    if (!hasViewForItem) continue
+                }
+
+                result.push({ ...item, children })
+            }
+
+            return result
+        }
+
+        return filterList(rawMenuItems)
+    }, [rawMenuItems, hasPermission])
 
     // Filter menu items based on VIEW permission where moduleCode is defined
     const menuItems = React.useMemo(() => {

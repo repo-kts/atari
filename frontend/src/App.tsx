@@ -177,18 +177,18 @@ function AppRoutes() {
                         />
                     ))}
 
-                    {/* Add this block to handle your new Achievements forms */}
                     {achievementsRoutes.map(route => (
                         <Route
                             key={route.path}
                             path={route.path}
                             element={
-                                // This component automatically builds the form from your config
-                                <DataManagementView
-                                    title={route.title}
-                                    fields={route.fields}
-                                    mockData={route.mockData}
-                                />
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        title={route.title}
+                                        fields={route.fields}
+                                        mockData={route.mockData}
+                                    />
+                                </ProtectedRoute>
                             }
                         />
                     ))}
