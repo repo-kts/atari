@@ -33,7 +33,11 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.FLD_CATEGORIES,
         ENTITY_TYPES.FLD_SUBCATEGORIES,
         ENTITY_TYPES.FLD_CROPS,
+        ENTITY_TYPES.FLD_CROPS,
         ENTITY_TYPES.CFLD_CROPS,
+        // Achievements
+        ENTITY_TYPES.ACHIEVEMENT_OFT,
+        ENTITY_TYPES.ACHIEVEMENT_FLD,
     ] as ExtendedEntityType[],
 
     TRAINING_EXTENSION: [
@@ -43,6 +47,12 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.EXTENSION_ACTIVITIES,
         ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
         ENTITY_TYPES.EVENTS,
+        // Achievements
+        ENTITY_TYPES.ACHIEVEMENT_TRAINING,
+        ENTITY_TYPES.ACHIEVEMENT_EXTENSION,
+        ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION,
+        ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK,
+        ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS,
     ] as ExtendedEntityType[],
 
     PRODUCTION_PROJECTS: [
@@ -52,6 +62,7 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.CRA_CROPPING_SYSTEMS,
         ENTITY_TYPES.CRA_FARMING_SYSTEMS,
         ENTITY_TYPES.ARYA_ENTERPRISES,
+        ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
     ] as ExtendedEntityType[],
 
     ABOUT_KVK: [
@@ -65,6 +76,22 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
         ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
         ENTITY_TYPES.KVKS,
+    ] as ExtendedEntityType[],
+
+    SOIL_WATER_TESTING: [
+        ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
+        ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
+        ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
+    ] as ExtendedEntityType[],
+
+    HRD: [
+        ENTITY_TYPES.ACHIEVEMENT_HRD,
+    ] as ExtendedEntityType[],
+
+    AWARDS: [
+        ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK,
+        ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
+        ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
     ] as ExtendedEntityType[],
 
     OTHER_MASTERS: [
@@ -100,6 +127,9 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isTrainingExtension: isEntityInCategory(entityType, 'TRAINING_EXTENSION'),
         isProductionProject: isEntityInCategory(entityType, 'PRODUCTION_PROJECTS'),
         isAboutKvk: isEntityInCategory(entityType, 'ABOUT_KVK'),
+        isSoilWaterTesting: isEntityInCategory(entityType, 'SOIL_WATER_TESTING'),
+        isHrd: isEntityInCategory(entityType, 'HRD'),
+        isAward: isEntityInCategory(entityType, 'AWARDS'),
         isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
     };
 }
@@ -130,6 +160,10 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/fld/crop': ENTITY_TYPES.FLD_CROPS,
     '/all-master/cfld-crop': ENTITY_TYPES.CFLD_CROPS,
 
+    // Achievements (OFT & FLD)
+    '/forms/achievements/oft': ENTITY_TYPES.ACHIEVEMENT_OFT,
+    '/forms/achievements/fld': ENTITY_TYPES.ACHIEVEMENT_FLD,
+
     // Training, Extension & Events masters
     '/all-master/training-type': ENTITY_TYPES.TRAINING_TYPES,
     '/all-master/training-area': ENTITY_TYPES.TRAINING_AREAS,
@@ -137,6 +171,14 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/extension-activity': ENTITY_TYPES.EXTENSION_ACTIVITIES,
     '/all-master/other-extension-activity': ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
     '/all-master/events': ENTITY_TYPES.EVENTS,
+
+    // Achievement Training
+    '/forms/achievements/trainings': ENTITY_TYPES.ACHIEVEMENT_TRAINING,
+    '/forms/achievements/extension-activities': ENTITY_TYPES.ACHIEVEMENT_EXTENSION,
+    '/forms/achievements/other-extension': ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION,
+    '/forms/achievements/technology-week': ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK,
+    '/forms/achievements/celebration-days': ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS,
+    '/forms/achievements/production-supply': ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
 
     // Production & Projects masters
     '/all-master/product-category': ENTITY_TYPES.PRODUCT_CATEGORIES,
@@ -148,6 +190,7 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
 
     // Publication masters
     '/all-master/publication-item': ENTITY_TYPES.PUBLICATION_ITEMS,
+    '/forms/achievements/publications': ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
 
     // About KVK entities
     '/forms/about-kvk/bank-account': ENTITY_TYPES.KVK_BANK_ACCOUNTS,
@@ -161,6 +204,17 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/about-kvk/farm-implements': ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
     '/forms/about-kvk/details': ENTITY_TYPES.KVKS,
     '/forms/about-kvk/view-kvks': ENTITY_TYPES.KVKS,
+
+    // Soil Water Testing
+    '/forms/achievements/soil-equipment': ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
+    '/forms/achievements/soil-analysis': ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
+    '/forms/achievements/world-soil-day': ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
+    '/forms/achievements/hrd': ENTITY_TYPES.ACHIEVEMENT_HRD,
+
+    // Awards
+    '/forms/achievements/awards/kvk': ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK,
+    '/forms/achievements/awards/scientist': ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
+    '/forms/achievements/awards/farmer': ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
 
     // Other Masters
     '/all-master/season': ENTITY_TYPES.SEASON,

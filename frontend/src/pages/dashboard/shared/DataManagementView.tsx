@@ -175,14 +175,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         // Also include a simple checksum of key fields to detect field updates
         const ids = data.map((item: any) => {
             const id = item.id || item.zoneId || item.stateId || item.districtId ||
-                      item.orgId || item.universityId || item.cropId || item.cfldId ||
-                      item.seasonId || item.sanctionedPostId || item.yearId ||
-                      item.publicationId || item.kvkId || item.employeeId || ''
+                item.orgId || item.universityId || item.cropId || item.cfldId ||
+                item.seasonId || item.sanctionedPostId || item.yearId ||
+                item.publicationId || item.kvkId || item.employeeId || ''
             // Include a hash of the name field to detect name changes
             const name = item.name || item.zoneName || item.stateName || item.districtName ||
-                        item.orgName || item.universityName || item.cropName || item.CropName ||
-                        item.seasonName || item.postName || item.yearName ||
-                        item.publicationName || item.kvkName || ''
+                item.orgName || item.universityName || item.cropName || item.CropName ||
+                item.seasonName || item.postName || item.yearName ||
+                item.publicationName || item.kvkName || ''
             return `${id}:${name ? name.substring(0, 20) : ''}` // Truncate name for performance
         }).join('|')
 
@@ -218,6 +218,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Sync data from API or mock - real-time updates
     // Check both hash changes AND reference changes (React Query gives new reference on refetch)
     useEffect(() => {
+        // PRIORITY 1: Explicit mockData from props (for new achievement forms etc.)
+        if (mockData && mockData.length > 0) {
+            if (mockDataHash !== null && mockDataHash !== prevMockDataHashRef.current) {
+                prevMockDataHashRef.current = mockDataHash
+                setItems(mockData)
+            }
+            return // Exit early so we don't overwrite with empty API data
+        }
+
+        // PRIORITY 2: API Data (if no mockData provided)
         if (isMasterDataEntity && activeHook?.data) {
             const data = activeHook.data
             const dataRefChanged = prevDataRef.current !== data
@@ -230,22 +240,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 setItems([...data]) // Create new array reference to ensure React detects the change
             }
         } else if (!isMasterDataEntity) {
-            // Handle mock data
-            if (mockData && mockData.length) {
-                if (mockDataHash !== null && mockDataHash !== prevMockDataHashRef.current) {
-                    prevMockDataHashRef.current = mockDataHash
-                    setItems(mockData)
-                }
-            } else {
-                const mockDataFromPath = getAllMastersMockData(location.pathname)
-                const pathMockHash = mockDataFromPath.length > 0
-                    ? `${mockDataFromPath.length}-${JSON.stringify(mockDataFromPath[0])}-${JSON.stringify(mockDataFromPath[mockDataFromPath.length - 1])}`
-                    : 'empty'
+            // PRIORITY 3: Fallback legacy mock data
+            // Handle mock data (this block will only be reached if mockData prop was not provided or was empty)
+            const mockDataFromPath = getAllMastersMockData(location.pathname)
+            const pathMockHash = mockDataFromPath.length > 0
+                ? `${mockDataFromPath.length}-${JSON.stringify(mockDataFromPath[0])}-${JSON.stringify(mockDataFromPath[mockDataFromPath.length - 1])}`
+                : 'empty'
 
-                if (pathMockHash !== prevMockDataHashRef.current) {
-                    prevMockDataHashRef.current = pathMockHash
-                    setItems(mockDataFromPath)
-                }
+            if (pathMockHash !== prevMockDataHashRef.current) {
+                prevMockDataHashRef.current = pathMockHash
+                setItems(mockDataFromPath)
             }
         }
     }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname, activeHook?.data]) // Include activeHook?.data to detect reference changes
@@ -367,35 +371,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
             {!isFormPageOpen && (
-            <div className="flex-none">
-                {breadcrumbs.length > 0 && (
-                    <div className="flex items-center gap-4 px-6 pt-4 pb-4">
-                        <button
-                            onClick={() => {
-                                if (routeConfig?.parent) {
-                                    navigate(routeConfig.parent)
-                                } else {
-                                    navigate('/all-master')
-                                }
-                            }}
-                            className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            Back
-                        </button>
-                        <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
-                    </div>
-                )}
+                <div className="flex-none">
+                    {breadcrumbs.length > 0 && (
+                        <div className="flex items-center gap-4 px-6 pt-4 pb-4">
+                            <button
+                                onClick={() => {
+                                    if (routeConfig?.parent) {
+                                        navigate(routeConfig.parent)
+                                    } else {
+                                        navigate('/all-master')
+                                    }
+                                }}
+                                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                                Back
+                            </button>
+                            <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
+                        </div>
+                    )}
 
-                {siblingRoutes.length > 1 && (
-                    <div className="mb-4">
-                        <TabNavigation
-                            tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
-                            currentPath={location.pathname}
-                        />
-                    </div>
-                )}
-            </div>
+                    {siblingRoutes.length > 1 && (
+                        <div className="mb-4">
+                            <TabNavigation
+                                tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
+                                currentPath={location.pathname}
+                            />
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* Main Content Area - Flexible height */}
@@ -405,7 +409,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     <div className="flex-1 overflow-y-auto p-6">
                         <DataManagementFormPage
                             entityType={entityType}
-                            title={editingItem ? `Edit ${title.slice(0, -7)}` : `Create ${title.slice(0, -7)}`}
+                            title={editingItem ? `Edit ${title.replace(/ Master$/, '')}` : `Create ${title.replace(/ Master$/, '')}`}
                             formData={formData}
                             setFormData={setFormData}
                             onSave={handleSaveModal}
@@ -416,104 +420,104 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ) : (
                     <>
                         <div className="flex-none p-6 pb-2">
-                    <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
-                            <p className="text-sm text-[#757575] mt-1">{description}</p>
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                            <LoadingButton
-                                onClick={() => handleExport('pdf')}
-                                isLoading={exportLoadingState === 'pdf'}
-                                loadingText="Exporting..."
-                                variant="outline"
-                                size="sm"
-                                disabled={exportLoadingState !== null && exportLoadingState !== 'pdf'}
-                                className="flex items-center gap-2"
-                            >
-                                {exportLoadingState !== 'pdf' && <Download className="w-4 h-4" />}
+                            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
+                                    <p className="text-sm text-[#757575] mt-1">{description}</p>
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                    <LoadingButton
+                                        onClick={() => handleExport('pdf')}
+                                        isLoading={exportLoadingState === 'pdf'}
+                                        loadingText="Exporting..."
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={exportLoadingState !== null && exportLoadingState !== 'pdf'}
+                                        className="flex items-center gap-2"
+                                    >
+                                        {exportLoadingState !== 'pdf' && <Download className="w-4 h-4" />}
                                         Export PDF
-                            </LoadingButton>
-                            <LoadingButton
-                                onClick={() => handleExport('excel')}
-                                isLoading={exportLoadingState === 'excel'}
-                                loadingText="Exporting..."
-                                variant="outline"
-                                size="sm"
-                                disabled={exportLoadingState !== null && exportLoadingState !== 'excel'}
-                                className="flex items-center gap-2"
-                            >
-                                {exportLoadingState !== 'excel' && <Download className="w-4 h-4" />}
+                                    </LoadingButton>
+                                    <LoadingButton
+                                        onClick={() => handleExport('excel')}
+                                        isLoading={exportLoadingState === 'excel'}
+                                        loadingText="Exporting..."
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={exportLoadingState !== null && exportLoadingState !== 'excel'}
+                                        className="flex items-center gap-2"
+                                    >
+                                        {exportLoadingState !== 'excel' && <Download className="w-4 h-4" />}
                                         Export Excel
-                            </LoadingButton>
-                            <LoadingButton
-                                onClick={() => handleExport('word')}
-                                isLoading={exportLoadingState === 'word'}
-                                loadingText="Exporting..."
-                                variant="outline"
-                                size="sm"
-                                disabled={exportLoadingState !== null && exportLoadingState !== 'word'}
-                                className="flex items-center gap-2"
-                            >
-                                {exportLoadingState !== 'word' && <Download className="w-4 h-4" />}
+                                    </LoadingButton>
+                                    <LoadingButton
+                                        onClick={() => handleExport('word')}
+                                        isLoading={exportLoadingState === 'word'}
+                                        loadingText="Exporting..."
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={exportLoadingState !== null && exportLoadingState !== 'word'}
+                                        className="flex items-center gap-2"
+                                    >
+                                        {exportLoadingState !== 'word' && <Download className="w-4 h-4" />}
                                         Export Word
-                            </LoadingButton>
+                                    </LoadingButton>
 
-                            {showAddButton && (
-                                <button
-                                    onClick={handleAddNew}
-                                    className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] shadow-sm transition-all duration-200"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    Add New
-                                </button>
-                            )}
+                                    {showAddButton && (
+                                        <button
+                                            onClick={handleAddNew}
+                                            className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] shadow-sm transition-all duration-200"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            Add New
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="my-2">
+                                <SearchInput
+                                    value={searchQuery}
+                                    onChange={setSearchQuery}
+                                    placeholder={`Search ${title.toLowerCase()}...`}
+                                />
+                            </div>
+
+                            {error && <ErrorState message={error} className="my-4" />}
                         </div>
-                    </div>
 
-                    <div className="my-2">
-                        <SearchInput
-                            value={searchQuery}
-                            onChange={setSearchQuery}
-                            placeholder={`Search ${title.toLowerCase()}...`}
-                        />
-                    </div>
+                        <div className="flex-1 flex flex-col min-h-0 px-6 pb-6 overflow-hidden">
+                            {loading ? (
+                                <LoadingState />
+                            ) : (
+                                <>
+                                    <DataTable
+                                        fields={fields}
+                                        data={paginatedData}
+                                        entityType={entityType}
+                                        user={user}
+                                        showAddButton={showAddButton}
+                                        isEmployeeDetails={isEmployeeDetails}
+                                        startIndex={startIndex}
+                                        locationPathname={location.pathname}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                        canEditItem={canEditItem}
+                                        canDeleteItem={canDeleteItem}
+                                        onTransfer={isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED ? handleTransfer : undefined}
+                                        onViewHistory={(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) ? handleViewHistory : undefined}
+                                    />
 
-                    {error && <ErrorState message={error} className="my-4" />}
-                </div>
-
-                <div className="flex-1 flex flex-col min-h-0 px-6 pb-6 overflow-hidden">
-                    {loading ? (
-                        <LoadingState />
-                    ) : (
-                        <>
-                            <DataTable
-                                fields={fields}
-                                data={paginatedData}
-                                entityType={entityType}
-                                user={user}
-                                showAddButton={showAddButton}
-                                isEmployeeDetails={isEmployeeDetails}
-                                startIndex={startIndex}
-                                locationPathname={location.pathname}
-                                onEdit={handleEdit}
-                                onDelete={handleDelete}
-                                canEditItem={canEditItem}
-                                canDeleteItem={canDeleteItem}
-                                onTransfer={isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED ? handleTransfer : undefined}
-                                onViewHistory={(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) ? handleViewHistory : undefined}
-                            />
-
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                startIndex={startIndex}
-                                endIndex={endIndex}
-                                totalItems={filteredData.length}
-                                onPageChange={setCurrentPage}
-                            />
-                        </>
-                    )}
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        startIndex={startIndex}
+                                        endIndex={endIndex}
+                                        totalItems={filteredData.length}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </>
+                            )}
                         </div>
                     </>
                 )}

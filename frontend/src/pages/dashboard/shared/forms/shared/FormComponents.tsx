@@ -25,9 +25,10 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
     options: { value: string | number; label: string }[]
     required?: boolean
     error?: string
+    placeholder?: string
 }
 
-export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, className = '', ...props }) => (
+export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, className = '', ...props }) => (
     <div className="space-y-2">
         <label className="block text-sm font-medium text-[#212121]">
             {label} {required && <span className="text-red-500">*</span>}
@@ -37,7 +38,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
             required={required}
             className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white ${className}`}
         >
-            <option value="">Select {label}</option>
+            <option value="">{placeholder || `Select ${label}`}</option>
             {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                     {opt.label}
