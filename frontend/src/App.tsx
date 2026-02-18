@@ -79,19 +79,88 @@ function AppRoutes() {
                         <Route path="/all-master/*" element={<AllMasters />} />
                     </Route>
 
-                    {/* Admin Pages - Restricted to Admin Roles */}
-                    <Route element={<ProtectedRoute requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}><Outlet /></ProtectedRoute>}>
-                        <Route path="/role-view" element={<RoleManagement />} />
-                        <Route path="/role-view/:roleId/permissions" element={<RolePermissionEditor />} />
-                        <Route path="/view-users" element={<UserManagement />} />
-                        <Route path="/view-log-history" element={<LogHistory />} />
-                        <Route path="/view-email-notifications" element={<Notifications />} />
-                    </Route>
+                    {/* Admin Pages - Restricted to Admin Roles + module-based VIEW permissions */}
+                    <Route
+                        path="/role-view"
+                        element={
+                            <ProtectedRoute
+                                requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}
+                                requiredModuleCode="role_management_roles"
+                            >
+                                <RoleManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/role-view/:roleId/permissions"
+                        element={
+                            <ProtectedRoute
+                                requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}
+                                requiredModuleCode="role_management_roles"
+                            >
+                                <RolePermissionEditor />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-users"
+                        element={
+                            <ProtectedRoute
+                                requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}
+                                requiredModuleCode="user_management_users"
+                            >
+                                <UserManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-log-history"
+                        element={
+                            <ProtectedRoute
+                                requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}
+                                requiredModuleCode="log_history"
+                            >
+                                <LogHistory />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-email-notifications"
+                        element={
+                            <ProtectedRoute
+                                requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}
+                                requiredModuleCode="notifications"
+                            >
+                                <Notifications />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    {/* Features accessible to Admin and KVK */}
-                    <Route path="/module-images" element={<ModuleImages />} />
-                    <Route path="/targets" element={<Targets />} />
-                    <Route path="/all-reports" element={<Reports />} />
+                    {/* Features - module-based VIEW permissions (any role with those permissions) */}
+                    <Route
+                        path="/module-images"
+                        element={
+                            <ProtectedRoute requiredModuleCode="module_images">
+                                <ModuleImages />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/targets"
+                        element={
+                            <ProtectedRoute requiredModuleCode="targets">
+                                <Targets />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/all-reports"
+                        element={
+                            <ProtectedRoute requiredModuleCode="reports">
+                                <Reports />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Form Management */}
                     <Route path="/forms" element={<FormManagement />} />

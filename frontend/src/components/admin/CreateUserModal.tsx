@@ -24,6 +24,9 @@ const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
     { value: 'DELETE', label: 'Delete' },
 ]
 
+/** Permission actions for non-admin users (Add is not allowed) */
+const PERMISSION_ACTIONS_NON_ADMIN = PERMISSION_ACTIONS.filter((a) => a.value !== 'ADD')
+
 /** Non-admin roles that require custom permissions */
 const NON_ADMIN_ROLES = ['state_user', 'district_user', 'org_user', 'kvk']
 
@@ -275,7 +278,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         }
 
         if (showPermissionsSection && (!formData.permissions || formData.permissions.length === 0)) {
-            newErrors.permissions = 'Select at least one permission (View, Add, Edit, or Delete)'
+            newErrors.permissions = 'Select at least one permission (View, Edit, or Delete)'
         }
 
         setErrors(newErrors)
@@ -507,7 +510,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                             Select at least one permission. The user will only be able to perform the selected actions.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            {PERMISSION_ACTIONS.map(({ value, label }) => (
+                            {PERMISSION_ACTIONS_NON_ADMIN.map(({ value, label }) => (
                                 <label
                                     key={value}
                                     className="flex items-center gap-2 cursor-pointer"

@@ -5,6 +5,27 @@ const rolePermissionService = require('../services/rolePermissionService.js');
  */
 const rolePermissionController = {
   /**
+   * POST /api/admin/roles
+   * Create a new role (super_admin only)
+   */
+  createRole: async (req, res) => {
+    try {
+      const { roleName, description, hierarchyLevel } = req.body;
+      if (!roleName || typeof roleName !== 'string') {
+        return res.status(400).json({ error: 'Role name is required' });
+      }
+      const result = await rolePermissionService.createRole(
+        roleName,
+        description ?? null,
+        hierarchyLevel ?? 9
+      );
+      res.status(201).json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  },
+
+  /**
    * GET /api/admin/roles/:roleId/permissions
    * Get all modules with permissions for a role
    */

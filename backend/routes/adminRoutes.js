@@ -6,7 +6,7 @@ const rolePermissionController = require('../controllers/rolePermissionControlle
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requireRole, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
-const { getManageableRoles } = require('../constants/roleHierarchy.js');
+const { getRoleLevel } = require('../constants/roleHierarchy.js');
 
 // Module code for user management (same as USER_SCOPE for role-based permission fallback)
 const USER_MANAGEMENT_MODULE = 'USER_SCOPE';
@@ -37,6 +37,14 @@ router.put('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MO
 // Delete user (soft delete) – requires DELETE
 router.delete('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'DELETE'), userManagementController.deleteUser);
 
+// Create role – super_admin only (must be before /roles/:roleId)
+router.post(
+  '/roles',
+  strictRateLimiter,
+  requireRole(['super_admin']),
+  rolePermissionController.createRole,
+);
+
 // Get all roles (for dropdowns)
 router.get(
   '/roles',
@@ -45,14 +53,23 @@ router.get(
   async (req, res) => {
     try {
       const callerRole = req.user.roleName;
-      const allowedRoleNames = getManageableRoles(callerRole);
+      const callerLevel = getRoleLevel(callerRole);
 
       const roles = await prisma.role.findMany({
-        where: { roleName: { in: allowedRoleNames } },
-        select: { roleId: true, roleName: true, description: true },
+        select: { roleId: true, roleName: true, description: true, hierarchyLevel: true },
         orderBy: { roleId: 'asc' },
       });
-      res.json(roles);
+
+      // Super admin sees all roles; others see roles at their level or below
+      const filtered =
+        callerRole === 'super_admin'
+          ? roles
+          : roles.filter((r) => {
+              const roleLevel = r.hierarchyLevel ?? getRoleLevel(r.roleName);
+              return roleLevel >= callerLevel;
+            });
+
+      res.json(filtered.map(({ hierarchyLevel: _, ...r }) => r));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch roles' });
     }

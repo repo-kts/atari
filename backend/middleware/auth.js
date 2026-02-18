@@ -106,11 +106,23 @@ function requirePermission(moduleCode, action) {
     try {
       const userId = req.user.userId;
 
-      // 1. Check user-level permissions first (granular permissions from admin-created users)
+      // 1. Check user-level permissions for *_user roles (intersection with role ceiling)
       const userActions = await userPermissionRepository.getUserPermissionActions(userId);
+      const isUserRole = req.user.roleName.endsWith('_user');
 
-      if (userActions.length > 0) {
-        // User has user-level permissions: allow only those actions (no role fallback)
+      if (isUserRole && userActions.length > 0) {
+        // *_user roles: action must be in BOTH the user's own actions AND the role's permissions.
+        // First check the user-level gate (fast path).
+        if (!userActions.includes(normalizedAction)) {
+          return res.status(403).json({
+            error: 'Insufficient permissions',
+            message: `You don't have permission to ${normalizedAction} in ${moduleCode}`,
+          });
+        }
+        // Then check the role ceiling for this specific module (fall through to role check below).
+        // (If role doesn't have this action for this module, it is denied there.)
+      } else if (!isUserRole && userActions.length > 0) {
+        // Non-*_user roles with user-level permissions: allow if action is in userActions.
         if (userActions.includes(normalizedAction)) {
           return next();
         }
@@ -120,7 +132,7 @@ function requirePermission(moduleCode, action) {
         });
       }
 
-      // 2. No user-level permissions: fall back to role-based check
+      // 2. Role-based check (always reached for *_user roles; fallback for others)
       const module = await prisma.module.findUnique({
         where: { moduleCode },
         include: {
@@ -162,8 +174,72 @@ function requirePermission(moduleCode, action) {
   };
 }
 
+/**
+ * Like requirePermission, but passes if the user has the given action on ANY
+ * of the provided module codes. Useful for aggregated endpoints that span
+ * multiple modules (e.g. /stats for OFT + FLD + CFLD).
+ * Applies the same *_user intersection logic as requirePermission.
+ * @param {string[]} moduleCodes
+ * @param {string} action
+ */
+function requireAnyPermission(moduleCodes, action) {
+  const normalizedAction = action.toUpperCase();
+
+  return async (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    try {
+      const userActions = await userPermissionRepository.getUserPermissionActions(req.user.userId);
+      const isUserRole = req.user.roleName.endsWith('_user');
+
+      if (isUserRole && userActions.length > 0) {
+        // *_user: user-level gate first, then fall through to role check below
+        if (!userActions.includes(normalizedAction)) {
+          return res.status(403).json({
+            error: 'Insufficient permissions',
+            message: `You don't have permission to ${normalizedAction}`,
+          });
+        }
+      } else if (!isUserRole && userActions.length > 0) {
+        if (userActions.includes(normalizedAction)) return next();
+        return res.status(403).json({
+          error: 'Insufficient permissions',
+          message: `You don't have permission to ${normalizedAction}`,
+        });
+      }
+
+      // Role-based check: pass if the role has the action on ANY of the modules
+      for (const moduleCode of moduleCodes) {
+        const module = await prisma.module.findUnique({
+          where: { moduleCode },
+          include: {
+            permissions: {
+              where: { action: normalizedAction },
+              include: { rolePermissions: { where: { roleId: req.user.roleId } } },
+            },
+          },
+        });
+        if (module && module.permissions.some((p) => p.rolePermissions.length > 0)) {
+          return next();
+        }
+      }
+
+      return res.status(403).json({
+        error: 'Insufficient permissions',
+        message: `${normalizedAction} permission required for at least one of: ${moduleCodes.join(', ')}`,
+      });
+    } catch (error) {
+      console.error('Permission check error:', error);
+      return res.status(500).json({ error: 'Permission check failed' });
+    }
+  };
+}
+
 module.exports = {
   authenticateToken,
   requireRole,
   requirePermission,
+  requireAnyPermission,
 };

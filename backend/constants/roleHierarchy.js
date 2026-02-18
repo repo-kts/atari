@@ -17,11 +17,17 @@ const ROLE_HIERARCHY = {
 const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
 
 /**
- * Returns the numeric hierarchy level for a role name.
+ * Returns the numeric hierarchy level for a role.
  * Lower = more powerful. Returns Infinity for unknown roles.
+ * @param {string|{ roleName: string; hierarchyLevel?: number | null }} roleNameOrRole - Role name or role object with hierarchyLevel
  */
-function getRoleLevel(roleName) {
-  return ROLE_HIERARCHY[roleName] ?? Infinity;
+function getRoleLevel(roleNameOrRole) {
+  if (typeof roleNameOrRole === 'object' && roleNameOrRole !== null) {
+    const { roleName, hierarchyLevel } = roleNameOrRole;
+    if (hierarchyLevel != null) return hierarchyLevel;
+    return ROLE_HIERARCHY[roleName] ?? Infinity;
+  }
+  return ROLE_HIERARCHY[roleNameOrRole] ?? Infinity;
 }
 
 /**

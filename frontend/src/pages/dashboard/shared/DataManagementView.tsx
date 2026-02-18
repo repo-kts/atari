@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Download, ChevronLeft } from 'lucide-react'
+import { Plus, Download, ChevronLeft, ShieldAlert } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -15,7 +15,6 @@ import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityTypes'
 import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
-import { isAdminRole } from '@/constants/roleHierarchy'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
 import { useFormState } from '@/hooks/useFormState'
@@ -63,8 +62,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<KvkEmployee | null>(null)
 
-    // Get user from auth store
-    const { user } = useAuth()
+    // Get user and permission helper from auth store
+    const { user, hasPermission } = useAuth()
 
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
@@ -79,6 +78,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
     const siblingRoutes = getSiblingRoutes(location.pathname)
+    const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
@@ -98,6 +98,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if "Add New" button should be shown
     const canUserCreate = () => {
         if (!user) return false
+        if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
@@ -117,12 +118,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
+        if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
-                // Admins can edit KVKs
-                return isAdminRole(user.role)
+                // For KVKS list, permission check above is enough
+                return true
             }
-            // KVK details: only KVK role can edit their own data
+            // KVK details: super_admin can edit all, KVK role can edit their own data
+            if (user.role === 'super_admin') return true
             if (user.role !== 'kvk') return false
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
@@ -134,11 +137,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
+        if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
-                return user.role === 'super_admin'
+                // For KVKS list, permission check above is enough
+                return true
             }
-            // KVK details: only KVK role can delete their own data
+            // KVK details: super_admin can delete all, KVK role can delete their own data
+            if (user.role === 'super_admin') return true
             if (user.role !== 'kvk') return false
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
@@ -252,7 +258,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 setItems(mockDataFromPath)
             }
         }
-    }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname, activeHook?.data]) // Include activeHook?.data to detect reference changes
+    }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname]) // hookDataHash already tracks data changes via useMemo
 
     // Debounce search
     useEffect(() => {
@@ -366,6 +372,38 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const loading = isMasterDataEntity ? getHookLoading(activeHook) : false
     const error = isMasterDataEntity ? getHookError(activeHook) : null
+
+    // VIEW permission gate for the entire page
+    const canViewPage = !moduleCode || hasPermission('VIEW', moduleCode)
+
+    if (!canViewPage) {
+        return (
+            <div className="h-full w-full bg-[#F5F5F5] flex items-center justify-center p-4">
+                <div className="bg-white p-1 rounded-2xl shadow-sm max-w-md w-full animate-fade-in-up">
+                    <div className="bg-[#FAF9F6] rounded-xl p-8 text-center border border-[#E0E0E0]/50">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-white rounded-full shadow-sm border border-[#E0E0E0]/50">
+                                <ShieldAlert className="w-10 h-10 text-[#487749]" />
+                            </div>
+                        </div>
+                        <h1 className="text-xl font-bold text-[#212121] mb-3">
+                            Access Restricted
+                        </h1>
+                        <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
+                            You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/dashboard')}
+                            className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Return to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">

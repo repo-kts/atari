@@ -30,6 +30,8 @@ interface MenuItem {
     label: string
     path: string
     icon: React.ReactNode
+    /** Optional module code used for permission-based visibility (VIEW) */
+    moduleCode?: string
     children?: MenuItem[]
     dropdown?: boolean // If true, show children as dropdown in sidebar and hide tabs on page
 }
@@ -83,11 +85,13 @@ const superAdminMenuItems: MenuItem[] = [
         label: 'Role Management',
         path: '/role-view',
         icon: <Settings className="w-5 h-5" />,
+        moduleCode: 'role_management_roles',
     },
     {
         label: 'User Management',
         path: '/view-users',
         icon: <Users className="w-5 h-5" />,
+        moduleCode: 'user_management_users',
     },
     {
         label: 'Form Management',
@@ -121,26 +125,31 @@ const superAdminMenuItems: MenuItem[] = [
         label: 'Module Images',
         path: '/module-images',
         icon: <ImageIcon className="w-5 h-5" />,
+        moduleCode: 'module_images',
     },
     {
         label: 'Targets',
         path: '/targets',
         icon: <Target className="w-5 h-5" />,
+        moduleCode: 'targets',
     },
     {
         label: 'Log History',
         path: '/view-log-history',
         icon: <History className="w-5 h-5" />,
+        moduleCode: 'log_history',
     },
     {
         label: 'Notifications',
         path: '/view-email-notifications',
         icon: <Bell className="w-5 h-5" />,
+        moduleCode: 'notifications',
     },
     {
         label: 'Reports',
         path: '/all-reports',
         icon: <FileBarChart className="w-5 h-5" />,
+        moduleCode: 'reports',
     },
 ]
 
@@ -246,7 +255,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const location = useLocation()
-    const { user } = useAuth()
+    const { user, hasPermission } = useAuth()
     const [expandedItems, setExpandedItems] = useState<string[]>([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -262,11 +271,43 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const isKvk = user?.role === 'kvk'
 
     // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
-    const menuItems = React.useMemo(() => {
+    const rawMenuItems = React.useMemo(() => {
         if (isKvk) return kvkMenuItems
         if (isAdmin && user?.role) return getAdminMenuItems(user.role)
         return regularMenuItems
     }, [isAdmin, isKvk, user?.role])
+
+    // Filter menu items based on VIEW permission where moduleCode is defined
+    const menuItems = React.useMemo(() => {
+        const filterList = (items: MenuItem[]): MenuItem[] => {
+            const result: MenuItem[] = []
+
+            for (const item of items) {
+                let children: MenuItem[] | undefined
+                if (item.children) {
+                    children = filterList(item.children)
+                }
+
+                const hasViewForItem = !item.moduleCode || hasPermission('VIEW', item.moduleCode)
+                const hasVisibleChildren = !!children && children.length > 0
+
+                if (item.children) {
+                    // Parent / dropdown: only show if at least one child is visible.
+                    // Never show an empty section header.
+                    if (!hasVisibleChildren) continue
+                } else {
+                    // Leaf item: show only if the user has VIEW for this item.
+                    if (!hasViewForItem) continue
+                }
+
+                result.push({ ...item, children })
+            }
+
+            return result
+        }
+
+        return filterList(rawMenuItems)
+    }, [rawMenuItems, hasPermission])
 
     const menuItemsRef = useRef(menuItems)
     menuItemsRef.current = menuItems

@@ -1,8 +1,43 @@
 const authRepository = require('../repositories/authRepository.js');
 const userPermissionRepository = require('../repositories/userPermissionRepository.js');
+const rolePermissionRepository = require('../repositories/rolePermissionRepository.js');
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken, decodeToken } = require('../utils/jwt.js');
 const { validateEmail } = require('../utils/validation.js');
+
+/**
+ * Build the permissionsByModule map for a user.
+ *
+ * For *_user roles (state_user, district_user, org_user):
+ *   The role defines the ceiling (which modules/actions are available).
+ *   The user's individual actions (set at creation time) act as a filter.
+ *   Effective = role permissions  ∩  user-level actions.
+ *   Modules where no actions survive the intersection are dropped entirely.
+ *
+ * For all other roles (admins, kvk, etc.):
+ *   Role permissions are returned as-is — no user-level filtering.
+ *
+ * @param {number} roleId
+ * @param {string} roleName
+ * @param {number} userId
+ * @returns {{ permissionsByModule: Record<string, string[]>, userActions: string[] }}
+ */
+async function buildPermissionsByModule(roleId, roleName, userId) {
+    const permissionsByModule = await rolePermissionRepository.getRolePermissionsByModule(roleId);
+    const userActions = await userPermissionRepository.getUserPermissionActions(userId);
+
+    if (roleName.endsWith('_user') && userActions.length > 0) {
+        // Intersection: keep only the actions the individual user was granted
+        for (const code of Object.keys(permissionsByModule)) {
+            permissionsByModule[code] = permissionsByModule[code].filter(a => userActions.includes(a));
+            if (permissionsByModule[code].length === 0) {
+                delete permissionsByModule[code];
+            }
+        }
+    }
+
+    return { permissionsByModule, userActions };
+}
 
 /**
  * Service layer for authentication operations
@@ -54,8 +89,13 @@ const authService = {
         // Update last login timestamp
         await authRepository.updateLastLogin(user.userId);
 
-        // User-level permissions (granular VIEW/ADD/EDIT/DELETE for admin-created users)
-        const permissionActions = await userPermissionRepository.getUserPermissionActions(user.userId);
+        // Build permissions: for *_user roles the result is the intersection of
+        // role-level permissions and the user's individually assigned actions.
+        const { permissionsByModule, userActions } = await buildPermissionsByModule(
+            user.roleId,
+            user.role.roleName,
+            user.userId,
+        );
 
         // Return user data (without password hash) and tokens
         return {
@@ -70,7 +110,8 @@ const authService = {
                 districtId: user.districtId,
                 orgId: user.orgId,
                 kvkId: user.kvkId,
-                permissions: permissionActions.length ? permissionActions : undefined,
+                permissions: userActions.length ? userActions : undefined,
+                permissionsByModule: Object.keys(permissionsByModule).length ? permissionsByModule : undefined,
             },
             accessToken,
             refreshToken,
@@ -205,7 +246,13 @@ const authService = {
             throw new Error('User account has been deleted');
         }
 
-        const permissionActions = await userPermissionRepository.getUserPermissionActions(user.userId);
+        // Build permissions: for *_user roles the result is the intersection of
+        // role-level permissions and the user's individually assigned actions.
+        const { permissionsByModule, userActions } = await buildPermissionsByModule(
+            user.roleId,
+            user.role.roleName,
+            user.userId,
+        );
 
         return {
             userId: user.userId,
@@ -220,7 +267,8 @@ const authService = {
             kvkId: user.kvkId,
             createdAt: user.createdAt,
             lastLoginAt: user.lastLoginAt,
-            permissions: permissionActions.length ? permissionActions : undefined,
+            permissions: userActions.length ? userActions : undefined,
+            permissionsByModule: Object.keys(permissionsByModule).length ? permissionsByModule : undefined,
         };
     },
 };

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, ApiUser } from '../services/authApi'
 import { ApiError } from '../services/api'
 import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
-import { isAdminRole, outranksOrEqual } from '../constants/roleHierarchy'
+import { outranksOrEqual } from '../constants/roleHierarchy'
 
 /**
  * Map API user to frontend User type
@@ -22,6 +22,7 @@ const mapApiUserToUser = (apiUser: ApiUser): User => ({
     createdAt: apiUser.createdAt,
     lastLoginAt: apiUser.lastLoginAt,
     permissions: apiUser.permissions,
+    permissionsByModule: apiUser.permissionsByModule,
 })
 
 interface AuthContextValue {
@@ -33,7 +34,10 @@ interface AuthContextValue {
     logout: () => Promise<void>
     checkAuth: () => Promise<boolean>
     hasRole: (role: UserRole | UserRole[]) => boolean
-    hasPermission: (action: PermissionAction, targetRole?: string) => boolean
+    /** Check permission for an action in a module (from Role Permission Editor). Without moduleCode, defaults to user_management_users. */
+    hasPermission: (action: PermissionAction, moduleCode?: string) => boolean
+    /** Whether the current user can act on a target role (hierarchy: lower admins cannot modify higher). */
+    canActOnRole: (targetRole: string) => boolean
     clearError: () => void
 }
 
@@ -156,28 +160,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     /**
-     * Check if the current user has permission for a given action.
+     * Check if the current user has permission for a given action in a module.
+     * Driven by permissionsByModule from Role Permission Editor.
+     * When moduleCode is omitted, defaults to 'user_management_users' for backward compatibility.
      *
-     * - General data actions (no targetRole): admin roles get unconditional access.
-     * - Role-management / user-management (targetRole provided): hierarchy is enforced —
-     *   caller can only act on target if they outrank or equal the target (lower admins cannot modify higher users).
-     * - Non-admin users always require an explicit entry in their permissions array.
+     * Safety net: if permissionsByModule is absent (e.g. stale session before backend
+     * deployed the new field) super_admin always gets access — every other role is denied
+     * until the backend populates the map.
      */
-    const hasPermission = (action: PermissionAction, targetRole?: string): boolean => {
+    const hasPermission = (action: PermissionAction, moduleCode?: string): boolean => {
         if (!user) return false
 
-        if (isAdminRole(user.role) || user.role === 'kvk') {
-            // When targeting a specific user/role: enforce hierarchy - lower admin cannot modify higher user
-            if (targetRole) {
-                return outranksOrEqual(user.role, targetRole)
-            }
-            // General data actions (no target): admins always have access
-            return true
+        const effectiveModule = moduleCode ?? 'user_management_users'
+        const actions = user.permissionsByModule?.[effectiveModule]
+
+        // permissionsByModule not yet available → only super_admin retains access
+        if (!actions || !Array.isArray(actions)) {
+            return user.role === 'super_admin'
         }
 
-        // Non-admins: require explicit permission; empty/undefined = no access
-        if (!user.permissions || user.permissions.length === 0) return false
-        return user.permissions.includes(action)
+        return actions.includes(action)
+    }
+
+    /**
+     * Whether the current user can act on a target role (e.g. edit/delete another user).
+     * Enforces hierarchy: lower admins cannot modify higher users.
+     */
+    const canActOnRole = (targetRole: string): boolean => {
+        if (!user) return false
+        return outranksOrEqual(user.role, targetRole)
     }
 
     const clearError = () => {
@@ -201,6 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkAuth,
         hasRole,
         hasPermission,
+        canActOnRole,
         clearError,
     }
 
