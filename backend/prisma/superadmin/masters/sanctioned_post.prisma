@@ -1,0 +1,10 @@
+// Sanctioned Post Master - moved from kvk/about-kvk/employee_schema.prisma
+
+model SanctionedPost {
+  sanctionedPostId Int       @id @default(autoincrement()) @map("sanctioned_post_id")
+  postName         String    @unique @map("post_name")
+
+  staff KvkStaff[]
+
+  @@map("sanctioned_post")
+}

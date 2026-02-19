@@ -1,0 +1,9 @@
+model FldActivity {
+  activityId   Int    @id @default(autoincrement()) @map("activity_id")
+  activityName String @unique @map("activity_name")
+
+  extensions FldExtension[]
+  kvkExtensionActivities     KvkExtensionActivity[]
+
+  @@map("fld_activity")
+}

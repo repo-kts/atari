@@ -1,0 +1,8 @@
+model ThematicAreaMaster {
+  thematicAreaId Int    @id @default(autoincrement()) @map("thematic_area_id")
+  name           String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("thematic_area_master")
+}

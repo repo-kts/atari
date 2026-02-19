@@ -1,0 +1,9 @@
+model CropType {
+  typeId    Int             @id @default(autoincrement()) @map("type_id")
+  typeName  String          @unique @map("type_name")
+  cfldCrops FLDCropMaster[] 
+
+  @@index([typeId])
+  @@index([typeName])
+  @@map("crop_type")
+}

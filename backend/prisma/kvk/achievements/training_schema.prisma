@@ -3,42 +3,7 @@ enum CampusType {
   OFF_CAMPUS
 }
 
-model ClienteleMaster {
-  clienteleId Int    @id @default(autoincrement()) @map("clientele_id")
-  name        String @unique @map("name")
-
-  trainings TrainingAchievement[]
-
-  @@map("clientele_master")
-}
-
-model TrainingTypeMaster {
-  trainingTypeId Int    @id @default(autoincrement()) @map("training_type_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
-
-  @@map("training_type_master")
-}
-
-model TrainingAreaMaster {
-  trainingAreaId Int    @id @default(autoincrement()) @map("training_area_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
-
-  @@map("training_area_master")
-}
-
-model ThematicAreaMaster {
-  thematicAreaId Int    @id @default(autoincrement()) @map("thematic_area_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
-
-  @@map("thematic_area_master")
-}
-
+// WIP: 
 model CourseCoordinatorMaster {
   coordinatorId Int    @id @default(autoincrement()) @map("coordinator_id")
   name          String @unique @map("name")
@@ -46,15 +11,6 @@ model CourseCoordinatorMaster {
   trainings TrainingAchievement[]
 
   @@map("course_coordinator_master")
-}
-
-model FundingSourceMaster {
-  fundingSourceId Int    @id @default(autoincrement()) @map("funding_source_id")
-  name            String @unique @map("name")
-
-  trainings TrainingAchievement[]
-
-  @@map("funding_source_master")
 }
 
 model TrainingAchievement {

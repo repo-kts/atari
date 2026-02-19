@@ -44,6 +44,8 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.TRAINING_TYPES,
         ENTITY_TYPES.TRAINING_AREAS,
         ENTITY_TYPES.TRAINING_THEMATIC_AREAS,
+        ENTITY_TYPES.TRAINING_CLIENTELE,
+        ENTITY_TYPES.FUNDING_SOURCE,
         ENTITY_TYPES.EXTENSION_ACTIVITIES,
         ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
         ENTITY_TYPES.EVENTS,
@@ -95,9 +97,17 @@ export const ENTITY_CATEGORIES = {
     ] as ExtendedEntityType[],
 
     OTHER_MASTERS: [
-        ENTITY_TYPES.SEASON,
+        // Employee Masters
+        ENTITY_TYPES.STAFF_CATEGORY,
+        ENTITY_TYPES.PAY_LEVEL,
         ENTITY_TYPES.SANCTIONED_POST,
+        ENTITY_TYPES.DISCIPLINE,
+        // Other Masters
+        ENTITY_TYPES.SEASON,
         ENTITY_TYPES.YEAR,
+        ENTITY_TYPES.CROP_TYPE,
+        ENTITY_TYPES.INFRASTRUCTURE_MASTER,
+        ENTITY_TYPES.IMPORTANT_DAY,
     ] as ExtendedEntityType[],
 } as const;
 
@@ -168,6 +178,8 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/training-type': ENTITY_TYPES.TRAINING_TYPES,
     '/all-master/training-area': ENTITY_TYPES.TRAINING_AREAS,
     '/all-master/training-thematic': ENTITY_TYPES.TRAINING_THEMATIC_AREAS,
+    '/all-master/training-clientele': ENTITY_TYPES.TRAINING_CLIENTELE,
+    '/all-master/funding-source': ENTITY_TYPES.FUNDING_SOURCE,
     '/all-master/extension-activity': ENTITY_TYPES.EXTENSION_ACTIVITIES,
     '/all-master/other-extension-activity': ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
     '/all-master/events': ENTITY_TYPES.EVENTS,
@@ -216,10 +228,22 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/achievements/awards/scientist': ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
     '/forms/achievements/awards/farmer': ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
 
+    // Employee Masters
+    '/all-master/staff-category': ENTITY_TYPES.STAFF_CATEGORY,
+    '/all-master/pay-level': ENTITY_TYPES.PAY_LEVEL,
+    '/all-master/discipline': ENTITY_TYPES.DISCIPLINE,
+    '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
+
+    // Extension Masters
+    '/all-master/extension-activity-type': ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE,
+    '/all-master/other-extension-activity-type': ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE,
+    '/all-master/important-day': ENTITY_TYPES.IMPORTANT_DAY,
+
     // Other Masters
     '/all-master/season': ENTITY_TYPES.SEASON,
-    '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
     '/all-master/year': ENTITY_TYPES.YEAR,
+    '/all-master/crop-type': ENTITY_TYPES.CROP_TYPE,
+    '/all-master/infrastructure-master': ENTITY_TYPES.INFRASTRUCTURE_MASTER,
 };
 
 /**

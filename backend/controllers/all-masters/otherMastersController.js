@@ -82,6 +82,12 @@ const create = (entityName) => async (req, res) => {
  */
 const update = (entityName) => async (req, res) => {
     try {
+        if (!req.params.id) {
+            return res.status(400).json({
+                success: false,
+                error: 'ID parameter is required',
+            });
+        }
         const data = await otherMastersService.update(entityName, req.params.id, req.body);
         res.json({
             success: true,
@@ -144,3 +150,79 @@ exports.getYearById = getById('years');
 exports.createYear = create('years');
 exports.updateYear = update('years');
 exports.deleteYear = deleteEntity('years');
+
+// ============================================
+// Employee Masters Controllers
+// ============================================
+
+exports.getAllStaffCategories = getAll('staff-category');
+exports.getStaffCategoryById = getById('staff-category');
+exports.createStaffCategory = create('staff-category');
+exports.updateStaffCategory = update('staff-category');
+exports.deleteStaffCategory = deleteEntity('staff-category');
+
+exports.getAllPayLevels = getAll('pay-level');
+exports.getPayLevelById = getById('pay-level');
+exports.createPayLevel = create('pay-level');
+exports.updatePayLevel = update('pay-level');
+exports.deletePayLevel = deleteEntity('pay-level');
+
+exports.getAllDisciplines = getAll('discipline');
+exports.getDisciplineById = getById('discipline');
+exports.createDiscipline = create('discipline');
+exports.updateDiscipline = update('discipline');
+exports.deleteDiscipline = deleteEntity('discipline');
+
+// ============================================
+// Extension Masters Controllers
+// ============================================
+
+exports.getAllExtensionActivityTypes = getAll('extension-activity-type');
+exports.getExtensionActivityTypeById = getById('extension-activity-type');
+exports.createExtensionActivityType = create('extension-activity-type');
+exports.updateExtensionActivityType = update('extension-activity-type');
+exports.deleteExtensionActivityType = deleteEntity('extension-activity-type');
+
+exports.getAllOtherExtensionActivityTypes = getAll('other-extension-activity-type');
+exports.getOtherExtensionActivityTypeById = getById('other-extension-activity-type');
+exports.createOtherExtensionActivityType = create('other-extension-activity-type');
+exports.updateOtherExtensionActivityType = update('other-extension-activity-type');
+exports.deleteOtherExtensionActivityType = deleteEntity('other-extension-activity-type');
+
+exports.getAllImportantDays = getAll('important-day');
+exports.getImportantDayById = getById('important-day');
+exports.createImportantDay = create('important-day');
+exports.updateImportantDay = update('important-day');
+exports.deleteImportantDay = deleteEntity('important-day');
+
+// ============================================
+// Training Masters Controllers
+// ============================================
+
+exports.getAllTrainingClientele = getAll('training-clientele');
+exports.getTrainingClienteleById = getById('training-clientele');
+exports.createTrainingClientele = create('training-clientele');
+exports.updateTrainingClientele = update('training-clientele');
+exports.deleteTrainingClientele = deleteEntity('training-clientele');
+
+exports.getAllFundingSources = getAll('funding-source');
+exports.getFundingSourceById = getById('funding-source');
+exports.createFundingSource = create('funding-source');
+exports.updateFundingSource = update('funding-source');
+exports.deleteFundingSource = deleteEntity('funding-source');
+
+// ============================================
+// Other Masters Controllers (continued)
+// ============================================
+
+exports.getAllCropTypes = getAll('crop-type');
+exports.getCropTypeById = getById('crop-type');
+exports.createCropType = create('crop-type');
+exports.updateCropType = update('crop-type');
+exports.deleteCropType = deleteEntity('crop-type');
+
+exports.getAllInfrastructureMasters = getAll('infrastructure-master');
+exports.getInfrastructureMasterById = getById('infrastructure-master');
+exports.createInfrastructureMaster = create('infrastructure-master');
+exports.updateInfrastructureMaster = update('infrastructure-master');
+exports.deleteInfrastructureMaster = deleteEntity('infrastructure-master');

@@ -40,6 +40,131 @@ const ENTITY_CONFIG = {
         nameField: 'yearName',
         includes: {},
     },
+    // Employee Masters
+    'staff-category': {
+        model: 'staffCategoryMaster',
+        idField: 'staffCategoryId',
+        nameField: 'categoryName',
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
+    'pay-level': {
+        model: 'payLevelMaster',
+        idField: 'payLevelId',
+        nameField: 'levelName',
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
+    'discipline': {
+        model: 'discipline',
+        idField: 'disciplineId',
+        nameField: 'disciplineName',
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
+    // Extension Masters
+    'extension-activity-type': {
+        model: 'fldActivity',
+        idField: 'activityId',
+        nameField: 'activityName',
+        includes: {
+            _count: {
+                select: {
+                    extensions: true,
+                    kvkExtensionActivities: true,
+                },
+            },
+        },
+    },
+    'other-extension-activity-type': {
+        model: 'otherExtensionActivityType',
+        idField: 'activityTypeId',
+        nameField: 'activityName',
+        includes: {
+            _count: {
+                select: {
+                    otherExtensionActivities: true,
+                },
+            },
+        },
+    },
+    'important-day': {
+        model: 'importantDay',
+        idField: 'importantDayId',
+        nameField: 'dayName',
+        includes: {
+            _count: {
+                select: {
+                    celebrations: true,
+                },
+            },
+        },
+    },
+    // Training Masters
+    'training-clientele': {
+        model: 'clienteleMaster',
+        idField: 'clienteleId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    trainings: true,
+                },
+            },
+        },
+    },
+    'funding-source': {
+        model: 'fundingSourceMaster',
+        idField: 'fundingSourceId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    trainings: true,
+                },
+            },
+        },
+    },
+    // Other Masters
+    'crop-type': {
+        model: 'cropType',
+        idField: 'typeId',
+        nameField: 'typeName',
+        includes: {
+            _count: {
+                select: {
+                    cfldCrops: true,
+                },
+            },
+        },
+    },
+    'infrastructure-master': {
+        model: 'kvkInfrastructureMaster',
+        idField: 'infraMasterId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    infrastructures: true,
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -109,9 +234,16 @@ const findAll = async (entityType, options = {}) => {
  * Generic find by ID
  */
 const findById = async (entityType, id) => {
+    if (!id) {
+        throw new Error(`ID is required for ${entityType}`);
+    }
     const config = getEntityConfig(entityType);
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Invalid ID format for ${entityType}: ${id}`);
+    }
     return prisma[config.model].findUnique({
-        where: { [config.idField]: parseInt(id) },
+        where: { [config.idField]: parsedId },
         include: config.includes,
     });
 };
@@ -179,6 +311,46 @@ const create = async (entityType, data) => {
         if (sanitizedData[idField] !== undefined) {
             delete sanitizedData[idField];
         }
+        // Also check the original data and remove any ID fields
+        if (data[idField] !== undefined) {
+            delete data[idField];
+        }
+    }
+    
+    // Proactively fix sequence for entities that are known to have seeded data
+    // This prevents sequence out-of-sync issues
+    const entitiesWithSeededData = [
+        'infrastructure-master',
+        'staff-category',
+        'pay-level',
+        'discipline',
+        'sanctioned-posts',
+        'seasons',
+        'years',
+        'crop-type',
+        'important-day',
+    ];
+    
+    if (entitiesWithSeededData.includes(entityType)) {
+        const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
+                         entityType === 'seasons' ? 'season' :
+                         entityType === 'years' ? 'year_master' :
+                         entityType === 'staff-category' ? 'staff_category_master' :
+                         entityType === 'pay-level' ? 'pay_level_master' :
+                         entityType === 'discipline' ? 'discipline' :
+                         entityType === 'extension-activity-type' ? 'fld_activity' :
+                         entityType === 'other-extension-activity-type' ? 'other_extension_activity_type' :
+                         entityType === 'important-day' ? 'important_day' :
+                         entityType === 'training-clientele' ? 'clientele_master' :
+                         entityType === 'funding-source' ? 'funding_source_master' :
+                         entityType === 'crop-type' ? 'crop_type' :
+                         entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' : null;
+        
+        if (tableName) {
+            const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
+            // Proactively fix sequence before creating
+            await fixSequence(config.model, config.idField, tableName, columnName);
+        }
     }
     
     try {
@@ -212,7 +384,17 @@ const create = async (entityType, data) => {
                 // Try to automatically fix the sequence
                 const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
                                  entityType === 'seasons' ? 'season' :
-                                 entityType === 'years' ? 'year_master' : null;
+                                 entityType === 'years' ? 'year_master' :
+                                 entityType === 'staff-category' ? 'staff_category_master' :
+                                 entityType === 'pay-level' ? 'pay_level_master' :
+                                 entityType === 'discipline' ? 'discipline' :
+                                 entityType === 'extension-activity-type' ? 'fld_activity' :
+                                 entityType === 'other-extension-activity-type' ? 'other_extension_activity_type' :
+                                 entityType === 'important-day' ? 'important_day' :
+                                 entityType === 'training-clientele' ? 'clientele_master' :
+                                 entityType === 'funding-source' ? 'funding_source_master' :
+                                 entityType === 'crop-type' ? 'crop_type' :
+                                 entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' : null; 
                 
                 const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
                 

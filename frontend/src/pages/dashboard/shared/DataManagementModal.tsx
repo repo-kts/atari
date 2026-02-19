@@ -6,6 +6,7 @@ import { getEntityTypeChecks } from '../../../utils/entityTypeUtils'
 
 // Form Components
 import { BasicMasterForms } from './forms/BasicMasterForms'
+import { OtherMastersForms } from './forms/OtherMastersForms'
 import { OftFldForms } from './forms/OftFldForms'
 import { TrainingExtensionForms } from './forms/TrainingExtensionForms'
 import { ProductionProjectForms } from './forms/ProductionProjectForms'
@@ -37,7 +38,7 @@ export function DataManagementModal({
     if (!entityType) return null
 
     // Use centralized entity type checks
-    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk } =
+    const { isBasicMaster, isOtherMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk } =
         getEntityTypeChecks(entityType)
 
     return (
@@ -62,6 +63,14 @@ export function DataManagementModal({
                     <form id="masterDataForm" onSubmit={handleSubmit} className="space-y-6">
                         {isBasicMaster && (
                             <BasicMasterForms
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
+                        {isOtherMaster && (
+                            <OtherMastersForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}

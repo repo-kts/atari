@@ -1,12 +1,3 @@
-model KvkInfrastructureMaster {
-  infraMasterId Int    @id @default(autoincrement()) @map("infra_master_id")
-  name          String @unique @map("name")
-
-  infrastructures KvkInfrastructure[]
-
-  @@map("kvk_infrastructure_master")
-}
-
 model KvkInfrastructure {
   infraId Int @id @default(autoincrement()) @map("infra_id")
 

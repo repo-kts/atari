@@ -10,7 +10,6 @@ import { SearchInput } from '@/components/common/SearchInput'
 import { LoadingState } from '@/components/common/LoadingState'
 import { ErrorState } from '@/components/common/ErrorState'
 import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '@/config/routeConfig'
-import { getAllMastersMockData } from '@/mocks/allMastersMockData'
 import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityTypes'
 import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
@@ -35,7 +34,6 @@ interface DataManagementViewProps {
     title: string
     description?: string
     fields?: string[]
-    mockData?: any[]
 }
 
 
@@ -43,7 +41,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     title,
     description = `Manage and view all ${title.toLowerCase()} in the system`,
     fields: propFields,
-    mockData
 }) => {
     const navigate = useNavigate()
     const location = useLocation()
@@ -71,7 +68,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const { alert, AlertDialog } = useAlert()
 
     // Handler hooks
-    const { handleMasterDataDelete, handleMockDelete } = useDeleteHandler({ confirm, alert })
+    const { handleMasterDataDelete } = useDeleteHandler({ confirm, alert })
     const { handleEdit: handleEditItem } = useEditHandler()
     const { handleExport: handleExportData, exportLoading: exportLoadingState } = useExportHandler()
 
@@ -82,9 +79,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
-    // Determine if this is a master data entity
+    // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
-    const isMasterDataEntity = entityType !== null
 
     // Use centralized hook factory
     const activeHook = useEntityHook(entityType)
@@ -146,14 +142,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         // Master data entities: only super_admin can delete
         return user.role === 'super_admin'
     }
-    // Initialize items based on entity type
-    const [items, setItems] = useState<any[]>(() => {
-        // Master data entities start empty, will be populated by API
-        if (isMasterDataEntity) return []
-        // Non-master entities use mock data
-        if (mockData && mockData.length) return mockData
-        return getAllMastersMockData(location.pathname)
-    })
+    // Initialize items - all entities use real data from hooks
+    const [items, setItems] = useState<any[]>([])
 
     const fields = propFields && propFields.length > 0 ? propFields : ['name']
     const itemsPerPage = 10
@@ -161,7 +151,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Refs to track previous values and prevent infinite loops
     const prevPathRef = useRef<string>(location.pathname)
     const prevDataHashRef = useRef<string | null>(null)
-    const prevMockDataHashRef = useRef<string | null>(null)
     const prevDataRef = useRef<any[] | null>(null) // Track previous data reference
 
     // Create comprehensive hash for hook data to detect ALL changes
@@ -190,13 +179,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return `${data.length}-${ids.substring(0, 500)}` // Limit length for performance
     }, [activeHook?.data])
 
-    // Create stable hash for mock data
-    const mockDataHash = useMemo(() => {
-        if (!mockData || !Array.isArray(mockData)) return null
-        return mockData.length > 0
-            ? `${mockData.length}-${JSON.stringify(mockData[0])}-${JSON.stringify(mockData[mockData.length - 1])}`
-            : 'empty'
-    }, [mockData])
 
     // Reset state when route changes (tab switch)
     useEffect(() => {
@@ -210,25 +192,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             closeForm()
             // Reset data refs
             prevDataHashRef.current = null
-            prevMockDataHashRef.current = null
             prevDataRef.current = null
         }
     }, [location.pathname, closeForm])
 
-    // Sync data from API or mock - real-time updates
+    // Sync data from API - real-time updates
     // Check both hash changes AND reference changes (React Query gives new reference on refetch)
     useEffect(() => {
-        // PRIORITY 1: Explicit mockData from props (for new achievement forms etc.)
-        if (mockData && mockData.length > 0) {
-            if (mockDataHash !== null && mockDataHash !== prevMockDataHashRef.current) {
-                prevMockDataHashRef.current = mockDataHash
-                setItems(mockData)
-            }
-            return // Exit early so we don't overwrite with empty API data
-        }
-
-        // PRIORITY 2: API Data (if no mockData provided)
-        if (isMasterDataEntity && activeHook?.data) {
+        // All entities use real data from hooks
+        if (activeHook?.data) {
             const data = activeHook.data
             const dataRefChanged = prevDataRef.current !== data
             const hashChanged = hookDataHash !== null && hookDataHash !== prevDataHashRef.current
@@ -239,20 +211,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 prevDataHashRef.current = hookDataHash
                 setItems([...data]) // Create new array reference to ensure React detects the change
             }
-        } else if (!isMasterDataEntity) {
-            // PRIORITY 3: Fallback legacy mock data
-            // Handle mock data (this block will only be reached if mockData prop was not provided or was empty)
-            const mockDataFromPath = getAllMastersMockData(location.pathname)
-            const pathMockHash = mockDataFromPath.length > 0
-                ? `${mockDataFromPath.length}-${JSON.stringify(mockDataFromPath[0])}-${JSON.stringify(mockDataFromPath[mockDataFromPath.length - 1])}`
-                : 'empty'
-
-            if (pathMockHash !== prevMockDataHashRef.current) {
-                prevMockDataHashRef.current = pathMockHash
-                setItems(mockDataFromPath)
-            }
+        } else if (activeHook && !activeHook.data && !activeHook.isLoading) {
+            // If hook exists but has no data and is not loading, set empty array
+            setItems([])
         }
-    }, [isMasterDataEntity, hookDataHash, mockDataHash, location.pathname, activeHook?.data]) // Include activeHook?.data to detect reference changes
+    }, [hookDataHash, location.pathname, activeHook?.data, activeHook?.isLoading]) // Include activeHook?.data to detect reference changes
 
     // Debounce search
     useEffect(() => {
@@ -288,10 +251,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleDelete = (item: any) => {
-        if (isMasterDataEntity && activeHook && entityType) {
+        if (activeHook && entityType) {
             handleMasterDataDelete(item, entityType, activeHook)
         } else {
-            handleMockDelete(item, items, setItems)
+            console.warn('Cannot delete: missing activeHook or entityType', { activeHook, entityType })
         }
     }
 
@@ -324,7 +287,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Custom hook for save operations with proper error handling
     const { save: saveData, isSaving } = useDataSave({
         entityType,
-        activeHook: isMasterDataEntity ? activeHook : null,
+        activeHook: activeHook,
         isBasicMasterEntity: isBasicMasterEntity(entityType) || false,
         onSuccess: closeForm,
         onError: (err: Error) => {
@@ -341,17 +304,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
      * Uses centralized transformation utilities and custom hook for data sanitization
      */
     const handleSaveModal = async () => {
-        if (isMasterDataEntity && activeHook && entityType) {
+        if (activeHook && entityType) {
             await saveData(formData, editingItem);
         } else {
-            // Mock save for non-master-data entities
-            if (editingItem) {
-                setItems(items.map(item => item.id === editingItem.id ? { ...item, ...formData } : item));
-            } else {
-                const newId = Math.max(...items.map(i => i.id || 0), 0) + 1;
-                setItems([...items, { ...formData, id: newId }]);
-            }
-            closeForm();
+            console.warn('Cannot save: missing activeHook or entityType', { activeHook, entityType })
         }
     }
 
@@ -364,8 +320,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         })
     }
 
-    const loading = isMasterDataEntity ? getHookLoading(activeHook) : false
-    const error = isMasterDataEntity ? getHookError(activeHook) : null
+    const loading = getHookLoading(activeHook)
+    const error = getHookError(activeHook)
 
     return (
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">
@@ -376,8 +332,30 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex items-center gap-4 px-6 pt-4 pb-4">
                             <button
                                 onClick={() => {
-                                    if (routeConfig?.parent) {
+                                    // For "All Masters" category, go to subcategory path (second breadcrumb)
+                                    // Otherwise use parent or subcategoryPath
+                                    if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
+                                        // Go to subcategory path (e.g., /all-master/basic, /all-master/training-extension)
+                                        const subcategoryPath = breadcrumbs[1]?.path
+                                        if (subcategoryPath) {
+                                            navigate(subcategoryPath)
+                                        } else if (routeConfig?.subcategoryPath) {
+                                            navigate(routeConfig.subcategoryPath)
+                                        } else {
+                                            navigate('/all-master')
+                                        }
+                                    } else if (routeConfig?.subcategoryPath) {
+                                        navigate(routeConfig.subcategoryPath)
+                                    } else if (routeConfig?.parent) {
                                         navigate(routeConfig.parent)
+                                    } else if (breadcrumbs.length > 1) {
+                                        // Fallback: go to second-to-last breadcrumb
+                                        const parentBreadcrumb = breadcrumbs[breadcrumbs.length - 2]
+                                        if (parentBreadcrumb?.path) {
+                                            navigate(parentBreadcrumb.path)
+                                        } else {
+                                            navigate('/all-master')
+                                        }
                                     } else {
                                         navigate('/all-master')
                                     }

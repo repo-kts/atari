@@ -58,7 +58,7 @@ const superAdminMenuItems: MenuItem[] = [
                 icon: <Folder className="w-4 h-4" />,
             },
             {
-                label: 'Training Masters',
+                label: 'Training & Extension Masters',
                 path: '/all-master/training',
                 icon: <Folder className="w-4 h-4" />,
             },
@@ -394,11 +394,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
         { pattern: /^\/all-master\/(zones|states|organizations|universities|districts)/, parentPath: '/all-master/basic' },
         { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
-        { pattern: /^\/all-master\/(training-type|training-area|training-thematic|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
+        { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise)/, parentPath: '/all-master/production' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(season|sanctioned-post|year)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|important-day)/, parentPath: '/all-master/other-masters' },
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {

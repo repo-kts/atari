@@ -1,55 +1,13 @@
 // KVK staff / employee - models only; generator/datasource in schema.prisma
 
-enum StaffCategory {
-  SC
-  ST
-  OBC
-  GENERAL
-}
-
 enum JobType {
-  PERMANENT
+  PERMANENT 
   TEMPORARY
 }
 
 enum TransferStatus {
   ACTIVE
   TRANSFERRED
-}
-
-enum PayLevel {
-  LEVEL_1
-  LEVEL_2
-  LEVEL_3
-  LEVEL_4
-  LEVEL_5
-  LEVEL_6
-  LEVEL_10
-  LEVEL_10R
-  LEVEL_11
-  LEVEL_11R
-  LEVEL_12
-  LEVEL_12R
-  LEVEL_13A
-  LEVEL_14
-}
-
-model SanctionedPost {
-  sanctionedPostId Int       @id @default(autoincrement()) @map("sanctioned_post_id")
-  postName         String    @unique @map("post_name")
-
-  staff KvkStaff[]
-
-  @@map("sanctioned_post")
-}
-
-model Discipline {
-  disciplineId   Int    @id @default(autoincrement()) @map("discipline_id")
-  disciplineName String @unique @map("discipline_name")
-
-  staff KvkStaff[]
-
-  @@map("discipline")
 }
 
 model KvkStaff {
@@ -75,14 +33,16 @@ model KvkStaff {
   discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
 
   payScale String?  @map("pay_scale")
-  payLevel PayLevel? @map("pay_level")
+  payLevelId Int?
+  payLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])
 
   dateOfJoining DateTime @map("date_of_joining")
   jobType       JobType?  @map("job_type")
 
   allowances String? @map("allowances")
 
-  category StaffCategory @map("category")
+  staffCategoryId Int
+  staffCategory   StaffCategoryMaster @relation(fields: [staffCategoryId], references: [staffCategoryId])
 
   transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
   
@@ -108,4 +68,6 @@ model KvkStaff {
   @@index([mobile])
   @@index([transferStatus])
   @@index([originalKvkId])
+  @@index([staffCategoryId])
+  @@index([payLevelId])
 }

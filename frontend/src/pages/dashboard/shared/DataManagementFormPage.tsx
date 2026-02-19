@@ -13,6 +13,7 @@ import { LoadingButton } from '@/components/common/LoadingButton'
 
 // Form Components
 import { BasicMasterForms } from './forms/BasicMasterForms'
+import { OtherMastersForms } from './forms/OtherMastersForms'
 import { OftFldForms } from './forms/OftFldForms'
 import { TrainingExtensionForms } from './forms/TrainingExtensionForms'
 import { ProductionProjectForms } from './forms/ProductionProjectForms'
@@ -75,8 +76,16 @@ export function DataManagementFormPage({
                     </div>
                 ) : (
                     <form id="masterDataForm" onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {(isBasicMaster || isOtherMaster) && (
+                        {isBasicMaster && (
                             <BasicMasterForms
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
+                        {isOtherMaster && (
+                            <OtherMastersForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}
@@ -148,8 +157,8 @@ export function DataManagementFormPage({
                         )}
 
                         {/* Fallback if no form matches */}
-                        {!isBasicMaster && !isOftFld && !isTrainingExtension && !isProductionProject &&
-                            entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && entityType !== ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS && !isAboutKvk && !isSoilWaterTesting && !isHrd && !isAward && !isOtherMaster && (
+                        {!isBasicMaster && !isOtherMaster && !isOftFld && !isTrainingExtension && !isProductionProject &&
+                            entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && entityType !== ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS && !isAboutKvk && !isSoilWaterTesting && !isHrd && !isAward && (
                                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
                                     <p className="font-semibold">Form not configured</p>
                                     <p className="text-sm mt-1">Entity type: {entityType}</p>

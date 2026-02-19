@@ -1,0 +1,8 @@
+model FundingSourceMaster {
+  fundingSourceId Int    @id @default(autoincrement()) @map("funding_source_id")
+  name            String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("funding_source_master")
+}
