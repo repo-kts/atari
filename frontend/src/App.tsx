@@ -32,7 +32,6 @@ import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, achievementsRoutes } 
 import type { UserRole } from './types/auth'
 import { ENTITY_PATHS } from './constants/entityTypes'
 
-
 const ADMIN_ROLES: UserRole[] = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']
 
 function AppRoutes() {
