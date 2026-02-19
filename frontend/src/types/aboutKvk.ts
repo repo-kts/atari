@@ -93,11 +93,13 @@ export interface KvkEmployee {
     positionOrder: number;
     disciplineId: number;
     payScale?: string;
-    payLevel?: 'LEVEL_1' | 'LEVEL_2' | 'LEVEL_3' | 'LEVEL_4' | 'LEVEL_5' | 'LEVEL_6' | 'LEVEL_10' | 'LEVEL_10R' | 'LEVEL_11' | 'LEVEL_11R' | 'LEVEL_12' | 'LEVEL_12R' | 'LEVEL_13A' | 'LEVEL_14';
+    payLevelId?: number;
+    payLevel?: { payLevelId: number; levelName: string };
     dateOfJoining: string;
     jobType: 'PERMANENT' | 'TEMPORARY';
     allowances?: string;
-    category: 'SC' | 'ST' | 'OBC' | 'GENERAL';
+    staffCategoryId: number;
+    staffCategory?: { staffCategoryId: number; categoryName: string };
     transferStatus: 'ACTIVE' | 'TRANSFERRED';
     sourceKvkIds?: number[]; // Array of KVK IDs tracking transfer chain
     originalKvkId?: number;

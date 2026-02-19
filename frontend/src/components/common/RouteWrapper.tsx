@@ -28,8 +28,30 @@ export const RouteWrapper: React.FC<RouteWrapperProps> = ({
     const siblingRoutes = getSiblingRoutes(location.pathname)
 
     const handleBack = () => {
-        if (routeConfig?.parent) {
+        // For "All Masters" category, go to subcategory path (second breadcrumb)
+        // Otherwise use parent or subcategoryPath
+        if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
+            // Go to subcategory path (e.g., /all-master/basic, /all-master/training-extension)
+            const subcategoryPath = breadcrumbs[1]?.path
+            if (subcategoryPath) {
+                navigate(subcategoryPath)
+            } else if (routeConfig?.subcategoryPath) {
+                navigate(routeConfig.subcategoryPath)
+            } else {
+                navigate('/all-master')
+            }
+        } else if (routeConfig?.subcategoryPath) {
+            navigate(routeConfig.subcategoryPath)
+        } else if (routeConfig?.parent) {
             navigate(routeConfig.parent)
+        } else if (breadcrumbs.length > 1) {
+            // Fallback: go to second-to-last breadcrumb
+            const parentBreadcrumb = breadcrumbs[breadcrumbs.length - 2]
+            if (parentBreadcrumb?.path) {
+                navigate(parentBreadcrumb.path)
+            } else {
+                navigate(-1)
+            }
         } else {
             navigate(-1)
         }

@@ -1,0 +1,10 @@
+// Staff Category Master - converted from enum
+
+model StaffCategoryMaster {
+  staffCategoryId Int    @id @default(autoincrement()) @map("staff_category_id")
+  categoryName    String @unique @map("category_name")
+  
+  staff KvkStaff[] 
+  
+  @@map("staff_category_master")
+}

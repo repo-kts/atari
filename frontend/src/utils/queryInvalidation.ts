@@ -340,6 +340,8 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.TRAINING_TYPES]: ['training-types'],
     [ENTITY_TYPES.TRAINING_AREAS]: ['training-areas'],
     [ENTITY_TYPES.TRAINING_THEMATIC_AREAS]: ['training-thematic-areas'],
+    [ENTITY_TYPES.TRAINING_CLIENTELE]: ['training-clientele'],
+    [ENTITY_TYPES.FUNDING_SOURCE]: ['funding-sources'],
     [ENTITY_TYPES.EXTENSION_ACTIVITIES]: ['extension-activities'],
     [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES]: ['other-extension-activities'],
     [ENTITY_TYPES.EVENTS]: ['events'],
@@ -349,6 +351,18 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: ['cra-cropping-systems'],
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: ['cra-farming-systems'],
     [ENTITY_TYPES.ARYA_ENTERPRISES]: ['arya-enterprises'],
+    // Employee Masters
+    [ENTITY_TYPES.STAFF_CATEGORY]: ['staff-categories'],
+    [ENTITY_TYPES.PAY_LEVEL]: ['pay-levels'],
+    [ENTITY_TYPES.DISCIPLINE]: ['disciplines'],
+    // Extension Masters
+    [ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE]: ['extension-activity-types'],
+    [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE]: ['other-extension-activity-types'],
+    [ENTITY_TYPES.IMPORTANT_DAY]: ['important-days'],
+
+    // Other Masters
+    [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
+    [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
 };
 
 /**

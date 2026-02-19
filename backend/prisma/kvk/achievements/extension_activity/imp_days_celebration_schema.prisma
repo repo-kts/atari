@@ -1,12 +1,3 @@
-model ImportantDay {
-  importantDayId Int    @id @default(autoincrement()) @map("important_day_id")
-  dayName        String @unique @map("day_name")
-
-  celebrations KvkImportantDayCelebration[]
-
-  @@map("important_day")
-}
-
 model KvkImportantDayCelebration {
   celebrationId Int @id @default(autoincrement()) @map("celebration_id")
 

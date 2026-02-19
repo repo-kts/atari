@@ -1,0 +1,9 @@
+
+model ClienteleMaster {
+  clienteleId Int    @id @default(autoincrement()) @map("clientele_id")
+  name        String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("clientele_master")
+}

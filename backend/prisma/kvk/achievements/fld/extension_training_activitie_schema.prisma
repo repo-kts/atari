@@ -1,14 +1,3 @@
-model FldActivity {
-  activityId   Int    @id @default(autoincrement()) @map("activity_id")
-  activityName String @unique @map("activity_name")
-
-  extensions FldExtension[]
-  kvkExtensionActivities     KvkExtensionActivity[]
-  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
-
-  @@map("fld_activity")
-}
-
 model FldExtension {
   extensionId Int @id @default(autoincrement()) @map("extension_id")
   reportingYear Int @map("reporting_year")
