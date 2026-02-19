@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronLeft } from 'lucide-react'
+import { ShieldAlert } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -14,7 +15,6 @@ import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityTypes'
 import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
-import { isAdminRole } from '@/constants/roleHierarchy'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
 import { useFormState } from '@/hooks/useFormState'
@@ -60,8 +60,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<KvkEmployee | null>(null)
 
-    // Get user from auth store
-    const { user } = useAuth()
+    // Get user and permission helper from auth store
+    const { user, hasPermission } = useAuth()
 
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
@@ -75,7 +75,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
-    const siblingRoutes = getSiblingRoutes(location.pathname)
+    const allSiblingRoutes = getSiblingRoutes(location.pathname)
+    // Filter sibling tabs: only show tabs for routes the user has VIEW permission for
+    const siblingRoutes = React.useMemo(
+        () =>
+            allSiblingRoutes.filter((r) => {
+                const code = r.moduleCode
+                if (!code) return true
+                return hasPermission('VIEW', code)
+            }),
+        [allSiblingRoutes, hasPermission]
+    )
+    const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
@@ -94,6 +105,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if "Add New" button should be shown
     const canUserCreate = () => {
         if (!user) return false
+        if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
@@ -114,16 +126,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canEditItem = (item: any) => {
         if (!user) return false
         if (isAboutKvkEntity) {
-            if (entityType === ENTITY_TYPES.KVKS) {
-                // Admins can edit KVKs
-                return isAdminRole(user.role)
-            }
-            // KVK details: only KVK role can edit their own data
-            if (user.role !== 'kvk') return false
+            if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
+            if (entityType === ENTITY_TYPES.KVKS) return true
+            // Any non-kvk role that passed the permission gate above can edit all records
+            if (user.role !== 'kvk') return true
+            // KVK role can only edit their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        // Master data entities: only super_admin can edit
+        // Master data entities: explicit module EDIT permission is sufficient
+        if (moduleCode) return hasPermission('EDIT', moduleCode)
         return user.role === 'super_admin'
     }
 
@@ -131,15 +143,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canDeleteItem = (item: any) => {
         if (!user) return false
         if (isAboutKvkEntity) {
-            if (entityType === ENTITY_TYPES.KVKS) {
-                return user.role === 'super_admin'
-            }
-            // KVK details: only KVK role can delete their own data
-            if (user.role !== 'kvk') return false
+            if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
+            if (entityType === ENTITY_TYPES.KVKS) return true
+            // Any non-kvk role that passed the permission gate above can delete all records
+            if (user.role !== 'kvk') return true
+            // KVK role can only delete their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        // Master data entities: only super_admin can delete
+        // Master data entities: explicit module DELETE permission is sufficient
+        if (moduleCode) return hasPermission('DELETE', moduleCode)
         return user.role === 'super_admin'
     }
     // Initialize items - all entities use real data from hooks

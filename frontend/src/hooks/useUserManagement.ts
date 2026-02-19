@@ -13,6 +13,28 @@ export function useUsers(filters?: UserFilters) {
 }
 
 /**
+ * Hook to create a new role
+ */
+export function useCreateRole() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            roleName,
+            description,
+            hierarchyLevel,
+        }: {
+            roleName: string
+            description?: string | null
+            hierarchyLevel?: number
+        }) => userApi.createRole(roleName, description, hierarchyLevel),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['roles'] });
+        },
+    });
+}
+
+/**
  * Hook to fetch all roles
  */
 export function useRoles() {
@@ -91,6 +113,8 @@ export function useUpdateRolePermissions() {
         onSuccess: (_, variables) => {
             // Invalidate the specific role's permissions
             queryClient.invalidateQueries({ queryKey: ['rolePermissions', variables.roleId] });
+            // Also refresh the logged-in user's permissions so sidebar/buttons update immediately
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });
 }

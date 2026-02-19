@@ -27,6 +27,8 @@ export interface User {
     lastLoginAt?: string | null
     /** Granular permissions (VIEW/ADD/EDIT/DELETE). Absent = full access for role. */
     permissions?: PermissionAction[]
+    /** Permissions by module code (from Role Permission Editor). Keys e.g. user_management_users, all_masters_zone_master. */
+    permissionsByModule?: Record<string, PermissionAction[]>
 }
 
 export interface LoginCredentials {

@@ -1,6 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import { useAuth } from '../../../contexts/AuthContext'
+import { getModuleCodeForPath } from '../../../config/routeConfig'
 
 export interface FeatureSection {
     title: string
@@ -8,6 +10,8 @@ export interface FeatureSection {
     items: {
         label: string
         path: string
+        /** Optional override; otherwise derived from path via routeConfig */
+        moduleCode?: string
     }[]
 }
 
@@ -22,6 +26,22 @@ export const FeatureTabLayout: React.FC<FeatureTabLayoutProps> = ({
     description,
     sections,
 }) => {
+    const { hasPermission } = useAuth()
+
+    // Filter items by VIEW permission: hide items the user cannot access
+    const filteredSections = React.useMemo(() => {
+        return sections
+            .map((section) => ({
+                ...section,
+                items: section.items.filter((item) => {
+                    const moduleCode = item.moduleCode ?? getModuleCodeForPath(item.path)
+                    if (!moduleCode) return true // No moduleCode = show (e.g. public)
+                    return hasPermission('VIEW', moduleCode)
+                }),
+            }))
+            .filter((section) => section.items.length > 0)
+    }, [sections, hasPermission])
+
     return (
         <div className="p-6">
             <div className="mb-6">
@@ -29,8 +49,13 @@ export const FeatureTabLayout: React.FC<FeatureTabLayoutProps> = ({
                 <p className="text-sm text-[#757575] mt-1">{description}</p>
             </div>
 
+            {filteredSections.length === 0 ? (
+                <div className="rounded-xl bg-[#FAF9F6] border border-[#E0E0E0] p-8 text-center text-[#757575]">
+                    You don't have access to any items in this section.
+                </div>
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sections.map((section, sectionIdx) => (
+                {filteredSections.map((section, sectionIdx) => (
                     <div
                         key={sectionIdx}
                         className="bg-white rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 p-1 h-full"
@@ -59,6 +84,7 @@ export const FeatureTabLayout: React.FC<FeatureTabLayoutProps> = ({
                     </div>
                 ))}
             </div>
+            )}
         </div>
     )
 }

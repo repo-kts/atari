@@ -4,7 +4,6 @@ import {
     Routes,
     Route,
     Navigate,
-    Outlet,
 } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { setOnSessionExpired } from './services/api'
@@ -29,10 +28,11 @@ import { DynamicFormPage } from './components/common/DynamicFormPage'
 import { ProjectsOverview } from './pages/dashboard/forms/projects/ProjectsOverview'
 
 // Import route config for dynamic rendering
-import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, viewKvkRoutes, achievementsRoutes, } from './config/routeConfig'
+import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, achievementsRoutes } from './config/routeConfig'
+import type { UserRole } from './types/auth'
 import { ENTITY_PATHS } from './constants/entityTypes'
-import { getAllMastersMockData } from './mocks/allMastersMockData'
 
+const ADMIN_ROLES: UserRole[] = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']
 
 function AppRoutes() {
     const queryClient = useQueryClient()
@@ -60,38 +60,98 @@ function AppRoutes() {
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
 
-                    {/* All Masters Router - Restricted to Admin Roles */}
-                    <Route element={<ProtectedRoute requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}><Outlet /></ProtectedRoute>}>
-                        {allMastersRoutes.map(route => (
-                            <Route
-                                key={route.path}
-                                path={route.path}
-                                element={
+                    {/* All Masters Routes - each route guards its own module permission */}
+                    {allMastersRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode={route.moduleCode}>
                                     <DataManagementView
                                         title={route.title}
                                         description={route.description}
                                         fields={route.fields}
-                                        mockData={getAllMastersMockData(route.path)}
                                     />
-                                }
-                            />
-                        ))}
-                        <Route path="/all-master/*" element={<AllMasters />} />
-                    </Route>
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+                    <Route
+                        path="/all-master/*"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES}>
+                                <AllMasters />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    {/* Admin Pages - Restricted to Admin Roles */}
-                    <Route element={<ProtectedRoute requiredRole={['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']}><Outlet /></ProtectedRoute>}>
-                        <Route path="/role-view" element={<RoleManagement />} />
-                        <Route path="/role-view/:roleId/permissions" element={<RolePermissionEditor />} />
-                        <Route path="/view-users" element={<UserManagement />} />
-                        <Route path="/view-log-history" element={<LogHistory />} />
-                        <Route path="/view-email-notifications" element={<Notifications />} />
-                    </Route>
+                    {/* Admin Pages - Restricted to Admin Roles + module-based VIEW permissions */}
+                    <Route
+                        path="/role-view"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="role_management_roles">
+                                <RoleManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/role-view/:roleId/permissions"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="role_management_roles">
+                                <RolePermissionEditor />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-users"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="user_management_users">
+                                <UserManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-log-history"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="log_history">
+                                <LogHistory />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-email-notifications"
+                        element={
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="notifications">
+                                <Notifications />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    {/* Features accessible to Admin and KVK */}
-                    <Route path="/module-images" element={<ModuleImages />} />
-                    <Route path="/targets" element={<Targets />} />
-                    <Route path="/all-reports" element={<Reports />} />
+                    {/* Features - module-based VIEW permissions (any role with those permissions) */}
+                    <Route
+                        path="/module-images"
+                        element={
+                            <ProtectedRoute requiredModuleCode="module_images">
+                                <ModuleImages />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/targets"
+                        element={
+                            <ProtectedRoute requiredModuleCode="targets">
+                                <Targets />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/all-reports"
+                        element={
+                            <ProtectedRoute requiredModuleCode="reports">
+                                <Reports />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Form Management */}
                     <Route path="/forms" element={<FormManagement />} />
@@ -108,49 +168,30 @@ function AppRoutes() {
                         />
                     ))}
 
-                    {/* Add this block to handle your new Achievements forms */}
                     {achievementsRoutes.map(route => (
                         <Route
                             key={route.path}
                             path={route.path}
                             element={
-                                // This component automatically builds the form from your config
-                                <DataManagementView
-                                    title={route.title}
-                                    fields={route.fields}
-                                    mockData={route.mockData}
-                                />
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        title={route.title}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
                             }
                         />
                     ))}
-                    {/* {achievementsRoutes2.map(route => (
-                        <Route
-                            key={route.path}
-                            path={route.path}
-                            element={
-                                // This component automatically builds the form from your config
-                                <DataManagementView
-                                    title={route.title}
-                                    fields={route.fields}
-                                    mockData={route.mockData}
-                                />
-                            }
-                        />
-                    ))}
-                    {trainings.map(route => (
-                        <Route
-                            key={route.path}
-                            path={route.path}
-                            element={
-                                // This component automatically builds the form from your config
-                                <DataManagementView
-                                    title={route.title}
-                                    fields={route.fields}
-                                    mockData={route.mockData}
-                                />
-                            }
-                        />
-                    ))} */}
+
+                    {/* Success Stories - permission gated before the catch-all */}
+                    <Route
+                        path="/forms/success-stories"
+                        element={
+                            <ProtectedRoute requiredModuleCode="success_stories">
+                                <FormManagement />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Form Management Catch-all */}
                     <Route path="/forms/*" element={<FormManagement />} />
@@ -182,30 +223,6 @@ function AppRoutes() {
                             />
                         )
                     })}
-                    {/* Add this block to handle your new Achievements forms */}
-
-
-                    {/* View KVK Routes - Mapping approach */}
-                    {/* {viewKvkRoutes.map(route => {
-                        const Component = viewKvkComponentMap[route.path]
-                        if (!Component) return null
-
-                        return (
-                            <Route
-                                key={route.path}
-                                path={route.path}
-                                element={
-                                    <Component
-                                        title={route.title}
-                                        description={route.description}
-                                        fields={route.fields}
-                                    />
-                                }
-                            />
-                        )
-                    })} */}
-
-
                     {/* Legacy About KVK route */}
                     <Route path="/kvk/staff/add" element={<Navigate to={ENTITY_PATHS.KVK_EMPLOYEES} replace />} />
 
