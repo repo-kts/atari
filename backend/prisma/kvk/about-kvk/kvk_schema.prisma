@@ -31,7 +31,6 @@ model Kvk {
   vehicles        KvkVehicle[]
   bankAccounts    KvkBankAccount[]
   farmImplements  KvkFarmImplement[]
-  users           User[]
   
   transfersFrom    StaffTransferHistory[] @relation("TransferFrom")
   transfersTo      StaffTransferHistory[] @relation("TransferTo")

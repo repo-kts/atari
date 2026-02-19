@@ -64,7 +64,7 @@ const superAdminMenuItems: MenuItem[] = [
                 moduleCodes: ['all_masters_oft_master', 'all_masters_fld_master', 'all_masters_cfld_master'],
             },
             {
-                label: 'Training Masters',
+                label: 'Training & Extension Masters',
                 path: '/all-master/training',
                 icon: <Folder className="w-4 h-4" />,
                 moduleCodes: ['all_masters_training_master', 'all_masters_extension_activity_master', 'all_masters_other_extension_activity_master', 'all_masters_events_master'],

@@ -228,7 +228,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             // If hook exists but has no data and is not loading, set empty array
             setItems([])
         }
-    }, [hookDataHash, location.pathname, activeHook?.isLoading]) // hookDataHash already tracks data changes via useMemo
+    }, [hookDataHash, location.pathname, activeHook?.data, activeHook?.isLoading]) // Include activeHook?.data to detect reference changes
 
     // Debounce search
     useEffect(() => {
@@ -335,38 +335,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const loading = getHookLoading(activeHook)
     const error = getHookError(activeHook)
-
-    // VIEW permission gate for the entire page
-    const canViewPage = !moduleCode || hasPermission('VIEW', moduleCode)
-
-    if (!canViewPage) {
-        return (
-            <div className="h-full w-full bg-[#F5F5F5] flex items-center justify-center p-4">
-                <div className="bg-white p-1 rounded-2xl shadow-sm max-w-md w-full animate-fade-in-up">
-                    <div className="bg-[#FAF9F6] rounded-xl p-8 text-center border border-[#E0E0E0]/50">
-                        <div className="flex justify-center mb-6">
-                            <div className="p-4 bg-white rounded-full shadow-sm border border-[#E0E0E0]/50">
-                                <ShieldAlert className="w-10 h-10 text-[#487749]" />
-                            </div>
-                        </div>
-                        <h1 className="text-xl font-bold text-[#212121] mb-3">
-                            Access Restricted
-                        </h1>
-                        <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
-                            You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => navigate('/dashboard')}
-                            className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
-                        >
-                            Return to Dashboard
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">

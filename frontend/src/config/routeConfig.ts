@@ -86,6 +86,23 @@ const aryaMastersPaths = [
     ENTITY_PATHS.ARYA_ENTERPRISE,
 ]
 
+// Employee Masters group
+const employeeMastersPaths = [
+    ENTITY_PATHS.STAFF_CATEGORY,
+    ENTITY_PATHS.PAY_LEVEL,
+    ENTITY_PATHS.SANCTIONED_POST,
+    ENTITY_PATHS.DISCIPLINE,
+]
+
+// Extension Masters group
+const extensionMastersPaths = [
+    ENTITY_PATHS.EXTENSION_ACTIVITY_TYPE,
+    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY_TYPE,
+    ENTITY_PATHS.EXTENSION_ACTIVITY,
+    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
+]
+
+
 // Other Masters - split by tab sections
 const otherMastersPaths = [
     ENTITY_PATHS.SEASON,
@@ -306,6 +323,28 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: ['name'],
     },
 
+    // Training Masters (additional)
+    {
+        path: ENTITY_PATHS.TRAINING_CLIENTELE,
+        title: 'Training Clientele Master',
+        category: 'All Masters',
+        subcategory: 'Training & Extension Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
+        siblings: trainingBasicMastersSiblingsPaths,
+        fields: ['name'],
+    },
+    {
+        path: ENTITY_PATHS.FUNDING_SOURCE,
+        title: 'Funding Source Master',
+        category: 'All Masters',
+        subcategory: 'Training & Extension Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
+        siblings:trainingBasicMastersSiblingsPaths,
+        fields: ['name'],
+    },
+
     // Extension & Events
     {
         path: ENTITY_PATHS.EXTENSION_ACTIVITY,
@@ -434,8 +473,28 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['name'],
+        siblings: employeeMastersPaths,
+        fields: ['categoryName'],
+    },
+    {
+        path: ENTITY_PATHS.PAY_LEVEL,
+        title: 'Pay Level Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: employeeMastersPaths,
+        fields: ['levelName'],
+    },
+    {
+        path: ENTITY_PATHS.DISCIPLINE,
+        title: 'Discipline Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: employeeMastersPaths,
+        fields: ['disciplineName'],
     },
     {
         path: ENTITY_PATHS.SANCTIONED_POST,
@@ -444,10 +503,11 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
+        siblings: employeeMastersPaths,
         fields: ['postName'],
-        moduleCode: 'all_masters_sanctioned_post_master',
     },
+
+
     {
         path: ENTITY_PATHS.SEASON,
         title: 'Season Master',
@@ -457,7 +517,6 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['seasonName'],
-        moduleCode: 'all_masters_season_master',
     },
     {
         path: ENTITY_PATHS.YEAR,
@@ -469,6 +528,36 @@ export const allMastersRoutes: RouteConfig[] = [
         siblings: otherMastersPaths,
         fields: ['yearName'],
         moduleCode: 'all_masters_year_master',
+    },
+    {
+        path: ENTITY_PATHS.CROP_TYPE,
+        title: 'Crop Type Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMastersPaths,
+        fields: ['typeName'],
+    },
+    {
+        path: ENTITY_PATHS.INFRASTRUCTURE_MASTER,
+        title: 'Infrastructure Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMastersPaths,
+        fields: ['name'],
+    },
+    {
+        path: ENTITY_PATHS.IMPORTANT_DAY,
+        title: 'Important Day Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: otherMastersPaths,
+        fields: ['dayName'],
     },
     {
         path: ENTITY_PATHS.CROP_TYPE,
