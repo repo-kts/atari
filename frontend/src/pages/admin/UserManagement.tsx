@@ -66,7 +66,7 @@ export const UserManagement: React.FC = () => {
     const canCreateUsers = hasPermission('ADD', 'user_management_users')
     const canEditUser = hasPermission('EDIT', 'user_management_users')
     const canDeleteUser = hasPermission('DELETE', 'user_management_users')
-    const showActionsColumn = canEditUser || canDeleteUser
+    const showActionsColumn = (canEditUser || canDeleteUser) && users.some(u => canActOnRole(u.roleName))
 
     // Handle delete user
     const handleDelete = async (userId: number) => {

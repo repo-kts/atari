@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Download, ChevronLeft, ShieldAlert } from 'lucide-react'
+import { Plus, Download, ChevronLeft } from 'lucide-react'
+import { ShieldAlert } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -61,8 +62,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Get user and permission helper from auth store
     const { user, hasPermission } = useAuth()
-    // Get user and permission helper from auth store
-    const { user, hasPermission } = useAuth()
 
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
@@ -76,8 +75,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
-    const siblingRoutes = getSiblingRoutes(location.pathname)
-    const moduleCode = routeConfig?.moduleCode
+    const allSiblingRoutes = getSiblingRoutes(location.pathname)
+    // Filter sibling tabs: only show tabs for routes the user has VIEW permission for
+    const siblingRoutes = React.useMemo(
+        () =>
+            allSiblingRoutes.filter((r) => {
+                const code = r.moduleCode
+                if (!code) return true
+                return hasPermission('VIEW', code)
+            }),
+        [allSiblingRoutes, hasPermission]
+    )
     const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -98,7 +106,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canUserCreate = () => {
         if (!user) return false
         if (moduleCode && !hasPermission('ADD', moduleCode)) return false
-        if (moduleCode && !hasPermission('ADD', moduleCode)) return false
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
@@ -118,48 +125,34 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
-        if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
-        if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
         if (isAboutKvkEntity) {
-            if (entityType === ENTITY_TYPES.KVKS) {
-                // For KVKS list, permission check above is enough
-                return true
-                // For KVKS list, permission check above is enough
-                return true
-            }
-            // KVK details: super_admin can edit all, KVK role can edit their own data
-            if (user.role === 'super_admin') return true
-            // KVK details: super_admin can edit all, KVK role can edit their own data
-            if (user.role === 'super_admin') return true
-            if (user.role !== 'kvk') return false
+            if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
+            if (entityType === ENTITY_TYPES.KVKS) return true
+            // Any non-kvk role that passed the permission gate above can edit all records
+            if (user.role !== 'kvk') return true
+            // KVK role can only edit their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        // Master data entities: only super_admin can edit
+        // Master data entities: explicit module EDIT permission is sufficient
+        if (moduleCode) return hasPermission('EDIT', moduleCode)
         return user.role === 'super_admin'
     }
 
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
-        if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
-        if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
         if (isAboutKvkEntity) {
-            if (entityType === ENTITY_TYPES.KVKS) {
-                // For KVKS list, permission check above is enough
-                return true
-                // For KVKS list, permission check above is enough
-                return true
-            }
-            // KVK details: super_admin can delete all, KVK role can delete their own data
-            if (user.role === 'super_admin') return true
-            // KVK details: super_admin can delete all, KVK role can delete their own data
-            if (user.role === 'super_admin') return true
-            if (user.role !== 'kvk') return false
+            if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
+            if (entityType === ENTITY_TYPES.KVKS) return true
+            // Any non-kvk role that passed the permission gate above can delete all records
+            if (user.role !== 'kvk') return true
+            // KVK role can only delete their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
-        // Master data entities: only super_admin can delete
+        // Master data entities: explicit module DELETE permission is sufficient
+        if (moduleCode) return hasPermission('DELETE', moduleCode)
         return user.role === 'super_admin'
     }
     // Initialize items - all entities use real data from hooks
@@ -342,6 +335,38 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const loading = getHookLoading(activeHook)
     const error = getHookError(activeHook)
+
+    // VIEW permission gate for the entire page
+    const canViewPage = !moduleCode || hasPermission('VIEW', moduleCode)
+
+    if (!canViewPage) {
+        return (
+            <div className="h-full w-full bg-[#F5F5F5] flex items-center justify-center p-4">
+                <div className="bg-white p-1 rounded-2xl shadow-sm max-w-md w-full animate-fade-in-up">
+                    <div className="bg-[#FAF9F6] rounded-xl p-8 text-center border border-[#E0E0E0]/50">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-white rounded-full shadow-sm border border-[#E0E0E0]/50">
+                                <ShieldAlert className="w-10 h-10 text-[#487749]" />
+                            </div>
+                        </div>
+                        <h1 className="text-xl font-bold text-[#212121] mb-3">
+                            Access Restricted
+                        </h1>
+                        <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
+                            You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/dashboard')}
+                            className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Return to Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">

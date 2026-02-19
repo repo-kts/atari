@@ -83,6 +83,9 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Sanctioned Post Master', moduleCode: 'all_masters_sanctioned_post_master' },
   { menuName: 'All Masters', subMenuName: 'Year Master', moduleCode: 'all_masters_year_master' },
 
+  // Form Management
+  { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'success_stories' },
+
   // Single-item modules (display as "—" in submenu if desired)
   { menuName: 'Module Images', subMenuName: '—', moduleCode: 'module_images' },
   { menuName: 'Targets', subMenuName: '—', moduleCode: 'targets' },

@@ -92,13 +92,12 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
                         onChange={(e) => setRoleName(e.target.value)}
                         placeholder="e.g. custom_admin"
                         disabled={isSubmitting}
-                        className={errors.roleName ? 'border-red-500' : ''}
+                        error={errors.roleName}
                     />
-                    <p className="mt-1 text-xs text-[#757575]">
-                        Use snake_case (e.g. zone_admin, state_user)
-                    </p>
-                    {errors.roleName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.roleName}</p>
+                    {!errors.roleName && (
+                        <p className="mt-1 text-xs text-[#757575]">
+                            Use snake_case (e.g. zone_admin, state_user)
+                        </p>
                     )}
                 </div>
                 <div>

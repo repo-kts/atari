@@ -13,12 +13,16 @@ const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
  * Generate access token (short-lived, 1 hour)
  * @param {number} userId - User ID
  * @param {number} roleId - Role ID
+ * @param {string} roleName - Role name
+ * @param {Record<string, string[]>} permissionsByModule - Effective permissions map
  * @returns {string} JWT access token
  */
-function generateAccessToken(userId, roleId) {
+function generateAccessToken(userId, roleId, roleName, permissionsByModule = {}) {
   const payload = {
     userId,
     roleId,
+    roleName,
+    permissions: permissionsByModule,
     type: 'access',
   };
 

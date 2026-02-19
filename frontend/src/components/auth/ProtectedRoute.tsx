@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import React from 'react'
+import { Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { UserRole } from '../../types/auth'
 import { ShieldAlert } from 'lucide-react'
@@ -51,12 +51,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                         <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
                             You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
                         </p>
-                        <a
-                            href="/dashboard"
+                        <Link
+                            to="/dashboard"
                             className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Return to Dashboard
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -80,12 +80,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                         <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
                             You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
                         </p>
-                        <a
-                            href="/dashboard"
+                        <Link
+                            to="/dashboard"
                             className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Return to Dashboard
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

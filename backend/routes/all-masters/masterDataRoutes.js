@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission, requireAnyPermission } = require('../../middleware/auth.js');
 const masterDataController = require('../../controllers/all-masters/masterDataController.js');
 
 /**
@@ -52,9 +52,15 @@ router.put('/universities/:id',                     requirePermission('all_maste
 router.delete('/universities/:id',                  requirePermission('all_masters_university_master', 'DELETE'), masterDataController.deleteUniversity);
 
 // ============ UTILITY ============
-// These are read-only helper endpoints used across admin features (hierarchy/stats).
-// Guarded by zone_master VIEW as the lowest-common master permission.
-router.get('/master-data/stats',      requirePermission('all_masters_zone_master', 'VIEW'), masterDataController.getStats);
-router.get('/master-data/hierarchy',  requirePermission('all_masters_zone_master', 'VIEW'), masterDataController.getHierarchy);
+// These read-only helper endpoints span all basic master modules; any VIEW permission grants access.
+const BASIC_MASTER_MODULES = [
+    'all_masters_zone_master',
+    'all_masters_states_master',
+    'all_masters_districts_master',
+    'all_masters_organization_master',
+    'all_masters_university_master',
+];
+router.get('/master-data/stats',      requireAnyPermission(BASIC_MASTER_MODULES, 'VIEW'), masterDataController.getStats);
+router.get('/master-data/hierarchy',  requireAnyPermission(BASIC_MASTER_MODULES, 'VIEW'), masterDataController.getHierarchy);
 
 module.exports = router;

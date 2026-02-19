@@ -23,6 +23,7 @@ import {
     Building2,
     Briefcase,
     FileCheck,
+    BookOpen,
 } from 'lucide-react'
 
 interface MenuItem {
@@ -31,6 +32,8 @@ interface MenuItem {
     icon: React.ReactNode
     /** Optional module code used for permission-based visibility (VIEW) */
     moduleCode?: string
+    /** Optional: show if user has VIEW for any of these (for category-level items) */
+    moduleCodes?: string[]
     children?: MenuItem[]
     dropdown?: boolean // If true, show children as dropdown in sidebar and hide tabs on page
 }
@@ -52,31 +55,37 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Basic Masters',
                 path: '/all-master/basic',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master'],
             },
             {
                 label: 'OFT & FLD Masters',
                 path: '/all-master/oft-fld',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_oft_master', 'all_masters_fld_master', 'all_masters_cfld_master'],
             },
             {
-                label: 'Training & Extension Masters',
+                label: 'Training Masters',
                 path: '/all-master/training',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_training_master', 'all_masters_extension_activity_master', 'all_masters_other_extension_activity_master', 'all_masters_events_master'],
             },
             {
                 label: 'Production Masters',
-                path: '/all-master/production',
+                path: '/all-master/production-projects',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master'],
             },
             {
                 label: 'Publication Masters',
                 path: '/all-master/publications',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_publication_master'],
             },
             {
                 label: 'Other Masters',
                 path: '/all-master/other-masters',
                 icon: <Folder className="w-4 h-4" />,
+                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_year_master'],
             },
         ],
     },
@@ -102,11 +111,13 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'About KVK',
                 path: '/forms/about-kvk',
                 icon: <Building2 className="w-4 h-4" />,
+                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
             },
             {
                 label: 'Achievements',
                 path: '/forms/achievements',
                 icon: <ClipboardList className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
             },
             {
                 label: 'Success Stories',
@@ -118,7 +129,15 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Projects',
                 path: '/forms/achievements/projects',
                 icon: <Briefcase className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
                 moduleCode: 'achievements_projects',
+            },
+            {
+                label: 'Publications',
+                path: '/forms/achievements/publications',
+                icon: <BookOpen className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
+                moduleCode: 'achievements_publications',
             },
         ],
     },
@@ -171,11 +190,13 @@ const regularMenuItems: MenuItem[] = [
                 label: 'About KVK',
                 path: '/forms/about-kvk',
                 icon: <Building2 className="w-4 h-4" />,
+                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
             },
             {
                 label: 'Achievements',
                 path: '/forms/achievements',
                 icon: <ClipboardList className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
             },
         ],
     },
@@ -198,11 +219,13 @@ const kvkMenuItems: MenuItem[] = [
                 label: 'About KVK',
                 path: '/forms/about-kvk',
                 icon: <Building2 className="w-4 h-4" />,
+                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
             },
             {
                 label: 'Achievements',
                 path: '/forms/achievements',
                 icon: <ClipboardList className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
             },
             {
                 label: 'Success Stories',
@@ -214,6 +237,7 @@ const kvkMenuItems: MenuItem[] = [
                 label: 'Projects',
                 path: '/forms/achievements/projects',
                 icon: <Briefcase className="w-4 h-4" />,
+                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
                 moduleCode: 'achievements_projects',
             },
         ],
@@ -237,6 +261,7 @@ const kvkMenuItems: MenuItem[] = [
         moduleCode: 'reports',
     },
 ]
+
 
 interface SidebarProps {
     isOpen: boolean
@@ -278,7 +303,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                     children = filterList(item.children)
                 }
 
-                const hasViewForItem = !item.moduleCode || hasPermission('VIEW', item.moduleCode)
+                const hasViewForItem =
+                    !item.moduleCode && !item.moduleCodes
+                        ? true
+                        : item.moduleCodes
+                            ? item.moduleCodes.some((code) => hasPermission('VIEW', code))
+                            : hasPermission('VIEW', item.moduleCode!)
                 const hasVisibleChildren = !!children && children.length > 0
 
                 if (item.children) {

@@ -40,17 +40,25 @@ const rolePermissionService = {
     }
 
     const level = Number(hierarchyLevel);
-    if (Number.isNaN(level) || level < 0 || level > 9) {
-      throw new Error('Hierarchy level must be between 0 (highest) and 9 (lowest)');
+    if (!Number.isInteger(level) || level < 0 || level > 9) {
+      throw new Error('Hierarchy level must be an integer between 0 (highest) and 9 (lowest)');
     }
 
-    const role = await prisma.role.create({
-      data: {
-        roleName: normalized,
-        description: description ? String(description).trim() || null : null,
-        hierarchyLevel: level,
-      },
-    });
+    let role;
+    try {
+      role = await prisma.role.create({
+        data: {
+          roleName: normalized,
+          description: description ? String(description).trim() || null : null,
+          hierarchyLevel: level,
+        },
+      });
+    } catch (err) {
+      if (err?.code === 'P2002') {
+        throw new Error(`Role "${normalized}" already exists`);
+      }
+      throw err;
+    }
     return {
       roleId: role.roleId,
       roleName: role.roleName,

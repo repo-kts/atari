@@ -8,8 +8,8 @@ const { authenticateToken, requireRole, requirePermission } = require('../middle
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
 const { getRoleLevel } = require('../constants/roleHierarchy.js');
 
-// Module code for user management (same as USER_SCOPE for role-based permission fallback)
-const USER_MANAGEMENT_MODULE = 'USER_SCOPE';
+// Module code for user management (must match seed data and frontend module code)
+const USER_MANAGEMENT_MODULE = 'user_management_users';
 
 // Apply authentication and role check to all admin routes.
 // Note: 'kvk' is included here intentionally so KVK users can access specific

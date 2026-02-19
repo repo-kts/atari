@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission, requireAnyPermission } = require('../../middleware/auth.js');
 const trainingExtensionEventsController = require('../../controllers/all-masters/trainingExtensionEventsController.js');
 
 // Apply authentication to all routes
@@ -66,6 +66,14 @@ router.delete('/events/:id', requirePermission('all_masters_events_master', 'DEL
 // Statistics Route
 // ============================================
 
-router.get('/stats', requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getStats);
+router.get('/stats',
+    requireAnyPermission([
+        'all_masters_training_master',
+        'all_masters_extension_activity_master',
+        'all_masters_other_extension_activity_master',
+        'all_masters_events_master',
+    ], 'VIEW'),
+    trainingExtensionEventsController.getStats,
+);
 
 module.exports = router;

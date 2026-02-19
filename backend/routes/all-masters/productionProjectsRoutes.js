@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission, requireAnyPermission } = require('../../middleware/auth.js');
 const productionProjectsController = require('../../controllers/all-masters/productionProjectsController.js');
 
 // Apply authentication to all routes
@@ -73,6 +73,9 @@ router.delete('/arya-enterprises/:id', requirePermission('all_masters_arya_maste
 // Statistics Route
 // ============================================
 
-router.get('/stats', requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getStats);
+router.get('/stats',
+    requireAnyPermission(['all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master'], 'VIEW'),
+    productionProjectsController.getStats,
+);
 
 module.exports = router;
