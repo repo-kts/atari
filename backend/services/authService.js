@@ -28,6 +28,11 @@ async function buildPermissionsByModule(roleId, roleName, userId) {
 
     if (roleName.endsWith('_user')) {
         userActions = await userPermissionRepository.getUserPermissionActions(userId);
+        // Guard is intentional policy: empty userActions means "no individual restrictions
+        // have been configured for this user", so the role's full permission set is used
+        // unchanged. Removing the guard would cause _user accounts without explicit action
+        // assignments to lose all access, which is not the intended behaviour.
+        // See: docs/GRANULAR_PERMISSIONS_IMPLEMENTATION_PLAN.md § Phase 1.2
         if (userActions.length > 0) {
             // Intersection: keep only the actions the individual user was granted
             for (const code of Object.keys(permissionsByModule)) {

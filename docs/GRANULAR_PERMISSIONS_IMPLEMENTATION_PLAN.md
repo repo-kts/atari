@@ -28,13 +28,33 @@
 
 ### 1.2 Effective permissions for current user
 
-- **Extend** `authService.getCurrentUser`:
-  - Resolve **role-based** permissions: call `getRolePermissionsByModule(user.roleId)`.
-  - If the user has **user-level** permissions (existing `userPermissionRepository.getUserPermissionActions(userId)`):
-    - Keep backward compatibility: still set `permissions: ['VIEW','ADD',...]` for USER_SCOPE / user management if needed, **and**
-    - Set `permissionsByModule['user_management_users'] = userLevelActions` (or keep one global list and document that it applies to USER_SCOPE).
-  - Return in the `/auth/me` response a new field, e.g. **`permissionsByModule`**: `{ [moduleCode: string]: ('VIEW'|'ADD'|'EDIT'|'DELETE')[] }`.
-  - Optional: keep existing `permissions` for backward compatibility during migration; frontend will prefer `permissionsByModule`.
+Implemented in `authService.buildPermissionsByModule(roleId, roleName, userId)`.
+
+**Merge rule — intersection (role is the ceiling, user-level is a restriction):**
+
+| Role type | Merge behaviour |
+|-----------|----------------|
+| `*_user` roles (`state_user`, `district_user`, `org_user`) | `effective = getRolePermissionsByModule(roleId) ∩ getUserPermissionActions(userId)` applied across **every** moduleCode. The role defines the maximum set of actions; the user's individually assigned actions act as a downward filter. Modules where the intersection yields zero actions are **dropped** from `permissionsByModule`. If `getUserPermissionActions` returns an empty list (no individual actions set), the role's permissions are used unchanged. |
+| All other roles (`super_admin`, `zone_admin`, …, `kvk`) | `getRolePermissionsByModule(roleId)` is returned as-is. `getUserPermissionActions` is **never called** — no user-level filtering. |
+
+**Super Admin:** Always authoritative. Full access is guaranteed by seeding the `super_admin` role with all modules × all actions via `seedSuperAdminPermissions.js`. No runtime bypass — `super_admin` goes through the same code path as every other role.
+
+**Example — conflicting entries for a `state_user`:**
+```
+Role permissions (ceiling):
+  all_masters_zone_master:  [VIEW, ADD, EDIT, DELETE]
+  all_masters_states_master: [VIEW, ADD]
+
+User-level actions (filter):
+  [VIEW, EDIT]
+
+Effective permissionsByModule:
+  all_masters_zone_master:  [VIEW, EDIT]   ← intersection of {VIEW,ADD,EDIT,DELETE} ∩ {VIEW,EDIT}
+  all_masters_states_master: [VIEW]        ← intersection of {VIEW,ADD} ∩ {VIEW,EDIT}
+  // modules not in role permissions are absent regardless of user-level actions
+```
+
+**Return value:** `permissionsByModule: Record<string, ('VIEW'|'ADD'|'EDIT'|'DELETE')[]>` — emitted in both `/auth/login` and `/auth/me` responses and embedded in the JWT access token under the `permissions` key.
 
 ### 1.3 Auth API contract (frontend types)
 
@@ -56,7 +76,7 @@
       - Else return `false` (no access to that module).
     - If no `moduleCode` (legacy calls, e.g. User Management before we pass module):
       - For **User Management** only: treat as `moduleCode === 'user_management_users'` and check `permissionsByModule['user_management_users']`.
-  - **Remove** the special case that gives admins/kvk full access regardless of permissions; everyone (including super_admin) is restricted by `permissionsByModule` **or** you introduce a single exception only for `super_admin` (e.g. if `user.role === 'super_admin'` and no `permissionsByModule` entry, treat as full access for that module). Prefer: **no exception** so that Role Permission Editor fully controls access for every role.
+  - **No runtime bypass for any role** — everyone including `super_admin` is restricted by `permissionsByModule`. The Role Permission Editor is the single source of truth. Ensure `super_admin` is seeded with all modules × all actions so it retains full access via the DB, not via a hardcoded bypass.
 
 ### 2.2 Route config: add `moduleCode` to every route
 
@@ -116,13 +136,11 @@
 
 ## Phase 4: Super Admin and seeding
 
-- **Super Admin:** Either:
-  - **Option A:** In `getCurrentUser`, if `user.roleName === 'super_admin'`, set `permissionsByModule` to “all modules, all actions” (e.g. from DB: all modules and ['VIEW','ADD','EDIT','DELETE'] for each), so Role Editor still controls everyone including super_admin, **or**
-  - **Option B:** In `getCurrentUser`, if `user.roleName === 'super_admin'`, do not filter: return a full `permissionsByModule` (e.g. all modules with all four actions). Ensure seed script gives super_admin role all permissions so the matrix is complete.
-- **Seeding:** Run existing (or updated) scripts so that:
-  - All modules/permissions exist (`seedModulesForRolePermissions.js`).
-  - Super Admin role has every permission (`seedSuperAdminPermissions.js`).
-  - Other roles get the intended subset (`seedAllRolePermissions.js` or manual via Role Editor).
+- **Super Admin:** `getCurrentUser` treats `super_admin` like any other role — it calls `getRolePermissionsByModule(roleId)` and returns `permissionsByModule`. No runtime bypass. Full access is guaranteed by seeding the `super_admin` role with all modules × all actions, so the Role Permission Editor remains the single source of truth for every role.
+- **Seeding:** Run scripts in this order:
+  1. `seedModulesForRolePermissions.js` — creates all modules and their four actions (VIEW/ADD/EDIT/DELETE).
+  2. `seedSuperAdminPermissions.js` — assigns every permission to the `super_admin` role.
+  3. `seedAllRolePermissions.js` or configure other roles manually via the Role Editor.
 
 ---
 

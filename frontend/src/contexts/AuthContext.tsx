@@ -34,7 +34,7 @@ interface AuthContextValue {
     logout: () => Promise<void>
     checkAuth: () => Promise<boolean>
     hasRole: (role: UserRole | UserRole[]) => boolean
-    /** Check permission for an action in a module (from Role Permission Editor). Without moduleCode, defaults to user_management_users. */
+    /** Check permission for an action in a module (from Role Permission Editor). moduleCode is required; omitting it returns false. */
     hasPermission: (action: PermissionAction, moduleCode?: string) => boolean
     /** Whether the current user can act on a target role (hierarchy: lower admins cannot modify higher). */
     canActOnRole: (targetRole: string) => boolean
@@ -161,23 +161,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     /**
      * Check if the current user has permission for a given action in a module.
-     * Driven by permissionsByModule from Role Permission Editor.
-     * When moduleCode is omitted, defaults to 'user_management_users' for backward compatibility.
-     *
-     * Safety net: if permissionsByModule is absent (e.g. stale session before backend
-     * deployed the new field) super_admin always gets access — every other role is denied
-     * until the backend populates the map.
+     * Driven by permissionsByModule from Role Permission Editor — the single source of truth.
+     * moduleCode is required. Omitting it returns false and emits a warning in development.
      */
     const hasPermission = useCallback((action: PermissionAction, moduleCode?: string): boolean => {
         if (!user) return false
 
-        const effectiveModule = moduleCode ?? 'user_management_users'
-        const actions = user.permissionsByModule?.[effectiveModule]
-
-        // permissionsByModule not yet available → only super_admin retains access
-        if (!actions || !Array.isArray(actions)) {
-            return user.role === 'super_admin'
+        if (!moduleCode) {
+            if (import.meta.env.DEV) {
+                console.warn('hasPermission called without moduleCode — returning false. Pass the intended module code.')
+            }
+            return false
         }
+
+        const actions = user.permissionsByModule?.[moduleCode]
+
+        if (!actions || !Array.isArray(actions)) return false
 
         return actions.includes(action)
     }, [user])

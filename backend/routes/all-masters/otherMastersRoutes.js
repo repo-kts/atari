@@ -74,6 +74,10 @@ router.post('/other-extension-activity-type',    requirePermission('all_masters_
 router.put('/other-extension-activity-type/:id', requirePermission('all_masters_other_extension_activity_master', 'EDIT'),   otherMastersController.updateOtherExtensionActivityType);
 router.delete('/other-extension-activity-type/:id', requirePermission('all_masters_other_extension_activity_master', 'DELETE'), otherMastersController.deleteOtherExtensionActivityType);
 
+// Important Day is grouped under the Events Master module (same as /events).
+// This intentional grouping mirrors the frontend routeConfig where both routes
+// share moduleCode 'all_masters_events_master', consistent with other grouped
+// masters (e.g. OFT, FLD, Products each covering multiple sub-entities).
 router.get('/important-day',     requirePermission('all_masters_events_master', 'VIEW'),   otherMastersController.getAllImportantDays);
 router.get('/important-day/:id', requirePermission('all_masters_events_master', 'VIEW'),   otherMastersController.getImportantDayById);
 router.post('/important-day',    requirePermission('all_masters_events_master', 'ADD'),    otherMastersController.createImportantDay);
@@ -84,6 +88,10 @@ router.delete('/important-day/:id', requirePermission('all_masters_events_master
 // Training Masters Routes
 // ============================================
 
+// Training Clientele and Funding Source are both grouped under the Training Master
+// module. This intentional grouping mirrors the frontend routeConfig where
+// TRAINING_TYPE, TRAINING_AREA, TRAINING_THEMATIC, TRAINING_CLIENTELE, and
+// FUNDING_SOURCE all share moduleCode 'all_masters_training_master'.
 router.get('/training-clientele',     requirePermission('all_masters_training_master', 'VIEW'),   otherMastersController.getAllTrainingClientele);
 router.get('/training-clientele/:id', requirePermission('all_masters_training_master', 'VIEW'),   otherMastersController.getTrainingClienteleById);
 router.post('/training-clientele',    requirePermission('all_masters_training_master', 'ADD'),    otherMastersController.createTrainingClientele);
