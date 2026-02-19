@@ -24,14 +24,17 @@ const { validateEmail } = require('../utils/validation.js');
  */
 async function buildPermissionsByModule(roleId, roleName, userId) {
     const permissionsByModule = await rolePermissionRepository.getRolePermissionsByModule(roleId);
-    const userActions = await userPermissionRepository.getUserPermissionActions(userId);
+    let userActions = [];
 
-    if (roleName.endsWith('_user') && userActions.length > 0) {
-        // Intersection: keep only the actions the individual user was granted
-        for (const code of Object.keys(permissionsByModule)) {
-            permissionsByModule[code] = permissionsByModule[code].filter(a => userActions.includes(a));
-            if (permissionsByModule[code].length === 0) {
-                delete permissionsByModule[code];
+    if (roleName.endsWith('_user')) {
+        userActions = await userPermissionRepository.getUserPermissionActions(userId);
+        if (userActions.length > 0) {
+            // Intersection: keep only the actions the individual user was granted
+            for (const code of Object.keys(permissionsByModule)) {
+                permissionsByModule[code] = permissionsByModule[code].filter(a => userActions.includes(a));
+                if (permissionsByModule[code].length === 0) {
+                    delete permissionsByModule[code];
+                }
             }
         }
     }

@@ -82,9 +82,14 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Season Master', moduleCode: 'all_masters_season_master' },
   { menuName: 'All Masters', subMenuName: 'Sanctioned Post Master', moduleCode: 'all_masters_sanctioned_post_master' },
   { menuName: 'All Masters', subMenuName: 'Year Master', moduleCode: 'all_masters_year_master' },
+  { menuName: 'All Masters', subMenuName: 'Staff Category Master', moduleCode: 'all_masters_staff_category_master' },
+  { menuName: 'All Masters', subMenuName: 'Pay Level Master', moduleCode: 'all_masters_pay_level_master' },
+  { menuName: 'All Masters', subMenuName: 'Discipline Master', moduleCode: 'all_masters_discipline_master' },
+  { menuName: 'All Masters', subMenuName: 'Crop Type Master', moduleCode: 'all_masters_crop_type_master' },
+  { menuName: 'All Masters', subMenuName: 'Infrastructure Master', moduleCode: 'all_masters_infrastructure_master' },
 
   // Form Management
-  { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'success_stories' },
+  { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'form_management_success_stories' },
 
   // Single-item modules (display as "—" in submenu if desired)
   { menuName: 'Module Images', subMenuName: '—', moduleCode: 'module_images' },

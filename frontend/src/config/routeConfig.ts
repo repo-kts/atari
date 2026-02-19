@@ -311,38 +311,18 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_training_master',
     },
     {
         path: ENTITY_PATHS.FUNDING_SOURCE,
         title: 'Funding Source Master',
-        category: 'All Masters',
-        subcategory: 'Training & Extension Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings:trainingBasicMastersSiblingsPaths,
-        fields: ['name'],
-    },
-
-    // Training Masters (additional)
-    {
-        path: ENTITY_PATHS.TRAINING_CLIENTELE,
-        title: 'Training Clientele Master',
         category: 'All Masters',
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['name'],
-    },
-    {
-        path: ENTITY_PATHS.FUNDING_SOURCE,
-        title: 'Funding Source Master',
-        category: 'All Masters',
-        subcategory: 'Training & Extension Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings:trainingBasicMastersSiblingsPaths,
-        fields: ['name'],
+        moduleCode: 'all_masters_training_master',
     },
 
     // Extension & Events
@@ -475,6 +455,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['categoryName'],
+        moduleCode: 'all_masters_staff_category_master',
     },
     {
         path: ENTITY_PATHS.PAY_LEVEL,
@@ -485,6 +466,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['levelName'],
+        moduleCode: 'all_masters_pay_level_master',
     },
     {
         path: ENTITY_PATHS.DISCIPLINE,
@@ -495,6 +477,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['disciplineName'],
+        moduleCode: 'all_masters_discipline_master',
     },
     {
         path: ENTITY_PATHS.SANCTIONED_POST,
@@ -505,9 +488,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['postName'],
+        moduleCode: 'all_masters_sanctioned_post_master',
     },
-
-
     {
         path: ENTITY_PATHS.SEASON,
         title: 'Season Master',
@@ -517,6 +499,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['seasonName'],
+        moduleCode: 'all_masters_season_master',
     },
     {
         path: ENTITY_PATHS.YEAR,
@@ -538,6 +521,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['typeName'],
+        moduleCode: 'all_masters_crop_type_master',
     },
     {
         path: ENTITY_PATHS.INFRASTRUCTURE_MASTER,
@@ -548,6 +532,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_infrastructure_master',
     },
     {
         path: ENTITY_PATHS.IMPORTANT_DAY,
@@ -558,36 +543,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['dayName'],
-    },
-    {
-        path: ENTITY_PATHS.CROP_TYPE,
-        title: 'Crop Type Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['typeName'],
-    },
-    {
-        path: ENTITY_PATHS.INFRASTRUCTURE_MASTER,
-        title: 'Infrastructure Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['name'],
-    },
-    {
-        path: ENTITY_PATHS.IMPORTANT_DAY,
-        title: 'Important Day Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['dayName'],
+        moduleCode: 'all_masters_events_master',
     },
 ]
 
@@ -1546,7 +1502,7 @@ export const featureRoutes: RouteConfig[] = [
         title: 'Success Stories',
         description: 'Success stories from KVKs',
         category: 'Form Management',
-        moduleCode: 'success_stories',
+        moduleCode: 'form_management_success_stories',
     },
     {
         path: '/module-images',
@@ -1651,10 +1607,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_publications',
         fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        // ],
     },
     {
         path: '/forms/achievements/soil-equipment',
@@ -1682,18 +1636,6 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: '/forms/achievements',
         moduleCode: 'achievements_soil_water_testing',
         fields: ['KVK NAME', 'No. Of Activities Conducted', 'Soil Health Cards Distributed', 'No. of VIP(s)', 'Name(s) of VIP(s) Involved', 'Total No. of Participants attended the program'],
-    },
-    {
-        path: '/forms/achievements/publications',
-        title: 'KVKs Publication Details',
-        category: 'Form Management',
-        subcategory: 'Achievements',
-        parent: '/forms/achievements',
-        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/awards/kvk',

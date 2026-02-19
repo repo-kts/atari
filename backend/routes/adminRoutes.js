@@ -8,8 +8,9 @@ const { authenticateToken, requireRole, requirePermission } = require('../middle
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
 const { getRoleLevel } = require('../constants/roleHierarchy.js');
 
-// Module code for user management (must match seed data and frontend module code)
+// Module codes (must match seed data and frontend module codes)
 const USER_MANAGEMENT_MODULE = 'user_management_users';
+const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
 
 // Apply authentication and role check to all admin routes.
 // Note: 'kvk' is included here intentionally so KVK users can access specific
@@ -76,19 +77,19 @@ router.get(
   },
 );
 
-// Get role permissions (all modules with hasPermission flags) – requires VIEW
+// Get role permissions (all modules with hasPermission flags) – requires VIEW on role_management_roles
 router.get(
   '/roles/:roleId/permissions',
   apiRateLimiter,
-  requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'),
+  requirePermission(ROLE_MANAGEMENT_MODULE, 'VIEW'),
   rolePermissionController.getRolePermissions,
 );
 
-// Update role permissions (bulk update) – requires EDIT
+// Update role permissions (bulk update) – requires EDIT on role_management_roles
 router.put(
   '/roles/:roleId/permissions',
   strictRateLimiter,
-  requirePermission(USER_MANAGEMENT_MODULE, 'EDIT'),
+  requirePermission(ROLE_MANAGEMENT_MODULE, 'EDIT'),
   rolePermissionController.updateRolePermissions,
 );
 

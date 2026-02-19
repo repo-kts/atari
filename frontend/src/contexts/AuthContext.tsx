@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, ReactNode } from 'react'
+import React, { createContext, useContext, useRef, useCallback, ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, ApiUser } from '../services/authApi'
 import { ApiError } from '../services/api'
@@ -168,7 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
      * deployed the new field) super_admin always gets access — every other role is denied
      * until the backend populates the map.
      */
-    const hasPermission = (action: PermissionAction, moduleCode?: string): boolean => {
+    const hasPermission = useCallback((action: PermissionAction, moduleCode?: string): boolean => {
         if (!user) return false
 
         const effectiveModule = moduleCode ?? 'user_management_users'
@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         return actions.includes(action)
-    }
+    }, [user])
 
     /**
      * Whether the current user can act on a target role (e.g. edit/delete another user).

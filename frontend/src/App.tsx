@@ -164,7 +164,11 @@ function AppRoutes() {
                         <Route
                             key={route.path}
                             path={route.path}
-                            element={<DynamicFormPage />}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DynamicFormPage />
+                                </ProtectedRoute>
+                            }
                         />
                     ))}
 
@@ -187,7 +191,7 @@ function AppRoutes() {
                     <Route
                         path="/forms/success-stories"
                         element={
-                            <ProtectedRoute requiredModuleCode="success_stories">
+                            <ProtectedRoute requiredModuleCode="form_management_success_stories">
                                 <FormManagement />
                             </ProtectedRoute>
                         }
@@ -204,7 +208,11 @@ function AppRoutes() {
                                 <Route
                                     key={route.path}
                                     path={route.path}
-                                    element={<Component />}
+                                    element={
+                                        <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                            <Component />
+                                        </ProtectedRoute>
+                                    }
                                 />
                             )
                         }
@@ -214,11 +222,13 @@ function AppRoutes() {
                                 key={route.path}
                                 path={route.path}
                                 element={
-                                    <DataManagementView
-                                        title={route.title}
-                                        description={route.description}
-                                        fields={route.fields}
-                                    />
+                                    <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                        <DataManagementView
+                                            title={route.title}
+                                            description={route.description}
+                                            fields={route.fields}
+                                        />
+                                    </ProtectedRoute>
                                 }
                             />
                         )

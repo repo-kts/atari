@@ -85,7 +85,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Other Masters',
                 path: '/all-master/other-masters',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_year_master'],
+                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_year_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_events_master'],
             },
         ],
     },
@@ -123,7 +123,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Success Stories',
                 path: '/forms/success-stories',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCode: 'success_stories',
+                moduleCode: 'form_management_success_stories',
             },
             {
                 label: 'Projects',
@@ -231,7 +231,7 @@ const kvkMenuItems: MenuItem[] = [
                 label: 'Success Stories',
                 path: '/forms/success-stories',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCode: 'success_stories',
+                moduleCode: 'form_management_success_stories',
             },
             {
                 label: 'Projects',
@@ -309,38 +309,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                         : item.moduleCodes
                             ? item.moduleCodes.some((code) => hasPermission('VIEW', code))
                             : hasPermission('VIEW', item.moduleCode!)
-                const hasVisibleChildren = !!children && children.length > 0
-
-                if (item.children) {
-                    // Parent / dropdown: only show if at least one child is visible.
-                    // Never show an empty section header.
-                    if (!hasVisibleChildren) continue
-                } else {
-                    // Leaf item: show only if the user has VIEW for this item.
-                    if (!hasViewForItem) continue
-                }
-
-                result.push({ ...item, children })
-            }
-
-            return result
-        }
-
-        return filterList(rawMenuItems)
-    }, [rawMenuItems, hasPermission])
-
-    // Filter menu items based on VIEW permission where moduleCode is defined
-    const menuItems = React.useMemo(() => {
-        const filterList = (items: MenuItem[]): MenuItem[] => {
-            const result: MenuItem[] = []
-
-            for (const item of items) {
-                let children: MenuItem[] | undefined
-                if (item.children) {
-                    children = filterList(item.children)
-                }
-
-                const hasViewForItem = !item.moduleCode || hasPermission('VIEW', item.moduleCode)
                 const hasVisibleChildren = !!children && children.length > 0
 
                 if (item.children) {
