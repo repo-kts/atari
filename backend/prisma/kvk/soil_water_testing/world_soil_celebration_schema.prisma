@@ -1,0 +1,26 @@
+model KkvWorldSoilCelebration {
+    worldSoilCelebrationId Int @id @default(autoincrement()) @map("world_soil_celebration_id")
+
+    kvkId Int
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+    activitiesConducted Int @map("activities_conducted")
+    soilHealthCardDistributed Int @map("soil_health_card_distributed")
+    vipNames String @map("vip_names")
+    participants Int @map("participants")
+
+    generalM Int @map("general_m")
+    generalF Int @map("general_f")
+
+    obcM Int @map("obc_m")
+    obcF Int @map("obc_f")
+
+    scM Int @map("sc_m")
+    scF Int @map("sc_f")
+
+    stM Int @map("st_m")
+    stF Int @map("st_f")
+
+    @@index([kvkId])
+    @@map("kvk_world_soil_celebration")
+}

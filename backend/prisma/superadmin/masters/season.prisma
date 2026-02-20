@@ -10,6 +10,7 @@ model Season {
   kvkBudgetUtilizations      KvkBudgetUtilization[]
   extensionActivityOrganized ExtensionActivityOrganized[]
   cfldTechnicalParameters    CfldTechnicalParameter[]
+  kvkOfts  Kvkoft[]
 
   @@index([seasonId])
   @@index([seasonName])

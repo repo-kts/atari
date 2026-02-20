@@ -1,0 +1,30 @@
+model SoilWaterAnalysis {
+  soilWaterAnalysisId Int    @id @default(autoincrement()) @map("soil_water_analysis_id")
+  analysisName        String @unique @map("analysis_name")
+
+  equipments KkvSoilWaterEquipment[]
+  analysis KkvSoilWaterAnalysis[]
+
+  @@map("soil_water_analysis")
+}
+
+
+model KkvSoilWaterEquipment {
+  soilWaterEquipmentId Int @id @default(autoincrement()) @map("soil_water_equipment_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  soilWaterAnalysisId Int
+  soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [soilWaterAnalysisId], references: [soilWaterAnalysisId])
+
+  equipmentName String @map("equipment_name")
+  quantity Int @map("quantity")
+
+  @@index([kvkId])
+  @@index([soilWaterAnalysisId])
+
+  @@map("kvk_soil_water_equipment")
+}

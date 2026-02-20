@@ -5,6 +5,7 @@ model Discipline {
   disciplineName String @unique @map("discipline_name")
 
   staff KvkStaff[]
+  kvkOfts  Kvkoft[]
 
   @@map("discipline")
 }
