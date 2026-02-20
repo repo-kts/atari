@@ -12,6 +12,7 @@ model Role {
   roleId          Int              @id @default(autoincrement()) @map("role_id")
   roleName        String           @map("role_name")
   description     String?
+  hierarchyLevel  Int?             @map("hierarchy_level")
   rolePermissions RolePermission[]
   users           User[]
 
@@ -102,6 +103,7 @@ model User {
   district        DistrictMaster?    @relation(fields: [districtId], references: [districtId])
   org             OrgMaster?         @relation(fields: [orgId], references: [orgId])
   university      UniversityMaster?  @relation(fields: [universityId], references: [universityId])
+  kvk             Kvk?               @relation(fields: [kvkId], references: [kvkId])
   role            Role               @relation(fields: [roleId], references: [roleId])
   state           StateMaster?       @relation(fields: [stateId], references: [stateId])
   zone            Zone?              @relation(fields: [zoneId], references: [zoneId])

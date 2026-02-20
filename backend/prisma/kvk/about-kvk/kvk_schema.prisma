@@ -52,6 +52,7 @@ model Kvk {
   kvkBudgetUtilizations        KvkBudgetUtilization[]
   extensionActivityOrganized   ExtensionActivityOrganized[]
   cfldTechnicalParameters      CfldTechnicalParameter[]
+  users                        User[]
 
   @@index([zoneId])
   @@index([stateId])

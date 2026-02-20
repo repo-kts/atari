@@ -19,6 +19,9 @@ export interface RouteConfig {
     fields?: string[]
     // Authorization: which roles can create new items (undefined = all roles can create)
     canCreate?: UserRole[] | 'none'
+    // Optional module code for Role Permission-based access control
+    // (matches backend seedModulesForRolePermissions MODULES.moduleCode)
+    moduleCode?: string
     // Optional component to render instead of DataManagementView
     component?: React.ComponentType<any>
     // Optional mock data for prototyping
@@ -121,6 +124,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
         fields: ['zoneName'],
+        moduleCode: 'all_masters_zone_master',
     },
     {
         path: ENTITY_PATHS.STATES,
@@ -131,6 +135,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
         fields: ['zoneName', 'stateName'],
+        moduleCode: 'all_masters_states_master',
     },
     {
         path: ENTITY_PATHS.ORGANIZATIONS,
@@ -141,6 +146,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
         fields: ['zoneName', 'stateName', 'districtName', 'orgName'],
+        moduleCode: 'all_masters_organization_master',
     },
     {
         path: ENTITY_PATHS.UNIVERSITIES,
@@ -151,6 +157,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: basicMastersPaths,
         fields: ['organization.orgName', 'universityName'],
+        moduleCode: 'all_masters_university_master',
     },
     {
         path: ENTITY_PATHS.DISTRICTS,
@@ -161,6 +168,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.BASIC_MASTERS,
         siblings: basicMastersPaths,
         fields: ['zoneName', 'stateName', 'districtName'],
+        moduleCode: 'all_masters_districts_master',
     },
 
     // OFT Masters
@@ -173,6 +181,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftMastersPaths,
         fields: ['subjectName', 'thematicAreasCount'],
+        moduleCode: 'all_masters_oft_master',
     },
     {
         path: ENTITY_PATHS.OFT_THEMATIC_AREA,
@@ -183,6 +192,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: oftMastersPaths,
         fields: ['thematicAreaName', 'subjectName'],
+        moduleCode: 'all_masters_oft_master',
     },
 
     // FLD Masters
@@ -195,6 +205,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: fldMastersPaths,
         fields: ['sectorName', 'categoriesCount'],
+        moduleCode: 'all_masters_fld_master',
     },
     {
         path: ENTITY_PATHS.FLD_THEMATIC_AREA,
@@ -205,6 +216,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: fldMastersPaths,
         fields: ['thematicAreaName', 'sectorName'],
+        moduleCode: 'all_masters_fld_master',
     },
     {
         path: ENTITY_PATHS.FLD_CATEGORY,
@@ -215,6 +227,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: fldMastersPaths,
         fields: ['categoryName', 'sectorName', 'subCategoriesCount'],
+        moduleCode: 'all_masters_fld_master',
     },
     {
         path: ENTITY_PATHS.FLD_SUBCATEGORY,
@@ -225,6 +238,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: fldMastersPaths,
         fields: ['subCategoryName', 'categoryName', 'sectorName', 'cropsCount'],
+        moduleCode: 'all_masters_fld_master',
     },
     {
         path: ENTITY_PATHS.FLD_CROP,
@@ -235,6 +249,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: fldMastersPaths,
         fields: ['cropName', 'subCategoryName', 'categoryName'],
+        moduleCode: 'all_masters_fld_master',
     },
 
     // CFLD Masters
@@ -247,6 +262,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
         siblings: cfldMastersPaths,
         fields: ['seasonName', 'cropTypeName', 'cropName'],
+        moduleCode: 'all_masters_cfld_master',
     },
 
 
@@ -260,6 +276,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['trainingType'],
+        moduleCode: 'all_masters_training_master',
     },
     {
         path: ENTITY_PATHS.TRAINING_AREA,
@@ -270,6 +287,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['trainingType', 'trainingAreaName'],
+        moduleCode: 'all_masters_training_master',
     },
     {
         path: ENTITY_PATHS.TRAINING_THEMATIC,
@@ -280,6 +298,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['trainingAreaName', 'trainingThematicArea'],
+        moduleCode: 'all_masters_training_master',
     },
 
     // Training Masters (additional)
@@ -292,6 +311,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingBasicMastersSiblingsPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_training_master',
     },
     {
         path: ENTITY_PATHS.FUNDING_SOURCE,
@@ -300,8 +320,9 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings:trainingBasicMastersSiblingsPaths,
+        siblings: trainingBasicMastersSiblingsPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_training_master',
     },
 
     // Extension & Events
@@ -314,6 +335,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersSiblingsPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_extension_activity_master',
     },
     {
         path: ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
@@ -324,6 +346,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: trainingExtensionMastersSiblingsPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_other_extension_activity_master',
     },
     {
         path: ENTITY_PATHS.EVENTS,
@@ -334,6 +357,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: [],
         fields: ['eventName'],
+        moduleCode: 'all_masters_events_master',
     },
 
     // Production - Product Masters
@@ -346,6 +370,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productMastersPaths,
         fields: ['productCategoryName'],
+        moduleCode: 'all_masters_products_master',
     },
     {
         path: ENTITY_PATHS.PRODUCT_TYPE,
@@ -356,6 +381,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productMastersPaths,
         fields: ['productCategoryName', 'productCategoryType'],
+        moduleCode: 'all_masters_products_master',
     },
     {
         path: ENTITY_PATHS.PRODUCT,
@@ -366,6 +392,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: productMastersPaths,
         fields: ['productCategoryName', 'productCategoryType', 'productName'],
+        moduleCode: 'all_masters_products_master',
     },
 
     // CRA Masters
@@ -378,6 +405,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: craMastersPaths,
         fields: ['seasonName', 'cropName'],
+        moduleCode: 'all_masters_climate_master',
     },
     {
         path: ENTITY_PATHS.CRA_FARMING_SYSTEM,
@@ -388,6 +416,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: craMastersPaths,
         fields: ['seasonName', 'farmingSystemName'],
+        moduleCode: 'all_masters_climate_master',
     },
 
     // ARYA Masters
@@ -400,6 +429,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
         siblings: aryaMastersPaths,
         fields: ['enterpriseName'],
+        moduleCode: 'all_masters_arya_master',
     },
 
     // Publications
@@ -412,6 +442,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.PUBLICATIONS_MASTERS,
         siblings: [ENTITY_PATHS.PUBLICATION_ITEM],
         fields: ['publicationItem'],
+        moduleCode: 'all_masters_publication_master',
     },
 
     // Other Masters
@@ -424,6 +455,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['categoryName'],
+        moduleCode: 'all_masters_staff_category_master',
     },
     {
         path: ENTITY_PATHS.PAY_LEVEL,
@@ -434,6 +466,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['levelName'],
+        moduleCode: 'all_masters_pay_level_master',
     },
     {
         path: ENTITY_PATHS.DISCIPLINE,
@@ -444,6 +477,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['disciplineName'],
+        moduleCode: 'all_masters_discipline_master',
     },
     {
         path: ENTITY_PATHS.SANCTIONED_POST,
@@ -454,9 +488,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: employeeMastersPaths,
         fields: ['postName'],
+        moduleCode: 'all_masters_sanctioned_post_master',
     },
-
-
     {
         path: ENTITY_PATHS.SEASON,
         title: 'Season Master',
@@ -466,6 +499,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['seasonName'],
+        moduleCode: 'all_masters_season_master',
     },
     {
         path: ENTITY_PATHS.YEAR,
@@ -476,6 +510,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['yearName'],
+        moduleCode: 'all_masters_year_master',
     },
     {
         path: ENTITY_PATHS.CROP_TYPE,
@@ -486,6 +521,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['typeName'],
+        moduleCode: 'all_masters_crop_type_master',
     },
     {
         path: ENTITY_PATHS.INFRASTRUCTURE_MASTER,
@@ -496,6 +532,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['name'],
+        moduleCode: 'all_masters_infrastructure_master',
     },
     {
         path: ENTITY_PATHS.IMPORTANT_DAY,
@@ -506,6 +543,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
         siblings: otherMastersPaths,
         fields: ['dayName'],
+        moduleCode: 'all_masters_events_master',
     },
 ]
 
@@ -522,6 +560,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         parent: '/forms/about-kvk',
         fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'yearOfSanction'],
         canCreate: ['super_admin'], // Only super_admin can create KVKs
+        moduleCode: 'about_kvks_view_kvks',
     },
     {
         path: ENTITY_PATHS.KVK_BANK_ACCOUNT,
@@ -538,6 +577,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_bank_account_details',
     },
     {
         path: ENTITY_PATHS.KVK_EMPLOYEES,
@@ -554,6 +594,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionedPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_employee_details',
     },
     {
         path: ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
@@ -570,6 +611,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName'],
         canCreate: 'none',
+        moduleCode: 'about_kvks_staff_details',
     },
     {
         path: ENTITY_PATHS.KVK_INFRASTRUCTURE,
@@ -586,6 +628,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvk', 'infraMasterName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_infrastructure_details',
     },
 
     // Vehicles - siblings
@@ -602,6 +645,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost', 'totalRun', 'presentStatus'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_vehicle_details',
     },
     {
         path: ENTITY_PATHS.KVK_VEHICLE_DETAILS,
@@ -616,6 +660,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'reportingYear', 'presentStatus'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_vehicle_details',
     },
     // Equipments - siblings
     {
@@ -631,6 +676,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_equipment_details',
     },
     {
         path: ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
@@ -645,6 +691,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'reportingYear', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_equipment_details',
     },
     // Farm Implements
     {
@@ -656,6 +703,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         parent: '/forms/about-kvk',
         fields: ['kvkName', 'implementName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
         canCreate: ['kvk'],
+        moduleCode: 'about_kvks_farm_implement_details',
     },
     // Add Staff (sub-route) - REMOVED placeholder
 
@@ -670,6 +718,7 @@ export const viewKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
+        moduleCode: 'about_kvks_view_kvks',
     },
     {
         path: ENTITY_PATHS.KVK_VIEW_DETAILS,
@@ -685,6 +734,7 @@ export const viewKvkRoutes: RouteConfig[] = [
             '/forms/about-kvk/view-kvks/:id/vehicles',
             '/forms/about-kvk/view-kvks/:id/equipments',
         ],
+        moduleCode: 'about_kvks_view_kvks',
     },
     {
         path: '/forms/about-kvk/view-kvks/:id/bank',
@@ -700,6 +750,7 @@ export const viewKvkRoutes: RouteConfig[] = [
             '/forms/about-kvk/view-kvks/:id/vehicles',
             '/forms/about-kvk/view-kvks/:id/equipments',
         ],
+        moduleCode: 'about_kvks_bank_account_details',
     },
     {
         path: '/forms/about-kvk/view-kvks/:id/employees',
@@ -715,6 +766,7 @@ export const viewKvkRoutes: RouteConfig[] = [
             '/forms/about-kvk/view-kvks/:id/vehicles',
             '/forms/about-kvk/view-kvks/:id/equipments',
         ],
+        moduleCode: 'about_kvks_employee_details',
     },
     {
         path: '/forms/about-kvk/view-kvks/:id/vehicles',
@@ -730,6 +782,7 @@ export const viewKvkRoutes: RouteConfig[] = [
             '/forms/about-kvk/view-kvks/:id/vehicles',
             '/forms/about-kvk/view-kvks/:id/equipments',
         ],
+        moduleCode: 'about_kvks_vehicle_details',
     },
     {
         path: '/forms/about-kvk/view-kvks/:id/equipments',
@@ -745,6 +798,7 @@ export const viewKvkRoutes: RouteConfig[] = [
             '/forms/about-kvk/view-kvks/:id/vehicles',
             '/forms/about-kvk/view-kvks/:id/equipments',
         ],
+        moduleCode: 'about_kvks_equipment_details',
     },
 ]
 
@@ -758,6 +812,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -771,6 +826,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -784,6 +840,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -799,6 +856,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'CRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/cra/details',
             '/forms/achievements/projects/cra/extension-activity'
@@ -811,6 +869,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'CRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/cra/details',
             '/forms/achievements/projects/cra/extension-activity'
@@ -825,6 +884,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -837,6 +897,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -851,6 +912,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'DRMR',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/drmr/details',
             '/forms/achievements/projects/drmr/activity'
@@ -863,6 +925,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'DRMR',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/drmr/details',
             '/forms/achievements/projects/drmr/activity'
@@ -877,6 +940,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -892,6 +956,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -907,6 +972,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -922,6 +988,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -937,6 +1004,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -954,6 +1022,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -966,6 +1035,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -979,7 +1049,8 @@ export const projectsRoutes: RouteConfig[] = [
         description: 'Cereal Systems Initiative for South Asia',
         category: 'Projects',
         subcategory: 'CSISA',
-        parent: '/forms/achievements/projects'
+        parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
     },
     {
         path: '/forms/achievements/projects/sub-plan-activity',
@@ -987,7 +1058,8 @@ export const projectsRoutes: RouteConfig[] = [
         description: 'Tribal Sub Plan / Scheduled Caste Sub Plan',
         category: 'Projects',
         subcategory: 'TSP/SCSP',
-        parent: '/forms/achievements/projects'
+        parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
     },
 
     // NICRA
@@ -998,6 +1070,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1012,6 +1085,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1026,6 +1100,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1040,6 +1115,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1056,6 +1132,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1074,6 +1151,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1092,6 +1170,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1110,6 +1189,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1128,6 +1208,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1146,6 +1227,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1164,6 +1246,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1182,6 +1265,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'NICRA Others',
         parent: '/forms/achievements/projects/nicra',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/nicra/others/intervention',
             '/forms/achievements/projects/nicra/others/revenue-generated',
@@ -1202,6 +1286,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1219,6 +1304,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1236,6 +1322,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1253,6 +1340,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1270,6 +1358,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1287,6 +1376,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1304,6 +1394,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1323,6 +1414,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Agri-Drone',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/agri-drone',
             '/forms/achievements/projects/demonstration-details'
@@ -1335,6 +1427,7 @@ export const projectsRoutes: RouteConfig[] = [
         category: 'Projects',
         subcategory: 'Agri-Drone',
         parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
         siblings: [
             '/forms/achievements/projects/agri-drone',
             '/forms/achievements/projects/demonstration-details'
@@ -1348,7 +1441,8 @@ export const projectsRoutes: RouteConfig[] = [
         description: 'Seed Hub Program details',
         category: 'Projects',
         subcategory: 'Seed Hub',
-        parent: '/forms/achievements/projects'
+        parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
     },
     {
         path: '/forms/achievements/other-program',
@@ -1356,7 +1450,8 @@ export const projectsRoutes: RouteConfig[] = [
         description: 'Other programmes organized by KVK',
         category: 'Projects',
         subcategory: 'Other',
-        parent: '/forms/achievements/projects'
+        parent: '/forms/achievements/projects',
+        moduleCode: 'achievements_projects',
     },
 ]
 
@@ -1367,12 +1462,14 @@ export const adminManagementRoutes: RouteConfig[] = [
         title: 'Role Management',
         description: 'Manage system roles and permissions',
         category: 'Admin',
+        moduleCode: 'role_management_roles',
     },
     {
         path: '/view-users',
         title: 'User Management',
         description: 'Manage system users',
         category: 'Admin',
+        moduleCode: 'user_management_users',
     },
     {
         path: '/role-view/:roleId/permissions',
@@ -1380,40 +1477,53 @@ export const adminManagementRoutes: RouteConfig[] = [
         description: 'Edit role permissions',
         category: 'Admin',
         parent: '/role-view',
+        moduleCode: 'role_management_roles',
     },
     {
         path: '/view-log-history',
         title: 'Log History',
         description: 'View system activity logs',
         category: 'Admin',
+        moduleCode: 'log_history',
     },
     {
         path: '/view-email-notifications',
         title: 'Notifications',
         description: 'Manage email notifications',
         category: 'Admin',
+        moduleCode: 'notifications',
     },
 ]
 
 // Feature Routes
 export const featureRoutes: RouteConfig[] = [
     {
+        path: '/forms/success-stories',
+        title: 'Success Stories',
+        description: 'Success stories from KVKs',
+        category: 'Form Management',
+        moduleCode: 'form_management_success_stories',
+    },
+    {
         path: '/module-images',
         title: 'Module Images',
         description: 'Manage module images and media assets',
         category: 'Features',
+        moduleCode: 'module_images',
     },
     {
         path: '/targets',
         title: 'Targets',
         description: 'View and manage system targets',
         category: 'Features',
+        moduleCode: 'targets',
     },
     {
         path: '/all-reports',
         title: 'Reports',
         description: 'View and generate system reports',
         category: 'Features',
+        moduleCode: 'reports',
     },
 ]
 
@@ -1425,11 +1535,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_oft',
         fields: ['Reporting Year', 'KVK Name', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/fld',
@@ -1437,11 +1544,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_fld',
         fields: ['Reporting Year', 'Start Date', 'End Date', 'KVK Name', 'Category', 'Sub-Category', 'Name of Technnology Demonstrated', 'Ongoing/Completed'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/trainings',
@@ -1449,11 +1553,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_trainings',
         fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Training Program', 'Training Title', 'Venue', 'Training Discipline', 'Thematic Area'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2026', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/extension-activities',
@@ -1461,11 +1562,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_extension_activities',
         fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Name of Extension activities', 'No. of Activities', 'No. of Participants'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/other-extension',
@@ -1473,11 +1571,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_other_extension_activities',
         fields: ['s.no', 'Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/technology-week',
@@ -1485,11 +1580,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_technology_week_celebration',
         fields: ['Start Date', 'End Date', 'KVK', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/celebration-days',
@@ -1497,11 +1589,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_celebration_days',
         fields: ['KVK Name', 'Important Dates', 'Event Date', 'No. of Activities'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/production-supply',
@@ -1509,11 +1598,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_production_supply_tech_products',
         fields: ['KVK Name', 'Category', 'Variety', 'Quantity'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/publications',
@@ -1521,10 +1607,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_publications',
         fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        // ],
     },
     {
         path: '/forms/achievements/soil-equipment',
@@ -1532,11 +1616,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_soil_water_testing',
         fields: ['KVK Name', 'Analysis', 'Equipment Name', 'Quantity'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/soil-analysis',
@@ -1544,11 +1625,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_soil_water_testing',
         fields: ['KVK NAME', 'Start Date', 'End Date', 'Analysis', 'No. of samples Analyzed', 'No. of Villages Covered', 'Amount Released'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/world-soil-day',
@@ -1556,23 +1634,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_soil_water_testing',
         fields: ['KVK NAME', 'No. Of Activities Conducted', 'Soil Health Cards Distributed', 'No. of VIP(s)', 'Name(s) of VIP(s) Involved', 'Total No. of Participants attended the program'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
-    },
-    {
-        path: '/forms/achievements/publications',
-        title: 'Publications',
-        category: 'Form Management',
-        subcategory: 'Achievements',
-        parent: '/forms/achievements',
-        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal name'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/awards/kvk',
@@ -1580,6 +1643,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_award_recognition',
         fields: ['KVK Name', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
@@ -1592,6 +1656,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_award_recognition',
         fields: ['KVK Name', 'Head Scientist', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
@@ -1604,11 +1669,8 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_award_recognition',
         fields: ['KVK Name', 'Farmer Name', 'Address', 'Contact Number', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
     },
     {
         path: '/forms/achievements/hrd',
@@ -1616,11 +1678,9 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
+        moduleCode: 'achievements_hrd',
         fields: ['KVK Name', 'Staff', 'Course', 'Start Date', 'End Date', 'Organizer'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        
     },
 ]
 // export const achievementsRoutes2: RouteConfig[] = [
@@ -1690,6 +1750,12 @@ export const getRouteConfig = (path: string): RouteConfig | undefined => {
     // Try prefix matching for nested routes
     config = allRoutes.find(r => path.startsWith(r.path + '/'))
     return config
+}
+
+/** Get module code for a path (for permission-based visibility). Returns undefined if no moduleCode. */
+export const getModuleCodeForPath = (path: string): string | undefined => {
+    const config = getRouteConfig(path)
+    return config?.moduleCode
 }
 
 export const getRoutesByCategory = (category: string): RouteConfig[] => {

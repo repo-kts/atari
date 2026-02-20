@@ -13,6 +13,7 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'States Master', moduleCode: 'all_masters_states_master' },
   { menuName: 'All Masters', subMenuName: 'Organization Master', moduleCode: 'all_masters_organization_master' },
   { menuName: 'All Masters', subMenuName: 'Districts Master', moduleCode: 'all_masters_districts_master' },
+  { menuName: 'All Masters', subMenuName: 'University Master', moduleCode: 'all_masters_university_master' },
   { menuName: 'All Masters', subMenuName: 'OFT Master', moduleCode: 'all_masters_oft_master' },
   { menuName: 'All Masters', subMenuName: 'FLD Master', moduleCode: 'all_masters_fld_master' },
   { menuName: 'All Masters', subMenuName: 'CFLD Master', moduleCode: 'all_masters_cfld_master' },
@@ -77,6 +78,19 @@ const MODULES = [
   // Meetings
   { menuName: 'Meetings', subMenuName: 'Details of Scientific Advisory Committee(SAC) Meetings', moduleCode: 'meetings_sac' },
   { menuName: 'Meetings', subMenuName: 'Details of Other Meeting Related to ATARI', moduleCode: 'meetings_other_atari' },
+  // Other Masters (used in All Masters > Other Masters section)
+  { menuName: 'All Masters', subMenuName: 'Season Master', moduleCode: 'all_masters_season_master' },
+  { menuName: 'All Masters', subMenuName: 'Sanctioned Post Master', moduleCode: 'all_masters_sanctioned_post_master' },
+  { menuName: 'All Masters', subMenuName: 'Year Master', moduleCode: 'all_masters_year_master' },
+  { menuName: 'All Masters', subMenuName: 'Staff Category Master', moduleCode: 'all_masters_staff_category_master' },
+  { menuName: 'All Masters', subMenuName: 'Pay Level Master', moduleCode: 'all_masters_pay_level_master' },
+  { menuName: 'All Masters', subMenuName: 'Discipline Master', moduleCode: 'all_masters_discipline_master' },
+  { menuName: 'All Masters', subMenuName: 'Crop Type Master', moduleCode: 'all_masters_crop_type_master' },
+  { menuName: 'All Masters', subMenuName: 'Infrastructure Master', moduleCode: 'all_masters_infrastructure_master' },
+
+  // Form Management
+  { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'form_management_success_stories' },
+
   // Single-item modules (display as "—" in submenu if desired)
   { menuName: 'Module Images', subMenuName: '—', moduleCode: 'module_images' },
   { menuName: 'Targets', subMenuName: '—', moduleCode: 'targets' },

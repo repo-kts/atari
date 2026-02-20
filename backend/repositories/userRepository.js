@@ -28,6 +28,7 @@ const userRepository = {
         state: true,
         district: true,
         org: true,
+        kvk: true,
       },
     });
   },
@@ -74,6 +75,7 @@ const userRepository = {
         state: true,
         district: true,
         org: true,
+        kvk: true,
       },
     });
   },
@@ -91,6 +93,7 @@ const userRepository = {
         state: true,
         district: true,
         org: true,
+        kvk: true,
       },
     });
   },
@@ -125,6 +128,7 @@ const userRepository = {
         state: true,
         district: true,
         org: true,
+        kvk: true,
       },
       orderBy: { userId: 'asc' },
     });
@@ -174,6 +178,7 @@ const userRepository = {
         state: true,
         district: true,
         org: true,
+        kvk: true,
       },
       orderBy: { userId: 'asc' },
     });

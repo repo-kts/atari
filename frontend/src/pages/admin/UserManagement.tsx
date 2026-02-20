@@ -33,7 +33,7 @@ interface User {
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { hasPermission } = useAuth()
+    const { hasPermission, canActOnRole } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
@@ -62,11 +62,11 @@ export const UserManagement: React.FC = () => {
 
     const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to load users') : null
 
-    // Granular permissions (VIEW = list/detail, ADD = create, EDIT = update, DELETE = delete)
-    const canCreateUsers = hasPermission('ADD')
-    const canEditUser = hasPermission('EDIT')
-    const canDeleteUser = hasPermission('DELETE')
-    const showActionsColumn = canEditUser || canDeleteUser
+    // Granular permissions from Role Permission Editor (user_management_users module)
+    const canCreateUsers = hasPermission('ADD', 'user_management_users')
+    const canEditUser = hasPermission('EDIT', 'user_management_users')
+    const canDeleteUser = hasPermission('DELETE', 'user_management_users')
+    const showActionsColumn = (canEditUser || canDeleteUser) && users.some(u => canActOnRole(u.roleName))
 
     // Handle delete user
     const handleDelete = async (userId: number) => {
@@ -268,7 +268,7 @@ export const UserManagement: React.FC = () => {
                                                 {showActionsColumn && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                         <div className="flex items-center justify-end gap-2">
-                                                            {hasPermission('EDIT', user.roleName) && (
+                                                            {canEditUser && canActOnRole(user.roleName) && (
                                                                 <button
                                                                     onClick={() => {
                                                                         alert({
@@ -284,7 +284,7 @@ export const UserManagement: React.FC = () => {
                                                                     <Edit className="w-4 h-4" />
                                                                 </button>
                                                             )}
-                                                            {hasPermission('DELETE', user.roleName) && (
+                                                            {canDeleteUser && canActOnRole(user.roleName) && (
                                                                 <button
                                                                     onClick={() => handleDelete(user.userId)}
                                                                     disabled={deleteUserMutation.isPending}

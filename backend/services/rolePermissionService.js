@@ -4,9 +4,68 @@ const userRepository = require('../repositories/userRepository.js');
 const { outranks, outranksOrEqual } = require('../constants/roleHierarchy.js');
 
 /**
+ * Normalize role name to snake_case (lowercase, spaces to underscores)
+ */
+function normalizeRoleName(name) {
+  return String(name)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '');
+}
+
+/**
  * Service layer for role permission management
  */
 const rolePermissionService = {
+  /**
+   * Create a new role (super_admin only).
+   * @param {string} roleName - Role name (will be normalized to snake_case)
+   * @param {string} [description] - Optional description
+   * @param {number} [hierarchyLevel] - Hierarchy level (0=highest, 9=lowest). Required for custom roles.
+   * @returns {Promise<{ roleId: number; roleName: string; description: string | null }>}
+   * @throws {Error} If validation fails or role already exists
+   */
+  createRole: async (roleName, description = null, hierarchyLevel = 9) => {
+    const normalized = normalizeRoleName(roleName);
+    if (!normalized) {
+      throw new Error('Role name is required and cannot be empty');
+    }
+
+    const existing = await prisma.role.findFirst({
+      where: { roleName: normalized },
+    });
+    if (existing) {
+      throw new Error(`Role "${normalized}" already exists`);
+    }
+
+    const level = Number(hierarchyLevel);
+    if (!Number.isInteger(level) || level < 0 || level > 9) {
+      throw new Error('Hierarchy level must be an integer between 0 (highest) and 9 (lowest)');
+    }
+
+    let role;
+    try {
+      role = await prisma.role.create({
+        data: {
+          roleName: normalized,
+          description: description ? String(description).trim() || null : null,
+          hierarchyLevel: level,
+        },
+      });
+    } catch (err) {
+      if (err?.code === 'P2002') {
+        throw new Error(`Role "${normalized}" already exists`);
+      }
+      throw err;
+    }
+    return {
+      roleId: role.roleId,
+      roleName: role.roleName,
+      description: role.description,
+    };
+  },
+
   /**
    * Get all modules with permissions for a role (annotated with hasPermission).
    * @param {number} roleId - Role ID
@@ -27,7 +86,7 @@ const rolePermissionService = {
       const callerRole = caller.role.roleName;
       // Only super_admin can view any role's permissions; others must outrank or equal
       if (callerRole !== 'super_admin') {
-        if (!outranksOrEqual(callerRole, role.roleName)) {
+        if (!outranksOrEqual(callerRole, role)) {
           throw new Error('You can only view permissions for roles at your level or below');
         }
       }
@@ -64,7 +123,7 @@ const rolePermissionService = {
     const callerRole = caller.role.roleName;
     // Only super_admin can edit any role's permissions; others must outrank or equal
     if (callerRole !== 'super_admin') {
-      if (!outranksOrEqual(callerRole, role.roleName)) {
+      if (!outranksOrEqual(callerRole, role)) {
         throw new Error('You can only edit permissions for roles at your level or below');
       }
     }
