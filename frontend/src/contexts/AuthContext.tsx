@@ -150,14 +150,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return result.data != null
     }
 
-    const hasRole = (role: UserRole | UserRole[]): boolean => {
+    const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
         if (!user) return false
 
         if (Array.isArray(role)) {
             return role.includes(user.role)
         }
         return user.role === role
-    }
+    }, [user])
 
     /**
      * Check if the current user has permission for a given action in a module.
