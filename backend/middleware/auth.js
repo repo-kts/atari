@@ -1,4 +1,4 @@
-const { verifyToken } = require('../utils/jwt.js');
+const { verifyToken, decodePermissions } = require('../utils/jwt.js');
 const prisma = require('../config/prisma.js');
 
 /**
@@ -32,14 +32,16 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
-    // Attach user info to request object
+    // Attach user info to request object.
+    // Decode bitmask permissions back to string arrays so requirePermission
+    // and all downstream consumers see the familiar { moduleCode: ['VIEW', ...] } format.
     req.user = {
       userId: user.userId,
       email: user.email,
       name: user.name,
       roleId: decoded.roleId,
       roleName: decoded.roleName,
-      permissionsByModule: decoded.permissions || {},
+      permissionsByModule: decodePermissions(decoded.permissions),
       zoneId: user.zoneId,
       stateId: user.stateId,
       districtId: user.districtId,
@@ -100,6 +102,9 @@ function requirePermission(moduleCode, action) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
+    // super_admin has unrestricted access to every module
+    if (req.user.roleName === 'super_admin') return next();
+
     const modulePerms = req.user.permissionsByModule?.[moduleCode];
     if (!modulePerms?.includes(normalizedAction)) {
       return res.status(403).json({
@@ -126,6 +131,8 @@ function requireAnyPermission(moduleCodes, action) {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
+
+    if (req.user.roleName === 'super_admin') return next();
 
     const hasAny = moduleCodes.some((code) =>
       req.user.permissionsByModule?.[code]?.includes(normalizedAction)

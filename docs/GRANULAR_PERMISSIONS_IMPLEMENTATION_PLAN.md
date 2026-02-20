@@ -136,10 +136,15 @@ Effective permissionsByModule:
 
 ## Phase 4: Super Admin and seeding
 
-- **Super Admin:** `getCurrentUser` treats `super_admin` like any other role — it calls `getRolePermissionsByModule(roleId)` and returns `permissionsByModule`. No runtime bypass. Full access is guaranteed by seeding the `super_admin` role with all modules × all actions, so the Role Permission Editor remains the single source of truth for every role.
+- **JWT cookie size constraint — bitmask encoding:** Browsers silently reject `Set-Cookie` headers exceeding ~4 KB. With 74+ modules, the permissions payload would overflow the cookie. Fix: `generateAccessToken` in `jwt.js` encodes permissions as a bitmask integer per module (`VIEW=1, ADD=2, EDIT=4, DELETE=8`), cutting payload by ~50%. `authenticateToken` in `auth.js` decodes the bitmask back to `string[]` format so `requirePermission` and all downstream consumers are unchanged. Legacy tokens with string arrays are handled transparently.
+- **Super Admin:** `buildPermissionsByModule()` in `authService.js` returns an **empty** map for `super_admin` (skips the DB query entirely). Full access is enforced by explicit bypasses:
+  - **Backend:** `requirePermission` and `requireAnyPermission` in `auth.js` — `if (req.user.roleName === 'super_admin') return next()`.
+  - **Frontend:** `hasPermission` in `AuthContext.tsx` — `if (user.role === 'super_admin') return true`.
+  - The `roleName` in the JWT is the trusted source for the bypass; no separate permissions payload is needed.
+- **Super Admin in Role Permission Editor:** `seedSuperAdminPermissions.js` still assigns every permission to `super_admin` in the database so that the Role Editor UI shows a complete matrix. These DB rows are authoritative for the Role Editor display but are **not** loaded into the JWT.
 - **Seeding:** Run scripts in this order:
   1. `seedModulesForRolePermissions.js` — creates all modules and their four actions (VIEW/ADD/EDIT/DELETE).
-  2. `seedSuperAdminPermissions.js` — assigns every permission to the `super_admin` role.
+  2. `seedSuperAdminPermissions.js` — assigns every permission to the `super_admin` role (for Role Editor display).
   3. `seedAllRolePermissions.js` or configure other roles manually via the Role Editor.
 
 ---

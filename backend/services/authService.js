@@ -23,6 +23,15 @@ const { validateEmail } = require('../utils/validation.js');
  * @returns {{ permissionsByModule: Record<string, string[]>, userActions: string[] }}
  */
 async function buildPermissionsByModule(roleId, roleName, userId) {
+    // super_admin bypass: skip the DB query and return an empty permissions map.
+    // The middleware (requirePermission/requireAnyPermission in auth.js) and the
+    // frontend (hasPermission in AuthContext) grant super_admin unrestricted access
+    // via roleName, so the map is never consulted. This also avoids an unnecessary
+    // getRolePermissionsByModule query on every super_admin login/refresh.
+    if (roleName === 'super_admin') {
+        return { permissionsByModule: {}, userActions: [] };
+    }
+
     const permissionsByModule = await rolePermissionRepository.getRolePermissionsByModule(roleId);
     let userActions = [];
 
