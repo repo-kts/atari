@@ -188,10 +188,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
      * Whether the current user can act on a target role (e.g. edit/delete another user).
      * Enforces hierarchy: lower admins cannot modify higher users.
      */
-    const canActOnRole = (targetRole: string): boolean => {
+    const canActOnRole = useCallback((targetRole: string): boolean => {
         if (!user) return false
         return outranksOrEqual(user.role, targetRole)
-    }
+    }, [user])
 
     const clearError = () => {
         // Clear login mutation error

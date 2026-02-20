@@ -40,7 +40,7 @@ Implemented in `authService.buildPermissionsByModule(roleId, roleName, userId)`.
 **Super Admin:** Always authoritative. Full access is guaranteed by seeding the `super_admin` role with all modules × all actions via `seedSuperAdminPermissions.js`. No runtime bypass — `super_admin` goes through the same code path as every other role.
 
 **Example — conflicting entries for a `state_user`:**
-```
+```text
 Role permissions (ceiling):
   all_masters_zone_master:  [VIEW, ADD, EDIT, DELETE]
   all_masters_states_master: [VIEW, ADD]
@@ -169,11 +169,11 @@ Effective permissionsByModule:
 | Frontend | `contexts/AuthContext.tsx` | New `hasPermission(action, moduleCode?)` using `permissionsByModule`; remove admin full-access bypass (or only for super_admin) |
 | Frontend | `config/routeConfig.ts` | Add `moduleCode` to every route that has a corresponding module in Role Editor |
 | Frontend | `components/layout/Sidebar.tsx` | Add moduleCode to menu items; filter by `hasPermission('VIEW', moduleCode)` |
-| Frontend | `pages/dashboard/shared/DataManagementView.tsx` | Use `hasPermission('ADD'|'EDIT'|'DELETE', routeConfig.moduleCode)` and optional VIEW check |
+| Frontend | `pages/dashboard/shared/DataManagementView.tsx` | Use `hasPermission('ADD', moduleCode)`, `hasPermission('EDIT', moduleCode)`, `hasPermission('DELETE', moduleCode)` and optional VIEW check |
 | Frontend | `components/auth/ProtectedRoute.tsx` | Add `requiredModuleCode`, check `hasPermission('VIEW', requiredModuleCode)` |
 | Frontend | `App.tsx` | Pass `requiredModuleCode` (or derive from route) for dashboard routes |
 | Frontend | `pages/admin/UserManagement.tsx` | Use `hasPermission(..., 'user_management_users')` |
-| Frontend | Role Permission Editor / Role list | Guard with `hasPermission('VIEW'|'EDIT', 'role_management_roles')` |
+| Frontend | Role Permission Editor / Role list | Guard with `hasPermission('VIEW', 'role_management_roles')` and `hasPermission('EDIT', 'role_management_roles')` |
 
 ---
 
