@@ -1,0 +1,24 @@
+model KvkOtherProgramme {
+  kvkOtherProgrammeId Int @id @default(autoincrement()) @map("kvk_other_programme_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  programmeName String @map("name_of_programme")
+  programmeDate DateTime @map("programme_date")
+  venue String @map("venue")
+  purpose String @map("purpose")
+
+  farmersGeneralM Int @map("farmers_general_m")
+  farmersGeneralF Int @map("farmers_general_f")
+  farmersObcM Int @map("farmers_obc_m")
+  farmersObcF Int @map("farmers_obc_f")
+  farmersScM Int @map("farmers_sc_m")
+  farmersScF Int @map("farmers_sc_f")
+  farmersStM Int @map("farmers_st_m")
+  farmersStF Int @map("farmers_st_f")
+
+  @@index([kvkId])
+
+  @@map("kvk_oft")
+}

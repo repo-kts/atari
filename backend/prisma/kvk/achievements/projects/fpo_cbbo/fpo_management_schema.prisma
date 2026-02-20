@@ -1,0 +1,23 @@
+model FpoManagement {
+  fpoManagementId Int @id @default(autoincrement()) @map("fpo_management_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  fpoName String @map("fpo_name")
+  address String @map("address")
+  registrationNumber String @unique @map("registration_number")
+  registrationDate DateTime @map("registration_date")
+  proposedActivity String @map("proposed_activity")
+  commodityIdentified String @map("commodity_identified")
+  totalBomMembers Int @map("total_bom_members")
+  totalFarmersAttached Int @map("total_farmers_attached")
+  financialPositionLakh Float @map("financial_position_lakh")
+  successIndicator String @map("success_indicator")
+
+  @@index([kvkId])
+  @@index([fpoName])
+
+  @@map("fpo_management")
+}

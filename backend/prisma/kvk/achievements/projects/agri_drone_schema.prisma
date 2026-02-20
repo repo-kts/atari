@@ -1,0 +1,26 @@
+model KvkAgriDrone {
+    agriDroneId Int @id @default(autoincrement()) @map("agri_drone_id")
+
+    kvkId Int
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+    reportingYear Int @map("reporting_year")
+    projectImplementingCentre String @map("project_implementing_centre")
+    dronesSanctioned Int @map("drones_sanctioned")
+    dronesPurchased Int @map("drones_purchased")
+    amountSanctioned Float @map("amount_sanctioned")
+    costPerDrone Float @map("cost_per_drone")
+    droneCompany String @map("drone_company")
+    droneModel String @map("drone_model")
+    pilotName String @map("pilot_name")
+    pilotContact String @map("pilot_contact")
+    targetAreaHa Float @map("target_area_ha")
+    demoAmountSanctioned Float @map("demo_amount_sanctioned")
+    demoAmountUtilised Float @map("demo_amount_utilised")
+    operationType String @map("operation_type")
+    advantagesObserved String @map("advantages_observed")
+
+    @@index([kvkId])
+
+    @@map("kvk_agri_drone")
+}
