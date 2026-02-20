@@ -576,7 +576,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_bank_account_details',
     },
     {
@@ -593,7 +593,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionedPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_employee_details',
     },
     {
@@ -627,7 +627,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
         fields: ['kvk', 'infraMasterName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_infrastructure_details',
     },
 
@@ -644,7 +644,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
         fields: ['vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost', 'totalRun', 'presentStatus'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_vehicle_details',
     },
     {
@@ -659,7 +659,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
         fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'reportingYear', 'presentStatus'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_vehicle_details',
     },
     // Equipments - siblings
@@ -675,7 +675,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_equipment_details',
     },
     {
@@ -690,7 +690,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
         fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'reportingYear', 'presentStatus', 'sourceOfFund'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_equipment_details',
     },
     // Farm Implements
@@ -702,7 +702,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         fields: ['kvkName', 'implementName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
-        canCreate: ['kvk'],
+        canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_farm_implement_details',
     },
     // Add Staff (sub-route) - REMOVED placeholder

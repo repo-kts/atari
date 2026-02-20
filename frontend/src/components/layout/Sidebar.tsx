@@ -283,7 +283,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // Roles that get admin UI
     const adminRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin']
     const isAdmin = user?.role && adminRoles.includes(user.role)
-    const isKvk = user?.role === 'kvk'
+    const isKvk = user?.role === 'kvk_admin' || user?.role === 'kvk_user'
 
     // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
     const rawMenuItems = React.useMemo(() => {

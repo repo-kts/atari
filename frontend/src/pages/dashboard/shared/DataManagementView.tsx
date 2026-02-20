@@ -115,7 +115,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 }
                 return false
             }
-            return user.role === 'kvk'
+            return user.role === 'kvk_admin' || user.role === 'kvk_user'
         }
         if (!routeConfig?.canCreate) return true
         return routeConfig.canCreate.includes(user.role)
@@ -129,8 +129,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can edit all records
-            if (user.role !== 'kvk') return true
-            // KVK role can only edit their own data
+            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user') return true
+            // KVK roles can only edit their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
@@ -146,8 +146,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can delete all records
-            if (user.role !== 'kvk') return true
-            // KVK role can only delete their own data
+            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user') return true
+            // KVK roles can only delete their own data
             if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }

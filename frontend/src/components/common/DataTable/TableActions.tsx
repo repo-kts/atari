@@ -49,12 +49,12 @@ export const TableActions: React.FC<TableActionsProps> = ({
     ))
 
     const canTransfer = isEmployeeDetails &&
-        user?.role === 'kvk' &&
+        (user?.role === 'kvk_admin' || user?.role === 'kvk_user') &&
         (item.transferStatus === 'ACTIVE' ||
          (item.transferStatus === 'TRANSFERRED' && (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId)))
 
     const canTransferFurther = entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED &&
-        user?.role === 'kvk' &&
+        (user?.role === 'kvk_admin' || user?.role === 'kvk_user') &&
         (item.kvkId === user?.kvkId || item.kvk?.kvkId === user?.kvkId)
 
     const canViewHistory = (isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) &&

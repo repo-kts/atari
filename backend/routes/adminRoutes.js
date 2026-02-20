@@ -13,14 +13,11 @@ const USER_MANAGEMENT_MODULE = 'user_management_users';
 const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
 
 // Apply authentication and role check to all admin routes.
-// Note: 'kvk' is included here intentionally so KVK users can access specific
-// admin-scoped endpoints where their scope is enforced in the service layer.
-// See:
-//   - seedRoles.js for role definitions (kvk is a non-admin, scoped role)
-//   - userManagementService.js for per-role hierarchy validations and access checks
+// kvk_admin is included as an admin role that can manage users within its KVK scope.
+// kvk_user does NOT have access here — it relies on granular permissions only.
 router.use(
   authenticateToken,
-  requireRole(['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk']),
+  requireRole(['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin']),
 );
 
 // List users (with filters) – requires VIEW
