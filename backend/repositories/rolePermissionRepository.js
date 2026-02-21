@@ -49,6 +49,37 @@ const rolePermissionRepository = {
   },
 
   /**
+   * Get role's permissions grouped by module code (for current-user / auth).
+   * @param {number} roleId - Role ID
+   * @returns {Promise<Record<string, string[]>>} e.g. { 'user_management_users': ['VIEW','ADD','EDIT','DELETE'], ... }
+   */
+  getRolePermissionsByModule: async (roleId) => {
+    const rows = await prisma.rolePermission.findMany({
+      where: { roleId },
+      select: {
+        permission: {
+          select: {
+            action: true,
+            module: {
+              select: { moduleCode: true },
+            },
+          },
+        },
+      },
+    });
+
+    const byModule = {};
+    for (const r of rows) {
+      const code = r.permission?.module?.moduleCode;
+      const action = r.permission?.action;
+      if (!code || !action) continue;
+      if (!byModule[code]) byModule[code] = [];
+      if (!byModule[code].includes(action)) byModule[code].push(action);
+    }
+    return byModule;
+  },
+
+  /**
    * Get all modules with their permissions, annotated with whether the role has each permission.
    * @param {number} roleId - Role ID
    * @returns {Promise<array>} Array of modules with permissions and hasPermission flags

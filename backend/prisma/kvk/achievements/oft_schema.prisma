@@ -14,8 +14,7 @@ model KvkoftTechnology {
   kvkOft   Kvkoft @relation(fields: [kvkOftId], references: [kvkOftId])
 
   oftTechnologyTypeId Int
-  oftTechnologyType   OftTechnologyType
-    @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
+  oftTechnologyType   OftTechnologyType @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
 
   details String @map("details")
 

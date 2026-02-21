@@ -109,6 +109,11 @@ async function create(entityName, data) {
  */
 async function update(entityName, id, data) {
     try {
+        if (!id) {
+            const error = new Error(`ID is required for updating ${entityName}`);
+            error.statusCode = 400;
+            throw error;
+        }
         // Check if entity exists
         const existing = await otherMastersRepository.findById(entityName, id);
         if (!existing) {

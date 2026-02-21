@@ -13,6 +13,7 @@ import { LoadingButton } from '@/components/common/LoadingButton'
 
 // Form Components
 import { BasicMasterForms } from './forms/BasicMasterForms'
+import { OtherMastersForms } from './forms/OtherMastersForms'
 import { OftFldForms } from './forms/OftFldForms'
 import { TrainingExtensionForms } from './forms/TrainingExtensionForms'
 import { ProductionProjectForms } from './forms/ProductionProjectForms'
@@ -76,8 +77,16 @@ export function DataManagementFormPage({
                     </div>
                 ) : (
                     <form id="masterDataForm" onSubmit={handleSubmit} className="p-6 space-y-6">
-                        {(isBasicMaster || isOtherMaster) && (
+                        {isBasicMaster && (
                             <BasicMasterForms
+                                entityType={entityType}
+                                formData={formData}
+                                setFormData={setFormData}
+                            />
+                        )}
+
+                        {isOtherMaster && (
+                            <OtherMastersForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}

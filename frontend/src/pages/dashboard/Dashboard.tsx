@@ -19,7 +19,8 @@ export const Dashboard: React.FC = () => {
             case 'district_admin':
             case 'org_admin':
                 return <AdminDashboard />
-            case 'kvk':
+            case 'kvk_admin':
+            case 'kvk_user':
                 return <KVKDashboard />
             default:
                 return <SuperAdminDashboard />

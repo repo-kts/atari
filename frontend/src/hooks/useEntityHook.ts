@@ -42,6 +42,22 @@ import { useSeasons, useSanctionedPosts, useYears } from './useOtherMastersData'
 import { useAwardData } from './forms/useAwardData'
 import { useExtensionActivityData } from './forms/useExtensionActivityData'
 import { useOtherExtensionActivityData } from './forms/useOtherExtensionActivityData'
+
+import {
+    useSeasons,
+    useSanctionedPosts,
+    useYears,
+    useStaffCategories,
+    usePayLevels,
+    useDisciplines,
+    useExtensionActivityTypes,
+    useOtherExtensionActivityTypes,
+    useImportantDays,
+    useTrainingClientele,
+    useFundingSources,
+    useCropTypes,
+    useInfrastructureMasters,
+} from './useOtherMastersData'
 import { getEntityTypeChecks } from '../utils/entityTypeUtils'
 
 /**
@@ -100,13 +116,23 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.SEASON]: () => useSeasons(),
     [ENTITY_TYPES.SANCTIONED_POST]: () => useSanctionedPosts(),
     [ENTITY_TYPES.YEAR]: () => useYears(),
-
     // Awards
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK),
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST),
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER),
     [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: () => useExtensionActivityData(),
     [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: () => useOtherExtensionActivityData(),
+
+    [ENTITY_TYPES.STAFF_CATEGORY]: () => useStaffCategories(),
+    [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
+    [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),
+    [ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE]: () => useExtensionActivityTypes(),
+    [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE]: () => useOtherExtensionActivityTypes(),
+    [ENTITY_TYPES.IMPORTANT_DAY]: () => useImportantDays(),
+    [ENTITY_TYPES.TRAINING_CLIENTELE]: () => useTrainingClientele(),
+    [ENTITY_TYPES.FUNDING_SOURCE]: () => useFundingSources(),
+    [ENTITY_TYPES.CROP_TYPE]: () => useCropTypes(),
+    [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: () => useInfrastructureMasters(),
 }
 
 /**
@@ -169,10 +195,13 @@ export function useEntityHook(entityType: ExtendedEntityType | null) {
         ? ENTITY_HOOK_MAP[entityType]
         : null
 
-    // Call the hook factory if it exists
-    // Note: This still conditionally calls hooks, but it's the only way to support
-    // multiple entity types without calling all hooks unconditionally
-    const otherHook = hookFactory ? hookFactory() : null
+    // IMPORTANT: To maintain hook order, we need to always call the same hooks.
+    // We'll call a default hook (useSeasons) if no hook factory exists, but won't use its result.
+    // This ensures hooks are always called in the same order regardless of entityType.
+    const defaultHookFactory = () => useSeasons()
+    const hookToCall = hookFactory || defaultHookFactory
+    const otherHookResult = hookToCall()
+    const otherHook = hookFactory ? otherHookResult : null
 
     // Return the appropriate hook result
     return basicMasterHook || aboutKvkHook || otherHook

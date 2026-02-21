@@ -31,6 +31,8 @@ export interface ApiUser {
   lastLoginAt?: string | null;
   /** Granular permissions; absent = full access for role */
   permissions?: PermissionAction[];
+  /** Role (and user-level) permissions by module code from Role Permission Editor */
+  permissionsByModule?: Record<string, PermissionAction[]>;
 }
 
 /**

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import React from 'react'
+import { Navigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { UserRole } from '../../types/auth'
 import { ShieldAlert } from 'lucide-react'
@@ -7,13 +7,15 @@ import { ShieldAlert } from 'lucide-react'
 interface ProtectedRouteProps {
     children: React.ReactNode
     requiredRole?: UserRole | UserRole[]
+    requiredModuleCode?: string
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     children,
     requiredRole,
+    requiredModuleCode,
 }) => {
-    const { isAuthenticated, user, hasRole, isLoading } = useAuth()
+    const { isAuthenticated, user, hasRole, hasPermission, isLoading } = useAuth()
 
     // Show loading state while checking auth
     if (isLoading) {
@@ -49,12 +51,41 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
                         <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
                             You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
                         </p>
-                        <a
-                            href="/dashboard"
+                        <Link
+                            to="/dashboard"
                             className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Return to Dashboard
-                        </a>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // Optional module-based VIEW permission gate
+    if (requiredModuleCode && !hasPermission('VIEW', requiredModuleCode)) {
+        return (
+            <div className="h-full w-full bg-[#F5F5F5] flex items-center justify-center p-4">
+                <div className="bg-white p-1 rounded-2xl shadow-sm max-w-md w-full animate-fade-in-up">
+                    <div className="bg-[#FAF9F6] rounded-xl p-8 text-center border border-[#E0E0E0]/50">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-white rounded-full shadow-sm border border-[#E0E0E0]/50">
+                                <ShieldAlert className="w-10 h-10 text-[#487749]" />
+                            </div>
+                        </div>
+                        <h1 className="text-xl font-bold text-[#212121] mb-3">
+                            Access Restricted
+                        </h1>
+                        <p className="text-[#757575] mb-8 text-sm leading-relaxed px-4">
+                            You don't have the required permissions to view this page. Please contact your administrator if you believe this is an error.
+                        </p>
+                        <Link
+                            to="/dashboard"
+                            className="inline-flex w-full items-center justify-center px-6 py-3 bg-[#487749] text-white font-medium rounded-xl hover:bg-[#3d6540] transition-all duration-200 shadow-sm hover:shadow hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Return to Dashboard
+                        </Link>
                     </div>
                 </div>
             </div>

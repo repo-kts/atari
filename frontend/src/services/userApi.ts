@@ -64,7 +64,8 @@ const ROLE_LABELS: Record<string, string> = {
   state_admin: 'State Admin',
   district_admin: 'District Admin',
   org_admin: 'Org Admin',
-  kvk: 'KVK',
+  kvk_admin: 'KVK Admin',
+  kvk_user: 'KVK User',
   state_user: 'State User',
   district_user: 'District User',
   org_user: 'Org User',
@@ -95,6 +96,32 @@ export interface RolePermissionsResponse {
 }
 
 export const userApi = {
+  /**
+   * Create a new role (super_admin only)
+   * @param roleName - Role name (will be normalized to snake_case)
+   * @param description - Optional description
+   * @param hierarchyLevel - Hierarchy level 0–9 (0=highest, 9=lowest). Default 9.
+   * @returns Created role
+   */
+  createRole: async (
+    roleName: string,
+    description?: string | null,
+    hierarchyLevel?: number
+  ): Promise<RoleInfo> => {
+    try {
+      return await apiClient.post<RoleInfo>('/admin/roles', {
+        roleName,
+        description: description ?? null,
+        hierarchyLevel: hierarchyLevel ?? 9,
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to create role');
+      }
+      throw error;
+    }
+  },
+
   /**
    * Get all roles from the backend
    */

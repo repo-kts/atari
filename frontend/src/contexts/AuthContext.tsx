@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useRef, ReactNode } from 'react'
+import React, { createContext, useContext, useRef, useCallback, ReactNode } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { authApi, ApiUser } from '../services/authApi'
 import { ApiError } from '../services/api'
 import { User, UserRole, PermissionAction, LoginCredentials } from '../types/auth'
-import { isAdminRole, outranksOrEqual } from '../constants/roleHierarchy'
+import { outranksOrEqual } from '../constants/roleHierarchy'
 
 /**
  * Map API user to frontend User type
@@ -22,6 +22,7 @@ const mapApiUserToUser = (apiUser: ApiUser): User => ({
     createdAt: apiUser.createdAt,
     lastLoginAt: apiUser.lastLoginAt,
     permissions: apiUser.permissions,
+    permissionsByModule: apiUser.permissionsByModule,
 })
 
 interface AuthContextValue {
@@ -33,7 +34,10 @@ interface AuthContextValue {
     logout: () => Promise<void>
     checkAuth: () => Promise<boolean>
     hasRole: (role: UserRole | UserRole[]) => boolean
-    hasPermission: (action: PermissionAction, targetRole?: string) => boolean
+    /** Check permission for an action in a module (from Role Permission Editor). moduleCode is required; omitting it returns false. */
+    hasPermission: (action: PermissionAction, moduleCode?: string) => boolean
+    /** Whether the current user can act on a target role (hierarchy: lower admins cannot modify higher). */
+    canActOnRole: (targetRole: string) => boolean
     clearError: () => void
 }
 
@@ -146,39 +150,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return result.data != null
     }
 
-    const hasRole = (role: UserRole | UserRole[]): boolean => {
+    const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
         if (!user) return false
 
         if (Array.isArray(role)) {
             return role.includes(user.role)
         }
         return user.role === role
-    }
+    }, [user])
 
     /**
-     * Check if the current user has permission for a given action.
-     *
-     * - General data actions (no targetRole): admin roles get unconditional access.
-     * - Role-management / user-management (targetRole provided): hierarchy is enforced —
-     *   caller can only act on target if they outrank or equal the target (lower admins cannot modify higher users).
-     * - Non-admin users always require an explicit entry in their permissions array.
+     * Check if the current user has permission for a given action in a module.
+     * Driven by permissionsByModule from Role Permission Editor — the single source of truth.
+     * moduleCode is required. Omitting it returns false and emits a warning in development.
      */
-    const hasPermission = (action: PermissionAction, targetRole?: string): boolean => {
+    const hasPermission = useCallback((action: PermissionAction, moduleCode?: string): boolean => {
         if (!user) return false
 
-        if (isAdminRole(user.role) || user.role === 'kvk') {
-            // When targeting a specific user/role: enforce hierarchy - lower admin cannot modify higher user
-            if (targetRole) {
-                return outranksOrEqual(user.role, targetRole)
+        if (!moduleCode) {
+            if (import.meta.env.DEV) {
+                console.warn('hasPermission called without moduleCode — returning false. Pass the intended module code.')
             }
-            // General data actions (no target): admins always have access
-            return true
+            return false
         }
 
-        // Non-admins: require explicit permission; empty/undefined = no access
-        if (!user.permissions || user.permissions.length === 0) return false
-        return user.permissions.includes(action)
-    }
+        // super_admin has unrestricted access to every module
+        if (user.role === 'super_admin') return true
+
+        const actions = user.permissionsByModule?.[moduleCode]
+
+        if (!actions || !Array.isArray(actions)) return false
+
+        return actions.includes(action)
+    }, [user])
+
+    /**
+     * Whether the current user can act on a target role (e.g. edit/delete another user).
+     * Enforces hierarchy: lower admins cannot modify higher users.
+     */
+    const canActOnRole = useCallback((targetRole: string): boolean => {
+        if (!user) return false
+        return outranksOrEqual(user.role, targetRole)
+    }, [user])
 
     const clearError = () => {
         // Clear login mutation error
@@ -201,6 +214,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkAuth,
         hasRole,
         hasPermission,
+        canActOnRole,
         clearError,
     }
 

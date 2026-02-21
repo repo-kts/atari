@@ -7,18 +7,16 @@ import { useMasterData, useRelatedData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
 import {
     useSanctionedPosts,
-    useDisciplines,
     useInfraMasters,
     useKvkVehiclesForDropdown,
     useKvkEquipmentsForDropdown,
     enumToOptions,
     AccountTypeEnum,
-    PayLevelEnum,
-    StaffCategoryEnum,
     VehiclePresentStatusEnum,
     EquipmentPresentStatusEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
+import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -105,6 +103,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: sanctionedPosts = [] } = useSanctionedPosts()
     const { data: disciplines = [] } = useDisciplines()
     const { data: infraMasters = [] } = useInfraMasters()
+    const { data: staffCategories = [] } = useStaffCategories()
+    const { data: payLevels = [] } = usePayLevels()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
@@ -242,9 +242,9 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         />
                         <FormSelect
                             label="Pay Level"
-                            value={formData.payLevel || ''}
-                            onChange={(e) => setFormData({ ...formData, payLevel: e.target.value || '' })}
-                            options={enumToOptions(PayLevelEnum)}
+                            value={formData.payLevelId || ''}
+                            onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
+                            options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -299,9 +299,9 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSelect
                             label="Category"
                             required
-                            value={formData.category || ''}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value || '' })}
-                            options={enumToOptions(StaffCategoryEnum)}
+                            value={formData.staffCategoryId || ''}
+                            onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
+                            options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
                         />
                         <FormInput
                             label="Resume"

@@ -1,85 +1,81 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission, requireAnyPermission } = require('../../middleware/auth.js');
 const productionProjectsController = require('../../controllers/all-masters/productionProjectsController.js');
 
-// Apply authentication middleware
+// Apply authentication to all routes
 router.use(authenticateToken);
 
-// Helper for restricted actions (create, update, delete)
-const requireSuperAdmin = requireRole(['super_admin']);
-const allowAllRoles = requireRole(['super_admin', 'admin', 'kvk', 'zpd', 'icar']);
-
 // ============================================
-// Product Category Routes
+// Product Category Routes  (moduleCode: all_masters_products_master)
 // ============================================
 
-router.get('/product-categories', allowAllRoles, productionProjectsController.getAllProductCategories);
-router.get('/product-categories/:id', allowAllRoles, productionProjectsController.getProductCategoryById);
-router.post('/product-categories', requireSuperAdmin, productionProjectsController.createProductCategory);
-router.put('/product-categories/:id', requireSuperAdmin, productionProjectsController.updateProductCategory);
-router.delete('/product-categories/:id', requireSuperAdmin, productionProjectsController.deleteProductCategory);
+router.get('/product-categories',     requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getAllProductCategories);
+router.get('/product-categories/:id', requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getProductCategoryById);
+router.post('/product-categories',    requirePermission('all_masters_products_master', 'ADD'),  productionProjectsController.createProductCategory);
+router.put('/product-categories/:id', requirePermission('all_masters_products_master', 'EDIT'), productionProjectsController.updateProductCategory);
+router.delete('/product-categories/:id', requirePermission('all_masters_products_master', 'DELETE'), productionProjectsController.deleteProductCategory);
 
 // ============================================
-// Product Type Routes
+// Product Type Routes  (moduleCode: all_masters_products_master)
 // ============================================
 
-router.get('/product-types', allowAllRoles, productionProjectsController.getAllProductTypes);
-router.get('/product-types/:id', allowAllRoles, productionProjectsController.getProductTypeById);
-router.post('/product-types', requireSuperAdmin, productionProjectsController.createProductType);
-router.put('/product-types/:id', requireSuperAdmin, productionProjectsController.updateProductType);
-router.delete('/product-types/:id', requireSuperAdmin, productionProjectsController.deleteProductType);
+router.get('/product-types',     requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getAllProductTypes);
+router.get('/product-types/:id', requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getProductTypeById);
+router.post('/product-types',    requirePermission('all_masters_products_master', 'ADD'),  productionProjectsController.createProductType);
+router.put('/product-types/:id', requirePermission('all_masters_products_master', 'EDIT'), productionProjectsController.updateProductType);
+router.delete('/product-types/:id', requirePermission('all_masters_products_master', 'DELETE'), productionProjectsController.deleteProductType);
 
 // ============================================
-// Product Routes
+// Product Routes  (moduleCode: all_masters_products_master)
 // ============================================
 
-router.get('/products', allowAllRoles, productionProjectsController.getAllProducts);
-router.get('/products/:id', allowAllRoles, productionProjectsController.getProductById);
-router.post('/products', requireSuperAdmin, productionProjectsController.createProduct);
-router.put('/products/:id', requireSuperAdmin, productionProjectsController.updateProduct);
-router.delete('/products/:id', requireSuperAdmin, productionProjectsController.deleteProduct);
+router.get('/products',     requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getAllProducts);
+router.get('/products/:id', requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getProductById);
+router.post('/products',    requirePermission('all_masters_products_master', 'ADD'),  productionProjectsController.createProduct);
+router.put('/products/:id', requirePermission('all_masters_products_master', 'EDIT'), productionProjectsController.updateProduct);
+router.delete('/products/:id', requirePermission('all_masters_products_master', 'DELETE'), productionProjectsController.deleteProduct);
+
+// Hierarchical
+router.get('/product-categories/:categoryId/types', requirePermission('all_masters_products_master', 'VIEW'), productionProjectsController.getProductTypesByCategory);
 
 // ============================================
-// Hierarchical Product Routes
+// CRA Cropping System Routes  (moduleCode: all_masters_climate_master)
 // ============================================
 
-router.get('/product-categories/:categoryId/types', allowAllRoles, productionProjectsController.getProductTypesByCategory);
+router.get('/cra-cropping-systems',     requirePermission('all_masters_climate_master', 'VIEW'), productionProjectsController.getAllCraCroppingSystems);
+router.get('/cra-cropping-systems/:id', requirePermission('all_masters_climate_master', 'VIEW'), productionProjectsController.getCraCroppingSystemById);
+router.post('/cra-cropping-systems',    requirePermission('all_masters_climate_master', 'ADD'),  productionProjectsController.createCraCroppingSystem);
+router.put('/cra-cropping-systems/:id', requirePermission('all_masters_climate_master', 'EDIT'), productionProjectsController.updateCraCroppingSystem);
+router.delete('/cra-cropping-systems/:id', requirePermission('all_masters_climate_master', 'DELETE'), productionProjectsController.deleteCraCroppingSystem);
 
 // ============================================
-// CRA Cropping System Routes
+// CRA Farming System Routes  (moduleCode: all_masters_climate_master)
 // ============================================
 
-router.get('/cra-cropping-systems', allowAllRoles, productionProjectsController.getAllCraCroppingSystems);
-router.get('/cra-cropping-systems/:id', allowAllRoles, productionProjectsController.getCraCroppingSystemById);
-router.post('/cra-cropping-systems', requireSuperAdmin, productionProjectsController.createCraCroppingSystem);
-router.put('/cra-cropping-systems/:id', requireSuperAdmin, productionProjectsController.updateCraCroppingSystem);
-router.delete('/cra-cropping-systems/:id', requireSuperAdmin, productionProjectsController.deleteCraCroppingSystem);
+router.get('/cra-farming-systems',     requirePermission('all_masters_climate_master', 'VIEW'), productionProjectsController.getAllCraFarmingSystems);
+router.get('/cra-farming-systems/:id', requirePermission('all_masters_climate_master', 'VIEW'), productionProjectsController.getCraFarmingSystemById);
+router.post('/cra-farming-systems',    requirePermission('all_masters_climate_master', 'ADD'),  productionProjectsController.createCraFarmingSystem);
+router.put('/cra-farming-systems/:id', requirePermission('all_masters_climate_master', 'EDIT'), productionProjectsController.updateCraFarmingSystem);
+router.delete('/cra-farming-systems/:id', requirePermission('all_masters_climate_master', 'DELETE'), productionProjectsController.deleteCraFarmingSystem);
 
 // ============================================
-// CRA Farming System Routes
+// Arya Enterprise Routes  (moduleCode: all_masters_arya_master)
 // ============================================
 
-router.get('/cra-farming-systems', allowAllRoles, productionProjectsController.getAllCraFarmingSystems);
-router.get('/cra-farming-systems/:id', allowAllRoles, productionProjectsController.getCraFarmingSystemById);
-router.post('/cra-farming-systems', requireSuperAdmin, productionProjectsController.createCraFarmingSystem);
-router.put('/cra-farming-systems/:id', requireSuperAdmin, productionProjectsController.updateCraFarmingSystem);
-router.delete('/cra-farming-systems/:id', requireSuperAdmin, productionProjectsController.deleteCraFarmingSystem);
-
-// ============================================
-// Arya Enterprise Routes
-// ============================================
-
-router.get('/arya-enterprises', allowAllRoles, productionProjectsController.getAllAryaEnterprises);
-router.get('/arya-enterprises/:id', allowAllRoles, productionProjectsController.getAryaEnterpriseById);
-router.post('/arya-enterprises', requireSuperAdmin, productionProjectsController.createAryaEnterprise);
-router.put('/arya-enterprises/:id', requireSuperAdmin, productionProjectsController.updateAryaEnterprise);
-router.delete('/arya-enterprises/:id', requireSuperAdmin, productionProjectsController.deleteAryaEnterprise);
+router.get('/arya-enterprises',     requirePermission('all_masters_arya_master', 'VIEW'), productionProjectsController.getAllAryaEnterprises);
+router.get('/arya-enterprises/:id', requirePermission('all_masters_arya_master', 'VIEW'), productionProjectsController.getAryaEnterpriseById);
+router.post('/arya-enterprises',    requirePermission('all_masters_arya_master', 'ADD'),  productionProjectsController.createAryaEnterprise);
+router.put('/arya-enterprises/:id', requirePermission('all_masters_arya_master', 'EDIT'), productionProjectsController.updateAryaEnterprise);
+router.delete('/arya-enterprises/:id', requirePermission('all_masters_arya_master', 'DELETE'), productionProjectsController.deleteAryaEnterprise);
 
 // ============================================
 // Statistics Route
 // ============================================
 
-router.get('/stats', allowAllRoles, productionProjectsController.getStats);
+router.get('/stats',
+    requireAnyPermission(['all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master'], 'VIEW'),
+    productionProjectsController.getStats,
+);
 
 module.exports = router;

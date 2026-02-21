@@ -1,6 +1,5 @@
-const { verifyToken } = require('../utils/jwt.js');
+const { verifyToken, decodePermissions } = require('../utils/jwt.js');
 const prisma = require('../config/prisma.js');
-const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 
 /**
  * Middleware to authenticate JWT token from HTTP-only cookie
@@ -18,12 +17,10 @@ async function authenticateToken(req, res, next) {
     // Verify token
     const decoded = verifyToken(token, 'access');
 
-    // Fetch user from database to ensure they still exist and are active
+    // Fetch user from database to ensure they still exist and are active.
+    // roleName and permissionsByModule come from the token (embedded at login/refresh).
     const user = await prisma.user.findUnique({
       where: { userId: decoded.userId },
-      include: {
-        role: true,
-      },
     });
 
     if (!user) {
@@ -35,13 +32,16 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
-    // Attach user info to request object
+    // Attach user info to request object.
+    // Decode bitmask permissions back to string arrays so requirePermission
+    // and all downstream consumers see the familiar { moduleCode: ['VIEW', ...] } format.
     req.user = {
       userId: user.userId,
       email: user.email,
       name: user.name,
-      roleId: user.roleId,
-      roleName: user.role.roleName,
+      roleId: decoded.roleId,
+      roleName: decoded.roleName,
+      permissionsByModule: decodePermissions(decoded.permissions),
       zoneId: user.zoneId,
       stateId: user.stateId,
       districtId: user.districtId,
@@ -89,76 +89,63 @@ function requireRole(allowedRoles) {
 
 /**
  * Middleware to require specific permission.
- * Checks user-level permissions (UserPermission) first; if the user has any user-level
- * permissions, only those actions are allowed. Otherwise falls back to role-based permissions.
- * @param {string} moduleCode - Module code (e.g., 'user_management')
+ * Permissions are embedded in the JWT at login/refresh — no DB query needed.
+ * @param {string} moduleCode - Module code (e.g., 'user_management_users')
  * @param {string} action - Permission action (VIEW, ADD, EDIT, DELETE)
  * @returns {Function} Express middleware function
  */
 function requirePermission(moduleCode, action) {
   const normalizedAction = action.toUpperCase();
 
-  return async (req, res, next) => {
+  return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    try {
-      const userId = req.user.userId;
+    // super_admin has unrestricted access to every module
+    if (req.user.roleName === 'super_admin') return next();
 
-      // 1. Check user-level permissions first (granular permissions from admin-created users)
-      const userActions = await userPermissionRepository.getUserPermissionActions(userId);
-
-      if (userActions.length > 0) {
-        // User has user-level permissions: allow only those actions (no role fallback)
-        if (userActions.includes(normalizedAction)) {
-          return next();
-        }
-        return res.status(403).json({
-          error: 'Insufficient permissions',
-          message: `You don't have permission to ${normalizedAction} in ${moduleCode}`,
-        });
-      }
-
-      // 2. No user-level permissions: fall back to role-based check
-      const module = await prisma.module.findUnique({
-        where: { moduleCode },
-        include: {
-          permissions: {
-            where: {
-              action: normalizedAction,
-            },
-            include: {
-              rolePermissions: {
-                where: {
-                  roleId: req.user.roleId,
-                },
-              },
-            },
-          },
-        },
+    const modulePerms = req.user.permissionsByModule?.[moduleCode];
+    if (!modulePerms?.includes(normalizedAction)) {
+      return res.status(403).json({
+        error: 'Insufficient permissions',
+        message: `You don't have permission to ${normalizedAction} in ${moduleCode}`,
       });
-
-      if (!module) {
-        return res.status(404).json({ error: 'Module not found' });
-      }
-
-      const hasPermission = module.permissions.some(
-        (permission) => permission.rolePermissions.length > 0
-      );
-
-      if (!hasPermission) {
-        return res.status(403).json({
-          error: 'Insufficient permissions',
-          message: `You don't have permission to ${normalizedAction} in ${moduleCode}`,
-        });
-      }
-
-      next();
-    } catch (error) {
-      console.error('Permission check error:', error);
-      return res.status(500).json({ error: 'Permission check failed' });
     }
+
+    next();
+  };
+}
+
+/**
+ * Like requirePermission, but passes if the user has the given action on ANY
+ * of the provided module codes. Useful for aggregated endpoints that span
+ * multiple modules (e.g. /stats for OFT + FLD + CFLD).
+ * @param {string[]} moduleCodes
+ * @param {string} action
+ */
+function requireAnyPermission(moduleCodes, action) {
+  const normalizedAction = action.toUpperCase();
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (req.user.roleName === 'super_admin') return next();
+
+    const hasAny = moduleCodes.some((code) =>
+      req.user.permissionsByModule?.[code]?.includes(normalizedAction)
+    );
+
+    if (!hasAny) {
+      return res.status(403).json({
+        error: 'Insufficient permissions',
+        message: `${normalizedAction} permission required for at least one of: ${moduleCodes.join(', ')}`,
+      });
+    }
+
+    next();
   };
 }
 
@@ -166,4 +153,5 @@ module.exports = {
   authenticateToken,
   requireRole,
   requirePermission,
+  requireAnyPermission,
 };

@@ -78,6 +78,26 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 </div>
             )}
 
+            {entityType === ENTITY_TYPES.TRAINING_CLIENTELE && (
+                <FormInput
+                    label="Training Clientele Name"
+                    required
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter training clientele name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.FUNDING_SOURCE && (
+                <FormInput
+                    label="Funding Source Name"
+                    required
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter funding source name"
+                />
+            )}
+
             {entityType === ENTITY_TYPES.EXTENSION_ACTIVITIES && (
                 <FormInput
                     label="Extension Activity Name"

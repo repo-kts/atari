@@ -22,6 +22,24 @@ export const ENTITY_TYPES = {
     SANCTIONED_POST: 'sanctioned-post',
     YEAR: 'year',
 
+    // Employee Masters
+    STAFF_CATEGORY: 'staff-category',
+    PAY_LEVEL: 'pay-level',
+    DISCIPLINE: 'discipline',
+
+    // Extension Masters
+    EXTENSION_ACTIVITY_TYPE: 'extension-activity-type',
+    OTHER_EXTENSION_ACTIVITY_TYPE: 'other-extension-activity-type',
+    IMPORTANT_DAY: 'important-day',
+
+    // Training Masters
+    TRAINING_CLIENTELE: 'training-clientele',
+    FUNDING_SOURCE: 'funding-source',
+
+    // Other Masters (continued)
+    CROP_TYPE: 'crop-type',
+    INFRASTRUCTURE_MASTER: 'infrastructure-master',
+
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
     TRAINING_AREAS: 'training-areas',
@@ -188,10 +206,31 @@ export const ENTITY_PATHS = {
     YEAR: '/all-master/year',
     OTHER_MASTERS: '/all-master/other-masters',
 
+    // Employee Masters
+    STAFF_CATEGORY: '/all-master/staff-category',
+    PAY_LEVEL: '/all-master/pay-level',
+    DISCIPLINE: '/all-master/discipline',
+
+    // Extension Masters
+    EXTENSION_ACTIVITY_TYPE: '/all-master/extension-activity-type',
+    OTHER_EXTENSION_ACTIVITY_TYPE: '/all-master/other-extension-activity-type',
+    IMPORTANT_DAY: '/all-master/important-day',
+
+    // Training Masters
+    TRAINING_CLIENTELE: '/all-master/training-clientele',
+    FUNDING_SOURCE: '/all-master/funding-source',
+
+    // Other Masters (continued)
+    CROP_TYPE: '/all-master/crop-type',
+    INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
+
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',
     OFT_FLD_MASTERS: '/all-master/oft-fld',
     TRAINING_EXTENSION_MASTERS: '/all-master/training-extension',
+    TRAINING_MASTERS: '/all-master/training-masters',
+    EXTENSION_MASTERS: '/all-master/extension-masters',
+    EMPLOYEE_MASTERS: '/all-master/employee-masters',
     PRODUCTION_PROJECTS_MASTERS: '/all-master/production-projects',
     PUBLICATIONS_MASTERS: '/all-master/publications',
 } as const;

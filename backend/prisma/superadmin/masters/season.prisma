@@ -11,6 +11,7 @@ model Season {
   extensionActivityOrganized ExtensionActivityOrganized[]
   cfldTechnicalParameters    CfldTechnicalParameter[]
   kvkOfts  Kvkoft[]
+  seedHubPrograms KvkSeedHubProgram[]
 
   @@index([seasonId])
   @@index([seasonName])

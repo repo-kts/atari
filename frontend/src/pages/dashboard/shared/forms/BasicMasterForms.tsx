@@ -361,42 +361,6 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     />
                 </div>
             )}
-
-            {entityType === ENTITY_TYPES.SEASON && (
-                <FormInput
-                    label="Season Name"
-                    required
-                    value={formData.seasonName || ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, seasonName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter season name"
-                />
-            )}
-
-            {entityType === ENTITY_TYPES.SANCTIONED_POST && (
-                <FormInput
-                    label="Post Name"
-                    required
-                    value={formData.postName || ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, postName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter sanctioned post name"
-                />
-            )}
-
-            {entityType === ENTITY_TYPES.YEAR && (
-                <FormInput
-                    label="Year Name"
-                    required
-                    value={formData.yearName || ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, yearName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter year name"
-                />
-            )}
         </>
     )
 }

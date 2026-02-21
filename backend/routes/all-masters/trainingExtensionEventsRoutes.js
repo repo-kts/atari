@@ -1,86 +1,79 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { authenticateToken, requirePermission, requireAnyPermission } = require('../../middleware/auth.js');
 const trainingExtensionEventsController = require('../../controllers/all-masters/trainingExtensionEventsController.js');
 
-// Apply authentication middleware
+// Apply authentication to all routes
 router.use(authenticateToken);
 
-// Helper for restricted actions (create, update, delete)
-const requireSuperAdmin = requireRole(['super_admin']);
-const allowAllRoles = requireRole(['super_admin', 'admin', 'kvk', 'zpd', 'icar']);
-
 // ============================================
-// Training Type Routes
+// Training Routes  (moduleCode: all_masters_training_master)
 // ============================================
 
-router.get('/training/types', allowAllRoles, trainingExtensionEventsController.getAllTrainingTypes);
-router.get('/training/types/:id', allowAllRoles, trainingExtensionEventsController.getTrainingTypeById);
-router.post('/training/types', requireSuperAdmin, trainingExtensionEventsController.createTrainingType);
-router.put('/training/types/:id', requireSuperAdmin, trainingExtensionEventsController.updateTrainingType);
-router.delete('/training/types/:id', requireSuperAdmin, trainingExtensionEventsController.deleteTrainingType);
+router.get('/training/types',     requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getAllTrainingTypes);
+router.get('/training/types/:id', requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getTrainingTypeById);
+router.post('/training/types',    requirePermission('all_masters_training_master', 'ADD'),  trainingExtensionEventsController.createTrainingType);
+router.put('/training/types/:id', requirePermission('all_masters_training_master', 'EDIT'), trainingExtensionEventsController.updateTrainingType);
+router.delete('/training/types/:id', requirePermission('all_masters_training_master', 'DELETE'), trainingExtensionEventsController.deleteTrainingType);
+
+router.get('/training/areas',     requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getAllTrainingAreas);
+router.get('/training/areas/:id', requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getTrainingAreaById);
+router.post('/training/areas',    requirePermission('all_masters_training_master', 'ADD'),  trainingExtensionEventsController.createTrainingArea);
+router.put('/training/areas/:id', requirePermission('all_masters_training_master', 'EDIT'), trainingExtensionEventsController.updateTrainingArea);
+router.delete('/training/areas/:id', requirePermission('all_masters_training_master', 'DELETE'), trainingExtensionEventsController.deleteTrainingArea);
+
+router.get('/training/thematic-areas',     requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getAllTrainingThematicAreas);
+router.get('/training/thematic-areas/:id', requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getTrainingThematicAreaById);
+router.post('/training/thematic-areas',    requirePermission('all_masters_training_master', 'ADD'),  trainingExtensionEventsController.createTrainingThematicArea);
+router.put('/training/thematic-areas/:id', requirePermission('all_masters_training_master', 'EDIT'), trainingExtensionEventsController.updateTrainingThematicArea);
+router.delete('/training/thematic-areas/:id', requirePermission('all_masters_training_master', 'DELETE'), trainingExtensionEventsController.deleteTrainingThematicArea);
+
+// Hierarchical
+router.get('/training/types/:trainingTypeId/areas',             requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getTrainingAreasByType);
+router.get('/training/areas/:trainingAreaId/thematic-areas',    requirePermission('all_masters_training_master', 'VIEW'), trainingExtensionEventsController.getTrainingThematicAreasByArea);
 
 // ============================================
-// Training Area Routes
+// Extension Activity Routes  (moduleCode: all_masters_extension_activity_master)
 // ============================================
 
-router.get('/training/areas', allowAllRoles, trainingExtensionEventsController.getAllTrainingAreas);
-router.get('/training/areas/:id', allowAllRoles, trainingExtensionEventsController.getTrainingAreaById);
-router.post('/training/areas', requireSuperAdmin, trainingExtensionEventsController.createTrainingArea);
-router.put('/training/areas/:id', requireSuperAdmin, trainingExtensionEventsController.updateTrainingArea);
-router.delete('/training/areas/:id', requireSuperAdmin, trainingExtensionEventsController.deleteTrainingArea);
+router.get('/extension-activities',     requirePermission('all_masters_extension_activity_master', 'VIEW'), trainingExtensionEventsController.getAllExtensionActivities);
+router.get('/extension-activities/:id', requirePermission('all_masters_extension_activity_master', 'VIEW'), trainingExtensionEventsController.getExtensionActivityById);
+router.post('/extension-activities',    requirePermission('all_masters_extension_activity_master', 'ADD'),  trainingExtensionEventsController.createExtensionActivity);
+router.put('/extension-activities/:id', requirePermission('all_masters_extension_activity_master', 'EDIT'), trainingExtensionEventsController.updateExtensionActivity);
+router.delete('/extension-activities/:id', requirePermission('all_masters_extension_activity_master', 'DELETE'), trainingExtensionEventsController.deleteExtensionActivity);
 
 // ============================================
-// Training Thematic Area Routes
+// Other Extension Activity Routes  (moduleCode: all_masters_other_extension_activity_master)
 // ============================================
 
-router.get('/training/thematic-areas', allowAllRoles, trainingExtensionEventsController.getAllTrainingThematicAreas);
-router.get('/training/thematic-areas/:id', allowAllRoles, trainingExtensionEventsController.getTrainingThematicAreaById);
-router.post('/training/thematic-areas', requireSuperAdmin, trainingExtensionEventsController.createTrainingThematicArea);
-router.put('/training/thematic-areas/:id', requireSuperAdmin, trainingExtensionEventsController.updateTrainingThematicArea);
-router.delete('/training/thematic-areas/:id', requireSuperAdmin, trainingExtensionEventsController.deleteTrainingThematicArea);
+router.get('/other-extension-activities',     requirePermission('all_masters_other_extension_activity_master', 'VIEW'), trainingExtensionEventsController.getAllOtherExtensionActivities);
+router.get('/other-extension-activities/:id', requirePermission('all_masters_other_extension_activity_master', 'VIEW'), trainingExtensionEventsController.getOtherExtensionActivityById);
+router.post('/other-extension-activities',    requirePermission('all_masters_other_extension_activity_master', 'ADD'),  trainingExtensionEventsController.createOtherExtensionActivity);
+router.put('/other-extension-activities/:id', requirePermission('all_masters_other_extension_activity_master', 'EDIT'), trainingExtensionEventsController.updateOtherExtensionActivity);
+router.delete('/other-extension-activities/:id', requirePermission('all_masters_other_extension_activity_master', 'DELETE'), trainingExtensionEventsController.deleteOtherExtensionActivity);
 
 // ============================================
-// Training Hierarchical Routes
+// Event Routes  (moduleCode: all_masters_events_master)
 // ============================================
 
-router.get('/training/types/:trainingTypeId/areas', allowAllRoles, trainingExtensionEventsController.getTrainingAreasByType);
-router.get('/training/areas/:trainingAreaId/thematic-areas', allowAllRoles, trainingExtensionEventsController.getTrainingThematicAreasByArea);
-
-// ============================================
-// Extension Activity Routes
-// ============================================
-
-router.get('/extension-activities', allowAllRoles, trainingExtensionEventsController.getAllExtensionActivities);
-router.get('/extension-activities/:id', allowAllRoles, trainingExtensionEventsController.getExtensionActivityById);
-router.post('/extension-activities', requireSuperAdmin, trainingExtensionEventsController.createExtensionActivity);
-router.put('/extension-activities/:id', requireSuperAdmin, trainingExtensionEventsController.updateExtensionActivity);
-router.delete('/extension-activities/:id', requireSuperAdmin, trainingExtensionEventsController.deleteExtensionActivity);
-
-// ============================================
-// Other Extension Activity Routes
-// ============================================
-
-router.get('/other-extension-activities', allowAllRoles, trainingExtensionEventsController.getAllOtherExtensionActivities);
-router.get('/other-extension-activities/:id', allowAllRoles, trainingExtensionEventsController.getOtherExtensionActivityById);
-router.post('/other-extension-activities', requireSuperAdmin, trainingExtensionEventsController.createOtherExtensionActivity);
-router.put('/other-extension-activities/:id', requireSuperAdmin, trainingExtensionEventsController.updateOtherExtensionActivity);
-router.delete('/other-extension-activities/:id', requireSuperAdmin, trainingExtensionEventsController.deleteOtherExtensionActivity);
-
-// ============================================
-// Event Routes
-// ============================================
-
-router.get('/events', allowAllRoles, trainingExtensionEventsController.getAllEvents);
-router.get('/events/:id', allowAllRoles, trainingExtensionEventsController.getEventById);
-router.post('/events', requireSuperAdmin, trainingExtensionEventsController.createEvent);
-router.put('/events/:id', requireSuperAdmin, trainingExtensionEventsController.updateEvent);
-router.delete('/events/:id', requireSuperAdmin, trainingExtensionEventsController.deleteEvent);
+router.get('/events',     requirePermission('all_masters_events_master', 'VIEW'), trainingExtensionEventsController.getAllEvents);
+router.get('/events/:id', requirePermission('all_masters_events_master', 'VIEW'), trainingExtensionEventsController.getEventById);
+router.post('/events',    requirePermission('all_masters_events_master', 'ADD'),  trainingExtensionEventsController.createEvent);
+router.put('/events/:id', requirePermission('all_masters_events_master', 'EDIT'), trainingExtensionEventsController.updateEvent);
+router.delete('/events/:id', requirePermission('all_masters_events_master', 'DELETE'), trainingExtensionEventsController.deleteEvent);
 
 // ============================================
 // Statistics Route
 // ============================================
 
-router.get('/stats', allowAllRoles, trainingExtensionEventsController.getStats);
+router.get('/stats',
+    requireAnyPermission([
+        'all_masters_training_master',
+        'all_masters_extension_activity_master',
+        'all_masters_other_extension_activity_master',
+        'all_masters_events_master',
+    ], 'VIEW'),
+    trainingExtensionEventsController.getStats,
+);
 
 module.exports = router;

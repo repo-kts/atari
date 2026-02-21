@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel, type RoleInfo } from '../../services/userApi'
-import { useRoles } from '../../hooks/useUserManagement'
+import { useRoles, useCreateRole } from '../../hooks/useUserManagement'
 import { outranksOrEqual } from '../../constants/roleHierarchy'
 import { Plus, MoreVertical, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
@@ -10,6 +10,7 @@ import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useAlert } from '@/hooks/useAlert'
+import { AddRoleModal } from '@/components/admin/AddRoleModal'
 
 const PAGE_SIZE = 10
 
@@ -22,7 +23,10 @@ export const RoleManagement: React.FC = () => {
     const [openActionId, setOpenActionId] = useState<number | null>(null)
     const [sortBy, setSortBy] = useState<'roleId' | 'roleName'>('roleId')
     const [sortAsc, setSortAsc] = useState(true)
+    const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    const createRoleMutation = useCreateRole()
 
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
@@ -77,12 +81,23 @@ export const RoleManagement: React.FC = () => {
         }
     }
 
-    const handleAddRole = () => {
-        alert({
-            title: 'Coming Soon',
-            message: 'Add Role – coming soon',
-            variant: 'info',
+    const handleAddRole = () => setIsAddRoleModalOpen(true)
+
+    const handleCreateRole = async (
+        roleName: string,
+        description?: string | null,
+        hierarchyLevel?: number
+    ) => {
+        const role = await createRoleMutation.mutateAsync({
+            roleName,
+            description,
+            hierarchyLevel: hierarchyLevel ?? 9,
         })
+        return role
+    }
+
+    const handleAddRoleSuccess = (roleId: number) => {
+        navigate(`/role-view/${roleId}/permissions`)
     }
 
     const handleAddEditPermission = (role: RoleInfo) => {
@@ -314,6 +329,14 @@ export const RoleManagement: React.FC = () => {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Add Role Modal */}
+            <AddRoleModal
+                isOpen={isAddRoleModalOpen}
+                onClose={() => setIsAddRoleModalOpen(false)}
+                onSuccess={handleAddRoleSuccess}
+                onSubmit={handleCreateRole}
+            />
 
             {/* Modals */}
             <ConfirmDialog />

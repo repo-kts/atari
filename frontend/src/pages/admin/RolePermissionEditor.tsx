@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { outranksOrEqual } from '../../constants/roleHierarchy'
@@ -28,6 +28,19 @@ const MENU_DISPLAY_ORDER = [
     'Reports',
 ]
 
+/** Checkbox that supports the indeterminate state (not natively supported by React) */
+const IndeterminateCheckbox: React.FC<
+    React.InputHTMLAttributes<HTMLInputElement> & { indeterminate?: boolean }
+> = ({ indeterminate, ...props }) => {
+    const ref = useRef<HTMLInputElement>(null)
+    useEffect(() => {
+        if (ref.current) ref.current.indeterminate = !!indeterminate
+    }, [indeterminate])
+    return <input ref={ref} type="checkbox" {...props} />
+}
+
+const CHECKBOX_CLASS = 'w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+
 export const RolePermissionEditor: React.FC = () => {
     const { roleId } = useParams<{ roleId: string }>()
     const navigate = useNavigate()
@@ -40,16 +53,16 @@ export const RolePermissionEditor: React.FC = () => {
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
 
     // Fetch role permissions
-    const { 
-        data, 
-        isLoading, 
-        error: queryError 
+    const {
+        data,
+        isLoading,
+        error: queryError
     } = useRolePermissions(roleId ? Number(roleId) : null)
 
     // Update role permissions mutation
     const updatePermissionsMutation = useUpdateRolePermissions()
     const isSaving = updatePermissionsMutation.isPending
-    const error = queryError 
+    const error = queryError
         ? (queryError instanceof Error ? queryError.message : 'Failed to load permissions')
         : updatePermissionsMutation.error
         ? (updatePermissionsMutation.error instanceof Error ? updatePermissionsMutation.error.message : 'Failed to save permissions')
@@ -123,7 +136,27 @@ export const RolePermissionEditor: React.FC = () => {
         return { viewIds, addIds, editIds, deleteIds }
     }, [orderedModules])
 
-    const allSelected = (ids: number[]) => ids.length > 0 && ids.every((id) => selectedPermissions.has(id))
+    // Per-group permission IDs by action (for group-level toggles)
+    const groupPermIds = useMemo(() => {
+        const map: Record<string, { viewIds: number[]; addIds: number[]; editIds: number[]; deleteIds: number[] }> = {}
+        for (const [menuName, modules] of menuEntries) {
+            const g = { viewIds: [] as number[], addIds: [] as number[], editIds: [] as number[], deleteIds: [] as number[] }
+            for (const mod of modules) {
+                for (const p of mod.permissions) {
+                    if (p.action === 'VIEW') g.viewIds.push(p.permissionId)
+                    else if (p.action === 'ADD') g.addIds.push(p.permissionId)
+                    else if (p.action === 'EDIT') g.editIds.push(p.permissionId)
+                    else if (p.action === 'DELETE') g.deleteIds.push(p.permissionId)
+                }
+            }
+            map[menuName] = g
+        }
+        return map
+    }, [menuEntries])
+
+    const allSelected = useCallback((ids: number[]) => ids.length > 0 && ids.every((id) => selectedPermissions.has(id)), [selectedPermissions])
+    const someSelected = useCallback((ids: number[]) => ids.length > 0 && ids.some((id) => selectedPermissions.has(id)), [selectedPermissions])
+
     const toggleAllForAction = (ids: number[]) => {
         if (!canEditThisRole) return
         setSelectedPermissions((prev) => {
@@ -136,7 +169,7 @@ export const RolePermissionEditor: React.FC = () => {
 
     const handleSave = async () => {
         if (!roleId || !data) return
-        
+
         setSuccessMessage(null)
         try {
             await updatePermissionsMutation.mutateAsync({
@@ -249,126 +282,178 @@ export const RolePermissionEditor: React.FC = () => {
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-[#212121] uppercase tracking-wider border-r border-[#E0E0E0]">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span>View</span>
-                                                <input
-                                                    type="checkbox"
+                                                <IndeterminateCheckbox
                                                     checked={allSelected(viewIds)}
+                                                    indeterminate={!allSelected(viewIds) && someSelected(viewIds)}
                                                     onChange={() => toggleAllForAction(viewIds)}
                                                     disabled={!canEditThisRole}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className={CHECKBOX_CLASS}
                                                 />
                                             </div>
                                         </th>
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-[#212121] uppercase tracking-wider border-r border-[#E0E0E0]">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span>Add</span>
-                                                <input
-                                                    type="checkbox"
+                                                <IndeterminateCheckbox
                                                     checked={allSelected(addIds)}
+                                                    indeterminate={!allSelected(addIds) && someSelected(addIds)}
                                                     onChange={() => toggleAllForAction(addIds)}
                                                     disabled={!canEditThisRole}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className={CHECKBOX_CLASS}
                                                 />
                                             </div>
                                         </th>
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-[#212121] uppercase tracking-wider border-r border-[#E0E0E0]">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span>Edit</span>
-                                                <input
-                                                    type="checkbox"
+                                                <IndeterminateCheckbox
                                                     checked={allSelected(editIds)}
+                                                    indeterminate={!allSelected(editIds) && someSelected(editIds)}
                                                     onChange={() => toggleAllForAction(editIds)}
                                                     disabled={!canEditThisRole}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className={CHECKBOX_CLASS}
                                                 />
                                             </div>
                                         </th>
                                         <th className="px-4 py-4 text-center text-xs font-semibold text-[#212121] uppercase tracking-wider">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span>Delete</span>
-                                                <input
-                                                    type="checkbox"
+                                                <IndeterminateCheckbox
                                                     checked={allSelected(deleteIds)}
+                                                    indeterminate={!allSelected(deleteIds) && someSelected(deleteIds)}
                                                     onChange={() => toggleAllForAction(deleteIds)}
                                                     disabled={!canEditThisRole}
-                                                    className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className={CHECKBOX_CLASS}
                                                 />
                                             </div>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {menuEntries.map(([menuName, modules]) =>
-                                        modules.map((module, moduleIndex) => {
-                                            const viewPerm = module.permissions.find((p) => p.action === 'VIEW')
-                                            const addPerm = module.permissions.find((p) => p.action === 'ADD')
-                                            const editPerm = module.permissions.find((p) => p.action === 'EDIT')
-                                            const deletePerm = module.permissions.find((p) => p.action === 'DELETE')
-
-                                            return (
-                                                <tr key={module.moduleId} className="border-b border-[#E0E0E0] hover:bg-[#F5F5F5] transition-colors">
-                                                    {moduleIndex === 0 && (
-                                                        <td
-                                                            rowSpan={modules.length}
-                                                            className="px-6 py-4 text-sm font-medium text-[#487749] align-top border-r border-[#E0E0E0] bg-[#FAF9F6]"
-                                                        >
-                                                            {menuName}
-                                                        </td>
-                                                    )}
-                                                    <td className="px-6 py-4 text-sm text-[#212121] border-r border-[#E0E0E0]">
-                                                        {module.subMenuName}
+                                    {menuEntries.map(([menuName, modules]) => {
+                                        const gp = groupPermIds[menuName]
+                                        return (
+                                            <React.Fragment key={menuName}>
+                                                {/* Group header row with per-action toggles */}
+                                                <tr className="bg-[#EFF5EF] border-b border-[#E0E0E0]">
+                                                    <td className="px-6 py-3 text-sm font-semibold text-[#487749] border-r border-[#E0E0E0]">
+                                                        {menuName}
                                                     </td>
-                                                    {/* View */}
-                                                    <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
-                                                        {viewPerm && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedPermissions.has(viewPerm.permissionId)}
-                                                                onChange={() => togglePermission(viewPerm.permissionId)}
+                                                    <td className="px-6 py-3 text-xs text-[#757575] italic border-r border-[#E0E0E0]">
+                                                        Select all
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center border-r border-[#E0E0E0]">
+                                                        {gp.viewIds.length > 0 && (
+                                                            <IndeterminateCheckbox
+                                                                checked={allSelected(gp.viewIds)}
+                                                                indeterminate={!allSelected(gp.viewIds) && someSelected(gp.viewIds)}
+                                                                onChange={() => toggleAllForAction(gp.viewIds)}
                                                                 disabled={!canEditThisRole}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                className={CHECKBOX_CLASS}
                                                             />
                                                         )}
                                                     </td>
-                                                    {/* Add */}
-                                                    <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
-                                                        {addPerm && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedPermissions.has(addPerm.permissionId)}
-                                                                onChange={() => togglePermission(addPerm.permissionId)}
+                                                    <td className="px-4 py-3 text-center border-r border-[#E0E0E0]">
+                                                        {gp.addIds.length > 0 && (
+                                                            <IndeterminateCheckbox
+                                                                checked={allSelected(gp.addIds)}
+                                                                indeterminate={!allSelected(gp.addIds) && someSelected(gp.addIds)}
+                                                                onChange={() => toggleAllForAction(gp.addIds)}
                                                                 disabled={!canEditThisRole}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                className={CHECKBOX_CLASS}
                                                             />
                                                         )}
                                                     </td>
-                                                    {/* Edit */}
-                                                    <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
-                                                        {editPerm && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedPermissions.has(editPerm.permissionId)}
-                                                                onChange={() => togglePermission(editPerm.permissionId)}
+                                                    <td className="px-4 py-3 text-center border-r border-[#E0E0E0]">
+                                                        {gp.editIds.length > 0 && (
+                                                            <IndeterminateCheckbox
+                                                                checked={allSelected(gp.editIds)}
+                                                                indeterminate={!allSelected(gp.editIds) && someSelected(gp.editIds)}
+                                                                onChange={() => toggleAllForAction(gp.editIds)}
                                                                 disabled={!canEditThisRole}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                className={CHECKBOX_CLASS}
                                                             />
                                                         )}
                                                     </td>
-                                                    {/* Delete */}
-                                                    <td className="px-4 py-4 text-center">
-                                                        {deletePerm && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedPermissions.has(deletePerm.permissionId)}
-                                                                onChange={() => togglePermission(deletePerm.permissionId)}
+                                                    <td className="px-4 py-3 text-center">
+                                                        {gp.deleteIds.length > 0 && (
+                                                            <IndeterminateCheckbox
+                                                                checked={allSelected(gp.deleteIds)}
+                                                                indeterminate={!allSelected(gp.deleteIds) && someSelected(gp.deleteIds)}
+                                                                onChange={() => toggleAllForAction(gp.deleteIds)}
                                                                 disabled={!canEditThisRole}
-                                                                className="w-4 h-4 text-[#487749] border-[#E0E0E0] rounded focus:ring-[#487749]/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                className={CHECKBOX_CLASS}
                                                             />
                                                         )}
                                                     </td>
                                                 </tr>
-                                            )
-                                        })
-                                    )}
+                                                {/* Submodule rows */}
+                                                {modules.map((module) => {
+                                                    const viewPerm = module.permissions.find((p) => p.action === 'VIEW')
+                                                    const addPerm = module.permissions.find((p) => p.action === 'ADD')
+                                                    const editPerm = module.permissions.find((p) => p.action === 'EDIT')
+                                                    const deletePerm = module.permissions.find((p) => p.action === 'DELETE')
+
+                                                    return (
+                                                        <tr key={module.moduleId} className="border-b border-[#E0E0E0] hover:bg-[#F5F5F5] transition-colors">
+                                                            <td className="border-r border-[#E0E0E0]" />
+                                                            <td className="px-6 py-4 text-sm text-[#212121] border-r border-[#E0E0E0]">
+                                                                {module.subMenuName}
+                                                            </td>
+                                                            {/* View */}
+                                                            <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
+                                                                {viewPerm && (
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedPermissions.has(viewPerm.permissionId)}
+                                                                        onChange={() => togglePermission(viewPerm.permissionId)}
+                                                                        disabled={!canEditThisRole}
+                                                                        className={CHECKBOX_CLASS}
+                                                                    />
+                                                                )}
+                                                            </td>
+                                                            {/* Add */}
+                                                            <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
+                                                                {addPerm && (
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedPermissions.has(addPerm.permissionId)}
+                                                                        onChange={() => togglePermission(addPerm.permissionId)}
+                                                                        disabled={!canEditThisRole}
+                                                                        className={CHECKBOX_CLASS}
+                                                                    />
+                                                                )}
+                                                            </td>
+                                                            {/* Edit */}
+                                                            <td className="px-4 py-4 text-center border-r border-[#E0E0E0]">
+                                                                {editPerm && (
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedPermissions.has(editPerm.permissionId)}
+                                                                        onChange={() => togglePermission(editPerm.permissionId)}
+                                                                        disabled={!canEditThisRole}
+                                                                        className={CHECKBOX_CLASS}
+                                                                    />
+                                                                )}
+                                                            </td>
+                                                            {/* Delete */}
+                                                            <td className="px-4 py-4 text-center">
+                                                                {deletePerm && (
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={selectedPermissions.has(deletePerm.permissionId)}
+                                                                        onChange={() => togglePermission(deletePerm.permissionId)}
+                                                                        disabled={!canEditThisRole}
+                                                                        className={CHECKBOX_CLASS}
+                                                                    />
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </React.Fragment>
+                                        )
+                                    })}
                                 </tbody>
                             </table>
                         </div>

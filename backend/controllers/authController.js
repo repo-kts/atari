@@ -2,14 +2,57 @@
 require('dotenv').config();
 const authService = require('../services/authService.js');
 
+/**
+ * Get cookie options based on environment
+ * Handles Safari, incognito, and cross-origin cookie requirements
+ */
+function getCookieOptions(maxAge) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = !isProduction;
+  
+  // In production (cross-origin), need SameSite=None + Secure
+  // In development (same-origin), use SameSite=Lax for better compatibility
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction, // HTTPS required in production
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: maxAge,
+    path: '/',
+  };
+
+  // Only set domain in production for cross-domain cookies
+  // Don't set domain in development to avoid issues with localhost
+  if (isProduction && process.env.COOKIE_DOMAIN) {
+    cookieOptions.domain = process.env.COOKIE_DOMAIN;
+  }
+
+  // Safari ITP (Intelligent Tracking Prevention) compatibility
+  // Partitioned attribute helps with Safari cross-site cookies
+  if (isProduction) {
+    cookieOptions.partitioned = true;
+  }
+
+  return cookieOptions;
+}
+
 function getClearCookieOptions() {
   const isProduction = process.env.NODE_ENV === 'production';
-  return {
+  const options = {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? 'none' : 'lax',
     path: '/',
   };
+
+  if (isProduction && process.env.COOKIE_DOMAIN) {
+    options.domain = process.env.COOKIE_DOMAIN;
+  }
+
+  if (isProduction) {
+    options.partitioned = true;
+  }
+
+  return options;
 }
 
 const authController = {
@@ -28,21 +71,10 @@ const authController = {
       const result = await authService.login(email, password);
 
       // Set HTTP-only cookies for tokens
-      const isProduction = process.env.NODE_ENV === 'production';
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction, // HTTPS only in production
-        sameSite: isProduction ? 'none' : 'lax', // Allow cross-domain in prod
-        maxAge: 60 * 60 * 1000, // 1 hour for access token
-        path: '/',
-      };
+      const accessCookieOptions = getCookieOptions(60 * 60 * 1000); // 1 hour
+      const refreshCookieOptions = getCookieOptions(7 * 24 * 60 * 60 * 1000); // 7 days
 
-      const refreshCookieOptions = {
-        ...cookieOptions,
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days for refresh token
-      };
-
-      res.cookie('accessToken', result.accessToken, cookieOptions);
+      res.cookie('accessToken', result.accessToken, accessCookieOptions);
       res.cookie('refreshToken', result.refreshToken, refreshCookieOptions);
 
       res.status(200).json({
@@ -69,23 +101,13 @@ const authController = {
       const result = await authService.refreshAccessToken(refreshToken);
 
       // Set new access token cookie
-      const isProduction = process.env.NODE_ENV === 'production';
-      const cookieOptions = {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? 'none' : 'lax',
-        maxAge: 60 * 60 * 1000, // 1 hour
-        path: '/',
-      };
+      const accessCookieOptions = getCookieOptions(60 * 60 * 1000); // 1 hour
 
-      res.cookie('accessToken', result.accessToken, cookieOptions);
+      res.cookie('accessToken', result.accessToken, accessCookieOptions);
 
       // If refresh token was rotated, set new refresh token cookie
       if (result.refreshToken !== refreshToken) {
-        const refreshCookieOptions = {
-          ...cookieOptions,
-          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        };
+        const refreshCookieOptions = getCookieOptions(7 * 24 * 60 * 60 * 1000); // 7 days
         res.cookie('refreshToken', result.refreshToken, refreshCookieOptions);
       }
 

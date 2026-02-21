@@ -1,6 +1,9 @@
 const aboutKvkRepository = require('../../repositories/forms/aboutKvkRepository.js');
 const prisma = require('../../config/prisma.js');
 
+/** Roles scoped to a specific KVK */
+const KVK_ROLES = ['kvk_admin', 'kvk_user'];
+
 /**
  * About KVK Service
  * Business logic layer for About KVK forms
@@ -84,8 +87,8 @@ class AboutKvkService {
                 throw new Error('Only super admin can create KVKs');
             }
         } else {
-            // For all other About KVK entities, only KVK role can create
-            if (!user || user.roleName !== 'kvk') {
+            // For all other About KVK entities, only KVK roles can create
+            if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can create this resource');
             }
             // Auto-fill kvkId for KVK role users
@@ -146,8 +149,8 @@ class AboutKvkService {
                 throw new Error('Only admin users can update KVKs');
             }
         } else {
-            // For all other About KVK entities, only KVK role can update their own data
-            if (!user || user.roleName !== 'kvk') {
+            // For all other About KVK entities, only KVK roles can update their own data
+            if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can update this resource');
             }
             
@@ -189,8 +192,8 @@ class AboutKvkService {
                 throw new Error('Only super admin can delete KVKs');
             }
         } else {
-            // For all other About KVK entities, only KVK role can delete their own data
-            if (!user || user.roleName !== 'kvk') {
+            // For all other About KVK entities, only KVK roles can delete their own data
+            if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can delete this resource');
             }
             
@@ -392,8 +395,8 @@ class AboutKvkService {
             throw new Error('User is required for transfer');
         }
 
-        // Authorization: Only KVK role or Super Admin can transfer employees
-        if (user.roleName !== 'kvk' && user.roleName !== 'super_admin') {
+        // Authorization: Only KVK roles or Super Admin can transfer employees
+        if (!KVK_ROLES.includes(user.roleName) && user.roleName !== 'super_admin') {
             throw new Error('Only KVK admins and Super Admins can transfer employees');
         }
 
@@ -404,7 +407,7 @@ class AboutKvkService {
         }
 
         // Verify employee belongs to user's KVK (unless Super Admin)
-        if (user.roleName === 'kvk' && employee.kvkId !== user.kvkId) {
+        if (KVK_ROLES.includes(user.roleName) && employee.kvkId !== user.kvkId) {
             throw new Error('You can only transfer employees from your own KVK');
         }
 
@@ -503,8 +506,8 @@ class AboutKvkService {
      * Get all transfers with filters
      */
     async getAllTransfers(filters = {}, options = {}, user = null) {
-        // If user is KVK admin, filter to only show transfers involving their KVK
-        if (user && user.kvkId && user.roleName === 'kvk') {
+        // If user is KVK role, filter to only show transfers involving their KVK
+        if (user && user.kvkId && KVK_ROLES.includes(user.roleName)) {
             // For KVK admins, show transfers where their KVK is either source or target
             // We'll need to handle this with OR condition, but for now we'll filter in memory
             // Better approach: modify repository to support OR conditions
