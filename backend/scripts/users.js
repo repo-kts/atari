@@ -26,7 +26,7 @@ async function seedSuperAdmin() {
   await prisma.user.create({
     data: { name, email, passwordHash, roleId: superAdminRole.roleId, zoneId: null, stateId: null, districtId: null, orgId: null, kvkId: null },
   });
-  console.log(`   ✅ Created: ${email} / ${password}\n`);
+  console.log(`   ✅ Created: ${email}\n`);
 }
 
 async function seedKvkUser() {
@@ -61,8 +61,14 @@ async function seedKvkUser() {
   const existingUser = await prisma.user.findUnique({ where: { email: userEmail }, include: { role: true } });
   if (existingUser) {
     if (existingUser.kvkId !== kvk.kvkId) {
-      await prisma.user.update({ where: { userId: existingUser.userId }, data: { kvkId: kvk.kvkId } });
-      console.log('   ✅ User relinked to Test KVK.');
+      const roleName = existingUser.role?.roleName || 'unknown';
+      console.log(`   ⚠️  User ${userEmail} (role: ${roleName}) is linked to kvkId=${existingUser.kvkId}, expected kvkId=${kvk.kvkId}.`);
+      if (process.env.FORCE_RELINK === 'true') {
+        await prisma.user.update({ where: { userId: existingUser.userId }, data: { kvkId: kvk.kvkId } });
+        console.log('   ✅ User relinked to Test KVK.');
+      } else {
+        console.log('   ⏭️  Skipped relink. Set FORCE_RELINK=true to override.');
+      }
     } else console.log('   ⏭️  Already exists: ' + userEmail);
     console.log('');
     return;
@@ -75,7 +81,7 @@ async function seedKvkUser() {
       zoneId: zone.zoneId, stateId: state.stateId, districtId: district.districtId, orgId: org.orgId,
     },
   });
-  console.log(`   ✅ Created: ${userEmail} / KvkUser@123\n`);
+  console.log(`   ✅ Created: ${userEmail}\n`);
 }
 
 async function run() {

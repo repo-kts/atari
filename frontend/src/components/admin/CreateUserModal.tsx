@@ -339,7 +339,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 orgId: isSubAdmin
                     ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
                     : (formData.orgId ? (formData.orgId as number) : null),
-                universityId: !showPermissionsSection && (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') ? (formData.universityId ? (formData.universityId as number) : null) : null,
+                universityId: (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') ? (formData.universityId ? (formData.universityId as number) : null) : null,
                 kvkId: formData.kvkId ? (formData.kvkId as number) : null,
             }
             if (showPermissionsSection && formData.permissions.length > 0) {

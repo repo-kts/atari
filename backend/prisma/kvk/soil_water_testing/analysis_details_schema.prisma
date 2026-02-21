@@ -28,5 +28,6 @@ model KkvSoilWaterAnalysis {
     stF Int @map("st_f")
 
     @@index([kvkId])
+    @@index([analysisId])
     @@map("kvk_soil_water_analysis")
 }

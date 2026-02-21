@@ -20,9 +20,8 @@ async function run() {
 }
 
 run()
-  .then(() => process.exit(0))
   .catch((e) => {
     console.error('\n❌ Seed failed:', e.message);
-    process.exit(1);
+    process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());
