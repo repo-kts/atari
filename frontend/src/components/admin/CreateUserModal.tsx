@@ -28,15 +28,15 @@ const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
 const PERMISSION_ACTIONS_NON_ADMIN = PERMISSION_ACTIONS.filter((a) => a.value !== 'ADD')
 
 /** Non-admin roles that require custom permissions */
-const NON_ADMIN_ROLES = ['state_user', 'district_user', 'org_user', 'kvk']
+const NON_ADMIN_ROLES = ['kvk_user', 'state_user', 'district_user', 'org_user']
 
-/** Non-admin roles each creator can assign (admins cannot create other admins). Run seed to ensure state_user, district_user, org_user exist (IDs 7,8,9). */
+/** Non-admin roles each creator can assign (admins cannot create other admins). */
 const ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR: Record<string, string[]> = {
-    zone_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
-    state_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
-    district_admin: ['district_user', 'org_user', 'kvk'],
-    org_admin: ['org_user', 'kvk'],
-    kvk: ['kvk'],
+    zone_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
+    state_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
+    district_admin: ['kvk_user', 'district_user', 'org_user'],
+    org_admin: ['kvk_user', 'org_user'],
+    kvk_admin: ['kvk_user'],
 }
 
 interface CreateUserModalProps {
@@ -125,13 +125,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const zoneRequired = selectedRole === 'zone_admin' ||
         selectedRole === 'state_admin' || selectedRole === 'state_user' ||
         selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
     const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
         selectedRole === 'district_admin' || selectedRole === 'district_user' ||
-        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk'
-    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk'
-    const kvkRequired = selectedRole === 'kvk'
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const kvkRequired = selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
 
     // Show hierarchy fields that are required — ensures every required field has a visible dropdown
     const showZoneField = zoneRequired
@@ -145,9 +145,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Sub-admin hierarchy dropdowns: only show dropdowns for levels STRICTLY BELOW the creator's own level
     // Hierarchy levels: zone=1, state=2, district=3, org=4
     // e.g. district_admin (level 3) should NOT see State (level 2) or District (level 3) dropdowns - those are inherited
-    const needsStateLevel = ['state_user', 'district_user', 'org_user', 'kvk']
-    const needsDistrictLevel = ['district_user', 'kvk']
-    const needsOrgLevel = ['org_user', 'kvk']
+    const needsStateLevel = ['state_user', 'district_user', 'org_user', 'kvk_admin', 'kvk_user']
+    const needsDistrictLevel = ['district_user', 'kvk_admin', 'kvk_user']
+    const needsOrgLevel = ['org_user', 'kvk_admin', 'kvk_user']
 
     const showStateForSubAdmin = isSubAdmin && creatorLevel < 2 && needsStateLevel.includes(selectedRole || '')
     const showDistrictForSubAdmin = isSubAdmin && creatorLevel < 3 && needsDistrictLevel.includes(selectedRole || '')
@@ -339,7 +339,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 orgId: isSubAdmin
                     ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
                     : (formData.orgId ? (formData.orgId as number) : null),
-                universityId: !showPermissionsSection && selectedRole === 'kvk' ? (formData.universityId ? (formData.universityId as number) : null) : null,
+                universityId: (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') ? (formData.universityId ? (formData.universityId as number) : null) : null,
                 kvkId: formData.kvkId ? (formData.kvkId as number) : null,
             }
             if (showPermissionsSection && formData.permissions.length > 0) {
@@ -546,7 +546,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 )}
 
                 {/* Hierarchy info for sub-admins */}
-                {isSubAdmin && !showStateForSubAdmin && !showDistrictForSubAdmin && !showOrgForSubAdmin && selectedRole !== 'kvk' && (
+                {isSubAdmin && !showStateForSubAdmin && !showDistrictForSubAdmin && !showOrgForSubAdmin && selectedRole !== 'kvk_admin' && selectedRole !== 'kvk_user' && (
                     <p className="text-sm text-[#757575]">
                         New user will inherit your <strong className="text-[#212121]">Zone, State, District &amp; Organization</strong>.
                     </p>
@@ -862,7 +862,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {selectedRole === 'kvk' && (
+                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && (
                     <DependentDropdown
                         label={`KVK ${kvkRequired ? '*' : ''}`}
                         value={formData.kvkId || ''}

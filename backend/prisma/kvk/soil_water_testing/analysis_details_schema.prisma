@@ -7,8 +7,8 @@ model KkvSoilWaterAnalysis {
     startDate DateTime @map("start_date")
     endDate   DateTime @map("end_date")
 
-    soilWaterAnalysisId Int
-    soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [soilWaterAnalysisId], references: [soilWaterAnalysisId])
+    analysisId Int @map("analysis_id")
+    soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
 
     samplesAnalysedThrough String @map("samples_analysed_through")
     samplesAnalysed Int @map("samples_analysed")
@@ -28,5 +28,6 @@ model KkvSoilWaterAnalysis {
     stF Int @map("st_f")
 
     @@index([kvkId])
+    @@index([analysisId])
     @@map("kvk_soil_water_analysis")
 }

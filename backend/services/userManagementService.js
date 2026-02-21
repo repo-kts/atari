@@ -11,11 +11,11 @@ const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 
 /** Non-admin roles that each creator role can assign (admins cannot create other admins) */
 const ALLOWED_ROLES_FOR_CREATOR = {
-  zone_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
-  state_admin: ['state_user', 'district_user', 'org_user', 'kvk'],
-  district_admin: ['district_user', 'org_user', 'kvk'],
-  org_admin: ['org_user', 'kvk'],
-  kvk: ['kvk'],
+  zone_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
+  state_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
+  district_admin: ['kvk_user', 'district_user', 'org_user'],
+  org_admin: ['kvk_user', 'org_user'],
+  kvk_admin: ['kvk_user'],
 };
 
 /**
@@ -383,7 +383,7 @@ const userManagementService = {
           }
         }
         break;
-      case 'kvk':
+      case 'kvk_admin':
         if (creator.kvkId == null) throw new Error('Creator must be assigned to a KVK');
         if (Number(userData.kvkId) !== Number(creator.kvkId)) {
           throw new Error('You can only create users within your KVK');
@@ -470,7 +470,8 @@ const userManagementService = {
         break;
       }
 
-      case 'kvk':
+      case 'kvk_admin':
+      case 'kvk_user':
         if (!kvkId) {
           throw new Error('KVK user must be assigned to a KVK');
         }
@@ -562,9 +563,9 @@ const userManagementService = {
 
     const adminRole = adminUser.role.roleName;
 
-    // All admins (super_admin, zone_admin, state_admin, district_admin, org_admin, kvk) can see all users
+    // All admins (super_admin, zone_admin, state_admin, district_admin, org_admin, kvk_admin) can see all users
     // No hierarchy filters for viewing - everyone sees the full user list
-    const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk'];
+    const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
     if (!allowedRoles.includes(adminRole)) {
       throw new Error('User does not have permission to view users');
     }

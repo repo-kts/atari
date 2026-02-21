@@ -5,7 +5,7 @@ model OftSubject {
   subjectName   String @map("oft_subject_name")
 
   thematicAreas OftThematicArea[]
-  kvkOfts kvkoft[]
+  kvkOfts Kvkoft[]
 
   @@index([oftSubjectId])
   @@index([subjectName])
@@ -19,7 +19,7 @@ model OftThematicArea {
   oftSubjectId Int         @map("oft_subject_id")
   subject      OftSubject  @relation(fields: [oftSubjectId], references: [oftSubjectId])
 
-  kvkOfts kvkoft[]
+  kvkOfts Kvkoft[]
 
   @@index([oftThematicAreaId])
   @@index([oftSubjectId])

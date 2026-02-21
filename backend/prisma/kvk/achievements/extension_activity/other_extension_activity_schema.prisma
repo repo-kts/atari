@@ -4,14 +4,14 @@ model KvkOtherExtensionActivity {
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId])
+  fldId Int?
+  fld   KvkFldIntroduction? @relation(fields: [fldId], references: [kvkFldId])
 
-  staffId Int
-  staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
+  staffId Int?
+  staff   KvkStaff? @relation(fields: [staffId], references: [kvkStaffId])
 
-  activityTypeId Int
-  activityType   OtherExtensionActivityType @relation(fields: [activityTypeId], references: [activityTypeId])
+  activityTypeId Int?
+  activityType   OtherExtensionActivityType? @relation(fields: [activityTypeId], references: [activityTypeId])
 
   numberOfActivities Int @map("number_of_activities")
   startDate DateTime @map("start_date")

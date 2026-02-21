@@ -8,13 +8,14 @@ const ROLE_HIERARCHY = {
   state_admin: 2,
   district_admin: 3,
   org_admin: 4,
-  kvk: 5,
-  state_user: 6,
-  district_user: 7,
-  org_user: 8,
+  kvk_admin: 5,
+  kvk_user: 6,
+  state_user: 7,
+  district_user: 8,
+  org_user: 9,
 };
 
-const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
 
 /**
  * Returns the numeric hierarchy level for a role.
