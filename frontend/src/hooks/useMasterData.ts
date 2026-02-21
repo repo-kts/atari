@@ -85,11 +85,9 @@ export function useMasterData<T extends EntityData>(
     const [params, setParams] = useState<QueryParams | undefined>();
     const queryKey = ['master-data', entityType, params, user?.userId, user?.role];
 
-    // Only fetch when explicitly enabled or when user has VIEW permission (avoids 403 for roles without All Masters)
-    const enabled =
-        options?.enabled !== undefined
-            ? options.enabled
-            : hasPermission('VIEW', MASTER_DATA_MODULE_CODES[entityType]);
+    // Fetch only when caller allows (enabled !== false) AND user has VIEW permission (avoids 403 for roles without All Masters)
+    const hasViewPermission = hasPermission('VIEW', MASTER_DATA_MODULE_CODES[entityType]);
+    const enabled = (options?.enabled !== false) && hasViewPermission;
 
     // Query for fetching data with error handling
     const query = useQuery({
