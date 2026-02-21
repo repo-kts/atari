@@ -41,8 +41,8 @@ model KvkStaff {
 
   allowances String? @map("allowances")
 
-  staffCategoryId Int
-  staffCategory   StaffCategoryMaster @relation(fields: [staffCategoryId], references: [staffCategoryId])
+  staffCategoryId Int?
+  staffCategory   StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId])
 
   transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
   

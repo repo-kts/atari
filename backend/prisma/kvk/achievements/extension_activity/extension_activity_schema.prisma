@@ -4,15 +4,15 @@ model KvkExtensionActivity {
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId])
+  fldId Int?
+  fld   KvkFldIntroduction? @relation(fields: [fldId], references: [kvkFldId])
 
-  staffId Int
-  staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
+  staffId Int?
+  staff   KvkStaff? @relation(fields: [staffId], references: [kvkStaffId])
 
   // Nature of Extension Activity WIP
-  activityId Int
-  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+  activityId Int?
+  activity   FldActivity? @relation(fields: [activityId], references: [activityId])
 
   numberOfActivities Int @map("number_of_activities")
   startDate DateTime @map("start_date")

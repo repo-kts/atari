@@ -5,7 +5,7 @@ model FarmerAward {
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
   farmerName String @map("farmer_name")
-  contactNumber Int @map("contact_number")
+  contactNumber String @map("contact_number")
   address String @map("address")
   awardName String @map("award_name")
   amount Int @map("amount")
