@@ -31,8 +31,9 @@ import { ProjectsOverview } from './pages/dashboard/forms/projects/ProjectsOverv
 import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, achievementsRoutes } from './config/routeConfig'
 import type { UserRole } from './types/auth'
 import { ENTITY_PATHS } from './constants/entityTypes'
+import { ADMIN_ROLES as _ADMIN_ROLES } from './constants/roleHierarchy'
 
-const ADMIN_ROLES: UserRole[] = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin']
+const ADMIN_ROLES: UserRole[] = [..._ADMIN_ROLES]
 
 function AppRoutes() {
     const queryClient = useQueryClient()

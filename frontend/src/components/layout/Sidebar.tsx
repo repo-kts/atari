@@ -25,6 +25,7 @@ import {
     FileCheck,
     BookOpen,
 } from 'lucide-react'
+import { ADMIN_ROLES } from '../../constants/roleHierarchy'
 
 interface MenuItem {
     label: string
@@ -281,8 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const isFormOpen = location.pathname.includes('/create') || location.pathname.includes('/edit/')
 
     // Roles that get admin UI
-    const adminRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin']
-    const isAdmin = user?.role && adminRoles.includes(user.role)
+    const isAdmin = user?.role && (ADMIN_ROLES as readonly string[]).includes(user.role)
     const isKvk = user?.role === 'kvk_user'
 
     // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
