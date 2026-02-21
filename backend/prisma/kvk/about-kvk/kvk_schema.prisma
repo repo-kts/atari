@@ -53,6 +53,15 @@ model Kvk {
   extensionActivityOrganized   ExtensionActivityOrganized[]
   cfldTechnicalParameters      CfldTechnicalParameter[]
   users                        User[]
+  kvkOfts                      Kvkoft[]
+  agriDrones                   KvkAgriDrone[]
+  fpoCbboDetails               FpoCbboDetails[]
+  fpoManagements               FpoManagement[]
+  kvkOtherProgrammes           KvkOtherProgramme[]
+  seedHubPrograms              KvkSeedHubProgram[]
+  soilWaterAnalyses            KkvSoilWaterAnalysis[]
+  soilWaterEquipments          KkvSoilWaterEquipment[]
+  worldSoilCelebrations        KkvWorldSoilCelebration[]
 
   @@index([zoneId])
   @@index([stateId])

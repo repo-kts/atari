@@ -58,7 +58,7 @@ model KvkStaff {
   kvkExtensionActivities     KvkExtensionActivity[]
   kvkOtherExtensionActivities KvkOtherExtensionActivity[]
   kvkFldIntroductions         KvkFldIntroduction[]
-  kvkOfts kvkoft[]
+  kvkOfts Kvkoft[]
 
   @@map("kvk_staff")
   @@index([kvkId])

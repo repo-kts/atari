@@ -20,5 +20,5 @@ model KvkOtherProgramme {
 
   @@index([kvkId])
 
-  @@map("kvk_oft")
+  @@map("kvk_other_programme")
 }
