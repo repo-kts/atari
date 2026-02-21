@@ -166,8 +166,8 @@ export function useEntityHook(entityType: ExtendedEntityType | null) {
         : 'zones' // Default to ensure hook is always called
 
     // Always call useMasterData to maintain hook order
-    // Only use the result if it's actually a basic master
-    const basicMasterHookResult = useMasterData(basicMasterEntityType)
+    // Only fetch when we actually need basic master data (avoids 403 for zones etc. when on About KVK pages)
+    const basicMasterHookResult = useMasterData(basicMasterEntityType, { enabled: isBasicMaster })
     const basicMasterHook = entityType && isBasicMaster ? basicMasterHookResult : null
 
     // Always call useAboutKvkData to maintain hook order

@@ -54,12 +54,17 @@ const tabs: Tab[] = [
 export const FormManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const hasRedirectedRef = React.useRef(false)
 
-    // Redirect to first tab if on base /forms route
+    // Redirect to first tab if on base /forms route (guard to avoid maximum update depth)
     React.useEffect(() => {
-        if (location.pathname === '/forms') {
-            navigate(tabs[0].path, { replace: true })
+        if (location.pathname !== '/forms') {
+            hasRedirectedRef.current = false
+            return
         }
+        if (hasRedirectedRef.current) return
+        hasRedirectedRef.current = true
+        navigate(tabs[0].path, { replace: true })
     }, [location.pathname, navigate])
 
     // Determine active tab based on current route

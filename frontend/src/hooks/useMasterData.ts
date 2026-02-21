@@ -29,6 +29,15 @@ type EntityData = Zone | State | District | Organization | University;
 type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto | CreateUniversityDto;
 type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto | UpdateUniversityDto;
 
+// Module codes for permission check (VIEW required to fetch)
+const MASTER_DATA_MODULE_CODES: Record<EntityType, string> = {
+    zones: 'all_masters_zone_master',
+    states: 'all_masters_states_master',
+    districts: 'all_masters_districts_master',
+    organizations: 'all_masters_organization_master',
+    universities: 'all_masters_university_master',
+};
+
 // API call mapping
 const apiCalls = {
     zones: {
@@ -72,9 +81,15 @@ export function useMasterData<T extends EntityData>(
     options?: { enabled?: boolean }
 ) {
     const queryClient = useQueryClient();
-    const { user } = useAuth();
+    const { user, hasPermission } = useAuth();
     const [params, setParams] = useState<QueryParams | undefined>();
     const queryKey = ['master-data', entityType, params, user?.userId, user?.role];
+
+    // Only fetch when explicitly enabled or when user has VIEW permission (avoids 403 for roles without All Masters)
+    const enabled =
+        options?.enabled !== undefined
+            ? options.enabled
+            : hasPermission('VIEW', MASTER_DATA_MODULE_CODES[entityType]);
 
     // Query for fetching data with error handling
     const query = useQuery({
@@ -90,7 +105,7 @@ export function useMasterData<T extends EntityData>(
                 return [] as T[];
             }
         },
-        enabled: options?.enabled !== false, // Default to true, can be disabled
+        enabled,
         staleTime: 5 * 60 * 1000, // 5 minutes
         retry: 1, // Only retry once
         retryDelay: 1000, // Wait 1 second before retry

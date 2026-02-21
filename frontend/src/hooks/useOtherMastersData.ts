@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { otherMastersApi } from '../services/otherMastersApi';
 import { invalidateEntityType } from '../utils/queryInvalidation';
 import { ENTITY_TYPES } from '../constants/entityTypes';
+import { useAuth } from '../contexts/AuthContext';
 import type {
     SeasonFormData,
     SanctionedPostFormData,
@@ -22,13 +23,20 @@ import type {
 // Season Hooks
 // ============================================
 
-export function useSeasons() {
+export function useSeasons(options?: { enabled?: boolean }) {
     const queryClient = useQueryClient();
+    const { hasPermission } = useAuth();
+
+    const enabled =
+        options?.enabled !== undefined
+            ? options.enabled
+            : hasPermission('VIEW', 'all_masters_season_master');
 
     const query = useQuery({
         queryKey: ['seasons'],
         queryFn: () => otherMastersApi.getSeasons().then((res) => res.data),
         staleTime: 5 * 60 * 1000,
+        enabled,
     });
 
     const createMutation = useMutation({
