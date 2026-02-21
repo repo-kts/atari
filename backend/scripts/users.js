@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 /**
  * Seed users: Super Admin and optional KVK user.
- * Env: SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD, SUPER_ADMIN_NAME (optional)
+ *
+ * Required env vars:
+ *   SUPER_ADMIN_PASSWORD  – password for the super admin account
+ *   KVK_USER_PASSWORD     – password for the sample KVK user account
+ *
+ * Optional env vars:
+ *   SUPER_ADMIN_EMAIL     – defaults to superadmin@atari.gov.in
+ *   SUPER_ADMIN_NAME      – defaults to "Super Administrator"
+ *
  * Run: node scripts/users.js   or   npm run seed:users
  */
 require('dotenv').config();
@@ -18,7 +26,8 @@ async function seedSuperAdmin() {
     return;
   }
   const email = (process.env.SUPER_ADMIN_EMAIL || 'superadmin@atari.gov.in').toLowerCase().trim();
-  const password = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin@123';
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+  if (!password) throw new Error('SUPER_ADMIN_PASSWORD env var is required.');
   const name = process.env.SUPER_ADMIN_NAME || 'Super Administrator';
   const existingEmail = await prisma.user.findUnique({ where: { email } });
   if (existingEmail) throw new Error(`User with email ${email} already exists. Use different SUPER_ADMIN_EMAIL.`);
@@ -74,7 +83,9 @@ async function seedKvkUser() {
     return;
   }
 
-  const passwordHash = await hashPassword('KvkUser@123');
+  const kvkPassword = process.env.KVK_USER_PASSWORD;
+  if (!kvkPassword) throw new Error('KVK_USER_PASSWORD env var is required.');
+  const passwordHash = await hashPassword(kvkPassword);
   await prisma.user.create({
     data: {
       name: 'Test KVK User', email: userEmail, passwordHash, roleId: kvkRole.roleId, kvkId: kvk.kvkId,
@@ -92,8 +103,10 @@ async function run() {
 
 if (require.main === module) {
   run()
-    .then(() => process.exit(0))
-    .catch((e) => { console.error(e); process.exit(1); })
+    .catch((e) => {
+      console.error(e);
+      process.exitCode = 1;
+    })
     .finally(() => prisma.$disconnect());
 } else {
   module.exports = { run };

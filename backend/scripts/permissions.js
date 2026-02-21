@@ -160,11 +160,13 @@ async function run() {
       permissionIds = perms.map((p) => p.permissionId);
     }
     if (permissionIds.length === 0) continue;
-    await prisma.rolePermission.deleteMany({ where: { roleId: role.roleId } });
-    await prisma.rolePermission.createMany({
-      data: permissionIds.map((permissionId) => ({ roleId: role.roleId, permissionId })),
-      skipDuplicates: true,
-    });
+    await prisma.$transaction([
+      prisma.rolePermission.deleteMany({ where: { roleId: role.roleId } }),
+      prisma.rolePermission.createMany({
+        data: permissionIds.map((permissionId) => ({ roleId: role.roleId, permissionId })),
+        skipDuplicates: true,
+      }),
+    ]);
     console.log(`   ✅ ${roleName}: ${permissionIds.length} permissions`);
   }
   console.log('');
