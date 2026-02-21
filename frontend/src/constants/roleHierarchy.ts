@@ -4,7 +4,9 @@
  */
 export const ROLE_HIERARCHY: Record<string, number> = {
   super_admin: 0,
+  icar: 0,
   zone_admin: 1,
+  zpd: 1,
   state_admin: 2,
   district_admin: 3,
   org_admin: 4,
@@ -14,7 +16,7 @@ export const ROLE_HIERARCHY: Record<string, number> = {
   org_user: 8,
 }
 
-export const ADMIN_ROLES = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'] as const
+export const ADMIN_ROLES = ['super_admin', 'icar', 'zone_admin', 'zpd', 'state_admin', 'district_admin', 'org_admin'] as const
 
 export function getRoleLevel(roleName: string): number {
   return ROLE_HIERARCHY[roleName] ?? Infinity

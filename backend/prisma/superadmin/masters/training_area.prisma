@@ -1,0 +1,8 @@
+model TrainingAreaMaster {
+  trainingAreaId Int    @id @default(autoincrement()) @map("training_area_id")
+  name           String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("training_area_master")
+}

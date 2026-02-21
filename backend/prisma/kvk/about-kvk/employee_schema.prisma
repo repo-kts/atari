@@ -1,0 +1,74 @@
+// KVK staff / employee - models only; generator/datasource in schema.prisma
+
+enum JobType {
+  PERMANENT 
+  TEMPORARY
+}
+
+enum TransferStatus {
+  ACTIVE
+  TRANSFERRED
+}
+
+model KvkStaff {
+  kvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  staffName   String    @map("staff_name")
+  email      String?   @map("email")
+  mobile     String    @map("mobile")
+  dateOfBirth DateTime @map("date_of_birth")
+
+  photoPath  String? @map("photo_path")
+  resumePath String? @map("resume_path")
+
+  sanctionedPostId Int
+  sanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+
+  positionOrder Int @map("position_order")
+
+  disciplineId Int
+  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
+
+  payScale String?  @map("pay_scale")
+  payLevelId Int?
+  payLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])
+
+  dateOfJoining DateTime @map("date_of_joining")
+  jobType       JobType?  @map("job_type")
+
+  allowances String? @map("allowances")
+
+  staffCategoryId Int
+  staffCategory   StaffCategoryMaster @relation(fields: [staffCategoryId], references: [staffCategoryId])
+
+  transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
+  
+  sourceKvkIds Json? @map("source_kvk_ids")
+  
+  originalKvkId    Int?      @map("original_kvk_id")
+  transferCount    Int       @default(0) @map("transfer_count")
+  lastTransferDate DateTime? @map("last_transfer_date")
+  
+  transferHistory  StaffTransferHistory[]
+  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+  hrdPrograms      HrdProgram[]
+  kvkExtensionActivities     KvkExtensionActivity[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  kvkFldIntroductions         KvkFldIntroduction[]
+  kvkOfts kvkoft[]
+
+  @@map("kvk_staff")
+  @@index([kvkId])
+  @@index([sanctionedPostId])
+  @@index([disciplineId])
+  @@index([staffName])
+  @@index([email])
+  @@index([mobile])
+  @@index([transferStatus])
+  @@index([originalKvkId])
+  @@index([staffCategoryId])
+  @@index([payLevelId])
+}

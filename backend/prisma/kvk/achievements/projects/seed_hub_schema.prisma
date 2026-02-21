@@ -1,0 +1,29 @@
+model KvkSeedHubProgram {
+    seedHubId Int @id @default(autoincrement()) @map("seed_hub_id")
+
+    kvkId Int
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+    reportingYear Int @map("reporting_year")
+
+    seasonId Int
+    season   Season @relation(fields: [seasonId], references: [seasonId])
+
+    cropName String @map("crop_name")
+    varietyName String @map("variety_name")
+    areaCoveredHa Float @map("area_covered_ha")
+    yieldQPerHa Float @map("yield_q_per_ha")
+    quantityProducedQ Float @map("quantity_produced_q")
+    quantitySaleOutQ Float @map("quantity_sale_out_q")
+    farmersPurchased Int @map("farmers_purchased")
+    quantitySaleToFarmersQ Float @map("quantity_sale_to_farmers_q")
+    villagesCovered Int @map("villages_covered")
+    quantitySaleToOtherOrgQ Float @map("quantity_sale_to_other_org_q")
+    amountGeneratedLakh Float @map("amount_generated_lakh")
+    totalAmountPresentLakh Float @map("total_amount_present_lakh")
+
+    @@index([kvkId])
+    @@index([seasonId])
+
+    @@map("kvk_seed_hub_program")
+}

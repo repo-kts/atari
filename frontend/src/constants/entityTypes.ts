@@ -70,6 +70,59 @@ export const ENTITY_TYPES = {
     ACHIEVEMENT_AWARD_KVK: 'achievement-award-kvk',
     ACHIEVEMENT_AWARD_SCIENTIST: 'achievement-award-scientist',
     ACHIEVEMENT_AWARD_FARMER: 'achievement-award-farmer',
+
+    // Projects
+    PROJECT_CFLD_TECHNICAL_PARAM: 'project-cfld-technical-param',
+    PROJECT_CFLD_EXTENSION_ACTIVITY: 'project-cfld-extension-activity',
+    PROJECT_CFLD_BUDGET: 'project-cfld-budget',
+
+    PROJECT_CRA_DETAILS: 'project-cra-details',
+    PROJECT_CRA_EXTENSION_ACTIVITY: 'project-cra-extension-activity',
+
+    PROJECT_FPO_DETAILS: 'project-fpo-details',
+    PROJECT_FPO_MANAGEMENT: 'project-fpo-management',
+
+    PROJECT_DRMR_DETAILS: 'project-drmr-details',
+    PROJECT_DRMR_ACTIVITY: 'project-drmr-activity',
+
+    PROJECT_NARI_NUTRI_GARDEN: 'project-nari-nutri-garden',
+    PROJECT_NARI_BIO_FORTIFIED: 'project-nari-bio-fortified',
+    PROJECT_NARI_VALUE_ADDITION: 'project-nari-value-addition',
+    PROJECT_NARI_TRAINING: 'project-nari-training',
+    PROJECT_NARI_EXTENSION: 'project-nari-extension',
+
+    PROJECT_ARYA_CURRENT: 'project-arya-current',
+    PROJECT_ARYA_EVALUATION: 'project-arya-evaluation',
+
+    PROJECT_CSISA: 'project-csisa',
+    PROJECT_TSP_SCSP: 'project-tsp-scsp',
+
+    PROJECT_NICRA_BASIC: 'project-nicra-basic',
+    PROJECT_NICRA_DETAILS: 'project-nicra-details',
+    PROJECT_NICRA_TRAINING: 'project-nicra-training',
+    PROJECT_NICRA_EXTENSION: 'project-nicra-extension',
+    PROJECT_NICRA_INTERVENTION: 'project-nicra-intervention',
+    PROJECT_NICRA_REVENUE: 'project-nicra-revenue',
+    PROJECT_NICRA_CUSTOM_HIRING: 'project-nicra-custom-hiring',
+    PROJECT_NICRA_VCRMC: 'project-nicra-vcrmc',
+    PROJECT_NICRA_SOIL_HEALTH: 'project-nicra-soil-health',
+    PROJECT_NICRA_CONVERGENCE: 'project-nicra-convergence',
+    PROJECT_NICRA_DIGNITARIES: 'project-nicra-dignitaries',
+    PROJECT_NICRA_PI_COPI: 'project-nicra-pi-copi',
+
+    PROJECT_NATURAL_FARMING_GEO: 'project-natural-farming-geo',
+    PROJECT_NATURAL_FARMING_PHYSICAL: 'project-natural-farming-physical',
+    PROJECT_NATURAL_FARMING_DEMO: 'project-natural-farming-demo',
+    PROJECT_NATURAL_FARMING_FARMERS: 'project-natural-farming-farmers',
+    PROJECT_NATURAL_FARMING_BENEFICIARIES: 'project-natural-farming-beneficiaries',
+    PROJECT_NATURAL_FARMING_SOIL: 'project-natural-farming-soil',
+    PROJECT_NATURAL_FARMING_BUDGET: 'project-natural-farming-budget',
+
+    PROJECT_AGRI_DRONE: 'project-agri-drone',
+    PROJECT_AGRI_DRONE_DEMO: 'project-agri-drone-demo',
+
+    PROJECT_SEED_HUB: 'project-seed-hub',
+    PROJECT_OTHER: 'project-other',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];

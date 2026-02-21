@@ -10,9 +10,8 @@ model KvkOtherExtensionActivity {
   staffId Int
   staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
 
-  // Nature of Extension Activity
-  activityId Int
-  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+  activityTypeId Int
+  activityType   OtherExtensionActivityType @relation(fields: [activityTypeId], references: [activityTypeId])
 
   numberOfActivities Int @map("number_of_activities")
   startDate DateTime @map("start_date")
@@ -21,7 +20,7 @@ model KvkOtherExtensionActivity {
   @@index([kvkId])
   @@index([fldId])
   @@index([staffId])
-  @@index([activityId])
+  @@index([activityTypeId])
 
   @@map("kvk_other_extension_activity")
 }

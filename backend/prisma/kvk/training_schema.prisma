@@ -1,107 +1,86 @@
-enum CampusType {
-  ON_CAMPUS
-  OFF_CAMPUS
-}
-
 model ClienteleMaster {
-  clienteleId Int    @id @default(autoincrement()) @map("clientele_id")
-  name        String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  clienteleId Int                   @id @default(autoincrement()) @map("clientele_id")
+  name        String                @unique @map("name")
+  trainings   TrainingAchievement[]
 
   @@map("clientele_master")
 }
 
 model TrainingTypeMaster {
-  trainingTypeId Int    @id @default(autoincrement()) @map("training_type_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  trainingTypeId Int                   @id @default(autoincrement()) @map("training_type_id")
+  name           String                @unique @map("name")
+  trainings      TrainingAchievement[]
 
   @@map("training_type_master")
 }
 
 model TrainingAreaMaster {
-  trainingAreaId Int    @id @default(autoincrement()) @map("training_area_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  trainingAreaId Int                   @id @default(autoincrement()) @map("training_area_id")
+  name           String                @unique @map("name")
+  trainings      TrainingAchievement[]
 
   @@map("training_area_master")
 }
 
 model ThematicAreaMaster {
-  thematicAreaId Int    @id @default(autoincrement()) @map("thematic_area_id")
-  name           String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  thematicAreaId Int                   @id @default(autoincrement()) @map("thematic_area_id")
+  name           String                @unique @map("name")
+  trainings      TrainingAchievement[]
 
   @@map("thematic_area_master")
 }
 
 model CourseCoordinatorMaster {
-  coordinatorId Int    @id @default(autoincrement()) @map("coordinator_id")
-  name          String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  coordinatorId Int                   @id @default(autoincrement()) @map("coordinator_id")
+  name          String                @unique @map("name")
+  trainings     TrainingAchievement[]
 
   @@map("course_coordinator_master")
 }
 
 model FundingSourceMaster {
-  fundingSourceId Int    @id @default(autoincrement()) @map("funding_source_id")
-  name            String @unique @map("name")
-
-  trainings TrainingAchievement[]
+  fundingSourceId Int                   @id @default(autoincrement()) @map("funding_source_id")
+  name            String                @unique @map("name")
+  trainings       TrainingAchievement[]
 
   @@map("funding_source_master")
 }
 
 model TrainingAchievement {
-  trainingAchievementId Int @id @default(autoincrement()) @map("training_achievement_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
-
-  // ---- FK Relations ----
-  clienteleId Int
-  clientele   ClienteleMaster @relation(fields: [clienteleId], references: [clienteleId])
-
-  trainingTypeId Int
-  trainingType   TrainingTypeMaster @relation(fields: [trainingTypeId], references: [trainingTypeId])
-
-  trainingAreaId Int
-  trainingArea   TrainingAreaMaster @relation(fields: [trainingAreaId], references: [trainingAreaId])
-
-  thematicAreaId Int
-  thematicArea   ThematicAreaMaster @relation(fields: [thematicAreaId], references: [thematicAreaId])
-
-  coordinatorId Int
-  coordinator   CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
-
-  fundingSourceId Int?
-  fundingSource   FundingSourceMaster? @relation(fields: [fundingSourceId], references: [fundingSourceId])
-
-  titleOfTraining String @map("title_of_training")
-
-  startDate DateTime @map("start_date")
-  endDate   DateTime @map("end_date")
-
-  venue String @map("venue")
-  fundingAgencyName String? @map("funding_agency_name")
-  campusType CampusType @map("campus_type")
-
-  generalM Int @map("general_m")
-  generalF Int @map("general_f")
-
-  obcM Int @map("obc_m")
-  obcF Int @map("obc_f")
-
-  scM Int @map("sc_m")
-  scF Int @map("sc_f")
-
-  stM Int @map("st_m")
-  stF Int @map("st_f")
+  trainingAchievementId Int                     @id @default(autoincrement()) @map("training_achievement_id")
+  kvkId                 Int
+  clienteleId           Int
+  trainingTypeId        Int
+  trainingAreaId        Int
+  thematicAreaId        Int
+  coordinatorId         Int
+  fundingSourceId       Int?
+  titleOfTraining       String                  @map("title_of_training")
+  startDate             DateTime                @map("start_date")
+  endDate               DateTime                @map("end_date")
+  venue                 String                  @map("venue")
+  fundingAgencyName     String?                 @map("funding_agency_name")
+  campusType            CampusType              @map("campus_type")
+  generalM              Int                     @map("general_m")
+  generalF              Int                     @map("general_f")
+  obcM                  Int                     @map("obc_m")
+  obcF                  Int                     @map("obc_f")
+  scM                   Int                     @map("sc_m")
+  scF                   Int                     @map("sc_f")
+  stM                   Int                     @map("st_m")
+  stF                   Int                     @map("st_f")
+  clientele             ClienteleMaster         @relation(fields: [clienteleId], references: [clienteleId])
+  coordinator           CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
+  fundingSource         FundingSourceMaster?    @relation(fields: [fundingSourceId], references: [fundingSourceId])
+  kvk                   Kvk                     @relation(fields: [kvkId], references: [kvkId])
+  thematicArea          ThematicAreaMaster      @relation(fields: [thematicAreaId], references: [thematicAreaId])
+  trainingArea          TrainingAreaMaster      @relation(fields: [trainingAreaId], references: [trainingAreaId])
+  trainingType          TrainingTypeMaster      @relation(fields: [trainingTypeId], references: [trainingTypeId])
 
   @@map("training_achievement")
+}
+
+enum CampusType {
+  ON_CAMPUS
+  OFF_CAMPUS
 }

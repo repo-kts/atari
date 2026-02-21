@@ -1,0 +1,11 @@
+// Discipline Master - moved from kvk/about-kvk/employee_schema.prisma
+
+model Discipline {
+  disciplineId   Int    @id @default(autoincrement()) @map("discipline_id")
+  disciplineName String @unique @map("discipline_name")
+
+  staff KvkStaff[]
+  kvkOfts  Kvkoft[]
+
+  @@map("discipline")
+}

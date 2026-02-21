@@ -1,0 +1,82 @@
+model OftTechnologyType {
+  oftTechnologyTypeId Int @id @default(autoincrement()) @map("oft_technology_type_id")
+  name String @unique @map("name")
+
+  technologies KvkoftTechnology[]
+
+  @@map("oft_technology_type")
+}
+
+model KvkoftTechnology {
+  kvkOftTechnologyId Int @id @default(autoincrement()) @map("kvk_oft_technology_id")
+
+  kvkOftId Int
+  kvkOft   Kvkoft @relation(fields: [kvkOftId], references: [kvkOftId])
+
+  oftTechnologyTypeId Int
+  oftTechnologyType   OftTechnologyType
+    @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
+
+  details String @map("details")
+
+  @@index([kvkOftId])
+  @@index([oftTechnologyTypeId])
+
+  @@map("kvk_oft_technology")
+}
+
+model Kvkoft {
+  kvkOftId Int @id @default(autoincrement()) @map("kvk_oft_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  staffId Int
+  staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
+
+  oftSubjectId Int
+  oftSubject   OftSubject @relation(fields: [oftSubjectId], references: [oftSubjectId])
+
+  oftThematicAreaId Int
+  oftThematicArea   OftThematicArea @relation(fields: [oftThematicAreaId], references: [oftThematicAreaId])
+
+  disciplineId Int
+  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
+
+  title String @map("title_of_oft")
+  problemDiagnosed String @map("problem_diagnosed")
+  sourceOfTechnology String @map("source_of_technology")
+  productionSystem String @map("production_system_and_thematic_area")
+  performanceIndicators String @map("performance_indicators")
+  areaHaNumber Float @map("area_ha_number")
+  numberOfLocation Int @map("number_of_location")
+  numberOfTrialReplication Int @map("number_of_trial_replication")
+  oftStartDate DateTime @map("oft_start_date")
+  criticalInput String @map("critical_input")
+  costOfOft Float @map("cost_of_oft")
+
+  farmersGeneralM Int @map("farmers_general_m")
+  farmersGeneralF Int @map("farmers_general_f")
+  farmersObcM Int @map("farmers_obc_m")
+  farmersObcF Int @map("farmers_obc_f")
+  farmersScM Int @map("farmers_sc_m")
+  farmersScF Int @map("farmers_sc_f")
+  farmersStM Int @map("farmers_st_m")
+  farmersStF Int @map("farmers_st_f")
+
+  technologies KvkoftTechnology[]
+
+  @@index([kvkId])
+  @@index([seasonId])
+  @@index([staffId])
+  @@index([disciplineId])
+  @@index([oftSubjectId])
+  @@index([oftThematicAreaId])
+
+  @@map("kvk_oft")
+}

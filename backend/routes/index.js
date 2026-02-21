@@ -1,3 +1,6 @@
+
+//
+
 const express = require('express');
 const router = express.Router();
 
@@ -12,6 +15,11 @@ const publicationRoutes = require('./all-masters/publicationRoutes.js');
 const otherMastersRoutes = require('./all-masters/otherMastersRoutes.js');
 const exportRoutes = require('./exportRoutes.js');
 const aboutKvkRoutes = require('./forms/aboutKvkRoutes.js');
+const kvkAwardRoutes = require('./forms/kvkAwardRoutes.js');
+const scientistAwardRoutes = require('./forms/scientistAwardRoutes.js');
+const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
+const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
+const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
 
 
 // Mount routes
@@ -26,6 +34,11 @@ router.use('/admin/masters', otherMastersRoutes); // Other Masters routes (Seaso
 router.use('/admin/masters', exportRoutes); // Export routes
 router.use('/users', userRoutes);
 router.use('/forms/about-kvk', aboutKvkRoutes);
+router.use('/forms/achievements/kvk-awards', kvkAwardRoutes);
+router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
+router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
+router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
+router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
 
 
 

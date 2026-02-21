@@ -1,0 +1,9 @@
+
+model OtherExtensionActivityType {
+  activityTypeId Int    @id @default(autoincrement()) @map("activity_type_id")
+  activityName   String @unique @map("activity_name")
+  
+  otherExtensionActivities KvkOtherExtensionActivity[]
+  
+  @@map("other_extension_activity_type")
+}

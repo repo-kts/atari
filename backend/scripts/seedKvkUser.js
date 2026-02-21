@@ -74,8 +74,8 @@ async function seedKvkUser() {
         });
         if (!org) {
             org = await prisma.orgMaster.create({
-                data: { 
-                    orgName: 'Test University', 
+                data: {
+                    orgName: 'Test University',
                     districtId: district.districtId,
                 }
             });
@@ -126,12 +126,18 @@ async function seedKvkUser() {
             // If exists, checks if it is linked to KVK.
             if (existingUser.kvkId !== kvk.kvkId) {
                 console.log(`   ⚠️  User exists but linked to different KVK (ID: ${existingUser.kvkId}). Updating...`);
-                await prisma.user.update({
-                    where: { userId: existingUser.userId },
-                    data: { kvkId: kvk.kvkId }
-                });
-                console.log(`   ✅ User relinked to Test KVK.`);
             }
+
+            // Allow password reset if already exists (for dev convenience)
+            const passwordHash = await hashPassword(userPassword);
+            await prisma.user.update({
+                where: { userId: existingUser.userId },
+                data: {
+                    kvkId: kvk.kvkId,
+                    passwordHash: passwordHash
+                }
+            });
+            console.log(`   ✅ User updated/relinked to Test KVK with fresh password.`);
             return;
         }
 

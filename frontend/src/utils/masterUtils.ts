@@ -257,6 +257,9 @@ const getFieldValueLegacy = (item: any, field: string): string => {
         return item.sourceOfFunding || item.sourceOfFund || '-'
     }
 
+    // Handle 'KVK Name' explicitly if needed (though 'kvkName' matches mostly)
+    if (field === 'KVK Name') return item.kvk?.kvkName || item.kvkName || '-'
+
     if (item[field] !== undefined && item[field] !== null) {
         if (typeof item[field] === 'object') return '-'
         return String(item[field])

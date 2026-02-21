@@ -1358,7 +1358,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
-        fields: ['s.no', 'Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
+        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
         //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
@@ -1465,7 +1465,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
-        fields: ['KVK Name', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
+        fields: ['Reporting Year', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
         //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
@@ -1477,7 +1477,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
-        fields: ['KVK Name', 'Head Scientist', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
+        fields: ['Reporting Year', 'Head Scientist', ' Name of Award', 'Amount', 'Achievement', 'Conferring Authority'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
         //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
@@ -1489,7 +1489,7 @@ export const achievementsRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: '/forms/achievements',
-        fields: ['KVK Name', 'Farmer Name', 'Address', 'Contact Number', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
+        fields: ['Reporting Year', 'Name of Award', 'Name of Farmer', 'Address', 'Contact Number', 'Amount', 'Achievement', 'Conferring Authority', 'Image'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
         //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },

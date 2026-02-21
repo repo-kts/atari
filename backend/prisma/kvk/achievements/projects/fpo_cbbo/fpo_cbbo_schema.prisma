@@ -1,0 +1,24 @@
+model FpoCbboDetails {
+  fpoCbboDetailsId Int @id @default(autoincrement()) @map("fpo_cbbo_details_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  blocksAllocated Int @map("blocks_allocated")
+  fposRegisteredAsCbbo Int @map("fpos_registered_as_cbbo")
+  avgMembersPerFpo Int @map("avg_members_per_fpo")
+  fposReceivedManagementCost Int @map("fpos_received_management_cost")
+  fposReceivedEquityGrant Int @map("fpos_received_equity_grant")
+  techBackstoppingProvided Int @map("tech_backstopping_provided")
+  trainingProgrammeOrganized Int @map("training_programme_organized")
+  trainingReceivedByMembers Boolean @map("training_received_by_members")
+  assistanceInEconomicActivities Int @map("assistance_in_economic_activities")
+  businessPlanPreparedWithCbbo Boolean @map("business_plan_prepared_with_cbbo")
+  businessPlanPreparedWithoutCbbo Boolean @map("business_plan_prepared_without_cbbo")
+  fposDoingBusiness Int @map("fpos_doing_business")
+
+  @@index([kvkId])
+
+  @@map("fpo_cbbo_details")
+}

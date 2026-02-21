@@ -117,15 +117,20 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+
+        const { isAboutKvk: isAboutKvkEntity, isAward, isAchievement, isProject } = getEntityTypeChecks(entityType)
+
+        if (isAboutKvkEntity || isAward || isAchievement || isProject) {
             if (entityType === ENTITY_TYPES.KVKS) {
                 // Admins can edit KVKs
                 return isAdminRole(user.role)
             }
-            // KVK details: only KVK role can edit their own data
-            if (user.role !== 'kvk') return false
-            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
-            return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+            // KVK details, Awards, Achievements & Projects: KVK role can edit their own data
+            if (user.role === 'kvk') {
+                return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+            }
+            // Admin roles (Zone/State/District/Org) can also edit
+            return isAdminRole(user.role)
         }
         // Master data entities: only super_admin can edit
         return user.role === 'super_admin'
@@ -134,14 +139,19 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+
+        const { isAboutKvk: isAboutKvkEntity, isAward, isAchievement, isProject } = getEntityTypeChecks(entityType)
+
+        if (isAboutKvkEntity || isAward || isAchievement || isProject) {
             if (entityType === ENTITY_TYPES.KVKS) {
                 return user.role === 'super_admin'
             }
-            // KVK details: only KVK role can delete their own data
-            if (user.role !== 'kvk') return false
-            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
-            return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+            // KVK details, Awards, Achievements & Projects: KVK role can delete their own data
+            if (user.role === 'kvk') {
+                return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
+            }
+            // Admin roles can also delete
+            return isAdminRole(user.role)
         }
         // Master data entities: only super_admin can delete
         return user.role === 'super_admin'
@@ -177,12 +187,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             const id = item.id || item.zoneId || item.stateId || item.districtId ||
                 item.orgId || item.universityId || item.cropId || item.cfldId ||
                 item.seasonId || item.sanctionedPostId || item.yearId ||
-                item.publicationId || item.kvkId || item.employeeId || ''
+                item.publicationId || item.kvkId || item.employeeId ||
+                item.kvkAwardID || item.otherExtensionActivityId || '' // Added kvkAwardID and otherExtensionActivityId
             // Include a hash of the name field to detect name changes
             const name = item.name || item.zoneName || item.stateName || item.districtName ||
                 item.orgName || item.universityName || item.cropName || item.CropName ||
                 item.seasonName || item.postName || item.yearName ||
-                item.publicationName || item.kvkName || ''
+                item.publicationName || item.kvkName ||
+                item.awardName || '' // Added awardName
             return `${id}:${name ? name.substring(0, 20) : ''}` // Truncate name for performance
         }).join('|')
 
@@ -342,7 +354,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
      */
     const handleSaveModal = async () => {
         if (isMasterDataEntity && activeHook && entityType) {
-            await saveData(formData, editingItem);
+            // Inject kvkId for KVK-specific entities if not present
+            const checks = getEntityTypeChecks(entityType);
+            let finalData = { ...formData };
+
+            // Most entities except basic masters and general other masters are KVK-specific
+            if (!checks.isBasicMaster && !checks.isOtherMaster && user?.kvkId && !finalData.kvkId) {
+                finalData.kvkId = user.kvkId;
+            }
+
+            await saveData(finalData, editingItem);
         } else {
             // Mock save for non-master-data entities
             if (editingItem) {

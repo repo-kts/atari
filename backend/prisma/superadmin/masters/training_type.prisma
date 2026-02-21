@@ -1,0 +1,8 @@
+model TrainingTypeMaster {
+  trainingTypeId Int    @id @default(autoincrement()) @map("training_type_id")
+  name           String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("training_type_master")
+}

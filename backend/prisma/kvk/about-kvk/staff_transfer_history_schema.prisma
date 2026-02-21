@@ -1,0 +1,32 @@
+// Staff Transfer History - models only; generator/datasource in schema.prisma
+
+model StaffTransferHistory {
+  transferId       Int       @id @default(autoincrement()) @map("transfer_id")
+  kvkStaffId       Int       @map("kvk_staff_id")
+  staff            KvkStaff  @relation(fields: [kvkStaffId], references: [kvkStaffId])
+  
+  fromKvkId        Int       @map("from_kvk_id")
+  fromKvk          Kvk       @relation("TransferFrom", fields: [fromKvkId], references: [kvkId])
+  
+  toKvkId          Int       @map("to_kvk_id")
+  toKvk            Kvk       @relation("TransferTo", fields: [toKvkId], references: [kvkId])
+  
+  transferredBy    Int?      @map("transferred_by") // User ID
+  transferredByUser User?    @relation(fields: [transferredBy], references: [userId])
+  
+  transferDate     DateTime  @default(now()) @map("transfer_date")
+  transferReason   String?   @map("transfer_reason")
+  notes            String?   @map("notes")
+  
+  isReversal       Boolean   @default(false) @map("is_reversal")
+  reversedTransferId Int?    @map("reversed_transfer_id") // If this reverses a previous transfer
+  
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  
+  @@map("staff_transfer_history")
+  @@index([kvkStaffId])
+  @@index([fromKvkId])
+  @@index([toKvkId])
+  @@index([transferDate])
+}

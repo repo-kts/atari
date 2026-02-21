@@ -1,4 +1,62 @@
-// KVK staff / employee - models only; generator/datasource in schema.prisma
+model SanctionedPost {
+  sanctionedPostId Int        @id @default(autoincrement()) @map("sanctioned_post_id")
+  postName         String     @unique @map("post_name")
+  staff            KvkStaff[]
+
+  @@map("sanctioned_post")
+}
+
+model Discipline {
+  disciplineId   Int        @id @default(autoincrement()) @map("discipline_id")
+  disciplineName String     @unique @map("discipline_name")
+  staff          KvkStaff[]
+
+  @@map("discipline")
+}
+
+model KvkStaff {
+  kvkStaffId                  Int                         @id @default(autoincrement()) @map("kvk_staff_id")
+  kvkId                       Int
+  staffName                   String                      @map("staff_name")
+  email                       String?                     @map("email")
+  mobile                      String                      @map("mobile")
+  dateOfBirth                 DateTime                    @map("date_of_birth")
+  photoPath                   String?                     @map("photo_path")
+  resumePath                  String?                     @map("resume_path")
+  sanctionedPostId            Int
+  positionOrder               Int                         @map("position_order")
+  disciplineId                Int
+  payScale                    String?                     @map("pay_scale")
+  dateOfJoining               DateTime                    @map("date_of_joining")
+  jobType                     JobType?                    @map("job_type")
+  allowances                  String?                     @map("allowances")
+  transferStatus              TransferStatus              @default(ACTIVE) @map("transfer_status")
+  sourceKvkIds                Json?                       @map("source_kvk_ids")
+  originalKvkId               Int?                        @map("original_kvk_id")
+  transferCount               Int                         @default(0) @map("transfer_count")
+  lastTransferDate            DateTime?                   @map("last_transfer_date")
+  category                    StaffCategory               @map("category")
+  payLevel                    PayLevel?                   @map("pay_level")
+  hrdPrograms                 HrdProgram[]
+  kvkExtensionActivities      KvkExtensionActivity[]
+  kvkFldIntroductions         KvkFldIntroduction[]
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  discipline                  Discipline                  @relation(fields: [disciplineId], references: [disciplineId])
+  kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId])
+  originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+  sanctionedPost              SanctionedPost              @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+  transferHistory             StaffTransferHistory[]
+
+  @@index([kvkId])
+  @@index([sanctionedPostId])
+  @@index([disciplineId])
+  @@index([staffName])
+  @@index([email])
+  @@index([mobile])
+  @@index([transferStatus])
+  @@index([originalKvkId])
+  @@map("kvk_staff")
+}
 
 enum StaffCategory {
   SC
@@ -32,80 +90,4 @@ enum PayLevel {
   LEVEL_12R
   LEVEL_13A
   LEVEL_14
-}
-
-model SanctionedPost {
-  sanctionedPostId Int       @id @default(autoincrement()) @map("sanctioned_post_id")
-  postName         String    @unique @map("post_name")
-
-  staff KvkStaff[]
-
-  @@map("sanctioned_post")
-}
-
-model Discipline {
-  disciplineId   Int    @id @default(autoincrement()) @map("discipline_id")
-  disciplineName String @unique @map("discipline_name")
-
-  staff KvkStaff[]
-
-  @@map("discipline")
-}
-
-model KvkStaff {
-  kvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
-
-  staffName   String    @map("staff_name")
-  email      String?   @map("email")
-  mobile     String    @map("mobile")
-  dateOfBirth DateTime @map("date_of_birth")
-
-  photoPath  String? @map("photo_path")
-  resumePath String? @map("resume_path")
-
-  sanctionedPostId Int
-  sanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
-
-  positionOrder Int @map("position_order")
-
-  disciplineId Int
-  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
-
-  payScale String?  @map("pay_scale")
-  payLevel PayLevel? @map("pay_level")
-
-  dateOfJoining DateTime @map("date_of_joining")
-  jobType       JobType?  @map("job_type")
-
-  allowances String? @map("allowances")
-
-  category StaffCategory @map("category")
-
-  transferStatus TransferStatus @default(ACTIVE) @map("transfer_status")
-  
-  sourceKvkIds Json? @map("source_kvk_ids")
-  
-  originalKvkId    Int?      @map("original_kvk_id")
-  transferCount    Int       @default(0) @map("transfer_count")
-  lastTransferDate DateTime? @map("last_transfer_date")
-  
-  transferHistory  StaffTransferHistory[]
-  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
-  hrdPrograms      HrdProgram[]
-  kvkExtensionActivities     KvkExtensionActivity[]
-  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
-  kvkFldIntroductions         KvkFldIntroduction[]
-
-  @@map("kvk_staff")
-  @@index([kvkId])
-  @@index([sanctionedPostId])
-  @@index([disciplineId])
-  @@index([staffName])
-  @@index([email])
-  @@index([mobile])
-  @@index([transferStatus])
-  @@index([originalKvkId])
 }

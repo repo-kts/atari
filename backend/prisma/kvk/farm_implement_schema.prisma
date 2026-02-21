@@ -1,28 +1,25 @@
+model KvkFarmImplement {
+  implementId    Int                    @id @default(autoincrement()) @map("implement_id")
+  kvkId          Int
+  implementName  String                 @map("implement_name")
+  yearOfPurchase Int                    @map("year_of_purchase")
+  totalCost      Float                  @map("total_cost")
+  presentStatus  ImplementPresentStatus @map("present_status")
+  sourceOfFund   String                 @map("source_of_fund")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  kvk            Kvk                    @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+  @@index([implementName])
+  @@index([yearOfPurchase])
+  @@map("kvk_farm_implement")
+}
+
 enum ImplementPresentStatus {
   WORKING
   GOOD_CONDITION
   NEW
   REPAIRABLE
   NOT_WORKING
-}
-
-model KvkFarmImplement {
-  implementId   Int @id @default(autoincrement()) @map("implement_id")
-
-  kvkId         Int
-  kvk           Kvk @relation(fields: [kvkId], references: [kvkId])
-
-  implementName     String @map("implement_name")
-  yearOfPurchase    Int    @map("year_of_purchase")
-  totalCost         Float @map("total_cost")
-  presentStatus     ImplementPresentStatus @map("present_status")
-  sourceOfFund      String @map("source_of_fund")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@index([kvkId])
-  @@index([implementName])
-  @@index([yearOfPurchase])
-  @@map("kvk_farm_implement")
 }

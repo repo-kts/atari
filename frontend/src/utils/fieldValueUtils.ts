@@ -399,6 +399,157 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+    // Award and Recognition
+    Award: {
+        extractor: (item) => item.awardName || null,
+        priority: 5,
+    },
+    awardName: {
+        extractor: (item) => item.awardName || null,
+        priority: 5,
+    },
+    'Head Scientist': {
+        extractor: (item) => item.scientistName || null,
+        priority: 5,
+    },
+    'Head/Scientist': {
+        extractor: (item) => item.scientistName || null,
+        priority: 5,
+    },
+    scientistName: {
+        extractor: (item) => item.scientistName || null,
+        priority: 5,
+    },
+    'Name of Award': {
+        extractor: (item) => item.awardName || null,
+        priority: 5,
+    },
+    ' Name of Award': {
+        // Handle user's specific label with leading space
+        extractor: (item) => item.awardName || null,
+        priority: 5,
+    },
+    'Name of the Award': {
+        extractor: (item) => item.awardName || null,
+        priority: 5,
+    },
+    'Reporting Year': {
+        extractor: (item) => {
+            if (item.year || item.reportingYear) return item.year || item.reportingYear;
+            if (item.startDate) {
+                const year = new Date(item.startDate).getFullYear();
+                return `${year}-${(year + 1).toString().slice(2)}`;
+            }
+            return null;
+        },
+        priority: 5,
+    },
+    year: {
+        extractor: (item) => item.year || item.reportingYear || null,
+        priority: 5,
+    },
+    Amount: {
+        extractor: (item) => item.amount ? `₹${item.amount.toLocaleString('en-IN')}` : null,
+        priority: 5,
+    },
+    amount: {
+        extractor: (item) => item.amount ? `₹${item.amount.toLocaleString('en-IN')}` : null,
+        priority: 5,
+    },
+    Achievement: {
+        extractor: (item) => item.achievement || null,
+        priority: 5,
+    },
+    achievement: {
+        extractor: (item) => item.achievement || null,
+        priority: 5,
+    },
+    'Conferring Authority': {
+        extractor: (item) => item.conferringAuthority || null,
+        priority: 5,
+    },
+    conferringAuthority: {
+        extractor: (item) => item.conferringAuthority || null,
+        priority: 5,
+    },
+    'KVK Name': {
+        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
+        priority: 5,
+    },
+    'Farmer Name': {
+        extractor: (item) => item.farmerName || null,
+        priority: 5,
+    },
+    'Name of Farmer': {
+        extractor: (item) => item.farmerName || null,
+        priority: 5,
+    },
+    'Name of the Farmer': {
+        extractor: (item) => item.farmerName || null,
+        priority: 5,
+    },
+    Address: {
+        extractor: (item) => item.address || null,
+        priority: 5,
+    },
+    'Contact Number': {
+        extractor: (item) => item.contactNumber || item.contactNo || null,
+        priority: 5,
+    },
+    'Contact No.': {
+        extractor: (item) => item.contactNumber || item.contactNo || null,
+        priority: 5,
+    },
+    Image: {
+        extractor: (item) => item.image || null,
+        priority: 5,
+    },
+    'Start Date': {
+        extractor: (item) => {
+            if (!item.startDate) return null;
+            try {
+                const date = new Date(item.startDate);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch {
+                return null;
+            }
+        },
+        priority: 5,
+    },
+    'End Date': {
+        extractor: (item) => {
+            if (!item.endDate) return null;
+            try {
+                const date = new Date(item.endDate);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch {
+                return null;
+            }
+        },
+        priority: 5,
+    },
+    'Name of Extension activities': {
+        extractor: (item) => item.activityName || (item.activity?.activityName) || null,
+        priority: 5,
+    },
+    'Nature of Extension Activies': {
+        extractor: (item) => item.activity?.activityName || item.activityType?.activityName || item.natureOfExtensionActivities || null,
+        priority: 5,
+    },
+    'No. of Activities': {
+        extractor: (item) => item.numberOfActivities !== undefined ? String(item.numberOfActivities) : item.activityCount ? String(item.activityCount) : null,
+        priority: 5,
+    },
+    'No. of activities': {
+        extractor: (item) => item.numberOfActivities !== undefined ? String(item.numberOfActivities) : item.activityCount ? String(item.activityCount) : null,
+        priority: 5,
+    },
+    'No. of Participants': {
+        extractor: (item) => item.totalParticipants !== undefined ? String(item.totalParticipants) : null,
+        priority: 5,
+    },
 };
 
 // ============================================

@@ -1,0 +1,65 @@
+// KVK - models only; generator/datasource in schema.prisma
+
+model Kvk {
+  kvkId   Int    @id @default(autoincrement()) @map("kvk_id")
+  kvkName String @map("kvk_name")
+
+  zoneId     Int
+  stateId    Int
+  districtId Int
+
+  zone     Zone           @relation(fields: [zoneId], references: [zoneId])
+  state    StateMaster    @relation(fields: [stateId], references: [stateId])
+  district DistrictMaster @relation(fields: [districtId], references: [districtId])
+
+  orgId       Int                @map("org_id")
+  universityId Int?              @map("university_id")
+  hostOrg     String            @map("host_org_name")
+
+  org        OrgMaster          @relation(fields: [orgId], references: [orgId])
+  university UniversityMaster?  @relation(fields: [universityId], references: [universityId])
+
+  mobile  String @map("mobile")
+  email   String @map("email")
+  address String @map("address")
+
+  yearOfSanction Int @map("year_of_sanction")
+
+  staff           KvkStaff[]
+  infrastructures KvkInfrastructure[]
+  equipments      KvkEquipment[]
+  vehicles        KvkVehicle[]
+  bankAccounts    KvkBankAccount[]
+  farmImplements  KvkFarmImplement[]
+  
+  transfersFrom    StaffTransferHistory[] @relation("TransferFrom")
+  transfersTo      StaffTransferHistory[] @relation("TransferTo")
+  originalStaff    KvkStaff[]            @relation("OriginalKvk")
+  
+  trainingAchievements TrainingAchievement[]
+  farmerAwards         FarmerAward[]
+  kvkAwards            KvkAward[]
+  scientistAwards      ScientistAward[]
+  hrdPrograms          HrdProgram[]
+  
+  kvkExtensionActivities      KvkExtensionActivity[]
+  kvkOtherExtensionActivities  KvkOtherExtensionActivity[]
+  kvkImportantDayCelebrations  KvkImportantDayCelebration[]
+  kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
+  fldExtensions                FldExtension[]
+  kvkFldIntroductions          KvkFldIntroduction[]
+  fldTechnicalFeedbacks        FldTechnicalFeedback[]
+  kvkBudgetUtilizations        KvkBudgetUtilization[]
+  extensionActivityOrganized   ExtensionActivityOrganized[]
+  cfldTechnicalParameters      CfldTechnicalParameter[]
+  users                        User[]
+
+  @@index([zoneId])
+  @@index([stateId])
+  @@index([districtId])
+  @@index([orgId])
+  @@index([universityId])
+  @@index([kvkName])
+  @@index([email])
+  @@map("kvk")
+}

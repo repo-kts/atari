@@ -10,7 +10,7 @@ model KvkExtensionActivity {
   staffId Int
   staff   KvkStaff @relation(fields: [staffId], references: [kvkStaffId])
 
-  // Nature of Extension Activity
+  // Nature of Extension Activity WIP
   activityId Int
   activity   FldActivity @relation(fields: [activityId], references: [activityId])
 

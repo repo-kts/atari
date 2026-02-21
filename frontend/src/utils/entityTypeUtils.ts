@@ -99,6 +99,50 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.SANCTIONED_POST,
         ENTITY_TYPES.YEAR,
     ] as ExtendedEntityType[],
+
+    PROJECT_FORMS: [
+        ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM,
+        ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY,
+        ENTITY_TYPES.PROJECT_CFLD_BUDGET,
+        ENTITY_TYPES.PROJECT_CRA_DETAILS,
+        ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY,
+        ENTITY_TYPES.PROJECT_FPO_DETAILS,
+        ENTITY_TYPES.PROJECT_FPO_MANAGEMENT,
+        ENTITY_TYPES.PROJECT_DRMR_DETAILS,
+        ENTITY_TYPES.PROJECT_DRMR_ACTIVITY,
+        ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN,
+        ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED,
+        ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION,
+        ENTITY_TYPES.PROJECT_NARI_TRAINING,
+        ENTITY_TYPES.PROJECT_NARI_EXTENSION,
+        ENTITY_TYPES.PROJECT_ARYA_CURRENT,
+        ENTITY_TYPES.PROJECT_ARYA_EVALUATION,
+        ENTITY_TYPES.PROJECT_CSISA,
+        ENTITY_TYPES.PROJECT_TSP_SCSP,
+        ENTITY_TYPES.PROJECT_NICRA_BASIC,
+        ENTITY_TYPES.PROJECT_NICRA_DETAILS,
+        ENTITY_TYPES.PROJECT_NICRA_TRAINING,
+        ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
+        ENTITY_TYPES.PROJECT_NICRA_INTERVENTION,
+        ENTITY_TYPES.PROJECT_NICRA_REVENUE,
+        ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING,
+        ENTITY_TYPES.PROJECT_NICRA_VCRMC,
+        ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH,
+        ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE,
+        ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES,
+        ENTITY_TYPES.PROJECT_NICRA_PI_COPI,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL,
+        ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET,
+        ENTITY_TYPES.PROJECT_AGRI_DRONE,
+        ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO,
+        ENTITY_TYPES.PROJECT_SEED_HUB,
+        ENTITY_TYPES.PROJECT_OTHER,
+    ] as ExtendedEntityType[],
 } as const;
 
 // ============================================
@@ -121,6 +165,7 @@ export function isEntityInCategory(
  * Useful for destructuring in components
  */
 export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
+    const typeStr = String(entityType || '');
     return {
         isBasicMaster: isEntityInCategory(entityType, 'BASIC_MASTERS'),
         isOftFld: isEntityInCategory(entityType, 'OFT_FLD'),
@@ -131,6 +176,9 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isHrd: isEntityInCategory(entityType, 'HRD'),
         isAward: isEntityInCategory(entityType, 'AWARDS'),
         isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
+        isProjectForm: isEntityInCategory(entityType, 'PROJECT_FORMS'),
+        isAchievement: typeStr.startsWith('achievement-'),
+        isProject: typeStr.startsWith('project-'),
     };
 }
 
@@ -220,6 +268,64 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/season': ENTITY_TYPES.SEASON,
     '/all-master/sanctioned-post': ENTITY_TYPES.SANCTIONED_POST,
     '/all-master/year': ENTITY_TYPES.YEAR,
+
+    // Projects
+    '/forms/achievements/projects/cfld/technical-parameter': ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM,
+    '/forms/achievements/projects/cfld/extension-activity': ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY,
+    '/forms/achievements/projects/cfld/budget-utilization': ENTITY_TYPES.PROJECT_CFLD_BUDGET,
+
+    '/forms/achievements/projects/cra/details': ENTITY_TYPES.PROJECT_CRA_DETAILS,
+    '/forms/achievements/projects/cra/extension-activity': ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY,
+
+    '/forms/achievements/projects/fpo/details': ENTITY_TYPES.PROJECT_FPO_DETAILS,
+    '/forms/achievements/projects/fpo/management': ENTITY_TYPES.PROJECT_FPO_MANAGEMENT,
+
+    '/forms/achievements/projects/drmr/details': ENTITY_TYPES.PROJECT_DRMR_DETAILS,
+    '/forms/achievements/projects/drmr/activity': ENTITY_TYPES.PROJECT_DRMR_ACTIVITY,
+
+    '/forms/achievements/projects/nari/nutri-smart': ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN,
+    '/forms/achievements/projects/nari/bio-fortified': ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED,
+    '/forms/achievements/projects/nari/value-addition': ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION,
+    '/forms/achievements/projects/nari/training-programm': ENTITY_TYPES.PROJECT_NARI_TRAINING,
+    '/forms/achievements/projects/nari/extension-activities': ENTITY_TYPES.PROJECT_NARI_EXTENSION,
+
+    '/forms/achievements/projects/arya': ENTITY_TYPES.PROJECT_ARYA_CURRENT,
+    '/forms/achievements/projects/arya-evaluation': ENTITY_TYPES.PROJECT_ARYA_EVALUATION,
+
+    '/forms/achievements/projects/csisa': ENTITY_TYPES.PROJECT_CSISA,
+    '/forms/achievements/projects/sub-plan-activity': ENTITY_TYPES.PROJECT_TSP_SCSP,
+
+    '/forms/achievements/projects/nicra/basic-information': ENTITY_TYPES.PROJECT_NICRA_BASIC,
+    '/forms/achievements/projects/nicra/details': ENTITY_TYPES.PROJECT_NICRA_DETAILS,
+    '/forms/achievements/projects/nicra/training': ENTITY_TYPES.PROJECT_NICRA_TRAINING,
+    '/forms/achievements/projects/nicra/extension-activity': ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
+
+    // NICRA Others
+    '/forms/achievements/projects/nicra/others/intervention': ENTITY_TYPES.PROJECT_NICRA_INTERVENTION,
+    '/forms/achievements/projects/nicra/others/revenue-generated': ENTITY_TYPES.PROJECT_NICRA_REVENUE,
+    '/forms/achievements/projects/nicra/others/custom-hiring': ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING,
+    '/forms/achievements/projects/nicra/others/vcrmc': ENTITY_TYPES.PROJECT_NICRA_VCRMC,
+    '/forms/achievements/projects/nicra/others/soil-health-card': ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH,
+    '/forms/achievements/projects/nicra/others/convergence-programme': ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE,
+    '/forms/achievements/projects/nicra/others/dignitaries-visited': ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES,
+    '/forms/achievements/projects/nicra/others/pi-copi-list': ENTITY_TYPES.PROJECT_NICRA_PI_COPI,
+
+    // Natural Farming
+    '/forms/achievements/projects/natural-farming/geographical-information': ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO,
+    '/forms/achievements/projects/natural-farming/physical-information': ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL,
+    '/forms/achievements/projects/natural-farming/demonstration-information': ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO,
+    '/forms/achievements/projects/natural-farming/farmers-practicing': ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS,
+    '/forms/achievements/projects/natural-farming/beneficiaries': ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES,
+    '/forms/achievements/projects/natural-farming/soil-data': ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL,
+    '/forms/achievements/projects/natural-farming/budget-expenditure': ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET,
+
+    // Agri Drone
+    '/forms/achievements/projects/agri-drone': ENTITY_TYPES.PROJECT_AGRI_DRONE,
+    '/forms/achievements/projects/demonstration-details': ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO,
+
+    // Others
+    '/forms/achievements/projects/seed-hub-program': ENTITY_TYPES.PROJECT_SEED_HUB,
+    '/forms/achievements/other-program': ENTITY_TYPES.PROJECT_OTHER,
 };
 
 /**

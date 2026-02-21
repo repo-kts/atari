@@ -1,0 +1,16 @@
+{
+  "id": "5",
+  "data": {
+    "kvkId": 1,
+    "fldId": null,
+    "staffId": "Dr. Patel",
+    "activityId": "Group meetings",
+    "numberOfActivities": 21,
+    "startDate": "2026-02-02",
+    "endDate": "2026-02-02",
+    "activityCount": "4332",
+    "extensionActivityType": "Group meetings",
+    "staffName": "Dr. Patel",
+    "isOther": true
+  }
+}

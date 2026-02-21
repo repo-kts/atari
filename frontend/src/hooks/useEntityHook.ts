@@ -39,6 +39,9 @@ import {
 } from './useProductionProjectsData'
 import { useAboutKvkData, AboutKvkEntity } from './forms/useAboutKvkData'
 import { useSeasons, useSanctionedPosts, useYears } from './useOtherMastersData'
+import { useAwardData } from './forms/useAwardData'
+import { useExtensionActivityData } from './forms/useExtensionActivityData'
+import { useOtherExtensionActivityData } from './forms/useOtherExtensionActivityData'
 import { getEntityTypeChecks } from '../utils/entityTypeUtils'
 
 /**
@@ -97,6 +100,13 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.SEASON]: () => useSeasons(),
     [ENTITY_TYPES.SANCTIONED_POST]: () => useSanctionedPosts(),
     [ENTITY_TYPES.YEAR]: () => useYears(),
+
+    // Awards
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK),
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST),
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER),
+    [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: () => useExtensionActivityData(),
+    [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: () => useOtherExtensionActivityData(),
 }
 
 /**

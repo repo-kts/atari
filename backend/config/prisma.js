@@ -12,15 +12,15 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
-    max: 20,
+    max: 30,
     min: 0, // Don't maintain idle connections — Neon suspends them
-    idleTimeoutMillis: 20000, // Release idle connections before Neon drops them
-    connectionTimeoutMillis: 20000,
+    idleTimeoutMillis: 30000, // Release idle connections before Neon drops them
+    connectionTimeoutMillis: 30000,
     allowExitOnIdle: true, // Allow pool to wind down when idle
     keepAlive: true, // Keep connections alive to prevent unexpected drops
     keepAliveInitialDelayMillis: 10000,
-    statement_timeout: 10000, // 10 second query timeout
-    query_timeout: 10000, // 10 second query timeout
+    statement_timeout: 60000, // 60 second query timeout
+    query_timeout: 60000, // 60 second query timeout
 });
 
 // Handle pool errors (e.g. Neon/serverless closes idle connections)

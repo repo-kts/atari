@@ -1,0 +1,41 @@
+
+Invalid `prisma.kvkOtherExtensionActivity.create()` invocation:
+
+{
+  data: {
+    kvk: {
+      connect: {
+        kvkId: 1
+      }
+    },
+    fld: {
+      connect: {
+        kvkFldId: 1
+      }
+    },
+    staff: {
+      connect: {
+        kvkStaffId: 1
+      }
+    },
+    activity: {
+      connect: {
+        activityTypeId: 1,
+        ~~~~~~~~~~~~~~
+?       activityId?: Int,
+?       activityName?: String,
+?       AND?: FldActivityWhereInput | FldActivityWhereInput[],
+?       OR?: FldActivityWhereInput[],
+?       NOT?: FldActivityWhereInput | FldActivityWhereInput[],
+?       extensions?: FldExtensionListRelationFilter,
+?       kvkExtensionActivities?: KvkExtensionActivityListRelationFilter,
+?       kvkOtherExtensionActivities?: KvkOtherExtensionActivityListRelationFilter
+      }
+    },
+    numberOfActivities: 1,
+    startDate: new Date("2026-02-20T20:18:35.492Z"),
+    endDate: new Date("2026-02-20T20:18:35.492Z")
+  }
+}
+
+Unknown argument `activityTypeId`. Available options are marked with ?.

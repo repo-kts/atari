@@ -11,7 +11,7 @@ import type { ExtendedEntityType } from './masterUtils';
 /**
  * Map of entity types to their ID field names
  */
-export const ENTITY_ID_FIELD_MAP: Record<ExtendedEntityType, string> = {
+export const ENTITY_ID_FIELD_MAP: Partial<Record<ExtendedEntityType, string>> = {
     // Basic Masters
     [ENTITY_TYPES.ZONES]: 'zoneId',
     [ENTITY_TYPES.STATES]: 'stateId',
@@ -63,6 +63,13 @@ export const ENTITY_ID_FIELD_MAP: Record<ExtendedEntityType, string> = {
     [ENTITY_TYPES.KVK_EQUIPMENTS]: 'equipmentId',
     [ENTITY_TYPES.KVK_EQUIPMENT_DETAILS]: 'equipmentId',
     [ENTITY_TYPES.KVK_FARM_IMPLEMENTS]: 'implementId',
+
+    // Awards
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: 'kvkAwardID',
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]: 'scientistAwardID',
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: 'farmerAwardID',
+    [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: 'extensionActivityId',
+    [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: 'otherExtensionActivityId',
 };
 
 /**

@@ -1,0 +1,38 @@
+
+Invalid `prisma.kvkOtherExtensionActivity.findMany()` invocation in
+C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\repositories\forms\otherExtensionActivityRepository.js:41:55
+
+  38  * Find all Other Extension Activities
+  39  */
+  40 findAll: async (filters = {}) => {
+→ 41     return await prisma.kvkOtherExtensionActivity.findMany({
+           include: {
+             kvk: {
+               select: {
+                 kvkName: true
+               }
+             },
+             activityType: {
+             ~~~~~~~~~~~~
+               select: {
+                 activityName: true
+               }
+             },
+             staff: {
+               select: {
+                 staffName: true
+               }
+             },
+             fld: {
+               select: {
+                 kvkFldId: true
+               }
+             },
+         ?   activity?: true
+           },
+           orderBy: {
+             otherExtensionActivityId: "desc"
+           }
+         })
+
+Unknown field `activityType` for include statement on model `KvkOtherExtensionActivity`. Available options are marked with ?.

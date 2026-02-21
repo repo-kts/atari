@@ -70,6 +70,12 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.YEAR]: {
         excludeFields: ['yearId', '_count'],
     },
+    [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: {
+        transform: (data: any) => ({ ...data, isOther: false }),
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: {
+        transform: (data: any) => ({ ...data, isOther: true }),
+    },
 };
 
 // ============================================
@@ -105,6 +111,10 @@ const COMMON_NESTED_OBJECTS = [
     // Production/Projects nested objects
     'productCategory',
     'productType',
+    // Extension Activity nested objects
+    'staff',
+    'activity',
+    'fld',
 ] as const;
 
 // ============================================

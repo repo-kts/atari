@@ -1,32 +1,3 @@
-// CFLD (Cluster Front Line Demonstration) - normalized: Season, CropType, FLDCropMaster with relations
-// Models only; generator/datasource in schema.prisma
-
-model Season {
-  seasonId   Int             @id @default(autoincrement()) @map("season_id")
-  seasonName String          @unique @map("season_name")
-  cfldCrops  FLDCropMaster[]
-  craCropingSystems CraCropingSystem[]
-  craFarmingSystems CraFarmingSystem[]
-  kvkFldIntroductions       KvkFldIntroduction[]
-  kvkBudgetUtilizations      KvkBudgetUtilization[]
-  extensionActivityOrganized ExtensionActivityOrganized[]
-  cfldTechnicalParameters    CfldTechnicalParameter[]
-
-  @@index([seasonId])
-  @@index([seasonName])
-  @@map("season")
-}
-
-model CropType {
-  typeId    Int             @id @default(autoincrement()) @map("type_id")
-  typeName  String          @unique @map("type_name")
-  cfldCrops FLDCropMaster[] 
-
-  @@index([typeId])
-  @@index([typeName])
-  @@map("crop_type")
-}
-
 model FLDCropMaster {
   cfldId   Int      @id @default(autoincrement()) @map("cfld_id")
 

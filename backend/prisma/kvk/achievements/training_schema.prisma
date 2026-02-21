@@ -1,0 +1,63 @@
+enum CampusType {
+  ON_CAMPUS
+  OFF_CAMPUS
+}
+
+// WIP: 
+model CourseCoordinatorMaster {
+  coordinatorId Int    @id @default(autoincrement()) @map("coordinator_id")
+  name          String @unique @map("name")
+
+  trainings TrainingAchievement[]
+
+  @@map("course_coordinator_master")
+}
+
+model TrainingAchievement {
+  trainingAchievementId Int @id @default(autoincrement()) @map("training_achievement_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  // ---- FK Relations ----
+  clienteleId Int
+  clientele   ClienteleMaster @relation(fields: [clienteleId], references: [clienteleId])
+
+  trainingTypeId Int
+  trainingType   TrainingTypeMaster @relation(fields: [trainingTypeId], references: [trainingTypeId])
+
+  trainingAreaId Int
+  trainingArea   TrainingAreaMaster @relation(fields: [trainingAreaId], references: [trainingAreaId])
+
+  thematicAreaId Int
+  thematicArea   ThematicAreaMaster @relation(fields: [thematicAreaId], references: [thematicAreaId])
+
+  coordinatorId Int
+  coordinator   CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
+
+  fundingSourceId Int?
+  fundingSource   FundingSourceMaster? @relation(fields: [fundingSourceId], references: [fundingSourceId])
+
+  titleOfTraining String @map("title_of_training")
+
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  venue String @map("venue")
+  fundingAgencyName String? @map("funding_agency_name")
+  campusType CampusType @map("campus_type")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@map("training_achievement")
+}

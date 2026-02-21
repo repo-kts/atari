@@ -12,7 +12,7 @@ const masterDataController = require('../../controllers/all-masters/masterDataCo
 // Apply authentication to all routes
 router.use(authenticateToken);
 
-const adminReadRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+const adminReadRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk', 'zpd', 'icar'];
 const adminWriteRoles = ['super_admin'];
 
 // ============ ZONES ============
