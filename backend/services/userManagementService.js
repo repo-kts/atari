@@ -222,15 +222,23 @@ const userManagementService = {
     // Create user
     const user = await userRepository.createUserWithPassword(sanitizedData, passwordHash);
 
-    // If creator is not super_admin, assign user-level permissions
+    // Assign user-level permissions for _user roles (regardless of who creates them)
     let permissionActions = [];
-    if (creatorRoleName !== 'super_admin' && options.permissions?.length) {
+    const targetRole = user.role?.roleName || '';
+    const isTargetUserRole = targetRole.endsWith('_user');
+    if (isTargetUserRole && options.permissions?.length) {
       const normalizedPerms = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
+      const invalid = normalizedPerms.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      }
       const permissionIds = await userManagementService.getPermissionIdsForActions(normalizedPerms);
       if (permissionIds.length) {
         await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
         permissionActions = normalizedPerms;
       }
+    } else if (isTargetUserRole && (!options.permissions || !options.permissions.length)) {
+      throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
     }
 
     return {
