@@ -1,0 +1,26 @@
+model DrmrDetails {
+  drmrDetailsId Int @id @default(autoincrement()) @map("drmr_details_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  situation String @map("situation")
+  varietyImprovedPractice String @map("variety_improved_practice")
+  varietyFarmerPractice String @map("variety_farmer_practice")
+  yieldImprovedKgPerHa Float @map("yield_improved_kg_per_ha")
+  yieldFarmerKgPerHa Float @map("yield_farmer_kg_per_ha")
+  yieldIncreasePercent Float @map("yield_increase_percent")
+  costImprovedPerHa Float @map("cost_improved_per_ha")
+  costFarmerPerHa Float @map("cost_farmer_per_ha")
+  grossReturnImprovedPerHa Float @map("gross_return_improved_per_ha")
+  grossReturnFarmerPerHa Float @map("gross_return_farmer_per_ha")
+  netReturnImprovedPerHa Float @map("net_return_improved_per_ha")
+  netReturnFarmerPerHa Float @map("net_return_farmer_per_ha")
+  bcRatioImproved Float @map("bc_ratio_improved")
+  bcRatioFarmer Float @map("bc_ratio_farmer")
+
+  @@index([kvkId])
+
+  @@map("drmr_details")
+}

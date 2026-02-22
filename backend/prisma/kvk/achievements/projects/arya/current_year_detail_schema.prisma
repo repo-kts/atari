@@ -1,0 +1,51 @@
+model Enterprise {
+  enterpriseId Int @id @default(autoincrement()) @map("enterprise_id")
+
+  enterpriseName String @unique @map("enterprise_name")
+  aryaCurrentYearRecords AryaCurrentYear[]
+  aryaPrevYearRecords AryaPrevYear[]
+
+  @@index([enterpriseName])
+
+  @@map("enterprise_master")
+}
+
+model AryaCurrentYear {
+  aryaCurrentYearId Int @id @default(autoincrement()) @map("arya_current_year_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  enterpriseId Int
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [enterpriseId])
+
+  unitsMale Int @map("units_male")
+  unitsFemale Int @map("units_female")
+  viableUnits Int @map("viable_units")
+  closedUnits Int @map("closed_units")
+  trainingsConducted Int @map("trainings_conducted")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  youthMale Int @map("youth_male")
+  youthFemale Int @map("youth_female")
+  groupsFormed Int @map("groups_formed")
+  groupsActive Int @map("groups_active")
+  personsLeftGroup Int @map("persons_left_group")
+  membersPerGroup Int @map("members_per_group")
+
+  avgSizeOfUnit Float @map("avg_size_of_unit")
+  totalProductionPerYear Float @map("total_production_per_year")
+  perUnitCostOfProduction Float @map("per_unit_cost_of_production")
+  saleValueOfProduce Float @map("sale_value_of_produce")
+  employmentGeneratedMandays Float @map("employment_generated_mandays")
+
+  imagePath String? @map("image_path")
+
+  @@index([kvkId])
+  @@index([enterpriseId])
+
+  @@map("arya_current_year")
+}

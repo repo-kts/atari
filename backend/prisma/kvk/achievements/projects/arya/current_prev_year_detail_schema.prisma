@@ -1,0 +1,37 @@
+model AryaPrevYear {
+  aryaPrevYearId Int @id @default(autoincrement()) @map("arya_prev_year_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  enterpriseId Int
+  enterprise   Enterprise @relation(fields: [enterpriseId], references: [enterpriseId])
+
+  unitsMale Int @map("units_male")
+  unitsFemale Int @map("units_female")
+  nonFunctionalUnitsClosed Int @map("non_functional_units_closed")
+  dateOfClosing DateTime? @map("date_of_closing")
+  nonFunctionalUnitsRestarted Int @map("non_functional_units_restarted")
+  dateOfRestart DateTime? @map("date_of_restart")
+
+  numberOfUnits Int @map("number_of_units")
+  unitCapacity Float @map("unit_capacity")
+
+  fixedCost Float @map("fixed_cost")
+  variableCost Float @map("variable_cost")
+  totalProductionPerUnitYear Float @map("total_production_per_unit_year")
+  grossCostPerUnitYear Float @map("gross_cost_per_unit_year")
+  grossReturnPerUnitYear Float @map("gross_return_per_unit_year")
+  netBenefitPerUnitYear Float @map("net_benefit_per_unit_year")
+
+  employmentFamilyMandays Float @map("employment_family_mandays")
+  employmentOtherMandays Float @map("employment_other_mandays")
+  personsVisitedUnit Int @map("persons_visited_unit")
+
+  @@index([kvkId])
+  @@index([enterpriseId])
+
+  @@map("arya_prev_year")
+}
