@@ -1,0 +1,16 @@
+model AtariMeeting {
+  atariMeetingId Int @id @default(autoincrement()) @map("atari_meeting_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  meetingDate DateTime @map("meeting_date")
+  typeOfMeeting String @map("type_of_meeting")
+  agenda String @map("agenda")
+  representativeFromAtari String @map("representative_from_atari")
+
+  @@index([kvkId])
+
+  @@map("atari_meeting")
+}

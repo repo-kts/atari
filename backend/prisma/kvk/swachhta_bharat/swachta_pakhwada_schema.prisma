@@ -1,0 +1,16 @@
+model SwachhtaPakhwada {
+  swachhtaPakhwadaId Int @id @default(autoincrement()) @map("swachhta_pakhwada_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  observationDate DateTime @map("observation_date")
+  totalActivities Int @map("total_activities")
+  staffCount Int @map("staff_count")
+  farmerCount Int @map("farmer_count")
+  othersCount Int @map("others_count")
+
+  @@index([kvkId])
+
+  @@map("swachhta_pakhwada")
+}
