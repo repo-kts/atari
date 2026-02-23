@@ -1,4 +1,4 @@
-﻿// KVK - models only; generator/datasource in schema.prisma
+// KVK - models only; generator/datasource in schema.prisma
 
 model Kvk {
   kvkId   Int    @id @default(autoincrement()) @map("kvk_id")
