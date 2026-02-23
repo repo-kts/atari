@@ -1,7 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const otherExtensionActivityRepository = {
     create: async (data, user) => {
-        const kvkId = parseInt((user && user.kvkId) ? user.kvkId : (data.kvkId || 2));
+        const kvkId = parseInt((user && user.kvkId) ? user.kvkId : (data.kvkId || 1));
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = parseInt(data.staffId);
         if (isNaN(staffId) && data.staffName) {
