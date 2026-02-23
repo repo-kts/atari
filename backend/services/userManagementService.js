@@ -216,6 +216,20 @@ const userManagementService = {
       kvkId: effectiveKvkId,
     };
 
+    // Pre-validate permissions for _user target roles (before DB insert)
+    const requestedRole = await prisma.role.findUnique({ where: { roleId: sanitizedData.roleId } });
+    const targetRoleName = requestedRole?.roleName || '';
+    if (targetRoleName.endsWith('_user')) {
+      if (!options.permissions?.length) {
+        throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
+      }
+      const preNormalized = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
+      const preInvalid = preNormalized.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+      if (preInvalid.length > 0) {
+        throw new Error(`Invalid permission(s): ${preInvalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      }
+    }
+
     // Hash password
     const passwordHash = await hashPassword(password);
 
@@ -228,17 +242,11 @@ const userManagementService = {
     const isTargetUserRole = targetRole.endsWith('_user');
     if (isTargetUserRole && options.permissions?.length) {
       const normalizedPerms = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-      const invalid = normalizedPerms.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-      if (invalid.length > 0) {
-        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
-      }
       const permissionIds = await userManagementService.getPermissionIdsForActions(normalizedPerms);
-      if (permissionIds.length) {
-        await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
-        permissionActions = normalizedPerms;
-      }
-    } else if (isTargetUserRole && (!options.permissions || !options.permissions.length)) {
-      throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
+       if (permissionIds.length) {
+         await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
+         permissionActions = normalizedPerms;
+       }
     }
 
     return {
