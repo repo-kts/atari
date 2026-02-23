@@ -39,7 +39,7 @@ const farmerAwardService = {
         const award = await farmerAwardRepository.findById(id);
         if (!award) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && award.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -53,7 +53,7 @@ const farmerAwardService = {
         const existing = await farmerAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
@@ -78,7 +78,7 @@ const farmerAwardService = {
         const existing = await farmerAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

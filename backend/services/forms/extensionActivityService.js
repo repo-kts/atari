@@ -15,21 +15,24 @@ const extensionActivityService = {
         const activities = await extensionActivityRepository.findAll(filters, user);
 
         return activities.map(activity => {
-            const startDate = new Date(activity.startDate);
-            const reportingYear = startDate.getFullYear();
+            let reportingYear = null;
+            if (activity.startDate && !isNaN(Date.parse(activity.startDate))) {
+                const startDate = new Date(activity.startDate);
+                reportingYear = startDate.getFullYear();
+            }
 
             // Calculate total participants (using both naming conventions)
             const farmersSum =
-                (activity.gen_m || activity.farmersGeneralM || 0) + (activity.gen_f || activity.farmersGeneralF || 0) +
-                (activity.obc_m || activity.farmersObcM || 0) + (activity.obc_f || activity.farmersObcF || 0) +
-                (activity.sc_m || activity.farmersScM || 0) + (activity.sc_f || activity.farmersScF || 0) +
-                (activity.st_m || activity.farmersStM || 0) + (activity.st_f || activity.farmersStF || 0);
+                (activity.gen_m ?? activity.farmersGeneralM ?? 0) + (activity.gen_f ?? activity.farmersGeneralF ?? 0) +
+                (activity.obc_m ?? activity.farmersObcM ?? 0) + (activity.obc_f ?? activity.farmersObcF ?? 0) +
+                (activity.sc_m ?? activity.farmersScM ?? 0) + (activity.sc_f ?? activity.farmersScF ?? 0) +
+                (activity.st_m ?? activity.farmersStM ?? 0) + (activity.st_f ?? activity.farmersStF ?? 0);
 
             const officialsSum =
-                (activity.ext_gen_m || activity.officialsGeneralM || 0) + (activity.ext_gen_f || activity.officialsGeneralF || 0) +
-                (activity.ext_obc_m || activity.officialsObcM || 0) + (activity.ext_obc_f || activity.officialsObcF || 0) +
-                (activity.ext_sc_m || activity.officialsScM || 0) + (activity.ext_sc_f || activity.officialsScF || 0) +
-                (activity.ext_st_m || activity.officialsStM || 0) + (activity.ext_st_f || activity.officialsStF || 0);
+                (activity.ext_gen_m ?? activity.officialsGeneralM ?? 0) + (activity.ext_gen_f ?? activity.officialsGeneralF ?? 0) +
+                (activity.ext_obc_m ?? activity.officialsObcM ?? 0) + (activity.ext_obc_f ?? activity.officialsObcF ?? 0) +
+                (activity.ext_sc_m ?? activity.officialsScM ?? 0) + (activity.ext_sc_f ?? activity.officialsScF ?? 0) +
+                (activity.ext_st_m ?? activity.officialsStM ?? 0) + (activity.ext_st_f ?? activity.officialsStF ?? 0);
 
             return {
                 ...activity,
@@ -53,14 +56,28 @@ const extensionActivityService = {
     /**
      * Update Extension Activity
      */
-    updateExtensionActivity: async (id, data) => {
+    updateExtensionActivity: async (id, data, user) => {
+        const existing = await extensionActivityRepository.findById(id);
+        if (!existing) throw new Error('Extension activity not found');
+
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+            throw new Error('Unauthorized');
+        }
+
         return await extensionActivityRepository.update(id, data);
     },
 
     /**
      * Delete Extension Activity
      */
-    deleteExtensionActivity: async (id) => {
+    deleteExtensionActivity: async (id, user) => {
+        const existing = await extensionActivityRepository.findById(id);
+        if (!existing) throw new Error('Extension activity not found');
+
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+            throw new Error('Unauthorized');
+        }
+
         return await extensionActivityRepository.delete(id);
     },
 };

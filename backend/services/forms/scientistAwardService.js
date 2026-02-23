@@ -36,7 +36,7 @@ const scientistAwardService = {
         const award = await scientistAwardRepository.findById(id);
         if (!award) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && award.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -50,17 +50,17 @@ const scientistAwardService = {
         const existing = await scientistAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
         const updateData = {};
-        if (data.awardName) updateData.awardName = data.awardName;
-        if (data.scientistName) updateData.scientistName = data.scientistName;
-        if (data.year) updateData.year = data.year;
-        if (data.amount) updateData.amount = parseInt(data.amount);
-        if (data.achievement) updateData.achievement = data.achievement;
-        if (data.conferringAuthority) updateData.conferringAuthority = data.conferringAuthority;
+        if (data.awardName !== undefined) updateData.awardName = data.awardName;
+        if (data.scientistName !== undefined) updateData.scientistName = data.scientistName;
+        if (data.year !== undefined) updateData.year = data.year;
+        if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
+        if (data.achievement !== undefined) updateData.achievement = data.achievement;
+        if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
 
         return await scientistAwardRepository.update(id, updateData);
     },
@@ -72,7 +72,7 @@ const scientistAwardService = {
         const existing = await scientistAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

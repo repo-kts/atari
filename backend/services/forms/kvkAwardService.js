@@ -15,6 +15,7 @@ const kvkAwardService = {
             kvkId: parseInt(user.kvkId || data.kvkId),
             awardName: data.awardName,
             year: data.year,
+            reportingYear: data.reportingYear || data.year,
             amount: parseInt(data.amount),
             achievement: data.achievement,
             conferringAuthority: data.conferringAuthority,
@@ -38,7 +39,7 @@ const kvkAwardService = {
         if (!award) throw new Error('Award not found');
 
         // Authorization check
-        if (user.role === 'kvk' && award.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -53,13 +54,14 @@ const kvkAwardService = {
         if (!existing) throw new Error('Award not found');
 
         // Authorization check
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
         const updateData = {};
         if (data.awardName) updateData.awardName = data.awardName;
         if (data.year) updateData.year = data.year;
+        if (data.reportingYear || data.year) updateData.reportingYear = data.reportingYear || data.year;
         if (data.amount) updateData.amount = parseInt(data.amount);
         if (data.achievement) updateData.achievement = data.achievement;
         if (data.conferringAuthority) updateData.conferringAuthority = data.conferringAuthority;
@@ -75,7 +77,7 @@ const kvkAwardService = {
         if (!existing) throw new Error('Award not found');
 
         // Authorization check
-        if (user.role === 'kvk' && existing.kvkId !== user.kvkId) {
+        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

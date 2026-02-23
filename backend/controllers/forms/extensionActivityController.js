@@ -75,7 +75,7 @@ const extensionActivityController = {
      */
     update: async (req, res) => {
         try {
-            const result = await extensionActivityService.updateExtensionActivity(req.params.id, req.body);
+            const result = await extensionActivityService.updateExtensionActivity(req.params.id, req.body, req.user);
             res.status(200).json({
                 success: true,
                 message: 'Extension activity updated successfully',
@@ -96,7 +96,7 @@ const extensionActivityController = {
      */
     delete: async (req, res) => {
         try {
-            await extensionActivityService.deleteExtensionActivity(req.params.id);
+            await extensionActivityService.deleteExtensionActivity(req.params.id, req.user);
             res.status(200).json({
                 success: true,
                 message: 'Extension activity deleted successfully'
