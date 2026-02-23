@@ -76,6 +76,91 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: {
         transform: (data: any) => ({ ...data, isOther: true }),
     },
+    [ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK]: {
+        transform: (data: any) => {
+            const {
+                kvk, kvkName, reportingYear, totalParticipants,
+                techWeekId, extensionActivityId,
+                'Reporting Year': _ry, 'KVK Name': _kn, 'KVK': _kv,
+                'Start Date': _sd, 'End Date': _ed,
+                'Type Of Activities': _ta, 'No. of activities': _na,
+                'Related Crop/Live Stock Technology': _rt, 'Number of participants': _np,
+                'No. of Participants': _np2,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS]: {
+        transform: (data: any) => {
+            const {
+                kvk, kvkName, importantDayName, reportingYear, totalParticipants,
+                celebrationId,
+                'KVK Name': _kn, 'Important Days': _id, 'Important Dates': _id2,
+                'Event Date': _ed, 'Event date': _ed2,
+                'No. of Activities': _na, 'No. of activities': _na2,
+                'Reporting Year': _ry,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_FLD]: {
+        transform: (data: any) => {
+            const {
+                kvk, kvkName, staffName, seasonName, sectorName,
+                categoryName, subCategoryName, cropName,
+                reportingYear, totalParticipants, kvkFldId,
+                'KVK Name': _kn, 'Category': _cat, 'Sub Category': _sub,
+                'Name of Technnology Demonstrated': _tech,
+                'Reporting Year': _ry, 'Start Date': _sd, 'End Date': _ed,
+                'Ongoing/Completed': _oc,
+                fldName, noOfDemonstration, areaHa, generalM, generalF,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT]: {
+        transform: (data: any) => {
+            // Strip read-only/response fields, keep only what the backend create expects
+            const {
+                id, soilWaterEquipmentId, kvkId, kvkName,
+                soilWaterAnalysisId, // keep 'analysis' (string) and 'year', 'equipmentName', 'quantity'
+                'KVK Name': _kn,
+                'Analysis': _a,
+                'Equipment Name': _en,
+                'Quantity': _q,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS]: {
+        transform: (data: any) => {
+            const {
+                id, soilWaterAnalysisId, kvkId, kvkName, analysisId,
+                'KVK Name': _kn, 'Start Date': _sd, 'End Date': _ed,
+                'Analysis': _a, 'No. of Samples analyzed': _ns,
+                'No. of Villages covered': _nv, 'Amount realized (Rs.)': _ar,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY]: {
+        transform: (data: any) => {
+            const {
+                id, worldSoilCelebrationId, kvkId, kvkName, noOfVip,
+                'KVK Name': _kn, 'No. of Activity conducted': _ac,
+                'Soil Health Cards distributed': _sh, 'No of VIP': _nv,
+                'Name (s) of VIP(s) involved if any': _vi,
+                'Total No. of Participants attended the program': _p,
+                ...rest
+            } = data;
+            return rest;
+        },
+    },
 };
 
 // ============================================

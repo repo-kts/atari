@@ -20,18 +20,14 @@ const kvkAwardService = {
             conferringAuthority: data.conferringAuthority,
         };
 
-        return await kvkAwardRepository.create(awardData);
+        return await kvkAwardRepository.create(awardData, user);
     },
 
     /**
      * Get all KVK Awards (filtered by KVK if user is KVK role)
      */
     getAllKvkAwards: async (user) => {
-        const filters = {};
-        if (user.role === 'kvk') {
-            filters.kvkId = user.kvkId;
-        }
-        return await kvkAwardRepository.findAll(filters);
+        return await kvkAwardRepository.findAll(user);
     },
 
     /**

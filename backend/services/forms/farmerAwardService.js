@@ -22,18 +22,14 @@ const farmerAwardService = {
             image: (typeof data.image === 'string') ? data.image : null
         };
 
-        return await farmerAwardRepository.create(awardData);
+        return await farmerAwardRepository.create(awardData, user);
     },
 
     /**
      * Get all Farmer Awards
      */
     getAllFarmerAwards: async (user) => {
-        const filters = {};
-        if (user.role === 'kvk') {
-            filters.kvkId = user.kvkId;
-        }
-        return await farmerAwardRepository.findAll(filters);
+        return await farmerAwardRepository.findAll(user);
     },
 
     /**

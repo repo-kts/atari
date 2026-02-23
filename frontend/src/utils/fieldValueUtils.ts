@@ -21,6 +21,15 @@ interface FieldExtractorConfig {
 // ============================================
 
 const fieldExtractors: Record<string, FieldExtractorConfig> = {
+    // Shared fields
+    'KVK Name': {
+        extractor: (item) => item.kvkName || (item.kvk?.kvkName) || null,
+        priority: 10,
+    },
+    'KVK NAME': {
+        extractor: (item) => item.kvkName || (item.kvk?.kvkName) || null,
+        priority: 10,
+    },
     // Date fields
     dateOfJoining: {
         extractor: (item) => {
@@ -195,6 +204,41 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     yearName: {
         extractor: (item) => item.yearName || null,
+        priority: 5,
+    },
+    Staff: {
+        extractor: (item) => item.staff?.staffName || item.staffName || null,
+        priority: 5,
+    },
+    Course: {
+        extractor: (item) => item.courseName || null,
+        priority: 5,
+    },
+    Organizer: {
+        extractor: (item) => item.organizerVenue || null,
+        priority: 5,
+    },
+    'Reporting year': {
+        extractor: (item) => item.reportingYear || null,
+        priority: 5,
+    },
+    'Title of On farm Trial (OFT)': {
+        extractor: (item) => item.title || null,
+        priority: 5,
+    },
+    'Problem diagnosed': {
+        extractor: (item) => item.problemDiagnosed || null,
+        priority: 5,
+    },
+    'Ongoing/Completed': {
+        extractor: (item) => {
+            if (item.status) return item.status;
+            if (item.performanceIndicators && item.performanceIndicators.includes('[Status:')) {
+                const match = item.performanceIndicators.match(/\[Status:\s*(.*?)\]/);
+                if (match) return match[1];
+            }
+            return null;
+        },
         priority: 5,
     },
     publicationItem: {
@@ -409,7 +453,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     'Head Scientist': {
-        extractor: (item) => item.scientistName || null,
+        extractor: (item) => item.headScientist || item.scientistName || null,
         priority: 5,
     },
     'Head/Scientist': {
@@ -472,10 +516,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.conferringAuthority || null,
         priority: 5,
     },
-    'KVK Name': {
-        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
-        priority: 5,
-    },
     'Farmer Name': {
         extractor: (item) => item.farmerName || null,
         priority: 5,
@@ -531,11 +571,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     'Name of Extension activities': {
-        extractor: (item) => item.activityName || (item.activity?.activityName) || null,
+        extractor: (item) => item.extensionActivityType || item.activityName || item.activity?.activityName || null,
         priority: 5,
     },
-    'Nature of Extension Activies': {
-        extractor: (item) => item.activity?.activityName || item.activityType?.activityName || item.natureOfExtensionActivities || null,
+    'Nature of Extension Activity': {
+        extractor: (item) => item.extensionActivityType || item.activity?.activityName || item.activityType?.activityName || item.natureOfExtensionActivities || null,
         priority: 5,
     },
     'No. of Activities': {
@@ -546,8 +586,94 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.numberOfActivities !== undefined ? String(item.numberOfActivities) : item.activityCount ? String(item.activityCount) : null,
         priority: 5,
     },
+    // Technology Week Celebration columns
+    'KVK': {
+        extractor: (item) => item.kvkName || item.kvk?.kvkName || null,
+        priority: 5,
+    },
+    'Type Of Activities': {
+        extractor: (item) => item.typeOfActivities || item.activityType || item['Type of activities'] || null,
+        priority: 5,
+    },
+    'Related Crop/Live Stock Technology': {
+        extractor: (item) => item.relatedTechnology || item['Related crop/livestock technology'] || null,
+        priority: 5,
+    },
+    'Number of participants': {
+        extractor: (item) => item.totalParticipants !== undefined ? String(item.totalParticipants) : null,
+        priority: 5,
+    },
     'No. of Participants': {
         extractor: (item) => item.totalParticipants !== undefined ? String(item.totalParticipants) : null,
+        priority: 5,
+    },
+    // Celebration Days table columns (unique keys only)
+    'Important Days': {
+        extractor: (item) => item.importantDay || item.importantDayName || item['Important Days'] || item['Important Dates'] || null,
+        priority: 5,
+    },
+    'Important Dates': {
+        extractor: (item) => item.importantDay || item.importantDayName || item['Important Dates'] || item['Important Days'] || null,
+        priority: 5,
+    },
+    'Event Date': {
+        extractor: (item) => item.eventDate || item['Event Date'] || item['Event date'] || null,
+        priority: 5,
+    },
+    'Event date': {
+        extractor: (item) => item.eventDate || item['Event date'] || item['Event Date'] || null,
+        priority: 5,
+    },
+
+    // Soil Water Testing columns
+    'Analysis': {
+        extractor: (item) => item.analysis || item.analysisName || null,
+        priority: 5,
+    },
+    'Equipment Name': {
+        extractor: (item) => item.equipmentName || null,
+        priority: 5,
+    },
+    'Quantity': {
+        extractor: (item) => item.quantity !== undefined && item.quantity !== null ? String(item.quantity) : null,
+        priority: 5,
+    },
+    // Soil Analysis table columns (matches reference image)
+    'No. of Samples analyzed': {
+        extractor: (item) => item.numberOfSamples !== undefined ? String(item.numberOfSamples) : null,
+        priority: 5,
+    },
+    'No. of Villages covered': {
+        extractor: (item) => item.numberOfVillages !== undefined ? String(item.numberOfVillages) : null,
+        priority: 5,
+    },
+    'Amount realized (Rs.)': {
+        extractor: (item) => item.amountRealized !== undefined ? String(item.amountRealized) : null,
+        priority: 5,
+    },
+    'Samples Analyzed Through': {
+        extractor: (item) => item.samplesAnalyzedThrough || null,
+        priority: 5,
+    },
+    // World Soil Day table columns
+    'No. of Activity conducted': {
+        extractor: (item) => item.activityConducted !== undefined ? String(item.activityConducted) : item.activitiesConducted !== undefined ? String(item.activitiesConducted) : null,
+        priority: 5,
+    },
+    'Soil Health Cards distributed': {
+        extractor: (item) => item.soilHealthCards !== undefined ? String(item.soilHealthCards) : item.soilHealthCardDistributed !== undefined ? String(item.soilHealthCardDistributed) : null,
+        priority: 5,
+    },
+    'No of VIP': {
+        extractor: (item) => item.noOfVip !== undefined ? String(item.noOfVip) : null,
+        priority: 5,
+    },
+    'Name (s) of VIP(s) involved if any': {
+        extractor: (item) => item.vipNames || null,
+        priority: 5,
+    },
+    'Total No. of Participants attended the program': {
+        extractor: (item) => item.participants !== undefined ? String(item.participants) : null,
         priority: 5,
     },
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronLeft } from 'lucide-react'
-import { ShieldAlert } from 'lucide-react'
+
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -100,7 +100,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const isEmployeeDetails = entityType === ENTITY_TYPES.KVK_EMPLOYEES
 
     // Check if this is an About KVK entity
-    const { isAboutKvk: isAboutKvkEntity } = getEntityTypeChecks(entityType)
+    const { isAboutKvk: isAboutKvkEntity, isAchievement, isProject } = getEntityTypeChecks(entityType)
 
     // Determine if "Add New" button should be shown
     const canUserCreate = () => {
@@ -125,7 +125,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+        if (isAboutKvkEntity || isAchievement || isProject) {
             if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can edit all records
@@ -142,7 +142,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+        if (isAboutKvkEntity || isAchievement || isProject) {
             if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can delete all records

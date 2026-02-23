@@ -19,6 +19,7 @@ const mapApiUserToUser = (apiUser: ApiUser): User => ({
     districtId: apiUser.districtId,
     orgId: apiUser.orgId,
     kvkId: apiUser.kvkId,
+    kvkName: apiUser.kvkName,
     createdAt: apiUser.createdAt,
     lastLoginAt: apiUser.lastLoginAt,
     permissions: apiUser.permissions,

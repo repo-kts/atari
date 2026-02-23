@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { authenticateToken } = require('../../middleware/auth.js');
 const extensionActivityController = require('../../controllers/forms/extensionActivityController.js');
+
+router.use(authenticateToken);
 
 // Create a new Extension Activity
 router.post('/', extensionActivityController.create);

@@ -6,7 +6,7 @@ const extensionActivityController = {
      */
     create: async (req, res) => {
         try {
-            const result = await extensionActivityService.createExtensionActivity(req.body);
+            const result = await extensionActivityService.createExtensionActivity(req.body, req.user);
             res.status(201).json({
                 success: true,
                 message: 'Extension activity created successfully',
@@ -28,7 +28,7 @@ const extensionActivityController = {
     getAll: async (req, res) => {
         try {
             const filters = req.query || {};
-            const result = await extensionActivityService.getAllExtensionActivities(filters);
+            const result = await extensionActivityService.getAllExtensionActivities(filters, req.user);
             res.status(200).json({
                 success: true,
                 count: result.length,

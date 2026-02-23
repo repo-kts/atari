@@ -19,18 +19,14 @@ const scientistAwardService = {
             conferringAuthority: data.conferringAuthority,
         };
 
-        return await scientistAwardRepository.create(awardData);
+        return await scientistAwardRepository.create(awardData, user);
     },
 
     /**
      * Get all Scientist Awards
      */
     getAllScientistAwards: async (user) => {
-        const filters = {};
-        if (user.role === 'kvk') {
-            filters.kvkId = user.kvkId;
-        }
-        return await scientistAwardRepository.findAll(filters);
+        return await scientistAwardRepository.findAll(user);
     },
 
     /**

@@ -115,6 +115,13 @@ const authService = {
         // Update last login timestamp
         await authRepository.updateLastLogin(user.userId);
 
+        // Lookup kvkName from kvk table if user has a kvkId
+        let kvkName = null;
+        if (user.kvkId) {
+            const kvkRows = await authRepository.findKvkNameById(user.kvkId);
+            kvkName = kvkRows || null;
+        }
+
         // Return user data (without password hash) and tokens
         return {
             user: {
@@ -128,6 +135,7 @@ const authService = {
                 districtId: user.districtId,
                 orgId: user.orgId,
                 kvkId: user.kvkId,
+                kvkName,
                 permissions: userActions.length ? userActions : undefined,
                 permissionsByModule: Object.keys(permissionsByModule).length ? permissionsByModule : undefined,
             },
@@ -224,7 +232,7 @@ const authService = {
                 if (decoded?.userId) {
                     await authRepository.revokeAllUserTokens(decoded.userId);
                 }
-            } catch {}
+            } catch { }
             return true;
         }
     },
@@ -284,6 +292,12 @@ const authService = {
             user.userId,
         );
 
+        // Lookup kvkName from kvk table if user has a kvkId
+        let kvkName = null;
+        if (user.kvkId) {
+            kvkName = await authRepository.findKvkNameById(user.kvkId);
+        }
+
         return {
             userId: user.userId,
             name: user.name,
@@ -295,6 +309,7 @@ const authService = {
             districtId: user.districtId,
             orgId: user.orgId,
             kvkId: user.kvkId,
+            kvkName,
             createdAt: user.createdAt,
             lastLoginAt: user.lastLoginAt,
             permissions: userActions.length ? userActions : undefined,

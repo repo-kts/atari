@@ -33,6 +33,20 @@ const authRepository = {
     },
 
     /**
+     * Find KVK name by kvkId (raw query — avoids Prisma include issue)
+     * @param {number} kvkId - KVK ID
+     * @returns {Promise<string|null>} KVK name or null
+     */
+    findKvkNameById: async (kvkId) => {
+        if (!kvkId) return null;
+        const rows = await prisma.$queryRawUnsafe(
+            `SELECT kvk_name FROM kvk WHERE kvk_id = $1 LIMIT 1`,
+            parseInt(String(kvkId))
+        );
+        return (rows && rows.length > 0) ? rows[0].kvk_name : null;
+    },
+
+    /**
      * Create a new refresh token
      * @param {number} userId - User ID
      * @param {string} token - JWT refresh token string

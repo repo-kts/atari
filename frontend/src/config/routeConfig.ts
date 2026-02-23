@@ -1536,7 +1536,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_oft',
-        fields: ['Reporting Year', 'KVK Name', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
+        fields: ['Reporting year', 'KVK Name', 'Staff', 'Title of On farm Trial (OFT)', 'Problem diagnosed', 'Ongoing/Completed'],
     },
     {
         path: '/forms/achievements/fld',
@@ -1572,7 +1572,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_other_extension_activities',
-        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
+        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activity', 'No. of activities'],
         // mockData: [
         //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
         //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
@@ -1630,7 +1630,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_soil_water_testing',
-        fields: ['KVK NAME', 'Start Date', 'End Date', 'Analysis', 'No. of samples Analyzed', 'No. of Villages Covered', 'Amount Released'],
+        fields: ['KVK Name', 'Start Date', 'End Date', 'Analysis', 'No. of Samples analyzed', 'No. of Villages covered', 'Amount realized (Rs.)'],
     },
     {
         path: '/forms/achievements/world-soil-day',
@@ -1639,7 +1639,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_soil_water_testing',
-        fields: ['KVK NAME', 'No. Of Activities Conducted', 'Soil Health Cards Distributed', 'No. of VIP(s)', 'Name(s) of VIP(s) Involved', 'Total No. of Participants attended the program'],
+        fields: ['KVK Name', 'No. of Activity conducted', 'Soil Health Cards distributed', 'No of VIP', 'Name (s) of VIP(s) involved if any', 'Total No. of Participants attended the program'],
     },
     {
         path: '/forms/achievements/awards/kvk',
@@ -1688,7 +1688,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: '/forms/achievements',
         moduleCode: 'achievements_hrd',
         fields: ['KVK Name', 'Staff', 'Course', 'Start Date', 'End Date', 'Organizer'],
-        
+
     },
 ]
 // export const achievementsRoutes2: RouteConfig[] = [

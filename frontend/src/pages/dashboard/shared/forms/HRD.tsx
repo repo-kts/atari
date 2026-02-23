@@ -26,12 +26,22 @@ export const HRD: React.FC<HRDProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormSelect
                             label="Name of Staff"
-                            value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
+                            value={formData.staffName || formData.staff?.staffName || ''}
+                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value, staff: { staffName: e.target.value } })}
                             options={[
-                                { value: 'Dr. Sharma', label: 'Dr. Sharma' },
-                                { value: 'Dr. Patel', label: 'Dr. Patel' },
-                                { value: 'Mr. Kumar', label: 'Mr. Kumar' },
+                                { value: 'Sri Akhilesh Kumar', label: 'Sri Akhilesh Kumar' },
+                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+                                { value: 'Mr. Rajeev Kumar', label: 'Mr. Rajeev Kumar' },
+                                { value: 'Dr. Prakash Chandra Gupta', label: 'Dr. Prakash Chandra Gupta' },
+                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+                                { value: 'Smt. Sangeetha Kumari', label: 'Smt. Sangeetha Kumari' },
+                                { value: 'Sri Chandan Kumar', label: 'Sri Chandan Kumar' },
+                                { value: 'Sri Kanhaiya Kumar Rai', label: 'Sri Kanhaiya Kumar Rai' },
+                                { value: 'Sri Bachan Sah', label: 'Sri Bachan Sah' },
+                                { value: 'Sri Mukesh Kumar', label: 'Sri Mukesh Kumar' },
+
+
+
                             ]}
                             placeholder="--Please Select--"
                         />

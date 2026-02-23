@@ -35,30 +35,11 @@ model Kvk {
   staff                         KvkStaff[]
   originalStaff                 KvkStaff[]                     @relation("OriginalKvk")
   kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
-<<<<<<<< HEAD:backend/prisma/kvk/kvk_schema.prisma
   vehicles                      KvkVehicle[]
   scientistAwards               ScientistAward[]
   transfersFrom                 StaffTransferHistory[]         @relation("TransferFrom")
   transfersTo                   StaffTransferHistory[]         @relation("TransferTo")
   trainingAchievements          TrainingAchievement[]
-========
-  fldExtensions                FldExtension[]
-  kvkFldIntroductions          KvkFldIntroduction[]
-  fldTechnicalFeedbacks        FldTechnicalFeedback[]
-  kvkBudgetUtilizations        KvkBudgetUtilization[]
-  extensionActivityOrganized   ExtensionActivityOrganized[]
-  cfldTechnicalParameters      CfldTechnicalParameter[]
-  users                        User[]
-  kvkOfts                      Kvkoft[]
-  agriDrones                   KvkAgriDrone[]
-  fpoCbboDetails               FpoCbboDetails[]
-  fpoManagements               FpoManagement[]
-  kvkOtherProgrammes           KvkOtherProgramme[]
-  seedHubPrograms              KvkSeedHubProgram[]
-  soilWaterAnalyses            KkvSoilWaterAnalysis[]
-  soilWaterEquipments          KkvSoilWaterEquipment[]
-  worldSoilCelebrations        KkvWorldSoilCelebration[]
->>>>>>>> aecbe7ae3a746c1baf76836b4c85a4ac621abff0:backend/prisma/kvk/about-kvk/kvk_schema.prisma
 
   @@index([zoneId])
   @@index([stateId])

@@ -3,7 +3,7 @@ const otherExtensionActivityService = require('../../services/forms/otherExtensi
 const otherExtensionActivityController = {
     create: async (req, res) => {
         try {
-            const result = await otherExtensionActivityService.createOtherExtensionActivity(req.body);
+            const result = await otherExtensionActivityService.createOtherExtensionActivity(req.body, req.user);
             res.status(201).json({
                 success: true,
                 message: 'Other extension activity created successfully',
@@ -22,7 +22,7 @@ const otherExtensionActivityController = {
     getAll: async (req, res) => {
         try {
             const filters = req.query || {};
-            const result = await otherExtensionActivityService.getAllOtherExtensionActivities(filters);
+            const result = await otherExtensionActivityService.getAllOtherExtensionActivities(filters, req.user);
             res.status(200).json({
                 success: true,
                 count: result.length,
@@ -63,7 +63,7 @@ const otherExtensionActivityController = {
 
     update: async (req, res) => {
         try {
-            const result = await otherExtensionActivityService.updateOtherExtensionActivity(req.params.id, req.body);
+            const result = await otherExtensionActivityService.updateOtherExtensionActivity(req.params.id, req.body, req.user);
             res.status(200).json({
                 success: true,
                 message: 'Other extension activity updated successfully',

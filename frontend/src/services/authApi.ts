@@ -27,6 +27,7 @@ export interface ApiUser {
   districtId?: number | null;
   orgId?: number | null;
   kvkId?: number | null;
+  kvkName?: string | null;
   createdAt?: string;
   lastLoginAt?: string | null;
   /** Granular permissions; absent = full access for role */

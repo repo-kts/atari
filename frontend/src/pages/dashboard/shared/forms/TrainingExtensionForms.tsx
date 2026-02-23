@@ -8,6 +8,7 @@ import {
     useExtensionActivities,
 } from '../../../../hooks/useTrainingExtensionEventsData'
 import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
+import { useOtherExtensionActivityTypes } from '../../../../hooks/useOtherMastersData'
 
 interface TrainingExtensionFormsProps {
     entityType: ExtendedEntityType | null
@@ -25,6 +26,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     const { data: trainingAreas = [] } = useTrainingAreas()
     const { data: staffList = [] } = useKvkEmployees()
     const { data: activityList = [] } = useExtensionActivities()
+    const { data: otherActivityTypes = [] } = useOtherExtensionActivityTypes()
 
     if (!entityType) return null
 
@@ -389,57 +391,48 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             value={formData.staffId || ''}
                             onChange={(e) => setFormData({
                                 ...formData,
-                                staffId: e.target.value,
+                                staffId: parseInt(e.target.value),
                                 staffName: e.target.options[e.target.selectedIndex].text
                             })}
                             options={[
-                                { value: 'Dr. Sharma', label: 'Dr. Sharma' },
-                                { value: 'Dr. Patel', label: 'Dr. Patel' },
-                                { value: 'Mr. Kumar', label: 'Mr. Kumar' },
-                                ...staffList.map((s: any) => ({ value: s.kvkStaffId, label: s.staffName }))
+                                // Hardcoded real staff from DB (always visible)
+                                { value: 6, label: 'Dr. Pushpam Patel' },
+                                { value: 7, label: 'Smt. Sangeetha Kumari' },
+                                { value: 8, label: 'Sri Chandan Kumar' },
+                                { value: 9, label: 'Dr. Prakash Chandra Gupta' },
+                                { value: 10, label: 'Sri Mukesh Kumar' },
+                                { value: 11, label: 'Dr. Reeta Singh' },
+                                { value: 12, label: 'Sri Kanhaiya Kumar Rai' },
+                                { value: 13, label: 'Sri Rajeev Kumar' },
+                                { value: 14, label: 'Smt. Sangeeta Kumari' },
+                                // Dynamic staff from API (any newly added staff)
+                                ...staffList
+                                    .filter((s: any) => s.kvkStaffId > 14)
+                                    .map((s: any) => ({ value: s.kvkStaffId, label: s.staffName }))
                             ]}
                         />
                         <FormSelect
                             label="Nature of Extension Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityTypeId || ''}
                             onChange={(e) => setFormData({
                                 ...formData,
-                                activityId: e.target.value,
+                                activityTypeId: parseInt(e.target.value),
                                 extensionActivityType: e.target.options[e.target.selectedIndex].text
                             })}
                             options={[
-                                { value: 'Advisory Services', label: 'Advisory Services' },
-                                { value: 'Diagnostic visits', label: 'Diagnostic visits' },
-                                { value: 'Field Day', label: 'Field Day' },
-                                { value: 'Group meetings', label: 'Group meetings' },
-                                { value: 'Kisan Ghosthi', label: 'Kisan Ghosthi' },
-                                { value: 'Kisan Mela', label: 'Kisan Mela' },
-                                { value: 'Exhibition', label: 'Exhibition' },
-                                { value: 'Film Show', label: 'Film Show' },
-                                { value: 'Method Demonstrations', label: 'Method Demonstrations' },
-                                { value: 'Farmers Seminar', label: 'Farmers Seminar' },
-                                { value: 'Workshop', label: 'Workshop' },
-                                { value: 'Lectures delivered as resource person', label: 'Lectures delivered as resource person' },
-                                { value: 'Newspaper coverage', label: 'Newspaper coverage' },
-                                { value: 'Radio talks', label: 'Radio talks' },
-                                { value: 'TV talks', label: 'TV talks' },
-                                { value: 'Popular articles', label: 'Popular articles' },
-                                { value: 'Extension Literature', label: 'Extension Literature' },
-                                { value: 'Scientific visit to farmers field', label: 'Scientific visit to farmers field' },
-                                { value: 'Farmers visit to KVK', label: 'Farmers visit to KVK' },
-                                { value: 'Exposure visits', label: 'Exposure visits' },
-                                { value: 'Ex-trainees Sammelan', label: 'Ex-trainees Sammelan' },
-                                { value: 'Soil health camp', label: 'Soil health camp' },
-                                { value: 'Animal Health Camp', label: 'Animal Health Camp' },
-                                { value: 'Agri mobile clinic', label: 'Agri mobile clinic' },
-                                { value: 'Soil test campaign', label: 'Soil test campaign' },
-                                { value: 'Farm Science Club Conveners meet', label: 'Farm Science Club Conveners meet' },
-                                { value: 'Self Help Group Conveners meet', label: 'Self Help Group Conveners meet' },
-                                { value: 'Mahila Mandals Conveners meet', label: 'Mahila Mandals Conveners meet' },
-                                { value: 'Celebration of important days (Special Days)', label: 'Celebration of important days (Special Days)' },
-                                { value: 'Any Other (Specify)', label: 'Any Other (Specify)' },
-                                ...activityList.map((a: any) => ({ value: a.extensionActivityId, label: a.extensionName }))
+                                // Hardcoded fallback options (always visible)
+                                { value: 1, label: 'Newspaper Coverage' },
+                                { value: 2, label: 'Radio Talks' },
+                                { value: 3, label: 'TV Talks' },
+                                { value: 4, label: 'Popular Articles Published' },
+                                { value: 5, label: 'Extension Literature' },
+                                { value: 6, label: 'Electronic Media' },
+                                { value: 7, label: 'Any Other' },
+                                // Dynamic options from DB (deduplicated via key)
+                                ...otherActivityTypes
+                                    .filter((a: any) => a.activityTypeId > 7)
+                                    .map((a: any) => ({ value: a.activityTypeId, label: a.activityName }))
                             ]}
                         />
                         <FormInput
@@ -447,9 +440,9 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             type="number"
                             value={formData.activityCount || ''}
-                            onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, activityCount: parseInt(e.target.value) })}
                         />
-                        <div className="hidden md:block"></div> { /* Spacer */}
+                        <div className="hidden md:block"></div> {/* Spacer */}
 
                         <FormInput
                             label="Start Date"
@@ -466,9 +459,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
-
                 </div>
-                // </div >
             )}
 
             {entityType === ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK && (

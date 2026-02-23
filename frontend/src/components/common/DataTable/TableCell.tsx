@@ -40,15 +40,21 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
     }
 
     // Transfer status field
-    if (isTransferStatusField) {
-        const status = item.transferStatus || 'ACTIVE'
-        const isTransferred = status === 'TRANSFERRED'
+    if (isTransferStatusField || field === 'status' || field === 'Ongoing/Completed') {
+        const val = String(value || item.status || '').trim();
+        if (!val || val === '-') return <span>-</span>;
+
+        let bgClass = 'bg-gray-100 text-gray-700 border-gray-200';
+
+        if (val === 'Completed') bgClass = 'bg-[#1B5E20] text-white border-transparent';
+        else if (val === 'Ongoing') bgClass = 'bg-[#FFB300] text-white border-transparent';
+        else if (val === 'Transferred to the next year' || val === 'Transferred') bgClass = 'bg-[#2E7D32] text-white border-transparent';
+        else if (val === 'ACTIVE') bgClass = 'bg-green-100 text-green-700 border-green-200';
+        else if (val === 'TRANSFERRED') bgClass = 'bg-blue-100 text-blue-700 border-blue-200';
+
         return (
-            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${isTransferred
-                ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                : 'bg-green-100 text-green-700 border border-green-200'
-                }`}>
-                {status}
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold shadow-sm ${bgClass}`}>
+                {val}
             </span>
         )
     }

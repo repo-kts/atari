@@ -1,1 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.lerna/debug.log
+error_log.txt
+prisma_error.txt
+p_err.log
+validation.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor/Temp
 .DS_Store
+*.bak
+*.tmp
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Project specific
+backend/repositories/forms/farmerAwardRepository_fixed.js
+backend/repositories/forms/farmerAwardRepository.js.bak

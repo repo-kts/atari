@@ -2,6 +2,8 @@ import React, { useEffect } from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
+import { DependentDropdown } from '../../../../components/common/DependentDropdown'
+import { fldApi } from '../../../../services/fldApi'
 import {
     useOftSubjects,
     useSectors,
@@ -404,6 +406,17 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.cost || ''}
                             onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
                         />
+                        <FormSelect
+                            label="Ongoing/Completed"
+                            required
+                            value={formData.status || ''}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            options={[
+                                { value: 'Completed', label: 'Completed' },
+                                { value: 'Ongoing', label: 'Ongoing' },
+                                { value: 'Transferred to the next year', label: 'Transferred to the next year' },
+                            ]}
+                        />
                     </div>
 
                     {/* Farmers Details Section */}
@@ -468,19 +481,23 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.seasonId || ''}
                             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-                            options={[
-                                { value: 'Kharif', label: 'Kharif' },
-                                { value: 'Rabi', label: 'Rabi' },
-                                { value: 'Zaid', label: 'Zaid' },
-                            ]}
+                            options={seasons.map(s => ({ value: s.seasonId, label: s.seasonName }))}
                         />
+
+                        {/* Sector — top of the dependent chain */}
                         <FormSelect
                             label="Sector"
                             required
                             value={formData.sectorId || ''}
-                            onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
+                            onChange={(e) => {
+                                const sectorId = parseInt(e.target.value)
+                                // Reset downstream when sector changes
+                                setFormData({ ...formData, sectorId, categoryId: '', subCategoryId: '', cropId: '' })
+                            }}
                             options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
                         />
+
+                        {/* Thematic Area — static list, not part of dependent chain */}
                         <FormSelect
                             label="Thematic Area"
                             required
@@ -496,43 +513,51 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 { value: 'Value Addition', label: 'Value Addition' },
                             ]}
                         />
-                        <FormSelect
+
+                        {/* Category — depends on Sector */}
+                        <DependentDropdown
                             label="Category"
                             required
                             value={formData.categoryId || ''}
-                            onChange={(e) => setFormData({ ...formData, categoryId: parseInt(e.target.value) })}
-                            disabled={!formData.sectorId}
-                            options={fldCategories
-                                .filter((c: any) => c.sectorId === formData.sectorId)
-                                .map(c => ({ value: c.categoryId, label: c.categoryName }))}
+                            options={[]}
+                            dependsOn={{ value: formData.sectorId, field: 'sectorId' }}
+                            onOptionsLoad={(sectorId, signal) => fldApi.getCategoriesBySector(sectorId, signal)}
+                            cacheKey="fld-categories"
+                            emptyMessage="No categories found for this sector"
+                            onChange={(val) => {
+                                setFormData({ ...formData, categoryId: val, subCategoryId: '', cropId: '' })
+                            }}
                         />
-                        <FormSelect
+
+                        {/* Sub Category — depends on Category */}
+                        <DependentDropdown
                             label="Sub Category"
                             required
                             value={formData.subCategoryId || ''}
-                            onChange={(e) => setFormData({ ...formData, subCategoryId: parseInt(e.target.value) })}
-                            disabled={!formData.categoryId}
-                            options={fldSubcategories
-                                .filter((s: any) => s.categoryId === formData.categoryId)
-                                .map(s => ({ value: s.subCategoryId, label: s.subCategoryName }))}
+                            options={[]}
+                            dependsOn={{ value: formData.categoryId, field: 'categoryId' }}
+                            onOptionsLoad={(categoryId, signal) => fldApi.getSubcategoriesByCategory(categoryId, signal)}
+                            cacheKey="fld-subcategories"
+                            emptyMessage="No sub-categories found for this category"
+                            onChange={(val) => {
+                                setFormData({ ...formData, subCategoryId: val, cropId: '' })
+                            }}
                         />
-                        <FormSelect
+
+                        {/* Crop — depends on Sub Category */}
+                        <DependentDropdown
                             label="Crop"
                             required
                             value={formData.cropId || ''}
-                            onChange={(e) => setFormData({ ...formData, cropId: e.target.value })}
-                            options={[
-                                { value: 'Paddy', label: 'Paddy' },
-                                { value: 'Wheat', label: 'Wheat' },
-                                { value: 'Maize', label: 'Maize' },
-                                { value: 'Bengal Gram', label: 'Bengal Gram' },
-                                { value: 'Lentil', label: 'Lentil' },
-                                { value: 'Mustard', label: 'Mustard' },
-                                { value: 'Sesame', label: 'Sesame' },
-                            ]}
+                            options={[]}
+                            dependsOn={{ value: formData.subCategoryId, field: 'subCategoryId' }}
+                            onOptionsLoad={(subCatId, signal) => fldApi.getCropsBySubcategory(subCatId, signal)}
+                            cacheKey="fld-crops"
+                            emptyMessage="No crops found for this sub-category"
+                            onChange={(val) => setFormData({ ...formData, cropId: val })}
                         />
-                        { /* Spacer to align grid if needed, or just let it flow */}
-                        <div className="hidden md:block"></div>
+
+                        <div className="hidden md:block" />{/* grid spacer */}
 
                         <FormInput
                             label="Name of Technology Demonstrated (FLD Name)"

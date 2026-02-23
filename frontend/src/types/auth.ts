@@ -24,6 +24,7 @@ export interface User {
     districtId?: number | null
     orgId?: number | null
     kvkId?: number | null
+    kvkName?: string | null
     createdAt?: string
     lastLoginAt?: string | null
     /** Granular permissions (VIEW/ADD/EDIT/DELETE). Absent = full access for role. */

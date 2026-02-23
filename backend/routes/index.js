@@ -20,6 +20,14 @@ const scientistAwardRoutes = require('./forms/scientistAwardRoutes.js');
 const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
 const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
 const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
+const hrdRoutes = require('./forms/hrdRoutes.js');
+const oftRoutes = require('./forms/oftRoutes.js');
+const techWeekRoutes = require('./forms/techWeekRoutes.js');
+const celebrationDaysRoutes = require('./forms/celebrationDaysRoutes.js');
+const fldRoutes = require('./forms/fldRoutes.js');
+const soilEquipmentRoutes = require('./forms/soilEquipmentRoutes.js');
+const soilAnalysisRoutes = require('./forms/soilAnalysisRoutes.js');
+const worldSoilDayRoutes = require('./forms/worldSoilDayRoutes.js');
 
 
 // Mount routes
@@ -39,6 +47,15 @@ router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
 router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
 router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
 router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
+router.use('/forms/hrd', hrdRoutes);
+router.use('/forms/achievements/oft', oftRoutes);
+router.use('/forms/achievements/technology-week', techWeekRoutes);
+router.use('/forms/achievements/celebration-days', celebrationDaysRoutes);
+router.use('/forms/achievements/fld', fldRoutes);
+router.use('/forms/soil-water/equipment', soilEquipmentRoutes);
+router.use('/forms/soil-water/analysis', soilAnalysisRoutes);
+router.use('/forms/soil-water/world-soil-day', worldSoilDayRoutes);
+
 
 
 

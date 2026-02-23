@@ -38,10 +38,18 @@ import {
     useAryaEnterprises,
 } from './useProductionProjectsData'
 import { useAboutKvkData, AboutKvkEntity } from './forms/useAboutKvkData'
-import { useSeasons, useSanctionedPosts, useYears } from './useOtherMastersData'
+
 import { useAwardData } from './forms/useAwardData'
 import { useExtensionActivityData } from './forms/useExtensionActivityData'
 import { useOtherExtensionActivityData } from './forms/useOtherExtensionActivityData'
+import { useHrdData } from './forms/useHrdData'
+import { useOftData } from './forms/useOftData'
+import { useTechWeekData } from './forms/useTechWeekData'
+import { useCelebrationDaysData } from './forms/useCelebrationDaysData'
+import { useFldData } from './forms/useFldData'
+import { useSoilEquipmentData } from './forms/useSoilEquipmentData'
+import { useSoilAnalysisData } from './forms/useSoilAnalysisData'
+import { useWorldSoilDayData } from './useWorldSoilDayData'
 
 import {
     useSeasons,
@@ -122,6 +130,14 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: () => useAwardData(ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER),
     [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: () => useExtensionActivityData(),
     [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: () => useOtherExtensionActivityData(),
+    [ENTITY_TYPES.ACHIEVEMENT_HRD]: () => useHrdData(),
+    [ENTITY_TYPES.ACHIEVEMENT_OFT]: () => useOftData(),
+    [ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK]: () => useTechWeekData(),
+    [ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS]: () => useCelebrationDaysData(),
+    [ENTITY_TYPES.ACHIEVEMENT_FLD]: () => useFldData(),
+    [ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT]: () => useSoilEquipmentData(),
+    [ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS]: () => useSoilAnalysisData(),
+    [ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY]: () => useWorldSoilDayData(),
 
     [ENTITY_TYPES.STAFF_CATEGORY]: () => useStaffCategories(),
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
