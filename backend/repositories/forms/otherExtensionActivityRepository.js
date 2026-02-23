@@ -23,8 +23,8 @@ const otherExtensionActivityRepository = {
         if (isNaN(staffId)) staffId = null;
         if (isNaN(activityTypeId)) activityTypeId = null;
         const numberOfActivities = parseInt(data.activityCount || data.numberOfActivities || 0);
-        const startDate = new Date(data.startDate || new Date()).toISOString();
-        const endDate = new Date(data.endDate || new Date()).toISOString();
+        const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
+        const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_other_extension_activity 
             ("kvkId", "fldId", "staffId", "activityTypeId", number_of_activities, start_date, end_date)
@@ -67,11 +67,18 @@ const otherExtensionActivityRepository = {
     _mapResponse: (r) => {
         const startDate = r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : '';
         const endDate = r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : '';
-        let reportingYearStr = '2023-24';
+        let reportingYearStr = null;
         if (startDate) {
             const date = new Date(startDate);
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
+            const startYear = month >= 4 ? year : year - 1;
+            reportingYearStr = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+        } else {
+            // Compute from current date when startDate is missing
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
             const startYear = month >= 4 ? year : year - 1;
             reportingYearStr = `${startYear}-${(startYear + 1).toString().slice(2)}`;
         }

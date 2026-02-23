@@ -83,10 +83,10 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.update:', error);
-            res.status(500).json({
+            const status = error.message === 'Extension activity not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
+            res.status(status).json({
                 success: false,
-                message: 'Failed to update extension activity',
-                error: error.message
+                message: error.message || 'Failed to update extension activity',
             });
         }
     },
@@ -103,10 +103,10 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.delete:', error);
-            res.status(500).json({
+            const status = error.message === 'Extension activity not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
+            res.status(status).json({
                 success: false,
-                message: 'Failed to delete extension activity',
-                error: error.message
+                message: error.message || 'Failed to delete extension activity',
             });
         }
     },

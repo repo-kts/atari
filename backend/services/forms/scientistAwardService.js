@@ -5,7 +5,7 @@ const scientistAwardService = {
      * Create a new Scientist Award
      */
     createScientistAward: async (data, user) => {
-        if (!data.awardName || !data.scientistName || !data.year || !data.amount || !data.achievement || !data.conferringAuthority) {
+        if (!data.awardName || !data.scientistName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
             throw new Error('All fields are required');
         }
 
@@ -13,7 +13,8 @@ const scientistAwardService = {
             kvkId: parseInt(user.kvkId || data.kvkId),
             awardName: data.awardName,
             scientistName: data.scientistName,
-            year: data.year,
+            year: data.year || data.reportingYear,
+            reportingYear: data.reportingYear || data.year,
             amount: parseInt(data.amount),
             achievement: data.achievement,
             conferringAuthority: data.conferringAuthority,
@@ -58,6 +59,7 @@ const scientistAwardService = {
         if (data.awardName !== undefined) updateData.awardName = data.awardName;
         if (data.scientistName !== undefined) updateData.scientistName = data.scientistName;
         if (data.year !== undefined) updateData.year = data.year;
+        if (data.reportingYear !== undefined) updateData.year = data.reportingYear;
         if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
         if (data.achievement !== undefined) updateData.achievement = data.achievement;
         if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;

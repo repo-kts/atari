@@ -5,7 +5,7 @@ const farmerAwardService = {
      * Create a new Farmer Award
      */
     createFarmerAward: async (data, user) => {
-        if (!data.awardName || !data.farmerName || !data.year || !data.amount || !data.achievement || !data.conferringAuthority) {
+        if (!data.awardName || !data.farmerName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
             throw new Error('All required fields must be filled');
         }
 
@@ -15,7 +15,8 @@ const farmerAwardService = {
             farmerName: data.farmerName,
             contactNumber: (data.contactNumber || data.contactNo || '').toString(),
             address: data.address,
-            year: data.year,
+            year: data.year || data.reportingYear,
+            reportingYear: data.reportingYear || data.year,
             amount: parseInt(data.amount),
             achievement: data.achievement,
             conferringAuthority: data.conferringAuthority,
@@ -62,7 +63,8 @@ const farmerAwardService = {
         if (data.farmerName) updateData.farmerName = data.farmerName;
         if (data.contactNumber || data.contactNo) updateData.contactNumber = String(data.contactNumber || data.contactNo);
         if (data.address) updateData.address = data.address;
-        if (data.year) updateData.year = data.year;
+        if (data.year || data.reportingYear) updateData.year = data.year || data.reportingYear;
+        if (data.reportingYear || data.year) updateData.reportingYear = data.reportingYear || data.year;
         if (data.amount) updateData.amount = parseInt(data.amount);
         if (data.achievement) updateData.achievement = data.achievement;
         if (data.conferringAuthority) updateData.conferringAuthority = data.conferringAuthority;

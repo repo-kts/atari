@@ -18,8 +18,8 @@ const extensionActivityRepository = {
         if (isNaN(activityId)) activityId = null;
 
         const numberOfActivities = parseInt(data.numberOfActivities || data.activityCount || 0);
-        const startDate = data.startDate ? new Date(data.startDate).toISOString() : new Date().toISOString();
-        const endDate = data.endDate ? new Date(data.endDate).toISOString() : new Date().toISOString();
+        const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
+        const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
 
         const farmersGeneralM = parseInt(data.farmersGeneralM || data.gen_m || 0);
         const farmersGeneralF = parseInt(data.farmersGeneralF || data.gen_f || 0);
@@ -46,8 +46,8 @@ const extensionActivityRepository = {
                 staffId,
                 activityId,
                 numberOfActivities,
-                startDate: new Date(startDate),
-                endDate: new Date(endDate),
+                startDate: startDate ? new Date(startDate) : new Date(),
+                endDate: endDate ? new Date(endDate) : new Date(),
                 farmersGeneralM, farmersGeneralF,
                 farmersObcM, farmersObcF,
                 farmersScM, farmersScF,
@@ -57,6 +57,11 @@ const extensionActivityRepository = {
                 officialsScM, officialsScF,
                 officialsStM, officialsStF,
             },
+            include: {
+                kvk: { select: { kvkName: true } },
+                staff: { select: { staffName: true } },
+                activity: { select: { activityName: true } },
+            },
         });
         return _mapResponse(result);
     },
@@ -64,7 +69,10 @@ const extensionActivityRepository = {
     findAll: async (filters = {}, user) => {
         const where = {};
         if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
-        if (filters.kvkId) where.kvkId = parseInt(filters.kvkId);
+        // Only allow kvkId filter override for non-KVK (admin) roles
+        if (filters.kvkId && (!user || !['kvk_admin', 'kvk_user'].includes(user.role))) {
+            where.kvkId = parseInt(filters.kvkId);
+        }
 
         const results = await prisma.kvkExtensionActivity.findMany({
             where,
@@ -122,6 +130,11 @@ const extensionActivityRepository = {
         const result = await prisma.kvkExtensionActivity.update({
             where: { extensionActivityId: parseInt(id) },
             data: updateData,
+            include: {
+                kvk: { select: { kvkName: true } },
+                staff: { select: { staffName: true } },
+                activity: { select: { activityName: true } },
+            },
         });
         return _mapResponse(result);
     },
