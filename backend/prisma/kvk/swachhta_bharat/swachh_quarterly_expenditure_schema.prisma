@@ -1,0 +1,16 @@
+model SwachhQuarterlyExpenditure {
+  swachhQuarterlyExpenditureId Int @id @default(autoincrement()) @map("swachh_quarterly_expenditure_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  vermiVillageCovered Int @map("vermi_village_covered")
+  vermiTotalExpenditure Float @map("vermi_total_expenditure")
+  otherVillageCovered Int @map("other_village_covered")
+  otherTotalExpenditure Float @map("other_total_expenditure")
+
+  @@index([kvkId])
+
+  @@map("swachh_quarterly_expenditure")
+}

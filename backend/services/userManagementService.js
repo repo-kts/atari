@@ -219,19 +219,39 @@ const userManagementService = {
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Create user
-    const user = await userRepository.createUserWithPassword(sanitizedData, passwordHash);
-
-    // If creator is not super_admin, assign user-level permissions
+    // Pre-validate and resolve permissions for _user roles before creating the user
+    const targetRoleRecord = await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
+    const targetRoleName = targetRoleRecord?.roleName || '';
+    const isTargetUserRole = targetRoleName.endsWith('_user');
     let permissionActions = [];
-    if (creatorRoleName !== 'super_admin' && options.permissions?.length) {
-      const normalizedPerms = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-      const permissionIds = await userManagementService.getPermissionIdsForActions(normalizedPerms);
-      if (permissionIds.length) {
-        await userPermissionRepository.addUserPermissions(user.userId, permissionIds);
-        permissionActions = normalizedPerms;
+    let resolvedPermissionIds = [];
+
+    if (isTargetUserRole) {
+      if (!options.permissions || !options.permissions.length) {
+        throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
       }
+      permissionActions = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
+      const invalid = permissionActions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+      if (invalid.length > 0) {
+        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      }
+      resolvedPermissionIds = await userManagementService.getPermissionIdsForActions(permissionActions);
     }
+
+    // Create user and assign permissions atomically
+    const user = await prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: { ...sanitizedData, passwordHash },
+        include: { role: true, zone: true, state: true, district: true, org: true, kvk: true },
+      });
+      if (isTargetUserRole && resolvedPermissionIds.length) {
+        await tx.userPermission.createMany({
+          data: resolvedPermissionIds.map((permissionId) => ({ userId: created.userId, permissionId })),
+          skipDuplicates: true,
+        });
+      }
+      return created;
+    });
 
     return {
       userId: user.userId,

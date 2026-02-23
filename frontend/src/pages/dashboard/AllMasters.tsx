@@ -72,12 +72,17 @@ const tabs: Tab[] = [
 export const AllMasters: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const hasRedirectedRef = React.useRef(false)
 
-    // Redirect to first tab if on base /all-master route
+    // Redirect to first tab if on base /all-master route (guard to avoid maximum update depth)
     React.useEffect(() => {
-        if (location.pathname === '/all-master') {
-            navigate(tabs[0].path, { replace: true })
+        if (location.pathname !== '/all-master') {
+            hasRedirectedRef.current = false
+            return
         }
+        if (hasRedirectedRef.current) return
+        hasRedirectedRef.current = true
+        navigate(tabs[0].path, { replace: true })
     }, [location.pathname, navigate])
 
     // Determine active tab based on current route

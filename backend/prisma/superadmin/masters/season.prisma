@@ -12,6 +12,7 @@ model Season {
   cfldTechnicalParameters    CfldTechnicalParameter[]
   kvkOfts  Kvkoft[]
   seedHubPrograms KvkSeedHubProgram[]
+  csisa Csisa []
 
   @@index([seasonId])
   @@index([seasonName])

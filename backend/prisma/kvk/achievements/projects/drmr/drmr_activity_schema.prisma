@@ -1,0 +1,61 @@
+enum DrmrActivityType {
+  TRAINING
+  FRONTLINE_DEMONSTRATION
+  AWARENESS_CAMP
+  INPUT_SEEDS
+  INPUT_SMALL_EQUIPMENT
+  INPUT_LARGE_EQUIPMENT
+  INPUT_FERTILIZER
+  INPUT_PPC
+  LITERATURE_DISTRIBUTION
+  KISAN_MELA
+  OTHER
+}
+
+model DrmrActivity {
+  drmrActivityId Int @id @default(autoincrement()) @map("drmr_activity_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  totalBudgetUtilized Float @map("total_budget_utilized")
+
+  components DrmrActivityComponent[]
+
+  @@index([kvkId])
+
+  @@map("drmr_activity")
+}
+
+model DrmrActivityComponent {
+  drmrActivityComponentId Int @id @default(autoincrement()) @map("drmr_activity_component_id")
+
+  drmrActivityId Int
+  drmrActivity   DrmrActivity @relation(fields: [drmrActivityId], references: [drmrActivityId])
+
+  activityType DrmrActivityType @map("activity_type")
+
+  // Quantity / Count / Area
+  quantity Float? @map("quantity")
+
+  unit String? @map("unit")
+
+  specification String? @map("specification") // Used only for "Other" type 
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([drmrActivityId])
+  @@index([activityType])
+
+  @@map("drmr_activity_component")
+}

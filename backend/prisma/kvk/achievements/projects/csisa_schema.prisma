@@ -1,0 +1,49 @@
+model Csisa {
+  csisaId Int @id @default(autoincrement()) @map("csisa_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  villagesCovered Int @map("villages_covered")
+  blocksCovered   Int @map("blocks_covered")
+  districtsCovered Int @map("districts_covered")
+  respondents Int @map("respondents")
+  trialName String @map("trial_name")
+  areaCoveredHa Float @map("area_covered_ha")
+
+  cropDetails CsisaCropDetail[]
+
+  @@index([kvkId])
+  @@index([seasonId])
+
+  @@map("csisa")
+}
+
+model CsisaCropDetail {
+  csisaCropDetailId Int @id @default(autoincrement()) @map("csisa_crop_detail_id")
+
+  csisaId Int
+  csisa   Csisa @relation(fields: [csisaId], references: [csisaId])
+
+  cropName String @map("crop_name")
+  technologyOption String @map("technology_option")
+  varietyName String @map("variety_name")
+  durationDays Int @map("duration_days")
+  sowingDate DateTime @map("sowing_date")
+  harvestingDate DateTime @map("harvesting_date")
+  daysOfMaturity Int @map("days_of_maturity")
+  grainYieldQPerHa Float @map("grain_yield_q_per_ha")
+  costOfCultivation Float @map("cost_of_cultivation_per_ha")
+  grossReturn Float @map("gross_return_per_ha")
+  netReturn Float @map("net_return_per_ha")
+  bcr Float @map("bcr")
+
+  @@index([csisaId])
+
+  @@map("csisa_crop_detail")
+}

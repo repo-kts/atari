@@ -1,0 +1,24 @@
+enum ActionStatus {
+  YES
+  NO
+}
+
+model SacMeeting {
+  sacMeetingId Int @id @default(autoincrement()) @map("sac_meeting_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+  numberOfParticipants Int @map("number_of_participants")
+  statutoryMembersPresent Int @map("statutory_members_present")
+  salientRecommendations String @map("salient_recommendations")
+  actionTaken ActionStatus
+  reason String @map("reason")
+  uploadedFile String @map("uploaded_file")
+
+  @@index([kvkId])
+
+  @@map("sac_meeting")
+}
