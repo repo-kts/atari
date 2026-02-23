@@ -62,6 +62,17 @@ model Kvk {
   soilWaterAnalyses            KkvSoilWaterAnalysis[]
   soilWaterEquipments          KkvSoilWaterEquipment[]
   worldSoilCelebrations        KkvWorldSoilCelebration[]
+  
+  aryaPrevYear                 AryaPrevYear[]
+  aryaCurrentYear              AryaCurrentYear[]
+  csisa                        Csisa[]
+  drmrActivity                 DrmrActivity[]
+  drmrDetails                  DrmrDetails[]
+  atariMeeting                 AtariMeeting[]
+  sacMeeting                   SacMeeting[]
+  swachhtaHiSewa               SwachhtaHiSewa[]
+  swachhQuarterlyExpenditure   SwachhQuarterlyExpenditure[]
+  swachhtaPakhwada             SwachhtaPakhwada[]
 
   @@index([zoneId])
   @@index([stateId])
