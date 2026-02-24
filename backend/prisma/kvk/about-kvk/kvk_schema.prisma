@@ -12,12 +12,12 @@ model Kvk {
   state    StateMaster    @relation(fields: [stateId], references: [stateId])
   district DistrictMaster @relation(fields: [districtId], references: [districtId])
 
-  orgId       Int                @map("org_id")
-  universityId Int?              @map("university_id")
-  hostOrg     String            @map("host_org_name")
+  orgId        Int  @map("org_id")
+  universityId Int? @map("university_id")
+  hostOrg      String @map("host_org_name")
 
-  org        OrgMaster          @relation(fields: [orgId], references: [orgId])
-  university UniversityMaster?  @relation(fields: [universityId], references: [universityId])
+  org        OrgMaster         @relation(fields: [orgId], references: [orgId])
+  university UniversityMaster? @relation(fields: [universityId], references: [universityId])
 
   mobile  String @map("mobile")
   email   String @map("email")
@@ -31,48 +31,50 @@ model Kvk {
   vehicles        KvkVehicle[]
   bankAccounts    KvkBankAccount[]
   farmImplements  KvkFarmImplement[]
-  
-  transfersFrom    StaffTransferHistory[] @relation("TransferFrom")
-  transfersTo      StaffTransferHistory[] @relation("TransferTo")
-  originalStaff    KvkStaff[]            @relation("OriginalKvk")
-  
-  trainingAchievements TrainingAchievement[]
-  farmerAwards         FarmerAward[]
-  kvkAwards            KvkAward[]
-  scientistAwards      ScientistAward[]
-  hrdPrograms          HrdProgram[]
-  
-  kvkExtensionActivities      KvkExtensionActivity[]
-  kvkOtherExtensionActivities  KvkOtherExtensionActivity[]
-  kvkImportantDayCelebrations  KvkImportantDayCelebration[]
+
+  transfersFrom StaffTransferHistory[] @relation("TransferFrom")
+  transfersTo   StaffTransferHistory[] @relation("TransferTo")
+  originalStaff KvkStaff[]            @relation("OriginalKvk")
+
+  trainingAchievements          TrainingAchievement[]
+  farmerAwards                  FarmerAward[]
+  kvkAwards                     KvkAward[]
+  scientistAwards               ScientistAward[]
+  hrdPrograms                   HrdProgram[]
+
+  kvkExtensionActivities        KvkExtensionActivity[]
+  kvkOtherExtensionActivities   KvkOtherExtensionActivity[]
+  kvkImportantDayCelebrations   KvkImportantDayCelebration[]
   kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
-  fldExtensions                FldExtension[]
-  kvkFldIntroductions          KvkFldIntroduction[]
-  fldTechnicalFeedbacks        FldTechnicalFeedback[]
-  kvkBudgetUtilizations        KvkBudgetUtilization[]
-  extensionActivityOrganized   ExtensionActivityOrganized[]
-  cfldTechnicalParameters      CfldTechnicalParameter[]
-  users                        User[]
-  kvkOfts                      Kvkoft[]
-  agriDrones                   KvkAgriDrone[]
-  fpoCbboDetails               FpoCbboDetails[]
-  fpoManagements               FpoManagement[]
-  kvkOtherProgrammes           KvkOtherProgramme[]
-  seedHubPrograms              KvkSeedHubProgram[]
-  soilWaterAnalyses            KkvSoilWaterAnalysis[]
-  soilWaterEquipments          KkvSoilWaterEquipment[]
-  worldSoilCelebrations        KkvWorldSoilCelebration[]
-  
-  aryaPrevYear                 AryaPrevYear[]
-  aryaCurrentYear              AryaCurrentYear[]
-  csisa                        Csisa[]
-  drmrActivity                 DrmrActivity[]
-  drmrDetails                  DrmrDetails[]
-  atariMeeting                 AtariMeeting[]
-  sacMeeting                   SacMeeting[]
-  swachhtaHiSewa               SwachhtaHiSewa[]
-  swachhQuarterlyExpenditure   SwachhQuarterlyExpenditure[]
-  swachhtaPakhwada             SwachhtaPakhwada[]
+  fldExtensions                 FldExtension[]
+  kvkFldIntroductions           KvkFldIntroduction[]
+  fldTechnicalFeedbacks         FldTechnicalFeedback[]
+  kvkBudgetUtilizations         KvkBudgetUtilization[]
+  extensionActivityOrganized    ExtensionActivityOrganized[]
+  cfldTechnicalParameters       CfldTechnicalParameter[]
+
+  users   User[]
+  kvkOfts Kvkoft[]
+
+  agriDrones                 KvkAgriDrone[]
+  fpoCbboDetails             FpoCbboDetails[]
+  fpoManagements             FpoManagement[]
+  kvkOtherProgrammes         KvkOtherProgramme[]
+  seedHubPrograms            KvkSeedHubProgram[]
+  soilWaterAnalyses          KkvSoilWaterAnalysis[]
+  soilWaterEquipments        KkvSoilWaterEquipment[]
+  worldSoilCelebrations      KkvWorldSoilCelebration[]
+
+  aryaPrevYear                AryaPrevYear[]
+  aryaCurrentYear             AryaCurrentYear[]
+  csisa                       Csisa[]
+  drmrActivity                DrmrActivity[]
+  drmrDetails                 DrmrDetails[]
+  atariMeeting                AtariMeeting[]
+  sacMeeting                  SacMeeting[]
+  swachhtaHiSewa              SwachhtaHiSewa[]
+  swachhQuarterlyExpenditure  SwachhQuarterlyExpenditure[]
+  swachhtaPakhwada            SwachhtaPakhwada[]
 
   @@index([zoneId])
   @@index([stateId])
