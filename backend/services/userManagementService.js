@@ -124,16 +124,6 @@ const userManagementService = {
       throw new Error('Email already exists');
     }
 
-    // Validate hierarchy assignment based on role
-    await userManagementService.validateHierarchyAssignment(
-      userData.roleId,
-      userData.zoneId,
-      userData.stateId,
-      userData.districtId,
-      userData.orgId,
-      userData.kvkId
-    );
-
     // Load creator to check role and enforce hierarchy scope
     const creator = await userRepository.findById(createdBy);
     if (!creator) {
@@ -203,6 +193,16 @@ const userManagementService = {
       };
       await userManagementService.validateCreatorHierarchyScope(createdBy, effectiveUserData);
       effectiveRoleId = userData.roleId;
+      await userManagementService.validateHierarchyAssignment(
+        effectiveRoleId,
+        effectiveZoneId,
+        effectiveStateId,
+        effectiveDistrictId,
+        effectiveOrgId,
+        effectiveKvkId
+      );
+    } else {
+      // super_admin: validate with derived (raw + auto-filled) values
       await userManagementService.validateHierarchyAssignment(
         effectiveRoleId,
         effectiveZoneId,
@@ -671,9 +671,9 @@ const userManagementService = {
         if (!requestedRole) {
           throw new Error('Invalid role');
         }
-        const allowed = ALLOWED_ROLES_FOR_CREATOR[updaterRoleName];
-        if (!allowed || !allowed.includes(requestedRole.roleName)) {
-          throw new Error(`You can only assign the following roles: ${(allowed || []).join(', ')}`);
+        const allowed = getCreatableRoles(updaterRoleName);
+        if (!allowed.includes(requestedRole.roleName)) {
+          throw new Error(`You can only assign the following roles: ${allowed.join(', ')}`);
         }
       }
     }
