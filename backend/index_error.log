@@ -1,0 +1,46 @@
+[dotenv@17.2.3] injecting env (7) from .env -- tip: =ƒöæ add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: =ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+=ƒöî Using direct PostgreSQL connection with pg adapter
+[dotenv@17.2.3] injecting env (0) from .env -- tip: GÜÖn+Å  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: =ƒöæ add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: GÜÖn+Å  load multiple .env files with { path: ['.env.local', '.env'] }
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
+System.Management.Automation.RemoteException
+Error: Cannot find module '../../config/reportConfig.js'
+Require stack:
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\services\reports\reportDataService.js
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\services\reports\reportService.js
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\controllers\reports\reportController.js
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\routes\reports\reportRoutes.js
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\routes\index.js
+- C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (C:\Users\SRIDHAR RAO\OneDrive\Desktop\atari\backend\services\reports\reportDataService.js:2:30)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\services\\reports\\reportDataService.js',
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\services\\reports\\reportService.js',
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\controllers\\reports\\reportController.js',
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\routes\\reports\\reportRoutes.js',
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\routes\\index.js',
+    'C:\\Users\\SRIDHAR RAO\\OneDrive\\Desktop\\atari\\backend\\index.js'
+  ]
+}
+System.Management.Automation.RemoteException
+Node.js v22.21.1

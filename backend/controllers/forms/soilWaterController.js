@@ -118,7 +118,9 @@ const soilWaterController = {
     // Master
     getAllAnalysisMasters: async (req, res) => {
         try {
+            console.log('Fetching analysis masters...');
             const result = await soilWaterService.getAllAnalysisMasters();
+            console.log('Analysis masters found:', result.length);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
             console.error('Error fetching analysis masters:', error);
