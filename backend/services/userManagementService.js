@@ -4,19 +4,21 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
-const { isAdminRole, outranksOrEqual, getManageableRoles } = require('../constants/roleHierarchy.js');
+const { isAdminRole, outranksOrEqual, getManageableRoles, getRoleLevel, ROLE_HIERARCHY } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 
-/** Non-admin roles that each creator role can assign (admins cannot create other admins) */
-const ALLOWED_ROLES_FOR_CREATOR = {
-  zone_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-  state_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-  district_admin: ['kvk_user', 'district_user', 'org_user'],
-  org_admin: ['kvk_user', 'org_user'],
-  kvk_admin: ['kvk_user'],
-};
+/**
+ * Returns the role names that a given creator can assign (strictly lower hierarchy).
+ * Admins can now create both lower admin roles and _user roles.
+ */
+function getCreatableRoles(creatorRoleName) {
+  const callerLevel = getRoleLevel(creatorRoleName);
+  return Object.entries(ROLE_HIERARCHY)
+    .filter(([name, level]) => level > callerLevel && name !== 'super_admin')
+    .map(([name]) => name);
+}
 
 /**
  * Derive the full geographic hierarchy from whichever IDs are already present.
@@ -157,21 +159,39 @@ const userManagementService = {
     let effectiveUniversityId = userData.universityId || null;
 
     if (creatorRoleName !== 'super_admin') {
-      const rawPermissions = options.permissions;
-      if (!rawPermissions || !Array.isArray(rawPermissions) || rawPermissions.length === 0) {
-        throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a user as an admin');
+      // Validate the requested role is strictly lower in hierarchy
+      const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
+      if (!requestedRole) {
+        throw new Error('Invalid role');
       }
-      const permissions = rawPermissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-      const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-      if (invalid.length > 0) {
-        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      const allowed = getCreatableRoles(creatorRoleName);
+      if (!allowed.includes(requestedRole.roleName)) {
+        throw new Error(`You can only create users with the following roles: ${allowed.join(', ')}`);
       }
-      // New user gets same zone/state/district/org/university as the creating admin; only kvkId may differ (e.g. when role is kvk)
+
+      const isTargetAdmin = isAdminRole(requestedRole.roleName);
+
+      // Permissions are only required for _user roles; admin roles get permissions from their role assignment
+      if (!isTargetAdmin) {
+        const rawPermissions = options.permissions;
+        if (!rawPermissions || !Array.isArray(rawPermissions) || rawPermissions.length === 0) {
+          throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
+        }
+        const permissions = rawPermissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
+        const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
+        if (invalid.length > 0) {
+          throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+        }
+      }
+
+      // Geographic inheritance: inherit fields at or above creator's level, use form data below
+      const creatorLevel = getRoleLevel(creatorRoleName);
+      // zone=1, state=2, district=3, org=4, kvk=5
       effectiveZoneId = creator.zoneId ?? null;
-      effectiveStateId = creator.stateId ?? null;
-      effectiveDistrictId = creator.districtId ?? null;
-      effectiveOrgId = creator.orgId ?? null;
-      effectiveUniversityId = creator.universityId ?? null;
+      effectiveStateId = creatorLevel < 2 ? (userData.stateId || null) : (creator.stateId ?? null);
+      effectiveDistrictId = creatorLevel < 3 ? (userData.districtId || null) : (creator.districtId ?? null);
+      effectiveOrgId = creatorLevel < 4 ? (userData.orgId || null) : (creator.orgId ?? null);
+      effectiveUniversityId = creatorLevel < 5 ? (userData.universityId || null) : (creator.universityId ?? null);
       effectiveKvkId = userData.kvkId || creator.kvkId || null;
 
       const effectiveUserData = {
@@ -182,15 +202,6 @@ const userManagementService = {
         kvkId: effectiveKvkId,
       };
       await userManagementService.validateCreatorHierarchyScope(createdBy, effectiveUserData);
-      // Non–super-admin can only assign non-admin roles (state_user, district_user, org_user, kvk) per their level
-      const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
-      if (!requestedRole) {
-        throw new Error('Invalid role');
-      }
-      const allowed = ALLOWED_ROLES_FOR_CREATOR[creatorRoleName];
-      if (!allowed || !allowed.includes(requestedRole.roleName)) {
-        throw new Error(`You can only create users with the following roles: ${(allowed || []).join(', ')}`);
-      }
       effectiveRoleId = userData.roleId;
       await userManagementService.validateHierarchyAssignment(
         effectiveRoleId,
