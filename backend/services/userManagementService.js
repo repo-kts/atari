@@ -16,7 +16,7 @@ const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 function getCreatableRoles(creatorRoleName) {
   const callerLevel = getRoleLevel(creatorRoleName);
   return Object.entries(ROLE_HIERARCHY)
-    .filter(([name, level]) => level > callerLevel && name !== 'super_admin')
+    .filter(([, level]) => level > callerLevel)
     .map(([name]) => name);
 }
 
@@ -159,28 +159,13 @@ const userManagementService = {
         throw new Error(`You can only create users with the following roles: ${allowed.join(', ')}`);
       }
 
-      const isTargetAdmin = isAdminRole(requestedRole.roleName);
-
-      // Permissions are only required for _user roles; admin roles get permissions from their role assignment
-      if (!isTargetAdmin) {
-        const rawPermissions = options.permissions;
-        if (!rawPermissions || !Array.isArray(rawPermissions) || rawPermissions.length === 0) {
-          throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
-        }
-        const permissions = rawPermissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-        const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-        if (invalid.length > 0) {
-          throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
-        }
-      }
-
       // Geographic inheritance: inherit fields at or above creator's level, use form data below
       const creatorLevel = getRoleLevel(creatorRoleName);
       // zone=1, state=2, district=3, org=4, kvk=5
       effectiveZoneId = creator.zoneId ?? null;
-      effectiveStateId = creatorLevel < 2 ? (userData.stateId || null) : (creator.stateId ?? null);
-      effectiveDistrictId = creatorLevel < 3 ? (userData.districtId || null) : (creator.districtId ?? null);
-      effectiveOrgId = creatorLevel < 4 ? (userData.orgId || null) : (creator.orgId ?? null);
+      effectiveStateId = creatorLevel < 2 ? (derived.stateId ?? null) : (creator.stateId ?? null);
+      effectiveDistrictId = creatorLevel < 3 ? (derived.districtId ?? null) : (creator.districtId ?? null);
+      effectiveOrgId = creatorLevel < 4 ? (derived.orgId ?? null) : (creator.orgId ?? null);
       effectiveUniversityId = creatorLevel < 5 ? (userData.universityId || null) : (creator.universityId ?? null);
       effectiveKvkId = userData.kvkId || creator.kvkId || null;
 
@@ -617,7 +602,7 @@ const userManagementService = {
     };
     const geo = geoMap[adminRole];
     if (geo) {
-      if (!adminUser[geo.field]) {
+      if (adminUser[geo.field] == null) {
         throw new Error(`Admin user is not assigned to a ${geo.label}`);
       }
       scopedFilters[geo.field] = adminUser[geo.field];

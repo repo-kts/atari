@@ -104,7 +104,7 @@ const BASE_USER_MODULES = [
   'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari',
 ];
 
-const USER_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
+const USER_ACTIONS = PERMISSION_ACTIONS;
 
 const ROLE_PERMISSIONS = {
   super_admin: { permissions: 'ALL' },

@@ -3,7 +3,7 @@ import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../s
 import { masterDataApi } from '../../services/masterDataApi'
 import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
-import { getRoleLevel, isAdminRole, ROLE_HIERARCHY } from '../../constants/roleHierarchy'
+import { getRoleLevel, isAdminRole, getCreatableRoles } from '../../constants/roleHierarchy'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
@@ -30,13 +30,6 @@ const NON_ADMIN_ROLES_WITH_ADD = ['kvk_user']
 /** Non-admin roles that require custom permissions */
 const NON_ADMIN_ROLES = ['kvk_user', 'state_user', 'district_user', 'org_user']
 
-/** Returns role names strictly below the caller in the hierarchy (creatable roles). */
-function getCreatableRoles(callerRole: string): string[] {
-    const callerLevel = getRoleLevel(callerRole)
-    return Object.entries(ROLE_HIERARCHY)
-        .filter(([name, level]) => level > callerLevel && name !== 'super_admin')
-        .map(([name]) => name)
-}
 
 interface CreateUserModalProps {
     isOpen: boolean
@@ -194,7 +187,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         if (isOpen && isSubAdmin && allowedRolesForDropdown.length > 0 && !formData.roleId) {
             setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].roleId }))
         }
-    }, [isOpen, isSubAdmin, allowedRolesForDropdown.length])
+    }, [isOpen, isSubAdmin, allowedRolesForDropdown.length, formData.roleId])
 
     // Validate form
     const validateForm = (): boolean => {
