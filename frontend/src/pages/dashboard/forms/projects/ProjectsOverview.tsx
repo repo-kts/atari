@@ -126,7 +126,7 @@ const projectCategories: ProjectCategory[] = [
         title: 'Other Programmes',
         description: 'Any other programme organized by KVK',
         icon: <MoreHorizontal className="w-6 h-6" />,
-        path: '/forms/achievements/projects/other-program'
+        path: '/forms/achievements/other-program'
     }
 ]
 

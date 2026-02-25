@@ -192,7 +192,7 @@ async function findAll(entityName, options = {}) {
             skip,
             take,
             orderBy: {
-                [actualSortBy]: sortOrder,
+                [config.idField]: sortOrder,
             },
         }),
         prisma[config.model].count({ where }),

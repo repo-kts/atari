@@ -3,7 +3,7 @@ import {
     BrowserRouter as Router,
     Routes,
     Route,
-    Navigate,
+    Navigate
 } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { setOnSessionExpired } from './services/api'
@@ -24,7 +24,6 @@ import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
-import { DynamicFormPage } from './components/common/DynamicFormPage'
 import { ProjectsOverview } from './pages/dashboard/forms/projects/ProjectsOverview'
 
 // Import route config for dynamic rendering
@@ -69,6 +68,7 @@ function AppRoutes() {
                             element={
                                 <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode={route.moduleCode}>
                                     <DataManagementView
+                                        key={route.path}
                                         title={route.title}
                                         description={route.description}
                                         fields={route.fields}
@@ -167,7 +167,12 @@ function AppRoutes() {
                             path={route.path}
                             element={
                                 <ProtectedRoute requiredModuleCode={route.moduleCode}>
-                                    <DynamicFormPage />
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
                                 </ProtectedRoute>
                             }
                         />
@@ -180,6 +185,7 @@ function AppRoutes() {
                             element={
                                 <ProtectedRoute requiredModuleCode={route.moduleCode}>
                                     <DataManagementView
+                                        key={route.path}
                                         title={route.title}
                                         fields={route.fields}
                                     />
@@ -225,6 +231,7 @@ function AppRoutes() {
                                 element={
                                     <ProtectedRoute requiredModuleCode={route.moduleCode}>
                                         <DataManagementView
+                                            key={route.path}
                                             title={route.title}
                                             description={route.description}
                                             fields={route.fields}

@@ -813,6 +813,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Type', 'Season', 'Crop', 'Variety', 'Area', 'Demo Yield (Avg)', '% Increase'],
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -851,12 +852,13 @@ export const projectsRoutes: RouteConfig[] = [
     // CRA
     {
         path: '/forms/achievements/projects/cra/details',
-        title: 'CRA Details',
+        title: 'Climate Resilient',
         description: 'Climate Resilient Agriculture Details',
         category: 'Projects',
         subcategory: 'CRA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Villages', 'Farmers', 'Area (ha)'],
         siblings: [
             '/forms/achievements/projects/cra/details',
             '/forms/achievements/projects/cra/extension-activity'
@@ -870,6 +872,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CRA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Activity Type', 'Activities', 'Participants'],
         siblings: [
             '/forms/achievements/projects/cra/details',
             '/forms/achievements/projects/cra/extension-activity'
@@ -880,11 +883,12 @@ export const projectsRoutes: RouteConfig[] = [
     {
         path: '/forms/achievements/projects/fpo/details',
         title: 'FPO Details',
-        description: 'FPO and CBBO Details',
+        description: 'Formation and Promotion of FPOs as CBBOs under NCDC funding',
         category: 'Projects',
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Reporting Year', 'No. of blocks allocated', 'No. of FPOs registered as CBBO', 'Average members per FPO'],
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -898,6 +902,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Reporting Year', 'Name of the FPO', 'Registration No', 'Date of Registration'],
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -913,6 +918,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'DRMR',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Crop', 'Variety', 'Area (ha)'],
         siblings: [
             '/forms/achievements/projects/drmr/details',
             '/forms/achievements/projects/drmr/activity'
@@ -941,6 +947,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Gardens', 'Area (ha)', 'Beneficiaries'],
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -952,11 +959,12 @@ export const projectsRoutes: RouteConfig[] = [
     {
         path: '/forms/achievements/projects/nari/bio-fortified',
         title: 'Bio-fortified Crops',
-        description: 'Details of Bio-fortified crops',
+        description: 'Details of Bio-fortified crops used in Nutri-Smart village',
         category: 'Projects',
         subcategory: 'NARI',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Village', 'Season', 'Activity', 'Crop', 'Variety', 'Area (ha)'],
         siblings: [
             '/forms/achievements/projects/nari/nutri-smart',
             '/forms/achievements/projects/nari/bio-fortified',
@@ -1023,6 +1031,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Enterprise', 'Trainings', 'Participants', 'Units'],
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -1036,6 +1045,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Month', 'Year', 'Enterprise', 'Entrepreneurs', 'Income Before', 'Income After', '% Functional'],
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -1045,21 +1055,23 @@ export const projectsRoutes: RouteConfig[] = [
     // Direct links (no siblings)
     {
         path: '/forms/achievements/projects/csisa',
-        title: 'CSISA Details',
-        description: 'Cereal Systems Initiative for South Asia',
+        title: 'CSISA',
+        description: 'Cereal Systems Initiative for South Asia (CSISA)',
         category: 'Projects',
         subcategory: 'CSISA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Season', 'Trial Name', 'Crop', 'Variety'],
     },
     {
         path: '/forms/achievements/projects/sub-plan-activity',
-        title: 'TSP/SCSP',
-        description: 'Tribal Sub Plan / Scheduled Caste Sub Plan',
+        title: 'TSP/SCSP Activities',
+        description: 'Tribal Sub Plan / Scheduled Caste Sub Plan (TSP/SCSP) Activities',
         category: 'Projects',
         subcategory: 'TSP/SCSP',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Type', 'Activity', 'Beneficiaries', 'Funds'],
     },
 
     // NICRA
@@ -1071,6 +1083,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Village Name', 'Households'],
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1116,6 +1129,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Activity Name', 'Start Date', 'End Date', 'Venue'],
         siblings: [
             '/forms/achievements/projects/nicra/basic-information',
             '/forms/achievements/projects/nicra/details',
@@ -1323,6 +1337,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Farmer Name', 'Village Name', 'Crop', 'Variety', 'Season'],
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1341,6 +1356,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Farmer Name', 'Village Name', 'Contact Number', 'Land Holding', 'Area Practicing'],
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1359,6 +1375,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Blocks Covered', 'Villages Covered', 'Total Trained Farmers', 'Farmers Influenced'],
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1389,12 +1406,13 @@ export const projectsRoutes: RouteConfig[] = [
     },
     {
         path: '/forms/achievements/projects/natural-farming/budget-expenditure',
-        title: 'Budget',
-        description: 'Budget Expenditure',
+        title: 'Budget Expenditure',
+        description: 'Budget Expenditure Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['Year', 'Activity Name', 'Number of Activities', 'Budget Sanction', 'Budget Expenditure'],
         siblings: [
             '/forms/achievements/projects/natural-farming/geographical-information',
             '/forms/achievements/projects/natural-farming/physical-information',
@@ -1680,7 +1698,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: '/forms/achievements',
         moduleCode: 'achievements_hrd',
         fields: ['KVK Name', 'Staff', 'Course', 'Start Date', 'End Date', 'Organizer'],
-        
+
     },
 ]
 // export const achievementsRoutes2: RouteConfig[] = [
@@ -1793,7 +1811,7 @@ export const getBreadcrumbsForPath = (path: string): { label: string; path: stri
         breadcrumbs.push({ label: 'Achievements', path: '/forms/achievements' })
         breadcrumbs.push({ label: 'Projects', path: '/forms/achievements/projects' })
         if (config.subcategory) {
-            breadcrumbs.push({ label: config.subcategory, path: '' })
+            breadcrumbs.push({ label: config.subcategory, path: '/forms/achievements/projects' })
         }
         breadcrumbs.push({ label: config.title, path: config.path })
     } else if (config.category === 'Form Management' && config.subcategory === 'About KVK') {

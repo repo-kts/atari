@@ -1,4 +1,4 @@
-import { PaginationMeta, QueryParams, ApiResponse } from './masterData';
+import { PaginationMeta } from './masterData';
 
 /**
  * Publication Master Data Types

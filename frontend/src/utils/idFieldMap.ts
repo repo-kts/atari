@@ -11,7 +11,7 @@ import type { ExtendedEntityType } from './masterUtils';
 /**
  * Map of entity types to their ID field names
  */
-export const ENTITY_ID_FIELD_MAP: Record<ExtendedEntityType, string> = {
+export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     // Basic Masters
     [ENTITY_TYPES.ZONES]: 'zoneId',
     [ENTITY_TYPES.STATES]: 'stateId',

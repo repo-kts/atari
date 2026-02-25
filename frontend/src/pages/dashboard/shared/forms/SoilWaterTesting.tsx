@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
+import { useYears } from '../../../../hooks/useOtherMastersData'
+import { useSoilWaterAnalysisMasters } from '../../../../hooks/useSoilWaterData'
 
 interface SoilWaterTestingProps {
     entityType: ExtendedEntityType | null
@@ -14,6 +16,25 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
     formData,
     setFormData,
 }) => {
+    const { data: years = [] } = useYears();
+    const { data: analysisMasters = [] } = useSoilWaterAnalysisMasters();
+
+    const yearOptions = useMemo(() => {
+        return years.map((y: any) => {
+            let label = y.yearName || y.year || y.name;
+            // If the label is just a 4-digit number (e.g. "2024"), format it to "2024-25"
+            if (label && /^\d{4}$/.test(String(label))) {
+                const startYear = parseInt(label);
+                label = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+            }
+            return { value: label, label: label };
+        });
+    }, [years]);
+
+    const analysisOptions = useMemo(() =>
+        analysisMasters.map((a: any) => ({ value: String(a.soilWaterAnalysisId), label: a.analysisName })),
+        [analysisMasters]);
+
     if (!entityType) return null
 
     return (
@@ -26,26 +47,16 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                         <FormSelect
                             label="Reporting Year"
                             required
-                            value={formData.year || ''}
-                            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            options={yearOptions}
                         />
                         <FormSelect
-                            label="Analysis"
+                            label="Analysis Type"
                             required
-                            value={formData.analysis || ''}
-                            onChange={(e) => setFormData({ ...formData, analysis: e.target.value })}
-                            options={[
-                                { value: 'Soil Analysis', label: 'Soil Analysis' },
-                                { value: 'Water Analysis', label: 'Water Analysis' },
-                                { value: 'Plant Analysis', label: 'Plant Analysis' },
-                                { value: 'Manure Analysis', label: 'Manure Analysis' },
-                                { value: 'Other Analysis', label: 'Other Analysis' },
-                            ]}
+                            value={formData.soilWaterAnalysisId || ''}
+                            onChange={(e) => setFormData({ ...formData, soilWaterAnalysisId: e.target.value })}
+                            options={analysisOptions}
                         />
                         <FormInput
                             label="Name of the Equipment"
@@ -56,6 +67,7 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                         />
                         <FormInput
                             label="Qty."
+                            type="number"
                             required
                             value={formData.quantity || ''}
                             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
@@ -65,7 +77,7 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                 </div>
             )}
 
-            {/* Analysis Details Form (Preserved/Moved from previous generic implementation) */}
+            {/* Analysis Details Form */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS && (
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Detail of Soil, Water and Plant analysis at KVK</h2>
@@ -74,34 +86,28 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             label="Start Date"
                             type="date"
                             required
-                            value={formData.startDate || ''}
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             type="date"
                             required
-                            value={formData.endDate || ''}
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormSelect
                             label="Analysis"
                             required
-                            value={formData.analysis || ''}
-                            onChange={(e) => setFormData({ ...formData, analysis: e.target.value })}
-                            options={[
-                                { value: 'Soil Analysis', label: 'Soil Analysis' },
-                                { value: 'Water Analysis', label: 'Water Analysis' },
-                                { value: 'Plant Analysis', label: 'Plant Analysis' },
-                                { value: 'Manure Analysis', label: 'Manure Analysis' },
-                                { value: 'Other Analysis', label: 'Other Analysis' },
-                            ]}
+                            value={formData.analysisId || ''}
+                            onChange={(e) => setFormData({ ...formData, analysisId: e.target.value })}
+                            options={analysisOptions}
                         />
                         <FormSelect
                             label="Samples analyzed Through"
                             required
-                            value={formData.samplesAnalyzedThrough || ''}
-                            onChange={(e) => setFormData({ ...formData, samplesAnalyzedThrough: e.target.value })}
+                            value={formData.samplesAnalysedThrough || ''}
+                            onChange={(e) => setFormData({ ...formData, samplesAnalysedThrough: e.target.value })}
                             options={[
                                 { value: 'Mini soil testing kit', label: 'Mini soil testing kit' },
                                 { value: 'Soil testing laboratory', label: 'Soil testing laboratory' },
@@ -112,16 +118,16 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             label="No. of Samples analyzed"
                             type="number"
                             required
-                            value={formData.numberOfSamples || ''}
-                            onChange={(e) => setFormData({ ...formData, numberOfSamples: e.target.value })}
+                            value={formData.samplesAnalysed || ''}
+                            onChange={(e) => setFormData({ ...formData, samplesAnalysed: e.target.value })}
                             placeholder="Enter number of samples"
                         />
                         <FormInput
                             label="No. of Villages"
                             type="number"
                             required
-                            value={formData.numberOfVillages || ''}
-                            onChange={(e) => setFormData({ ...formData, numberOfVillages: e.target.value })}
+                            value={formData.villagesNumber || ''}
+                            onChange={(e) => setFormData({ ...formData, villagesNumber: e.target.value })}
                             placeholder="Enter number of villages"
                         />
                         <FormInput
@@ -132,60 +138,26 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             onChange={(e) => setFormData({ ...formData, amountRealized: e.target.value })}
                             placeholder="Enter amount"
                         />
+                        <FormSelect
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            options={yearOptions}
+                        />
                     </div>
 
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200/60 space-y-4">
                         <h3 className="text-lg font-semibold text-gray-800">Farmers Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <FormInput
-                                label="General_M"
-                                required
-                                value={formData.generalM || ''}
-                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
-                            />
-                            <FormInput
-                                label="General_F"
-                                required
-                                value={formData.generalF || ''}
-                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_M"
-                                required
-                                value={formData.obcM || ''}
-                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_F"
-                                required
-                                value={formData.obcF || ''}
-                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="SC_M"
-                                required
-                                value={formData.scM || ''}
-                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
-                            />
-                            <FormInput
-                                label="SC_F"
-                                required
-                                value={formData.scF || ''}
-                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_M"
-                                required
-                                value={formData.stM || ''}
-                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_F"
-                                required
-                                value={formData.stF || ''}
-                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
-                            />
+                            <FormInput label="General_M" type="number" required value={formData.generalM || ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
+                            <FormInput label="General_F" type="number" required value={formData.generalF || ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
+                            <FormInput label="OBC_M" type="number" required value={formData.obcM || ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" type="number" required value={formData.obcF || ''} onChange={(e) => setFormData({ ...formData, obcF: e.target.value })} />
+                            <FormInput label="SC_M" type="number" required value={formData.scM || ''} onChange={(e) => setFormData({ ...formData, scM: e.target.value })} />
+                            <FormInput label="SC_F" type="number" required value={formData.scF || ''} onChange={(e) => setFormData({ ...formData, scF: e.target.value })} />
+                            <FormInput label="ST_M" type="number" required value={formData.stM || ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
+                            <FormInput label="ST_F" type="number" required value={formData.stF || ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
                     </div>
                 </div>
@@ -199,27 +171,24 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                         <FormSelect
                             label="Reporting Year"
                             required
-                            value={formData.year || ''}
-                            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            options={yearOptions}
                         />
                         <FormInput
                             label="No. of Activity conducted"
                             type="number"
                             required
-                            value={formData.activityConducted || ''}
-                            onChange={(e) => setFormData({ ...formData, activityConducted: e.target.value })}
+                            value={formData.activitiesConducted || ''}
+                            onChange={(e) => setFormData({ ...formData, activitiesConducted: e.target.value })}
                             placeholder="Enter number of activities"
                         />
                         <FormInput
                             label="Soil Health Cards distributed"
+                            type="number"
                             required
-                            value={formData.soilHealthCards || ''}
-                            onChange={(e) => setFormData({ ...formData, soilHealthCards: e.target.value })}
+                            value={formData.soilHealthCardDistributed || ''}
+                            onChange={(e) => setFormData({ ...formData, soilHealthCardDistributed: e.target.value })}
                             placeholder="Enter number distributed"
                         />
                         <div className="space-y-1">
@@ -245,55 +214,14 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                     <div className="bg-gray-50 p-6 rounded-xl border border-gray-200/60 space-y-4">
                         <h3 className="text-lg font-semibold text-gray-800">Farmers Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <FormInput
-                                label="General_M"
-                                required
-                                value={formData.generalM || ''}
-                                onChange={(e) => setFormData({ ...formData, generalM: e.target.value })}
-                            />
-                            <FormInput
-                                label="General_F"
-                                required
-                                value={formData.generalF || ''}
-                                onChange={(e) => setFormData({ ...formData, generalF: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_M"
-                                required
-                                value={formData.obcM || ''}
-                                onChange={(e) => setFormData({ ...formData, obcM: e.target.value })}
-                            />
-                            <FormInput
-                                label="OBC_F"
-                                required
-                                value={formData.obcF || ''}
-                                onChange={(e) => setFormData({ ...formData, obcF: e.target.value })}
-                            />
-
-                            <FormInput
-                                label="SC_M"
-                                required
-                                value={formData.scM || ''}
-                                onChange={(e) => setFormData({ ...formData, scM: e.target.value })}
-                            />
-                            <FormInput
-                                label="SC_F"
-                                required
-                                value={formData.scF || ''}
-                                onChange={(e) => setFormData({ ...formData, scF: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_M"
-                                required
-                                value={formData.stM || ''}
-                                onChange={(e) => setFormData({ ...formData, stM: e.target.value })}
-                            />
-                            <FormInput
-                                label="ST_F"
-                                required
-                                value={formData.stF || ''}
-                                onChange={(e) => setFormData({ ...formData, stF: e.target.value })}
-                            />
+                            <FormInput label="General_M" type="number" required value={formData.generalM || ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
+                            <FormInput label="General_F" type="number" required value={formData.generalF || ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
+                            <FormInput label="OBC_M" type="number" required value={formData.obcM || ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" type="number" required value={formData.obcF || ''} onChange={(e) => setFormData({ ...formData, obcF: e.target.value })} />
+                            <FormInput label="SC_M" type="number" required value={formData.scM || ''} onChange={(e) => setFormData({ ...formData, scM: e.target.value })} />
+                            <FormInput label="SC_F" type="number" required value={formData.scF || ''} onChange={(e) => setFormData({ ...formData, scF: e.target.value })} />
+                            <FormInput label="ST_M" type="number" required value={formData.stM || ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
+                            <FormInput label="ST_F" type="number" required value={formData.stF || ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
                     </div>
                 </div>

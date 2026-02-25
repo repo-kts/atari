@@ -39,7 +39,7 @@ const kvkAwardService = {
         if (!award) throw new Error('Award not found');
 
         // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -54,7 +54,7 @@ const kvkAwardService = {
         if (!existing) throw new Error('Award not found');
 
         // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
@@ -77,7 +77,7 @@ const kvkAwardService = {
         if (!existing) throw new Error('Award not found');
 
         // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

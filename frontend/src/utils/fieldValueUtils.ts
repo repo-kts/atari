@@ -399,6 +399,224 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+
+    // CFLD Technical Parameter fields
+    Month: {
+        extractor: (item) => {
+            if (!item.month) return null;
+            try {
+                const date = new Date(item.month);
+                if (isNaN(date.getTime())) return String(item.month);
+                return date.toLocaleString('default', { month: 'long' });
+            } catch {
+                return String(item.month);
+            }
+        },
+    },
+    Type: {
+        extractor: (item) => item.type || item.typeName || null,
+    },
+    Season: {
+        extractor: (item) => item.seasonName || (item.season?.seasonName) || null,
+    },
+    Crop: {
+        extractor: (item) => item.cropName || (item.crop?.cropName) || null,
+    },
+    Variety: {
+        extractor: (item) => item.varietyName || null,
+    },
+    'Name of Variety': {
+        extractor: (item) => item.varietyName || null,
+    },
+    Area: {
+        extractor: (item) => item.areaHectare !== undefined ? String(item.areaHectare) : (item.areaInHa !== undefined ? String(item.areaInHa) : null),
+    },
+    'Area (in ha)': {
+        extractor: (item) => item.areaHectare !== undefined ? String(item.areaHectare) : (item.areaInHa !== undefined ? String(item.areaInHa) : null),
+    },
+    'Demo Yield (Avg)': {
+        extractor: (item) => item.yieldAvg !== undefined ? String(item.yieldAvg) : (item.demoYieldAvg !== undefined ? String(item.demoYieldAvg) : null),
+    },
+    '% Increase': {
+        extractor: (item) => item.yieldIncreasePercent !== undefined ? `${item.yieldIncreasePercent}%` : (item.percentIncrease !== undefined ? `${item.percentIncrease}%` : null),
+    },
+
+    // ARYA fields
+    Year: {
+        extractor: (item) => item.yearName || (item.year?.yearName) || null,
+    },
+    Enterprise: {
+        extractor: (item) => item.enterpriseName || (item.enterprise?.enterpriseName) || null,
+    },
+    Trainings: {
+        extractor: (item) => item.noOfTraining !== undefined ? String(item.noOfTraining) : null,
+    },
+    Participants: {
+        extractor: (item) => item.noOfParticipants !== undefined ? String(item.noOfParticipants) : null,
+    },
+    Units: {
+        extractor: (item) => item.noOfUnitsEstablished !== undefined ? String(item.noOfUnitsEstablished) : null,
+    },
+    Entrepreneurs: {
+        extractor: (item) => item.noOfEntrepreneurs !== undefined ? String(item.noOfEntrepreneurs) : null,
+    },
+    'Income Before': {
+        extractor: (item) => item.incomeBefore !== undefined ? `Rs. ${item.incomeBefore}` : null,
+    },
+    'Income After': {
+        extractor: (item) => item.incomeAfter !== undefined ? `Rs. ${item.incomeAfter}` : null,
+    },
+    '% Functional': {
+        extractor: (item) => item.functionalPercentage !== undefined ? `${item.functionalPercentage}%` : null,
+    },
+
+    // CRA & NARI & FPO & NICRA fields
+    Villages: {
+        extractor: (item) => item.noOfVillages !== undefined ? String(item.noOfVillages) : null,
+    },
+    'Village Name': {
+        extractor: (item) => item.villageName || null,
+    },
+    Farmers: {
+        extractor: (item) => item.noOfFarmers !== undefined ? String(item.noOfFarmers) : null,
+    },
+    Households: {
+        extractor: (item) => item.noOfHouseholds !== undefined ? String(item.noOfHouseholds) : null,
+    },
+    'Activity Type': {
+        extractor: (item) => item.activityType || null,
+    },
+    Activity: {
+        extractor: (item) => item.activity || null,
+    },
+    Activities: {
+        extractor: (item) => item.noOfActivities !== undefined ? String(item.noOfActivities) : null,
+    },
+    Gardens: {
+        extractor: (item) => item.noOfGardens !== undefined ? String(item.noOfGardens) : null,
+    },
+    Beneficiaries: {
+        extractor: (item) => item.noOfBeneficiaries !== undefined ? String(item.noOfBeneficiaries) : null,
+    },
+    'Name of FPO': {
+        extractor: (item) => item.fpoName || null,
+    },
+    'Crop/Enterprise': {
+        extractor: (item) => item.cropOrEnterprise || null,
+    },
+    Intervention: {
+        extractor: (item) => item.intervention || null,
+    },
+    Theme: {
+        extractor: (item) => item.theme || null,
+    },
+    Courses: {
+        extractor: (item) => item.noOfCourses !== undefined ? String(item.noOfCourses) : null,
+    },
+    // Soil and Water Testing
+    'KVK NAME': {
+        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
+        priority: 7,
+    },
+    'KVK Name': {
+        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
+        priority: 7,
+    },
+    'Equipment Name': {
+        extractor: (item) => item.equipmentName || null,
+    },
+    'Quantity': {
+        extractor: (item) => item.quantity !== undefined ? String(item.quantity) : null,
+    },
+    'Analysis': {
+        extractor: (item) => item.analysisName || null,
+    },
+    'No. of samples Analyzed': {
+        extractor: (item) => item.samplesAnalysed !== undefined ? String(item.samplesAnalysed) : null,
+    },
+    'No. of Villages Covered': {
+        extractor: (item) => item.villagesNumber !== undefined ? String(item.villagesNumber) : null,
+    },
+    'Amount Released': {
+        extractor: (item) => item.amountRealized !== undefined ? `₹${item.amountRealized.toLocaleString('en-IN')}` : null,
+    },
+    'No. Of Activities Conducted': {
+        extractor: (item) => item.activitiesConducted !== undefined ? String(item.activitiesConducted) : null,
+    },
+    'Soil Health Cards Distributed': {
+        extractor: (item) => item.soilHealthCardDistributed !== undefined ? String(item.soilHealthCardDistributed) : null,
+    },
+    'Name(s) of VIP(s) Involved': {
+        extractor: (item) => item.vipNames || null,
+    },
+    'Total No. of Participants attended the program': {
+        extractor: (item) => item.participants !== undefined ? String(item.participants) : null,
+    },
+    'No. of VIP(s)': {
+        extractor: (item) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
+    },
+    'Reporting Year': {
+        extractor: (item) => item.reportingYearLabel || item.reportingYear || null,
+    },
+    'Start Date': {
+        extractor: (item) => {
+            if (!item.startDate) return null;
+            try {
+                const date = new Date(item.startDate);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
+    'End Date': {
+        extractor: (item) => {
+            if (!item.endDate) return null;
+            try {
+                const date = new Date(item.endDate);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
+    // Award Fields
+    Award: {
+        extractor: (item) => item.awardName || item.award_name || null,
+        priority: 5,
+    },
+    Amount: {
+        extractor: (item) => {
+            if (item.amount === undefined || item.amount === null) return null;
+            return `₹${Number(item.amount).toLocaleString('en-IN')}`;
+        },
+        priority: 5,
+    },
+    Achievement: {
+        extractor: (item) => item.achievement || null,
+        priority: 5,
+    },
+    'Conferring Authority': {
+        extractor: (item) => item.conferringAuthority || item.conferring_authority || null,
+        priority: 5,
+    },
+    'Head Scientist': {
+        extractor: (item) => item.headScientist || item.head_scientist || null,
+    },
+    'Farmer Name': {
+        extractor: (item) => item.farmerName || item.farmer_name || null,
+    },
+    'Address': {
+        extractor: (item) => item.address || null,
+    },
+    'Contact Number': {
+        extractor: (item) => item.contactNumber || item.contact_number || null,
+    },
+    'Staff': {
+        extractor: (item) => item.staffName || item.staff_name || null,
+    },
+    'Course': {
+        extractor: (item) => item.courseName || item.course_name || null,
+    },
+    'Organizer': {
+        extractor: (item) => item.organizerVenue || item.organizer_venue || null,
+    },
 };
 
 // ============================================

@@ -6,13 +6,14 @@ model KkvSoilWaterAnalysis {
 
     startDate DateTime @map("start_date")
     endDate   DateTime @map("end_date")
+    reportingYear Int? @map("reporting_year")
 
     analysisId Int @map("analysis_id")
     soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
 
     samplesAnalysedThrough String @map("samples_analysed_through")
     samplesAnalysed Int @map("samples_analysed")
-    villagesNumber Int @map("number_of_villages")
+    villagesNumber Int @map("villages_number")
     amountRealized Int @map("amount_realized")
 
     generalM Int @map("general_m")

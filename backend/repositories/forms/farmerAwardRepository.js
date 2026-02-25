@@ -2,8 +2,8 @@ const prisma = require('../../config/prisma.js');
 
 const farmerAwardRepository = {
     create: async (data, user) => {
-        // Always use kvkId from authenticated user — never trust frontend data
-        const kvkId = parseInt(String((user && user.kvkId) ? user.kvkId : (data.kvkId || 1)));
+        // Enforce KVK ID from user context if possible
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
         const amount = parseInt(data.amount || 0);
 
         const inserted = await prisma.$queryRawUnsafe(`
@@ -19,9 +19,13 @@ const farmerAwardRepository = {
     findAll: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && user.kvkId) {
+        // Strict isolation for KVK roles
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereClause = 'WHERE a."kvkId" = $1';
-            params.push(parseInt(String(user.kvkId)));
+            params.push(parseInt(user.kvkId));
+        } else if (user && user.kvkId) {
+            whereClause = 'WHERE a."kvkId" = $1';
+            params.push(parseInt(user.kvkId));
         }
 
         const rows = await prisma.$queryRawUnsafe(`
@@ -34,10 +38,13 @@ const farmerAwardRepository = {
 
         return rows.map(r => ({
             ...r,
+            id: r.farmer_award_id,
             farmerAwardID: r.farmer_award_id,
             kvk: { kvkName: r.kvk_name },
             farmerName: r.farmer_name,
             contactNumber: r.contact_number,
+            contactNo: r.contact_number,
+            address: r.address,
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
@@ -57,10 +64,13 @@ const farmerAwardRepository = {
         let r = rows[0];
         return {
             ...r,
+            id: r.farmer_award_id,
             farmerAwardID: r.farmer_award_id,
             kvk: { kvkName: r.kvk_name },
             farmerName: r.farmer_name,
             contactNumber: r.contact_number,
+            contactNo: r.contact_number,
+            address: r.address,
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
@@ -76,9 +86,9 @@ const farmerAwardRepository = {
 
         if (data.kvkId !== undefined) { updates.push('"kvkId" = $' + (index++)); values.push(parseInt(data.kvkId) || 1); }
         if (data.farmerName !== undefined) { updates.push('farmer_name = $' + (index++)); values.push(data.farmerName || ''); }
-        if (data.contactNumber !== undefined || data.contactNo !== undefined) {
+        if (data.contactNumber !== undefined) {
             updates.push('contact_number = $' + (index++));
-            values.push(data.contactNumber || data.contactNo || '');
+            values.push(String(data.contactNumber));
         }
         if (data.address !== undefined) { updates.push('address = $' + (index++)); values.push(data.address || ''); }
         if (data.awardName !== undefined) { updates.push('award_name = $' + (index++)); values.push(data.awardName || ''); }

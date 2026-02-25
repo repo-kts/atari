@@ -1,0 +1,36 @@
+﻿[dotenv@17.2.3] injecting env (7) from .env -- tip: ≡ƒöæ add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ≡ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+≡ƒöî Using direct PostgreSQL connection with pg adapter
+≡ƒî▒ Permissions (modules + role assignments)
+
+node : (node:32988) Warning: SECURITY WARNING: The SSL modes 'prefer', 
+'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+At line:1 char:1
++ node scripts/permissions.js 2>&1 | Out-File -FilePath seed_log.txt -E ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:32988) Wa... 'verify-full'. 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these 
+modes will adopt standard libpq semantics, which have weaker security 
+guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 
+'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode 
+definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+   Γ£à 0 new modules, 2 new permissions
+
+   Γ£à super_admin: 296 permissions
+   Γ£à zone_admin: 100 permissions
+   Γ£à state_admin: 56 permissions
+   Γ£à district_admin: 24 permissions
+   Γ£à org_admin: 18 permissions
+   Γ£à kvk_admin: 268 permissions
+   Γ£à kvk_user: 198 permissions
+

@@ -1,7 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const otherExtensionActivityRepository = {
     create: async (data, user) => {
-        const kvkId = parseInt((user && user.kvkId) ? user.kvkId : (data.kvkId || 1));
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = parseInt(data.staffId);
         if (isNaN(staffId) && data.staffName) {
@@ -36,9 +36,13 @@ const otherExtensionActivityRepository = {
     findAll: async (filters = {}, user) => {
         let whereClause = '';
         const queryParams = [];
-        if (user && user.kvkId) {
+        // Strict isolation for KVK roles
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereClause = `WHERE o."kvkId" = $1`;
             queryParams.push(parseInt(user.kvkId));
+        } else if (filters.kvkId) {
+            whereClause = `WHERE o."kvkId" = $1`;
+            queryParams.push(parseInt(filters.kvkId));
         }
         const sql = `
             SELECT o.*, k.kvk_name, s.staff_name, t.activity_name
@@ -86,6 +90,7 @@ const otherExtensionActivityRepository = {
         const activityCount = safeInt(r.number_of_activities);
         const recordId = safeInt(r.kvk_other_extension_activity_id);
         return {
+            id: recordId,
             otherExtensionActivityId: recordId,
             extensionActivityId: recordId,
             kvkId: safeInt(r['kvkId'] ?? r.kvkId),

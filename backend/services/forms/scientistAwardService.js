@@ -37,7 +37,7 @@ const scientistAwardService = {
         const award = await scientistAwardRepository.findById(id);
         if (!award) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -51,7 +51,7 @@ const scientistAwardService = {
         const existing = await scientistAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
@@ -74,7 +74,7 @@ const scientistAwardService = {
         const existing = await scientistAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

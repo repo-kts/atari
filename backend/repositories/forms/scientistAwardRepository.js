@@ -1,7 +1,8 @@
 const prisma = require('../../config/prisma.js');
 const scientistAwardRepository = {
     create: async (data, user) => {
-        const kvkId = parseInt(String((user && user.kvkId) ? user.kvkId : (data.kvkId || 1)));
+        // Enforce KVK ID from user context if possible
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
         const amount = parseInt(data.amount || 0);
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO scientist_award 
@@ -14,9 +15,13 @@ const scientistAwardRepository = {
     findAll: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && user.kvkId) {
+        // Strict isolation for KVK roles
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereClause = 'WHERE a."kvkId" = $1';
-            params.push(parseInt(String(user.kvkId)));
+            params.push(parseInt(user.kvkId));
+        } else if (user && user.kvkId) {
+            whereClause = 'WHERE a."kvkId" = $1';
+            params.push(parseInt(user.kvkId));
         }
         const rows = await prisma.$queryRawUnsafe(`
             SELECT a.*, k.kvk_name 
@@ -27,13 +32,15 @@ const scientistAwardRepository = {
         `, ...params);
         return rows.map(r => ({
             ...r,
+            id: r.scientist_award_id,
             scientistAwardID: r.scientist_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
             year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            headScientist: r.head_scientist
+            headScientist: r.head_scientist,
+            scientistName: r.head_scientist
         }));
     },
     findById: async (id) => {
@@ -47,13 +54,15 @@ const scientistAwardRepository = {
         let r = rows[0];
         return {
             ...r,
+            id: r.scientist_award_id,
             scientistAwardID: r.scientist_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
             year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            headScientist: r.head_scientist
+            headScientist: r.head_scientist,
+            scientistName: r.head_scientist
         };
     },
     update: async (id, data) => {
@@ -71,7 +80,8 @@ const scientistAwardRepository = {
         }
         if (data.reportingYear !== undefined || data.year !== undefined) {
             updates.push('reporting_year = $' + (index++));
-            values.push(parseInt(data.reportingYear || data.year) || null);
+            const ry = data.reportingYear || data.year;
+            values.push(parseInt(String(ry).split('-')[0]) || null);
         }
         if (updates.length > 0) {
             const sql = 'UPDATE scientist_award SET ' + updates.join(', ') + ' WHERE scientist_award_id = $' + index;

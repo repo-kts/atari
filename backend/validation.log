@@ -1,0 +1,760 @@
+Command failed: npx prisma validate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma.
+
+Error: Prisma schema validation - (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:71[0m
+[1;94m   | [0m
+[1;94m70 | [0m
+[1;94m71 | [0m[1;91m<<<<<<<< HEAD:backend/prisma/kvk/employee_schema.prisma[0m
+[1;94m72 | [0menum PayLevel {
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:87[0m
+[1;94m   | [0m
+[1;94m86 | [0m  LEVEL_14
+[1;94m87 | [0m[1;91m========[0m
+[1;94m88 | [0mmodel KvkStaff {
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:88[0m
+[1;94m   | [0m
+[1;94m87 | [0m========
+[1;94m88 | [0m[1;91mmodel KvkStaff {[0m
+[1;94m89 | [0m  kvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:89[0m
+[1;94m   | [0m
+[1;94m88 | [0mmodel KvkStaff {
+[1;94m89 | [0m  [1;91mkvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")[0m
+[1;94m90 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:91[0m
+[1;94m   | [0m
+[1;94m90 | [0m
+[1;94m91 | [0m  [1;91mkvkId Int[0m
+[1;94m92 | [0m  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:92[0m
+[1;94m   | [0m
+[1;94m91 | [0m  kvkId Int
+[1;94m92 | [0m  [1;91mkvk   Kvk @relation(fields: [kvkId], references: [kvkId])[0m
+[1;94m93 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:94[0m
+[1;94m   | [0m
+[1;94m93 | [0m
+[1;94m94 | [0m  [1;91mstaffName   String    @map("staff_name")[0m
+[1;94m95 | [0m  email      String?   @map("email")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:95[0m
+[1;94m   | [0m
+[1;94m94 | [0m  staffName   String    @map("staff_name")
+[1;94m95 | [0m  [1;91memail      String?   @map("email")[0m
+[1;94m96 | [0m  mobile     String    @map("mobile")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:96[0m
+[1;94m   | [0m
+[1;94m95 | [0m  email      String?   @map("email")
+[1;94m96 | [0m  [1;91mmobile     String    @map("mobile")[0m
+[1;94m97 | [0m  dateOfBirth DateTime @map("date_of_birth")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:97[0m
+[1;94m   | [0m
+[1;94m96 | [0m  mobile     String    @map("mobile")
+[1;94m97 | [0m  [1;91mdateOfBirth DateTime @map("date_of_birth")[0m
+[1;94m98 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:99[0m
+[1;94m   | [0m
+[1;94m98 | [0m
+[1;94m99 | [0m  [1;91mphotoPath  String? @map("photo_path")[0m
+[1;94m100 | [0m  resumePath String? @map("resume_path")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:100[0m
+[1;94m   | [0m
+[1;94m99 | [0m  photoPath  String? @map("photo_path")
+[1;94m100 | [0m  [1;91mresumePath String? @map("resume_path")[0m
+[1;94m101 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:102[0m
+[1;94m   | [0m
+[1;94m101 | [0m
+[1;94m102 | [0m  [1;91msanctionedPostId Int[0m
+[1;94m103 | [0m  sanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:103[0m
+[1;94m   | [0m
+[1;94m102 | [0m  sanctionedPostId Int
+[1;94m103 | [0m  [1;91msanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])[0m
+[1;94m104 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:105[0m
+[1;94m   | [0m
+[1;94m104 | [0m
+[1;94m105 | [0m  [1;91mpositionOrder Int @map("position_order")[0m
+[1;94m106 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:107[0m
+[1;94m   | [0m
+[1;94m106 | [0m
+[1;94m107 | [0m  [1;91mdisciplineId Int[0m
+[1;94m108 | [0m  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:108[0m
+[1;94m   | [0m
+[1;94m107 | [0m  disciplineId Int
+[1;94m108 | [0m  [1;91mdiscipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])[0m
+[1;94m109 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:110[0m
+[1;94m   | [0m
+[1;94m109 | [0m
+[1;94m110 | [0m  [1;91mpayScale String?  @map("pay_scale")[0m
+[1;94m111 | [0m  payLevelId Int?
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:111[0m
+[1;94m   | [0m
+[1;94m110 | [0m  payScale String?  @map("pay_scale")
+[1;94m111 | [0m  [1;91mpayLevelId Int?[0m
+[1;94m112 | [0m  payLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:112[0m
+[1;94m   | [0m
+[1;94m111 | [0m  payLevelId Int?
+[1;94m112 | [0m  [1;91mpayLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])[0m
+[1;94m113 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:114[0m
+[1;94m   | [0m
+[1;94m113 | [0m
+[1;94m114 | [0m  [1;91mdateOfJoining DateTime @map("date_of_joining")[0m
+[1;94m115 | [0m  jobType       JobType?  @map("job_type")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:115[0m
+[1;94m   | [0m
+[1;94m114 | [0m  dateOfJoining DateTime @map("date_of_joining")
+[1;94m115 | [0m  [1;91mjobType       JobType?  @map("job_type")[0m
+[1;94m116 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:117[0m
+[1;94m   | [0m
+[1;94m116 | [0m
+[1;94m117 | [0m  [1;91mallowances String? @map("allowances")[0m
+[1;94m118 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:119[0m
+[1;94m   | [0m
+[1;94m118 | [0m
+[1;94m119 | [0m  [1;91mstaffCategoryId Int?[0m
+[1;94m120 | [0m  staffCategory   StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:120[0m
+[1;94m   | [0m
+[1;94m119 | [0m  staffCategoryId Int?
+[1;94m120 | [0m  [1;91mstaffCategory   StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId])[0m
+[1;94m121 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:122[0m
+[1;94m   | [0m
+[1;94m121 | [0m
+[1;94m122 | [0m  [1;91mtransferStatus TransferStatus @default(ACTIVE) @map("transfer_status")[0m
+[1;94m123 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:124[0m
+[1;94m   | [0m
+[1;94m123 | [0m  
+[1;94m124 | [0m  [1;91msourceKvkIds Json? @map("source_kvk_ids")[0m
+[1;94m125 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:126[0m
+[1;94m   | [0m
+[1;94m125 | [0m  
+[1;94m126 | [0m  [1;91moriginalKvkId    Int?      @map("original_kvk_id")[0m
+[1;94m127 | [0m  transferCount    Int       @default(0) @map("transfer_count")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:127[0m
+[1;94m   | [0m
+[1;94m126 | [0m  originalKvkId    Int?      @map("original_kvk_id")
+[1;94m127 | [0m  [1;91mtransferCount    Int       @default(0) @map("transfer_count")[0m
+[1;94m128 | [0m  lastTransferDate DateTime? @map("last_transfer_date")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:128[0m
+[1;94m   | [0m
+[1;94m127 | [0m  transferCount    Int       @default(0) @map("transfer_count")
+[1;94m128 | [0m  [1;91mlastTransferDate DateTime? @map("last_transfer_date")[0m
+[1;94m129 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:130[0m
+[1;94m   | [0m
+[1;94m129 | [0m  
+[1;94m130 | [0m  [1;91mtransferHistory  StaffTransferHistory[][0m
+[1;94m131 | [0m  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:131[0m
+[1;94m   | [0m
+[1;94m130 | [0m  transferHistory  StaffTransferHistory[]
+[1;94m131 | [0m  [1;91moriginalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])[0m
+[1;94m132 | [0m  hrdPrograms      HrdProgram[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:132[0m
+[1;94m   | [0m
+[1;94m131 | [0m  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+[1;94m132 | [0m  [1;91mhrdPrograms      HrdProgram[][0m
+[1;94m133 | [0m  kvkExtensionActivities     KvkExtensionActivity[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:133[0m
+[1;94m   | [0m
+[1;94m132 | [0m  hrdPrograms      HrdProgram[]
+[1;94m133 | [0m  [1;91mkvkExtensionActivities     KvkExtensionActivity[][0m
+[1;94m134 | [0m  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:134[0m
+[1;94m   | [0m
+[1;94m133 | [0m  kvkExtensionActivities     KvkExtensionActivity[]
+[1;94m134 | [0m  [1;91mkvkOtherExtensionActivities KvkOtherExtensionActivity[][0m
+[1;94m135 | [0m  kvkFldIntroductions         KvkFldIntroduction[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:135[0m
+[1;94m   | [0m
+[1;94m134 | [0m  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+[1;94m135 | [0m  [1;91mkvkFldIntroductions         KvkFldIntroduction[][0m
+[1;94m136 | [0m  kvkOfts Kvkoft[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:136[0m
+[1;94m   | [0m
+[1;94m135 | [0m  kvkFldIntroductions         KvkFldIntroduction[]
+[1;94m136 | [0m  [1;91mkvkOfts Kvkoft[][0m
+[1;94m137 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mField "fldExtensions" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:43[0m
+[1;94m   | [0m
+[1;94m42 | [0m  trainingAchievements          TrainingAchievement[]
+[1;94m43 | [0m  [1;91mfldExtensions[0m                FldExtension[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "fldTechnicalFeedbacks" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:44[0m
+[1;94m   | [0m
+[1;94m43 | [0m  fldExtensions                FldExtension[]
+[1;94m44 | [0m  [1;91mfldTechnicalFeedbacks[0m        FldTechnicalFeedback[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "kvkBudgetUtilizations" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:45[0m
+[1;94m   | [0m
+[1;94m44 | [0m  fldTechnicalFeedbacks        FldTechnicalFeedback[]
+[1;94m45 | [0m  [1;91mkvkBudgetUtilizations[0m        KvkBudgetUtilization[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "extensionActivityOrganized" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:46[0m
+[1;94m   | [0m
+[1;94m45 | [0m  kvkBudgetUtilizations        KvkBudgetUtilization[]
+[1;94m46 | [0m  [1;91mextensionActivityOrganized[0m   ExtensionActivityOrganized[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "cfldTechnicalParameters" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:47[0m
+[1;94m   | [0m
+[1;94m46 | [0m  extensionActivityOrganized   ExtensionActivityOrganized[]
+[1;94m47 | [0m  [1;91mcfldTechnicalParameters[0m      CfldTechnicalParameter[]
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model "Discipline" cannot be defined because a model with that name already exists.[0m
+  [1;94m-->[0m  [4mprisma\superadmin\masters\discipline.prisma:3[0m
+[1;94m   | [0m
+[1;94m 2 | [0m
+[1;94m 3 | [0mmodel [1;91mDiscipline[0m {
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model "SanctionedPost" cannot be defined because a model with that name already exists.[0m
+  [1;94m-->[0m  [4mprisma\superadmin\masters\sanctioned_post.prisma:3[0m
+[1;94m   | [0m
+[1;94m 2 | [0m
+[1;94m 3 | [0mmodel [1;91mSanctionedPost[0m {
+[1;94m   | [0m
+[1;91merror[0m: [1mType "StaffCategory" is neither a built-in type, nor refers to another model, composite type, or enum.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:38[0m
+[1;94m   | [0m
+[1;94m37 | [0m  lastTransferDate            DateTime?                   @map("last_transfer_date")
+[1;94m38 | [0m  category                    [1;91mStaffCategory[0m               @map("category")
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:147[0m
+[1;94m   | [0m
+[1;94m146 | [0m  @@index([originalKvkId])
+[1;94m147 | [0m  [1;91m@@index([staffCategoryId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:145[0m
+[1;94m   | [0m
+[1;94m144 | [0m  @@index([mobile])
+[1;94m145 | [0m  [1;91m@@index([transferStatus])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:144[0m
+[1;94m   | [0m
+[1;94m143 | [0m  @@index([email])
+[1;94m144 | [0m  [1;91m@@index([mobile])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:146[0m
+[1;94m   | [0m
+[1;94m145 | [0m  @@index([transferStatus])
+[1;94m146 | [0m  [1;91m@@index([originalKvkId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:148[0m
+[1;94m   | [0m
+[1;94m147 | [0m  @@index([staffCategoryId])
+[1;94m148 | [0m  [1;91m@@index([payLevelId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:142[0m
+[1;94m   | [0m
+[1;94m141 | [0m  @@index([disciplineId])
+[1;94m142 | [0m  [1;91m@@index([staffName])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:143[0m
+[1;94m   | [0m
+[1;94m142 | [0m  @@index([staffName])
+[1;94m143 | [0m  [1;91m@@index([email])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:141[0m
+[1;94m   | [0m
+[1;94m140 | [0m  @@index([sanctionedPostId])
+[1;94m141 | [0m  [1;91m@@index([disciplineId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:140[0m
+[1;94m   | [0m
+[1;94m139 | [0m  @@index([kvkId])
+[1;94m140 | [0m  [1;91m@@index([sanctionedPostId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:139[0m
+[1;94m   | [0m
+[1;94m138 | [0m  @@map("kvk_staff")
+[1;94m139 | [0m  [1;91m@@index([kvkId])[0m
+[1;94m   | [0m
+
+Validation Error Count: 55
+[Context: validate]
+
+Prisma CLI Version : 7.2.0
+
+[dotenv@17.2.3] injecting env (7) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma.
+
+Error: Prisma schema validation - (validate wasm)
+Error code: P1012
+[1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:71[0m
+[1;94m   | [0m
+[1;94m70 | [0m
+[1;94m71 | [0m[1;91m<<<<<<<< HEAD:backend/prisma/kvk/employee_schema.prisma[0m
+[1;94m72 | [0menum PayLevel {
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:87[0m
+[1;94m   | [0m
+[1;94m86 | [0m  LEVEL_14
+[1;94m87 | [0m[1;91m========[0m
+[1;94m88 | [0mmodel KvkStaff {
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:88[0m
+[1;94m   | [0m
+[1;94m87 | [0m========
+[1;94m88 | [0m[1;91mmodel KvkStaff {[0m
+[1;94m89 | [0m  kvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:89[0m
+[1;94m   | [0m
+[1;94m88 | [0mmodel KvkStaff {
+[1;94m89 | [0m  [1;91mkvkStaffId Int @id @default(autoincrement()) @map("kvk_staff_id")[0m
+[1;94m90 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:91[0m
+[1;94m   | [0m
+[1;94m90 | [0m
+[1;94m91 | [0m  [1;91mkvkId Int[0m
+[1;94m92 | [0m  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:92[0m
+[1;94m   | [0m
+[1;94m91 | [0m  kvkId Int
+[1;94m92 | [0m  [1;91mkvk   Kvk @relation(fields: [kvkId], references: [kvkId])[0m
+[1;94m93 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:94[0m
+[1;94m   | [0m
+[1;94m93 | [0m
+[1;94m94 | [0m  [1;91mstaffName   String    @map("staff_name")[0m
+[1;94m95 | [0m  email      String?   @map("email")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:95[0m
+[1;94m   | [0m
+[1;94m94 | [0m  staffName   String    @map("staff_name")
+[1;94m95 | [0m  [1;91memail      String?   @map("email")[0m
+[1;94m96 | [0m  mobile     String    @map("mobile")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:96[0m
+[1;94m   | [0m
+[1;94m95 | [0m  email      String?   @map("email")
+[1;94m96 | [0m  [1;91mmobile     String    @map("mobile")[0m
+[1;94m97 | [0m  dateOfBirth DateTime @map("date_of_birth")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:97[0m
+[1;94m   | [0m
+[1;94m96 | [0m  mobile     String    @map("mobile")
+[1;94m97 | [0m  [1;91mdateOfBirth DateTime @map("date_of_birth")[0m
+[1;94m98 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:99[0m
+[1;94m   | [0m
+[1;94m98 | [0m
+[1;94m99 | [0m  [1;91mphotoPath  String? @map("photo_path")[0m
+[1;94m100 | [0m  resumePath String? @map("resume_path")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:100[0m
+[1;94m   | [0m
+[1;94m99 | [0m  photoPath  String? @map("photo_path")
+[1;94m100 | [0m  [1;91mresumePath String? @map("resume_path")[0m
+[1;94m101 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:102[0m
+[1;94m   | [0m
+[1;94m101 | [0m
+[1;94m102 | [0m  [1;91msanctionedPostId Int[0m
+[1;94m103 | [0m  sanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:103[0m
+[1;94m   | [0m
+[1;94m102 | [0m  sanctionedPostId Int
+[1;94m103 | [0m  [1;91msanctionedPost   SanctionedPost @relation(fields: [sanctionedPostId], references: [sanctionedPostId])[0m
+[1;94m104 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:105[0m
+[1;94m   | [0m
+[1;94m104 | [0m
+[1;94m105 | [0m  [1;91mpositionOrder Int @map("position_order")[0m
+[1;94m106 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:107[0m
+[1;94m   | [0m
+[1;94m106 | [0m
+[1;94m107 | [0m  [1;91mdisciplineId Int[0m
+[1;94m108 | [0m  discipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:108[0m
+[1;94m   | [0m
+[1;94m107 | [0m  disciplineId Int
+[1;94m108 | [0m  [1;91mdiscipline   Discipline @relation(fields: [disciplineId], references: [disciplineId])[0m
+[1;94m109 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:110[0m
+[1;94m   | [0m
+[1;94m109 | [0m
+[1;94m110 | [0m  [1;91mpayScale String?  @map("pay_scale")[0m
+[1;94m111 | [0m  payLevelId Int?
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:111[0m
+[1;94m   | [0m
+[1;94m110 | [0m  payScale String?  @map("pay_scale")
+[1;94m111 | [0m  [1;91mpayLevelId Int?[0m
+[1;94m112 | [0m  payLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:112[0m
+[1;94m   | [0m
+[1;94m111 | [0m  payLevelId Int?
+[1;94m112 | [0m  [1;91mpayLevel   PayLevelMaster? @relation(fields: [payLevelId], references: [payLevelId])[0m
+[1;94m113 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:114[0m
+[1;94m   | [0m
+[1;94m113 | [0m
+[1;94m114 | [0m  [1;91mdateOfJoining DateTime @map("date_of_joining")[0m
+[1;94m115 | [0m  jobType       JobType?  @map("job_type")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:115[0m
+[1;94m   | [0m
+[1;94m114 | [0m  dateOfJoining DateTime @map("date_of_joining")
+[1;94m115 | [0m  [1;91mjobType       JobType?  @map("job_type")[0m
+[1;94m116 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:117[0m
+[1;94m   | [0m
+[1;94m116 | [0m
+[1;94m117 | [0m  [1;91mallowances String? @map("allowances")[0m
+[1;94m118 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:119[0m
+[1;94m   | [0m
+[1;94m118 | [0m
+[1;94m119 | [0m  [1;91mstaffCategoryId Int?[0m
+[1;94m120 | [0m  staffCategory   StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:120[0m
+[1;94m   | [0m
+[1;94m119 | [0m  staffCategoryId Int?
+[1;94m120 | [0m  [1;91mstaffCategory   StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId])[0m
+[1;94m121 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:122[0m
+[1;94m   | [0m
+[1;94m121 | [0m
+[1;94m122 | [0m  [1;91mtransferStatus TransferStatus @default(ACTIVE) @map("transfer_status")[0m
+[1;94m123 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:124[0m
+[1;94m   | [0m
+[1;94m123 | [0m  
+[1;94m124 | [0m  [1;91msourceKvkIds Json? @map("source_kvk_ids")[0m
+[1;94m125 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:126[0m
+[1;94m   | [0m
+[1;94m125 | [0m  
+[1;94m126 | [0m  [1;91moriginalKvkId    Int?      @map("original_kvk_id")[0m
+[1;94m127 | [0m  transferCount    Int       @default(0) @map("transfer_count")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:127[0m
+[1;94m   | [0m
+[1;94m126 | [0m  originalKvkId    Int?      @map("original_kvk_id")
+[1;94m127 | [0m  [1;91mtransferCount    Int       @default(0) @map("transfer_count")[0m
+[1;94m128 | [0m  lastTransferDate DateTime? @map("last_transfer_date")
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:128[0m
+[1;94m   | [0m
+[1;94m127 | [0m  transferCount    Int       @default(0) @map("transfer_count")
+[1;94m128 | [0m  [1;91mlastTransferDate DateTime? @map("last_transfer_date")[0m
+[1;94m129 | [0m  
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:130[0m
+[1;94m   | [0m
+[1;94m129 | [0m  
+[1;94m130 | [0m  [1;91mtransferHistory  StaffTransferHistory[][0m
+[1;94m131 | [0m  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:131[0m
+[1;94m   | [0m
+[1;94m130 | [0m  transferHistory  StaffTransferHistory[]
+[1;94m131 | [0m  [1;91moriginalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])[0m
+[1;94m132 | [0m  hrdPrograms      HrdProgram[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:132[0m
+[1;94m   | [0m
+[1;94m131 | [0m  originalKvk      Kvk?            @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+[1;94m132 | [0m  [1;91mhrdPrograms      HrdProgram[][0m
+[1;94m133 | [0m  kvkExtensionActivities     KvkExtensionActivity[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:133[0m
+[1;94m   | [0m
+[1;94m132 | [0m  hrdPrograms      HrdProgram[]
+[1;94m133 | [0m  [1;91mkvkExtensionActivities     KvkExtensionActivity[][0m
+[1;94m134 | [0m  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:134[0m
+[1;94m   | [0m
+[1;94m133 | [0m  kvkExtensionActivities     KvkExtensionActivity[]
+[1;94m134 | [0m  [1;91mkvkOtherExtensionActivities KvkOtherExtensionActivity[][0m
+[1;94m135 | [0m  kvkFldIntroductions         KvkFldIntroduction[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:135[0m
+[1;94m   | [0m
+[1;94m134 | [0m  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+[1;94m135 | [0m  [1;91mkvkFldIntroductions         KvkFldIntroduction[][0m
+[1;94m136 | [0m  kvkOfts Kvkoft[]
+[1;94m   | [0m
+[1;91merror[0m: [1mError validating: This line is not an enum value definition.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:136[0m
+[1;94m   | [0m
+[1;94m135 | [0m  kvkFldIntroductions         KvkFldIntroduction[]
+[1;94m136 | [0m  [1;91mkvkOfts Kvkoft[][0m
+[1;94m137 | [0m
+[1;94m   | [0m
+[1;91merror[0m: [1mField "fldExtensions" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:43[0m
+[1;94m   | [0m
+[1;94m42 | [0m  trainingAchievements          TrainingAchievement[]
+[1;94m43 | [0m  [1;91mfldExtensions[0m                FldExtension[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "fldTechnicalFeedbacks" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:44[0m
+[1;94m   | [0m
+[1;94m43 | [0m  fldExtensions                FldExtension[]
+[1;94m44 | [0m  [1;91mfldTechnicalFeedbacks[0m        FldTechnicalFeedback[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "kvkBudgetUtilizations" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:45[0m
+[1;94m   | [0m
+[1;94m44 | [0m  fldTechnicalFeedbacks        FldTechnicalFeedback[]
+[1;94m45 | [0m  [1;91mkvkBudgetUtilizations[0m        KvkBudgetUtilization[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "extensionActivityOrganized" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:46[0m
+[1;94m   | [0m
+[1;94m45 | [0m  kvkBudgetUtilizations        KvkBudgetUtilization[]
+[1;94m46 | [0m  [1;91mextensionActivityOrganized[0m   ExtensionActivityOrganized[]
+[1;94m   | [0m
+[1;91merror[0m: [1mField "cfldTechnicalParameters" is already defined on model "Kvk".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\kvk_schema.prisma:47[0m
+[1;94m   | [0m
+[1;94m46 | [0m  extensionActivityOrganized   ExtensionActivityOrganized[]
+[1;94m47 | [0m  [1;91mcfldTechnicalParameters[0m      CfldTechnicalParameter[]
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model "Discipline" cannot be defined because a model with that name already exists.[0m
+  [1;94m-->[0m  [4mprisma\superadmin\masters\discipline.prisma:3[0m
+[1;94m   | [0m
+[1;94m 2 | [0m
+[1;94m 3 | [0mmodel [1;91mDiscipline[0m {
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model "SanctionedPost" cannot be defined because a model with that name already exists.[0m
+  [1;94m-->[0m  [4mprisma\superadmin\masters\sanctioned_post.prisma:3[0m
+[1;94m   | [0m
+[1;94m 2 | [0m
+[1;94m 3 | [0mmodel [1;91mSanctionedPost[0m {
+[1;94m   | [0m
+[1;91merror[0m: [1mType "StaffCategory" is neither a built-in type, nor refers to another model, composite type, or enum.[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:38[0m
+[1;94m   | [0m
+[1;94m37 | [0m  lastTransferDate            DateTime?                   @map("last_transfer_date")
+[1;94m38 | [0m  category                    [1;91mStaffCategory[0m               @map("category")
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:147[0m
+[1;94m   | [0m
+[1;94m146 | [0m  @@index([originalKvkId])
+[1;94m147 | [0m  [1;91m@@index([staffCategoryId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:145[0m
+[1;94m   | [0m
+[1;94m144 | [0m  @@index([mobile])
+[1;94m145 | [0m  [1;91m@@index([transferStatus])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:144[0m
+[1;94m   | [0m
+[1;94m143 | [0m  @@index([email])
+[1;94m144 | [0m  [1;91m@@index([mobile])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:146[0m
+[1;94m   | [0m
+[1;94m145 | [0m  @@index([transferStatus])
+[1;94m146 | [0m  [1;91m@@index([originalKvkId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:148[0m
+[1;94m   | [0m
+[1;94m147 | [0m  @@index([staffCategoryId])
+[1;94m148 | [0m  [1;91m@@index([payLevelId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:142[0m
+[1;94m   | [0m
+[1;94m141 | [0m  @@index([disciplineId])
+[1;94m142 | [0m  [1;91m@@index([staffName])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:143[0m
+[1;94m   | [0m
+[1;94m142 | [0m  @@index([staffName])
+[1;94m143 | [0m  [1;91m@@index([email])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:141[0m
+[1;94m   | [0m
+[1;94m140 | [0m  @@index([sanctionedPostId])
+[1;94m141 | [0m  [1;91m@@index([disciplineId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:140[0m
+[1;94m   | [0m
+[1;94m139 | [0m  @@index([kvkId])
+[1;94m140 | [0m  [1;91m@@index([sanctionedPostId])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mAttribute not known: "@index".[0m
+  [1;94m-->[0m  [4mprisma\kvk\about-kvk\employee_schema.prisma:139[0m
+[1;94m   | [0m
+[1;94m138 | [0m  @@map("kvk_staff")
+[1;94m139 | [0m  [1;91m@@index([kvkId])[0m
+[1;94m   | [0m
+
+Validation Error Count: 55
+[Context: validate]
+
+Prisma CLI Version : 7.2.0

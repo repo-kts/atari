@@ -81,7 +81,7 @@ const otherExtensionActivityController = {
 
     delete: async (req, res) => {
         try {
-            await otherExtensionActivityService.deleteOtherExtensionActivity(req.params.id);
+            await otherExtensionActivityService.deleteOtherExtensionActivity(req.params.id, req.user);
             res.status(200).json({
                 success: true,
                 message: 'Other extension activity deleted successfully'

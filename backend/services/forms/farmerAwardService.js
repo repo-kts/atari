@@ -40,7 +40,7 @@ const farmerAwardService = {
         const award = await farmerAwardRepository.findById(id);
         if (!award) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(award.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized access');
         }
 
@@ -54,20 +54,23 @@ const farmerAwardService = {
         const existing = await farmerAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
         const updateData = {};
-        if (data.awardName) updateData.awardName = data.awardName;
-        if (data.farmerName) updateData.farmerName = data.farmerName;
-        if (data.contactNumber || data.contactNo) updateData.contactNumber = String(data.contactNumber || data.contactNo);
-        if (data.address) updateData.address = data.address;
-        if (data.year || data.reportingYear) updateData.year = data.year || data.reportingYear;
-        if (data.reportingYear || data.year) updateData.reportingYear = data.reportingYear || data.year;
-        if (data.amount) updateData.amount = parseInt(data.amount);
-        if (data.achievement) updateData.achievement = data.achievement;
-        if (data.conferringAuthority) updateData.conferringAuthority = data.conferringAuthority;
+        if (data.awardName !== undefined) updateData.awardName = data.awardName;
+        if (data.farmerName !== undefined) updateData.farmerName = data.farmerName;
+        if (data.contactNumber !== undefined || data.contactNo !== undefined) {
+            updateData.contactNumber = String(data.contactNumber !== undefined ? data.contactNumber : data.contactNo);
+        }
+        if (data.address !== undefined) updateData.address = data.address;
+        if (data.year !== undefined || data.reportingYear !== undefined) {
+            updateData.reportingYear = data.year || data.reportingYear;
+        }
+        if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
+        if (data.achievement !== undefined) updateData.achievement = data.achievement;
+        if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
         if (data.image !== undefined) updateData.image = (typeof data.image === 'string') ? data.image : null;
 
         return await farmerAwardRepository.update(id, updateData);
@@ -80,7 +83,7 @@ const farmerAwardService = {
         const existing = await farmerAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

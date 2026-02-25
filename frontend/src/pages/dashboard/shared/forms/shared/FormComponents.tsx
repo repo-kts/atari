@@ -7,14 +7,14 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const FormInput: React.FC<FormInputProps> = ({ label, required, error, className = '', ...props }) => (
-    <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#212121]">
+    <div className="relative pt-2">
+        <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         <input
             {...props}
             required={required}
-            className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all ${className}`}
+            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
         />
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
@@ -29,16 +29,16 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
 }
 
 export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, className = '', ...props }) => (
-    <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#212121]">
+    <div className="relative pt-2">
+        <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         <select
             {...props}
             required={required}
-            className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white ${className}`}
+            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base ${className}`}
         >
-            <option value="">{placeholder || `Select ${label}`}</option>
+            <option value="">{placeholder || `Select`}</option>
             {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -56,8 +56,8 @@ interface FormSectionProps {
 
 export const FormSection: React.FC<FormSectionProps> = ({ title, children }) => (
     <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-[#487749] pb-2 border-b border-[#E8F5E9]">{title}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <h3 className="text-xl font-bold text-[#487749]">{title}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {children}
         </div>
     </div>
@@ -70,14 +70,14 @@ interface FormTextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
 }
 
 export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, error, className = '', ...props }) => (
-    <div className="space-y-2">
-        <label className="block text-sm font-medium text-[#212121]">
+    <div className="relative pt-2">
+        <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
             {label} {required && <span className="text-red-500">*</span>}
         </label>
         <textarea
             {...props}
             required={required}
-            className={`w-full px-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none ${className}`}
+            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none text-base placeholder:text-gray-400 ${className}`}
         />
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
