@@ -4,21 +4,10 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
-const { isAdminRole, outranksOrEqual, getManageableRoles, getRoleLevel, ROLE_HIERARCHY } = require('../constants/roleHierarchy.js');
+const { isAdminRole, outranksOrEqual, getManageableRoles, getRoleLevel, getCreatableRoles } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
-
-/**
- * Returns the role names that a given creator can assign (strictly lower hierarchy).
- * Admins can now create both lower admin roles and _user roles.
- */
-function getCreatableRoles(creatorRoleName) {
-  const callerLevel = getRoleLevel(creatorRoleName);
-  return Object.entries(ROLE_HIERARCHY)
-    .filter(([, level]) => level > callerLevel)
-    .map(([name]) => name);
-}
 
 /**
  * Derive the full geographic hierarchy from whichever IDs are already present.
@@ -147,10 +136,11 @@ const userManagementService = {
     let effectiveDistrictId = derived.districtId;
     let effectiveOrgId = derived.orgId;
     let effectiveUniversityId = userData.universityId || null;
+    let requestedRole = null;
 
     if (creatorRoleName !== 'super_admin') {
       // Validate the requested role is strictly lower in hierarchy
-      const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
+      requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
       if (!requestedRole) {
         throw new Error('Invalid role');
       }
@@ -167,7 +157,7 @@ const userManagementService = {
       effectiveDistrictId = creatorLevel < 3 ? (derived.districtId ?? null) : (creator.districtId ?? null);
       effectiveOrgId = creatorLevel < 4 ? (derived.orgId ?? null) : (creator.orgId ?? null);
       effectiveUniversityId = creatorLevel < 5 ? (userData.universityId || null) : (creator.universityId ?? null);
-      effectiveKvkId = userData.kvkId || creator.kvkId || null;
+      effectiveKvkId = userData.kvkId ?? creator.kvkId ?? null;
 
       const effectiveUserData = {
         zoneId: effectiveZoneId,
@@ -216,7 +206,8 @@ const userManagementService = {
     const passwordHash = await hashPassword(password);
 
     // Pre-validate and resolve permissions for _user roles before creating the user
-    const targetRoleRecord = await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
+    // Reuse requestedRole fetched above for non-super_admin path; fetch for super_admin
+    const targetRoleRecord = requestedRole ?? await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
     const targetRoleName = targetRoleRecord?.roleName || '';
     const isTargetUserRole = targetRoleName.endsWith('_user');
     let permissionActions = [];

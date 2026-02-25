@@ -154,19 +154,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Note: All dropdown data is now loaded dynamically via DependentDropdown components
     // No need for manual state management or useEffect hooks for fetching dropdown data
 
-    // Reset form when modal opens/closes
+    // Reset form when modal closes
     useEffect(() => {
         if (!isOpen) {
-            const defaultRoleId = isSubAdmin && allowedRolesForDropdown.length
-                ? allowedRolesForDropdown[0].roleId
-                : ''
             setFormData({
                 name: '',
                 email: '',
                 phoneNumber: '',
                 password: '',
                 confirmPassword: '',
-                roleId: defaultRoleId as number | '',
+                roleId: '',
                 zoneId: '',
                 stateId: '',
                 districtId: '',
@@ -180,11 +177,14 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setSubmitSuccess(false)
             setShowPassword(false)
         }
-    }, [isOpen, isSubAdmin, allowedRolesForDropdown.length])
+    }, [isOpen])
 
-    // When non–super-admin opens modal, default role to first allowed option
+    // When non–super-admin opens modal, auto-select first allowed role if none selected or current is invalid
     useEffect(() => {
-        if (isOpen && isSubAdmin && allowedRolesForDropdown.length > 0 && !formData.roleId) {
+        if (!isOpen || !isSubAdmin || allowedRolesForDropdown.length === 0) return
+        const isCurrentRoleAllowed = formData.roleId !== '' &&
+            allowedRolesForDropdown.some(r => r.roleId === formData.roleId)
+        if (!isCurrentRoleAllowed) {
             setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].roleId }))
         }
     }, [isOpen, isSubAdmin, allowedRolesForDropdown.length, formData.roleId])
