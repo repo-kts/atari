@@ -20,6 +20,8 @@ const scientistAwardRoutes = require('./forms/scientistAwardRoutes.js');
 const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
 const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
 const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
+const reportRoutes = require('./reports/reportRoutes.js');
+
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -38,5 +40,10 @@ router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
 router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
 router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
 router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
+router.use('/reports', reportRoutes);
+
+
+
+
 
 module.exports = router;

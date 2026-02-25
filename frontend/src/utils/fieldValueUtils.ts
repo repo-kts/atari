@@ -352,6 +352,41 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+    category: {
+        extractor: (item) => {
+            if (item.staffCategory?.categoryName) return item.staffCategory.categoryName;
+            if (item.categoryName) return item.categoryName;
+            if (item.category) return item.category;
+            return null;
+        },
+        priority: 7,
+    },
+    resume: {
+        extractor: (item) => {
+            // Handle resumePath - show value even if it's "NA" or empty string
+            if (item.resumePath !== null && item.resumePath !== undefined && item.resumePath !== '') {
+                return String(item.resumePath);
+            }
+            if (item.resume !== null && item.resume !== undefined && item.resume !== '') {
+                return String(item.resume);
+            }
+            return null;
+        },
+        priority: 6,
+    },
+    resumePath: {
+        extractor: (item) => {
+            // Handle resumePath - show value even if it's "NA" or empty string
+            if (item.resumePath !== null && item.resumePath !== undefined && item.resumePath !== '') {
+                return String(item.resumePath);
+            }
+            if (item.resume !== null && item.resume !== undefined && item.resume !== '') {
+                return String(item.resume);
+            }
+            return null;
+        },
+        priority: 6,
+    },
 
     // Staff Transferred specific fields
     kvkNameBeforeTransfer: {
