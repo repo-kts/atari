@@ -595,24 +595,21 @@ const userManagementService = {
     // Role hierarchy: only show users at the admin's level or below
     const visibleRoleNames = getManageableRoles(adminRole);
 
-    // Geographic scope: restrict to the admin's own assignment
+    // Geographic scope: restrict to the admin's own assignment (fail-closed)
     const scopedFilters = { ...filters, roleNames: visibleRoleNames };
-    switch (adminRole) {
-      case 'zone_admin':
-        if (adminUser.zoneId) scopedFilters.zoneId = adminUser.zoneId;
-        break;
-      case 'state_admin':
-        if (adminUser.stateId) scopedFilters.stateId = adminUser.stateId;
-        break;
-      case 'district_admin':
-        if (adminUser.districtId) scopedFilters.districtId = adminUser.districtId;
-        break;
-      case 'org_admin':
-        if (adminUser.orgId) scopedFilters.orgId = adminUser.orgId;
-        break;
-      case 'kvk_admin':
-        if (adminUser.kvkId) scopedFilters.kvkId = adminUser.kvkId;
-        break;
+    const geoMap = {
+      zone_admin: { field: 'zoneId', label: 'zone' },
+      state_admin: { field: 'stateId', label: 'state' },
+      district_admin: { field: 'districtId', label: 'district' },
+      org_admin: { field: 'orgId', label: 'organization' },
+      kvk_admin: { field: 'kvkId', label: 'KVK' },
+    };
+    const geo = geoMap[adminRole];
+    if (geo) {
+      if (!adminUser[geo.field]) {
+        throw new Error(`Admin user is not assigned to a ${geo.label}`);
+      }
+      scopedFilters[geo.field] = adminUser[geo.field];
     }
 
     return await userRepository.findUsersByHierarchy(scopedFilters);

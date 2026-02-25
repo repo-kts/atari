@@ -85,6 +85,27 @@ const MODULES = [
   { menuName: 'Reports', subMenuName: '—', moduleCode: 'reports' },
 ];
 
+// Shared modules for _user roles (ceiling pattern). kvk_user gets these; other _user roles get these + 'reports'.
+const BASE_USER_MODULES = [
+  'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details',
+  'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details',
+  'about_kvks_equipment_details', 'about_kvks_farm_implement_details',
+  'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld',
+  'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities',
+  'achievements_technology_week_celebration', 'achievements_celebration_days',
+  'achievements_production_supply_tech_products', 'achievements_soil_water_testing',
+  'achievements_projects', 'achievements_publications', 'achievements_award_recognition',
+  'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure',
+  'performance_indicators_financial', 'performance_indicators_linkages',
+  'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training',
+  'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors',
+  'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory',
+  'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada',
+  'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari',
+];
+
+const USER_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
+
 const ROLE_PERMISSIONS = {
   super_admin: { permissions: 'ALL' },
   zone_admin: {
@@ -122,26 +143,26 @@ const ROLE_PERMISSIONS = {
     // Actual access is the intersection of role permissions ∩ user-level permissions (granted during user creation).
     // All 4 actions are included so admins can grant any combination when creating users.
     permissions: {
-      modules: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      modules: [...BASE_USER_MODULES],
+      actions: USER_ACTIONS,
     },
   },
   state_user: {
     permissions: {
-      modules: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'reports'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
     },
   },
   district_user: {
     permissions: {
-      modules: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'reports'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
     },
   },
   org_user: {
     permissions: {
-      modules: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'reports'],
-      actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
     },
   },
 };
