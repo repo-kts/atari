@@ -3,7 +3,7 @@ import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../s
 import { masterDataApi } from '../../services/masterDataApi'
 import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
-import { getRoleLevel } from '../../constants/roleHierarchy'
+import { getRoleLevel, isAdminRole, getCreatableRoles } from '../../constants/roleHierarchy'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
@@ -30,14 +30,6 @@ const NON_ADMIN_ROLES_WITH_ADD = ['kvk_user']
 /** Non-admin roles that require custom permissions */
 const NON_ADMIN_ROLES = ['kvk_user', 'state_user', 'district_user', 'org_user']
 
-/** Non-admin roles each creator can assign (admins cannot create other admins). */
-const ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR: Record<string, string[]> = {
-    zone_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-    state_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-    district_admin: ['kvk_user', 'district_user', 'org_user'],
-    org_admin: ['kvk_user', 'org_user'],
-    kvk_admin: ['kvk_user'],
-}
 
 interface CreateUserModalProps {
     isOpen: boolean
@@ -112,8 +104,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Fetch roles using hooks
     const { data: allRoles = [] } = useRoles()
 
-    // Allowed non-admin roles for current creator (when not Super Admin)
-    const allowedRoleNames = (currentUser?.role && ALLOWED_NON_ADMIN_ROLES_FOR_CREATOR[currentUser.role]) || []
+    // Allowed roles for current creator (when not Super Admin) — all roles strictly lower in hierarchy
+    const allowedRoleNames = currentUser?.role ? getCreatableRoles(currentUser.role) : []
     const allowedRolesForDropdown = allRoles.filter((r: RoleInfo) => allowedRoleNames.includes(r.roleName))
 
     // Effective role from selection (both Super Admin and other admins choose or have a role)
@@ -129,7 +121,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     const stateRequired = selectedRole === 'state_admin' || selectedRole === 'state_user' ||
         selectedRole === 'district_admin' || selectedRole === 'district_user' ||
         selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
-    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
+    const districtRequired = selectedRole === 'district_admin' || selectedRole === 'district_user' ||
+        selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
     const orgRequired = selectedRole === 'org_admin' || selectedRole === 'org_user' || selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
     const kvkRequired = selectedRole === 'kvk_admin' || selectedRole === 'kvk_user'
 
@@ -145,37 +138,32 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Sub-admin hierarchy dropdowns: only show dropdowns for levels STRICTLY BELOW the creator's own level
     // Hierarchy levels: zone=1, state=2, district=3, org=4
     // e.g. district_admin (level 3) should NOT see State (level 2) or District (level 3) dropdowns - those are inherited
-    const needsStateLevel = ['state_user', 'district_user', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsDistrictLevel = ['district_user', 'kvk_admin', 'kvk_user']
-    const needsOrgLevel = ['org_user', 'kvk_admin', 'kvk_user']
+    const needsStateLevel = ['state_admin', 'state_user', 'district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
+    const needsDistrictLevel = ['district_admin', 'district_user', 'org_admin', 'org_user', 'kvk_admin', 'kvk_user']
+    const needsOrgLevel = ['org_admin', 'org_user', 'kvk_admin', 'kvk_user']
 
     const showStateForSubAdmin = isSubAdmin && creatorLevel < 2 && needsStateLevel.includes(selectedRole || '')
     const showDistrictForSubAdmin = isSubAdmin && creatorLevel < 3 && needsDistrictLevel.includes(selectedRole || '')
     const showOrgForSubAdmin = isSubAdmin && creatorLevel < 4 && needsOrgLevel.includes(selectedRole || '')
 
-    // Show permissions section for:
-    // 1. Sub-admins (always, they can only create non-admin users)
-    // 2. Super Admin when creating non-admin users (state_user, district_user, org_user, kvk)
-    const showPermissionsSection =
-        isSubAdmin ||
-        (selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole))
+    // Show permissions section only for _user roles (they use intersection pattern).
+    // Admin roles get permissions from their role assignment, not user-level permissions.
+    const isSelectedRoleUser = selectedRole !== null && NON_ADMIN_ROLES.includes(selectedRole)
+    const showPermissionsSection = isSelectedRoleUser
 
     // Note: All dropdown data is now loaded dynamically via DependentDropdown components
     // No need for manual state management or useEffect hooks for fetching dropdown data
 
-    // Reset form when modal opens/closes
+    // Reset form when modal closes
     useEffect(() => {
         if (!isOpen) {
-            const defaultRoleId = showPermissionsSection && allowedRolesForDropdown.length
-                ? allowedRolesForDropdown[0].roleId
-                : ''
             setFormData({
                 name: '',
                 email: '',
                 phoneNumber: '',
                 password: '',
                 confirmPassword: '',
-                roleId: defaultRoleId as number | '',
+                roleId: '',
                 zoneId: '',
                 stateId: '',
                 districtId: '',
@@ -189,14 +177,17 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             setSubmitSuccess(false)
             setShowPassword(false)
         }
-    }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
+    }, [isOpen])
 
-    // When non–super-admin opens modal, default role to first allowed option
+    // When non–super-admin opens modal, auto-select first allowed role if none selected or current is invalid
     useEffect(() => {
-        if (isOpen && showPermissionsSection && allowedRolesForDropdown.length > 0 && !formData.roleId) {
+        if (!isOpen || !isSubAdmin || allowedRolesForDropdown.length === 0) return
+        const isCurrentRoleAllowed = formData.roleId !== '' &&
+            allowedRolesForDropdown.some(r => r.roleId === formData.roleId)
+        if (!isCurrentRoleAllowed) {
             setFormData(prev => ({ ...prev, roleId: allowedRolesForDropdown[0].roleId }))
         }
-    }, [isOpen, showPermissionsSection, allowedRolesForDropdown.length])
+    }, [isOpen, isSubAdmin, allowedRolesForDropdown.length, formData.roleId])
 
     // Validate form
     const validateForm = (): boolean => {
@@ -496,7 +487,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 />
                 {isSubAdmin && (
                     <p className="mt-1.5 text-xs text-[#757575]">
-                        You can only create non-admin users (with custom permissions below).
+                        You can create roles with lower hierarchy than yours.
                     </p>
                 )}
 

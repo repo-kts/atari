@@ -4,19 +4,10 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
-const { isAdminRole, outranksOrEqual } = require('../constants/roleHierarchy.js');
+const { isAdminRole, outranksOrEqual, getManageableRoles, getRoleLevel, getCreatableRoles } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
-
-/** Non-admin roles that each creator role can assign (admins cannot create other admins) */
-const ALLOWED_ROLES_FOR_CREATOR = {
-  zone_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-  state_admin: ['kvk_user', 'state_user', 'district_user', 'org_user'],
-  district_admin: ['kvk_user', 'district_user', 'org_user'],
-  org_admin: ['kvk_user', 'org_user'],
-  kvk_admin: ['kvk_user'],
-};
 
 /**
  * Derive the full geographic hierarchy from whichever IDs are already present.
@@ -122,16 +113,6 @@ const userManagementService = {
       throw new Error('Email already exists');
     }
 
-    // Validate hierarchy assignment based on role
-    await userManagementService.validateHierarchyAssignment(
-      userData.roleId,
-      userData.zoneId,
-      userData.stateId,
-      userData.districtId,
-      userData.orgId,
-      userData.kvkId
-    );
-
     // Load creator to check role and enforce hierarchy scope
     const creator = await userRepository.findById(createdBy);
     if (!creator) {
@@ -155,24 +136,28 @@ const userManagementService = {
     let effectiveDistrictId = derived.districtId;
     let effectiveOrgId = derived.orgId;
     let effectiveUniversityId = userData.universityId || null;
+    let requestedRole = null;
 
     if (creatorRoleName !== 'super_admin') {
-      const rawPermissions = options.permissions;
-      if (!rawPermissions || !Array.isArray(rawPermissions) || rawPermissions.length === 0) {
-        throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a user as an admin');
+      // Validate the requested role is strictly lower in hierarchy
+      requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
+      if (!requestedRole) {
+        throw new Error('Invalid role');
       }
-      const permissions = rawPermissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-      const invalid = permissions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-      if (invalid.length > 0) {
-        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      const allowed = getCreatableRoles(creatorRoleName);
+      if (!allowed.includes(requestedRole.roleName)) {
+        throw new Error(`You can only create users with the following roles: ${allowed.join(', ')}`);
       }
-      // New user gets same zone/state/district/org/university as the creating admin; only kvkId may differ (e.g. when role is kvk)
+
+      // Geographic inheritance: inherit fields at or above creator's level, use form data below
+      const creatorLevel = getRoleLevel(creatorRoleName);
+      // zone=1, state=2, district=3, org=4, kvk=5
       effectiveZoneId = creator.zoneId ?? null;
-      effectiveStateId = creator.stateId ?? null;
-      effectiveDistrictId = creator.districtId ?? null;
-      effectiveOrgId = creator.orgId ?? null;
-      effectiveUniversityId = creator.universityId ?? null;
-      effectiveKvkId = userData.kvkId || creator.kvkId || null;
+      effectiveStateId = creatorLevel < 2 ? (derived.stateId ?? null) : (creator.stateId ?? null);
+      effectiveDistrictId = creatorLevel < 3 ? (derived.districtId ?? null) : (creator.districtId ?? null);
+      effectiveOrgId = creatorLevel < 4 ? (derived.orgId ?? null) : (creator.orgId ?? null);
+      effectiveUniversityId = creatorLevel < 5 ? (userData.universityId || null) : (creator.universityId ?? null);
+      effectiveKvkId = userData.kvkId ?? creator.kvkId ?? null;
 
       const effectiveUserData = {
         zoneId: effectiveZoneId,
@@ -182,16 +167,17 @@ const userManagementService = {
         kvkId: effectiveKvkId,
       };
       await userManagementService.validateCreatorHierarchyScope(createdBy, effectiveUserData);
-      // Non–super-admin can only assign non-admin roles (state_user, district_user, org_user, kvk) per their level
-      const requestedRole = await prisma.role.findUnique({ where: { roleId: userData.roleId } });
-      if (!requestedRole) {
-        throw new Error('Invalid role');
-      }
-      const allowed = ALLOWED_ROLES_FOR_CREATOR[creatorRoleName];
-      if (!allowed || !allowed.includes(requestedRole.roleName)) {
-        throw new Error(`You can only create users with the following roles: ${(allowed || []).join(', ')}`);
-      }
       effectiveRoleId = userData.roleId;
+      await userManagementService.validateHierarchyAssignment(
+        effectiveRoleId,
+        effectiveZoneId,
+        effectiveStateId,
+        effectiveDistrictId,
+        effectiveOrgId,
+        effectiveKvkId
+      );
+    } else {
+      // super_admin: validate with derived (raw + auto-filled) values
       await userManagementService.validateHierarchyAssignment(
         effectiveRoleId,
         effectiveZoneId,
@@ -220,7 +206,8 @@ const userManagementService = {
     const passwordHash = await hashPassword(password);
 
     // Pre-validate and resolve permissions for _user roles before creating the user
-    const targetRoleRecord = await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
+    // Reuse requestedRole fetched above for non-super_admin path; fetch for super_admin
+    const targetRoleRecord = requestedRole ?? await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
     const targetRoleName = targetRoleRecord?.roleName || '';
     const isTargetUserRole = targetRoleName.endsWith('_user');
     let permissionActions = [];
@@ -568,32 +555,51 @@ const userManagementService = {
   },
 
   /**
-   * Get users for admin - all admins can see all users in the platform.
-   * Lower admins cannot edit/delete higher users (enforced in ensureAdminCanAccessUser).
+   * Get users for admin — scoped by both role hierarchy and geographic assignment.
+   * Each admin sees users at their own level or below, within their geographic scope.
+   * super_admin sees everyone.
    * @param {number} adminUserId - Admin user ID
    * @param {object} filters - Additional filters (roleId, search, etc.)
    * @returns {Promise<array>} Array of users
    */
   getUsersForAdmin: async (adminUserId, filters = {}) => {
-    // Get admin user info
     const adminUser = await userRepository.findById(adminUserId);
     if (!adminUser) {
       throw new Error('Admin user not found');
     }
 
     const adminRole = adminUser.role.roleName;
-
-    // All admins (super_admin, zone_admin, state_admin, district_admin, org_admin, kvk_admin) can see all users
-    // No hierarchy filters for viewing - everyone sees the full user list
     const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
     if (!allowedRoles.includes(adminRole)) {
       throw new Error('User does not have permission to view users');
     }
 
-    // Use only the additional filters (roleId, search, etc.) - no hierarchy restriction
-    const users = await userRepository.findUsersByHierarchy(filters);
+    // super_admin: no restrictions
+    if (adminRole === 'super_admin') {
+      return await userRepository.findUsersByHierarchy(filters);
+    }
 
-    return users;
+    // Role hierarchy: only show users at the admin's level or below
+    const visibleRoleNames = getManageableRoles(adminRole);
+
+    // Geographic scope: restrict to the admin's own assignment (fail-closed)
+    const scopedFilters = { ...filters, roleNames: visibleRoleNames };
+    const geoMap = {
+      zone_admin: { field: 'zoneId', label: 'zone' },
+      state_admin: { field: 'stateId', label: 'state' },
+      district_admin: { field: 'districtId', label: 'district' },
+      org_admin: { field: 'orgId', label: 'organization' },
+      kvk_admin: { field: 'kvkId', label: 'KVK' },
+    };
+    const geo = geoMap[adminRole];
+    if (geo) {
+      if (adminUser[geo.field] == null) {
+        throw new Error(`Admin user is not assigned to a ${geo.label}`);
+      }
+      scopedFilters[geo.field] = adminUser[geo.field];
+    }
+
+    return await userRepository.findUsersByHierarchy(scopedFilters);
   },
 
   /**
@@ -641,9 +647,9 @@ const userManagementService = {
         if (!requestedRole) {
           throw new Error('Invalid role');
         }
-        const allowed = ALLOWED_ROLES_FOR_CREATOR[updaterRoleName];
-        if (!allowed || !allowed.includes(requestedRole.roleName)) {
-          throw new Error(`You can only assign the following roles: ${(allowed || []).join(', ')}`);
+        const allowed = getCreatableRoles(updaterRoleName);
+        if (!allowed.includes(requestedRole.roleName)) {
+          throw new Error(`You can only assign the following roles: ${allowed.join(', ')}`);
         }
       }
     }
