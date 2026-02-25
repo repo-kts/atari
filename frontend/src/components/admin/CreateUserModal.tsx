@@ -146,7 +146,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Hierarchy levels: zone=1, state=2, district=3, org=4
     // e.g. district_admin (level 3) should NOT see State (level 2) or District (level 3) dropdowns - those are inherited
     const needsStateLevel = ['state_user', 'district_user', 'org_user', 'kvk_admin', 'kvk_user']
-    const needsDistrictLevel = ['district_user', 'kvk_admin', 'kvk_user']
+    const needsDistrictLevel = ['district_user', 'org_user', 'kvk_admin', 'kvk_user']
     const needsOrgLevel = ['org_user', 'kvk_admin', 'kvk_user']
 
     const showStateForSubAdmin = isSubAdmin && creatorLevel < 2 && needsStateLevel.includes(selectedRole || '')

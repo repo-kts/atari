@@ -4,7 +4,7 @@ const { hashPassword } = require('../utils/password.js');
 const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validatePhoneNumber } = require('../utils/validation.js');
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
-const { isAdminRole, outranksOrEqual } = require('../constants/roleHierarchy.js');
+const { isAdminRole, outranksOrEqual, getManageableRoles } = require('../constants/roleHierarchy.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
@@ -568,32 +568,54 @@ const userManagementService = {
   },
 
   /**
-   * Get users for admin - all admins can see all users in the platform.
-   * Lower admins cannot edit/delete higher users (enforced in ensureAdminCanAccessUser).
+   * Get users for admin — scoped by both role hierarchy and geographic assignment.
+   * Each admin sees users at their own level or below, within their geographic scope.
+   * super_admin sees everyone.
    * @param {number} adminUserId - Admin user ID
    * @param {object} filters - Additional filters (roleId, search, etc.)
    * @returns {Promise<array>} Array of users
    */
   getUsersForAdmin: async (adminUserId, filters = {}) => {
-    // Get admin user info
     const adminUser = await userRepository.findById(adminUserId);
     if (!adminUser) {
       throw new Error('Admin user not found');
     }
 
     const adminRole = adminUser.role.roleName;
-
-    // All admins (super_admin, zone_admin, state_admin, district_admin, org_admin, kvk_admin) can see all users
-    // No hierarchy filters for viewing - everyone sees the full user list
     const allowedRoles = ['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin'];
     if (!allowedRoles.includes(adminRole)) {
       throw new Error('User does not have permission to view users');
     }
 
-    // Use only the additional filters (roleId, search, etc.) - no hierarchy restriction
-    const users = await userRepository.findUsersByHierarchy(filters);
+    // super_admin: no restrictions
+    if (adminRole === 'super_admin') {
+      return await userRepository.findUsersByHierarchy(filters);
+    }
 
-    return users;
+    // Role hierarchy: only show users at the admin's level or below
+    const visibleRoleNames = getManageableRoles(adminRole);
+
+    // Geographic scope: restrict to the admin's own assignment
+    const scopedFilters = { ...filters, roleNames: visibleRoleNames };
+    switch (adminRole) {
+      case 'zone_admin':
+        if (adminUser.zoneId) scopedFilters.zoneId = adminUser.zoneId;
+        break;
+      case 'state_admin':
+        if (adminUser.stateId) scopedFilters.stateId = adminUser.stateId;
+        break;
+      case 'district_admin':
+        if (adminUser.districtId) scopedFilters.districtId = adminUser.districtId;
+        break;
+      case 'org_admin':
+        if (adminUser.orgId) scopedFilters.orgId = adminUser.orgId;
+        break;
+      case 'kvk_admin':
+        if (adminUser.kvkId) scopedFilters.kvkId = adminUser.kvkId;
+        break;
+    }
+
+    return await userRepository.findUsersByHierarchy(scopedFilters);
   },
 
   /**
