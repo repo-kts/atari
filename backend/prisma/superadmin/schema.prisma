@@ -3,7 +3,8 @@
 // URL is provided via prisma.config.ts in Prisma 7.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
 }
 
 datasource db {
