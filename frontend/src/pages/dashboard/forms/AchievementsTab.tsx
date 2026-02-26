@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
     Trophy,
@@ -10,8 +10,10 @@ import {
     Award,
     UserCheck,
 } from 'lucide-react'
-import { ProjectsOverview } from './projects/ProjectsOverview'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
+import { LoadingState } from '../../../components/common/LoadingState'
+
+const ProjectsOverview = lazy(() => import('./projects/ProjectsOverview').then(m => ({ default: m.ProjectsOverview })))
 
 const sections: FeatureSection[] = [
     {
@@ -94,7 +96,11 @@ export const AchievementsTab: React.FC = () => {
 
     // If on projects route, show projects content
     if (location.pathname.startsWith('/forms/achievements/projects')) {
-        return <ProjectsOverview />
+        return (
+            <Suspense fallback={<LoadingState />}>
+                <ProjectsOverview />
+            </Suspense>
+        )
     }
 
     return (
