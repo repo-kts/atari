@@ -68,9 +68,11 @@ const extensionActivityRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
-        // Only allow kvkId filter override for non-KVK (admin) roles
-        if (filters.kvkId && (!user || !['kvk_admin', 'kvk_user'].includes(user.role))) {
+        // Strict isolation for KVK roles
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        } else if (filters.kvkId) {
+            // Only allow filtering by kvkId if the user is an admin
             where.kvkId = parseInt(filters.kvkId);
         }
 
@@ -156,6 +158,7 @@ function _mapResponse(r) {
         reportingYear = `${startYear}-${(startYear + 1).toString().slice(2)}`;
     }
     return {
+        id: r.extensionActivityId,
         extensionActivityId: r.extensionActivityId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,

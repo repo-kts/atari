@@ -60,7 +60,7 @@ const extensionActivityService = {
         const existing = await extensionActivityRepository.findById(id);
         if (!existing) throw new Error('Extension activity not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 
@@ -74,7 +74,7 @@ const extensionActivityService = {
         const existing = await extensionActivityRepository.findById(id);
         if (!existing) throw new Error('Extension activity not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.role) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

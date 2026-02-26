@@ -232,14 +232,14 @@ async function findAll(entityName, options = {}, user = null) {
         if (entityName === 'kvk-staff-transferred') {
             // For Staff Transferred: Only show TRANSFERRED employees
             where.transferStatus = 'TRANSFERRED';
-            
+
             // Filter by sourceKvkIds if provided (for tracking transfer chain)
             // This allows KVK admins to see employees they transferred
             if (filters.sourceKvkIds) {
                 const sourceKvkId = filters.sourceKvkIds;
                 // Remove sourceKvkIds from where as we'll handle it differently
                 delete where.sourceKvkIds;
-                
+
                 // Use Prisma's JSON array contains filter
                 // For PostgreSQL, we can use array_contains or path query
                 where.sourceKvkIds = {
@@ -267,7 +267,7 @@ async function findAll(entityName, options = {}, user = null) {
     // For staff-transferred with sourceKvkIds filter, we need to handle JSON array filtering
     // Prisma's JSON filtering varies by database, so we'll fetch and filter if needed
     let data, total;
-    
+
     if (entityName === 'kvk-staff-transferred' && filters.sourceKvkIds) {
         // Fetch all transferred employees and filter in memory
         // This is less efficient but works across all databases
@@ -283,16 +283,16 @@ async function findAll(entityName, options = {}, user = null) {
             },
             include: config.includes,
         });
-        
+
         // Filter by sourceKvkIds (check if JSON array contains the KVK ID)
         const filteredData = allData.filter(item => {
             if (!item.sourceKvkIds) return false;
-            const sourceIds = Array.isArray(item.sourceKvkIds) 
-                ? item.sourceKvkIds 
+            const sourceIds = Array.isArray(item.sourceKvkIds)
+                ? item.sourceKvkIds
                 : JSON.parse(item.sourceKvkIds);
             return Array.isArray(sourceIds) && sourceIds.includes(filters.sourceKvkIds);
         });
-        
+
         // Apply pagination
         const sortedData = filteredData.sort((a, b) => {
             const aVal = a[actualSortBy];
@@ -303,12 +303,12 @@ async function findAll(entityName, options = {}, user = null) {
                 return aVal < bVal ? 1 : -1;
             }
         });
-        
+
         total = filteredData.length;
         data = sortedData.slice(skip, skip + take);
     } else {
         // Standard query for other cases
-        
+
         [data, total] = await Promise.all([
             model.findMany({
                 where,
@@ -321,25 +321,31 @@ async function findAll(entityName, options = {}, user = null) {
             }),
             model.count({ where }),
         ]);
-        
+
     }
 
-    return { data, total };
+    // Map ID field to generic 'id' for frontend compatibility
+    const mappedData = data.map(item => ({
+        ...item,
+        id: item[config.idField]
+    }));
+
+    return { data: mappedData, total };
 }
 
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
         throw new Error(`ID is required for ${entityName}. Received: ${id}`);
     }
-    
+
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
         throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
-    
+
     return await prisma[config.model].findUnique({
         where: { [config.idField]: parsedId },
         include: config.includes,
@@ -364,7 +370,7 @@ function sanitizeData(entityName, data) {
         invalidFields.forEach(field => {
             delete sanitized[field];
         });
-        
+
         // Handle optional fields: convert empty strings to null
         if (sanitized.universityId === null || sanitized.universityId === undefined || sanitized.universityId === '') {
             sanitized.universityId = null;
@@ -414,20 +420,20 @@ async function create(entityName, data) {
 
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
         throw new Error(`ID is required for ${entityName}. Received: ${id}`);
     }
-    
+
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
         throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
-    
+
     // Sanitize data to remove fields not in Prisma schema
     const sanitizedData = sanitizeData(entityName, data);
-    
+
     // For vehicle-details and equipment-details, only update the fields provided
     // Don't require base fields like vehicleName/equipmentName
     if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
@@ -445,7 +451,7 @@ async function update(entityName, id, data) {
             include: config.includes,
         });
     }
-    
+
     return await prisma[config.model].update({
         where: { [config.idField]: parsedId },
         data: sanitizedData,
@@ -455,17 +461,17 @@ async function update(entityName, id, data) {
 
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
         throw new Error(`ID is required for ${entityName}. Received: ${id}`);
     }
-    
+
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
         throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
-    
+
     return await prisma[config.model].delete({
         where: { [config.idField]: parsedId },
     });

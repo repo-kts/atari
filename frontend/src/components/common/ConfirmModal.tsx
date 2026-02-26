@@ -1,6 +1,6 @@
 import React from 'react'
 import { Modal } from '@/components/ui/Modal'
-import { AlertTriangle, Info, XCircle, CheckCircle } from 'lucide-react'
+import { AlertTriangle, Info, XCircle } from 'lucide-react'
 import { LoadingButton } from './LoadingButton'
 
 interface ConfirmModalProps {

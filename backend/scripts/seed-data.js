@@ -46,6 +46,10 @@ const SANCTION_POSTS = [
   { sanctionedPostId: 8, postName: 'Driver' }, { sanctionedPostId: 9, postName: 'Supporting staff' },
 ];
 
+const SOIL_WATER_ANALYSIS = [
+  'Soil', 'Water', 'Plant', 'Fertilizers', 'Manures', 'Food', 'Others (if any)'
+];
+
 async function seedHierarchy() {
   console.log('🌱 Hierarchy (zone, states, districts, orgs)...');
   const zone = await prisma.zone.upsert({
@@ -121,6 +125,19 @@ async function seedSanctionPosts() {
   console.log('   ✅ Done\n');
 }
 
+async function seedSoilWaterAnalysis() {
+  console.log('🌱 Soil water analysis masters...');
+  for (const name of SOIL_WATER_ANALYSIS) {
+    // Note: upsert requires a unique field. analysisName is unique in the schema.
+    await prisma.soilWaterAnalysis.upsert({
+      where: { analysisName: name },
+      update: {},
+      create: { analysisName: name },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
 async function run() {
   console.log('🌱 Seed data\n');
   await seedHierarchy();
@@ -128,6 +145,7 @@ async function run() {
   await seedDisciplines();
   await seedInfraMasters();
   await seedSanctionPosts();
+  await seedSoilWaterAnalysis();
 }
 
 if (require.main === module) {

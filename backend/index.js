@@ -22,7 +22,7 @@ app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -35,6 +35,12 @@ app.use(cors({
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
+
+// Logger
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.get('origin')}`);
+  next();
+});
 
 // Health check
 app.get('/health', (req, res) => {

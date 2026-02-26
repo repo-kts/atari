@@ -17,13 +17,13 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
     staff,
 }) => {
     // Fetch transfer history using TanStack Query
-    const { 
-        data: history = [], 
-        isLoading: loading, 
-        error: queryError 
+    const {
+        data: history = [],
+        isLoading: loading,
+        error: queryError
     } = useStaffTransferHistory(open && staff ? staff.kvkStaffId : null);
 
-    const error = queryError 
+    const error = queryError
         ? (queryError instanceof Error ? queryError.message : 'Failed to load transfer history.')
         : null;
 
@@ -54,14 +54,13 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {history.map((transfer, index) => (
+                        {history.map((transfer) => (
                             <div
                                 key={transfer.transferId}
-                                className={`border rounded-lg p-4 ${
-                                    transfer.isReversal
+                                className={`border rounded-lg p-4 ${transfer.isReversal
                                         ? 'bg-orange-50 border-orange-200'
                                         : 'bg-[#F5F5F5] border-[#E0E0E0]'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center gap-2">

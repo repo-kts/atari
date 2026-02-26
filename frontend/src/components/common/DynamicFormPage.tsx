@@ -29,16 +29,16 @@ export const DynamicFormPage: React.FC = () => {
     // Later, you can add actual data fetching logic here
     return (
         <>
-        <TableFormPage
-            title={routeConfig.title}
-            description={routeConfig.description}
-            placeholder={true}
+            <TableFormPage
+                title={routeConfig.title}
+                description={routeConfig.description}
+                placeholder={true}
                 onAdd={() => alert({
                     title: 'Coming Soon',
                     message: `Add new ${routeConfig.title} - Coming soon`,
                     variant: 'info',
                 })}
-        />
+            />
             <AlertDialog />
         </>
     )

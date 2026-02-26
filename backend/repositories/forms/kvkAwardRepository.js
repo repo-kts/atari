@@ -1,7 +1,8 @@
 const prisma = require('../../config/prisma.js');
 const kvkAwardRepository = {
     create: async (data, user) => {
-        const kvkId = parseInt(String((user && user.kvkId) ? user.kvkId : (data.kvkId || 1)));
+        // Enforce KVK ID from user context if possible
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
         const amount = parseInt(data.amount || 0);
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_award 
@@ -14,9 +15,14 @@ const kvkAwardRepository = {
     findAll: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && user.kvkId) {
+        // Strict isolation for KVK roles
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereClause = 'WHERE a."kvkId" = $1';
-            params.push(parseInt(String(user.kvkId)));
+            params.push(parseInt(user.kvkId));
+        } else if (user && user.kvkId) {
+            // Fallback for other roles that might have a kvkId set
+            whereClause = 'WHERE a."kvkId" = $1';
+            params.push(parseInt(user.kvkId));
         }
         const rows = await prisma.$queryRawUnsafe(`
             SELECT a.*, k.kvk_name 
@@ -27,6 +33,7 @@ const kvkAwardRepository = {
         `, ...params);
         return rows.map(r => ({
             ...r,
+            id: r.kvk_award_id,
             kvkAwardID: r.kvk_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,
@@ -46,6 +53,7 @@ const kvkAwardRepository = {
         let r = rows[0];
         return {
             ...r,
+            id: r.kvk_award_id,
             kvkAwardID: r.kvk_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,

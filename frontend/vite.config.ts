@@ -15,7 +15,7 @@ export default defineConfig({
         proxy: {
             // Proxy /api to backend so cookies are same-origin
             '/api': {
-                target: 'http://127.0.0.1:5000',
+                target: 'http://localhost:5000',
                 changeOrigin: true,
             },
         },

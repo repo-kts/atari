@@ -2,6 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
+import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
 
 interface HRDProps {
     entityType: ExtendedEntityType | null
@@ -14,7 +15,14 @@ export const HRD: React.FC<HRDProps> = ({
     formData,
     setFormData,
 }) => {
+    const { data: employees, isLoading: employeesLoading } = useKvkEmployees()
+
     if (!entityType) return null
+
+    const staffOptions = employees?.map((emp: any) => ({
+        value: emp.id,
+        label: emp.staffName || emp.employeeName || emp.name || `Staff ${emp.id}`
+    })) || []
 
     return (
         <>
@@ -26,14 +34,11 @@ export const HRD: React.FC<HRDProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormSelect
                             label="Name of Staff"
-                            value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Sharma', label: 'Dr. Sharma' },
-                                { value: 'Dr. Patel', label: 'Dr. Patel' },
-                                { value: 'Mr. Kumar', label: 'Mr. Kumar' },
-                            ]}
-                            placeholder="--Please Select--"
+                            required
+                            value={formData.kvkStaffId || formData.staffId || ''}
+                            onChange={(e) => setFormData({ ...formData, kvkStaffId: e.target.value })}
+                            options={staffOptions}
+                            placeholder={employeesLoading ? "Loading staff..." : "--Please Select--"}
                         />
                         <FormInput
                             label="Course Name"
@@ -49,14 +54,14 @@ export const HRD: React.FC<HRDProps> = ({
                             label="Start Date"
                             type="date"
                             required
-                            value={formData.startDate || ''}
+                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             type="date"
                             required
-                            value={formData.endDate || ''}
+                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput

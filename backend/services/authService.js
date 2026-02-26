@@ -75,8 +75,11 @@ const authService = {
 
         // Find user by email
         const user = await authRepository.findUserByEmail(email);
+        console.log(`[AUTH DEBUG] Login attempt for: ${email}`);
+        console.log(`[AUTH DEBUG] User found: ${!!user}`);
 
         if (!user || user.deletedAt) {
+            console.log(`[AUTH DEBUG] User not found or deleted.`);
             // Always run bcrypt even when user not found to prevent timing attacks
             await comparePassword(password, '$2b$10$invalidhashfortimingatttack000000000000000000');
             throw new Error('Invalid email or password');
@@ -84,6 +87,7 @@ const authService = {
 
         // Verify password
         const isPasswordValid = await comparePassword(password, user.passwordHash);
+        console.log(`[AUTH DEBUG] Password valid: ${isPasswordValid}`);
 
         if (!isPasswordValid) {
             throw new Error('Invalid email or password');
@@ -224,7 +228,7 @@ const authService = {
                 if (decoded?.userId) {
                     await authRepository.revokeAllUserTokens(decoded.userId);
                 }
-            } catch {}
+            } catch { }
             return true;
         }
     },

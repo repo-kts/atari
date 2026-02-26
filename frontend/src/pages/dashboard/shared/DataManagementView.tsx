@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronLeft } from 'lucide-react'
-import { ShieldAlert } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -345,9 +344,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex items-center gap-4 px-6 pt-4 pb-4">
                             <button
                                 onClick={() => {
-                                    // For "All Masters" category, go to subcategory path (second breadcrumb)
-                                    // Otherwise use parent or subcategoryPath
-                                    if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
+                                    // Special handling for different categories
+                                    if (routeConfig?.category === 'Projects') {
+                                        // Always go back to projects overview for any project sub-page
+                                        navigate('/forms/achievements/projects')
+                                    } else if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
                                         // Go to subcategory path (e.g., /all-master/basic, /all-master/training-extension)
                                         const subcategoryPath = breadcrumbs[1]?.path
                                         if (subcategoryPath) {
@@ -362,15 +363,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     } else if (routeConfig?.parent) {
                                         navigate(routeConfig.parent)
                                     } else if (breadcrumbs.length > 1) {
-                                        // Fallback: go to second-to-last breadcrumb
-                                        const parentBreadcrumb = breadcrumbs[breadcrumbs.length - 2]
+                                        // Fallback: go to second-to-last breadcrumb that has a valid path
+                                        const parentBreadcrumb = [...breadcrumbs].reverse()[1]
                                         if (parentBreadcrumb?.path) {
                                             navigate(parentBreadcrumb.path)
                                         } else {
-                                            navigate('/all-master')
+                                            navigate('/forms')
                                         }
                                     } else {
-                                        navigate('/all-master')
+                                        navigate('/dashboard')
                                     }
                                 }}
                                 className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"

@@ -6,6 +6,7 @@ model KkvWorldSoilCelebration {
 
     activitiesConducted Int @map("activities_conducted")
     soilHealthCardDistributed Int @map("soil_health_card_distributed")
+    reportingYear Int? @map("reporting_year")
     vipNames String @map("vip_names")
     participants Int @map("participants")
 
