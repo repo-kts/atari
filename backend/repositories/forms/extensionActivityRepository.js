@@ -15,6 +15,16 @@ const extensionActivityRepository = {
         if (isNaN(staffId)) staffId = null;
 
         let activityId = data.activityId ? parseInt(data.activityId) : null;
+        if ((activityId === null || isNaN(activityId)) && data.extensionActivityType) {
+            const activityName = String(data.extensionActivityType);
+            let activity = await prisma.fldActivity.findFirst({
+                where: { activityName: { equals: activityName, mode: 'insensitive' } }
+            });
+            if (!activity) {
+                activity = await prisma.fldActivity.create({ data: { activityName } });
+            }
+            activityId = activity.activityId;
+        }
         if (isNaN(activityId)) activityId = null;
 
         const numberOfActivities = parseInt(data.numberOfActivities || data.activityCount || 0);
@@ -103,31 +113,56 @@ const extensionActivityRepository = {
     update: async (id, data) => {
         const updateData = {};
         if (data.fldId !== undefined) updateData.fldId = data.fldId ? parseInt(data.fldId) : null;
-        if (data.staffId !== undefined) updateData.staffId = data.staffId ? parseInt(data.staffId) : null;
-        if (data.activityId !== undefined) updateData.activityId = data.activityId ? parseInt(data.activityId) : null;
-        if (data.numberOfActivities !== undefined) updateData.numberOfActivities = parseInt(data.numberOfActivities);
+
+        // Staff lookup
+        if (data.staffName !== undefined) {
+            const staffRows = await prisma.$queryRawUnsafe(
+                `SELECT kvk_staff_id FROM kvk_staff WHERE staff_name = $1 LIMIT 1`,
+                String(data.staffName)
+            );
+            if (staffRows && staffRows.length > 0) {
+                updateData.staffId = staffRows[0].kvk_staff_id;
+            }
+        } else if (data.staffId !== undefined) {
+            updateData.staffId = data.staffId ? parseInt(data.staffId) : null;
+        }
+
+        // Activity lookup
+        if (data.extensionActivityType !== undefined) {
+            const activityName = String(data.extensionActivityType);
+            let activity = await prisma.fldActivity.findFirst({
+                where: { activityName: { equals: activityName, mode: 'insensitive' } }
+            });
+            if (!activity) {
+                activity = await prisma.fldActivity.create({ data: { activityName } });
+            }
+            updateData.activityId = activity.activityId;
+        } else if (data.activityId !== undefined) {
+            updateData.activityId = data.activityId ? parseInt(data.activityId) : null;
+        }
+
+        const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
+        if (numberOfActivities !== undefined) updateData.numberOfActivities = parseInt(numberOfActivities);
+
         if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
         if (data.endDate !== undefined) updateData.endDate = new Date(data.endDate);
 
-        // Farmer fields
-        if (data.farmersGeneralM !== undefined) updateData.farmersGeneralM = parseInt(data.farmersGeneralM);
-        if (data.farmersGeneralF !== undefined) updateData.farmersGeneralF = parseInt(data.farmersGeneralF);
-        if (data.farmersObcM !== undefined) updateData.farmersObcM = parseInt(data.farmersObcM);
-        if (data.farmersObcF !== undefined) updateData.farmersObcF = parseInt(data.farmersObcF);
-        if (data.farmersScM !== undefined) updateData.farmersScM = parseInt(data.farmersScM);
-        if (data.farmersScF !== undefined) updateData.farmersScF = parseInt(data.farmersScF);
-        if (data.farmersStM !== undefined) updateData.farmersStM = parseInt(data.farmersStM);
-        if (data.farmersStF !== undefined) updateData.farmersStF = parseInt(data.farmersStF);
+        // Prefer frontend names (gen_m, etc.) for participant fields
+        const mpping = {
+            gen_m: 'farmersGeneralM', gen_f: 'farmersGeneralF',
+            obc_m: 'farmersObcM', obc_f: 'farmersObcF',
+            sc_m: 'farmersScM', sc_f: 'farmersScF',
+            st_m: 'farmersStM', st_f: 'farmersStF',
+            ext_gen_m: 'officialsGeneralM', ext_gen_f: 'officialsGeneralF',
+            ext_obc_m: 'officialsObcM', ext_obc_f: 'officialsObcF',
+            ext_sc_m: 'officialsScM', ext_sc_f: 'officialsScF',
+            ext_st_m: 'officialsStM', ext_st_f: 'officialsStF'
+        };
 
-        // Officials fields
-        if (data.officialsGeneralM !== undefined) updateData.officialsGeneralM = parseInt(data.officialsGeneralM);
-        if (data.officialsGeneralF !== undefined) updateData.officialsGeneralF = parseInt(data.officialsGeneralF);
-        if (data.officialsObcM !== undefined) updateData.officialsObcM = parseInt(data.officialsObcM);
-        if (data.officialsObcF !== undefined) updateData.officialsObcF = parseInt(data.officialsObcF);
-        if (data.officialsScM !== undefined) updateData.officialsScM = parseInt(data.officialsScM);
-        if (data.officialsScF !== undefined) updateData.officialsScF = parseInt(data.officialsScF);
-        if (data.officialsStM !== undefined) updateData.officialsStM = parseInt(data.officialsStM);
-        if (data.officialsStF !== undefined) updateData.officialsStF = parseInt(data.officialsStF);
+        for (const [front, back] of Object.entries(mpping)) {
+            const val = data[front] !== undefined ? data[front] : data[back];
+            if (val !== undefined) updateData[back] = parseInt(val);
+        }
 
         const result = await prisma.kvkExtensionActivity.update({
             where: { extensionActivityId: parseInt(id) },
@@ -157,7 +192,14 @@ function _mapResponse(r) {
         const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
         reportingYear = `${startYear}-${(startYear + 1).toString().slice(2)}`;
     }
+
+    const activityName = r.activity ? r.activity.activityName : undefined;
+    const farmersSum = (r.farmersGeneralM || 0) + (r.farmersGeneralF || 0) + (r.farmersObcM || 0) + (r.farmersObcF || 0) + (r.farmersScM || 0) + (r.farmersScF || 0) + (r.farmersStM || 0) + (r.farmersStF || 0);
+    const officialsSum = (r.officialsGeneralM || 0) + (r.officialsGeneralF || 0) + (r.officialsObcM || 0) + (r.officialsObcF || 0) + (r.officialsScM || 0) + (r.officialsScF || 0) + (r.officialsStM || 0) + (r.officialsStF || 0);
+    const totalParticipants = farmersSum + officialsSum;
+
     return {
+        ...r,
         id: r.extensionActivityId,
         extensionActivityId: r.extensionActivityId,
         kvkId: r.kvkId,
@@ -166,11 +208,21 @@ function _mapResponse(r) {
         staffId: r.staffId,
         staffName: r.staff ? r.staff.staffName : undefined,
         activityId: r.activityId,
-        extensionActivityType: r.activity ? r.activity.activityName : undefined,
+        extensionActivityType: activityName,
         numberOfActivities: r.numberOfActivities,
-        startDate: r.startDate,
-        endDate: r.endDate,
+        startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
+        endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
         reportingYear,
+
+        // Frontend friendly aliases
+        'Reporting Year': reportingYear,
+        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
+        'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
+        'End Date': r.endDate ? new Date(r.endDate).toLocaleDateString('en-GB') : undefined,
+        'Name of Extension activities': activityName,
+        'No. of Activities': r.numberOfActivities,
+        'No. of Participants': totalParticipants,
+
         farmersGeneralM: r.farmersGeneralM,
         farmersGeneralF: r.farmersGeneralF,
         farmersObcM: r.farmersObcM,

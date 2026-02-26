@@ -1590,7 +1590,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_other_extension_activities',
-        fields: ['s.no', 'Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
+        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activity', 'No. of activities'],
     },
     {
         path: '/forms/achievements/technology-week',
@@ -1599,7 +1599,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_technology_week_celebration',
-        fields: ['Start Date', 'End Date', 'KVK', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
+        fields: ['Start Date', 'End Date', 'KVK Name', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
     },
     {
         path: '/forms/achievements/celebration-days',
@@ -1608,7 +1608,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_celebration_days',
-        fields: ['KVK Name', 'Important Dates', 'Event Date', 'No. of Activities'],
+        fields: ['KVK Name', 'Important Days', 'Event Date', 'No. of Activities'],
     },
     {
         path: '/forms/achievements/production-supply',

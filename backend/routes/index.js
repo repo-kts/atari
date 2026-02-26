@@ -23,6 +23,8 @@ const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRout
 const cfldTechnicalParameterRoutes = require('./forms/cfldTechnicalParameterRoutes.js');
 const soilWaterRoutes = require('./forms/soilWaterRoutes.js');
 const hrdRoutes = require('./forms/hrdRoutes.js');
+const techWeekRoutes = require('./forms/techWeekRoutes.js');
+const celebrationDayRoutes = require('./forms/celebrationDayRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 // Mount routes
@@ -45,6 +47,8 @@ router.use('/forms/achievements/other-extension-activities', otherExtensionActiv
 router.use('/forms/achievements/cfld-technical-parameters', cfldTechnicalParameterRoutes);
 router.use('/forms/achievements/soil-water', soilWaterRoutes);
 router.use('/forms/achievements/hrd', hrdRoutes);
+router.use('/forms/achievements/technology-week', techWeekRoutes);
+router.use('/forms/achievements/celebration-days', celebrationDayRoutes);
 router.use('/reports', reportRoutes);
 
 module.exports = router;

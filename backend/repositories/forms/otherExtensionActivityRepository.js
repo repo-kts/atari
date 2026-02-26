@@ -15,22 +15,60 @@ const otherExtensionActivityRepository = {
         if (isNaN(activityTypeId) && data.extensionActivityType) {
             const activityName = String(data.extensionActivityType);
             const activityRows = await prisma.$queryRawUnsafe(
-                `SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name = $1 LIMIT 1`,
+                `SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`,
                 activityName
             );
-            if (activityRows && activityRows.length > 0) activityTypeId = activityRows[0].activity_type_id;
+            if (activityRows && activityRows.length > 0) {
+                activityTypeId = activityRows[0].activity_type_id;
+            } else {
+                const insertedType = await prisma.$queryRawUnsafe(
+                    `INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`,
+                    activityName
+                );
+                activityTypeId = insertedType[0].activity_type_id;
+            }
         }
         if (isNaN(staffId)) staffId = null;
         if (isNaN(activityTypeId)) activityTypeId = null;
-        const numberOfActivities = parseInt(data.activityCount || data.numberOfActivities || 0);
+        const safeInt = (v) => (v === null || v === undefined || isNaN(parseInt(String(v)))) ? 0 : parseInt(String(v), 10);
+        const numberOfActivities = safeInt(data.activityCount || data.numberOfActivities);
         const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
         const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
+
+        const farmersGeneralM = safeInt(data.gen_m || data.farmersGeneralM);
+        const farmersGeneralF = safeInt(data.gen_f || data.farmersGeneralF);
+        const farmersObcM = safeInt(data.obc_m || data.farmersObcM);
+        const farmersObcF = safeInt(data.obc_f || data.farmersObcF);
+        const farmersScM = safeInt(data.sc_m || data.farmersScM);
+        const farmersScF = safeInt(data.sc_f || data.farmersScF);
+        const farmersStM = safeInt(data.st_m || data.farmersStM);
+        const farmersStF = safeInt(data.st_f || data.farmersStF);
+
+        const officialsGeneralM = safeInt(data.ext_gen_m || data.officialsGeneralM);
+        const officialsGeneralF = safeInt(data.ext_gen_f || data.officialsGeneralF);
+        const officialsObcM = safeInt(data.ext_obc_m || data.officialsObcM);
+        const officialsObcF = safeInt(data.ext_obc_f || data.officialsObcF);
+        const officialsScM = safeInt(data.ext_sc_m || data.officialsScM);
+        const officialsScF = safeInt(data.ext_sc_f || data.officialsScF);
+        const officialsStM = safeInt(data.ext_st_m || data.officialsStM);
+        const officialsStF = safeInt(data.ext_st_f || data.officialsStF);
+
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_other_extension_activity 
-            ("kvkId", "fldId", "staffId", "activityTypeId", number_of_activities, start_date, end_date)
-            VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7::timestamp)
+            ("kvkId", "fldId", "staffId", "activityTypeId", number_of_activities, start_date, end_date,
+             farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
+             farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
+             officials_general_m, officials_general_f, officials_obc_m, officials_obc_f,
+             officials_sc_m, officials_sc_f, officials_st_m, officials_st_f)
+            VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7::timestamp,
+                    $8, $9, $10, $11, $12, $13, $14, $15,
+                    $16, $17, $18, $19, $20, $21, $22, $23)
             RETURNING kvk_other_extension_activity_id;
-        `, kvkId, fldId, staffId, activityTypeId, numberOfActivities, startDate, endDate);
+        `, kvkId, fldId, staffId, activityTypeId, numberOfActivities, startDate, endDate,
+            farmersGeneralM, farmersGeneralF, farmersObcM, farmersObcF,
+            farmersScM, farmersScF, farmersStM, farmersStF,
+            officialsGeneralM, officialsGeneralF, officialsObcM, officialsObcF,
+            officialsScM, officialsScF, officialsStM, officialsStF);
         return { otherExtensionActivityId: inserted[0].kvk_other_extension_activity_id };
     },
     findAll: async (filters = {}, user) => {
@@ -108,6 +146,17 @@ const otherExtensionActivityRepository = {
             startDate,
             endDate,
             reportingYear: reportingYearStr,
+
+            // Participant fields
+            gen_m: safeInt(r.farmers_general_m), gen_f: safeInt(r.farmers_general_f),
+            obc_m: safeInt(r.farmers_obc_m), obc_f: safeInt(r.farmers_obc_f),
+            sc_m: safeInt(r.farmers_sc_m), sc_f: safeInt(r.farmers_sc_f),
+            st_m: safeInt(r.farmers_st_m), st_f: safeInt(r.farmers_st_f),
+            ext_gen_m: safeInt(r.officials_general_m), ext_gen_f: safeInt(r.officials_general_f),
+            ext_obc_m: safeInt(r.officials_obc_m), ext_obc_f: safeInt(r.officials_obc_f),
+            ext_sc_m: safeInt(r.officials_sc_m), ext_sc_f: safeInt(r.officials_sc_f),
+            ext_st_m: safeInt(r.officials_st_m), ext_st_f: safeInt(r.officials_st_f),
+
             'Reporting Year': reportingYearStr,
             'KVK Name': r.kvk_name,
             'Nature of Extension Activity': r.activity_name,
@@ -118,42 +167,47 @@ const otherExtensionActivityRepository = {
         const updates = [];
         const values = [];
         let index = 1;
-        const toInt = (v) => (v === null || v === undefined) ? NaN : parseInt(String(v), 10);
+        const toInt = (v) => (v === null || v === undefined || isNaN(parseInt(String(v)))) ? 0 : parseInt(String(v), 10);
+
         if (data.fldId !== undefined) {
             updates.push('"fldId" = $' + (index++));
-            values.push(data.fldId ? toInt(data.fldId) : null);
+            values.push(data.fldId ? parseInt(data.fldId) : null);
         }
-        if (data.staffId !== undefined) {
-            const parsedStaffId = toInt(data.staffId);
-            if (!isNaN(parsedStaffId)) {
+
+        if (data.staffName !== undefined) {
+            const staffRows = await prisma.$queryRawUnsafe(`SELECT kvk_staff_id FROM kvk_staff WHERE staff_name = $1 LIMIT 1`, String(data.staffName));
+            if (staffRows && staffRows.length > 0) {
                 updates.push('"staffId" = $' + (index++));
-                values.push(parsedStaffId);
-            } else if (data.staffName) {
-                const staffRows = await prisma.$queryRawUnsafe(`SELECT kvk_staff_id FROM kvk_staff WHERE staff_name = $1 LIMIT 1`, String(data.staffName));
-                if (staffRows && staffRows.length > 0) {
-                    updates.push('"staffId" = $' + (index++));
-                    values.push(Number(String(staffRows[0].kvk_staff_id)));
-                }
+                values.push(Number(String(staffRows[0].kvk_staff_id)));
             }
+        } else if (data.staffId !== undefined) {
+            updates.push('"staffId" = $' + (index++));
+            values.push(data.staffId ? parseInt(data.staffId) : null);
         }
-        if (data.activityTypeId !== undefined) {
-            const parsedTypeId = toInt(data.activityTypeId);
-            if (!isNaN(parsedTypeId)) {
-                updates.push('"activityTypeId" = $' + (index++));
-                values.push(parsedTypeId);
-            } else if (data.extensionActivityType) {
-                const activityRows = await prisma.$queryRawUnsafe(`SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name = $1 LIMIT 1`, String(data.extensionActivityType));
-                if (activityRows && activityRows.length > 0) {
-                    updates.push('"activityTypeId" = $' + (index++));
-                    values.push(Number(String(activityRows[0].activity_type_id)));
-                }
+
+        if (data.extensionActivityType !== undefined) {
+            const typeName = String(data.extensionActivityType);
+            const typeRows = await prisma.$queryRawUnsafe(`SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`, typeName);
+            let typeId;
+            if (typeRows && typeRows.length > 0) {
+                typeId = Number(String(typeRows[0].activity_type_id));
+            } else {
+                const inserted = await prisma.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`, typeName);
+                typeId = Number(String(inserted[0].activity_type_id));
             }
+            updates.push('"activityTypeId" = $' + (index++));
+            values.push(typeId);
+        } else if (data.activityTypeId !== undefined) {
+            updates.push('"activityTypeId" = $' + (index++));
+            values.push(data.activityTypeId ? parseInt(data.activityTypeId) : null);
         }
+
         if (data.activityCount !== undefined || data.numberOfActivities !== undefined) {
             updates.push('number_of_activities = $' + (index++));
             const rawVal = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
-            values.push(toInt(rawVal) || 0);
+            values.push(toInt(rawVal));
         }
+
         if (data.startDate !== undefined) {
             updates.push('start_date = $' + (index++) + '::timestamp');
             values.push(new Date(data.startDate).toISOString());
@@ -162,9 +216,30 @@ const otherExtensionActivityRepository = {
             updates.push('end_date = $' + (index++) + '::timestamp');
             values.push(new Date(data.endDate).toISOString());
         }
+
+        // Participant fields mapping
+        const participantMapping = {
+            gen_m: 'farmers_general_m', gen_f: 'farmers_general_f',
+            obc_m: 'farmers_obc_m', obc_f: 'farmers_obc_f',
+            sc_m: 'farmers_sc_m', sc_f: 'farmers_sc_f',
+            st_m: 'farmers_st_m', st_f: 'farmers_st_f',
+            ext_gen_m: 'officials_general_m', ext_gen_f: 'officials_general_f',
+            ext_obc_m: 'officials_obc_m', ext_obc_f: 'officials_obc_f',
+            ext_sc_m: 'officials_sc_m', ext_sc_f: 'officials_sc_f',
+            ext_st_m: 'officials_st_m', ext_st_f: 'officials_st_f'
+        };
+
+        for (const [front, back] of Object.entries(participantMapping)) {
+            const val = data[front] !== undefined ? data[front] : data[back];
+            if (val !== undefined) {
+                updates.push(`${back} = $${index++}`);
+                values.push(toInt(val));
+            }
+        }
+
         if (updates.length > 0) {
             const sql = 'UPDATE kvk_other_extension_activity SET ' + updates.join(', ') + ' WHERE kvk_other_extension_activity_id = $' + index;
-            values.push(toInt(id));
+            values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
         }
         return { success: true };

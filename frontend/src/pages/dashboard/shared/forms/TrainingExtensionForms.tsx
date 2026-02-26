@@ -395,8 +395,34 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         />
                     </div>
 
+                    <FormSection title="Farmers">
+                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+
+                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                        </div>
+                    </FormSection>
+
+                    <FormSection title="Extension Officials">
+                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput label="General_M" required type="number" value={formData.ext_gen_m || ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.ext_gen_f || ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.ext_obc_m || ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.ext_obc_f || ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
+
+                            <FormInput label="SC_M" required type="number" value={formData.ext_sc_m || ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
+                        </div>
+                    </FormSection>
                 </div>
-                // </div >
             )}
 
             {entityType === ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK && (

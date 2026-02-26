@@ -249,6 +249,52 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.eventName || null,
         priority: 5,
     },
+    'Name of Extension activities': {
+        extractor: (item) => item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        priority: 7,
+    },
+    'Name of Extension Activities': {
+        extractor: (item) => item['Name of Extension Activities'] || item['Name of Extension activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        priority: 7,
+    },
+    'Nature of Extension Activity': {
+        extractor: (item) => item['Nature of Extension Activity'] || item['Nature of Extension activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        priority: 7,
+    },
+    'Nature of Extension activity': {
+        extractor: (item) => item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        priority: 7,
+    },
+    'Important Days': {
+        extractor: (item) => item['Important Days'] || item['Important days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        priority: 7,
+    },
+    'Important days': {
+        extractor: (item) => item['Important days'] || item['Important Days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        priority: 7,
+    },
+    'No. of Activities': {
+        extractor: (item) => {
+            const val = item['No. of Activities'] || item['No. of activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 5,
+    },
+    'No. of activities': {
+        extractor: (item) => {
+            const val = item['No. of activities'] || item['No. of Activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 5,
+    },
+    'Type Of Activities': {
+        extractor: (item) => item['Type Of Activities'] || item['Type of activities'] || item.typeOfActivities || item.activityType || null,
+        priority: 5,
+    },
+    'Type of activities': {
+        extractor: (item) => item['Type of activities'] || item['Type Of Activities'] || item.typeOfActivities || item.activityType || null,
+        priority: 5,
+    },
 
     // Production & Projects fields
     productCategoryName: {
@@ -572,6 +618,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             if (!item.endDate) return null;
             try {
                 const date = new Date(item.endDate);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
+    'Event Date': {
+        extractor: (item) => {
+            const dateVal = item.eventDate || item.event_date || item['Event Date'];
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
                 return date.toLocaleDateString('en-GB');
             } catch { return null; }
         }
