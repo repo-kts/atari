@@ -20,6 +20,9 @@ const scientistAwardRoutes = require('./forms/scientistAwardRoutes.js');
 const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
 const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
 const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
+const cfldTechnicalParameterRoutes = require('./forms/cfldTechnicalParameterRoutes.js');
+const soilWaterRoutes = require('./forms/soilWaterRoutes.js');
+const hrdRoutes = require('./forms/hrdRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 
@@ -40,6 +43,9 @@ router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
 router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
 router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
 router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
+router.use('/forms/achievements/cfld-technical-parameters', cfldTechnicalParameterRoutes);
+router.use('/forms/achievements/soil-water', soilWaterRoutes);
+router.use('/forms/achievements/hrd', hrdRoutes);
 router.use('/reports', reportRoutes);
 
 
