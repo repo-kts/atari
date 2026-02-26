@@ -828,6 +828,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Season', 'Extension Activities Organized', 'Date', 'Place of Activity', 'No. of Farmers attended'],
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -842,6 +843,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Crop', 'Season', 'Overall Fund Allocation'],
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -902,7 +904,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
-        fields: ['Reporting Year', 'Name of the FPO', 'Registration No', 'Date of Registration'],
+        fields: ['KVK Name', 'Registration No', 'Date of Registration', 'Name of the FPO', 'Address of FPO', 'Total Number of BOM Members', 'Financial Position'],
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -1461,6 +1463,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Seed Hub',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Season', 'Crop Name', 'Variety', 'Area(ha)', 'Yield(ha)'],
     },
     {
         path: '/forms/achievements/other-program',

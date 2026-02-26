@@ -1,6 +1,6 @@
 import React from 'react'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
-import { useCropTypes, useCfldCropsBySeasonAndType, useFldCategories, useFldSubcategories } from '../../../../hooks/useOftFldData'
+import { useCropTypes, useFldCategories, useFldSubcategories } from '../../../../hooks/useOftFldData'
 import { useSeasons, useYears, useExtensionActivityTypes } from '../../../../hooks/useOtherMastersData'
 import { useAryaEnterprises, useCraFarmingSystems } from '../../../../hooks/useProductionProjectsData'
 import { useMasterData } from '../../../../hooks/useMasterData'
@@ -41,10 +41,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     const { data: districts = [] } = useMasterData('districts')
     const { data: kvks = [] } = useMasterData('organizations')
 
-    const { data: cfldCrops = [] } = useCfldCropsBySeasonAndType(
-        formData?.seasonId || null,
-        formData?.cropTypeId || null
-    )
     const { data: fldCategories = [] } = useFldCategories()
     const { data: fldSubcategories = [] } = useFldSubcategories()
 
@@ -75,7 +71,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     setFormData={setFormData}
                     seasons={seasons}
                     cropTypes={cropTypes}
-                    cfldCrops={cfldCrops}
                     years={years}
                 />
             )}

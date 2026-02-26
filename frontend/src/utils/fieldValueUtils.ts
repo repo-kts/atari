@@ -469,7 +469,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.cropName || (item.crop?.cropName) || null,
     },
     Variety: {
-        extractor: (item) => item.varietyName || null,
+        extractor: (item) => item.varietyName || item.variety || null,
     },
     'Name of Variety': {
         extractor: (item) => item.varietyName || null,
@@ -672,6 +672,60 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     'Organizer': {
         extractor: (item) => item.organizerVenue || item.organizer_venue || null,
+    },
+    // FPO Management mappings
+    'Registration No': {
+        extractor: (item) => item.registrationNumber || null,
+    },
+    'Date of Registration': {
+        extractor: (item) => {
+            if (!item.registrationDate) return null;
+            try {
+                const date = new Date(item.registrationDate);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
+    'Name of the FPO': {
+        extractor: (item) => item.fpoName || null,
+    },
+    'Address of FPO': {
+        extractor: (item) => item.address || null,
+    },
+    'Total Number of BOM Members': {
+        extractor: (item) => item.totalBomMembers !== undefined ? String(item.totalBomMembers) : null,
+    },
+    'Financial Position': {
+        extractor: (item) => item.financialPositionLakh !== undefined ? `Rs. ${item.financialPositionLakh} Lakh` : null,
+    },
+    // FPO Details mappings
+    'No. of blocks allocated': {
+        extractor: (item) => item.blocksAllocated !== undefined ? String(item.blocksAllocated) : null,
+    },
+    'No. of FPOs registered as CBBO': {
+        extractor: (item) => item.fposRegisteredAsCbbo !== undefined ? String(item.fposRegisteredAsCbbo) : null,
+    },
+    'Average members per FPO': {
+        extractor: (item) => item.avgMembersPerFpo !== undefined ? String(item.avgMembersPerFpo) : null,
+    },
+    // Seed Hub mappings
+    'Crop Name': {
+        extractor: (item) => item.cropName || null,
+    },
+    'Area (ha)': {
+        extractor: (item) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+    },
+    'Area(ha)': {
+        extractor: (item) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+    },
+    'Yield (ha)': {
+        extractor: (item) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
+    },
+    'Yield(ha)': {
+        extractor: (item) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
+    },
+    'Farmers Influenced': {
+        extractor: (item) => item.farmersPurchased !== undefined ? String(item.farmersPurchased) : null,
     },
 };
 
