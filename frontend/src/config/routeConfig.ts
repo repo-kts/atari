@@ -94,13 +94,7 @@ const employeeMastersPaths = [
     ENTITY_PATHS.DISCIPLINE,
 ]
 
-// Extension Masters group
-const extensionMastersPaths = [
-    ENTITY_PATHS.EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.EXTENSION_ACTIVITY,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
-]
+
 
 
 // Other Masters - split by tab sections
