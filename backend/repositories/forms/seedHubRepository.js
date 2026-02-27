@@ -23,9 +23,14 @@ const seedHubRepository = {
         return results.map(_mapResponse);
     },
 
-    findById: async (id) => {
-        const result = await prisma.kvkSeedHubProgram.findUnique({
-            where: { seedHubId: parseInt(id) },
+    findById: async (id, user) => {
+        const where = { seedHubId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const result = await prisma.kvkSeedHubProgram.findFirst({
+            where,
             include: {
                 kvk: {
                     select: { kvkName: true }
@@ -71,15 +76,22 @@ const seedHubRepository = {
         return _mapResponse(result);
     },
 
-    update: async (id, data) => {
-        const updateData = {};
+    update: async (id, data, user) => {
+        const where = { seedHubId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
 
+        // Verify existence and ownership
+        const existing = await prisma.kvkSeedHubProgram.findFirst({ where });
+        if (!existing) throw new Error('Record not found or unauthorized');
+
+        const updateData = {};
         if (data.yearId !== undefined || data.reportingYear !== undefined) updateData.reportingYear = parseInt(data.yearId ?? data.reportingYear);
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
         if (data.cropName !== undefined) updateData.cropName = data.cropName || '';
         if (data.varietyName !== undefined || data.variety !== undefined) updateData.varietyName = data.varietyName ?? data.variety ?? '';
 
-        // Handle numeric fields with nullish coalescing to allow 0 values
         if (data.areaCovered !== undefined || data.areaCoveredHa !== undefined || data.area !== undefined)
             updateData.areaCoveredHa = parseFloat(data.areaCovered ?? data.areaCoveredHa ?? data.area);
 
@@ -125,7 +137,16 @@ const seedHubRepository = {
         return _mapResponse(result);
     },
 
-    delete: async (id) => {
+    delete: async (id, user) => {
+        const where = { seedHubId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        // Verify existence and ownership
+        const existing = await prisma.kvkSeedHubProgram.findFirst({ where });
+        if (!existing) throw new Error('Record not found or unauthorized');
+
         return await prisma.kvkSeedHubProgram.delete({
             where: { seedHubId: parseInt(id) }
         });

@@ -43,9 +43,14 @@ const techWeekRepository = {
         return activities.map(a => techWeekRepository._mapResponse(a));
     },
 
-    findById: async (id) => {
-        const activity = await prisma.kvkTechnologyWeekCelebration.findUnique({
-            where: { techWeekId: parseInt(id) },
+    findById: async (id, user) => {
+        const where = { techWeekId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const activity = await prisma.kvkTechnologyWeekCelebration.findFirst({
+            where,
             include: {
                 kvk: { select: { kvkName: true } }
             }
@@ -53,7 +58,19 @@ const techWeekRepository = {
         return techWeekRepository._mapResponse(activity);
     },
 
-    update: async (id, data) => {
+    update: async (id, data, user) => {
+        const where = { techWeekId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkTechnologyWeekCelebration.findFirst({
+            where,
+            select: { techWeekId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         const updateData = {};
         if (data.startDate) updateData.startDate = new Date(data.startDate);
         if (data.endDate) updateData.endDate = new Date(data.endDate);
@@ -83,7 +100,19 @@ const techWeekRepository = {
         });
     },
 
-    delete: async (id) => {
+    delete: async (id, user) => {
+        const where = { techWeekId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkTechnologyWeekCelebration.findFirst({
+            where,
+            select: { techWeekId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         return await prisma.kvkTechnologyWeekCelebration.delete({
             where: { techWeekId: parseInt(id) }
         });

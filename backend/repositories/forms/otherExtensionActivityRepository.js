@@ -1,4 +1,11 @@
 const prisma = require('../../config/prisma.js');
+
+const normalizeActivityName = (v) => {
+    if (v === undefined || v === null) return null;
+    const name = String(v).trim();
+    return name.length > 0 ? name : null;
+};
+
 const otherExtensionActivityRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
@@ -13,19 +20,25 @@ const otherExtensionActivityRepository = {
         }
         let activityTypeId = parseInt(data.activityTypeId);
         if (isNaN(activityTypeId) && data.extensionActivityType) {
-            const activityName = String(data.extensionActivityType);
-            const activityRows = await prisma.$queryRawUnsafe(
-                `SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`,
-                activityName
-            );
-            if (activityRows && activityRows.length > 0) {
-                activityTypeId = activityRows[0].activity_type_id;
-            } else {
-                const insertedType = await prisma.$queryRawUnsafe(
-                    `INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`,
-                    activityName
-                );
-                activityTypeId = insertedType[0].activity_type_id;
+            const activityName = normalizeActivityName(data.extensionActivityType);
+            if (activityName) {
+                // Use a transaction and ILIKE check to avoid duplicates.
+                const activityIdResult = await prisma.$transaction(async (tx) => {
+                    const activityRows = await tx.$queryRawUnsafe(
+                        `SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`,
+                        activityName
+                    );
+                    if (activityRows && activityRows.length > 0) {
+                        return activityRows[0].activity_type_id;
+                    } else {
+                        const insertedType = await tx.$queryRawUnsafe(
+                            `INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`,
+                            activityName
+                        );
+                        return insertedType[0].activity_type_id;
+                    }
+                });
+                activityTypeId = activityIdResult;
             }
         }
         if (isNaN(staffId)) staffId = null;
@@ -94,15 +107,23 @@ const otherExtensionActivityRepository = {
         const rows = await prisma.$queryRawUnsafe(sql, ...queryParams);
         return rows.map(r => otherExtensionActivityRepository._mapResponse(r));
     },
-    findById: async (id) => {
+    findById: async (id, user) => {
+        let whereClause = 'WHERE o.kvk_other_extension_activity_id = $1';
+        const params = [parseInt(id)];
+
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            whereClause += ' AND o."kvkId" = $2';
+            params.push(parseInt(user.kvkId));
+        }
+
         const rows = await prisma.$queryRawUnsafe(`
             SELECT o.*, k.kvk_name, s.staff_name, t.activity_name
             FROM kvk_other_extension_activity o
             LEFT JOIN kvk k ON o."kvkId" = k.kvk_id
             LEFT JOIN kvk_staff s ON o."staffId" = s.kvk_staff_id
             LEFT JOIN other_extension_activity_type t ON o."activityTypeId" = t.activity_type_id
-            WHERE o.kvk_other_extension_activity_id = $1;
-        `, parseInt(id));
+            ${whereClause};
+        `, ...params);
         if (!rows || !rows.length) return null;
         return otherExtensionActivityRepository._mapResponse(rows[0]);
     },
@@ -164,6 +185,16 @@ const otherExtensionActivityRepository = {
         };
     },
     update: async (id, data, user) => {
+        // Enforce ownership
+        const existingSql = user && ['kvk_admin', 'kvk_user'].includes(user.roleName)
+            ? 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1 AND "kvkId" = $2'
+            : 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
+        const existingParams = [parseInt(id)];
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) existingParams.push(parseInt(user.kvkId));
+
+        const existingRows = await prisma.$queryRawUnsafe(existingSql, ...existingParams);
+        if (!existingRows || !existingRows.length) throw new Error("Record not found or unauthorized");
+
         const updates = [];
         const values = [];
         let index = 1;
@@ -186,17 +217,23 @@ const otherExtensionActivityRepository = {
         }
 
         if (data.extensionActivityType !== undefined) {
-            const typeName = String(data.extensionActivityType);
-            const typeRows = await prisma.$queryRawUnsafe(`SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`, typeName);
-            let typeId;
-            if (typeRows && typeRows.length > 0) {
-                typeId = Number(String(typeRows[0].activity_type_id));
+            const activityName = normalizeActivityName(data.extensionActivityType);
+            if (activityName) {
+                const typeId = await prisma.$transaction(async (tx) => {
+                    const typeRows = await tx.$queryRawUnsafe(`SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`, activityName);
+                    if (typeRows && typeRows.length > 0) {
+                        return Number(String(typeRows[0].activity_type_id));
+                    } else {
+                        const inserted = await tx.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`, activityName);
+                        return Number(String(inserted[0].activity_type_id));
+                    }
+                });
+                updates.push('"activityTypeId" = $' + (index++));
+                values.push(typeId);
             } else {
-                const inserted = await prisma.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`, typeName);
-                typeId = Number(String(inserted[0].activity_type_id));
+                updates.push('"activityTypeId" = $' + (index++));
+                values.push(null);
             }
-            updates.push('"activityTypeId" = $' + (index++));
-            values.push(typeId);
         } else if (data.activityTypeId !== undefined) {
             updates.push('"activityTypeId" = $' + (index++));
             values.push(data.activityTypeId ? parseInt(data.activityTypeId) : null);
@@ -244,7 +281,17 @@ const otherExtensionActivityRepository = {
         }
         return { success: true };
     },
-    delete: async (id) => {
+    delete: async (id, user) => {
+        // Enforce ownership
+        const existingSql = user && ['kvk_admin', 'kvk_user'].includes(user.roleName)
+            ? 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1 AND "kvkId" = $2'
+            : 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
+        const existingParams = [parseInt(id)];
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) existingParams.push(parseInt(user.kvkId));
+
+        const existingRows = await prisma.$queryRawUnsafe(existingSql, ...existingParams);
+        if (!existingRows || !existingRows.length) throw new Error("Record not found or unauthorized");
+
         await prisma.$queryRawUnsafe(`DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1`, parseInt(id));
         return { success: true };
     },

@@ -13,7 +13,7 @@ const seedHubController = {
 
     getById: async (req, res) => {
         try {
-            const result = await seedHubService.getById(req.params.id);
+            const result = await seedHubService.getById(req.params.id, req.user);
             if (!result) {
                 return res.status(404).json({ success: false, message: 'Record not found' });
             }
@@ -35,7 +35,7 @@ const seedHubController = {
 
     update: async (req, res) => {
         try {
-            const result = await seedHubService.update(req.params.id, req.body);
+            const result = await seedHubService.update(req.params.id, req.body, req.user);
             res.json({ success: true, data: result });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
@@ -44,7 +44,7 @@ const seedHubController = {
 
     delete: async (req, res) => {
         try {
-            await seedHubService.delete(req.params.id);
+            await seedHubService.delete(req.params.id, req.user);
             res.json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });

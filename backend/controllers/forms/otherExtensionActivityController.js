@@ -40,7 +40,7 @@ const otherExtensionActivityController = {
 
     getById: async (req, res) => {
         try {
-            const result = await otherExtensionActivityService.getOtherExtensionActivityById(req.params.id);
+            const result = await otherExtensionActivityService.getOtherExtensionActivityById(req.params.id, req.user);
             if (!result) {
                 return res.status(404).json({
                     success: false,

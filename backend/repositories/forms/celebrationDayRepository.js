@@ -62,9 +62,14 @@ const celebrationDayRepository = {
         return activities.map(a => celebrationDayRepository._mapResponse(a));
     },
 
-    findById: async (id) => {
-        const activity = await prisma.kvkImportantDayCelebration.findUnique({
-            where: { celebrationId: parseInt(id) },
+    findById: async (id, user) => {
+        const where = { celebrationId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const activity = await prisma.kvkImportantDayCelebration.findFirst({
+            where,
             include: {
                 kvk: { select: { kvkName: true } },
                 importantDay: { select: { dayName: true } }
@@ -73,10 +78,21 @@ const celebrationDayRepository = {
         return celebrationDayRepository._mapResponse(activity);
     },
 
-    update: async (id, data) => {
+    update: async (id, data, user) => {
+        const where = { celebrationId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkImportantDayCelebration.findFirst({
+            where,
+            select: { celebrationId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         const updateData = {};
         if (data.eventDate) updateData.eventDate = new Date(data.eventDate);
-
         if (data.importantDay !== undefined) {
             const dayName = String(data.importantDay);
             let day = await prisma.importantDay.findFirst({
@@ -116,7 +132,19 @@ const celebrationDayRepository = {
         });
     },
 
-    delete: async (id) => {
+    delete: async (id, user) => {
+        const where = { celebrationId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkImportantDayCelebration.findFirst({
+            where,
+            select: { celebrationId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         return await prisma.kvkImportantDayCelebration.delete({
             where: { celebrationId: parseInt(id) }
         });

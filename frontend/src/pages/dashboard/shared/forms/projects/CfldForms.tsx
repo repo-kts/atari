@@ -9,6 +9,7 @@ interface CfldFormsProps {
     seasons: any[]
     cropTypes: any[]
     years: any[]
+    extensionActivityTypes?: any[]
 }
 
 export const CfldForms: React.FC<CfldFormsProps> = ({
@@ -17,7 +18,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     setFormData,
     seasons,
     cropTypes,
-    years
+    years,
+    extensionActivityTypes = []
 }) => {
     return (
         <>
@@ -184,14 +186,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         <FormSelect
                             label="Extension Activities organized"
                             required
-                            value={formData.activityType || ''}
-                            onChange={(e) => setFormData({ ...formData, activityType: e.target.value })}
-                            options={[
-                                { value: 'Field Day', label: 'Field Day' },
-                                { value: 'Awareness', label: 'Awareness' },
-                                { value: 'Crop Cutting', label: 'Crop Cutting' },
-                                { value: 'Diagnostic Vision', label: 'Diagnostic Vision' },
-                            ]}
+                            value={formData.extensionActivityId || ''}
+                            onChange={(e) => setFormData({ ...formData, extensionActivityId: parseInt(e.target.value) })}
+                            options={extensionActivityTypes.map((ext: any) => ({
+                                value: ext.activityId || ext.id,
+                                label: ext.activityName || ext.name
+                            }))}
                         />
                         <FormInput
                             label="Date"

@@ -72,6 +72,7 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     seasons={seasons}
                     cropTypes={cropTypes}
                     years={years}
+                    extensionActivityTypes={extensionActivityTypes}
                 />
             )}
 

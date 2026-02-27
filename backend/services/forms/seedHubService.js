@@ -9,20 +9,20 @@ const seedHubService = {
         return await seedHubRepository.findAll(filters);
     },
 
-    getById: async (id) => {
-        return await seedHubRepository.findById(id);
+    getById: async (id, user) => {
+        return await seedHubRepository.findById(id, user);
     },
 
     create: async (data, user) => {
         return await seedHubRepository.create(data, user);
     },
 
-    update: async (id, data) => {
-        return await seedHubRepository.update(id, data);
+    update: async (id, data, user) => {
+        return await seedHubRepository.update(id, data, user);
     },
 
-    delete: async (id) => {
-        return await seedHubRepository.delete(id);
+    delete: async (id, user) => {
+        return await seedHubRepository.delete(id, user);
     }
 };
 

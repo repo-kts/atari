@@ -49,36 +49,22 @@ const extensionActivityService = {
     /**
      * Get Extension Activity by ID
      */
-    getExtensionActivityById: async (id) => {
-        return await extensionActivityRepository.findById(id);
+    getExtensionActivityById: async (id, user) => {
+        return await extensionActivityRepository.findById(id, user);
     },
 
     /**
      * Update Extension Activity
      */
     updateExtensionActivity: async (id, data, user) => {
-        const existing = await extensionActivityRepository.findById(id);
-        if (!existing) throw new Error('Extension activity not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
-        }
-
-        return await extensionActivityRepository.update(id, data);
+        return await extensionActivityRepository.update(id, data, user);
     },
 
     /**
      * Delete Extension Activity
      */
     deleteExtensionActivity: async (id, user) => {
-        const existing = await extensionActivityRepository.findById(id);
-        if (!existing) throw new Error('Extension activity not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
-        }
-
-        return await extensionActivityRepository.delete(id);
+        return await extensionActivityRepository.delete(id, user);
     },
 };
 

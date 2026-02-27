@@ -1,5 +1,11 @@
 const prisma = require('../../config/prisma.js');
 
+const normalizeActivityName = (v) => {
+    if (v === undefined || v === null) return null;
+    const name = String(v).trim();
+    return name.length > 0 ? name : null;
+};
+
 const extensionActivityRepository = {
     create: async (data, opts, user) => {
         const kvkId = parseInt((user && user.kvkId) ? user.kvkId : (data.kvkId || 1));
@@ -16,14 +22,22 @@ const extensionActivityRepository = {
 
         let activityId = data.activityId ? parseInt(data.activityId) : null;
         if ((activityId === null || isNaN(activityId)) && data.extensionActivityType) {
-            const activityName = String(data.extensionActivityType);
-            let activity = await prisma.fldActivity.findFirst({
-                where: { activityName: { equals: activityName, mode: 'insensitive' } }
-            });
-            if (!activity) {
-                activity = await prisma.fldActivity.create({ data: { activityName } });
+            const activityName = normalizeActivityName(data.extensionActivityType);
+            if (activityName) {
+                // Use upsert or transaction to avoid race conditions. 
+                // Since fldActivity might not have a unique constraint on activityName in some deployments, 
+                // we'll use a transaction with a guarded check.
+                const activity = await prisma.$transaction(async (tx) => {
+                    let a = await tx.fldActivity.findFirst({
+                        where: { activityName: { equals: activityName, mode: 'insensitive' } }
+                    });
+                    if (!a) {
+                        a = await tx.fldActivity.create({ data: { activityName } });
+                    }
+                    return a;
+                });
+                activityId = activity.activityId;
             }
-            activityId = activity.activityId;
         }
         if (isNaN(activityId)) activityId = null;
 
@@ -98,9 +112,14 @@ const extensionActivityRepository = {
         return results.map(_mapResponse);
     },
 
-    findById: async (id) => {
-        const result = await prisma.kvkExtensionActivity.findUnique({
-            where: { extensionActivityId: parseInt(id) },
+    findById: async (id, user) => {
+        const where = { extensionActivityId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const result = await prisma.kvkExtensionActivity.findFirst({
+            where,
             include: {
                 kvk: { select: { kvkName: true } },
                 staff: { select: { staffName: true } },
@@ -110,7 +129,19 @@ const extensionActivityRepository = {
         return result ? _mapResponse(result) : null;
     },
 
-    update: async (id, data) => {
+    update: async (id, data, user) => {
+        const where = { extensionActivityId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkExtensionActivity.findFirst({
+            where,
+            select: { extensionActivityId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         const updateData = {};
         if (data.fldId !== undefined) updateData.fldId = data.fldId ? parseInt(data.fldId) : null;
 
@@ -129,14 +160,21 @@ const extensionActivityRepository = {
 
         // Activity lookup
         if (data.extensionActivityType !== undefined) {
-            const activityName = String(data.extensionActivityType);
-            let activity = await prisma.fldActivity.findFirst({
-                where: { activityName: { equals: activityName, mode: 'insensitive' } }
-            });
-            if (!activity) {
-                activity = await prisma.fldActivity.create({ data: { activityName } });
+            const activityName = normalizeActivityName(data.extensionActivityType);
+            if (activityName) {
+                const activity = await prisma.$transaction(async (tx) => {
+                    let a = await tx.fldActivity.findFirst({
+                        where: { activityName: { equals: activityName, mode: 'insensitive' } }
+                    });
+                    if (!a) {
+                        a = await tx.fldActivity.create({ data: { activityName } });
+                    }
+                    return a;
+                });
+                updateData.activityId = activity.activityId;
+            } else {
+                updateData.activityId = null;
             }
-            updateData.activityId = activity.activityId;
         } else if (data.activityId !== undefined) {
             updateData.activityId = data.activityId ? parseInt(data.activityId) : null;
         }
@@ -176,7 +214,19 @@ const extensionActivityRepository = {
         return _mapResponse(result);
     },
 
-    delete: async (id) => {
+    delete: async (id, user) => {
+        const where = { extensionActivityId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        }
+
+        const existing = await prisma.kvkExtensionActivity.findFirst({
+            where,
+            select: { extensionActivityId: true }
+        });
+
+        if (!existing) throw new Error("Record not found or unauthorized");
+
         return await prisma.kvkExtensionActivity.delete({
             where: { extensionActivityId: parseInt(id) },
         });

@@ -161,10 +161,8 @@ const cfldBudgetUtilizationRepository = {
         ].filter(item => item.r !== undefined || item.u !== undefined);
 
         if (budgetItems.length > 0) {
-            await prisma.kvkBudgetUtilizationItem.deleteMany({
-                where: { budgetId: parseInt(id) }
-            });
             updateData.items = {
+                deleteMany: {},
                 create: budgetItems.map(item => ({
                     budgetItemId: item.id,
                     budgetReceived: parseFloat(item.r || 0),
