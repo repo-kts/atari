@@ -10,6 +10,7 @@ router.get('/', cfldTechnicalParameterController.findAll);
 router.get('/:id', cfldTechnicalParameterController.findById);
 router.post('/', cfldTechnicalParameterController.create);
 router.put('/:id', cfldTechnicalParameterController.update);
+router.patch('/:id', cfldTechnicalParameterController.update);
 router.delete('/:id', cfldTechnicalParameterController.delete);
 
 module.exports = router;

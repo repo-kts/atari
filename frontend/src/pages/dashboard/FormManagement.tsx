@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
     Building2,
@@ -6,11 +6,13 @@ import {
     BarChart3,
     FolderTree,
 } from 'lucide-react'
-import { AboutKVKTab } from './forms/AboutKVKTab'
-import { AchievementsTab } from './forms/AchievementsTab'
-import { PerformanceTab } from './forms/PerformanceTab'
-import { MiscellaneousTab } from './forms/MiscellaneousTab'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
+import { LoadingState } from '../../components/common/LoadingState'
+
+const AboutKVKTab = lazy(() => import('./forms/AboutKVKTab').then(m => ({ default: m.AboutKVKTab })))
+const AchievementsTab = lazy(() => import('./forms/AchievementsTab').then(m => ({ default: m.AchievementsTab })))
+const PerformanceTab = lazy(() => import('./forms/PerformanceTab').then(m => ({ default: m.PerformanceTab })))
+const MiscellaneousTab = lazy(() => import('./forms/MiscellaneousTab').then(m => ({ default: m.MiscellaneousTab })))
 
 interface Tab {
     id: string
@@ -87,7 +89,9 @@ export const FormManagement: React.FC = () => {
             description="Manage KVK forms, achievements, performance indicators, and miscellaneous data"
             hideTabs={true}
         >
-            {activeTabData.component}
+            <Suspense fallback={<LoadingState />}>
+                {activeTabData.component}
+            </Suspense>
         </SidebarLayout>
     )
 }

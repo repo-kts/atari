@@ -49,7 +49,7 @@ const extensionActivityController = {
      */
     getById: async (req, res) => {
         try {
-            const result = await extensionActivityService.getExtensionActivityById(req.params.id);
+            const result = await extensionActivityService.getExtensionActivityById(req.params.id, req.user);
             if (!result) {
                 return res.status(404).json({
                     success: false,

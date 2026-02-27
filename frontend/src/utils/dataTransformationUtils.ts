@@ -70,6 +70,15 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.YEAR]: {
         excludeFields: ['yearId', '_count'],
     },
+    [ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY]: {
+        transform: (data: any) => {
+            if (data.date) {
+                data.activityDate = data.date;
+                delete data.date;
+            }
+            return data;
+        },
+    },
 };
 
 // ============================================

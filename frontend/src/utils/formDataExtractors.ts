@@ -69,6 +69,81 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
             formData.publicationName = item.publicationName;
         }
     },
+    [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: (item: any, formData: any) => {
+        if (item.farmersGeneralM !== undefined) formData.gen_m = item.farmersGeneralM;
+        if (item.farmersGeneralF !== undefined) formData.gen_f = item.farmersGeneralF;
+        if (item.farmersObcM !== undefined) formData.obc_m = item.farmersObcM;
+        if (item.farmersObcF !== undefined) formData.obc_f = item.farmersObcF;
+        if (item.farmersScM !== undefined) formData.sc_m = item.farmersScM;
+        if (item.farmersScF !== undefined) formData.sc_f = item.farmersScF;
+        if (item.farmersStM !== undefined) formData.st_m = item.farmersStM;
+        if (item.farmersStF !== undefined) formData.st_f = item.farmersStF;
+
+        if (item.officialsGeneralM !== undefined) formData.ext_gen_m = item.officialsGeneralM;
+        if (item.officialsGeneralF !== undefined) formData.ext_gen_f = item.officialsGeneralF;
+        if (item.officialsObcM !== undefined) formData.ext_obc_m = item.officialsObcM;
+        if (item.officialsObcF !== undefined) formData.ext_obc_f = item.officialsObcF;
+        if (item.officialsScM !== undefined) formData.ext_sc_m = item.officialsScM;
+        if (item.officialsScF !== undefined) formData.ext_sc_f = item.officialsScF;
+        if (item.officialsStM !== undefined) formData.ext_st_m = item.officialsStM;
+        if (item.officialsStF !== undefined) formData.ext_st_f = item.officialsStF;
+
+        if (item.numberOfActivities !== undefined) formData.activityCount = item.numberOfActivities;
+        if (item.extensionActivityType) formData.extensionActivityType = item.extensionActivityType;
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: (item: any, formData: any) => {
+        if (item.farmersGeneralM !== undefined) formData.gen_m = item.farmersGeneralM;
+        if (item.farmersGeneralF !== undefined) formData.gen_f = item.farmersGeneralF;
+        if (item.farmersObcM !== undefined) formData.obc_m = item.farmersObcM;
+        if (item.farmersObcF !== undefined) formData.obc_f = item.farmersObcF;
+        if (item.farmersScM !== undefined) formData.sc_m = item.farmersScM;
+        if (item.farmersScF !== undefined) formData.sc_f = item.farmersScF;
+        if (item.farmersStM !== undefined) formData.st_m = item.farmersStM;
+        if (item.farmersStF !== undefined) formData.st_f = item.farmersStF;
+
+        if (item.officialsGeneralM !== undefined) formData.ext_gen_m = item.officialsGeneralM;
+        if (item.officialsGeneralF !== undefined) formData.ext_gen_f = item.officialsGeneralF;
+        if (item.officialsObcM !== undefined) formData.ext_obc_m = item.officialsObcM;
+        if (item.officialsObcF !== undefined) formData.ext_obc_f = item.officialsObcF;
+        if (item.officialsScM !== undefined) formData.ext_sc_m = item.officialsScM;
+        if (item.officialsScF !== undefined) formData.ext_sc_f = item.officialsScF;
+        if (item.officialsStM !== undefined) formData.ext_st_m = item.officialsStM;
+        if (item.officialsStF !== undefined) formData.ext_st_f = item.officialsStF;
+
+        if (item.numberOfActivities !== undefined) formData.activityCount = item.numberOfActivities;
+        if (item.extensionActivityType) formData.extensionActivityType = item.extensionActivityType;
+        if (item.startDate) {
+            formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        }
+        if (item.endDate) {
+            formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        }
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS]: (item: any, formData: any) => {
+        if (item.farmersGeneralM !== undefined) formData.gen_m = item.farmersGeneralM;
+        if (item.farmersGeneralF !== undefined) formData.gen_f = item.farmersGeneralF;
+        if (item.farmersObcM !== undefined) formData.obc_m = item.farmersObcM;
+        if (item.farmersObcF !== undefined) formData.obc_f = item.farmersObcF;
+        if (item.farmersScM !== undefined) formData.sc_m = item.farmersScM;
+        if (item.farmersScF !== undefined) formData.sc_f = item.farmersScF;
+        if (item.farmersStM !== undefined) formData.st_m = item.farmersStM;
+        if (item.farmersStF !== undefined) formData.st_f = item.farmersStF;
+
+        if (item.officialsGeneralM !== undefined) formData.ext_gen_m = item.officialsGeneralM;
+        if (item.officialsGeneralF !== undefined) formData.ext_gen_f = item.officialsGeneralF;
+        if (item.officialsObcM !== undefined) formData.ext_obc_m = item.officialsObcM;
+        if (item.officialsObcF !== undefined) formData.ext_obc_f = item.officialsObcF;
+        if (item.officialsScM !== undefined) formData.ext_sc_m = item.officialsScM;
+        if (item.officialsScF !== undefined) formData.ext_sc_f = item.officialsScF;
+        if (item.officialsStM !== undefined) formData.ext_st_m = item.officialsStM;
+        if (item.officialsStF !== undefined) formData.ext_st_f = item.officialsStF;
+
+        if (item.numberOfActivities !== undefined) formData.activityCount = item.numberOfActivities;
+        if (item.dayName || item.importantDay) formData.importantDay = item.dayName || item.importantDay;
+        if (item.eventDate) {
+            formData.eventDate = new Date(item.eventDate).toISOString().split('T')[0];
+        }
+    },
 };
 
 /**

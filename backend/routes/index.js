@@ -21,8 +21,15 @@ const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
 const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
 const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
 const cfldTechnicalParameterRoutes = require('./forms/cfldTechnicalParameterRoutes.js');
+const cfldExtensionActivityRoutes = require('./forms/cfldExtensionActivityRoutes.js');
+const cfldBudgetUtilizationRoutes = require('./forms/cfldBudgetUtilizationRoutes.js');
 const soilWaterRoutes = require('./forms/soilWaterRoutes.js');
 const hrdRoutes = require('./forms/hrdRoutes.js');
+const techWeekRoutes = require('./forms/techWeekRoutes.js');
+const celebrationDayRoutes = require('./forms/celebrationDayRoutes.js');
+const fpoManagementRoutes = require('./forms/fpoManagementRoutes.js');
+const fpoCbboDetailsRoutes = require('./forms/fpoCbboDetailsRoutes.js');
+const seedHubRoutes = require('./forms/seedHubRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 
@@ -44,8 +51,15 @@ router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
 router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
 router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
 router.use('/forms/achievements/cfld-technical-parameters', cfldTechnicalParameterRoutes);
+router.use('/forms/achievements/cfld-extension-activities', cfldExtensionActivityRoutes);
+router.use('/forms/achievements/cfld-budget-utilizations', cfldBudgetUtilizationRoutes);
 router.use('/forms/achievements/soil-water', soilWaterRoutes);
 router.use('/forms/achievements/hrd', hrdRoutes);
+router.use('/forms/achievements/technology-week', techWeekRoutes);
+router.use('/forms/achievements/celebration-days', celebrationDayRoutes);
+router.use('/forms/achievements/projects/fpo/details', fpoCbboDetailsRoutes);
+router.use('/forms/achievements/projects/fpo/management', fpoManagementRoutes);
+router.use('/forms/achievements/projects/seed-hub', seedHubRoutes);
 router.use('/reports', reportRoutes);
 
 

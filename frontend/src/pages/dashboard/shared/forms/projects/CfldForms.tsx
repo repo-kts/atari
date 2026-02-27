@@ -8,8 +8,8 @@ interface CfldFormsProps {
     setFormData: (data: any) => void
     seasons: any[]
     cropTypes: any[]
-    cfldCrops: any[]
     years: any[]
+    extensionActivityTypes?: any[]
 }
 
 export const CfldForms: React.FC<CfldFormsProps> = ({
@@ -18,8 +18,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     setFormData,
     seasons,
     cropTypes,
-    cfldCrops,
-    years
+    years,
+    extensionActivityTypes = []
 }) => {
     return (
         <>
@@ -70,10 +70,37 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         <FormSelect
                             label="Crop"
                             required
-                            value={formData.cropId || ''}
-                            onChange={(e) => setFormData({ ...formData, cropId: parseInt(e.target.value) })}
-                            options={cfldCrops.map((c: any) => ({ value: c.id || c.cfldId, label: c.cropName }))}
-                            disabled={!formData.seasonId || !formData.cropTypeId}
+                            value={formData.crop || ''}
+                            onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
+                            options={[
+                                { value: 'Groundnut', label: 'Groundnut' },
+                                { value: 'Soybean', label: 'Soybean' },
+                                { value: 'Sesame', label: 'Sesame' },
+                                { value: 'Pigeonpea', label: 'Pigeonpea' },
+                                { value: 'Moong', label: 'Moong' },
+                                { value: 'Urad', label: 'Urad' },
+                                { value: 'Mustard', label: 'Mustard' },
+                                { value: 'Rapeseed', label: 'Rapeseed' },
+                                { value: 'Sunflower', label: 'Sunflower' },
+                                { value: 'Linseed', label: 'Linseed' },
+                                { value: 'Chickpea Gram', label: 'Chickpea Gram' },
+                                { value: 'Lentil', label: 'Lentil' },
+                                { value: 'Field Pea', label: 'Field Pea' },
+                                { value: 'Grasspea Lathyrus', label: 'Grasspea Lathyrus' },
+                                { value: 'Niger', label: 'Niger' },
+                                { value: 'Green Gram', label: 'Green Gram' },
+                                { value: 'Blackgram', label: 'Blackgram' },
+                                { value: 'Greengram', label: 'Greengram' },
+                                { value: 'Horsegram', label: 'Horsegram' },
+                                { value: 'Cowpea', label: 'Cowpea' },
+                                { value: 'Rajmash', label: 'Rajmash' },
+                                { value: 'Mothbean', label: 'Mothbean' },
+                                { value: 'Chickpea', label: 'Chickpea' },
+                                { value: 'Fieldpea', label: 'Fieldpea' },
+                                { value: 'Lathyrus', label: 'Lathyrus' },
+                                { value: 'Bengal gram', label: 'Bengal gram' },
+                                { value: 'Other', label: 'Other' },
+                            ]}
                         />
                         <FormInput
                             label="Name of Variety"
@@ -159,14 +186,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         <FormSelect
                             label="Extension Activities organized"
                             required
-                            value={formData.activityType || ''}
-                            onChange={(e) => setFormData({ ...formData, activityType: e.target.value })}
-                            options={[
-                                { value: 'Field Day', label: 'Field Day' },
-                                { value: 'Farmers Training', label: 'Farmers Training' },
-                                { value: 'Method Demonstration', label: 'Method Demonstration' },
-                                { value: 'Awareness Camp', label: 'Awareness Camp' },
-                            ]}
+                            value={formData.extensionActivityId || ''}
+                            onChange={(e) => setFormData({ ...formData, extensionActivityId: parseInt(e.target.value) })}
+                            options={extensionActivityTypes.map((ext: any) => ({
+                                value: ext.activityId || ext.id,
+                                label: ext.activityName || ext.name
+                            }))}
                         />
                         <FormInput
                             label="Date"
@@ -219,10 +244,37 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         <FormSelect
                             label="Crop"
                             required
-                            value={formData.cropId || ''}
-                            onChange={(e) => setFormData({ ...formData, cropId: parseInt(e.target.value) })}
-                            options={cfldCrops.map((c: any) => ({ value: c.id || c.cfldId, label: c.cropName }))}
-                            disabled={!formData.seasonId}
+                            value={formData.crop || ''}
+                            onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
+                            options={[
+                                { value: 'Groundnut', label: 'Groundnut' },
+                                { value: 'Soybean', label: 'Soybean' },
+                                { value: 'Sesame', label: 'Sesame' },
+                                { value: 'Pigeonpea', label: 'Pigeonpea' },
+                                { value: 'Moong', label: 'Moong' },
+                                { value: 'Urad', label: 'Urad' },
+                                { value: 'Mustard', label: 'Mustard' },
+                                { value: 'Rapeseed', label: 'Rapeseed' },
+                                { value: 'Sunflower', label: 'Sunflower' },
+                                { value: 'Linseed', label: 'Linseed' },
+                                { value: 'Chickpea Gram', label: 'Chickpea Gram' },
+                                { value: 'Lentil', label: 'Lentil' },
+                                { value: 'Field Pea', label: 'Field Pea' },
+                                { value: 'Grasspea Lathyrus', label: 'Grasspea Lathyrus' },
+                                { value: 'Niger', label: 'Niger' },
+                                { value: 'Green Gram', label: 'Green Gram' },
+                                { value: 'Blackgram', label: 'Blackgram' },
+                                { value: 'Greengram', label: 'Greengram' },
+                                { value: 'Horsegram', label: 'Horsegram' },
+                                { value: 'Cowpea', label: 'Cowpea' },
+                                { value: 'Rajmash', label: 'Rajmash' },
+                                { value: 'Mothbean', label: 'Mothbean' },
+                                { value: 'Chickpea', label: 'Chickpea' },
+                                { value: 'Fieldpea', label: 'Fieldpea' },
+                                { value: 'Lathyrus', label: 'Lathyrus' },
+                                { value: 'Bengal gram', label: 'Bengal gram' },
+                                { value: 'Other', label: 'Other' },
+                            ]}
                         />
                         <FormInput
                             label="Overall Crop wise fund allocation"

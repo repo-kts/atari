@@ -16,11 +16,18 @@ export function useProjectData(entityType: string) {
         'achievement-award-farmer': '/forms/achievements/farmer-awards',
         'achievement-extension': '/forms/achievements/extension-activities',
         'achievement-other-extension': '/forms/achievements/other-extension-activities',
+        'achievement-technology-week': '/forms/achievements/technology-week',
+        'achievement-celebration-days': '/forms/achievements/celebration-days',
         'project-cfld-technical-param': '/forms/achievements/cfld-technical-parameters',
+        'project-cfld-extension-activity': '/forms/achievements/cfld-extension-activities',
+        'project-cfld-budget': '/forms/achievements/cfld-budget-utilizations',
         'achievement-soil-equipment': '/forms/achievements/soil-water/equipments',
         'achievement-soil-analysis': '/forms/achievements/soil-water/analysis',
         'achievement-world-soil-day': '/forms/achievements/soil-water/world-soil-day',
         'achievement-hrd': '/forms/achievements/hrd',
+        'project-fpo-details': '/forms/achievements/projects/fpo/details',
+        'project-fpo-management': '/forms/achievements/projects/fpo/management',
+        'project-seed-hub': '/forms/achievements/projects/seed-hub',
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;

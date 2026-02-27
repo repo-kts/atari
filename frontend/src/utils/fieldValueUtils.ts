@@ -249,6 +249,52 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.eventName || null,
         priority: 5,
     },
+    'Name of Extension activities': {
+        extractor: (item) => item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        priority: 7,
+    },
+    'Name of Extension Activities': {
+        extractor: (item) => item['Name of Extension Activities'] || item['Name of Extension activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        priority: 7,
+    },
+    'Nature of Extension Activity': {
+        extractor: (item) => item['Nature of Extension Activity'] || item['Nature of Extension activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        priority: 7,
+    },
+    'Nature of Extension activity': {
+        extractor: (item) => item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        priority: 7,
+    },
+    'Important Days': {
+        extractor: (item) => item['Important Days'] || item['Important days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        priority: 7,
+    },
+    'Important days': {
+        extractor: (item) => item['Important days'] || item['Important Days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        priority: 7,
+    },
+    'No. of Activities': {
+        extractor: (item) => {
+            const val = item['No. of Activities'] || item['No. of activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 5,
+    },
+    'No. of activities': {
+        extractor: (item) => {
+            const val = item['No. of activities'] || item['No. of Activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 5,
+    },
+    'Type Of Activities': {
+        extractor: (item) => item['Type Of Activities'] || item['Type of activities'] || item.typeOfActivities || item.activityType || null,
+        priority: 5,
+    },
+    'Type of activities': {
+        extractor: (item) => item['Type of activities'] || item['Type Of Activities'] || item.typeOfActivities || item.activityType || null,
+        priority: 5,
+    },
 
     // Production & Projects fields
     productCategoryName: {
@@ -458,7 +504,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.cropName || (item.crop?.cropName) || null,
     },
     Variety: {
-        extractor: (item) => item.varietyName || null,
+        extractor: (item) => item.varietyName || item.variety || null,
     },
     'Name of Variety': {
         extractor: (item) => item.varietyName || null,
@@ -611,6 +657,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             } catch { return null; }
         }
     },
+    'Event Date': {
+        extractor: (item) => {
+            const dateVal = item.eventDate || item.event_date || item['Event Date'];
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
     // Award Fields
     Award: {
         extractor: (item) => item.awardName || item.award_name || null,
@@ -651,6 +707,60 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     'Organizer': {
         extractor: (item) => item.organizerVenue || item.organizer_venue || null,
+    },
+    // FPO Management mappings
+    'Registration No': {
+        extractor: (item) => item.registrationNumber || null,
+    },
+    'Date of Registration': {
+        extractor: (item) => {
+            if (!item.registrationDate) return null;
+            try {
+                const date = new Date(item.registrationDate);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        }
+    },
+    'Name of the FPO': {
+        extractor: (item) => item.fpoName || null,
+    },
+    'Address of FPO': {
+        extractor: (item) => item.address || null,
+    },
+    'Total Number of BOM Members': {
+        extractor: (item) => item.totalBomMembers !== undefined ? String(item.totalBomMembers) : null,
+    },
+    'Financial Position': {
+        extractor: (item) => item.financialPositionLakh !== undefined ? `Rs. ${item.financialPositionLakh} Lakh` : null,
+    },
+    // FPO Details mappings
+    'No. of blocks allocated': {
+        extractor: (item) => item.blocksAllocated !== undefined ? String(item.blocksAllocated) : null,
+    },
+    'No. of FPOs registered as CBBO': {
+        extractor: (item) => item.fposRegisteredAsCbbo !== undefined ? String(item.fposRegisteredAsCbbo) : null,
+    },
+    'Average members per FPO': {
+        extractor: (item) => item.avgMembersPerFpo !== undefined ? String(item.avgMembersPerFpo) : null,
+    },
+    // Seed Hub mappings
+    'Crop Name': {
+        extractor: (item) => item.cropName || null,
+    },
+    'Area (ha)': {
+        extractor: (item) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+    },
+    'Area(ha)': {
+        extractor: (item) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+    },
+    'Yield (ha)': {
+        extractor: (item) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
+    },
+    'Yield(ha)': {
+        extractor: (item) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
+    },
+    'Farmers Influenced': {
+        extractor: (item) => item.farmersPurchased !== undefined ? String(item.farmersPurchased) : null,
     },
 };
 

@@ -3,7 +3,34 @@ const prisma = require('../../config/prisma.js');
 const cfldTechnicalParameterRepository = {
     create: async (data, opts, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
-        const cropId = data.cropId ? parseInt(data.cropId) : null;
+        let cropId = data.cropId ? parseInt(data.cropId) : null;
+        if (data.crop && (!cropId || cropId < 100)) {
+            let crop = await prisma.fldCrop.findFirst({
+                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
+            });
+            if (!crop) {
+                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
+                if (!category) {
+                    category = await prisma.fldCategory.create({
+                        data: { categoryName: 'CFLD', sectorId: 1 }
+                    }).catch(() => prisma.fldCategory.findFirst());
+                }
+                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
+                if (!subcategory) {
+                    subcategory = await prisma.fldSubcategory.create({
+                        data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
+                    }).catch(() => prisma.fldSubcategory.findFirst());
+                }
+                crop = await prisma.fldCrop.create({
+                    data: {
+                        cropName: data.crop,
+                        categoryId: category.categoryId,
+                        subCategoryId: subcategory.subCategoryId
+                    }
+                });
+            }
+            cropId = crop.cropId;
+        }
         const seasonId = data.seasonId ? parseInt(data.seasonId) : null;
 
         // Handle month conversion if it's a string like "January"
@@ -98,7 +125,35 @@ const cfldTechnicalParameterRepository = {
 
     update: async (id, data) => {
         const updateData = {};
-        if (data.cropId) updateData.cropId = parseInt(data.cropId);
+        if (data.crop) {
+            let crop = await prisma.fldCrop.findFirst({
+                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
+            });
+            if (!crop) {
+                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
+                if (!category) {
+                    category = await prisma.fldCategory.create({
+                        data: { categoryName: 'CFLD', sectorId: 1 }
+                    }).catch(() => prisma.fldCategory.findFirst());
+                }
+                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
+                if (!subcategory) {
+                    subcategory = await prisma.fldSubcategory.create({
+                        data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
+                    }).catch(() => prisma.fldSubcategory.findFirst());
+                }
+                crop = await prisma.fldCrop.create({
+                    data: {
+                        cropName: data.crop,
+                        categoryId: category.categoryId,
+                        subCategoryId: subcategory.subCategoryId
+                    }
+                });
+            }
+            updateData.cropId = crop.cropId;
+        } else if (data.cropId) {
+            updateData.cropId = parseInt(data.cropId);
+        }
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
         if (data.month) updateData.month = new Date(data.month);
         if (data.type || data.typeName) updateData.type = data.type || data.typeName;

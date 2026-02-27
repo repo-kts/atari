@@ -94,13 +94,7 @@ const employeeMastersPaths = [
     ENTITY_PATHS.DISCIPLINE,
 ]
 
-// Extension Masters group
-const extensionMastersPaths = [
-    ENTITY_PATHS.EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY_TYPE,
-    ENTITY_PATHS.EXTENSION_ACTIVITY,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
-]
+
 
 
 // Other Masters - split by tab sections
@@ -828,6 +822,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Season', 'Extension Activities Organized', 'Date', 'Place of Activity', 'No. of Farmers attended'],
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -842,6 +837,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CFLD',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Crop', 'Season', 'Overall Fund Allocation'],
         siblings: [
             '/forms/achievements/projects/cfld/technical-parameter',
             '/forms/achievements/projects/cfld/extension-activity',
@@ -902,7 +898,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'FPO',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
-        fields: ['Reporting Year', 'Name of the FPO', 'Registration No', 'Date of Registration'],
+        fields: ['KVK Name', 'Registration No', 'Date of Registration', 'Name of the FPO', 'Address of FPO', 'Total Number of BOM Members', 'Financial Position'],
         siblings: [
             '/forms/achievements/projects/fpo/details',
             '/forms/achievements/projects/fpo/management'
@@ -1461,6 +1457,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Seed Hub',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Season', 'Crop Name', 'Variety', 'Area(ha)', 'Yield(ha)'],
     },
     {
         path: '/forms/achievements/other-program',
@@ -1590,7 +1587,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_other_extension_activities',
-        fields: ['s.no', 'Reporting Year', 'KVK Name', 'Nature of Extension Activies', 'No. of activities'],
+        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activity', 'No. of activities'],
     },
     {
         path: '/forms/achievements/technology-week',
@@ -1599,7 +1596,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_technology_week_celebration',
-        fields: ['Start Date', 'End Date', 'KVK', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
+        fields: ['Start Date', 'End Date', 'KVK Name', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
     },
     {
         path: '/forms/achievements/celebration-days',
@@ -1608,7 +1605,7 @@ export const achievementsRoutes: RouteConfig[] = [
         subcategory: 'Achievements',
         parent: '/forms/achievements',
         moduleCode: 'achievements_celebration_days',
-        fields: ['KVK Name', 'Important Dates', 'Event Date', 'No. of Activities'],
+        fields: ['KVK Name', 'Important Days', 'Event Date', 'No. of Activities'],
     },
     {
         path: '/forms/achievements/production-supply',
