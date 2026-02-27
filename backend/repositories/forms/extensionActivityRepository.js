@@ -8,7 +8,13 @@ const normalizeActivityName = (v) => {
 
 const extensionActivityRepository = {
     create: async (data, opts, user) => {
-        const kvkId = parseInt((user && user.kvkId) ? user.kvkId : (data.kvkId || 1));
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = data.staffId ? parseInt(data.staffId) : null;
         if ((staffId === null || isNaN(staffId)) && data.staffName) {
@@ -41,27 +47,27 @@ const extensionActivityRepository = {
         }
         if (isNaN(activityId)) activityId = null;
 
-        const numberOfActivities = parseInt(data.numberOfActivities || data.activityCount || 0);
+        const numberOfActivities = parseInt(data.numberOfActivities ?? data.activityCount ?? 0);
         const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
         const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
 
-        const farmersGeneralM = parseInt(data.farmersGeneralM || data.gen_m || 0);
-        const farmersGeneralF = parseInt(data.farmersGeneralF || data.gen_f || 0);
-        const farmersObcM = parseInt(data.farmersObcM || data.obc_m || 0);
-        const farmersObcF = parseInt(data.farmersObcF || data.obc_f || 0);
-        const farmersScM = parseInt(data.farmersScM || data.sc_m || 0);
-        const farmersScF = parseInt(data.farmersScF || data.sc_f || 0);
-        const farmersStM = parseInt(data.farmersStM || data.st_m || 0);
-        const farmersStF = parseInt(data.farmersStF || data.st_f || 0);
+        const farmersGeneralM = parseInt(data.farmersGeneralM ?? data.gen_m ?? 0);
+        const farmersGeneralF = parseInt(data.farmersGeneralF ?? data.gen_f ?? 0);
+        const farmersObcM = parseInt(data.farmersObcM ?? data.obc_m ?? 0);
+        const farmersObcF = parseInt(data.farmersObcF ?? data.obc_f ?? 0);
+        const farmersScM = parseInt(data.farmersScM ?? data.sc_m ?? 0);
+        const farmersScF = parseInt(data.farmersScF ?? data.sc_f ?? 0);
+        const farmersStM = parseInt(data.farmersStM ?? data.st_m ?? 0);
+        const farmersStF = parseInt(data.farmersStF ?? data.st_f ?? 0);
 
-        const officialsGeneralM = parseInt(data.officialsGeneralM || data.ext_gen_m || 0);
-        const officialsGeneralF = parseInt(data.officialsGeneralF || data.ext_gen_f || 0);
-        const officialsObcM = parseInt(data.officialsObcM || data.ext_obc_m || 0);
-        const officialsObcF = parseInt(data.officialsObcF || data.ext_obc_f || 0);
-        const officialsScM = parseInt(data.officialsScM || data.ext_sc_m || 0);
-        const officialsScF = parseInt(data.officialsScF || data.ext_sc_f || 0);
-        const officialsStM = parseInt(data.officialsStM || data.ext_st_m || 0);
-        const officialsStF = parseInt(data.officialsStF || data.ext_st_f || 0);
+        const officialsGeneralM = parseInt(data.officialsGeneralM ?? data.ext_gen_m ?? 0);
+        const officialsGeneralF = parseInt(data.officialsGeneralF ?? data.ext_gen_f ?? 0);
+        const officialsObcM = parseInt(data.officialsObcM ?? data.ext_obc_m ?? 0);
+        const officialsObcF = parseInt(data.officialsObcF ?? data.ext_obc_f ?? 0);
+        const officialsScM = parseInt(data.officialsScM ?? data.ext_sc_m ?? 0);
+        const officialsScF = parseInt(data.officialsScF ?? data.ext_sc_f ?? 0);
+        const officialsStM = parseInt(data.officialsStM ?? data.ext_st_m ?? 0);
+        const officialsStF = parseInt(data.officialsStF ?? data.ext_st_f ?? 0);
 
         const result = await prisma.kvkExtensionActivity.create({
             data: {
@@ -135,13 +141,6 @@ const extensionActivityRepository = {
             where.kvkId = parseInt(user.kvkId);
         }
 
-        const existing = await prisma.kvkExtensionActivity.findFirst({
-            where,
-            select: { extensionActivityId: true }
-        });
-
-        if (!existing) throw new Error("Record not found or unauthorized");
-
         const updateData = {};
         if (data.fldId !== undefined) updateData.fldId = data.fldId ? parseInt(data.fldId) : null;
 
@@ -202,16 +201,21 @@ const extensionActivityRepository = {
             if (val !== undefined) updateData[back] = parseInt(val);
         }
 
-        const result = await prisma.kvkExtensionActivity.update({
+        const result = await prisma.kvkExtensionActivity.updateMany({
+            where,
+            data: updateData
+        });
+
+        if (result.count === 0) throw new Error("Record not found or unauthorized");
+
+        return await prisma.kvkExtensionActivity.findUnique({
             where: { extensionActivityId: parseInt(id) },
-            data: updateData,
             include: {
                 kvk: { select: { kvkName: true } },
                 staff: { select: { staffName: true } },
                 activity: { select: { activityName: true } },
             },
         });
-        return _mapResponse(result);
     },
 
     delete: async (id, user) => {
@@ -220,16 +224,13 @@ const extensionActivityRepository = {
             where.kvkId = parseInt(user.kvkId);
         }
 
-        const existing = await prisma.kvkExtensionActivity.findFirst({
-            where,
-            select: { extensionActivityId: true }
+        const result = await prisma.kvkExtensionActivity.deleteMany({
+            where
         });
 
-        if (!existing) throw new Error("Record not found or unauthorized");
+        if (result.count === 0) throw new Error("Record not found or unauthorized");
 
-        return await prisma.kvkExtensionActivity.delete({
-            where: { extensionActivityId: parseInt(id) },
-        });
+        return { success: true };
     },
 };
 

@@ -2,7 +2,13 @@ const prisma = require('../../config/prisma.js');
 
 const celebrationDayRepository = {
     create: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : 1;
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
 
         let importantDayId = data.importantDayId;
         if (!importantDayId && data.importantDay) {
@@ -20,24 +26,24 @@ const celebrationDayRepository = {
             data: {
                 kvkId,
                 eventDate: new Date(data.eventDate),
-                importantDayId: parseInt(importantDayId || 1),
-                numberOfActivities: parseInt(data.activityCount || data.numberOfActivities || 0),
-                farmersGeneralM: parseInt(data.gen_m || data.farmersGeneralM || 0),
-                farmersGeneralF: parseInt(data.gen_f || data.farmersGeneralF || 0),
-                farmersObcM: parseInt(data.obc_m || data.farmersObcM || 0),
-                farmersObcF: parseInt(data.obc_f || data.farmersObcF || 0),
-                farmersScM: parseInt(data.sc_m || data.farmersScM || 0),
-                farmersScF: parseInt(data.sc_f || data.farmersScF || 0),
-                farmersStM: parseInt(data.st_m || data.farmersStM || 0),
-                farmersStF: parseInt(data.st_f || data.farmersStF || 0),
-                officialsGeneralM: parseInt(data.ext_gen_m || data.officialsGeneralM || 0),
-                officialsGeneralF: parseInt(data.ext_gen_f || data.officialsGeneralF || 0),
-                officialsObcM: parseInt(data.ext_obc_m || data.officialsObcM || 0),
-                officialsObcF: parseInt(data.ext_obc_f || data.officialsObcF || 0),
-                officialsScM: parseInt(data.ext_sc_m || data.officialsScM || 0),
-                officialsScF: parseInt(data.ext_sc_f || data.officialsScF || 0),
-                officialsStM: parseInt(data.ext_st_m || data.officialsStM || 0),
-                officialsStF: parseInt(data.ext_st_f || data.officialsStF || 0),
+                importantDayId: parseInt(importantDayId ?? 1),
+                numberOfActivities: parseInt(data.activityCount ?? data.numberOfActivities ?? 0),
+                farmersGeneralM: parseInt(data.gen_m ?? data.farmersGeneralM ?? 0),
+                farmersGeneralF: parseInt(data.gen_f ?? data.farmersGeneralF ?? 0),
+                farmersObcM: parseInt(data.obc_m ?? data.farmersObcM ?? 0),
+                farmersObcF: parseInt(data.obc_f ?? data.farmersObcF ?? 0),
+                farmersScM: parseInt(data.sc_m ?? data.farmersScM ?? 0),
+                farmersScF: parseInt(data.sc_f ?? data.farmersScF ?? 0),
+                farmersStM: parseInt(data.st_m ?? data.farmersStM ?? 0),
+                farmersStF: parseInt(data.st_f ?? data.farmersStF ?? 0),
+                officialsGeneralM: parseInt(data.ext_gen_m ?? data.officialsGeneralM ?? 0),
+                officialsGeneralF: parseInt(data.ext_gen_f ?? data.officialsGeneralF ?? 0),
+                officialsObcM: parseInt(data.ext_obc_m ?? data.officialsObcM ?? 0),
+                officialsObcF: parseInt(data.ext_obc_f ?? data.officialsObcF ?? 0),
+                officialsScM: parseInt(data.ext_sc_m ?? data.officialsScM ?? 0),
+                officialsScF: parseInt(data.ext_sc_f ?? data.officialsScF ?? 0),
+                officialsStM: parseInt(data.ext_st_m ?? data.officialsStM ?? 0),
+                officialsStF: parseInt(data.ext_st_f ?? data.officialsStF ?? 0),
             }
         });
     },

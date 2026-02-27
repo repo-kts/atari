@@ -2,7 +2,13 @@ const prisma = require('../../config/prisma.js');
 
 const techWeekRepository = {
     create: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : 1;
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
 
         return await prisma.kvkTechnologyWeekCelebration.create({
             data: {
@@ -94,9 +100,16 @@ const techWeekRepository = {
             if (val !== undefined) updateData[back] = parseInt(val);
         }
 
-        return await prisma.kvkTechnologyWeekCelebration.update({
-            where: { techWeekId: parseInt(id) },
+        const result = await prisma.kvkTechnologyWeekCelebration.updateMany({
+            where,
             data: updateData
+        });
+
+        if (result.count === 0) throw new Error("Record not found or unauthorized");
+
+        return await prisma.kvkTechnologyWeekCelebration.findUnique({
+            where: { techWeekId: parseInt(id) },
+            include: { kvk: { select: { kvkName: true } } }
         });
     },
 
@@ -106,16 +119,13 @@ const techWeekRepository = {
             where.kvkId = parseInt(user.kvkId);
         }
 
-        const existing = await prisma.kvkTechnologyWeekCelebration.findFirst({
-            where,
-            select: { techWeekId: true }
+        const result = await prisma.kvkTechnologyWeekCelebration.deleteMany({
+            where
         });
 
-        if (!existing) throw new Error("Record not found or unauthorized");
+        if (result.count === 0) throw new Error("Record not found or unauthorized");
 
-        return await prisma.kvkTechnologyWeekCelebration.delete({
-            where: { techWeekId: parseInt(id) }
-        });
+        return { success: true };
     },
 
     _mapResponse: (a) => {

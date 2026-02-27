@@ -44,7 +44,13 @@ const seedHubRepository = {
     },
 
     create: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
 
         const result = await prisma.kvkSeedHubProgram.create({
             data: {
@@ -122,19 +128,20 @@ const seedHubRepository = {
         if (data.totalAmountPresently !== undefined || data.totalAmountPresentLakh !== undefined)
             updateData.totalAmountPresentLakh = parseFloat(data.totalAmountPresently ?? data.totalAmountPresentLakh);
 
-        const result = await prisma.kvkSeedHubProgram.update({
+        const result = await prisma.kvkSeedHubProgram.updateMany({
+            where,
+            data: updateData
+        });
+
+        if (result.count === 0) throw new Error('Record not found or unauthorized');
+
+        return await prisma.kvkSeedHubProgram.findUnique({
             where: { seedHubId: parseInt(id) },
-            data: updateData,
             include: {
-                kvk: {
-                    select: { kvkName: true }
-                },
-                season: {
-                    select: { seasonName: true }
-                }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } }
             }
         });
-        return _mapResponse(result);
     },
 
     delete: async (id, user) => {
@@ -143,13 +150,13 @@ const seedHubRepository = {
             where.kvkId = parseInt(user.kvkId);
         }
 
-        // Verify existence and ownership
-        const existing = await prisma.kvkSeedHubProgram.findFirst({ where });
-        if (!existing) throw new Error('Record not found or unauthorized');
-
-        return await prisma.kvkSeedHubProgram.delete({
-            where: { seedHubId: parseInt(id) }
+        const result = await prisma.kvkSeedHubProgram.deleteMany({
+            where
         });
+
+        if (result.count === 0) throw new Error('Record not found or unauthorized');
+
+        return { success: true };
     }
 };
 

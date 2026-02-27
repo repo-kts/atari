@@ -8,7 +8,13 @@ const normalizeActivityName = (v) => {
 
 const otherExtensionActivityRepository = {
     create: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = parseInt(data.staffId);
         if (isNaN(staffId) && data.staffName) {
@@ -44,27 +50,27 @@ const otherExtensionActivityRepository = {
         if (isNaN(staffId)) staffId = null;
         if (isNaN(activityTypeId)) activityTypeId = null;
         const safeInt = (v) => (v === null || v === undefined || isNaN(parseInt(String(v)))) ? 0 : parseInt(String(v), 10);
-        const numberOfActivities = safeInt(data.activityCount || data.numberOfActivities);
+        const numberOfActivities = safeInt(data.activityCount ?? data.numberOfActivities);
         const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
         const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
 
-        const farmersGeneralM = safeInt(data.gen_m || data.farmersGeneralM);
-        const farmersGeneralF = safeInt(data.gen_f || data.farmersGeneralF);
-        const farmersObcM = safeInt(data.obc_m || data.farmersObcM);
-        const farmersObcF = safeInt(data.obc_f || data.farmersObcF);
-        const farmersScM = safeInt(data.sc_m || data.farmersScM);
-        const farmersScF = safeInt(data.sc_f || data.farmersScF);
-        const farmersStM = safeInt(data.st_m || data.farmersStM);
-        const farmersStF = safeInt(data.st_f || data.farmersStF);
+        const farmersGeneralM = safeInt(data.gen_m ?? data.farmersGeneralM);
+        const farmersGeneralF = safeInt(data.gen_f ?? data.farmersGeneralF);
+        const farmersObcM = safeInt(data.obc_m ?? data.farmersObcM);
+        const farmersObcF = safeInt(data.obc_f ?? data.farmersObcF);
+        const farmersScM = safeInt(data.sc_m ?? data.farmersScM);
+        const farmersScF = safeInt(data.sc_f ?? data.farmersScF);
+        const farmersStM = safeInt(data.st_m ?? data.farmersStM);
+        const farmersStF = safeInt(data.st_f ?? data.farmersStF);
 
-        const officialsGeneralM = safeInt(data.ext_gen_m || data.officialsGeneralM);
-        const officialsGeneralF = safeInt(data.ext_gen_f || data.officialsGeneralF);
-        const officialsObcM = safeInt(data.ext_obc_m || data.officialsObcM);
-        const officialsObcF = safeInt(data.ext_obc_f || data.officialsObcF);
-        const officialsScM = safeInt(data.ext_sc_m || data.officialsScM);
-        const officialsScF = safeInt(data.ext_sc_f || data.officialsScF);
-        const officialsStM = safeInt(data.ext_st_m || data.officialsStM);
-        const officialsStF = safeInt(data.ext_st_f || data.officialsStF);
+        const officialsGeneralM = safeInt(data.ext_gen_m ?? data.officialsGeneralM);
+        const officialsGeneralF = safeInt(data.ext_gen_f ?? data.officialsGeneralF);
+        const officialsObcM = safeInt(data.ext_obc_m ?? data.officialsObcM);
+        const officialsObcF = safeInt(data.ext_obc_f ?? data.officialsObcF);
+        const officialsScM = safeInt(data.ext_sc_m ?? data.officialsScM);
+        const officialsScF = safeInt(data.ext_sc_f ?? data.officialsScF);
+        const officialsStM = safeInt(data.ext_st_m ?? data.officialsStM);
+        const officialsStF = safeInt(data.ext_st_f ?? data.officialsStF);
 
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_other_extension_activity 
@@ -185,16 +191,6 @@ const otherExtensionActivityRepository = {
         };
     },
     update: async (id, data, user) => {
-        // Enforce ownership
-        const existingSql = user && ['kvk_admin', 'kvk_user'].includes(user.roleName)
-            ? 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1 AND "kvkId" = $2'
-            : 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
-        const existingParams = [parseInt(id)];
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) existingParams.push(parseInt(user.kvkId));
-
-        const existingRows = await prisma.$queryRawUnsafe(existingSql, ...existingParams);
-        if (!existingRows || !existingRows.length) throw new Error("Record not found or unauthorized");
-
         const updates = [];
         const values = [];
         let index = 1;
@@ -275,24 +271,30 @@ const otherExtensionActivityRepository = {
         }
 
         if (updates.length > 0) {
-            const sql = 'UPDATE kvk_other_extension_activity SET ' + updates.join(', ') + ' WHERE kvk_other_extension_activity_id = $' + index;
-            values.push(parseInt(id));
-            await prisma.$queryRawUnsafe(sql, ...values);
+            let sql = 'UPDATE kvk_other_extension_activity SET ' + updates.join(', ') + ' WHERE kvk_other_extension_activity_id = $' + index;
+            const finalParams = [...values, parseInt(id)];
+
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                sql += ' AND "kvkId" = $' + (index + 1);
+                finalParams.push(parseInt(user.kvkId));
+            }
+
+            const result = await prisma.$executeRawUnsafe(sql, ...finalParams);
+            if (result === 0) throw new Error("Record not found or unauthorized");
         }
         return { success: true };
     },
     delete: async (id, user) => {
-        // Enforce ownership
-        const existingSql = user && ['kvk_admin', 'kvk_user'].includes(user.roleName)
-            ? 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1 AND "kvkId" = $2'
-            : 'SELECT kvk_other_extension_activity_id FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
-        const existingParams = [parseInt(id)];
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) existingParams.push(parseInt(user.kvkId));
+        let sql = 'DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
+        const params = [parseInt(id)];
 
-        const existingRows = await prisma.$queryRawUnsafe(existingSql, ...existingParams);
-        if (!existingRows || !existingRows.length) throw new Error("Record not found or unauthorized");
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            sql += ' AND "kvkId" = $2';
+            params.push(parseInt(user.kvkId));
+        }
 
-        await prisma.$queryRawUnsafe(`DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1`, parseInt(id));
+        const result = await prisma.$executeRawUnsafe(sql, ...params);
+        if (result === 0) throw new Error("Record not found or unauthorized");
         return { success: true };
     },
 };

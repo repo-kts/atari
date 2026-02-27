@@ -2,7 +2,13 @@ const prisma = require('../../config/prisma.js');
 
 const cfldExtensionActivityRepository = {
     create: async (data, opts, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
 
         const result = await prisma.extensionActivityOrganized.create({
             data: {
@@ -11,8 +17,8 @@ const cfldExtensionActivityRepository = {
                 extensionActivityId: data.extensionActivityId ? parseInt(data.extensionActivityId) : 1,
                 activityDate: data.activityDate ? new Date(data.activityDate) : new Date(),
                 placeOfActivity: data.placeOfActivity || '',
-                generalM: parseInt(data.generalM || data.genM || 0),
-                generalF: parseInt(data.generalF || data.genF || 0),
+                generalM: parseInt(data.generalM ?? data.genM ?? 0),
+                generalF: parseInt(data.generalF ?? data.genF ?? 0),
                 obcM: parseInt(data.obcM || 0),
                 obcF: parseInt(data.obcF || 0),
                 scM: parseInt(data.scM || 0),
@@ -68,8 +74,8 @@ const cfldExtensionActivityRepository = {
         if (data.activityDate) updateData.activityDate = new Date(data.activityDate);
         if (data.placeOfActivity !== undefined) updateData.placeOfActivity = data.placeOfActivity;
 
-        if (data.generalM !== undefined || data.genM !== undefined) updateData.generalM = parseInt(data.generalM || data.genM);
-        if (data.generalF !== undefined || data.genF !== undefined) updateData.generalF = parseInt(data.generalF || data.genF);
+        if (data.generalM !== undefined || data.genM !== undefined) updateData.generalM = parseInt(data.generalM ?? data.genM);
+        if (data.generalF !== undefined || data.genF !== undefined) updateData.generalF = parseInt(data.generalF ?? data.genF);
         if (data.obcM !== undefined) updateData.obcM = parseInt(data.obcM);
         if (data.obcF !== undefined) updateData.obcF = parseInt(data.obcF);
         if (data.scM !== undefined) updateData.scM = parseInt(data.scM);

@@ -2,7 +2,13 @@ const prisma = require('../../config/prisma.js');
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
+        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+
+        if (isNaN(kvkId)) {
+            throw new Error('Valid kvkId is required');
+        }
 
         let cropId = data.cropId ? parseInt(data.cropId) : null;
         if (data.crop && (!cropId || cropId < 100)) {
@@ -14,13 +20,13 @@ const cfldBudgetUtilizationRepository = {
                 if (!category) {
                     category = await prisma.fldCategory.create({
                         data: { categoryName: 'CFLD', sectorId: 1 }
-                    }).catch(() => prisma.fldCategory.findFirst());
+                    }).catch(() => prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } }));
                 }
                 let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
                 if (!subcategory) {
                     subcategory = await prisma.fldSubcategory.create({
                         data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
-                    }).catch(() => prisma.fldSubcategory.findFirst());
+                    }).catch(() => prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD', categoryId: category.categoryId } }));
                 }
                 crop = await prisma.fldCrop.create({
                     data: {
@@ -128,13 +134,13 @@ const cfldBudgetUtilizationRepository = {
                 if (!category) {
                     category = await prisma.fldCategory.create({
                         data: { categoryName: 'CFLD', sectorId: 1 }
-                    }).catch(() => prisma.fldCategory.findFirst());
+                    }).catch(() => prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } }));
                 }
                 let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
                 if (!subcategory) {
                     subcategory = await prisma.fldSubcategory.create({
                         data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
-                    }).catch(() => prisma.fldSubcategory.findFirst());
+                    }).catch(() => prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD', categoryId: category.categoryId } }));
                 }
                 crop = await prisma.fldCrop.create({
                     data: {
