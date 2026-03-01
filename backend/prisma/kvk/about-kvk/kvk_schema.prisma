@@ -82,6 +82,9 @@ model Kvk {
   geographicalInfo            GeographicalInfo[]
   physicalInfo                PhysicalInfo[]
   demonstrationInfo           DemonstrationInfo[]
+  beneficiariesDetails        BeneficiariesDetails[]
+  financialInformation        FinancialInformation[]
+  soilDataInformation         SoilDataInformation[]
 
   @@index([zoneId])
   @@index([stateId])

@@ -1,0 +1,17 @@
+model FinancialInformation {
+  financialInformationId Int @id @default(autoincrement()) @map("financial_information_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  year Int
+  activity NaturalFarmingActivity
+  numberOfActivities Int @map("number_of_activities")
+  budgetSanction Float @map("budget_sanction")
+  budgetExpenditure Float @map("budget_expenditure")
+  totalBudgetExpenditure Float @map("total_budget_expenditure")
+
+  @@index([kvkId])
+
+  @@map("financial_information")
+}

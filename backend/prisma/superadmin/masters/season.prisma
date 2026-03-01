@@ -13,6 +13,7 @@ model Season {
   kvkOfts  Kvkoft[]
   nicraDetails  NicraDetails[]
   demonstrationInfo  DemonstrationInfo[]
+  soilDataInformation  SoilDataInformation[]
   seedHubPrograms KvkSeedHubProgram[]
   csisa Csisa []
 

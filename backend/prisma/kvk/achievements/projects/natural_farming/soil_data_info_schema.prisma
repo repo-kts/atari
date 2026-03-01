@@ -1,0 +1,42 @@
+enum SoilParameterType {
+  DEMO_PLOT_KVK
+  NON_DEMO_PLOT_KVK
+  DEMO_PLOT_FARMERS_FIELD
+  NON_DEMO_PLOT_FARMERS_FIELD
+}
+
+model SoilDataInformation {
+  soilDataInformationId Int @id @default(autoincrement()) @map("soil_data_information_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  year   Int
+  crop   String
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  soilParameter SoilParameterType
+
+  // -------- BEFORE SOWING --------
+  phBefore  Float @map("ph_before")
+  ecBefore  Float @map("ec_before")
+  ocBefore  Float @map("oc_before")
+  nBefore Float @map("n_before")
+  pBefore Float @map("p_before")
+  kBefore Float @map("k_before")
+  soilMicrobesBefore Float @map("soil_microbes_before")
+
+  // -------- AFTER HARVEST --------
+  phAfter  Float @map("ph_after")
+  ecAfter  Float @map("ec_after")
+  ocAfter  Float @map("oc_after")
+  nAfter Float @map("n_after")
+  pAfter Float @map("p_after")
+  kAfter Float @map("k_after")
+  soilMicrobesAfter Float @map("soil_microbes_after")
+
+  @@index([kvkId])
+
+  @@map("soil_data_information")
+}
