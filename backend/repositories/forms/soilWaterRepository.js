@@ -13,8 +13,8 @@ const soilWaterRepository = {
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_equipment 
-            ("kvkId", reporting_year, "soilWaterAnalysisId", equipment_name, quantity)
-            VALUES ($1, $2, $3, $4, $5)
+            ("kvkId", reporting_year, "soilWaterAnalysisId", equipment_name, quantity, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId, isNaN(rYear) ? null : rYear, isNaN(analysisId) ? null : analysisId, data.equipmentName || '', isNaN(qty) ? 0 : qty);
 
         return { success: true };
@@ -93,6 +93,7 @@ const soilWaterRepository = {
         }
 
         if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = `UPDATE kvk_soil_water_equipment SET ${updates.join(', ')} WHERE soil_water_equipment_id = $${index}`;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
@@ -119,8 +120,8 @@ const soilWaterRepository = {
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_analysis 
-            ("kvkId", start_date, end_date, analysis_id, samples_analysed_through, samples_analysed, number_of_villages, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            ("kvkId", start_date, end_date, analysis_id, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId, new Date(data.startDate), new Date(data.endDate),
             isNaN(aId) ? null : aId,
             data.samplesAnalysedThrough || '',
@@ -168,7 +169,7 @@ const soilWaterRepository = {
             analysisId: r.analysis_id,
             samplesAnalysedThrough: r.samples_analysed_through,
             samplesAnalysed: r.samples_analysed,
-            villagesNumber: r.number_of_villages,
+            villagesNumber: r.villages_number,
             amountRealized: r.amount_realized,
             generalM: r.general_m,
             generalF: r.general_f,
@@ -198,7 +199,7 @@ const soilWaterRepository = {
             analysisId: r.analysis_id,
             samplesAnalysedThrough: r.samples_analysed_through,
             samplesAnalysed: r.samples_analysed,
-            villagesNumber: r.number_of_villages,
+            villagesNumber: r.villages_number,
             amountRealized: r.amount_realized,
             generalM: r.general_m,
             generalF: r.general_f,
@@ -224,7 +225,7 @@ const soilWaterRepository = {
             analysisId: 'analysis_id',
             samplesAnalysedThrough: 'samples_analysed_through',
             samplesAnalysed: 'samples_analysed',
-            villagesNumber: 'number_of_villages',
+            villagesNumber: 'villages_number',
             amountRealized: 'amount_realized',
             generalM: 'general_m',
             generalF: 'general_f',
@@ -252,6 +253,7 @@ const soilWaterRepository = {
         }
 
         if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = `UPDATE kvk_soil_water_analysis SET ${updates.join(', ')} WHERE soil_water_analysis_id = $${index}`;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
@@ -277,8 +279,8 @@ const soilWaterRepository = {
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_world_soil_celebration 
-            ("kvkId", activities_conducted, soil_health_card_distributed, vip_names, participants, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            ("kvkId", activities_conducted, soil_health_card_distributed, vip_names, participants, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId,
             isNaN(actCond) ? 0 : actCond,
             isNaN(shcDist) ? 0 : shcDist,
@@ -396,6 +398,7 @@ const soilWaterRepository = {
         }
 
         if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = `UPDATE kvk_world_soil_celebration SET ${updates.join(', ')} WHERE world_soil_celebration_id = $${index}`;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);

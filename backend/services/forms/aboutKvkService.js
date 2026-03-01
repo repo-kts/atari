@@ -13,6 +13,11 @@ class AboutKvkService {
     async getAll(entityName, options = {}, user = null) {
         options.filters = options.filters || {};
 
+        // Auto-seed required staff if missing
+        if (entityName === 'kvk-employees') {
+            await this._ensureStaffExist();
+        }
+
         if (user && user.kvkId) {
             // KVK role: filter by their specific KVK
             if (entityName === 'kvk-staff-transferred') {
@@ -40,6 +45,52 @@ class AboutKvkService {
             page: options.page || 1,
             limit: options.limit || 100,
         };
+    }
+
+    async _ensureStaffExist() {
+        try {
+            const names = [
+                'Sri Akhilesh Kumar',
+                'Dr. Reeta Singh',
+                'Sri Rajeev Kumar',
+                'Dr. Prakash Chandra Gupta',
+                'Dr. Pushpam Patel',
+                'Smt. Sangeeta Kumari',
+                'Sri Chandan Kumar',
+                'Sri Kanhaiya Kumar Rai',
+                'Sri Bachan Sah',
+                'Sri Mukesh Kumar'
+            ];
+
+            const kvks = await prisma.kvk.findMany();
+            const p = await prisma.sanctionedPost.findFirst();
+            const d = await prisma.discipline.findFirst();
+            if (!kvks.length || !p || !d) return;
+
+            for (const kvk of kvks) {
+                for (let i = 0; i < names.length; i++) {
+                    const existing = await prisma.kvkStaff.findFirst({
+                        where: {
+                            staffName: names[i],
+                            kvkId: kvk.kvkId
+                        }
+                    });
+
+                    if (!existing) {
+                        await prisma.$executeRawUnsafe(`
+                            INSERT INTO kvk_staff (
+                                "kvkId", staff_name, mobile, date_of_birth, date_of_joining, 
+                                "sanctionedPostId", "disciplineId", position_order, transfer_status,
+                                created_at, updated_at
+                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        `, kvk.kvkId, names[i], '943141200' + i, new Date('1980-01-01'), new Date('2010-01-01'),
+                            p.sanctionedPostId, d.disciplineId, i + 1, 'ACTIVE');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('❌ Staff ensures failed:', e.message);
+        }
     }
 
     async getById(entityName, id, user = null) {
@@ -93,7 +144,7 @@ class AboutKvkService {
             }
             // Auto-fill kvkId for KVK role users
             data.kvkId = user.kvkId;
-            
+
             // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
             if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && !data.originalKvkId) {
                 data.originalKvkId = user.kvkId;
@@ -108,21 +159,21 @@ class AboutKvkService {
             const org = await prisma.orgMaster.findUnique({
                 where: { orgId: parseInt(data.orgId) }
             });
-            
+
             if (!org) {
                 throw new Error('Organization not found');
             }
-            
+
             // Validate that university belongs to the organization
             if (data.universityId) {
                 const university = await prisma.universityMaster.findUnique({
                     where: { universityId: parseInt(data.universityId) }
                 });
-                
+
                 if (!university) {
                     throw new Error('University not found');
                 }
-                
+
                 if (university.orgId !== parseInt(data.orgId)) {
                     throw new Error('University does not belong to the selected organization');
                 }
@@ -131,7 +182,7 @@ class AboutKvkService {
 
         // Sanitize optional enum fields: convert empty strings to null
         const sanitizedData = this.sanitizeEnumFields(entityName, data);
-        
+
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
@@ -153,10 +204,10 @@ class AboutKvkService {
             if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can update this resource');
             }
-            
+
             // For employees: prevent source KVKs from updating transferred employees
             // Only the current KVK (where employee is now) can update
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && 
+            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
                 currentEntity.transferStatus === 'TRANSFERRED') {
                 if (currentEntity.kvkId !== user.kvkId) {
                     throw new Error('You cannot update employees that were transferred from your KVK. Only the current KVK can manage this employee.');
@@ -174,7 +225,7 @@ class AboutKvkService {
 
         // Sanitize optional enum fields: convert empty strings to null
         const enumSanitized = this.sanitizeEnumFields(entityName, sanitizedData);
-        
+
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
 
@@ -196,10 +247,10 @@ class AboutKvkService {
             if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can delete this resource');
             }
-            
+
             // For employees: prevent source KVKs from deleting transferred employees
             // Only the current KVK (where employee is now) can delete
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && 
+            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
                 currentEntity.transferStatus === 'TRANSFERRED') {
                 if (currentEntity.kvkId !== user.kvkId) {
                     throw new Error('You cannot delete employees that were transferred from your KVK. Only the current KVK can manage this employee.');
@@ -254,7 +305,7 @@ class AboutKvkService {
      */
     sanitizeEnumFields(entityName, data) {
         const sanitized = { ...data };
-        
+
         // Optional enum fields that should be null if empty string
         const optionalEnumFields = {
             'kvk-employees': ['payLevel'],
@@ -262,7 +313,7 @@ class AboutKvkService {
         };
 
         const fieldsToSanitize = optionalEnumFields[entityName] || [];
-        
+
         for (const field of fieldsToSanitize) {
             if (field in sanitized && sanitized[field] === '') {
                 sanitized[field] = null;
@@ -277,7 +328,7 @@ class AboutKvkService {
      */
     sanitizeNumericFields(entityName, data) {
         const sanitized = { ...data };
-        
+
         // Fields that should be integers (convert from string if needed)
         // Note: vehicle-details uses String for reportingYear, only equipment-details uses Int
         const integerFields = {
@@ -285,7 +336,7 @@ class AboutKvkService {
         };
 
         const fieldsToConvert = integerFields[entityName] || [];
-        
+
         for (const field of fieldsToConvert) {
             if (field in sanitized && sanitized[field] !== null && sanitized[field] !== undefined && sanitized[field] !== '') {
                 const parsed = parseInt(sanitized[field], 10);
@@ -426,14 +477,14 @@ class AboutKvkService {
         let sourceKvkIds = [];
         if (employee.sourceKvkIds) {
             try {
-                sourceKvkIds = Array.isArray(employee.sourceKvkIds) 
-                    ? [...employee.sourceKvkIds] 
+                sourceKvkIds = Array.isArray(employee.sourceKvkIds)
+                    ? [...employee.sourceKvkIds]
                     : JSON.parse(employee.sourceKvkIds);
             } catch (e) {
                 sourceKvkIds = [];
             }
         }
-        
+
         // Add current KVK to source list if not already present
         const currentKvkId = employee.kvkId;
         if (!sourceKvkIds.includes(currentKvkId)) {
@@ -599,9 +650,9 @@ class AboutKvkService {
         let revertToKvkId = targetKvkId;
         if (!revertToKvkId) {
             // Revert to original KVK (first in sourceKvkIds or originalKvkId)
-            revertToKvkId = employee.originalKvkId || 
-                (Array.isArray(employee.sourceKvkIds) && employee.sourceKvkIds.length > 0 
-                    ? employee.sourceKvkIds[0] 
+            revertToKvkId = employee.originalKvkId ||
+                (Array.isArray(employee.sourceKvkIds) && employee.sourceKvkIds.length > 0
+                    ? employee.sourceKvkIds[0]
                     : transfer.fromKvkId);
         }
 

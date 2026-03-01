@@ -22,30 +22,33 @@ const celebrationDayRepository = {
             importantDayId = day.importantDayId;
         }
 
-        return await prisma.kvkImportantDayCelebration.create({
-            data: {
-                kvkId,
-                eventDate: new Date(data.eventDate),
-                importantDayId: parseInt(importantDayId ?? 1),
-                numberOfActivities: parseInt(data.activityCount ?? data.numberOfActivities ?? 0),
-                farmersGeneralM: parseInt(data.gen_m ?? data.farmersGeneralM ?? 0),
-                farmersGeneralF: parseInt(data.gen_f ?? data.farmersGeneralF ?? 0),
-                farmersObcM: parseInt(data.obc_m ?? data.farmersObcM ?? 0),
-                farmersObcF: parseInt(data.obc_f ?? data.farmersObcF ?? 0),
-                farmersScM: parseInt(data.sc_m ?? data.farmersScM ?? 0),
-                farmersScF: parseInt(data.sc_f ?? data.farmersScF ?? 0),
-                farmersStM: parseInt(data.st_m ?? data.farmersStM ?? 0),
-                farmersStF: parseInt(data.st_f ?? data.farmersStF ?? 0),
-                officialsGeneralM: parseInt(data.ext_gen_m ?? data.officialsGeneralM ?? 0),
-                officialsGeneralF: parseInt(data.ext_gen_f ?? data.officialsGeneralF ?? 0),
-                officialsObcM: parseInt(data.ext_obc_m ?? data.officialsObcM ?? 0),
-                officialsObcF: parseInt(data.ext_obc_f ?? data.officialsObcF ?? 0),
-                officialsScM: parseInt(data.ext_sc_m ?? data.officialsScM ?? 0),
-                officialsScF: parseInt(data.ext_sc_f ?? data.officialsScF ?? 0),
-                officialsStM: parseInt(data.ext_st_m ?? data.officialsStM ?? 0),
-                officialsStF: parseInt(data.ext_st_f ?? data.officialsStF ?? 0),
-            }
-        });
+        const result = await prisma.$queryRawUnsafe(`
+            INSERT INTO kvk_important_day_celebration (
+                "kvkId", event_date, "importantDayId", 
+                number_of_activities,
+                farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
+                farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
+                officials_general_m, officials_general_f, officials_obc_m, officials_obc_f,
+                officials_sc_m, officials_sc_f, officials_st_m, officials_st_f,
+                created_at, updated_at
+            ) VALUES (
+                $1, $2::timestamp, $3, $4,
+                $5, $6, $7, $8, $9, $10, $11, $12,
+                $13, $14, $15, $16, $17, $18, $19, $20,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            ) RETURNING celebration_id
+        `, kvkId, new Date(data.eventDate).toISOString(), parseInt(importantDayId ?? 1),
+            parseInt(data.activityCount ?? data.numberOfActivities ?? 0),
+            parseInt(data.gen_m ?? data.farmersGeneralM ?? 0), parseInt(data.gen_f ?? data.farmersGeneralF ?? 0),
+            parseInt(data.obc_m ?? data.farmersObcM ?? 0), parseInt(data.obcF ?? data.farmersObcF ?? 0),
+            parseInt(data.sc_m ?? data.farmersScM ?? 0), parseInt(data.sc_f ?? data.farmersScF ?? 0),
+            parseInt(data.st_m ?? data.farmersStM ?? 0), parseInt(data.st_f ?? data.farmersStF ?? 0),
+            parseInt(data.ext_gen_m ?? data.officialsGeneralM ?? 0), parseInt(data.ext_gen_f ?? data.officialsGeneralF ?? 0),
+            parseInt(data.ext_obc_m ?? data.officialsObcM ?? 0), parseInt(data.ext_obc_f ?? data.officialsObcF ?? 0),
+            parseInt(data.ext_sc_m ?? data.officialsScM ?? 0), parseInt(data.ext_sc_f ?? data.officialsScF ?? 0),
+            parseInt(data.ext_st_m ?? data.officialsStM ?? 0), parseInt(data.ext_st_f ?? data.officialsStF ?? 0));
+
+        return await celebrationDayRepository.findById(result[0].celebration_id, user);
     },
 
     findAll: async (filters = {}, user) => {
@@ -132,10 +135,36 @@ const celebrationDayRepository = {
             if (val !== undefined) updateData[back] = parseInt(val);
         }
 
-        return await prisma.kvkImportantDayCelebration.update({
-            where: { celebrationId: parseInt(id) },
-            data: updateData
-        });
+        const updates = [];
+        const values = [];
+        let index = 1;
+
+        for (const [key, val] of Object.entries(updateData)) {
+            let colName = key;
+            if (key === 'kvkId') colName = '"kvkId"';
+            else if (key === 'importantDayId') colName = '"importantDayId"';
+            else if (key === 'numberOfActivities') colName = 'number_of_activities';
+            else colName = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+
+            updates.push(`${colName} = $${index++}`);
+            values.push(val);
+        }
+
+        if (updates.length > 0) {
+            updates.push(`updated_at = CURRENT_TIMESTAMP`);
+            let sql = `UPDATE kvk_important_day_celebration SET ${updates.join(', ')} WHERE celebration_id = $${index++}`;
+            const params = [...values, parseInt(id)];
+
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                sql += ` AND "kvkId" = $${index++}`;
+                params.push(parseInt(user.kvkId));
+            }
+
+            const result = await prisma.$executeRawUnsafe(sql, ...params);
+            if (result === 0) throw new Error("Record not found or unauthorized");
+        }
+
+        return await celebrationDayRepository.findById(id, user);
     },
 
     delete: async (id, user) => {
