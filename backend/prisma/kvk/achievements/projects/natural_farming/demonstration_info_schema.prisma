@@ -1,0 +1,97 @@
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum FarmerCategory {
+  GENERAL
+  OBC
+  SC
+  ST
+}
+
+model DemonstrationInfo {
+  demonstrationInfoId Int @id @default(autoincrement()) @map("demonstration_info_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  startDate DateTime
+  endDate   DateTime
+
+  farmerName   String
+  villageName  String
+  address      String
+  contactNumber String
+  gender   Gender
+  category FarmerCategory
+
+  croppingPattern String @map("cropping_pattern")
+  farmingSituation String @map("farming_situation")
+  latitude  Float
+  longitude Float
+
+  activityName String @map("activity_name")
+  crop         String
+  variety      String
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  technologyDemonstrated String @map("technology_demonstrated")
+  areaInHa Float @map("area_in_ha")
+  farmerPracticeDetails String @map("farmer_practice_details")
+
+  // Performance comparison (Without vs With NF)
+  plantHeightWithout Float?
+  plantHeightWith    Float?
+
+  otherRelevantParameterWithout    Float?
+  otherRelevantParameterWith    Float?
+
+  yieldWithout Float?
+  yieldWith    Float?
+
+  costWithout Float?
+  costWith    Float?
+
+  grossReturnWithout Float?
+  grossReturnWith    Float?
+
+  netReturnWithout Float?
+  netReturnWith    Float?
+
+  bcRatioWithout Float?
+  bcRatioWith    Float?
+
+  soilPhWithout Float?
+  soilPhWith    Float?
+
+  soilOcWithout Float?
+  soilOcWith    Float?
+
+  soilEcWithout Float?
+  soilEcWith    Float?
+
+  availableNWithout Float?
+  availableNWith    Float?
+
+  availablePWithout Float?
+  availablePWith    Float?
+
+  availableKWithout Float?
+  availableKWith    Float?
+
+  soilMicrobesWithout Float?
+  soilMicrobesWith    Float?
+
+  anyOtherWithout Float?
+  anyOtherWith    Float?
+
+  farmerFeedback String @map("farmer_feedback")
+  images String? @map("images")
+
+  @@index([kvkId])
+
+  @@map("demonstration_info")
+}

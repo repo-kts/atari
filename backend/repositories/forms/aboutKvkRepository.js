@@ -55,6 +55,12 @@ const ENTITY_CONFIG = {
             },
             discipline: {
                 select: { disciplineId: true, disciplineName: true }
+            },
+            staffCategory: {
+                select: { staffCategoryId: true, categoryName: true }
+            },
+            payLevel: {
+                select: { payLevelId: true, levelName: true }
             }
         }
     },
@@ -75,6 +81,12 @@ const ENTITY_CONFIG = {
             },
             discipline: {
                 select: { disciplineId: true, disciplineName: true }
+            },
+            staffCategory: {
+                select: { staffCategoryId: true, categoryName: true }
+            },
+            payLevel: {
+                select: { payLevelId: true, levelName: true }
             }
         }
     },

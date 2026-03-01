@@ -11,6 +11,8 @@ model Season {
   extensionActivityOrganized ExtensionActivityOrganized[]
   cfldTechnicalParameters    CfldTechnicalParameter[]
   kvkOfts  Kvkoft[]
+  nicraDetails  NicraDetails[]
+  demonstrationInfo  DemonstrationInfo[]
   seedHubPrograms KvkSeedHubProgram[]
   csisa Csisa []
 

@@ -162,6 +162,9 @@ const userRepository = {
     if (filters.roleId !== undefined) {
       where.roleId = filters.roleId;
     }
+    if (filters.roleNames?.length) {
+      where.role = { roleName: { in: filters.roleNames } };
+    }
     if (filters.search) {
       const term = filters.search.trim();
       where.OR = [

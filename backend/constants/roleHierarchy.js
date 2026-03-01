@@ -63,6 +63,16 @@ function getManageableRoles(callerRole) {
     .map(([name]) => name);
 }
 
+/**
+ * Returns the role names that a given creator can assign (strictly lower hierarchy).
+ */
+function getCreatableRoles(callerRole) {
+  const callerLevel = getRoleLevel(callerRole);
+  return Object.entries(ROLE_HIERARCHY)
+    .filter(([, level]) => level > callerLevel)
+    .map(([name]) => name);
+}
+
 module.exports = {
   ROLE_HIERARCHY,
   ADMIN_ROLES,
@@ -71,4 +81,5 @@ module.exports = {
   outranks,
   outranksOrEqual,
   getManageableRoles,
+  getCreatableRoles,
 };

@@ -33,6 +33,13 @@ export function outranksOrEqual(callerRole: string, targetRole: string): boolean
   return getRoleLevel(callerRole) <= getRoleLevel(targetRole)
 }
 
+export function getCreatableRoles(callerRole: string): string[] {
+  const callerLevel = getRoleLevel(callerRole)
+  return Object.entries(ROLE_HIERARCHY)
+    .filter(([, level]) => level > callerLevel)
+    .map(([name]) => name)
+}
+
 export function getManageableRoles(callerRole: string): string[] {
   const callerLevel = getRoleLevel(callerRole)
   return Object.entries(ROLE_HIERARCHY)
