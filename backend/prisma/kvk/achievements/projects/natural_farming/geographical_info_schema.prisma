@@ -1,0 +1,18 @@
+model GeographicalInfo {
+  geographicalInfoId Int @id @default(autoincrement()) @map("geographical_info_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+  agroClimaticZone String @map("agro_climatic_zone")
+  farmingSituation String  @map("farming_situation")
+  latitude  Float @map("latitude")
+  longitude Float @map("longitude")
+
+  @@index([kvkId])
+
+  @@map("geographical_info")
+}

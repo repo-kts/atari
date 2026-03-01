@@ -1,0 +1,24 @@
+model NicraExtensionActivity {
+  nicraExtensionActivityId Int @id @default(autoincrement()) @map("nicra_extension_activity_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  activityName String @map("activity_name")
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+  venue String @map("venue")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+
+  @@map("nicra_extension_activity")
+}

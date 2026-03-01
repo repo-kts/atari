@@ -1,0 +1,93 @@
+enum Month {
+  JANUARY
+  FEBRUARY
+  MARCH
+  APRIL
+  MAY
+  JUNE
+  JULY
+  AUGUST
+  SEPTEMBER
+  OCTOBER
+  NOVEMBER
+  DECEMBER
+}
+
+model NicraCategory {
+  nicraCategoryId Int @id @default(autoincrement()) @map("nicra_category_id")
+
+  categoryName String @map("category_name")
+
+  subCategories NicraSubCategory[]
+  nicraDetails  NicraDetails[]
+
+  @@unique([categoryName])
+
+  @@map("nicra_category")
+}
+
+model NicraSubCategory {
+  nicraSubCategoryId Int @id @default(autoincrement()) @map("nicra_sub_category_id")
+
+  subCategoryName String @map("sub_category_name")
+
+  nicraCategoryId Int
+  category NicraCategory @relation(fields: [nicraCategoryId], references: [nicraCategoryId])
+
+  nicraDetails NicraDetails[]
+
+  @@index([nicraCategoryId])
+  @@unique([subCategoryName, nicraCategoryId])
+
+  @@map("nicra_sub_category")
+}
+
+model NicraDetails {
+  nicraDetailsId Int @id @default(autoincrement()) @map("nicra_details_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingYear Int @map("reporting_year")
+
+  nicraCategoryId Int
+  category NicraCategory @relation(fields: [nicraCategoryId], references: [nicraCategoryId])
+
+  nicraSubCategoryId Int
+  subCategory NicraSubCategory @relation(fields: [nicraSubCategoryId], references: [nicraSubCategoryId])
+
+  fstType String @map("fst_type")
+  cropName String @map("crop_name")
+
+  seasonId Int
+  season   Season @relation(fields: [seasonId], references: [seasonId])
+
+  month Month
+  technologyDemonstrated String @map("technology_demonstrated")
+  areaOrUnit Float @map("area_or_unit")
+  bodyWeight Float @map("body_weight")
+  yield Float @map("yield")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  grossCost Float @map("gross_cost")
+  grossReturn Float @map("gross_return")
+  netReturn Float @map("net_return")
+  bcrRatio Float @map("bcr_ratio")
+
+  photographs String? @map("photographs")
+  uploadFile String? @map("upload_file")
+
+  @@index([kvkId])
+  @@index([nicraCategoryId])
+  @@index([nicraSubCategoryId])
+
+  @@map("nicra_details")
+}

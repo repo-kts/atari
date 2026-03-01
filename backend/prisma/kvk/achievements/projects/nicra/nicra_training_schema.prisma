@@ -1,0 +1,25 @@
+model NicraTraining {
+  nicraTrainingId Int @id @default(autoincrement()) @map("nicra_training_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  titleOfTraining String @map("title_of_training")
+  campusType CampusType @map("campus_type")
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+  remark String @map("remark")
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+
+  @@map("nicra_training")
+}

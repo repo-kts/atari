@@ -1,0 +1,26 @@
+model NicraBasicInfo {
+  nicraBasicInfoId Int @id @default(autoincrement()) @map("nicra_basic_info_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  reportingDate DateTime @map("reporting_date") // extract only year and month for this
+
+  rfNormal Float  @map("rf_normal")
+  rfReceived Float @map("rf_received")
+
+  tempMax Float @map("temp_max")
+  tempMin Float @map("temp_min")
+
+  drySpell10Days Int @map("dry_spell_10_days")
+  drySpell15Days Int @map("dry_spell_15_days")
+  drySpell20Days Int @map("dry_spell_20_days")
+  intensiveRainAbove60mm Int @map("intensive_rain_above_60mm")
+  waterDepthCm Float @map("water_depth_cm")
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+
+  @@index([kvkId])
+
+  @@map("nicra_basic_info")
+}

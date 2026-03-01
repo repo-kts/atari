@@ -75,6 +75,13 @@ model Kvk {
   swachhtaHiSewa              SwachhtaHiSewa[]
   swachhQuarterlyExpenditure  SwachhQuarterlyExpenditure[]
   swachhtaPakhwada            SwachhtaPakhwada[]
+  nicraDetails                NicraDetails[]
+  nicraBasicInfo              NicraBasicInfo[]
+  nicraTraining               NicraTraining[]
+  nicraExtensionActivity      NicraExtensionActivity[]
+  geographicalInfo            GeographicalInfo[]
+  physicalInfo                PhysicalInfo[]
+  demonstrationInfo           DemonstrationInfo[]
 
   @@index([zoneId])
   @@index([stateId])
