@@ -50,6 +50,13 @@ const SOIL_WATER_ANALYSIS = [
   'Soil', 'Water', 'Plant', 'Fertilizers', 'Manures', 'Food', 'Others (if any)'
 ];
 
+const ARYA_ENTERPRISES = [
+  "Pig Farming", "Banana Fibre Extraction", "Goat Farming", "Food Processing",
+  "Lac Farming", "Mushroom Production", "Poultry Farming", "Quail Farming",
+  "Duck Farming", "Fish Farming", "Bee keeping", "Processing and Value Addition(Product Name)",
+  "Nursery Management", "Seed Production", "Others"
+];
+
 async function seedHierarchy() {
   console.log('🌱 Hierarchy (zone, states, districts, orgs)...');
   const zone = await prisma.zone.upsert({
@@ -138,6 +145,27 @@ async function seedSoilWaterAnalysis() {
   console.log('   ✅ Done\n');
 }
 
+async function seedAryaEnterprises() {
+  console.log('🌱 ARYA enterprises...');
+  for (const name of ARYA_ENTERPRISES) {
+    try {
+      const result = await prisma.$queryRaw`SELECT enterprise_id FROM enterprise_master WHERE enterprise_name = ${name}`;
+      if (result.length === 0) {
+        await prisma.$executeRaw`INSERT INTO enterprise_master (enterprise_name) VALUES (${name})`;
+      }
+    } catch (e) {
+      try {
+        await prisma.aryaEnterprise.upsert({
+          where: { enterpriseName: name },
+          update: {},
+          create: { enterpriseName: name }
+        });
+      } catch (err) { }
+    }
+  }
+  console.log('   ✅ Done\n');
+}
+
 async function run() {
   console.log('🌱 Seed data\n');
   await seedHierarchy();
@@ -146,6 +174,7 @@ async function run() {
   await seedInfraMasters();
   await seedSanctionPosts();
   await seedSoilWaterAnalysis();
+  await seedAryaEnterprises();
 }
 
 if (require.main === module) {

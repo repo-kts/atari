@@ -7,11 +7,11 @@ const farmerAwardRepository = {
         const amount = parseInt(data.amount || 0);
 
         const inserted = await prisma.$queryRawUnsafe(`
-            INSERT INTO farmer_award 
-            ("kvkId", farmer_name, contact_number, address, award_name, amount, achievement, conferring_authority, reporting_year, image)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            INSERT INTO farmer_award
+            ("kvkId", farmer_name, contact_number, address, award_name, amount, achievement, conferring_authority, created_at, updated_at)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING farmer_award_id;
-        `, kvkId, data.farmerName || '', data.contactNumber || data.contactNo || '', data.address || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '', parseInt(String(data.reportingYear || data.year).split('-')[0]) || null, data.image || '');
+        `, kvkId, data.farmerName || '', data.contactNumber || data.contactNo || '', data.address || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '');
 
         return { farmerAwardID: inserted[0].farmer_award_id };
     },
@@ -46,10 +46,7 @@ const farmerAwardRepository = {
             contactNo: r.contact_number,
             address: r.address,
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            image: r.image
+            conferringAuthority: r.conferring_authority
         }));
     },
 
@@ -72,10 +69,7 @@ const farmerAwardRepository = {
             contactNo: r.contact_number,
             address: r.address,
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            image: r.image
+            conferringAuthority: r.conferring_authority
         };
     },
 
@@ -95,14 +89,9 @@ const farmerAwardRepository = {
         if (data.amount !== undefined) { updates.push('amount = $' + (index++)); values.push(parseInt(data.amount) || 0); }
         if (data.achievement !== undefined) { updates.push('achievement = $' + (index++)); values.push(data.achievement || ''); }
         if (data.conferringAuthority !== undefined) { updates.push('conferring_authority = $' + (index++)); values.push(data.conferringAuthority || ''); }
-        if (data.image !== undefined) { updates.push('image = $' + (index++)); values.push(data.image || ''); }
-        if (data.reportingYear !== undefined || data.year !== undefined) {
-            updates.push('reporting_year = $' + (index++));
-            const ry = data.reportingYear || data.year;
-            values.push(parseInt(String(ry).split('-')[0]) || null);
-        }
 
         if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = 'UPDATE farmer_award SET ' + updates.join(', ') + ' WHERE farmer_award_id = $' + index;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);

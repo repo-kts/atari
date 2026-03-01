@@ -6,9 +6,9 @@ const hrdRepository = {
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO hrd_program 
-            ("kvkId", "kvkStaffId", course_name, start_date, end_date, organizer_venue, reporting_year)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, kvkId, parseInt(data.kvkStaffId || data.staffId), data.courseName, new Date(data.startDate), new Date(data.endDate), data.organizerVenue, parseInt(data.reportingYear || data.year) || null);
+            ("kvkId", "kvkStaffId", course_name, start_date, end_date, organizer_venue, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `, kvkId, parseInt(data.kvkStaffId || data.staffId), data.courseName, new Date(data.startDate), new Date(data.endDate), data.organizerVenue);
 
         return { success: true };
     },
@@ -39,9 +39,7 @@ const hrdRepository = {
             startDate: r.start_date,
             endDate: r.end_date,
             organizerVenue: r.organizer_venue,
-            kvkStaffId: r.kvkStaffId,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
+            kvkStaffId: r.kvkStaffId
         }));
     },
 
@@ -58,9 +56,7 @@ const hrdRepository = {
             startDate: r.start_date,
             endDate: r.end_date,
             organizerVenue: r.organizer_venue,
-            kvkStaffId: r.kvkStaffId,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
+            kvkStaffId: r.kvkStaffId
         };
     },
 
@@ -89,13 +85,9 @@ const hrdRepository = {
             updates.push(`organizer_venue = $${index++}`);
             values.push(data.organizerVenue);
         }
-        if (data.reportingYear !== undefined || data.year !== undefined) {
-            updates.push(`reporting_year = $${index++}`);
-            const ry = data.reportingYear || data.year;
-            values.push(parseInt(String(ry).split('-')[0]) || null);
-        }
 
         if (updates.length > 0) {
+            updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = `UPDATE hrd_program SET ${updates.join(', ')} WHERE hrd_program_id = $${index}`;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);

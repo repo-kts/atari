@@ -354,6 +354,23 @@ export function useExtensionActivityTypes() {
     };
 }
 
+// CFLD-specific extension activity types (from extension_activity table, not fld_activity)
+export function useCfldExtensionActivityTypes() {
+    const query = useQuery({
+        queryKey: ['cfld-extension-activity-types'],
+        queryFn: async () => {
+            const { apiClient } = await import('../services/api');
+            const res = await apiClient.get('/forms/achievements/cfld-extension-activities/activity-types') as any;
+            return res.data || [];
+        },
+        staleTime: 10 * 60 * 1000,
+    });
+    return {
+        data: (query.data || []) as Array<{ extensionActivityId: number; extensionName: string }>,
+        isLoading: query.isLoading,
+    };
+}
+
 export function useOtherExtensionActivityTypes() {
     const queryClient = useQueryClient();
 

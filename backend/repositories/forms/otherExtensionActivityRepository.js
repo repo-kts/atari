@@ -78,17 +78,19 @@ const otherExtensionActivityRepository = {
              farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
              farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
              officials_general_m, officials_general_f, officials_obc_m, officials_obc_f,
-             officials_sc_m, officials_sc_f, officials_st_m, officials_st_f)
+             officials_sc_m, officials_sc_f, officials_st_m, officials_st_f,
+             created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7::timestamp,
                     $8, $9, $10, $11, $12, $13, $14, $15,
-                    $16, $17, $18, $19, $20, $21, $22, $23)
+                    $16, $17, $18, $19, $20, $21, $22, $23,
+                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING kvk_other_extension_activity_id;
         `, kvkId, fldId, staffId, activityTypeId, numberOfActivities, startDate, endDate,
             farmersGeneralM, farmersGeneralF, farmersObcM, farmersObcF,
             farmersScM, farmersScF, farmersStM, farmersStF,
             officialsGeneralM, officialsGeneralF, officialsObcM, officialsObcF,
             officialsScM, officialsScF, officialsStM, officialsStF);
-        return { otherExtensionActivityId: inserted[0].kvk_other_extension_activity_id };
+        return await otherExtensionActivityRepository.findById(inserted[0].kvk_other_extension_activity_id, user);
     },
     findAll: async (filters = {}, user) => {
         let whereClause = '';
@@ -282,7 +284,7 @@ const otherExtensionActivityRepository = {
             const result = await prisma.$executeRawUnsafe(sql, ...finalParams);
             if (result === 0) throw new Error("Record not found or unauthorized");
         }
-        return { success: true };
+        return await otherExtensionActivityRepository.findById(id, user);
     },
     delete: async (id, user) => {
         let sql = 'DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';

@@ -30,6 +30,11 @@ const celebrationDayRoutes = require('./forms/celebrationDayRoutes.js');
 const fpoManagementRoutes = require('./forms/fpoManagementRoutes.js');
 const fpoCbboDetailsRoutes = require('./forms/fpoCbboDetailsRoutes.js');
 const seedHubRoutes = require('./forms/seedHubRoutes.js');
+const aryaCurrentYearRoutes = require('./forms/aryaCurrentYearRoutes.js');
+const aryaPrevYearRoutes = require('./forms/aryaPrevYearRoutes.js');
+const oftRoutes = require('./forms/oftRoutes.js');
+const csisaRoutes = require('./forms/csisaRoutes.js');
+const agriDroneRoutes = require('./forms/agriDroneRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 // Mount routes
@@ -59,6 +64,11 @@ router.use('/forms/achievements/celebration-days', celebrationDayRoutes);
 router.use('/forms/achievements/projects/fpo/details', fpoCbboDetailsRoutes);
 router.use('/forms/achievements/projects/fpo/management', fpoManagementRoutes);
 router.use('/forms/achievements/projects/seed-hub', seedHubRoutes);
+router.use('/forms/achievements/projects/arya/current', aryaCurrentYearRoutes);
+router.use('/forms/achievements/projects/arya/previous', aryaPrevYearRoutes);
+router.use('/forms/achievements/projects/csisa', csisaRoutes);
+router.use('/forms/achievements/projects/agri-drone', agriDroneRoutes);
+router.use('/forms/achievements/oft', oftRoutes);
 router.use('/reports', reportRoutes);
 
 module.exports = router;

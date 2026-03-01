@@ -48,45 +48,63 @@ const cfldTechnicalParameterRepository = {
             }
         }
 
-        const result = await prisma.cfldTechnicalParameter.create({
-            data: {
+        const query = `
+            INSERT INTO "cfl cfld_technical_parameter" (
+                "kvkId", "cropId", month, type, "seasonId", 
+                variety_name, area_in_ha, technology_demonstrated, 
+                existing_farmer_practice, farmer_yield, demo_yield_max, 
+                demo_yield_min, demo_yield_avg, percent_increase, 
+                district_yield, state_yield, potential_yield, 
+                yield_gap_district_minimized, yield_gap_state_minimized, 
+                yield_gap_potential_minimized, general_m, general_f, 
+                obc_m, obc_f, sc_m, sc_f, st_m, st_f, 
+                training_photo_path, quality_action_photo_path,
+                created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `;
+
+        await prisma.$executeRawUnsafe(query,
+            kvkId, cropId, monthDate, data.type || data.typeName || 'OILSEED', seasonId,
+            data.varietyName || '', parseFloat(data.areaHectare || data.areaInHa || 0),
+            data.technologyDemonstrated || '', data.existingFarmerPractice || '',
+            parseFloat(data.yieldFarmerField || data.farmerYield || 0),
+            parseFloat(data.yieldMax || data.demoYieldMax || 0),
+            parseFloat(data.yieldMin || data.demoYieldMin || 0),
+            parseFloat(data.yieldAvg || data.demoYieldAvg || 0),
+            parseFloat(data.yieldIncreasePercent || data.percentIncrease || 0),
+            parseFloat(data.yieldGapDistrict || data.districtYield || 0),
+            parseFloat(data.yieldGapState || data.stateYield || 0),
+            parseFloat(data.yieldGapPotential || data.potentialYield || 0),
+            parseFloat(data.yieldGapMinimisedDistrict || data.yieldGapDistrictMinimized || 0),
+            parseFloat(data.yieldGapMinimisedState || data.yieldGapStateMinimized || 0),
+            parseFloat(data.yieldGapMinimisedPotential || data.yieldGapPotentialMinimized || 0),
+            parseInt(data.genM || data.generalM || 0),
+            parseInt(data.genF || data.generalF || 0),
+            parseInt(data.obcM || 0),
+            parseInt(data.obcF || 0),
+            parseInt(data.scM || 0),
+            parseInt(data.scF || 0),
+            parseInt(data.stM || 0),
+            parseInt(data.stF || 0),
+            data.trainingPhotoPath || null,
+            data.qualityActionPhotoPath || null
+        );
+
+        const result = await prisma.cfldTechnicalParameter.findFirst({
+            where: {
                 kvkId,
                 cropId,
-                month: monthDate,
                 type: data.type || data.typeName || 'OILSEED',
-                seasonId,
-                varietyName: data.varietyName || '',
-                areaInHa: parseFloat(data.areaHectare || data.areaInHa || 0),
-                technologyDemonstrated: data.technologyDemonstrated || '',
-                existingFarmerPractice: data.existingFarmerPractice || '',
-                farmerYield: parseFloat(data.yieldFarmerField || data.farmerYield || 0),
-                demoYieldMax: parseFloat(data.yieldMax || data.demoYieldMax || 0),
-                demoYieldMin: parseFloat(data.yieldMin || data.demoYieldMin || 0),
-                demoYieldAvg: parseFloat(data.yieldAvg || data.demoYieldAvg || 0),
-                percentIncrease: parseFloat(data.yieldIncreasePercent || data.percentIncrease || 0),
-                districtYield: parseFloat(data.yieldGapDistrict || data.districtYield || 0),
-                stateYield: parseFloat(data.yieldGapState || data.stateYield || 0),
-                potentialYield: parseFloat(data.yieldGapPotential || data.potentialYield || 0),
-                yieldGapDistrictMinimized: parseFloat(data.yieldGapMinimisedDistrict || data.yieldGapDistrictMinimized || 0),
-                yieldGapStateMinimized: parseFloat(data.yieldGapMinimisedState || data.yieldGapStateMinimized || 0),
-                yieldGapPotentialMinimized: parseFloat(data.yieldGapMinimisedPotential || data.yieldGapPotentialMinimized || 0),
-                generalM: parseInt(data.genM || data.generalM || 0),
-                generalF: parseInt(data.genF || data.generalF || 0),
-                obcM: parseInt(data.obcM || 0),
-                obcF: parseInt(data.obcF || 0),
-                scM: parseInt(data.scM || 0),
-                scF: parseInt(data.scF || 0),
-                stM: parseInt(data.stM || 0),
-                stF: parseInt(data.stF || 0),
-                trainingPhotoPath: data.trainingPhotoPath || null,
-                qualityActionPhotoPath: data.qualityActionPhotoPath || null,
+                seasonId
             },
             include: {
                 kvk: { select: { kvkName: true } },
                 crop: { select: { cropName: true } },
                 season: { select: { seasonName: true } },
-            }
+            },
+            orderBy: { cfldTechId: 'desc' }
         });
+        return _mapResponse(result);
         return _mapResponse(result);
     },
 
@@ -124,6 +142,12 @@ const cfldTechnicalParameterRepository = {
     },
 
     update: async (id, data) => {
+        const cfldTechId = parseInt(id);
+        const existing = await prisma.cfldTechnicalParameter.findUnique({
+            where: { cfldTechId }
+        });
+        if (!existing) throw new Error("Record not found");
+
         const updateData = {};
         if (data.crop) {
             let crop = await prisma.fldCrop.findFirst({
@@ -154,40 +178,62 @@ const cfldTechnicalParameterRepository = {
         } else if (data.cropId) {
             updateData.cropId = parseInt(data.cropId);
         }
+
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
         if (data.month) updateData.month = new Date(data.month);
         if (data.type || data.typeName) updateData.type = data.type || data.typeName;
-        if (data.varietyName !== undefined) updateData.varietyName = data.varietyName;
-        if (data.areaHectare !== undefined || data.areaInHa !== undefined) updateData.areaInHa = parseFloat(data.areaHectare || data.areaInHa);
-        if (data.technologyDemonstrated !== undefined) updateData.technologyDemonstrated = data.technologyDemonstrated;
-        if (data.existingFarmerPractice !== undefined) updateData.existingFarmerPractice = data.existingFarmerPractice;
-        if (data.yieldFarmerField !== undefined || data.farmerYield !== undefined) updateData.farmerYield = parseFloat(data.yieldFarmerField || data.farmerYield);
-        if (data.yieldMax !== undefined || data.demoYieldMax !== undefined) updateData.demoYieldMax = parseFloat(data.yieldMax || data.demoYieldMax);
-        if (data.yieldMin !== undefined || data.demoYieldMin !== undefined) updateData.demoYieldMin = parseFloat(data.yieldMin || data.demoYieldMin);
-        if (data.yieldAvg !== undefined || data.demoYieldAvg !== undefined) updateData.demoYieldAvg = parseFloat(data.yieldAvg || data.demoYieldAvg);
-        if (data.yieldIncreasePercent !== undefined || data.percentIncrease !== undefined) updateData.percentIncrease = parseFloat(data.yieldIncreasePercent || data.percentIncrease);
-        if (data.yieldGapDistrict !== undefined || data.districtYield !== undefined) updateData.districtYield = parseFloat(data.yieldGapDistrict || data.districtYield);
-        if (data.yieldGapState !== undefined || data.stateYield !== undefined) updateData.stateYield = parseFloat(data.yieldGapState || data.stateYield);
-        if (data.yieldGapPotential !== undefined || data.potentialYield !== undefined) updateData.potentialYield = parseFloat(data.yieldGapPotential || data.potentialYield);
-        if (data.yieldGapMinimisedDistrict !== undefined || data.yieldGapDistrictMinimized !== undefined) updateData.yieldGapDistrictMinimized = parseFloat(data.yieldGapMinimisedDistrict || data.yieldGapDistrictMinimized);
-        if (data.yieldGapMinimisedState !== undefined || data.yieldGapStateMinimized !== undefined) updateData.yieldGapStateMinimized = parseFloat(data.yieldGapMinimisedState || data.yieldGapStateMinimized);
-        if (data.yieldGapMinimisedPotential !== undefined || data.yieldGapPotentialMinimized !== undefined) updateData.yieldGapPotentialMinimized = parseFloat(data.yieldGapMinimisedPotential || data.yieldGapPotentialMinimized);
 
-        if (data.genM !== undefined || data.generalM !== undefined) updateData.generalM = parseInt(data.genM || data.generalM);
-        if (data.genF !== undefined || data.generalF !== undefined) updateData.generalF = parseInt(data.genF || data.generalF);
-        if (data.obcM !== undefined) updateData.obcM = parseInt(data.obcM);
-        if (data.obcF !== undefined) updateData.obcF = parseInt(data.obcF);
-        if (data.scM !== undefined) updateData.scM = parseInt(data.scM);
-        if (data.scF !== undefined) updateData.scF = parseInt(data.scF);
-        if (data.stM !== undefined) updateData.stM = parseInt(data.stM);
-        if (data.stF !== undefined) updateData.stF = parseInt(data.stF);
+        const merge = (val, exist) => val !== undefined ? val : exist;
 
-        if (data.trainingPhotoPath !== undefined) updateData.trainingPhotoPath = data.trainingPhotoPath;
-        if (data.qualityActionPhotoPath !== undefined) updateData.qualityActionPhotoPath = data.qualityActionPhotoPath;
+        await prisma.$executeRawUnsafe(`
+            UPDATE "cfl cfld_technical_parameter"
+            SET 
+                "cropId" = $1, "seasonId" = $2, month = $3, type = $4,
+                variety_name = $5, area_in_ha = $6, technology_demonstrated = $7,
+                existing_farmer_practice = $8, farmer_yield = $9, demo_yield_max = $10,
+                demo_yield_min = $11, demo_yield_avg = $12, percent_increase = $13,
+                district_yield = $14, state_yield = $15, potential_yield = $16,
+                yield_gap_district_minimized = $17, yield_gap_state_minimized = $18,
+                yield_gap_potential_minimized = $19, general_m = $20, general_f = $21,
+                obc_m = $22, obc_f = $23, sc_m = $24, sc_f = $25, st_m = $26, st_f = $27,
+                training_photo_path = $28, quality_action_photo_path = $29,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE cfl_cfld_tech_id = $30
+        `,
+            updateData.cropId ?? existing.cropId,
+            updateData.seasonId ?? existing.seasonId,
+            updateData.month ?? existing.month,
+            updateData.type ?? existing.type,
+            data.varietyName ?? existing.varietyName,
+            parseFloat(data.areaHectare ?? data.areaInHa ?? existing.areaInHa),
+            data.technologyDemonstrated ?? existing.technologyDemonstrated,
+            data.existingFarmerPractice ?? existing.existingFarmerPractice,
+            parseFloat(data.yieldFarmerField ?? data.farmerYield ?? existing.farmerYield),
+            parseFloat(data.yieldMax ?? data.demoYieldMax ?? existing.demoYieldMax),
+            parseFloat(data.yieldMin ?? data.demoYieldMin ?? existing.demoYieldMin),
+            parseFloat(data.yieldAvg ?? data.demoYieldAvg ?? existing.demoYieldAvg),
+            parseFloat(data.yieldIncreasePercent ?? data.percentIncrease ?? existing.percentIncrease),
+            parseFloat(data.yieldGapDistrict ?? data.districtYield ?? existing.districtYield),
+            parseFloat(data.yieldGapState ?? data.stateYield ?? existing.stateYield),
+            parseFloat(data.yieldGapPotential ?? data.potentialYield ?? existing.potentialYield),
+            parseFloat(data.yieldGapMinimisedDistrict ?? data.yieldGapDistrictMinimized ?? existing.yieldGapDistrictMinimized),
+            parseFloat(data.yieldGapMinimisedState ?? data.yieldGapStateMinimized ?? existing.yieldGapStateMinimized),
+            parseFloat(data.yieldGapMinimisedPotential ?? data.yieldGapPotentialMinimized ?? existing.yieldGapPotentialMinimized),
+            parseInt(data.genM ?? data.generalM ?? existing.generalM),
+            parseInt(data.genF ?? data.generalF ?? existing.generalF),
+            parseInt(data.obcM ?? existing.obcM),
+            parseInt(data.obcF ?? existing.obcF),
+            parseInt(data.scM ?? existing.scM),
+            parseInt(data.scF ?? existing.scF),
+            parseInt(data.stM ?? existing.stM),
+            parseInt(data.stF ?? existing.stF),
+            data.trainingPhotoPath ?? existing.trainingPhotoPath,
+            data.qualityActionPhotoPath ?? existing.qualityActionPhotoPath,
+            cfldTechId
+        );
 
-        const result = await prisma.cfldTechnicalParameter.update({
-            where: { cfldTechId: parseInt(id) },
-            data: updateData,
+        const result = await prisma.cfldTechnicalParameter.findUnique({
+            where: { cfldTechId },
             include: {
                 kvk: { select: { kvkName: true } },
                 crop: { select: { cropName: true } },

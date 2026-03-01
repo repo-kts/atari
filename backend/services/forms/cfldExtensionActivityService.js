@@ -1,6 +1,10 @@
 const cfldExtensionActivityRepository = require('../../repositories/forms/cfldExtensionActivityRepository');
 
 const cfldExtensionActivityService = {
+    getActivityTypes: async () => {
+        return await cfldExtensionActivityRepository.getActivityTypes();
+    },
+
     create: async (data, user) => {
         return await cfldExtensionActivityRepository.create(data, {}, user);
     },

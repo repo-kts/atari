@@ -1,6 +1,16 @@
 const cfldExtensionActivityService = require('../../services/forms/cfldExtensionActivityService');
 
 const cfldExtensionActivityController = {
+    getActivityTypes: async (req, res) => {
+        try {
+            const result = await cfldExtensionActivityService.getActivityTypes();
+            res.json({ success: true, data: result });
+        } catch (error) {
+            console.error('Error fetching CFLD activity types:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    },
+
     create: async (req, res) => {
         try {
             const result = await cfldExtensionActivityService.create(req.body, req.user);
