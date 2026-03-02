@@ -11,7 +11,10 @@ const aryaCurrentYearRepository = {
         }
 
         const reportingYear = parseInt(data.yearId || data.reportingYear) || new Date().getFullYear();
-        const enterpriseId = parseInt(data.enterpriseId);
+        const enterpriseId = parseInt(data.enterpriseId, 10);
+        if (isNaN(enterpriseId)) {
+            throw new Error('Valid enterpriseId is required');
+        }
         const unitsMale = parseInt(data.unitsMale) || 0;
         const unitsFemale = parseInt(data.unitsFemale) || 0;
         const viableUnits = parseInt(data.viableUnits) || 0;

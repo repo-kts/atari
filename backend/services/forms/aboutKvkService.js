@@ -13,25 +13,19 @@ class AboutKvkService {
     async getAll(entityName, options = {}, user = null) {
         options.filters = options.filters || {};
 
-        // Auto-seed required staff if missing
-        if (entityName === 'kvk-employees') {
-            await this._ensureStaffExist();
-        }
+
+
 
         if (user && user.kvkId) {
-            // KVK role: filter by their specific KVK
             if (entityName === 'kvk-staff-transferred') {
                 options.filters.sourceKvkIds = user.kvkId;
             } else {
                 options.filters.kvkId = user.kvkId;
             }
         } else if (user && user.roleName !== 'super_admin') {
-            // Admin with geographic scope: filter to KVKs within their area
             if (entityName === 'kvks') {
-                // For KVKs entity, filter directly on geographic columns
                 this._applyGeoFilter(options.filters, user);
             } else {
-                // For other entities, look up kvkIds in scope then filter
                 const scopedKvkIds = await this._getScopedKvkIds(user);
                 if (scopedKvkIds !== null) {
                     options.filters.kvkId = { in: scopedKvkIds };

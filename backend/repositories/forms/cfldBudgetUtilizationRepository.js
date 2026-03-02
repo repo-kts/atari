@@ -22,16 +22,20 @@ const cfldBudgetUtilizationRepository = {
                 if (!category) {
                     const sectors = await prisma.$queryRawUnsafe("SELECT sector_id FROM sector ORDER BY sector_id LIMIT 1");
                     const sId = sectors.length > 0 ? sectors[0].sector_id : 1;
-                    const catRows = await prisma.$queryRawUnsafe(
-                        `INSERT INTO category (category_name, "sectorId", created_at, updated_at) VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING category_id`
-                    );
+                    const catRows = await prisma.$queryRaw`
+                        INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
+                        VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        RETURNING category_id
+                    `;
                     category = { categoryId: catRows[0].category_id, sectorId: sId };
                 }
                 let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
                 if (!subcategory) {
-                    const subRows = await prisma.$queryRawUnsafe(
-                        `INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING sub_category_id`
-                    );
+                    const subRows = await prisma.$queryRaw`
+                        INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
+                        VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        RETURNING sub_category_id
+                    `;
                     subcategory = { subCategoryId: subRows[0].sub_category_id };
                 }
                 const cropRows = await prisma.$queryRawUnsafe(
@@ -179,16 +183,20 @@ const cfldBudgetUtilizationRepository = {
                 if (!category) {
                     const sectors = await prisma.$queryRawUnsafe("SELECT sector_id FROM sector ORDER BY sector_id LIMIT 1");
                     const sId = sectors.length > 0 ? sectors[0].sector_id : 1;
-                    const catRows = await prisma.$queryRawUnsafe(
-                        `INSERT INTO category (category_name, "sectorId", created_at, updated_at) VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING category_id`
-                    );
+                    const catRows = await prisma.$queryRaw`
+                        INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
+                        VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        RETURNING category_id
+                    `;
                     category = { categoryId: catRows[0].category_id, sectorId: sId };
                 }
                 let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
                 if (!subcategory) {
-                    const subRows = await prisma.$queryRawUnsafe(
-                        `INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING sub_category_id`
-                    );
+                    const subRows = await prisma.$queryRaw`
+                        INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
+                        VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        RETURNING sub_category_id
+                    `;
                     subcategory = { subCategoryId: subRows[0].sub_category_id };
                 }
                 const cropRows = await prisma.$queryRawUnsafe(

@@ -1,5 +1,13 @@
 const aryaCurrentYearService = require('../../services/forms/aryaCurrentYearService');
 
+const mapError = (error) => {
+    const msg = String(error?.message || '');
+    if (/unauthorized/i.test(msg)) return { status: 401, message: 'Unauthorized' };
+    if (/not found/i.test(msg)) return { status: 404, message: 'Record not found' };
+    if (/valid.*required|invalid/i.test(msg)) return { status: 400, message: 'Invalid request data' };
+    return { status: 500, message: 'Internal server error' };
+};
+
 const aryaCurrentYearController = {
     getAll: async (req, res) => {
         try {
@@ -7,7 +15,8 @@ const aryaCurrentYearController = {
             res.json({ success: true, data: results });
         } catch (error) {
             console.error('Error in aryaCurrentYearController.getAll:', error);
-            res.status(500).json({ success: false, message: error.message });
+            const { status, message } = mapError(error);
+            res.status(status).json({ success: false, message });
         }
     },
 
@@ -19,7 +28,8 @@ const aryaCurrentYearController = {
             }
             res.json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            const { status, message } = mapError(error);
+            res.status(status).json({ success: false, message });
         }
     },
 
@@ -29,7 +39,8 @@ const aryaCurrentYearController = {
             res.status(201).json({ success: true, data: result });
         } catch (error) {
             console.error('Error in aryaCurrentYearController.create:', error);
-            res.status(500).json({ success: false, message: error.message });
+            const { status, message } = mapError(error);
+            res.status(status).json({ success: false, message });
         }
     },
 
@@ -38,7 +49,8 @@ const aryaCurrentYearController = {
             const result = await aryaCurrentYearService.update(req.params.id, req.body, req.user);
             res.json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            const { status, message } = mapError(error);
+            res.status(status).json({ success: false, message });
         }
     },
 
@@ -47,7 +59,8 @@ const aryaCurrentYearController = {
             await aryaCurrentYearService.delete(req.params.id, req.user);
             res.json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            const { status, message } = mapError(error);
+            res.status(status).json({ success: false, message });
         }
     }
 };
