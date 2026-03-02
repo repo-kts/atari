@@ -11,6 +11,8 @@ const ENTITY_CONFIG = {
         model: 'publication',
         idField: 'publicationId',
         nameField: 'publicationName',
+        tableName: 'publication',
+        idColumn: 'publication_id',
         includes: {},
     },
 };
@@ -82,15 +84,65 @@ const findById = async (entityType, id) => {
 };
 
 /**
- * Generic create
+ * Fix PostgreSQL sequence for auto-increment columns that may be out of sync.
+ */
+async function fixSequence(config) {
+    try {
+        const maxIdResult = await prisma.$queryRawUnsafe(
+            `SELECT COALESCE(MAX(${config.idColumn}), 0) as max_id FROM ${config.tableName}`
+        );
+        const maxId = Number(maxIdResult[0]?.max_id || 0);
+        const nextId = maxId > 0 ? maxId + 1 : 1;
+        const seqName = `${config.tableName}_${config.idColumn}_seq`;
+        await prisma.$executeRawUnsafe(
+            `SELECT setval('"${seqName}"', ${nextId}, false)`
+        );
+        return nextId;
+    } catch (err) {
+        console.error(`Error fixing sequence for ${config.model}:`, err.message);
+        return null;
+    }
+}
+
+/**
+ * Sanitize data: only keep the name field (simple master entity)
+ */
+function sanitizeData(config, data) {
+    const sanitized = {};
+    if (data[config.nameField]) {
+        sanitized[config.nameField] = typeof data[config.nameField] === 'string'
+            ? data[config.nameField].trim()
+            : data[config.nameField];
+    }
+    return sanitized;
+}
+
+/**
+ * Generic create - only send scalar fields Prisma expects
  */
 const create = async (entityType, data) => {
     const config = ENTITY_CONFIG[entityType];
     if (!config) throw new Error(`Unknown entity type: ${entityType}`);
 
-    return prisma[config.model].create({
-        data,
-    });
+    const sanitized = sanitizeData(config, data);
+
+    try {
+        return await prisma[config.model].create({
+            data: sanitized,
+        });
+    } catch (error) {
+        if (error.code === 'P2011' || error.code === 'P2002' ||
+            (error.message && error.message.includes('Null constraint violation'))) {
+            console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
+            const fixed = await fixSequence(config);
+            if (fixed !== null) {
+                return await prisma[config.model].create({
+                    data: sanitized,
+                });
+            }
+        }
+        throw error;
+    }
 };
 
 /**
@@ -100,9 +152,11 @@ const update = async (entityType, id, data) => {
     const config = ENTITY_CONFIG[entityType];
     if (!config) throw new Error(`Unknown entity type: ${entityType}`);
 
+    const sanitized = sanitizeData(config, data);
+
     return prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitized,
     });
 };
 

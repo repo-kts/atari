@@ -12,6 +12,8 @@ const ENTITY_CONFIG = {
         model: 'productCategory',
         idField: 'productCategoryId',
         nameField: 'productCategoryName',
+        tableName: 'product_category',
+        idColumn: 'product_category_id',
         includes: {
             _count: {
                 select: {
@@ -25,6 +27,8 @@ const ENTITY_CONFIG = {
         model: 'productType',
         idField: 'productTypeId',
         nameField: 'productCategoryType',
+        tableName: 'product_type',
+        idColumn: 'product_type_id',
         includes: {
             productCategory: {
                 select: {
@@ -43,6 +47,8 @@ const ENTITY_CONFIG = {
         model: 'product',
         idField: 'productId',
         nameField: 'productName',
+        tableName: 'product',
+        idColumn: 'product_id',
         includes: {
             productCategory: {
                 select: {
@@ -64,6 +70,8 @@ const ENTITY_CONFIG = {
         model: 'craCropingSystem',
         idField: 'craCropingSystemId',
         nameField: 'cropName',
+        tableName: 'cra_croping_system',
+        idColumn: 'cra_croping_system_id',
         includes: {
             season: {
                 select: {
@@ -77,6 +85,8 @@ const ENTITY_CONFIG = {
         model: 'craFarmingSystem',
         idField: 'craFarmingSystemId',
         nameField: 'farmingSystemName',
+        tableName: 'cra_farming_system',
+        idColumn: 'cra_farming_system_id',
         includes: {
             season: {
                 select: {
@@ -92,6 +102,8 @@ const ENTITY_CONFIG = {
         model: 'enterprise',
         idField: 'enterpriseId',
         nameField: 'enterpriseName',
+        tableName: 'enterprise_master',
+        idColumn: 'enterprise_id',
         includes: {},
     },
 };
@@ -174,6 +186,50 @@ async function findById(entityName, id) {
 }
 
 /**
+ * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
+ * Only keep scalar values Prisma can accept.
+ */
+function sanitizeData(config, data) {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(data)) {
+        // Skip ID field, _count, timestamps, and nested objects
+        if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
+        if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (value !== null && typeof value === 'object') continue;
+        if (value === undefined) continue;
+        // Parse FK fields as integers
+        if (key.endsWith('Id') && value !== null) {
+            const parsed = parseInt(value, 10);
+            if (!isNaN(parsed)) sanitized[key] = parsed;
+        } else {
+            sanitized[key] = typeof value === 'string' ? value.trim() : value;
+        }
+    }
+    return sanitized;
+}
+
+/**
+ * Fix PostgreSQL sequence for auto-increment columns that may be out of sync.
+ */
+async function fixSequence(config) {
+    try {
+        const maxIdResult = await prisma.$queryRawUnsafe(
+            `SELECT COALESCE(MAX(${config.idColumn}), 0) as max_id FROM ${config.tableName}`
+        );
+        const maxId = Number(maxIdResult[0]?.max_id || 0);
+        const nextId = maxId > 0 ? maxId + 1 : 1;
+        const seqName = `${config.tableName}_${config.idColumn}_seq`;
+        await prisma.$executeRawUnsafe(
+            `SELECT setval('"${seqName}"', ${nextId}, false)`
+        );
+        return nextId;
+    } catch (err) {
+        console.error(`Error fixing sequence for ${config.model}:`, err.message);
+        return null;
+    }
+}
+
+/**
  * Create new entity
  * @param {string} entityName - Entity name
  * @param {object} data - Entity data
@@ -181,11 +237,27 @@ async function findById(entityName, id) {
  */
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
-    return await prisma[config.model].create({
-        data,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].create({
+            data: sanitized,
+            include: config.includes,
+        });
+    } catch (error) {
+        if (error.code === 'P2011' || error.code === 'P2002' ||
+            (error.message && error.message.includes('Null constraint violation'))) {
+            console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
+            const fixed = await fixSequence(config);
+            if (fixed !== null) {
+                return await prisma[config.model].create({
+                    data: sanitized,
+                    include: config.includes,
+                });
+            }
+        }
+        throw error;
+    }
 }
 
 /**
@@ -197,10 +269,11 @@ async function create(entityName, data) {
  */
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
     return await prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitized,
         include: config.includes,
     });
 }

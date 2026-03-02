@@ -7,11 +7,15 @@ const prisma = require('../../config/prisma.js');
  */
 
 // Entity configuration mapping
+// `allowedFields` lists the ONLY scalar fields Prisma should receive on create/update.
 const ENTITY_CONFIG = {
     zones: {
         model: 'zone',
         idField: 'zoneId',
         nameField: 'zoneName',
+        tableName: 'zone',
+        idColumn: 'zone_id',
+        allowedFields: ['zoneName'],
         includes: {
             _count: {
                 select: {
@@ -26,6 +30,9 @@ const ENTITY_CONFIG = {
         model: 'stateMaster',
         idField: 'stateId',
         nameField: 'stateName',
+        tableName: '"stateMaster"',
+        idColumn: 'state_id',
+        allowedFields: ['stateName', 'zoneId'],
         includes: {
             zone: {
                 select: {
@@ -45,6 +52,9 @@ const ENTITY_CONFIG = {
         model: 'districtMaster',
         idField: 'districtId',
         nameField: 'districtName',
+        tableName: '"districtMaster"',
+        idColumn: 'district_id',
+        allowedFields: ['districtName', 'stateId', 'zoneId'],
         includes: {
             state: {
                 select: {
@@ -70,6 +80,9 @@ const ENTITY_CONFIG = {
         model: 'orgMaster',
         idField: 'orgId',
         nameField: 'orgName',
+        tableName: '"orgMaster"',
+        idColumn: 'org_id',
+        allowedFields: ['orgName', 'districtId'],
         includes: {
             district: {
                 select: {
@@ -102,6 +115,9 @@ const ENTITY_CONFIG = {
         model: 'universityMaster',
         idField: 'universityId',
         nameField: 'universityName',
+        tableName: '"universityMaster"',
+        idColumn: 'university_id',
+        allowedFields: ['universityName', 'orgId'],
         includes: {
             organization: {
                 select: {
@@ -217,6 +233,48 @@ async function findById(entityName, id) {
 }
 
 /**
+ * Sanitize data: only keep fields listed in allowedFields, parse integers for FK fields.
+ * This prevents Prisma errors from nested objects, _count, IDs, or extraneous fields.
+ */
+function sanitizeData(config, data) {
+    const sanitized = {};
+    for (const field of config.allowedFields) {
+        if (data[field] === undefined || data[field] === null) continue;
+        // Foreign key fields (ending in "Id") must be integers
+        if (field.endsWith('Id')) {
+            const parsed = parseInt(data[field], 10);
+            if (!isNaN(parsed)) {
+                sanitized[field] = parsed;
+            }
+        } else {
+            sanitized[field] = typeof data[field] === 'string' ? data[field].trim() : data[field];
+        }
+    }
+    return sanitized;
+}
+
+/**
+ * Fix PostgreSQL sequence for auto-increment columns that may be out of sync.
+ */
+async function fixSequence(config) {
+    try {
+        const maxIdResult = await prisma.$queryRawUnsafe(
+            `SELECT COALESCE(MAX(${config.idColumn}), 0) as max_id FROM ${config.tableName}`
+        );
+        const maxId = Number(maxIdResult[0]?.max_id || 0);
+        const nextId = maxId > 0 ? maxId + 1 : 1;
+        const seqName = `${config.tableName.replace(/"/g, '')}_${config.idColumn}_seq`;
+        await prisma.$executeRawUnsafe(
+            `SELECT setval('"${seqName}"', ${nextId}, false)`
+        );
+        return nextId;
+    } catch (err) {
+        console.error(`Error fixing sequence for ${config.model}:`, err.message);
+        return null;
+    }
+}
+
+/**
  * Create new entity
  * @param {string} entityName - Entity name
  * @param {object} data - Entity data
@@ -224,11 +282,28 @@ async function findById(entityName, id) {
  */
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
-    return await prisma[config.model].create({
-        data,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].create({
+            data: sanitized,
+            include: config.includes,
+        });
+    } catch (error) {
+        // If it looks like a sequence/null-constraint issue, fix the sequence and retry once
+        if (error.code === 'P2011' || error.code === 'P2002' ||
+            (error.message && error.message.includes('Null constraint violation'))) {
+            console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
+            const fixed = await fixSequence(config);
+            if (fixed !== null) {
+                return await prisma[config.model].create({
+                    data: sanitized,
+                    include: config.includes,
+                });
+            }
+        }
+        throw error;
+    }
 }
 
 /**
@@ -240,10 +315,11 @@ async function create(entityName, data) {
  */
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
     return await prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitized,
         include: config.includes,
     });
 }

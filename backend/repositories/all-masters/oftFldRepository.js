@@ -13,6 +13,8 @@ const ENTITY_CONFIG = {
         model: 'oftSubject',
         idField: 'oftSubjectId',
         nameField: 'subjectName',
+        tableName: 'oft_subject',
+        idColumn: 'oft_subject_id',
         includes: {
             _count: {
                 select: {
@@ -25,6 +27,8 @@ const ENTITY_CONFIG = {
         model: 'oftThematicArea',
         idField: 'oftThematicAreaId',
         nameField: 'thematicAreaName',
+        tableName: 'oft_thematic_area',
+        idColumn: 'oft_thematic_area_id',
         includes: {
             subject: {
                 select: {
@@ -40,6 +44,8 @@ const ENTITY_CONFIG = {
         model: 'sector',
         idField: 'sectorId',
         nameField: 'sectorName',
+        tableName: 'sector',
+        idColumn: 'sector_id',
         includes: {
             _count: {
                 select: {
@@ -53,6 +59,8 @@ const ENTITY_CONFIG = {
         model: 'fldThematicArea',
         idField: 'thematicAreaId',
         nameField: 'thematicAreaName',
+        tableName: 'thematic_area',
+        idColumn: 'thematic_area_id',
         includes: {
             sector: {
                 select: {
@@ -66,6 +74,8 @@ const ENTITY_CONFIG = {
         model: 'fldCategory',
         idField: 'categoryId',
         nameField: 'categoryName',
+        tableName: 'category',
+        idColumn: 'category_id',
         includes: {
             sector: {
                 select: {
@@ -84,6 +94,8 @@ const ENTITY_CONFIG = {
         model: 'fldSubcategory',
         idField: 'subCategoryId',
         nameField: 'subCategoryName',
+        tableName: 'sub_category',
+        idColumn: 'sub_category_id',
         includes: {
             category: {
                 select: {
@@ -108,6 +120,8 @@ const ENTITY_CONFIG = {
         model: 'fldCrop',
         idField: 'cropId',
         nameField: 'cropName',
+        tableName: 'crop',
+        idColumn: 'crop_id',
         includes: {
             subCategory: {
                 select: {
@@ -129,6 +143,8 @@ const ENTITY_CONFIG = {
         model: 'season',
         idField: 'seasonId',
         nameField: 'seasonName',
+        tableName: 'season',
+        idColumn: 'season_id',
         includes: {
             _count: {
                 select: {
@@ -141,6 +157,8 @@ const ENTITY_CONFIG = {
         model: 'cropType',
         idField: 'typeId',
         nameField: 'typeName',
+        tableName: 'crop_type',
+        idColumn: 'type_id',
         includes: {
             _count: {
                 select: {
@@ -153,6 +171,8 @@ const ENTITY_CONFIG = {
         model: 'fLDCropMaster',
         idField: 'cfldId',
         nameField: 'CropName',
+        tableName: 'fld_crop_master',
+        idColumn: 'cfld_id',
         includes: {
             season: {
                 select: {
@@ -248,6 +268,48 @@ async function findById(entityName, id) {
 }
 
 /**
+ * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
+ * Only keep scalar values Prisma can accept.
+ */
+function sanitizeData(config, data) {
+    const sanitized = {};
+    for (const [key, value] of Object.entries(data)) {
+        if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
+        if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (value !== null && typeof value === 'object') continue;
+        if (value === undefined) continue;
+        if (key.endsWith('Id') && value !== null) {
+            const parsed = parseInt(value, 10);
+            if (!isNaN(parsed)) sanitized[key] = parsed;
+        } else {
+            sanitized[key] = typeof value === 'string' ? value.trim() : value;
+        }
+    }
+    return sanitized;
+}
+
+/**
+ * Fix PostgreSQL sequence for auto-increment columns that may be out of sync.
+ */
+async function fixSequence(config) {
+    try {
+        const maxIdResult = await prisma.$queryRawUnsafe(
+            `SELECT COALESCE(MAX(${config.idColumn}), 0) as max_id FROM ${config.tableName}`
+        );
+        const maxId = Number(maxIdResult[0]?.max_id || 0);
+        const nextId = maxId > 0 ? maxId + 1 : 1;
+        const seqName = `${config.tableName}_${config.idColumn}_seq`;
+        await prisma.$executeRawUnsafe(
+            `SELECT setval('"${seqName}"', ${nextId}, false)`
+        );
+        return nextId;
+    } catch (err) {
+        console.error(`Error fixing sequence for ${config.model}:`, err.message);
+        return null;
+    }
+}
+
+/**
  * Create new entity
  * @param {string} entityName - Entity name
  * @param {object} data - Entity data
@@ -255,11 +317,27 @@ async function findById(entityName, id) {
  */
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
-    return await prisma[config.model].create({
-        data,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].create({
+            data: sanitized,
+            include: config.includes,
+        });
+    } catch (error) {
+        if (error.code === 'P2011' || error.code === 'P2002' ||
+            (error.message && error.message.includes('Null constraint violation'))) {
+            console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
+            const fixed = await fixSequence(config);
+            if (fixed !== null) {
+                return await prisma[config.model].create({
+                    data: sanitized,
+                    include: config.includes,
+                });
+            }
+        }
+        throw error;
+    }
 }
 
 /**
@@ -271,10 +349,11 @@ async function create(entityName, data) {
  */
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
+    const sanitized = sanitizeData(config, data);
 
     return await prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitized,
         include: config.includes,
     });
 }
