@@ -89,8 +89,8 @@ const ENTITY_CONFIG = {
 
     // ARYA Entity
     'arya-enterprises': {
-        model: 'aryaEnterprise',
-        idField: 'aryaEnterpriseId',
+        model: 'enterprise',
+        idField: 'enterpriseId',
         nameField: 'enterpriseName',
         includes: {},
     },
@@ -325,7 +325,7 @@ async function getStats() {
         prisma.product.count(),
         prisma.craCropingSystem.count(),
         prisma.craFarmingSystem.count(),
-        prisma.aryaEnterprise.count(),
+        prisma.enterprise.count(),
     ]);
 
     return {

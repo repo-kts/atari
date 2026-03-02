@@ -28,6 +28,12 @@ export function useProjectData(entityType: string) {
         'project-fpo-details': '/forms/achievements/projects/fpo/details',
         'project-fpo-management': '/forms/achievements/projects/fpo/management',
         'project-seed-hub': '/forms/achievements/projects/seed-hub',
+        'project-arya-current': '/forms/achievements/projects/arya/current',
+        'project-arya-evaluation': '/forms/achievements/projects/arya/previous',
+        'project-csisa': '/forms/achievements/projects/csisa',
+        'project-agri-drone': '/forms/achievements/projects/agri-drone',
+        'project-agri-drone-demo': '/forms/achievements/projects/agri-drone',
+        'achievement-oft': '/forms/achievements/oft',
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;

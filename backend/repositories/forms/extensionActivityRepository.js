@@ -69,31 +69,35 @@ const extensionActivityRepository = {
         const officialsStM = parseInt(data.officialsStM ?? data.ext_st_m ?? 0);
         const officialsStF = parseInt(data.officialsStF ?? data.ext_st_f ?? 0);
 
-        const result = await prisma.kvkExtensionActivity.create({
-            data: {
-                kvkId,
-                fldId,
-                staffId,
-                activityId,
-                numberOfActivities,
-                startDate: startDate ? new Date(startDate) : new Date(),
-                endDate: endDate ? new Date(endDate) : new Date(),
-                farmersGeneralM, farmersGeneralF,
-                farmersObcM, farmersObcF,
-                farmersScM, farmersScF,
-                farmersStM, farmersStF,
-                officialsGeneralM, officialsGeneralF,
-                officialsObcM, officialsObcF,
-                officialsScM, officialsScF,
-                officialsStM, officialsStF,
-            },
+        const result = await prisma.$queryRawUnsafe(`
+            INSERT INTO kvk_extension_activity (
+                "kvkId", "fldId", "staffId", "activityId", 
+                number_of_activities, start_date, end_date,
+                farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
+                farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
+                officials_general_m, officials_general_f, officials_obc_m, officials_obc_f,
+                officials_sc_m, officials_sc_f, officials_st_m, officials_st_f,
+                created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6::timestamp, $7::timestamp,
+                $8, $9, $10, $11, $12, $13, $14, $15,
+                $16, $17, $18, $19, $20, $21, $22, $23,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+            ) RETURNING kvk_extension_activity_id
+        `, kvkId, fldId, staffId, activityId, numberOfActivities, startDate, endDate,
+            farmersGeneralM, farmersGeneralF, farmersObcM, farmersObcF,
+            farmersScM, farmersScF, farmersStM, farmersStF,
+            officialsGeneralM, officialsGeneralF, officialsObcM, officialsObcF,
+            officialsScM, officialsScF, officialsStM, officialsStF);
+
+        return _mapResponse(await prisma.kvkExtensionActivity.findUnique({
+            where: { extensionActivityId: result[0].kvk_extension_activity_id },
             include: {
                 kvk: { select: { kvkName: true } },
                 staff: { select: { staffName: true } },
                 activity: { select: { activityName: true } },
-            },
-        });
-        return _mapResponse(result);
+            }
+        }));
     },
 
     findAll: async (filters = {}, user) => {
@@ -201,12 +205,42 @@ const extensionActivityRepository = {
             if (val !== undefined) updateData[back] = parseInt(val);
         }
 
-        const result = await prisma.kvkExtensionActivity.updateMany({
-            where,
-            data: updateData
-        });
+        // Build dynamic SQL
+        const updates = [];
+        const values = [];
+        let index = 1;
 
-        if (result.count === 0) throw new Error("Record not found or unauthorized");
+        for (const [key, val] of Object.entries(updateData)) {
+            // Map camelCase to snake_case if necessary, or use quoted identifiers
+            // Given the INSERT uses snake_case for some and camelCase for others ("kvkId")
+            // I will use placeholders and quoted identifiers to match the DB exactly.
+            let colName = key;
+            if (key === 'kvkId') colName = '"kvkId"';
+            else if (key === 'fldId') colName = '"fldId"';
+            else if (key === 'staffId') colName = '"staffId"';
+            else if (key === 'activityId') colName = '"activityId"';
+            else {
+                // Convert camelCase to snake_case for others
+                colName = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            }
+
+            updates.push(`${colName} = $${index++}`);
+            values.push(val);
+        }
+
+        if (updates.length > 0) {
+            updates.push(`updated_at = CURRENT_TIMESTAMP`);
+            let sql = `UPDATE kvk_extension_activity SET ${updates.join(', ')} WHERE extension_activity_id = $${index++}`;
+            const params = [...values, parseInt(id)];
+
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                sql += ` AND "kvkId" = $${index++}`;
+                params.push(parseInt(user.kvkId));
+            }
+
+            const result = await prisma.$executeRawUnsafe(sql, ...params);
+            if (result === 0) throw new Error("Record not found or unauthorized");
+        }
 
         return await prisma.kvkExtensionActivity.findUnique({
             where: { extensionActivityId: parseInt(id) },

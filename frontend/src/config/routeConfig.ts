@@ -1027,7 +1027,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Enterprise', 'Trainings', 'Participants', 'Units'],
+        fields: ['KVK Name', 'Enterprise', 'Viable Units', 'Closed Units', 'Start Date', 'End Date', 'No. of Groups Formed', 'No. of Groups Active'],
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -1041,7 +1041,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'ARYA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Enterprise', 'Entrepreneurs', 'Income Before', 'Income After', '% Functional'],
+        fields: ['KVK Name', 'Enterprise', 'Total Closed', 'Closing Date', 'Total Restarted', 'Restarted Date'],
         siblings: [
             '/forms/achievements/projects/arya',
             '/forms/achievements/projects/arya-evaluation'
@@ -1057,7 +1057,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'CSISA',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Season', 'Trial Name', 'Crop', 'Variety'],
+        fields: ['KVK Name', 'Season', 'Village Covered(no.)', 'Block Covered(no.)', 'District Covered(no.)'],
     },
     {
         path: '/forms/achievements/projects/sub-plan-activity',
@@ -1429,6 +1429,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Agri-Drone',
         parent: '/forms/achievements/projects',
         moduleCode: 'achievements_projects',
+        fields: ['KVK Name', 'Year', 'Project Implementing centre name', 'Company of Drone', 'Model of Drone', 'No. of Agri Drones Sanctioned', 'No. of Agri Drones Purchased', 'Cost Sanctioned'],
         siblings: [
             '/forms/achievements/projects/agri-drone',
             '/forms/achievements/projects/demonstration-details'

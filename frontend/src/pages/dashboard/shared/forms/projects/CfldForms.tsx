@@ -189,8 +189,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                             value={formData.extensionActivityId || ''}
                             onChange={(e) => setFormData({ ...formData, extensionActivityId: parseInt(e.target.value) })}
                             options={extensionActivityTypes.map((ext: any) => ({
-                                value: ext.activityId || ext.id,
-                                label: ext.activityName || ext.name
+                                value: ext.extensionActivityId ?? ext.activityId ?? ext.id,
+                                label: ext.extensionName ?? ext.activityName ?? ext.name
                             }))}
                         />
                         <FormInput
