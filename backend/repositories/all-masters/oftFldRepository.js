@@ -13,6 +13,7 @@ const ENTITY_CONFIG = {
         model: 'oftSubject',
         idField: 'oftSubjectId',
         nameField: 'subjectName',
+        writableFields: ['subjectName'],
         tableName: 'oft_subject',
         idColumn: 'oft_subject_id',
         includes: {
@@ -22,11 +23,18 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            thematicAreas: 'thematic areas',
+        },
+        deleteDependencies: [
+            { model: 'kvkoft', foreignKey: 'oftSubjectId', label: 'OFT records' },
+        ],
     },
     'oft-thematic-areas': {
         model: 'oftThematicArea',
         idField: 'oftThematicAreaId',
         nameField: 'thematicAreaName',
+        writableFields: ['thematicAreaName', 'oftSubjectId'],
         tableName: 'oft_thematic_area',
         idColumn: 'oft_thematic_area_id',
         includes: {
@@ -37,6 +45,9 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        deleteDependencies: [
+            { model: 'kvkoft', foreignKey: 'oftThematicAreaId', label: 'OFT records' },
+        ],
     },
 
     // FLD Entities
@@ -44,6 +55,7 @@ const ENTITY_CONFIG = {
         model: 'sector',
         idField: 'sectorId',
         nameField: 'sectorName',
+        writableFields: ['sectorName'],
         tableName: 'sector',
         idColumn: 'sector_id',
         includes: {
@@ -54,11 +66,16 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            thematicAreas: 'thematic areas',
+            categories: 'categories',
+        },
     },
     'fld-thematic-areas': {
         model: 'fldThematicArea',
         idField: 'thematicAreaId',
         nameField: 'thematicAreaName',
+        writableFields: ['thematicAreaName', 'sectorId'],
         tableName: 'thematic_area',
         idColumn: 'thematic_area_id',
         includes: {
@@ -74,6 +91,7 @@ const ENTITY_CONFIG = {
         model: 'fldCategory',
         idField: 'categoryId',
         nameField: 'categoryName',
+        writableFields: ['categoryName', 'sectorId'],
         tableName: 'category',
         idColumn: 'category_id',
         includes: {
@@ -89,11 +107,15 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            subCategories: 'sub-categories',
+        },
     },
     'fld-subcategories': {
         model: 'fldSubcategory',
         idField: 'subCategoryId',
         nameField: 'subCategoryName',
+        writableFields: ['subCategoryName', 'categoryId', 'sectorId'],
         tableName: 'sub_category',
         idColumn: 'sub_category_id',
         includes: {
@@ -115,11 +137,15 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            crops: 'crops',
+        },
     },
     'fld-crops': {
         model: 'fldCrop',
         idField: 'cropId',
         nameField: 'cropName',
+        writableFields: ['cropName', 'categoryId', 'subCategoryId'],
         tableName: 'crop',
         idColumn: 'crop_id',
         includes: {
@@ -143,6 +169,7 @@ const ENTITY_CONFIG = {
         model: 'season',
         idField: 'seasonId',
         nameField: 'seasonName',
+        writableFields: ['seasonName'],
         tableName: 'season',
         idColumn: 'season_id',
         includes: {
@@ -152,11 +179,15 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            cfldCrops: 'CFLD crops',
+        },
     },
     'crop-types': {
         model: 'cropType',
         idField: 'typeId',
         nameField: 'typeName',
+        writableFields: ['typeName'],
         tableName: 'crop_type',
         idColumn: 'type_id',
         includes: {
@@ -166,11 +197,18 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            cfldCrops: 'CFLD crops',
+        },
     },
     'cfld-crops': {
         model: 'fLDCropMaster',
         idField: 'cfldId',
-        nameField: 'CropName',
+        nameField: 'cropName',
+        writableFields: ['cropName', 'seasonId', 'typeId'],
+        fieldAliases: {
+            CropName: 'cropName',
+        },
         tableName: 'fld_crop_master',
         idColumn: 'cfld_id',
         includes: {
@@ -271,18 +309,21 @@ async function findById(entityName, id) {
  * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
  * Only keep scalar values Prisma can accept.
  */
-function sanitizeData(config, data) {
+function sanitizeData(config, data = {}) {
+    const writableFields = new Set(config.writableFields || [config.nameField]);
     const sanitized = {};
     for (const [key, value] of Object.entries(data)) {
-        if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
+        const normalizedKey = config.fieldAliases?.[key] || key;
+        if (normalizedKey === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (!writableFields.has(normalizedKey)) continue;
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
-        if (key.endsWith('Id') && value !== null) {
+        if (normalizedKey.endsWith('Id') && value !== null) {
             const parsed = parseInt(value, 10);
-            if (!isNaN(parsed)) sanitized[key] = parsed;
+            if (!isNaN(parsed)) sanitized[normalizedKey] = parsed;
         } else {
-            sanitized[key] = typeof value === 'string' ? value.trim() : value;
+            sanitized[normalizedKey] = typeof value === 'string' ? value.trim() : value;
         }
     }
     return sanitized;
@@ -318,6 +359,11 @@ async function fixSequence(config) {
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
     const sanitized = sanitizeData(config, data);
+    if (Object.keys(sanitized).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityName}`);
+        error.statusCode = 400;
+        throw error;
+    }
 
     try {
         return await prisma[config.model].create({
@@ -350,6 +396,11 @@ async function create(entityName, data) {
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
     const sanitized = sanitizeData(config, data);
+    if (Object.keys(sanitized).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityName} update`);
+        error.statusCode = 400;
+        throw error;
+    }
 
     return await prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
@@ -366,10 +417,72 @@ async function update(entityName, id, data) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
+    const parsedId = parseInt(id);
+    const where = { [config.idField]: parsedId };
 
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
+    const select = { [config.idField]: true };
+    if (config.includes?._count?.select) {
+        select._count = { select: config.includes._count.select };
+    }
+
+    const existing = await prisma[config.model].findUnique({
+        where,
+        select,
     });
+
+    if (!existing) {
+        const error = new Error(`${entityName} with ID ${id} not found`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const dependencySummary = [];
+    if (existing._count) {
+        for (const [key, count] of Object.entries(existing._count)) {
+            if (Number(count) > 0) {
+                const label = config.dependencyLabels?.[key] || key;
+                dependencySummary.push(`${count} ${label}`);
+            }
+        }
+    }
+
+    if (config.deleteDependencies?.length) {
+        const extraCounts = await Promise.all(
+            config.deleteDependencies.map(async (dependency) => {
+                const count = await prisma[dependency.model].count({
+                    where: { [dependency.foreignKey]: parsedId },
+                });
+                return { count, label: dependency.label };
+            })
+        );
+
+        for (const dependency of extraCounts) {
+            if (Number(dependency.count) > 0) {
+                dependencySummary.push(`${dependency.count} ${dependency.label}`);
+            }
+        }
+    }
+
+    if (dependencySummary.length > 0) {
+        const error = new Error(
+            `Cannot delete ${entityName}: linked records exist (${dependencySummary.join(', ')}). Delete dependent records first.`
+        );
+        error.statusCode = 409;
+        throw error;
+    }
+
+    try {
+        return await prisma[config.model].delete({ where });
+    } catch (error) {
+        if (error?.code === 'P2003') {
+            const dependencyError = new Error(
+                `Cannot delete ${entityName}: it is referenced by other records. Delete dependent records first.`
+            );
+            dependencyError.statusCode = 409;
+            throw dependencyError;
+        }
+        throw error;
+    }
 }
 
 /**

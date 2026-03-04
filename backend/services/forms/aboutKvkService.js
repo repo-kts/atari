@@ -264,7 +264,7 @@ class AboutKvkService {
             // ID fields
             'kvkId', 'bankAccountId', 'kvkStaffId', 'employeeId', 'infraId',
             'vehicleId', 'vehicleDetailId', 'equipmentId', 'equipmentDetailId', 'implementId',
-            'zoneId', 'stateId', 'districtId', 'orgId',
+            'id', '_id',
             // Timestamps
             'createdAt', 'updatedAt',
             // Metadata
@@ -272,8 +272,15 @@ class AboutKvkService {
             // Nested objects (these are relations, not data fields)
             'kvk', 'zone', 'state', 'district', 'org', 'organization',
             'sanctionedPost', 'discipline', 'infraMaster',
+            'staffCategory', 'payLevel', 'university', 'originalKvk',
+            'fromKvk', 'toKvk', 'transferredByUser',
             'vehicle', 'equipment'
         ];
+
+        // KVK master updates are allowed to change geo/org FK fields.
+        if (entityName !== 'kvks') {
+            readOnlyFields.push('zoneId', 'stateId', 'districtId', 'orgId', 'universityId');
+        }
 
         // Create a clean copy of data without read-only fields
         const sanitized = {};
@@ -294,16 +301,15 @@ class AboutKvkService {
     }
 
     /**
-     * Sanitize optional enum fields: convert empty strings to null
-     * Prisma requires null for optional enum fields, not empty strings
+     * Sanitize optional scalar fields: convert empty strings to null
      */
     sanitizeEnumFields(entityName, data) {
         const sanitized = { ...data };
 
-        // Optional enum fields that should be null if empty string
+        // Optional scalar FK fields that should be null if empty string
         const optionalEnumFields = {
-            'kvk-employees': ['payLevel'],
-            'kvk-staff-transferred': ['payLevel'],
+            'kvk-employees': ['payLevelId', 'staffCategoryId', 'originalKvkId'],
+            'kvk-staff-transferred': ['payLevelId', 'staffCategoryId', 'originalKvkId'],
         };
 
         const fieldsToSanitize = optionalEnumFields[entityName] || [];
@@ -326,6 +332,14 @@ class AboutKvkService {
         // Fields that should be integers (convert from string if needed)
         // Note: vehicle-details uses String for reportingYear, only equipment-details uses Int
         const integerFields = {
+            'kvk-employees': [
+                'sanctionedPostId', 'positionOrder', 'disciplineId',
+                'staffCategoryId', 'payLevelId', 'transferCount', 'originalKvkId'
+            ],
+            'kvk-staff-transferred': [
+                'sanctionedPostId', 'positionOrder', 'disciplineId',
+                'staffCategoryId', 'payLevelId', 'transferCount', 'originalKvkId'
+            ],
             'kvk-equipment-details': ['reportingYear'],
         };
 
@@ -357,8 +371,9 @@ class AboutKvkService {
             'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is optional (can be required based on business rules)
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
-            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
-            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
+            // Keep required fields aligned with current Prisma schema (category enum was replaced with staffCategoryId)
+            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining'],
+            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
             'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'presentStatus'],

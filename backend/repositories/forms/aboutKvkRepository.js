@@ -27,7 +27,79 @@ const ENTITY_CONFIG = {
             university: {
                 select: { universityId: true, universityName: true }
             }
-        }
+        },
+        deleteCountSelect: {
+            staff: true,
+            infrastructures: true,
+            equipments: true,
+            vehicles: true,
+            bankAccounts: true,
+            farmImplements: true,
+            transfersFrom: true,
+            transfersTo: true,
+            originalStaff: true,
+            trainingAchievements: true,
+            farmerAwards: true,
+            kvkAwards: true,
+            scientistAwards: true,
+            hrdPrograms: true,
+            kvkExtensionActivities: true,
+            kvkOtherExtensionActivities: true,
+            kvkImportantDayCelebrations: true,
+            kvkTechnologyWeekCelebrations: true,
+            fldExtensions: true,
+            kvkFldIntroductions: true,
+            fldTechnicalFeedbacks: true,
+            kvkBudgetUtilizations: true,
+            extensionActivityOrganized: true,
+            cfldTechnicalParameters: true,
+            users: true,
+            kvkOfts: true,
+            agriDrones: true,
+            fpoCbboDetails: true,
+            fpoManagements: true,
+            kvkOtherProgrammes: true,
+            seedHubPrograms: true,
+            soilWaterAnalyses: true,
+            soilWaterEquipments: true,
+            worldSoilCelebrations: true,
+            aryaPrevYear: true,
+            aryaCurrentYear: true,
+            csisa: true,
+            drmrActivity: true,
+            drmrDetails: true,
+            atariMeeting: true,
+            sacMeeting: true,
+            swachhtaHiSewa: true,
+            swachhQuarterlyExpenditure: true,
+            swachhtaPakhwada: true,
+            nicraDetails: true,
+            nicraBasicInfo: true,
+            nicraTraining: true,
+            nicraExtensionActivity: true,
+            geographicalInfo: true,
+            physicalInfo: true,
+            demonstrationInfo: true,
+            beneficiariesDetails: true,
+            financialInformation: true,
+            soilDataInformation: true,
+        },
+        dependencyLabels: {
+            staff: 'staff records',
+            users: 'users',
+            bankAccounts: 'bank accounts',
+            infrastructures: 'infrastructure records',
+            vehicles: 'vehicle records',
+            equipments: 'equipment records',
+            farmImplements: 'farm implements',
+        },
+        relationIdMap: {
+            zoneId: { relationField: 'zone', relationIdField: 'zoneId', required: true },
+            stateId: { relationField: 'state', relationIdField: 'stateId', required: true },
+            districtId: { relationField: 'district', relationIdField: 'districtId', required: true },
+            orgId: { relationField: 'org', relationIdField: 'orgId', required: true },
+            universityId: { relationField: 'university', relationIdField: 'universityId', required: false },
+        },
     },
     'kvk-bank-accounts': {
         model: 'kvkBankAccount',
@@ -40,12 +112,16 @@ const ENTITY_CONFIG = {
                     kvkName: true
                 }
             }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'kvk-employees': {
         model: 'kvkStaff',
         idField: 'kvkStaffId',
         nameField: 'staffName',
+        invalidScalarFields: ['category'],
         includes: {
             kvk: {
                 select: { kvkId: true, kvkName: true }
@@ -62,13 +138,38 @@ const ENTITY_CONFIG = {
             payLevel: {
                 select: { payLevelId: true, levelName: true }
             }
-        }
+        },
+        deleteCountSelect: {
+            hrdPrograms: true,
+            kvkExtensionActivities: true,
+            kvkFldIntroductions: true,
+            kvkOtherExtensionActivities: true,
+            kvkOfts: true,
+            transferHistory: true,
+        },
+        dependencyLabels: {
+            hrdPrograms: 'HRD program records',
+            kvkExtensionActivities: 'extension activity records',
+            kvkFldIntroductions: 'FLD introduction records',
+            kvkOtherExtensionActivities: 'other extension activity records',
+            kvkOfts: 'OFT records',
+            transferHistory: 'transfer history records',
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+            sanctionedPostId: { relationField: 'sanctionedPost', relationIdField: 'sanctionedPostId', required: true },
+            disciplineId: { relationField: 'discipline', relationIdField: 'disciplineId', required: true },
+            staffCategoryId: { relationField: 'staffCategory', relationIdField: 'staffCategoryId', required: false },
+            payLevelId: { relationField: 'payLevel', relationIdField: 'payLevelId', required: false },
+            originalKvkId: { relationField: 'originalKvk', relationIdField: 'kvkId', required: false },
+        },
     },
     // Same model as employees but will be filtered by service
     'kvk-staff-transferred': {
         model: 'kvkStaff',
         idField: 'kvkStaffId',
         nameField: 'staffName',
+        invalidScalarFields: ['category'],
         includes: {
             kvk: {
                 select: { kvkId: true, kvkName: true }
@@ -88,7 +189,31 @@ const ENTITY_CONFIG = {
             payLevel: {
                 select: { payLevelId: true, levelName: true }
             }
-        }
+        },
+        deleteCountSelect: {
+            hrdPrograms: true,
+            kvkExtensionActivities: true,
+            kvkFldIntroductions: true,
+            kvkOtherExtensionActivities: true,
+            kvkOfts: true,
+            transferHistory: true,
+        },
+        dependencyLabels: {
+            hrdPrograms: 'HRD program records',
+            kvkExtensionActivities: 'extension activity records',
+            kvkFldIntroductions: 'FLD introduction records',
+            kvkOtherExtensionActivities: 'other extension activity records',
+            kvkOfts: 'OFT records',
+            transferHistory: 'transfer history records',
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+            sanctionedPostId: { relationField: 'sanctionedPost', relationIdField: 'sanctionedPostId', required: true },
+            disciplineId: { relationField: 'discipline', relationIdField: 'disciplineId', required: true },
+            staffCategoryId: { relationField: 'staffCategory', relationIdField: 'staffCategoryId', required: false },
+            payLevelId: { relationField: 'payLevel', relationIdField: 'payLevelId', required: false },
+            originalKvkId: { relationField: 'originalKvk', relationIdField: 'kvkId', required: false },
+        },
     },
     'kvk-infrastructure': {
         model: 'kvkInfrastructure',
@@ -97,7 +222,11 @@ const ENTITY_CONFIG = {
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
             infraMaster: { select: { infraMasterId: true, name: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+            infraMasterId: { relationField: 'infraMaster', relationIdField: 'infraMasterId', required: true },
+        },
     },
     'kvk-vehicles': {
         model: 'kvkVehicle',
@@ -105,7 +234,10 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'kvk-vehicle-details': { // Alias for vehicles
         model: 'kvkVehicle',
@@ -113,7 +245,10 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'kvk-equipments': {
         model: 'kvkEquipment',
@@ -121,7 +256,10 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'kvk-equipment-details': {
         model: 'kvkEquipment',
@@ -129,7 +267,10 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'kvk-farm-implements': {
         model: 'kvkFarmImplement',
@@ -137,7 +278,10 @@ const ENTITY_CONFIG = {
         nameField: 'implementName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
-        }
+        },
+        relationIdMap: {
+            kvkId: { relationField: 'kvk', relationIdField: 'kvkId', required: true },
+        },
     },
     'staff-transfer-history': {
         model: 'staffTransferHistory',
@@ -156,7 +300,13 @@ const ENTITY_CONFIG = {
             transferredByUser: {
                 select: { userId: true, name: true, email: true }
             }
-        }
+        },
+        relationIdMap: {
+            kvkStaffId: { relationField: 'staff', relationIdField: 'kvkStaffId', required: true },
+            fromKvkId: { relationField: 'fromKvk', relationIdField: 'kvkId', required: true },
+            toKvkId: { relationField: 'toKvk', relationIdField: 'kvkId', required: true },
+            transferredBy: { relationField: 'transferredByUser', relationIdField: 'userId', required: false },
+        },
     }
 };
 
@@ -338,12 +488,16 @@ async function findById(entityName, id) {
 
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
-        throw new Error(`ID is required for ${entityName}. Received: ${id}`);
+        const error = new Error(`ID is required for ${entityName}. Received: ${id}`);
+        error.statusCode = 400;
+        throw error;
     }
 
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
-        throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        const error = new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        error.statusCode = 400;
+        throw error;
     }
 
     return await prisma[config.model].findUnique({
@@ -359,7 +513,38 @@ async function findById(entityName, id) {
  * @returns {object} Sanitized data
  */
 function sanitizeData(entityName, data) {
-    const sanitized = { ...data };
+    const sanitized = {};
+    const config = getEntityConfig(entityName);
+    const invalidScalarFields = new Set(config.invalidScalarFields || []);
+    const relationKeys = new Set([
+        'kvk', 'zone', 'state', 'district', 'org', 'organization', 'university',
+        'sanctionedPost', 'discipline', 'infraMaster', 'staffCategory', 'payLevel',
+        'vehicle', 'equipment', 'originalKvk', 'fromKvk', 'toKvk', 'transferredByUser',
+    ]);
+
+    for (const [key, value] of Object.entries(data || {})) {
+        // Remove common non-schema/meta keys that frequently come from UI payloads.
+        if (key === 'id' || key === '_id' || key === '_count') continue;
+        if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (invalidScalarFields.has(key)) continue;
+        if (relationKeys.has(key)) continue;
+
+        // Remove relation objects (but keep Date objects and scalar nulls).
+        if (value !== null && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+            continue;
+        }
+
+        // Never send undefined to Prisma update/create.
+        if (value === undefined) continue;
+
+        // Remove accidental duplicate id aliases while preserving actual model id field.
+        if ((key.endsWith('Id') || key.endsWith('_id')) && key !== config.idField && value === '') {
+            sanitized[key] = null;
+            continue;
+        }
+
+        sanitized[key] = value;
+    }
 
     // Remove fields that don't exist in Prisma schema for KVK
     if (entityName === 'kvks') {
@@ -380,19 +565,59 @@ function sanitizeData(entityName, data) {
     return sanitized;
 }
 
+/**
+ * Convert scalar foreign key fields into relation connect/disconnect payloads.
+ * This avoids Prisma checked/unchecked ambiguity when UI payloads include extra keys.
+ */
+function applyRelationMappings(entityName, data, { forUpdate = false } = {}) {
+    const config = getEntityConfig(entityName);
+    const relationIdMap = config.relationIdMap || {};
+    const mapped = { ...data };
+
+    for (const [fkField, relationConfig] of Object.entries(relationIdMap)) {
+        if (!(fkField in mapped)) continue;
+
+        const rawValue = mapped[fkField];
+        delete mapped[fkField];
+
+        if (rawValue === undefined) {
+            continue;
+        }
+
+        if (rawValue === null || rawValue === '') {
+            if (forUpdate && !relationConfig.required) {
+                mapped[relationConfig.relationField] = { disconnect: true };
+            }
+            continue;
+        }
+
+        const parsed = parseInt(rawValue, 10);
+        if (isNaN(parsed)) continue;
+
+        mapped[relationConfig.relationField] = {
+            connect: { [relationConfig.relationIdField]: parsed },
+        };
+    }
+
+    return mapped;
+}
+
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+    const detailVehicleId = entityName === 'kvk-vehicle-details' ? parseInt(data?.vehicleId, 10) : null;
+    const detailEquipmentId = entityName === 'kvk-equipment-details' ? parseInt(data?.equipmentId, 10) : null;
 
     // Sanitize data to remove fields not in Prisma schema
     const sanitizedData = sanitizeData(entityName, data);
+    const relationSafeData = applyRelationMappings(entityName, sanitizedData, { forUpdate: false });
 
     // For vehicle-details and equipment-details: if vehicleId/equipmentId is provided,
     // update the existing record instead of creating a new one
-    if (entityName === 'kvk-vehicle-details' && sanitizedData.vehicleId) {
+    if (entityName === 'kvk-vehicle-details' && !isNaN(detailVehicleId) && detailVehicleId > 0) {
         // Update existing vehicle with the details
-        const vehicleId = sanitizedData.vehicleId;
+        const vehicleId = detailVehicleId;
         // Remove vehicleId from update data as it's used in where clause
-        const { vehicleId: _, ...updateData } = sanitizedData;
+        const { vehicleId: _, ...updateData } = relationSafeData;
         return await prisma[config.model].update({
             where: { [config.idField]: vehicleId },
             data: updateData,
@@ -400,11 +625,11 @@ async function create(entityName, data) {
         });
     }
 
-    if (entityName === 'kvk-equipment-details' && sanitizedData.equipmentId) {
+    if (entityName === 'kvk-equipment-details' && !isNaN(detailEquipmentId) && detailEquipmentId > 0) {
         // Update existing equipment with the details
-        const equipmentId = sanitizedData.equipmentId;
+        const equipmentId = detailEquipmentId;
         // Remove equipmentId from update data as it's used in where clause
-        const { equipmentId: _, ...updateData } = sanitizedData;
+        const { equipmentId: _, ...updateData } = relationSafeData;
         return await prisma[config.model].update({
             where: { [config.idField]: equipmentId },
             data: updateData,
@@ -413,7 +638,7 @@ async function create(entityName, data) {
     }
 
     return await prisma[config.model].create({
-        data: sanitizedData,
+        data: relationSafeData,
         include: config.includes,
     });
 }
@@ -423,23 +648,28 @@ async function update(entityName, id, data) {
 
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
-        throw new Error(`ID is required for ${entityName}. Received: ${id}`);
+        const error = new Error(`ID is required for ${entityName}. Received: ${id}`);
+        error.statusCode = 400;
+        throw error;
     }
 
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
-        throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        const error = new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        error.statusCode = 400;
+        throw error;
     }
 
     // Sanitize data to remove fields not in Prisma schema
     const sanitizedData = sanitizeData(entityName, data);
+    const relationSafeData = applyRelationMappings(entityName, sanitizedData, { forUpdate: true });
 
     // For vehicle-details and equipment-details, only update the fields provided
     // Don't require base fields like vehicleName/equipmentName
     if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
         // Filter out any undefined/null values and only keep the fields that are being updated
         const updateData = {};
-        for (const [key, value] of Object.entries(sanitizedData)) {
+        for (const [key, value] of Object.entries(relationSafeData)) {
             // Only include fields that have actual values (not undefined, but allow null for optional fields)
             if (value !== undefined) {
                 updateData[key] = value;
@@ -454,7 +684,7 @@ async function update(entityName, id, data) {
 
     return await prisma[config.model].update({
         where: { [config.idField]: parsedId },
-        data: sanitizedData,
+        data: relationSafeData,
         include: config.includes,
     });
 }
@@ -464,17 +694,65 @@ async function deleteEntity(entityName, id) {
 
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
-        throw new Error(`ID is required for ${entityName}. Received: ${id}`);
+        const error = new Error(`ID is required for ${entityName}. Received: ${id}`);
+        error.statusCode = 400;
+        throw error;
     }
 
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
-        throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        const error = new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        error.statusCode = 400;
+        throw error;
+    }
+    const where = { [config.idField]: parsedId };
+
+    const select = { [config.idField]: true };
+    if (config.deleteCountSelect) {
+        select._count = { select: config.deleteCountSelect };
     }
 
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parsedId },
+    const existing = await prisma[config.model].findUnique({
+        where,
+        select,
     });
+
+    if (!existing) {
+        const error = new Error(`${entityName} with ID ${id} not found`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const dependencySummary = [];
+    if (existing._count) {
+        for (const [key, count] of Object.entries(existing._count)) {
+            if (Number(count) > 0) {
+                const label = config.dependencyLabels?.[key] || key;
+                dependencySummary.push(`${count} ${label}`);
+            }
+        }
+    }
+
+    if (dependencySummary.length > 0) {
+        const error = new Error(
+            `Cannot delete ${entityName}: linked records exist (${dependencySummary.join(', ')}). Delete dependent records first.`
+        );
+        error.statusCode = 409;
+        throw error;
+    }
+
+    try {
+        return await prisma[config.model].delete({ where });
+    } catch (error) {
+        if (error?.code === 'P2003') {
+            const dependencyError = new Error(
+                `Cannot delete ${entityName}: it is referenced by other records. Delete dependent records first.`
+            );
+            dependencyError.statusCode = 409;
+            throw dependencyError;
+        }
+        throw error;
+    }
 }
 /**
  * Get all sanctioned posts (for dropdown)

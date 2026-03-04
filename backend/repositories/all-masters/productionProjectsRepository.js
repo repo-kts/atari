@@ -12,6 +12,7 @@ const ENTITY_CONFIG = {
         model: 'productCategory',
         idField: 'productCategoryId',
         nameField: 'productCategoryName',
+        writableFields: ['productCategoryName'],
         tableName: 'product_category',
         idColumn: 'product_category_id',
         includes: {
@@ -22,11 +23,16 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            productTypes: 'product types',
+            products: 'products',
+        },
     },
     'product-types': {
         model: 'productType',
         idField: 'productTypeId',
         nameField: 'productCategoryType',
+        writableFields: ['productCategoryType', 'productCategoryId'],
         tableName: 'product_type',
         idColumn: 'product_type_id',
         includes: {
@@ -42,11 +48,15 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+        dependencyLabels: {
+            products: 'products',
+        },
     },
     'products': {
         model: 'product',
         idField: 'productId',
         nameField: 'productName',
+        writableFields: ['productName', 'productCategoryId', 'productTypeId'],
         tableName: 'product',
         idColumn: 'product_id',
         includes: {
@@ -70,6 +80,7 @@ const ENTITY_CONFIG = {
         model: 'craCropingSystem',
         idField: 'craCropingSystemId',
         nameField: 'cropName',
+        writableFields: ['cropName', 'seasonId'],
         tableName: 'cra_croping_system',
         idColumn: 'cra_croping_system_id',
         includes: {
@@ -85,6 +96,7 @@ const ENTITY_CONFIG = {
         model: 'craFarmingSystem',
         idField: 'craFarmingSystemId',
         nameField: 'farmingSystemName',
+        writableFields: ['farmingSystemName', 'seasonId'],
         tableName: 'cra_farming_system',
         idColumn: 'cra_farming_system_id',
         includes: {
@@ -102,9 +114,18 @@ const ENTITY_CONFIG = {
         model: 'enterprise',
         idField: 'enterpriseId',
         nameField: 'enterpriseName',
+        writableFields: ['enterpriseName'],
         tableName: 'enterprise_master',
         idColumn: 'enterprise_id',
         includes: {},
+        deleteCountSelect: {
+            aryaCurrentYearRecords: true,
+            aryaPrevYearRecords: true,
+        },
+        dependencyLabels: {
+            aryaCurrentYearRecords: 'ARYA current year records',
+            aryaPrevYearRecords: 'ARYA previous year records',
+        },
     },
 };
 
@@ -189,12 +210,14 @@ async function findById(entityName, id) {
  * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
  * Only keep scalar values Prisma can accept.
  */
-function sanitizeData(config, data) {
+function sanitizeData(config, data = {}) {
+    const writableFields = new Set(config.writableFields || [config.nameField]);
     const sanitized = {};
     for (const [key, value] of Object.entries(data)) {
         // Skip ID field, _count, timestamps, and nested objects
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (!writableFields.has(key)) continue;
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
         // Parse FK fields as integers
@@ -238,6 +261,11 @@ async function fixSequence(config) {
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
     const sanitized = sanitizeData(config, data);
+    if (Object.keys(sanitized).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityName}`);
+        error.statusCode = 400;
+        throw error;
+    }
 
     try {
         return await prisma[config.model].create({
@@ -270,6 +298,11 @@ async function create(entityName, data) {
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
     const sanitized = sanitizeData(config, data);
+    if (Object.keys(sanitized).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityName} update`);
+        error.statusCode = 400;
+        throw error;
+    }
 
     return await prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
@@ -286,10 +319,61 @@ async function update(entityName, id, data) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+        const error = new Error(`Invalid ID: ${id}`);
+        error.statusCode = 400;
+        throw error;
+    }
+    const where = { [config.idField]: parsedId };
 
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
+    const select = { [config.idField]: true };
+    const countSelect = config.deleteCountSelect || config.includes?._count?.select;
+    if (countSelect) {
+        select._count = { select: countSelect };
+    }
+
+    const existing = await prisma[config.model].findUnique({
+        where,
+        select,
     });
+
+    if (!existing) {
+        const error = new Error(`${entityName} with ID ${id} not found`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const dependencySummary = [];
+    if (existing._count) {
+        for (const [key, count] of Object.entries(existing._count)) {
+            if (Number(count) > 0) {
+                const label = config.dependencyLabels?.[key] || key;
+                dependencySummary.push(`${count} ${label}`);
+            }
+        }
+    }
+
+    if (dependencySummary.length > 0) {
+        const error = new Error(
+            `Cannot delete ${entityName}: linked records exist (${dependencySummary.join(', ')}). Delete dependent records first.`
+        );
+        error.statusCode = 409;
+        throw error;
+    }
+
+    try {
+        return await prisma[config.model].delete({ where });
+    } catch (error) {
+        if (error?.code === 'P2003') {
+            const dependencyError = new Error(
+                `Cannot delete ${entityName}: it is referenced by other records. Delete dependent records first.`
+            );
+            dependencyError.statusCode = 409;
+            throw dependencyError;
+        }
+        throw error;
+    }
 }
 
 /**

@@ -116,7 +116,9 @@ const deleteEntity = (entityName) => async (req, res) => {
         });
     } catch (error) {
         console.error(`Error deleting ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 500;
+        const statusCode =
+            error.statusCode ||
+            (error.message.includes('not found') ? 404 : 500);
         res.status(statusCode).json({
             success: false,
             error: error.message,

@@ -18,8 +18,33 @@ const ENTITY_CONFIG = {
                     cfldCrops: true,
                     craCropingSystems: true,
                     craFarmingSystems: true,
+                    kvkFldIntroductions: true,
+                    kvkBudgetUtilizations: true,
+                    extensionActivityOrganized: true,
+                    cfldTechnicalParameters: true,
+                    kvkOfts: true,
+                    nicraDetails: true,
+                    demonstrationInfo: true,
+                    soilDataInformation: true,
+                    seedHubPrograms: true,
+                    csisa: true,
                 },
             },
+        },
+        dependencyLabels: {
+            cfldCrops: 'CFLD crops',
+            craCropingSystems: 'CRA cropping systems',
+            craFarmingSystems: 'CRA farming systems',
+            kvkFldIntroductions: 'FLD introduction records',
+            kvkBudgetUtilizations: 'budget utilization records',
+            extensionActivityOrganized: 'extension activities organized',
+            cfldTechnicalParameters: 'technical parameter records',
+            kvkOfts: 'OFT records',
+            nicraDetails: 'NICRA detail records',
+            demonstrationInfo: 'demonstration records',
+            soilDataInformation: 'soil data records',
+            seedHubPrograms: 'seed hub records',
+            csisa: 'CSISA records',
         },
     },
     'sanctioned-posts': {
@@ -73,8 +98,13 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     staff: true,
+                    kvkOfts: true,
                 },
             },
+        },
+        dependencyLabels: {
+            staff: 'staff records',
+            kvkOfts: 'OFT records',
         },
     },
     // Extension Masters
@@ -178,6 +208,26 @@ function getEntityConfig(entityName) {
         throw new Error(`Unknown entity type: ${entityName}`);
     }
     return config;
+}
+
+/**
+ * Keep only writable scalar fields for simple master entities.
+ * These entities are name-only masters, so updates/creates should only write nameField.
+ */
+function sanitizeSimpleMasterData(config, data = {}) {
+    const sanitized = {};
+
+    if (!(config.nameField in data)) {
+        return sanitized;
+    }
+
+    const value = data[config.nameField];
+    if (value === undefined) {
+        return sanitized;
+    }
+
+    sanitized[config.nameField] = typeof value === 'string' ? value.trim() : value;
+    return sanitized;
 }
 
 /**
@@ -286,10 +336,14 @@ const fixSequence = async (modelName, idField, tableName, columnName) => {
  */
 const create = async (entityType, data) => {
     const config = getEntityConfig(entityType);
-    
+
     // Build sanitized data object with only allowed fields
-    // For simple masters, we only want the name field
-    const sanitizedData = {};
+    const sanitizedData = sanitizeSimpleMasterData(config, data);
+    if (Object.keys(sanitizedData).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityType}`);
+        error.statusCode = 400;
+        throw error;
+    }
     
     // Explicitly exclude ID fields to prevent conflicts
     // Never include the ID field - let the database auto-increment handle it
@@ -300,11 +354,6 @@ const create = async (entityType, data) => {
         config.idField.toLowerCase(),
         config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
     ];
-    
-    // Only include the name field (these are simple master entities)
-    if (data[config.nameField]) {
-        sanitizedData[config.nameField] = data[config.nameField];
-    }
     
     // Ensure no ID field is accidentally included
     for (const idField of idFieldVariations) {
@@ -455,9 +504,15 @@ const create = async (entityType, data) => {
  */
 const update = async (entityType, id, data) => {
     const config = getEntityConfig(entityType);
+    const sanitizedData = sanitizeSimpleMasterData(config, data);
+    if (Object.keys(sanitizedData).length === 0) {
+        const error = new Error(`No valid fields provided for ${entityType} update`);
+        error.statusCode = 400;
+        throw error;
+    }
     return prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitizedData,
     });
 };
 
@@ -466,9 +521,60 @@ const update = async (entityType, id, data) => {
  */
 const deleteEntity = async (entityType, id) => {
     const config = getEntityConfig(entityType);
-    return prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+        const error = new Error(`Invalid ID: ${id}`);
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const where = { [config.idField]: parsedId };
+    const select = { [config.idField]: true };
+    if (config.includes?._count?.select) {
+        select._count = { select: config.includes._count.select };
+    }
+
+    const existing = await prisma[config.model].findUnique({
+        where,
+        select,
     });
+
+    if (!existing) {
+        const error = new Error(`${entityType} with ID ${id} not found`);
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const dependencySummary = [];
+    if (existing._count) {
+        for (const [key, count] of Object.entries(existing._count)) {
+            if (Number(count) > 0) {
+                const label = config.dependencyLabels?.[key] || key;
+                dependencySummary.push(`${count} ${label}`);
+            }
+        }
+    }
+
+    if (dependencySummary.length > 0) {
+        const error = new Error(
+            `Cannot delete ${entityType}: linked records exist (${dependencySummary.join(', ')}). Delete dependent records first.`
+        );
+        error.statusCode = 409;
+        throw error;
+    }
+
+    try {
+        return await prisma[config.model].delete({ where });
+    } catch (error) {
+        if (error?.code === 'P2003') {
+            const dependencyError = new Error(
+                `Cannot delete ${entityType}: it is referenced by other records. Delete dependent records first.`
+            );
+            dependencyError.statusCode = 409;
+            throw dependencyError;
+        }
+        throw error;
+    }
 };
 
 /**

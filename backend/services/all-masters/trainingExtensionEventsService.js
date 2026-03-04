@@ -80,9 +80,6 @@ class TrainingExtensionEventsService {
      * @returns {Promise<object>}
      */
     async delete(entityName, id) {
-        // Check if entity exists
-        await this.getById(entityName, id);
-
         return await trainingExtensionEventsRepository.deleteEntity(entityName, id);
     }
 

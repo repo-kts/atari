@@ -8,7 +8,29 @@ class RedisCacheService {
     constructor() {
         this.client = null;
         this.enabled = process.env.REDIS_ENABLED !== 'false';
+        this._connectedOnce = false;
+        this._disabledLogged = false;
         this._initializeClient();
+    }
+
+    _disableCache(message = 'Redis unavailable') {
+        if (!this.enabled) {
+            return;
+        }
+        this.enabled = false;
+        if (!this._disabledLogged) {
+            console.warn(`Redis cache disabled: ${message}`);
+            this._disabledLogged = true;
+        }
+
+        if (this.client) {
+            try {
+                // Stop reconnect attempts immediately.
+                this.client.disconnect(false);
+            } catch (error) {
+                // No-op: cache is already being disabled.
+            }
+        }
     }
 
     /**
@@ -27,12 +49,16 @@ class RedisCacheService {
                 password: process.env.REDIS_PASSWORD || undefined,
                 db: parseInt(process.env.REDIS_DB || '0', 10),
                 retryStrategy: (times) => {
-                    const delay = Math.min(times * 50, 2000);
-                    return delay;
+                    // Allow at most one retry to avoid noisy reconnection loops in dev.
+                    if (times > 1) {
+                        return null;
+                    }
+                    return 200;
                 },
-                maxRetriesPerRequest: 3,
+                maxRetriesPerRequest: 1,
                 enableReadyCheck: true,
                 lazyConnect: true,
+                enableOfflineQueue: false,
             };
 
             this.client = new Redis(config);
@@ -42,26 +68,37 @@ class RedisCacheService {
             });
 
             this.client.on('ready', () => {
+                this._connectedOnce = true;
                 console.log('Redis client ready');
             });
 
             this.client.on('error', (error) => {
-                console.error('Redis client error:', error.message);
-                // Don't throw, allow fallback to database
+                if (!this.enabled) return;
+                const message = error?.message || 'Unknown Redis error';
+                console.error('Redis client error:', message);
+                // If we have never connected successfully, disable cache and stop retries.
+                if (!this._connectedOnce) {
+                    this._disableCache(message);
+                }
             });
 
             this.client.on('close', () => {
+                if (!this.enabled) return;
                 console.log('Redis client connection closed');
+                if (!this._connectedOnce) {
+                    this._disableCache('Connection closed');
+                }
             });
 
             // Connect to Redis
             this.client.connect().catch((error) => {
-                console.error('Failed to connect to Redis:', error.message);
-                this.enabled = false;
+                const message = error?.message || 'Failed to connect';
+                console.error('Failed to connect to Redis:', message);
+                this._disableCache(message);
             });
         } catch (error) {
             console.error('Failed to initialize Redis client:', error.message);
-            this.enabled = false;
+            this._disableCache(error.message);
         }
     }
 

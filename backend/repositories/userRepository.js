@@ -1,5 +1,56 @@
 const prisma = require('../config/prisma.js');
 
+const USER_WRITABLE_FIELDS = new Set([
+  'name',
+  'email',
+  'passwordHash',
+  'roleId',
+  'zoneId',
+  'stateId',
+  'districtId',
+  'orgId',
+  'universityId',
+  'kvkId',
+  'lastLoginAt',
+  'deletedAt',
+  'phoneNumber',
+]);
+
+function sanitizeUserData(userData = {}) {
+  const sanitized = {};
+
+  for (const [key, value] of Object.entries(userData)) {
+    if (!USER_WRITABLE_FIELDS.has(key)) continue;
+    if (value === undefined) continue;
+
+    if (key.endsWith('Id')) {
+      if (value === null || value === '') {
+        sanitized[key] = null;
+        continue;
+      }
+      const parsed = parseInt(value, 10);
+      if (!isNaN(parsed)) {
+        sanitized[key] = parsed;
+      }
+      continue;
+    }
+
+    if (key === 'lastLoginAt' || key === 'deletedAt') {
+      sanitized[key] = value ? new Date(value) : null;
+      continue;
+    }
+
+    if (typeof value === 'string') {
+      sanitized[key] = value.trim();
+      continue;
+    }
+
+    sanitized[key] = value;
+  }
+
+  return sanitized;
+}
+
 const userRepository = {
   /**
    * Find all users (excluding soft-deleted)
@@ -49,8 +100,14 @@ const userRepository = {
    * Create user (generic)
    */
   create: async (userData) => {
+    const sanitizedData = sanitizeUserData(userData);
+    if (Object.keys(sanitizedData).length === 0) {
+      const error = new Error('No valid user fields provided');
+      error.statusCode = 400;
+      throw error;
+    }
     return await prisma.user.create({
-      data: userData,
+      data: sanitizedData,
       include: {
         role: true,
       },
@@ -64,9 +121,10 @@ const userRepository = {
    * @returns {Promise<object>} Created user
    */
   createUserWithPassword: async (userData, passwordHash) => {
+    const sanitizedData = sanitizeUserData(userData);
     return await prisma.user.create({
       data: {
-        ...userData,
+        ...sanitizedData,
         passwordHash,
       },
       include: {
@@ -84,9 +142,15 @@ const userRepository = {
    * Update user
    */
   update: async (id, userData) => {
+    const sanitizedData = sanitizeUserData(userData);
+    if (Object.keys(sanitizedData).length === 0) {
+      const error = new Error('No valid user fields provided for update');
+      error.statusCode = 400;
+      throw error;
+    }
     return await prisma.user.update({
       where: { userId: parseInt(id) },
-      data: userData,
+      data: sanitizedData,
       include: {
         role: true,
         zone: true,

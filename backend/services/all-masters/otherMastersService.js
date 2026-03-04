@@ -166,26 +166,6 @@ async function update(entityName, id, data) {
  */
 async function deleteEntity(entityName, id) {
     try {
-        // Check if entity exists
-        const existing = await otherMastersRepository.findById(entityName, id);
-        if (!existing) {
-            const error = new Error(`${entityName} with ID ${id} not found`);
-            error.statusCode = 404;
-            throw error;
-        }
-
-        // Check for dependent records (using _count if available)
-        if (existing._count) {
-            const dependentCounts = Object.values(existing._count);
-            const hasDependents = dependentCounts.some(count => count > 0);
-            
-            if (hasDependents) {
-                const error = new Error(`Cannot delete ${entityName}: has dependent records`);
-                error.statusCode = 409;
-                throw error;
-            }
-        }
-
         return await otherMastersRepository.deleteEntity(entityName, id);
     } catch (error) {
         console.error(`Error deleting ${entityName}:`, error);
