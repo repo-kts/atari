@@ -2,7 +2,7 @@ model NicraBasicInfo {
   nicraBasicInfoId Int @id @default(autoincrement()) @map("nicra_basic_info_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingDate DateTime @map("reporting_date") // extract only year and month for this
 

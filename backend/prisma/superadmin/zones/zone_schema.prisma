@@ -4,6 +4,10 @@
 model Zone {
   zoneId    Int              @id @default(autoincrement()) @map("zone_id")
   zoneName  String           @unique @map("zone_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   districts DistrictMaster[]
   states    StateMaster[]
   users     User[]
@@ -17,6 +21,10 @@ model StateMaster {
   stateId   Int              @id @default(autoincrement()) @map("state_id")
   stateName String           @map("state_name")
   zoneId    Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   districts DistrictMaster[]
   zone      Zone             @relation(fields: [zoneId], references: [zoneId])
   users     User[]
@@ -33,6 +41,10 @@ model DistrictMaster {
   districtName String      @map("district_name")
   stateId      Int
   zoneId       Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   state        StateMaster @relation(fields: [stateId], references: [stateId])
   zone         Zone        @relation(fields: [zoneId], references: [zoneId])
   orgs         OrgMaster[]
@@ -50,6 +62,10 @@ model OrgMaster {
   orgId        Int              @id @default(autoincrement()) @map("org_id")
   orgName      String?          @map("org_name")
   districtId   Int?             @map("district_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   district     DistrictMaster?  @relation(fields: [districtId], references: [districtId])
   universities UniversityMaster[]
   users        User[]
@@ -65,6 +81,10 @@ model UniversityMaster {
   universityId   Int         @id @default(autoincrement()) @map("university_id")
   universityName String     @map("university_name")
   orgId          Int         @map("org_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   organization   OrgMaster   @relation(fields: [orgId], references: [orgId])
   kvks           Kvk[]
   users          User[]

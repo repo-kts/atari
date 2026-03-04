@@ -9,7 +9,7 @@ model CfldTechnicalParameter {
     cfldTechId Int @id @default(autoincrement()) @map("cfl_cfld_tech_id")
 
     kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
     cropId Int
     crop   FLDCropMaster @relation(fields: [cropId], references: [cfldId])
@@ -47,10 +47,13 @@ model CfldTechnicalParameter {
     scF Int @map("sc_f")
 
     stM Int @map("st_m")
-    stF Int @map("st_f")
+    stF Int @map("st_f") 
 
     trainingPhotoPath String? @map("training_photo_path")
     qualityActionPhotoPath String? @map("quality_action_photo_path")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@map("cfl cfld_technical_parameter")
 

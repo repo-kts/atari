@@ -4,6 +4,9 @@ model ExtensionActivity {
   extensionActivityId   Int    @id @default(autoincrement()) @map("extension_activity_id")
   extensionName    String @map("extension_name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   extensionActivityOrganized ExtensionActivityOrganized[] 
 
   @@index([extensionActivityId])

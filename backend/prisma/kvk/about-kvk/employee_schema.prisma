@@ -34,10 +34,13 @@ model KvkStaff {
   kvkOfts                     Kvkoft[]
 
   discipline                  Discipline                  @relation(fields: [disciplineId], references: [disciplineId])
-  kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId])
-  originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+  kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId], onDelete: SetNull)
   sanctionedPost              SanctionedPost              @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
   transferHistory             StaffTransferHistory[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([sanctionedPostId])

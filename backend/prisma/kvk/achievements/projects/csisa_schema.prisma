@@ -2,7 +2,7 @@ model Csisa {
   csisaId Int @id @default(autoincrement()) @map("csisa_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
 
@@ -18,6 +18,9 @@ model Csisa {
 
   cropDetails CsisaCropDetail[]
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   @@index([kvkId])
   @@index([seasonId])
 
@@ -28,7 +31,7 @@ model CsisaCropDetail {
   csisaCropDetailId Int @id @default(autoincrement()) @map("csisa_crop_detail_id")
 
   csisaId Int
-  csisa   Csisa @relation(fields: [csisaId], references: [csisaId])
+  csisa   Csisa @relation(fields: [csisaId], references: [csisaId], onDelete: Cascade)
 
   cropName String @map("crop_name")
   technologyOption String @map("technology_option")
@@ -42,6 +45,9 @@ model CsisaCropDetail {
   grossReturn Float @map("gross_return_per_ha")
   netReturn Float @map("net_return_per_ha")
   bcr Float @map("bcr")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([csisaId])
 

@@ -3,6 +3,9 @@
 model ProductCategory {
   productCategoryId   Int    @id @default(autoincrement()) @map("product_category_id")
   productCategoryName String @unique @map("product_category_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   
   productTypes ProductType[]
   products     Product[]
@@ -16,8 +19,12 @@ model ProductType {
   productTypeId       Int    @id @default(autoincrement()) @map("product_type_id")
   productCategoryType String @map("product_category_type")
   
-  productCategoryId   Int    @map("product_category_id")
-  productCategory     ProductCategory @relation(fields: [productCategoryId], references: [productCategoryId])
+  productCategoryId   Int?    @map("product_category_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  productCategory     ProductCategory? @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: SetNull)
   
   products Product[]
 
@@ -31,11 +38,14 @@ model Product {
   productId   Int    @id @default(autoincrement()) @map("product_id")
   productName String @map("product_name")
 
-  productCategoryId Int @map("product_category_id")
-  productCategory   ProductCategory @relation(fields: [productCategoryId], references: [productCategoryId])
-  
-  productTypeId Int @map("product_type_id")
-  productType   ProductType @relation(fields: [productTypeId], references: [productTypeId])
+  productCategoryId Int? @map("product_category_id")
+  productTypeId Int? @map("product_type_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  productCategory   ProductCategory? @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: SetNull)
+  productType   ProductType? @relation(fields: [productTypeId], references: [productTypeId], onDelete: SetNull)
 
   @@index([productId])
   @@index([productName])
@@ -49,6 +59,10 @@ model CraCropingSystem {
   cropName           String @map("crop_name")
   
   seasonId Int    @map("season_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   season   Season @relation(fields: [seasonId], references: [seasonId])
   
   @@index([craCropingSystemId])
@@ -62,6 +76,10 @@ model CraFarmingSystem {
   farmingSystemName  String @map("farming_system_name")
 
   seasonId Int    @map("season_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   season   Season @relation(fields: [seasonId], references: [seasonId])
   
   @@index([craFarmingSystemId])
@@ -73,6 +91,9 @@ model CraFarmingSystem {
 model AryaEnterprise {
   aryaEnterpriseId Int    @id @default(autoincrement()) @map("arya_enterprise_id")
   enterpriseName   String @unique @map("enterprise_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   
   @@index([aryaEnterpriseId])
   @@index([enterpriseName])

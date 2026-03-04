@@ -76,9 +76,19 @@ const findAll = async (entityType, options = {}) => {
 const findById = async (entityType, id) => {
     const config = ENTITY_CONFIG[entityType];
     if (!config) throw new Error(`Unknown entity type: ${entityType}`);
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Missing ID field: ${config.idField}`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Invalid ID: ${id}. Expected a number.`);
+    }
 
     return prisma[config.model].findUnique({
-        where: { [config.idField]: parseInt(id) },
+        where: { [config.idField]: parsedId },
         include: config.includes,
     });
 };
@@ -163,13 +173,75 @@ const update = async (entityType, id, data) => {
 /**
  * Generic delete
  */
+/**
+ * Check for dependent records before deletion
+ */
+const checkDependentRecords = async (entityType, config, id) => {
+    // Check _count if available in includes
+    if (config.includes && config.includes._count && config.includes._count.select) {
+        // Properly structure _count query - Prisma expects _count: { select: {...} }
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: id },
+            select: { 
+                _count: {
+                    select: config.includes._count.select
+                }
+            },
+        });
+        
+        if (entity && entity._count) {
+            const dependentCounts = Object.entries(entity._count)
+                .filter(([_, count]) => count > 0);
+            
+            if (dependentCounts.length > 0) {
+                return {
+                    hasDependents: true,
+                    counts: Object.fromEntries(dependentCounts),
+                };
+            }
+        }
+    }
+    
+    return { hasDependents: false };
+};
+
 const deleteEntity = async (entityType, id) => {
     const config = ENTITY_CONFIG[entityType];
     if (!config) throw new Error(`Unknown entity type: ${entityType}`);
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Cannot delete ${entityType}: missing ID field`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Cannot delete ${entityType}: invalid ID: ${id}`);
+    }
+    
+    // Check for dependent records
+    const dependentCheck = await checkDependentRecords(entityType, config, parsedId);
+    if (dependentCheck.hasDependents) {
+        const dependentNames = Object.keys(dependentCheck.counts).join(', ');
+        throw new Error(`Cannot delete ${entityType}: has dependent records (${dependentNames})`);
+    }
 
-    return prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
-    });
+    try {
+        return await prisma[config.model].delete({
+            where: { [config.idField]: parsedId },
+        });
+    } catch (error) {
+        // Handle foreign key constraint violations
+        if (error.code === 'P2003') {
+            throw new Error(`Cannot delete ${entityType}: has dependent records. Please try again or contact support.`);
+        }
+        // Handle record not found
+        if (error.code === 'P2025') {
+            throw new Error(`${entityType} not found`);
+        }
+        // Re-throw other errors
+        throw error;
+    }
 };
 
 /**

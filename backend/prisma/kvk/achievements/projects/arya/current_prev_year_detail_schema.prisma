@@ -2,7 +2,7 @@ model AryaPrevYear {
   aryaPrevYearId Int @id @default(autoincrement()) @map("arya_prev_year_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
 
@@ -29,6 +29,9 @@ model AryaPrevYear {
   employmentFamilyMandays Float @map("employment_family_mandays")
   employmentOtherMandays Float @map("employment_other_mandays")
   personsVisitedUnit Int @map("persons_visited_unit")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([enterpriseId])

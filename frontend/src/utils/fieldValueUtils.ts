@@ -400,9 +400,15 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     category: {
         extractor: (item) => {
+            // Primary: Check nested relation object (preferred - backend should include this)
             if (item.staffCategory?.categoryName) return item.staffCategory.categoryName;
+            // Fallback: Check direct field (if backend includes it separately)
             if (item.categoryName) return item.categoryName;
+            // Legacy: Check old field name
             if (item.category) return item.category;
+            // Note: If staffCategoryId exists but staffCategory relation is null,
+            // the backend query should include the staffCategory relation in the 'include' clause.
+            // Check backend/repositories/forms/aboutKvkRepository.js line 59-61 for includes config.
             return null;
         },
         priority: 7,

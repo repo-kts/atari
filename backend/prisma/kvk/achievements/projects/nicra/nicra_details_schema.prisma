@@ -46,7 +46,7 @@ model NicraDetails {
   nicraDetailsId Int @id @default(autoincrement()) @map("nicra_details_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
 

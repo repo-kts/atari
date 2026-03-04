@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes/index.js');
+const { errorHandlerMiddleware } = require('./utils/errorHandler.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -35,13 +36,7 @@ app.use(cors({
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
-
-// Logger
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - Origin: ${req.get('origin')}`);
-  next();
-});
-
+ 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -50,6 +45,9 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api', routes);
 
+// Error handling middleware (must be last)
+app.use(errorHandlerMiddleware);
+
 // Export the app for serverless environments (Vercel, AWS Lambda, etc.)
 module.exports = app;
 
@@ -57,8 +55,6 @@ module.exports = app;
 if (process.env.VERCEL !== '1' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔐 API endpoint: http://localhost:${PORT}/api`);
   });
 
   server.on('error', (error) => {

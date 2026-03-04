@@ -10,7 +10,7 @@ model KvkFarmImplement {
   implementId   Int @id @default(autoincrement()) @map("implement_id")
 
   kvkId         Int
-  kvk           Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk           Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   implementName     String @map("implement_name")
   yearOfPurchase    Int    @map("year_of_purchase")

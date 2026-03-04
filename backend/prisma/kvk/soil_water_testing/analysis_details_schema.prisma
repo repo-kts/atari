@@ -2,7 +2,7 @@ model KkvSoilWaterAnalysis {
     soilWaterAnalysisId Int @id @default(autoincrement()) @map("soil_water_analysis_id")
 
     kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
     startDate DateTime @map("start_date")
     endDate   DateTime @map("end_date")
@@ -27,6 +27,9 @@ model KkvSoilWaterAnalysis {
 
     stM Int @map("st_m")
     stF Int @map("st_f")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@index([kvkId])
     @@index([analysisId])

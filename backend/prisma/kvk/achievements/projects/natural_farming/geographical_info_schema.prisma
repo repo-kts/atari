@@ -2,7 +2,7 @@ model GeographicalInfo {
   geographicalInfoId Int @id @default(autoincrement()) @map("geographical_info_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
   startDate DateTime @map("start_date")

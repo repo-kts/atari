@@ -6,10 +6,10 @@ model StaffTransferHistory {
   staff            KvkStaff  @relation(fields: [kvkStaffId], references: [kvkStaffId])
   
   fromKvkId        Int       @map("from_kvk_id")
-  fromKvk          Kvk       @relation("TransferFrom", fields: [fromKvkId], references: [kvkId])
+  fromKvk          Kvk       @relation("TransferFrom", fields: [fromKvkId], references: [kvkId], onDelete: Cascade)
   
   toKvkId          Int       @map("to_kvk_id")
-  toKvk            Kvk       @relation("TransferTo", fields: [toKvkId], references: [kvkId])
+  toKvk            Kvk       @relation("TransferTo", fields: [toKvkId], references: [kvkId], onDelete: Cascade)
   
   transferredBy    Int?      @map("transferred_by") // User ID
   transferredByUser User?    @relation(fields: [transferredBy], references: [userId])

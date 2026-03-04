@@ -14,7 +14,7 @@ model DemonstrationInfo {
   demonstrationInfoId Int @id @default(autoincrement()) @map("demonstration_info_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   startDate DateTime
   endDate   DateTime

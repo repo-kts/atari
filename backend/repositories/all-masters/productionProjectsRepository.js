@@ -99,8 +99,8 @@ const ENTITY_CONFIG = {
 
     // ARYA Entity
     'arya-enterprises': {
-        model: 'enterprise',
-        idField: 'enterpriseId',
+        model: 'aryaEnterprise',
+        idField: 'aryaEnterpriseId',
         nameField: 'enterpriseName',
         tableName: 'enterprise_master',
         idColumn: 'enterprise_id',
@@ -178,9 +178,19 @@ async function findAll(entityName, options = {}) {
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Missing ID field: ${config.idField}`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Invalid ID: ${id}. Expected a number.`);
+    }
 
     return await prisma[config.model].findUnique({
-        where: { [config.idField]: parseInt(id) },
+        where: { [config.idField]: parsedId },
         include: config.includes,
     });
 }
@@ -279,6 +289,42 @@ async function update(entityName, id, data) {
 }
 
 /**
+ * Check for dependent records before deletion
+ * @param {string} entityName - Entity name
+ * @param {object} config - Entity configuration
+ * @param {number} id - Entity ID
+ * @returns {Promise<object|null>} Dependent records info or null
+ */
+async function checkDependentRecords(entityName, config, id) {
+    // Check _count if available in includes
+    if (config.includes && config.includes._count && config.includes._count.select) {
+        // Properly structure _count query - Prisma expects _count: { select: {...} }
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: id },
+            select: { 
+                _count: {
+                    select: config.includes._count.select
+                }
+            },
+        });
+        
+        if (entity && entity._count) {
+            const dependentCounts = Object.entries(entity._count)
+                .filter(([_, count]) => count > 0);
+            
+            if (dependentCounts.length > 0) {
+                return {
+                    hasDependents: true,
+                    counts: Object.fromEntries(dependentCounts),
+                };
+            }
+        }
+    }
+    
+    return { hasDependents: false };
+}
+
+/**
  * Delete entity
  * @param {string} entityName - Entity name
  * @param {number} id - Entity ID
@@ -286,10 +332,35 @@ async function update(entityName, id, data) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
-    });
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Cannot delete ${entityName}: missing ID field`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
+    }
+    
+    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
+    // We don't need to check or manually nullify - the database handles it
+    try {
+        return await prisma[config.model].delete({
+            where: { [config.idField]: parsedId },
+        });
+    } catch (error) {
+        // Handle foreign key constraint violations (if schema doesn't have SetNull)
+        if (error.code === 'P2003') {
+            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
+        }
+        // Handle record not found
+        if (error.code === 'P2025') {
+            throw new Error(`${entityName} not found`);
+        }
+        // Re-throw other errors
+        throw error;
+    }
 }
 
 /**
@@ -398,7 +469,7 @@ async function getStats() {
         prisma.product.count(),
         prisma.craCropingSystem.count(),
         prisma.craFarmingSystem.count(),
-        prisma.enterprise.count(),
+        prisma.aryaEnterprise.count(),
     ]);
 
     return {

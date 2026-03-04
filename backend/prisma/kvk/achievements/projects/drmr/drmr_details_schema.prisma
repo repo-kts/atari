@@ -2,7 +2,7 @@ model DrmrDetails {
   drmrDetailsId Int @id @default(autoincrement()) @map("drmr_details_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
   situation String @map("situation")
@@ -19,6 +19,9 @@ model DrmrDetails {
   netReturnFarmerPerHa Float @map("net_return_farmer_per_ha")
   bcRatioImproved Float @map("bc_ratio_improved")
   bcRatioFarmer Float @map("bc_ratio_farmer")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
 

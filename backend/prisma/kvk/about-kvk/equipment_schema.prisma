@@ -14,7 +14,7 @@ model KvkEquipment {
   equipmentId Int @id @default(autoincrement()) @map("equipment_id")
 
   kvkId       Int
-  kvk         Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk         Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   equipmentName     String @map("equipment_name")
   yearOfPurchase    Int    @map("year_of_purchase")
@@ -24,6 +24,9 @@ model KvkEquipment {
   reportingYear     Int?    @map("reporting_year")
   
   type        EquipmentType @default(EQUIPMENT) @map("type")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@map("kvk_equipment")

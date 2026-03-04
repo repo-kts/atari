@@ -1,4 +1,5 @@
 const masterDataService = require('../../services/all-masters/masterDataService.js');
+const { asyncHandler, handleError } = require('../../utils/errorHandler.js');
 
 /**
  * Generic Master Data Controller
@@ -172,19 +173,16 @@ async function getStatesByZone(req, res) {
     }
 }
 
-/**
+/** 
  * Create state
  */
-async function createState(req, res) {
-    try {
-        const state = await masterDataService.createEntity('states', req.body, req.user.userId);
-        return successResponse(res, state, null, 201);
-    } catch (error) {
-        console.error('Error in createState:', error);
-        const statusCode = error.message.includes('already exists') ? 409 : 400;
-        return errorResponse(res, error, statusCode);
+const createState = asyncHandler(async (req, res) => {
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+        return errorResponse(res, new Error('Request body is required and must be an object'), 400);
     }
-}
+    const state = await masterDataService.createEntity('states', req.body, req.user?.userId);
+    return successResponse(res, state, null, 201);
+});
 
 /**
  * Update state

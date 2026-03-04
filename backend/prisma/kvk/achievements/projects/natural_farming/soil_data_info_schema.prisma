@@ -9,7 +9,7 @@ model SoilDataInformation {
   soilDataInformationId Int @id @default(autoincrement()) @map("soil_data_information_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   year   Int
   crop   String

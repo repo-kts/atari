@@ -2,6 +2,9 @@ model ImportantDay {
   importantDayId Int    @id @default(autoincrement()) @map("important_day_id")
   dayName        String @unique @map("day_name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   celebrations KvkImportantDayCelebration[]
 
   @@map("important_day")

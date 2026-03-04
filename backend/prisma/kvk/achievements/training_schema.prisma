@@ -8,6 +8,9 @@ model CourseCoordinatorMaster {
   coordinatorId Int    @id @default(autoincrement()) @map("coordinator_id")
   name          String @unique @map("name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   trainings TrainingAchievement[]
 
   @@map("course_coordinator_master")
@@ -17,17 +20,17 @@ model TrainingAchievement {
   trainingAchievementId Int @id @default(autoincrement()) @map("training_achievement_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   // ---- FK Relations ----
   clienteleId Int
   clientele   ClienteleMaster @relation(fields: [clienteleId], references: [clienteleId])
 
-  trainingTypeId Int
-  trainingType   TrainingTypeMaster @relation(fields: [trainingTypeId], references: [trainingTypeId])
+  trainingTypeId Int?
+  trainingType   TrainingTypeMaster? @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
 
-  trainingAreaId Int
-  trainingArea   TrainingAreaMaster @relation(fields: [trainingAreaId], references: [trainingAreaId])
+  trainingAreaId Int?
+  trainingArea   TrainingAreaMaster? @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: SetNull)
 
   thematicAreaId Int
   thematicArea   ThematicAreaMaster @relation(fields: [thematicAreaId], references: [thematicAreaId])
@@ -58,6 +61,9 @@ model TrainingAchievement {
 
   stM Int @map("st_m")
   stF Int @map("st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("training_achievement")
 }

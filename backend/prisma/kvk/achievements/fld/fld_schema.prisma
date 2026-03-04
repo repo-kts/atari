@@ -2,7 +2,7 @@ model KvkFldIntroduction {
   kvkFldId Int @id @default(autoincrement()) @map("kvk_fld_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   kvkStaffId Int
   kvkStaff   KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId])
@@ -42,6 +42,9 @@ model KvkFldIntroduction {
 
   stM Int @map("st_m")
   stF Int @map("st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([seasonId])

@@ -2,7 +2,7 @@ model FarmerAward {
   farmerAwardID Int @id @default(autoincrement()) @map("farmer_award_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   farmerName String @map("farmer_name")
   contactNumber String @map("contact_number")
@@ -11,6 +11,9 @@ model FarmerAward {
   amount Int @map("amount")
   achievement   String @map("achievement")
   conferringAuthority String @map("conferring_authority")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("farmer_award")
 

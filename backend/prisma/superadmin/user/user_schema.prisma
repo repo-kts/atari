@@ -13,6 +13,10 @@ model Role {
   roleName        String           @map("role_name")
   description     String?
   hierarchyLevel  Int?             @map("hierarchy_level")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   rolePermissions RolePermission[]
   users           User[]
 
@@ -25,6 +29,10 @@ model Module {
   menuName    String       @map("menu_name")
   subMenuName String       @map("sub_menu_name")
   moduleCode  String       @unique @map("module_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   permissions Permission[]
 
   @@map("modules")
@@ -34,6 +42,10 @@ model Permission {
   permissionId    Int              @id @default(autoincrement()) @map("permission_id")
   moduleId        Int              @map("module_id")
   action          PermissionAction
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   module          Module           @relation(fields: [moduleId], references: [moduleId])
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
@@ -103,7 +115,7 @@ model User {
   district        DistrictMaster?    @relation(fields: [districtId], references: [districtId])
   org             OrgMaster?         @relation(fields: [orgId], references: [orgId])
   university      UniversityMaster?  @relation(fields: [universityId], references: [universityId])
-  kvk             Kvk?               @relation(fields: [kvkId], references: [kvkId])
+  kvk             Kvk?               @relation(fields: [kvkId], references: [kvkId], onDelete: SetNull)
   role            Role               @relation(fields: [roleId], references: [roleId])
   state           StateMaster?       @relation(fields: [stateId], references: [stateId])
   zone            Zone?              @relation(fields: [zoneId], references: [zoneId])

@@ -2,7 +2,7 @@ model KvkSeedHubProgram {
     seedHubId Int @id @default(autoincrement()) @map("seed_hub_id")
 
     kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
     reportingYear Int @map("reporting_year")
 
@@ -21,6 +21,9 @@ model KvkSeedHubProgram {
     quantitySaleToOtherOrgQ Float @map("quantity_sale_to_other_org_q")
     amountGeneratedLakh Float @map("amount_generated_lakh")
     totalAmountPresentLakh Float @map("total_amount_present_lakh")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@index([kvkId])
     @@index([seasonId])

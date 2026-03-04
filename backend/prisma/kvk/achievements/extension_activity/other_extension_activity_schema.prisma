@@ -2,10 +2,10 @@ model KvkOtherExtensionActivity {
   otherExtensionActivityId Int @id @default(autoincrement()) @map("kvk_other_extension_activity_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   fldId Int?
-  fld   KvkFldIntroduction? @relation(fields: [fldId], references: [kvkFldId])
+  fld   KvkFldIntroduction? @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
 
   staffId Int?
   staff   KvkStaff? @relation(fields: [staffId], references: [kvkStaffId])
@@ -16,6 +16,9 @@ model KvkOtherExtensionActivity {
   numberOfActivities Int @map("number_of_activities")
   startDate DateTime @map("start_date")
   endDate   DateTime @map("end_date")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([fldId])

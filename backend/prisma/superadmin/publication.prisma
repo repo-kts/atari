@@ -3,6 +3,9 @@
 model Publication {
   publicationId   Int    @id @default(autoincrement()) @map("publication_id")
   publicationName String @map("publication_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
   
   @@index([publicationId])
   @@index([publicationName])

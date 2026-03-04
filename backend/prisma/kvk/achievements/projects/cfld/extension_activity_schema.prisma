@@ -2,7 +2,7 @@ model ExtensionActivityOrganized {
   organizedId Int @id @default(autoincrement()) @map("organized_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   seasonId Int
   season   Season @relation(fields: [seasonId], references: [seasonId])
@@ -24,6 +24,9 @@ model ExtensionActivityOrganized {
 
   stM Int @map("st_m")
   stF Int @map("st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([seasonId])

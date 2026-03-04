@@ -45,7 +45,7 @@ const reportConfig = {
             dataSource: 'kvkBankAccounts',
             format: 'table',
             filters: {
-                dateFields: [],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'accountType', displayName: 'Account Type' },
@@ -64,7 +64,7 @@ const reportConfig = {
             dataSource: 'kvkEmployees',
             format: 'table',
             filters: {
-                dateFields: ['dateOfJoining', 'dateOfBirth'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'staffName', displayName: 'Staff Name' },
@@ -90,7 +90,7 @@ const reportConfig = {
             dataSource: 'kvkStaffTransferred',
             format: 'table',
             filters: {
-                dateFields: ['transferDate', 'lastTransferDate'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'staffName', displayName: 'Staff Name' },
@@ -109,7 +109,7 @@ const reportConfig = {
             dataSource: 'kvkInfrastructure',
             format: 'table',
             filters: {
-                dateFields: ['createdAt', 'updatedAt'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'infraMaster.name', displayName: 'Infrastructure Name' },
@@ -132,8 +132,7 @@ const reportConfig = {
             dataSource: 'kvkVehicles',
             format: 'grouped-table',
             filters: {
-                dateFields: ['yearOfPurchase'],
-                yearFields: ['yearOfPurchase', 'reportingYear'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'vehicleName', displayName: 'Vehicle Name' },
@@ -155,8 +154,7 @@ const reportConfig = {
             dataSource: 'kvkEquipments',
             format: 'grouped-table',
             filters: {
-                dateFields: [],
-                yearFields: ['yearOfPurchase', 'reportingYear'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
@@ -176,8 +174,7 @@ const reportConfig = {
             dataSource: 'kvkFarmImplements',
             format: 'table',
             filters: {
-                dateFields: [],
-                yearFields: ['yearOfPurchase'],
+                dateFields: ['createdAt'],
             },
             fields: [
                 { dbField: 'implementName', displayName: 'Implement Name' },
