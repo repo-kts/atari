@@ -1,27 +1,15 @@
-// User, Role, Module, Permission, UserPermission, RefreshToken - auth & RBAC
-// Models only; generator/datasource in schema.prisma
-
-enum PermissionAction {
-  VIEW
-  ADD
-  EDIT
-  DELETE
-}
-
 model Role {
   roleId          Int              @id @default(autoincrement()) @map("role_id")
   roleName        String           @map("role_name")
   description     String?
   hierarchyLevel  Int?             @map("hierarchy_level")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
   rolePermissions RolePermission[]
   users           User[]
 
-  @@map("roles")
   @@index([roleName])
+  @@map("roles")
 }
 
 model Module {
@@ -29,10 +17,8 @@ model Module {
   menuName    String       @map("menu_name")
   subMenuName String       @map("sub_menu_name")
   moduleCode  String       @unique @map("module_code")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
   permissions Permission[]
 
   @@map("modules")
@@ -42,10 +28,8 @@ model Permission {
   permissionId    Int              @id @default(autoincrement()) @map("permission_id")
   moduleId        Int              @map("module_id")
   action          PermissionAction
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
   module          Module           @relation(fields: [moduleId], references: [moduleId])
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
@@ -65,10 +49,10 @@ model RolePermission {
 }
 
 model UserPermission {
-  userId       Int   @map("user_id")
-  permissionId Int  @map("permission_id")
-  user        User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  permission  Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+  userId       Int        @map("user_id")
+  permissionId Int        @map("permission_id")
+  permission   Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@id([userId, permissionId])
   @@map("user_permissions")
@@ -92,33 +76,32 @@ model RefreshToken {
 }
 
 model User {
-  userId       Int       @id @default(autoincrement()) @map("user_id")
-  name         String
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  roleId       Int       @map("role_id")
-  zoneId       Int?      @map("zone_id")
-  stateId      Int?      @map("state_id")
-  districtId   Int?      @map("district_id")
-  orgId        Int?      @map("org_id")
-  universityId Int?      @map("university_id")
-  kvkId        Int?      @map("kvk_id")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  lastLoginAt  DateTime? @map("last_login_at")
-  deletedAt    DateTime? @map("deleted_at")
-  phoneNumber  String?   @map("phone_number")
-
-  refreshTokens   RefreshToken[]
-  userPermissions UserPermission[]
+  userId             Int                    @id @default(autoincrement()) @map("user_id")
+  name               String
+  email              String                 @unique
+  passwordHash       String                 @map("password_hash")
+  roleId             Int                    @map("role_id")
+  zoneId             Int?                   @map("zone_id")
+  stateId            Int?                   @map("state_id")
+  districtId         Int?                   @map("district_id")
+  orgId              Int?                   @map("org_id")
+  universityId       Int?                   @map("university_id")
+  kvkId              Int?                   @map("kvk_id")
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  lastLoginAt        DateTime?              @map("last_login_at")
+  deletedAt          DateTime?              @map("deleted_at")
+  phoneNumber        String?                @map("phone_number")
+  refreshTokens      RefreshToken[]
   transfersPerformed StaffTransferHistory[]
-  district        DistrictMaster?    @relation(fields: [districtId], references: [districtId])
-  org             OrgMaster?         @relation(fields: [orgId], references: [orgId])
-  university      UniversityMaster?  @relation(fields: [universityId], references: [universityId])
-  kvk             Kvk?               @relation(fields: [kvkId], references: [kvkId], onDelete: SetNull)
-  role            Role               @relation(fields: [roleId], references: [roleId])
-  state           StateMaster?       @relation(fields: [stateId], references: [stateId])
-  zone            Zone?              @relation(fields: [zoneId], references: [zoneId])
+  userPermissions    UserPermission[]
+  district           DistrictMaster?        @relation(fields: [districtId], references: [districtId])
+  kvk                Kvk?                   @relation(fields: [kvkId], references: [kvkId])
+  org                OrgMaster?             @relation(fields: [orgId], references: [orgId])
+  role               Role                   @relation(fields: [roleId], references: [roleId])
+  state              StateMaster?           @relation(fields: [stateId], references: [stateId])
+  university         UniversityMaster?      @relation(fields: [universityId], references: [universityId])
+  zone               Zone?                  @relation(fields: [zoneId], references: [zoneId])
 
   @@index([email, deletedAt])
   @@index([roleId])
@@ -132,4 +115,11 @@ model User {
   @@index([kvkId])
   @@index([name])
   @@map("users")
+}
+
+enum PermissionAction {
+  VIEW
+  ADD
+  EDIT
+  DELETE
 }

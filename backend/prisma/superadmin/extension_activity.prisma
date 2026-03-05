@@ -1,13 +1,9 @@
-// Extension activity - models only; generator/datasource in schema.prisma
-
 model ExtensionActivity {
-  extensionActivityId   Int    @id @default(autoincrement()) @map("extension_activity_id")
-  extensionName    String @map("extension_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  extensionActivityOrganized ExtensionActivityOrganized[] 
+  extensionActivityId        Int                          @id @default(autoincrement()) @map("extension_activity_id")
+  extensionName              String                       @map("extension_name")
+  createdAt                  DateTime                     @default(now()) @map("created_at")
+  updatedAt                  DateTime                     @updatedAt @map("updated_at")
+  extensionActivityOrganized ExtensionActivityOrganized[]
 
   @@index([extensionActivityId])
   @@index([extensionName])

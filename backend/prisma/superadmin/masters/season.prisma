@@ -1,25 +1,21 @@
-// Season Master - moved from cfld-season.prisma
-
 model Season {
-  seasonId   Int             @id @default(autoincrement()) @map("season_id")
-  seasonName String          @unique @map("season_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  cfldCrops  FLDCropMaster[]
-  craCropingSystems CraCropingSystem[]
-  craFarmingSystems CraFarmingSystem[]
-  kvkFldIntroductions       KvkFldIntroduction[]
-  kvkBudgetUtilizations      KvkBudgetUtilization[]
-  extensionActivityOrganized ExtensionActivityOrganized[]
+  seasonId                   Int                          @id @default(autoincrement()) @map("season_id")
+  seasonName                 String                       @unique @map("season_name")
+  createdAt                  DateTime                     @default(now()) @map("created_at")
+  updatedAt                  DateTime                     @updatedAt @map("updated_at")
   cfldTechnicalParameters    CfldTechnicalParameter[]
-  kvkOfts  Kvkoft[]
-  nicraDetails  NicraDetails[]
-  demonstrationInfo  DemonstrationInfo[]
-  soilDataInformation  SoilDataInformation[]
-  seedHubPrograms KvkSeedHubProgram[]
-  csisa Csisa []
+  craCropingSystems          CraCropingSystem[]
+  craFarmingSystems          CraFarmingSystem[]
+  csisa                      Csisa[]
+  demonstrationInfo          DemonstrationInfo[]
+  extensionActivityOrganized ExtensionActivityOrganized[]
+  cfldCrops                  FLDCropMaster[]
+  kvkBudgetUtilizations      KvkBudgetUtilization[]
+  kvkFldIntroductions        KvkFldIntroduction[]
+  kvkOfts                    Kvkoft[]
+  seedHubPrograms            KvkSeedHubProgram[]
+  nicraDetails               NicraDetails[]
+  soilDataInformation        SoilDataInformation[]
 
   @@index([seasonId])
   @@index([seasonName])

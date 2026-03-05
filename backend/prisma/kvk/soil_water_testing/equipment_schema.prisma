@@ -1,36 +1,29 @@
 model SoilWaterAnalysis {
-  soilWaterAnalysisId Int    @id @default(autoincrement()) @map("soil_water_analysis_id")
-  analysisName        String @unique @map("analysis_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  equipments KkvSoilWaterEquipment[]
-  analysis KkvSoilWaterAnalysis[]
+  soilWaterAnalysisId Int                     @id @default(autoincrement()) @map("soil_water_analysis_id")
+  analysisName        String                  @unique @map("analysis_name")
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+  analysis            KkvSoilWaterAnalysis[]
+  equipments          KkvSoilWaterEquipment[]
 
   @@map("soil_water_analysis")
 }
 
-
 model KkvSoilWaterEquipment {
-  soilWaterEquipmentId Int @id @default(autoincrement()) @map("soil_water_equipment_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  reportingYear Int @map("reporting_year")
-
-  soilWaterAnalysisId Int
-  soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [soilWaterAnalysisId], references: [soilWaterAnalysisId])
-
-  equipmentName String @map("equipment_name")
-  quantity Int @map("quantity")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  soilWaterEquipmentId Int               @id @default(autoincrement()) @map("soil_water_equipment_id")
+  kvkId                Int
+  soilWaterAnalysisId  Int
+  equipmentName        String            @map("equipment_name")
+  quantity             Int               @map("quantity")
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @updatedAt @map("updated_at")
+  reportingYearId      Int?              @map("reporting_year_id")
+  kvk                  Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear        YearMaster?       @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  soilWaterAnalysis    SoilWaterAnalysis @relation(fields: [soilWaterAnalysisId], references: [soilWaterAnalysisId])
 
   @@index([kvkId])
   @@index([soilWaterAnalysisId])
-
+  @@index([reportingYearId])
   @@map("kvk_soil_water_equipment")
 }

@@ -1,30 +1,25 @@
 model KkvWorldSoilCelebration {
-    worldSoilCelebrationId Int @id @default(autoincrement()) @map("world_soil_celebration_id")
+  worldSoilCelebrationId    Int         @id @default(autoincrement()) @map("world_soil_celebration_id")
+  kvkId                     Int
+  activitiesConducted       Int         @map("activities_conducted")
+  soilHealthCardDistributed Int         @map("soil_health_card_distributed")
+  vipNames                  String      @map("vip_names")
+  participants              Int         @map("participants")
+  generalM                  Int         @map("general_m")
+  generalF                  Int         @map("general_f")
+  obcM                      Int         @map("obc_m")
+  obcF                      Int         @map("obc_f")
+  scM                       Int         @map("sc_m")
+  scF                       Int         @map("sc_f")
+  stM                       Int         @map("st_m")
+  stF                       Int         @map("st_f")
+  createdAt                 DateTime    @default(now()) @map("created_at")
+  updatedAt                 DateTime    @updatedAt @map("updated_at")
+  reportingYearId           Int?        @map("reporting_year_id")
+  kvk                       Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear             YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
-    kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-    activitiesConducted Int @map("activities_conducted")
-    soilHealthCardDistributed Int @map("soil_health_card_distributed")
-    reportingYear Int? @map("reporting_year")
-    vipNames String @map("vip_names")
-    participants Int @map("participants")
-
-    generalM Int @map("general_m")
-    generalF Int @map("general_f")
-
-    obcM Int @map("obc_m")
-    obcF Int @map("obc_f")
-
-    scM Int @map("sc_m")
-    scF Int @map("sc_f")
-
-    stM Int @map("st_m")
-    stF Int @map("st_f")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@index([kvkId])
-    @@map("kvk_world_soil_celebration")
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@map("kvk_world_soil_celebration")
 }

@@ -367,9 +367,9 @@ class AboutKvkService {
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
-            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'presentStatus'],
+            'kvk-vehicle-details': ['kvkId', 'reportingYearId', 'vehicleId', 'totalRun', 'presentStatus'],
             'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFunding'],
-            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'presentStatus'],
+            'kvk-equipment-details': ['kvkId', 'reportingYearId', 'equipmentId', 'presentStatus'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
         };
 
@@ -404,6 +404,15 @@ class AboutKvkService {
      */
     async getAllInfraMasters() {
         return await aboutKvkRepository.getAllInfraMasters();
+    }
+
+    /**
+     * Get KVK staff for dropdown (filtered by kvkId)
+     * @param {number} kvkId - KVK ID to filter staff
+     * @returns {Promise<Array>} Array of staff with kvkStaffId, staffName, email, and sanctionedPost
+     */
+    async getStaffForDropdown(kvkId) {
+        return await aboutKvkRepository.getStaffForDropdown(kvkId);
     }
 
     /**

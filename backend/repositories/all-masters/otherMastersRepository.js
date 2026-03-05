@@ -25,6 +25,7 @@ const ENTITY_CONFIG = {
     'sanctioned-posts': {
         model: 'sanctionedPost',
         idField: 'sanctionedPostId',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         nameField: 'postName',
         includes: {
             _count: {
@@ -45,6 +46,7 @@ const ENTITY_CONFIG = {
         model: 'staffCategoryMaster',
         idField: 'staffCategoryId',
         nameField: 'categoryName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {
@@ -57,6 +59,7 @@ const ENTITY_CONFIG = {
         model: 'payLevelMaster',
         idField: 'payLevelId',
         nameField: 'levelName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {
@@ -69,6 +72,7 @@ const ENTITY_CONFIG = {
         model: 'discipline',
         idField: 'disciplineId',
         nameField: 'disciplineName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {
@@ -120,6 +124,7 @@ const ENTITY_CONFIG = {
         model: 'clienteleMaster',
         idField: 'clienteleId',
         nameField: 'name',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {
@@ -132,6 +137,7 @@ const ENTITY_CONFIG = {
         model: 'fundingSourceMaster',
         idField: 'fundingSourceId',
         nameField: 'name',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
         includes: {
             _count: {
                 select: {

@@ -1,21 +1,17 @@
 model FarmerAward {
-  farmerAwardID Int @id @default(autoincrement()) @map("farmer_award_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  farmerName String @map("farmer_name")
-  contactNumber String @map("contact_number")
-  address String @map("address")
-  awardName String @map("award_name")
-  amount Int @map("amount")
-  achievement   String @map("achievement")
-  conferringAuthority String @map("conferring_authority")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("farmer_award")
+  farmerAwardID       Int      @id @default(autoincrement()) @map("farmer_award_id")
+  kvkId               Int
+  farmerName          String   @map("farmer_name")
+  contactNumber       String   @map("contact_number")
+  address             String   @map("address")
+  awardName           String   @map("award_name")
+  amount              Int      @map("amount")
+  achievement         String   @map("achievement")
+  conferringAuthority String   @map("conferring_authority")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  kvk                 Kvk      @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   @@index([kvkId])
+  @@map("farmer_award")
 }

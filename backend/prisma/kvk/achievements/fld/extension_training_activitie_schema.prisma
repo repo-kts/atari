@@ -1,38 +1,30 @@
 model FldExtension {
-  extensionId Int @id @default(autoincrement()) @map("extension_id")
-  reportingYear Int @map("reporting_year")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade) 
-
-  activityId Int
-  activity   FldActivity @relation(fields: [activityId], references: [activityId])
-
-  activityDate DateTime @map("activity_date")
-  numberOfActivities Int @map("number_of_activities")
-  remarks String? @map("remarks")
-
-  generalM Int @map("general_m")
-  generalF Int @map("general_f")
-
-  obcM Int @map("obc_m")
-  obcF Int @map("obc_f")
-
-  scM Int @map("sc_m")
-  scF Int @map("sc_f")
-
-  stM Int @map("st_m")
-  stF Int @map("st_f")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  extensionId        Int                @id @default(autoincrement()) @map("extension_id")
+  kvkId              Int
+  fldId              Int
+  activityId         Int
+  activityDate       DateTime           @map("activity_date")
+  numberOfActivities Int                @map("number_of_activities")
+  remarks            String?            @map("remarks")
+  generalM           Int                @map("general_m")
+  generalF           Int                @map("general_f")
+  obcM               Int                @map("obc_m")
+  obcF               Int                @map("obc_f")
+  scM                Int                @map("sc_m")
+  scF                Int                @map("sc_f")
+  stM                Int                @map("st_m")
+  stF                Int                @map("st_f")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  reportingYearId    Int?               @map("reporting_year_id")
+  activity           FldActivity        @relation(fields: [activityId], references: [activityId])
+  fld                KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
+  kvk                Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear      YearMaster?        @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
   @@index([fldId])
   @@index([activityId])
-  @@index([reportingYear])
+  @@index([reportingYearId])
   @@map("fld_extension")
 }

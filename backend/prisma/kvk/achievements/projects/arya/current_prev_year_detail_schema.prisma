@@ -1,40 +1,33 @@
 model AryaPrevYear {
-  aryaPrevYearId Int @id @default(autoincrement()) @map("arya_prev_year_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  reportingYear Int @map("reporting_year")
-
-  enterpriseId Int
-  enterprise   Enterprise @relation(fields: [enterpriseId], references: [enterpriseId])
-
-  unitsMale Int @map("units_male")
-  unitsFemale Int @map("units_female")
-  nonFunctionalUnitsClosed Int @map("non_functional_units_closed")
-  dateOfClosing DateTime? @map("date_of_closing")
-  nonFunctionalUnitsRestarted Int @map("non_functional_units_restarted")
-  dateOfRestart DateTime? @map("date_of_restart")
-
-  numberOfUnits Int @map("number_of_units")
-  unitCapacity Float @map("unit_capacity")
-
-  fixedCost Float @map("fixed_cost")
-  variableCost Float @map("variable_cost")
-  totalProductionPerUnitYear Float @map("total_production_per_unit_year")
-  grossCostPerUnitYear Float @map("gross_cost_per_unit_year")
-  grossReturnPerUnitYear Float @map("gross_return_per_unit_year")
-  netBenefitPerUnitYear Float @map("net_benefit_per_unit_year")
-
-  employmentFamilyMandays Float @map("employment_family_mandays")
-  employmentOtherMandays Float @map("employment_other_mandays")
-  personsVisitedUnit Int @map("persons_visited_unit")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  aryaPrevYearId              Int         @id @default(autoincrement()) @map("arya_prev_year_id")
+  kvkId                       Int
+  enterpriseId                Int
+  unitsMale                   Int         @map("units_male")
+  unitsFemale                 Int         @map("units_female")
+  nonFunctionalUnitsClosed    Int         @map("non_functional_units_closed")
+  dateOfClosing               DateTime?   @map("date_of_closing")
+  nonFunctionalUnitsRestarted Int         @map("non_functional_units_restarted")
+  dateOfRestart               DateTime?   @map("date_of_restart")
+  numberOfUnits               Int         @map("number_of_units")
+  unitCapacity                Float       @map("unit_capacity")
+  fixedCost                   Float       @map("fixed_cost")
+  variableCost                Float       @map("variable_cost")
+  totalProductionPerUnitYear  Float       @map("total_production_per_unit_year")
+  grossCostPerUnitYear        Float       @map("gross_cost_per_unit_year")
+  grossReturnPerUnitYear      Float       @map("gross_return_per_unit_year")
+  netBenefitPerUnitYear       Float       @map("net_benefit_per_unit_year")
+  employmentFamilyMandays     Float       @map("employment_family_mandays")
+  employmentOtherMandays      Float       @map("employment_other_mandays")
+  personsVisitedUnit          Int         @map("persons_visited_unit")
+  createdAt                   DateTime    @default(now()) @map("created_at")
+  updatedAt                   DateTime    @updatedAt @map("updated_at")
+  reportingYearId             Int?        @map("reporting_year_id")
+  enterprise                  Enterprise  @relation(fields: [enterpriseId], references: [enterpriseId])
+  kvk                         Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear               YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
   @@index([enterpriseId])
-
+  @@index([reportingYearId])
   @@map("arya_prev_year")
 }

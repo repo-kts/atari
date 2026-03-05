@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
@@ -236,9 +237,12 @@ const cfldBudgetUtilizationRepository = {
             };
         }
 
+        // CRITICAL: Remove ID fields from updateData - Prisma doesn't accept them in data object
+        const finalUpdateData = removeIdFieldsForUpdate(updateData, ['budgetId', 'id']);
+
         const result = await prisma.kvkBudgetUtilization.update({
             where: { budgetId: parseInt(id) },
-            data: updateData,
+            data: finalUpdateData,
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },

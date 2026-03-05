@@ -1,13 +1,9 @@
-// Pay Level Master - converted from enum
-
 model PayLevelMaster {
-  payLevelId Int    @id @default(autoincrement()) @map("pay_level_id")
-  levelName  String @unique @map("level_name")
+  payLevelId Int        @id @default(autoincrement()) @map("pay_level_id")
+  levelName  String     @unique @map("level_name")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+  staff      KvkStaff[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  staff KvkStaff[]
-  
   @@map("pay_level_master")
 }

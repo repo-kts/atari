@@ -178,6 +178,10 @@ export const aboutKvkApi = {
     getSanctionedPosts: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/sanctioned-posts`),
     getDisciplines: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/disciplines`),
     getInfraMasters: () => apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/infra-masters`),
+    getKvkStaffForDropdown: (kvkId: number) =>
+        apiClient.get<ApiResponse<Array<{ kvkStaffId: number; staffName: string; email?: string; sanctionedPost?: { postName: string } }>>>(
+            `${BASE_URL}/staff-dropdown?kvkId=${kvkId}`
+        ),
 
     // ============================================
     // Dropdown helpers for vehicle/equipment details

@@ -13,11 +13,11 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1);
 
 // CORS configuration
-const FRONTEND_URL = process.env.FRONTEND_URL || ['http://localhost:5173', 'http://localhost:5174'];
-const allowedOrigins = [
-  FRONTEND_URL,
-  process.env.PRODUCTION_FRONTEND_URL, // Add production frontend URL
-].filter(Boolean); // Remove undefined values
+const allowedOrigins = process.env.FRONTEND_URL || ['http://localhost:5173', 'http://localhost:5174'];
+// const allowedOrigins = [
+//   FRONTEND_URL,
+//   process.env.PRODUCTION_FRONTEND_URL, // Add production frontend URL
+// ].filter(Boolean); // Remove undefined values
 
 app.use(cors({
   origin: (origin, callback) => {

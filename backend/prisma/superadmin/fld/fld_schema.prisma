@@ -1,16 +1,12 @@
-// FLD (Sector → ThematicArea, Category → SubCategory → Crop) - models only; generator/datasource in schema.prisma
-
 model Sector {
-  sectorId   Int    @id @default(autoincrement()) @map("sector_id")
-  sectorName String @unique @map("sector_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  thematicAreas FldThematicArea[]
-  categories    FldCategory[]
-  subCategories FldSubcategory[]
+  sectorId            Int                  @id @default(autoincrement()) @map("sector_id")
+  sectorName          String               @unique @map("sector_name")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  categories          FldCategory[]
   kvkFldIntroductions KvkFldIntroduction[]
+  subCategories       FldSubcategory[]
+  thematicAreas       FldThematicArea[]
 
   @@index([sectorId])
   @@index([sectorName])
@@ -18,58 +14,46 @@ model Sector {
 }
 
 model FldThematicArea {
-  thematicAreaId   Int    @id @default(autoincrement()) @map("thematic_area_id")
-  thematicAreaName String @map("thematic_area_name")
-
-  sectorId Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  sector   Sector @relation(fields: [sectorId], references: [sectorId])
-
+  thematicAreaId      Int                  @id @default(autoincrement()) @map("thematic_area_id")
+  thematicAreaName    String               @map("thematic_area_name")
+  sectorId            Int
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
   kvkFldIntroductions KvkFldIntroduction[]
+  sector              Sector               @relation(fields: [sectorId], references: [sectorId], onDelete: Cascade)
 
-  @@map("thematic_area")
   @@index([sectorId])
   @@index([thematicAreaName])
+  @@map("thematic_area")
 }
 
 model FldCategory {
-  categoryId   Int    @id @default(autoincrement()) @map("category_id")
-  categoryName String @map("category_name")
-
-  sectorId Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  sector   Sector @relation(fields: [sectorId], references: [sectorId])
-
-  subCategories FldSubcategory[]
-  crops         FldCrop[]
+  categoryId          Int                  @id @default(autoincrement()) @map("category_id")
+  categoryName        String               @map("category_name")
+  sectorId            Int
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  sector              Sector               @relation(fields: [sectorId], references: [sectorId], onDelete: Cascade)
+  crops               FldCrop[]
   kvkFldIntroductions KvkFldIntroduction[]
+  subCategories       FldSubcategory[]
 
-  @@map("category")
   @@index([sectorId])
   @@index([categoryName])
+  @@map("category")
 }
 
 model FldSubcategory {
-  subCategoryId   Int    @id @default(autoincrement()) @map("sub_category_id")
-  subCategoryName String @map("sub_category_name")
-
-  categoryId Int
-  sectorId Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
-  sector   Sector @relation(fields: [sectorId], references: [sectorId])
-
-  crops FldCrop[]
+  subCategoryId       Int                  @id @default(autoincrement()) @map("sub_category_id")
+  subCategoryName     String               @map("sub_category_name")
+  categoryId          Int
+  sectorId            Int
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  crops               FldCrop[]
   kvkFldIntroductions KvkFldIntroduction[]
+  category            FldCategory          @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
+  sector              Sector               @relation(fields: [sectorId], references: [sectorId], onDelete: Cascade)
 
   @@index([subCategoryId])
   @@index([categoryId])
@@ -79,21 +63,17 @@ model FldSubcategory {
 }
 
 model FldCrop {
-  cropId   Int    @id @default(autoincrement()) @map("crop_id")
-  cropName String @map("crop_name")
-
-  categoryId    Int
-  subCategoryId Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  category      FldCategory @relation(fields: [categoryId], references: [categoryId])
-  subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
-
-  kvkFldIntroductions  KvkFldIntroduction[] 
+  cropId                Int                    @id @default(autoincrement()) @map("crop_id")
+  cropName              String                 @map("crop_name")
+  categoryId            Int
+  subCategoryId         Int
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  category              FldCategory            @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
+  subCategory           FldSubcategory         @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: Cascade)
   fldTechnicalFeedbacks FldTechnicalFeedback[]
   kvkBudgetUtilizations KvkBudgetUtilization[]
+  kvkFldIntroductions   KvkFldIntroduction[]
 
   @@index([categoryId])
   @@index([subCategoryId])

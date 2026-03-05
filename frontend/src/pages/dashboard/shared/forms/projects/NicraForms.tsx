@@ -1,6 +1,8 @@
 import React from 'react'
 import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
 import { FormInput, FormSelect } from '../shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface NicraFormsProps {
     entityType: string
@@ -138,12 +140,13 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NICRA_DETAILS && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                            value={formData.reportingYearId || formData.yearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
                         <FormSelect
                             label="Category"
@@ -174,13 +177,13 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.cropName || ''}
                             onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Season"
                             required
                             value={formData.seasonId || ''}
-                            onChange={(e) => setFormData({ ...formData, seasonId: parseInt(e.target.value) })}
-                            options={seasons.map((s: any) => ({ value: s.seasonId, label: s.seasonName }))}
-                            placeholder="Please select"
+                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
+                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            emptyMessage="No seasons available"
                         />
                         <FormSelect
                             label="Month"

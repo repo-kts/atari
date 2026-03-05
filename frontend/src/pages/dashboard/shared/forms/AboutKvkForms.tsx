@@ -16,7 +16,9 @@ import {
     EquipmentPresentStatusEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, useDisciplines, useYears } from '@/hooks/useOtherMastersData'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -105,6 +107,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: infraMasters = [] } = useInfraMasters()
     const { data: staffCategories = [] } = useStaffCategories()
     const { data: payLevels = [] } = usePayLevels()
+    const { data: years = [] } = useYears()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
@@ -512,12 +515,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {/* Vehicle Details Form */}
             {entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS && (
                 <div className="space-y-4">
-                    <FormInput
+                    <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
-                        onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                        placeholder="e.g., 2023-24"
+                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })}
+                        options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                        emptyMessage="No reporting years available"
                     />
                     <FormSelect
                         label="Vehicle"
@@ -555,12 +559,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {/* Equipment Details Form */}
             {entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS && (
                 <div className="space-y-4">
-                    <FormInput
+                    <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
-                        onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                        placeholder="e.g., 2023-24"
+                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })}
+                        options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                        emptyMessage="No reporting years available"
                     />
                     <FormSelect
                         label="Equipment"

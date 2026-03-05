@@ -149,18 +149,32 @@ async function seedAryaEnterprises() {
   console.log('🌱 ARYA enterprises...');
   for (const name of ARYA_ENTERPRISES) {
     try {
-      const result = await prisma.$queryRaw`SELECT enterprise_id FROM enterprise_master WHERE enterprise_name = ${name}`;
-      if (result.length === 0) {
-        await prisma.$executeRaw`INSERT INTO enterprise_master (enterprise_name) VALUES (${name})`;
-      }
-    } catch (e) {
+      // Use Prisma upsert which handles timestamps automatically
+      // Try Enterprise model first (maps to enterprise_master table)
+      await prisma.enterprise.upsert({
+        where: { enterpriseName: name },
+        update: {},
+        create: { enterpriseName: name }
+      });
+    } catch (err) {
+      // If Enterprise model doesn't work, try AryaEnterprise model
       try {
         await prisma.aryaEnterprise.upsert({
           where: { enterpriseName: name },
           update: {},
           create: { enterpriseName: name }
         });
-      } catch (err) { }
+      } catch (err2) {
+        // If both fail, try raw SQL with timestamps
+        try {
+          const result = await prisma.$queryRaw`SELECT enterprise_id FROM enterprise_master WHERE enterprise_name = ${name}`;
+          if (result.length === 0) {
+            await prisma.$executeRaw`INSERT INTO enterprise_master (enterprise_name, created_at, updated_at) VALUES (${name}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`;
+          }
+        } catch (e) {
+          console.error(`   ⚠️  Failed to seed enterprise: ${name}`, e.message);
+        }
+      }
     }
   }
   console.log('   ✅ Done\n');

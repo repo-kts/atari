@@ -118,6 +118,7 @@ router.get('/sanctioned-posts', aboutKvkController.getAllSanctionedPosts);
 router.get('/disciplines', aboutKvkController.getAllDisciplines);
 router.get('/infra-masters', aboutKvkController.getAllInfraMasters);
 router.get('/kvks-dropdown', aboutKvkController.getAllKvksForDropdown);
+router.get('/staff-dropdown', aboutKvkController.getStaffForDropdown);
 
 // ============================================
 // Transfer History & Export

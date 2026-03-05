@@ -1,31 +1,41 @@
--- Make foreign keys nullable and add SetNull on delete for product relations
-ALTER TABLE product_type ALTER COLUMN product_category_id DROP NOT NULL;
-ALTER TABLE product ALTER COLUMN product_category_id DROP NOT NULL;
-ALTER TABLE product ALTER COLUMN product_type_id DROP NOT NULL;
+-- Make foreign keys nullable and add SetNull on delete for product relations (only if tables exist)
+DO $$
+BEGIN
+  -- Check and alter product_type if it exists
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'product_type') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'product_type' AND column_name = 'product_category_id') THEN
+      ALTER TABLE product_type ALTER COLUMN product_category_id DROP NOT NULL;
+      ALTER TABLE product_type DROP CONSTRAINT IF EXISTS product_type_product_category_id_fkey CASCADE;
+      ALTER TABLE product_type 
+        ADD CONSTRAINT product_type_product_category_id_fkey 
+        FOREIGN KEY (product_category_id) 
+        REFERENCES product_category(product_category_id) 
+        ON DELETE SET NULL;
+    END IF;
+  END IF;
 
--- Drop and recreate product_type constraint
-ALTER TABLE product_type DROP CONSTRAINT IF EXISTS product_type_product_category_id_fkey CASCADE;
-ALTER TABLE product_type 
-  ADD CONSTRAINT product_type_product_category_id_fkey 
-  FOREIGN KEY (product_category_id) 
-  REFERENCES product_category(product_category_id) 
-  ON DELETE SET NULL;
-
--- Drop and recreate product constraints
-ALTER TABLE product DROP CONSTRAINT IF EXISTS product_product_category_id_fkey CASCADE;
-ALTER TABLE product DROP CONSTRAINT IF EXISTS product_product_type_id_fkey CASCADE;
-
-ALTER TABLE product 
-  ADD CONSTRAINT product_product_category_id_fkey 
-  FOREIGN KEY (product_category_id) 
-  REFERENCES product_category(product_category_id) 
-  ON DELETE SET NULL;
-
-ALTER TABLE product 
-  ADD CONSTRAINT product_product_type_id_fkey 
-  FOREIGN KEY (product_type_id) 
-  REFERENCES product_type(product_type_id) 
-  ON DELETE SET NULL;
+  -- Check and alter product if it exists
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'product') THEN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'product' AND column_name = 'product_category_id') THEN
+      ALTER TABLE product ALTER COLUMN product_category_id DROP NOT NULL;
+      ALTER TABLE product DROP CONSTRAINT IF EXISTS product_product_category_id_fkey CASCADE;
+      ALTER TABLE product 
+        ADD CONSTRAINT product_product_category_id_fkey 
+        FOREIGN KEY (product_category_id) 
+        REFERENCES product_category(product_category_id) 
+        ON DELETE SET NULL;
+    END IF;
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'product' AND column_name = 'product_type_id') THEN
+      ALTER TABLE product ALTER COLUMN product_type_id DROP NOT NULL;
+      ALTER TABLE product DROP CONSTRAINT IF EXISTS product_product_type_id_fkey CASCADE;
+      ALTER TABLE product 
+        ADD CONSTRAINT product_product_type_id_fkey 
+        FOREIGN KEY (product_type_id) 
+        REFERENCES product_type(product_type_id) 
+        ON DELETE SET NULL;
+    END IF;
+  END IF;
+END $$;
 
 -- Training relations (only if tables exist)
 DO $$
