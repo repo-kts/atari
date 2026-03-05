@@ -563,6 +563,16 @@ export function useKvkEquipmentsForDropdown(kvkId?: number) {
     })
 }
 
+// Fetch KVK Staff for dropdown (for achievement forms)
+export function useKvkStaffForDropdown(kvkId: number | null | undefined) {
+    return useQuery({
+        queryKey: ['kvk-staff-dropdown', kvkId],
+        queryFn: () => aboutKvkApi.getKvkStaffForDropdown(kvkId!).then((res) => res.data),
+        enabled: !!kvkId && kvkId > 0,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+}
+
 // Helper to convert enum to options
 export function enumToOptions(enumObj: Record<string, string>) {
     return Object.entries(enumObj).map(([key, value]) => ({

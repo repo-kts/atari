@@ -1,37 +1,30 @@
 model KkvSoilWaterAnalysis {
-    soilWaterAnalysisId Int @id @default(autoincrement()) @map("soil_water_analysis_id")
+  soilWaterAnalysisId    Int               @id @default(autoincrement()) @map("soil_water_analysis_id")
+  kvkId                  Int
+  startDate              DateTime          @map("start_date")
+  endDate                DateTime          @map("end_date")
+  analysisId             Int               @map("analysis_id")
+  samplesAnalysedThrough String            @map("samples_analysed_through")
+  samplesAnalysed        Int               @map("samples_analysed")
+  villagesNumber         Int               @map("villages_number")
+  amountRealized         Int               @map("amount_realized")
+  generalM               Int               @map("general_m")
+  generalF               Int               @map("general_f")
+  obcM                   Int               @map("obc_m")
+  obcF                   Int               @map("obc_f")
+  scM                    Int               @map("sc_m")
+  scF                    Int               @map("sc_f")
+  stM                    Int               @map("st_m")
+  stF                    Int               @map("st_f")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+  reportingYearId        Int?              @map("reporting_year_id")
+  soilWaterAnalysis      SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
+  kvk                    Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear          YearMaster?       @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
-    kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-    startDate DateTime @map("start_date")
-    endDate   DateTime @map("end_date")
-    reportingYear Int? @map("reporting_year")
-
-    analysisId Int @map("analysis_id")
-    soilWaterAnalysis   SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
-
-    samplesAnalysedThrough String @map("samples_analysed_through")
-    samplesAnalysed Int @map("samples_analysed")
-    villagesNumber Int @map("villages_number")
-    amountRealized Int @map("amount_realized")
-
-    generalM Int @map("general_m")
-    generalF Int @map("general_f")
-
-    obcM Int @map("obc_m")
-    obcF Int @map("obc_f")
-
-    scM Int @map("sc_m")
-    scF Int @map("sc_f")
-
-    stM Int @map("st_m")
-    stF Int @map("st_f")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@index([kvkId])
-    @@index([analysisId])
-    @@map("kvk_soil_water_analysis")
+  @@index([kvkId])
+  @@index([analysisId])
+  @@index([reportingYearId])
+  @@map("kvk_soil_water_analysis")
 }

@@ -1,17 +1,13 @@
 model FLDCropMaster {
-  cfldId   Int      @id @default(autoincrement()) @map("cfld_id")
-
-  seasonId Int      @map("season_id")
-  typeId   Int      @map("type_id")
-  cropName String   @map("crop_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  season   Season   @relation(fields: [seasonId], references: [seasonId])
-  cropType CropType @relation(fields: [typeId], references: [typeId])
-
+  cfldId                  Int                      @id @default(autoincrement()) @map("cfld_id")
+  seasonId                Int                      @map("season_id")
+  typeId                  Int                      @map("type_id")
+  cropName                String                   @map("crop_name")
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @updatedAt @map("updated_at")
   cfldTechnicalParameters CfldTechnicalParameter[]
+  season                  Season                   @relation(fields: [seasonId], references: [seasonId])
+  cropType                CropType                 @relation(fields: [typeId], references: [typeId])
 
   @@index([cfldId])
   @@index([seasonId])

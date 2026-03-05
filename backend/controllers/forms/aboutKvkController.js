@@ -243,6 +243,29 @@ exports.getAllInfraMasters = async (req, res) => {
     }
 };
 
+exports.getStaffForDropdown = async (req, res) => {
+    try {
+        const { kvkId } = req.query;
+        if (!kvkId) {
+            return res.status(400).json({
+                success: false,
+                error: 'kvkId is required',
+            });
+        }
+        const data = await aboutKvkService.getStaffForDropdown(parseInt(kvkId));
+        res.json({
+            success: true,
+            data,
+        });
+    } catch (error) {
+        console.error('Error fetching KVK staff for dropdown:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+        });
+    }
+};
+
 // Get all KVKs for dropdown (without user filtering)
 exports.getAllKvksForDropdown = async (req, res) => {
     try {

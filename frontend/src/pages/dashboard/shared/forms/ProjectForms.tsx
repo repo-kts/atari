@@ -150,6 +150,7 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     formData={formData}
                     setFormData={setFormData}
                     years={years}
+                    seasons={seasons}
                 />
             )}
 

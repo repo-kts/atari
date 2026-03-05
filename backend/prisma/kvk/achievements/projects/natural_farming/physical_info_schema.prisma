@@ -1,38 +1,29 @@
-enum NaturalFarmingActivity { // WIP
+model PhysicalInfo {
+  physicalInfoId Int                    @id @default(autoincrement()) @map("physical_info_id")
+  kvkId          Int
+  activity       NaturalFarmingActivity
+  trainingTitle  String                 @map("training_title")
+  trainingDate   DateTime               @map("training_date")
+  venue          String
+  generalM       Int                    @map("general_m")
+  generalF       Int                    @map("general_f")
+  obcM           Int                    @map("obc_m")
+  obcF           Int                    @map("obc_f")
+  scM            Int                    @map("sc_m")
+  scF            Int                    @map("sc_f")
+  stM            Int                    @map("st_m")
+  stF            Int                    @map("st_f")
+  remarks        String                 @map("remarks")
+  images         String?                @map("images")
+  kvk            Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+  @@map("physical_info")
+}
+
+enum NaturalFarmingActivity {
   TRAINING
   DEMONSTRATION
   FIELD_VISIT
   AWARENESS_PROGRAM
-}
-
-model PhysicalInfo {
-  physicalInfoId Int @id @default(autoincrement()) @map("physical_info_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  activity NaturalFarmingActivity
-
-  trainingTitle String @map("training_title")
-  trainingDate DateTime @map("training_date")
-  venue String
-
-  // Participants
-  generalM Int @map("general_m")
-  generalF Int @map("general_f")
-  obcM Int @map("obc_m")
-  obcF Int @map("obc_f")
-  scM Int @map("sc_m")
-  scF Int @map("sc_f")
-  stM Int @map("st_m")
-  stF Int @map("st_f")
-
-  remarks String @map("remarks")
-
-  images String? @map("images") 
-  // store file path or URL
-
-  @@index([kvkId])
-
-  @@map("physical_info")
 }

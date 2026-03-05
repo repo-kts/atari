@@ -1,6 +1,8 @@
 import React from 'react'
 import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
 import { FormInput, FormSelect } from '../shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface DrmrFormsProps {
     entityType: string
@@ -101,12 +103,13 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: y.id || y.yearId, label: y.yearName }))}
+                            value={formData.reportingYearId || formData.yearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
                         <FormInput
                             label="Varieties/Technology Demonstrated in Improved Practice"
@@ -213,12 +216,13 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                 <div className="space-y-12">
                     {/* Header Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6 border-b border-gray-100">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: y.id || y.yearId, label: y.yearName }))}
+                            value={formData.reportingYearId || formData.yearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
                         <FormSelect
                             label="KVK State"

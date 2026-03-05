@@ -1,50 +1,39 @@
 model KvkFldIntroduction {
-  kvkFldId Int @id @default(autoincrement()) @map("kvk_fld_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  kvkStaffId Int
-  kvkStaff   KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId])
-
-  seasonId Int
-  season   Season @relation(fields: [seasonId], references: [seasonId])
-
-  // Sector → Thematic → Category → SubCategory → Crop
-  sectorId Int
-  sector   Sector @relation(fields: [sectorId], references: [sectorId])
-
-  thematicAreaId Int
-  thematicArea   FldThematicArea @relation(fields: [thematicAreaId], references: [thematicAreaId])
-
-  categoryId Int
-  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
-
-  subCategoryId Int
-  subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
-
-  cropId Int
-  crop   FldCrop @relation(fields: [cropId], references: [cropId])
-
-  fldName           String   @map("fld_name")
-  noOfDemonstration Int      @map("no_of_demonstration")
-  areaHa            Float    @map("area_ha")
-  startDate         DateTime @map("start_date")
-
-  generalM Int @map("general_m")
-  generalF Int @map("general_f")
-
-  obcM Int @map("obc_m")
-  obcF Int @map("obc_f")
-
-  scM Int @map("sc_m")
-  scF Int @map("sc_f")
-
-  stM Int @map("st_m")
-  stF Int @map("st_f")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  kvkFldId                    Int                         @id @default(autoincrement()) @map("kvk_fld_id")
+  kvkId                       Int
+  kvkStaffId                  Int
+  seasonId                    Int?
+  sectorId                    Int?
+  thematicAreaId              Int?
+  categoryId                  Int?
+  subCategoryId               Int?
+  cropId                      Int?
+  fldName                     String                      @map("fld_name")
+  noOfDemonstration           Int                         @map("no_of_demonstration")
+  areaHa                      Float                       @map("area_ha")
+  startDate                   DateTime                    @map("start_date")
+  generalM                    Int                         @map("general_m")
+  generalF                    Int                         @map("general_f")
+  obcM                        Int                         @map("obc_m")
+  obcF                        Int                         @map("obc_f")
+  scM                         Int                         @map("sc_m")
+  scF                         Int                         @map("sc_f")
+  stM                         Int                         @map("st_m")
+  stF                         Int                         @map("st_f")
+  createdAt                   DateTime                    @default(now()) @map("created_at")
+  updatedAt                   DateTime                    @updatedAt @map("updated_at")
+  fldExtensions               FldExtension[]
+  fldTechnicalFeedbacks       FldTechnicalFeedback[]
+  kvkExtensionActivities      KvkExtensionActivity[]
+  category                    FldCategory?                @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
+  crop                        FldCrop?                     @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
+  kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  kvkStaff                    KvkStaff                    @relation(fields: [kvkStaffId], references: [kvkStaffId])
+  season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId], onDelete: SetNull)
+  subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: SetNull)
+  thematicArea                FldThematicArea?             @relation(fields: [thematicAreaId], references: [thematicAreaId], onDelete: SetNull)
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
 
   @@index([kvkId])
   @@index([seasonId])
@@ -54,11 +43,5 @@ model KvkFldIntroduction {
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
-
-  kvkExtensionActivities     KvkExtensionActivity[]
-  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
-  fldExtensions              FldExtension[]
-  fldTechnicalFeedbacks      FldTechnicalFeedback[]
-
   @@map("kvk_fld_introduction")
 }

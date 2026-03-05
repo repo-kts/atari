@@ -395,6 +395,54 @@ function safeGet(obj, path, defaultValue = null) {
     return current !== undefined ? current : defaultValue;
 }
 
+/**
+ * Remove ID fields from update data for Prisma operations
+ * 
+ * CRITICAL: Prisma only accepts ID in the `where` clause for update operations,
+ * never in the `data` object. This function removes all ID field variations.
+ * 
+ * @param {object} data - Data object to sanitize
+ * @param {string|string[]} idFields - ID field name(s) to remove (e.g., 'kvkId', ['kvkId', 'bankAccountId'])
+ * @returns {object} Data with all ID field variations removed
+ */
+function removeIdFieldsForUpdate(data, idFields = []) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return data;
+    }
+    
+    const sanitized = { ...data };
+    const fieldsToRemove = Array.isArray(idFields) ? idFields : (idFields ? [idFields] : []);
+    
+    // Always remove generic ID fields
+    const allFieldsToRemove = new Set(['id', '_id']);
+    
+    // Add provided ID fields and their variations
+    fieldsToRemove.forEach(field => {
+        if (field) {
+            allFieldsToRemove.add(field);
+            allFieldsToRemove.add(field.toLowerCase());
+            // Add snake_case variation (e.g., kvkId -> kvk_id)
+            if (field.includes('Id')) {
+                allFieldsToRemove.add(field.replace(/Id$/, '_id'));
+            }
+            // Add camelCase variation (e.g., kvk_id -> kvkId)
+            if (field.includes('_')) {
+                const camelCase = field.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+                allFieldsToRemove.add(camelCase);
+            }
+        }
+    });
+    
+    // Remove all ID field variations (O(n) where n is typically 3-5 fields)
+    for (const field of allFieldsToRemove) {
+        if (sanitized[field] !== undefined) {
+            delete sanitized[field];
+        }
+    }
+    
+    return sanitized;
+}
+
 module.exports = {
     sanitizeString,
     sanitizeNumber,
@@ -406,4 +454,5 @@ module.exports = {
     sanitizeForPrisma,
     validateAndSanitize,
     safeGet,
+    removeIdFieldsForUpdate,
 };

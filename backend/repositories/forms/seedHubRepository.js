@@ -5,7 +5,12 @@ const seedHubRepository = {
         const { kvkId, year } = filters;
         const where = {};
         if (kvkId) where.kvkId = parseInt(kvkId);
-        if (year) where.reportingYear = parseInt(year);
+        if (filters.reportingYearId) {
+            where.reportingYearId = parseInt(filters.reportingYearId);
+        } else if (year) {
+            // Backward compatibility: if year is provided, try to find yearId
+            where.reportingYearId = parseInt(year);
+        }
 
         const results = await prisma.kvkSeedHubProgram.findMany({
             where,
@@ -15,7 +20,8 @@ const seedHubRepository = {
                 },
                 season: {
                     select: { seasonName: true }
-                }
+                },
+                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { seedHubId: 'desc' }
         });
@@ -37,7 +43,8 @@ const seedHubRepository = {
                 },
                 season: {
                     select: { seasonName: true }
-                }
+                },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
         return result ? _mapResponse(result) : null;
@@ -52,7 +59,8 @@ const seedHubRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        const reportingYear = parseInt(data.yearId ?? data.reportingYear) || new Date().getFullYear();
+        // Accept reportingYearId (yearId from YearMaster) from frontend
+        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
         const seasonId = parseInt(data.seasonId) || 1;
         const cropName = data.cropName || '';
         const varietyName = data.varietyName || data.variety || '';
@@ -69,13 +77,13 @@ const seedHubRepository = {
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO kvk_seed_hub_program (
-                "kvkId", reporting_year, "seasonId", crop_name, variety_name, 
+                "kvkId", reporting_year_id, "seasonId", crop_name, variety_name, 
                 area_covered_ha, yield_q_per_ha, quantity_produced_q, 
                 quantity_sale_out_q, farmers_purchased, quantity_sale_to_farmers_q, 
                 villages_covered, quantity_sale_to_other_org_q, amount_generated_lakh, 
                 total_amount_present_lakh, created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, reportingYear, seasonId, cropName, varietyName, areaCoveredHa,
+        `, kvkId, reportingYearId, seasonId, cropName, varietyName, areaCoveredHa,
             yieldQPerHa, quantityProducedQ, quantitySaleOutQ, farmersPurchased,
             quantitySaleToFarmersQ, villagesCovered, quantitySaleToOtherOrgQ,
             amountGeneratedLakh, totalAmountPresentLakh);
@@ -83,13 +91,14 @@ const seedHubRepository = {
         const result = await prisma.kvkSeedHubProgram.findFirst({
             where: {
                 kvkId,
-                reportingYear,
+                reportingYearId: reportingYearId,
                 cropName,
                 varietyName
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                season: { select: { seasonName: true } }
+                season: { select: { seasonName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { seedHubId: 'desc' }
         });
@@ -107,7 +116,12 @@ const seedHubRepository = {
         if (!existing) throw new Error('Record not found or unauthorized');
 
         const updateData = {};
-        if (data.yearId !== undefined || data.reportingYear !== undefined) updateData.reportingYear = parseInt(data.yearId ?? data.reportingYear);
+        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
+            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
+        } else if (data.reportingYear !== undefined) {
+            // Backward compatibility
+            updateData.reportingYearId = parseInt(data.reportingYear);
+        }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
         if (data.cropName !== undefined) updateData.cropName = data.cropName || '';
         if (data.varietyName !== undefined || data.variety !== undefined) updateData.varietyName = data.varietyName ?? data.variety ?? '';
@@ -145,7 +159,7 @@ const seedHubRepository = {
         await prisma.$executeRawUnsafe(`
             UPDATE kvk_seed_hub_program 
             SET 
-                reporting_year = $1, "seasonId" = $2, crop_name = $3, variety_name = $4, 
+                reporting_year_id = $1, "seasonId" = $2, crop_name = $3, variety_name = $4, 
                 area_covered_ha = $5, yield_q_per_ha = $6, quantity_produced_q = $7, 
                 quantity_sale_out_q = $8, farmers_purchased = $9, 
                 quantity_sale_to_farmers_q = $10, villages_covered = $11, 
@@ -153,7 +167,7 @@ const seedHubRepository = {
                 total_amount_present_lakh = $14, updated_at = CURRENT_TIMESTAMP
             WHERE seed_hub_id = $15
         `,
-            updateData.reportingYear ?? existing.reportingYear,
+            updateData.reportingYearId ?? existing.reportingYearId,
             updateData.seasonId ?? existing.seasonId,
             updateData.cropName ?? existing.cropName,
             updateData.varietyName ?? existing.varietyName,
@@ -174,7 +188,8 @@ const seedHubRepository = {
             where: { seedHubId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                season: { select: { seasonName: true } }
+                season: { select: { seasonName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
     },
@@ -199,11 +214,12 @@ function _mapResponse(r) {
     return {
         id: r.seedHubId,
         kvkId: r.kvkId,
-        yearId: r.reportingYear,
+        reportingYearId: r.reportingYearId,
+        yearId: r.reportingYearId, // Frontend alias
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
-        reportingYear: r.reportingYear,
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
         cropName: r.cropName,
         varietyName: r.varietyName,
         variety: r.varietyName,

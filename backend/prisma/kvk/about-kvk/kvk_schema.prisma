@@ -1,93 +1,77 @@
-// KVK - models only; generator/datasource in schema.prisma
-
 model Kvk {
-  kvkId   Int    @id @default(autoincrement()) @map("kvk_id")
-  kvkName String @map("kvk_name")
-
-  zoneId     Int
-  stateId    Int
-  districtId Int
-
-  zone     Zone           @relation(fields: [zoneId], references: [zoneId])
-  state    StateMaster    @relation(fields: [stateId], references: [stateId])
-  district DistrictMaster @relation(fields: [districtId], references: [districtId])
-
-  orgId        Int  @map("org_id")
-  universityId Int? @map("university_id")
-  hostOrg      String @map("host_org_name")
-
-  org        OrgMaster         @relation(fields: [orgId], references: [orgId])
-  university UniversityMaster? @relation(fields: [universityId], references: [universityId])
-
-  mobile  String @map("mobile")
-  email   String @map("email")
-  address String @map("address")
-
-  yearOfSanction Int @map("year_of_sanction")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  staff           KvkStaff[]
-  infrastructures KvkInfrastructure[]
-  equipments      KvkEquipment[]
-  vehicles        KvkVehicle[]
-  bankAccounts    KvkBankAccount[]
-  farmImplements  KvkFarmImplement[]
-
-  transfersFrom StaffTransferHistory[] @relation("TransferFrom")
-  transfersTo   StaffTransferHistory[] @relation("TransferTo")
-  originalStaff KvkStaff[]            @relation("OriginalKvk")
-
-  trainingAchievements          TrainingAchievement[]
-  farmerAwards                  FarmerAward[]
-  kvkAwards                     KvkAward[]
-  scientistAwards               ScientistAward[]
-  hrdPrograms                   HrdProgram[]
-
-  kvkExtensionActivities        KvkExtensionActivity[]
-  kvkOtherExtensionActivities   KvkOtherExtensionActivity[]
-  kvkImportantDayCelebrations   KvkImportantDayCelebration[]
-  kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
-  fldExtensions                 FldExtension[]
-  kvkFldIntroductions           KvkFldIntroduction[]
-  fldTechnicalFeedbacks         FldTechnicalFeedback[]
-  kvkBudgetUtilizations         KvkBudgetUtilization[]
-  extensionActivityOrganized    ExtensionActivityOrganized[]
+  kvkId                         Int                            @id @default(autoincrement()) @map("kvk_id")
+  kvkName                       String                         @map("kvk_name")
+  zoneId                        Int
+  stateId                       Int
+  districtId                    Int
+  orgId                         Int                            @map("org_id")
+  universityId                  Int?                           @map("university_id")
+  hostOrg                       String                         @map("host_org_name")
+  mobile                        String                         @map("mobile")
+  email                         String                         @map("email")
+  address                       String                         @map("address")
+  yearOfSanction                Int                            @map("year_of_sanction")
+  createdAt                     DateTime                       @default(now()) @map("created_at")
+  updatedAt                     DateTime                       @updatedAt @map("updated_at")
+  aryaCurrentYear               AryaCurrentYear[]
+  aryaPrevYear                  AryaPrevYear[]
+  atariMeeting                  AtariMeeting[]
+  beneficiariesDetails          BeneficiariesDetails[]
   cfldTechnicalParameters       CfldTechnicalParameter[]
-
-  users   User[]
-  kvkOfts Kvkoft[]
-
-  agriDrones                 KvkAgriDrone[]
-  fpoCbboDetails             FpoCbboDetails[]
-  fpoManagements             FpoManagement[]
-  kvkOtherProgrammes         KvkOtherProgramme[]
-  seedHubPrograms            KvkSeedHubProgram[]
-  soilWaterAnalyses          KkvSoilWaterAnalysis[]
-  soilWaterEquipments        KkvSoilWaterEquipment[]
-  worldSoilCelebrations      KkvWorldSoilCelebration[]
-
-  aryaPrevYear                AryaPrevYear[]
-  aryaCurrentYear             AryaCurrentYear[]
-  csisa                       Csisa[]
-  drmrActivity                DrmrActivity[]
-  drmrDetails                 DrmrDetails[]
-  atariMeeting                AtariMeeting[]
-  sacMeeting                  SacMeeting[]
-  swachhtaHiSewa              SwachhtaHiSewa[]
-  swachhQuarterlyExpenditure  SwachhQuarterlyExpenditure[]
-  swachhtaPakhwada            SwachhtaPakhwada[]
-  nicraDetails                NicraDetails[]
-  nicraBasicInfo              NicraBasicInfo[]
-  nicraTraining               NicraTraining[]
-  nicraExtensionActivity      NicraExtensionActivity[]
-  geographicalInfo            GeographicalInfo[]
-  physicalInfo                PhysicalInfo[]
-  demonstrationInfo           DemonstrationInfo[]
-  beneficiariesDetails        BeneficiariesDetails[]
-  financialInformation        FinancialInformation[]
-  soilDataInformation         SoilDataInformation[]
+  csisa                         Csisa[]
+  demonstrationInfo             DemonstrationInfo[]
+  drmrActivity                  DrmrActivity[]
+  drmrDetails                   DrmrDetails[]
+  extensionActivityOrganized    ExtensionActivityOrganized[]
+  farmerAwards                  FarmerAward[]
+  financialInformation          FinancialInformation[]
+  fldExtensions                 FldExtension[]
+  fldTechnicalFeedbacks         FldTechnicalFeedback[]
+  fpoCbboDetails                FpoCbboDetails[]
+  fpoManagements                FpoManagement[]
+  geographicalInfo              GeographicalInfo[]
+  hrdPrograms                   HrdProgram[]
+  district                      DistrictMaster                 @relation(fields: [districtId], references: [districtId])
+  org                           OrgMaster                      @relation(fields: [orgId], references: [orgId])
+  state                         StateMaster                    @relation(fields: [stateId], references: [stateId])
+  university                    UniversityMaster?              @relation(fields: [universityId], references: [universityId])
+  zone                          Zone                           @relation(fields: [zoneId], references: [zoneId])
+  agriDrones                    KvkAgriDrone[]
+  kvkAwards                     KvkAward[]
+  bankAccounts                  KvkBankAccount[]
+  kvkBudgetUtilizations         KvkBudgetUtilization[]
+  equipments                    KvkEquipment[]
+  kvkExtensionActivities        KvkExtensionActivity[]
+  farmImplements                KvkFarmImplement[]
+  kvkFldIntroductions           KvkFldIntroduction[]
+  kvkImportantDayCelebrations   KvkImportantDayCelebration[]
+  infrastructures               KvkInfrastructure[]
+  kvkOfts                       Kvkoft[]
+  kvkOtherExtensionActivities   KvkOtherExtensionActivity[]
+  kvkOtherProgrammes            KvkOtherProgramme[]
+  seedHubPrograms               KvkSeedHubProgram[]
+  soilWaterAnalyses             KkvSoilWaterAnalysis[]
+  soilWaterEquipments           KkvSoilWaterEquipment[]
+  staff                         KvkStaff[]
+  originalStaff                 KvkStaff[]                     @relation("OriginalKvk")
+  kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
+  vehicles                      KvkVehicle[]
+  worldSoilCelebrations         KkvWorldSoilCelebration[]
+  nicraBasicInfo                NicraBasicInfo[]
+  nicraDetails                  NicraDetails[]
+  nicraExtensionActivity        NicraExtensionActivity[]
+  nicraTraining                 NicraTraining[]
+  physicalInfo                  PhysicalInfo[]
+  sacMeeting                    SacMeeting[]
+  scientistAwards               ScientistAward[]
+  soilDataInformation           SoilDataInformation[]
+  transfersFrom                 StaffTransferHistory[]         @relation("TransferFrom")
+  transfersTo                   StaffTransferHistory[]         @relation("TransferTo")
+  swachhQuarterlyExpenditure    SwachhQuarterlyExpenditure[]
+  swachhtaHiSewa                SwachhtaHiSewa[]
+  swachhtaPakhwada              SwachhtaPakhwada[]
+  trainingAchievements          TrainingAchievement[]
+  users                         User[]
 
   @@index([zoneId])
   @@index([stateId])

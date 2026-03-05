@@ -26,7 +26,7 @@ const generateInfrastructureData = (kvkId, infraMasterId) => ({
   sourceOfFunding: ['ICAR', 'State Government', 'Central Government', 'KVK Funds'][Math.floor(Math.random() * 4)],
 });
 
-const generateVehicleData = (kvkId, index) => {
+const generateVehicleData = (kvkId, index, yearId2024) => {
   const vehicleTypes = ['Tractor', 'Car', 'Jeep', 'Motorcycle', 'Van', 'Pickup Truck'];
   const vehicleType = vehicleTypes[index % vehicleTypes.length];
   const year = 2020 + (index % 5); // Years between 2020-2024
@@ -39,13 +39,13 @@ const generateVehicleData = (kvkId, index) => {
     totalCost: Math.floor(Math.random() * 500000) + 200000, // 200k-700k
     totalRun: `${Math.floor(Math.random() * 50000) + 10000} km`,
     presentStatus: ['WORKING', 'GOOD_CONDITION', 'NEW'][Math.floor(Math.random() * 3)],
-    reportingYear: String(2024),
+    reportingYearId: yearId2024,
     sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds'][Math.floor(Math.random() * 3)],
     repairingCost: Math.random() > 0.5 ? Math.floor(Math.random() * 50000) + 5000 : null,
   };
 };
 
-const generateEquipmentData = (kvkId, index) => {
+const generateEquipmentData = (kvkId, index, yearId2024) => {
   const equipmentTypes = [
     'Computer System', 'Printer', 'Projector', 'Soil Testing Kit', 'Moisture Meter',
     'pH Meter', 'Microscope', 'Weighing Scale', 'Generator', 'Water Pump'
@@ -60,7 +60,7 @@ const generateEquipmentData = (kvkId, index) => {
     totalCost: Math.floor(Math.random() * 200000) + 10000, // 10k-210k
     presentStatus: ['WORKING', 'NOT_WORKING', 'CONDEMED', 'AUCTION'][Math.floor(Math.random() * 4)],
     sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds', 'Donation'][Math.floor(Math.random() * 4)],
-    reportingYear: 2024,
+    reportingYearId: yearId2024,
     type: 'EQUIPMENT',
   };
 };
@@ -136,6 +136,16 @@ async function seedInfrastructure(kvkIds) {
 async function seedVehicles(kvkIds) {
   console.log('🌱 Seeding vehicles data...');
 
+  // Get yearId for 2024-25
+  const year2024 = await prisma.yearMaster.findFirst({
+    where: { yearName: '2024-25' }
+  });
+  if (!year2024) {
+    console.log('   ⚠️  Year 2024-25 not found. Please run seed-years.js first.');
+    return;
+  }
+  const yearId2024 = year2024.yearId;
+
   let totalCreated = 0;
   for (const kvkId of kvkIds) {
     // Verify KVK exists
@@ -149,7 +159,7 @@ async function seedVehicles(kvkIds) {
     const count = Math.floor(Math.random() * 3) + 2; // 2-4 vehicles
 
     for (let i = 0; i < count; i++) {
-      const vehicleData = generateVehicleData(kvkId, i);
+      const vehicleData = generateVehicleData(kvkId, i, yearId2024);
 
       // Check if vehicle with same registration already exists
       const existing = await prisma.kvkVehicle.findFirst({
@@ -172,6 +182,16 @@ async function seedVehicles(kvkIds) {
 async function seedEquipment(kvkIds) {
   console.log('🌱 Seeding equipment data...');
 
+  // Get yearId for 2024-25
+  const year2024 = await prisma.yearMaster.findFirst({
+    where: { yearName: '2024-25' }
+  });
+  if (!year2024) {
+    console.log('   ⚠️  Year 2024-25 not found. Please run seed-years.js first.');
+    return;
+  }
+  const yearId2024 = year2024.yearId;
+
   let totalCreated = 0;
   for (const kvkId of kvkIds) {
     // Verify KVK exists
@@ -185,7 +205,7 @@ async function seedEquipment(kvkIds) {
     const count = Math.floor(Math.random() * 4) + 5; // 5-8 items
 
     for (let i = 0; i < count; i++) {
-      const equipmentData = generateEquipmentData(kvkId, i);
+      const equipmentData = generateEquipmentData(kvkId, i, yearId2024);
 
       // Check if equipment with same name and year already exists
       const existing = await prisma.kvkEquipment.findFirst({

@@ -1,9 +1,29 @@
 model YearMaster {
-  yearId   Int    @id @default(autoincrement()) @map("year_id")
-  yearName String @unique @map("year_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  yearId                            Int                          @id @default(autoincrement()) @map("year_id")
+  yearName                          String                       @unique @map("year_name")
+  createdAt                         DateTime                     @default(now()) @map("created_at")
+  updatedAt                         DateTime                     @updatedAt @map("updated_at")
+  aryaCurrentYearRecords            AryaCurrentYear[]
+  aryaPrevYearRecords               AryaPrevYear[]
+  atariMeetingRecords               AtariMeeting[]
+  csisaRecords                      Csisa[]
+  drmrActivityRecords               DrmrActivity[]
+  drmrDetailsRecords                DrmrDetails[]
+  fldExtensionRecords               FldExtension[]
+  fldTechnicalFeedbackRecords       FldTechnicalFeedback[]
+  fpoCbboRecords                    FpoCbboDetails[]
+  fpoManagementRecords              FpoManagement[]
+  geographicalInfoRecords           GeographicalInfo[]
+  agriDroneRecords                  KvkAgriDrone[]
+  kvkEquipmentRecords               KvkEquipment[]
+  kvkOftRecords                     Kvkoft[]
+  seedHubRecords                    KvkSeedHubProgram[]
+  soilWaterAnalysisRecords          KkvSoilWaterAnalysis[]
+  soilWaterEquipmentRecords         KkvSoilWaterEquipment[]
+  kvkVehicleRecords                 KvkVehicle[]
+  worldSoilCelebrationRecords       KkvWorldSoilCelebration[]
+  nicraDetailsRecords               NicraDetails[]
+  swachhQuarterlyExpenditureRecords SwachhQuarterlyExpenditure[]
 
   @@index([yearId])
   @@index([yearName])

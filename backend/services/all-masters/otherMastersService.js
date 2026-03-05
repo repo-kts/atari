@@ -175,7 +175,9 @@ async function deleteEntity(entityName, id) {
         }
 
         // Check for dependent records (using _count if available)
-        if (existing._count) {
+        // Skip check if allowDeleteWithDependents is true (onDelete: SetNull configured)
+        const config = otherMastersRepository.ENTITY_CONFIG[entityName];
+        if (existing._count && !config?.allowDeleteWithDependents) {
             const dependentCounts = Object.values(existing._count);
             const hasDependents = dependentCounts.some(count => count > 0);
             

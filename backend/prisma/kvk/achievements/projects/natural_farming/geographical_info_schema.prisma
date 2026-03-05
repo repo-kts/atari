@@ -1,18 +1,17 @@
 model GeographicalInfo {
-  geographicalInfoId Int @id @default(autoincrement()) @map("geographical_info_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  reportingYear Int @map("reporting_year")
-  startDate DateTime @map("start_date")
-  endDate   DateTime @map("end_date")
-  agroClimaticZone String @map("agro_climatic_zone")
-  farmingSituation String  @map("farming_situation")
-  latitude  Float @map("latitude")
-  longitude Float @map("longitude")
+  geographicalInfoId Int         @id @default(autoincrement()) @map("geographical_info_id")
+  kvkId              Int
+  startDate          DateTime    @map("start_date")
+  endDate            DateTime    @map("end_date")
+  agroClimaticZone   String      @map("agro_climatic_zone")
+  farmingSituation   String      @map("farming_situation")
+  latitude           Float       @map("latitude")
+  longitude          Float       @map("longitude")
+  reportingYearId    Int?        @map("reporting_year_id")
+  kvk                Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear      YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
-
+  @@index([reportingYearId])
   @@map("geographical_info")
 }

@@ -1,5 +1,5 @@
 const prisma = require('../../config/prisma.js');
-const { sanitizeForPrisma, sanitizeInteger, sanitizeBoolean, safeGet } = require('../../utils/dataSanitizer.js');
+const { sanitizeForPrisma, sanitizeInteger, sanitizeBoolean, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 const fpoCbboDetailsRepository = {
@@ -12,10 +12,9 @@ const fpoCbboDetailsRepository = {
         const kvkId = sanitizeInteger(safeGet(user, 'kvkId') || safeGet(data, 'kvkId'), { defaultValue: 1 });
 
         try {
-            const result = await prisma.fpoCbboDetails.create({
-                data: {
+            const createData = {
                     kvkId,
-                    reportingYear: sanitizeInteger(safeGet(data, 'yearId') || safeGet(data, 'reportingYear'), { defaultValue: new Date().getFullYear() }),
+                    reportingYearId: sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId') || safeGet(data, 'reportingYear')),
                     blocksAllocated: sanitizeInteger(safeGet(data, 'blocksAllocated'), { defaultValue: 0 }),
                     fposRegisteredAsCbbo: sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'), { defaultValue: 0 }),
                     avgMembersPerFpo: sanitizeInteger(safeGet(data, 'avgMembersPerFpo'), { defaultValue: 0 }),
@@ -28,9 +27,16 @@ const fpoCbboDetailsRepository = {
                     businessPlanPreparedWithCbbo: sanitizeBoolean(safeGet(data, 'businessPlanCbbo') || safeGet(data, 'businessPlanPreparedWithCbbo'), false),
                     businessPlanPreparedWithoutCbbo: sanitizeBoolean(safeGet(data, 'businessPlanWithoutCbbo') || safeGet(data, 'businessPlanPreparedWithoutCbbo'), false),
                     fposDoingBusiness: sanitizeInteger(safeGet(data, 'fposDoingBusiness'), { defaultValue: 0 }),
-                },
+            };
+
+            // CRITICAL: Remove ID fields from createData - Prisma doesn't accept them in data object
+            const finalCreateData = removeIdFieldsForUpdate(createData, ['fpoCbboDetailsId', 'id']);
+
+            const result = await prisma.fpoCbboDetails.create({
+                data: finalCreateData,
                 include: {
-                    kvk: { select: { kvkName: true } }
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearId: true, yearName: true } }
                 }
             });
 
@@ -48,14 +54,18 @@ const fpoCbboDetailsRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYear) {
-            where.reportingYear = parseInt(filters.reportingYear);
+        if (filters.reportingYearId) {
+            where.reportingYearId = parseInt(filters.reportingYearId);
+        } else if (filters.reportingYear) {
+            // Backward compatibility: if reportingYear is provided, try to find yearId
+            where.reportingYearId = parseInt(filters.reportingYear);
         }
 
         const results = await prisma.fpoCbboDetails.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { fpoCbboDetailsId: 'desc' }
         });
@@ -67,7 +77,8 @@ const fpoCbboDetailsRepository = {
         const result = await prisma.fpoCbboDetails.findUnique({
             where: { fpoCbboDetailsId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -87,8 +98,11 @@ const fpoCbboDetailsRepository = {
 
         const updateData = {};
 
-        if (safeGet(data, 'yearId') !== undefined || safeGet(data, 'reportingYear') !== undefined) {
-            updateData.reportingYear = sanitizeInteger(safeGet(data, 'yearId') || safeGet(data, 'reportingYear'));
+        if (safeGet(data, 'reportingYearId') !== undefined || safeGet(data, 'yearId') !== undefined) {
+            updateData.reportingYearId = sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId'));
+        } else if (safeGet(data, 'reportingYear') !== undefined) {
+            // Backward compatibility
+            updateData.reportingYearId = sanitizeInteger(safeGet(data, 'reportingYear'));
         }
         if (safeGet(data, 'blocksAllocated') !== undefined) updateData.blocksAllocated = sanitizeInteger(safeGet(data, 'blocksAllocated'));
         if (safeGet(data, 'fposRegisteredAsCbbo') !== undefined) updateData.fposRegisteredAsCbbo = sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'));
@@ -121,12 +135,16 @@ const fpoCbboDetailsRepository = {
             throw new ValidationError('No valid fields provided for update');
         }
 
+        // CRITICAL: Remove ID fields from updateData - Prisma doesn't accept them in data object
+        const finalUpdateData = removeIdFieldsForUpdate(updateData, ['fpoCbboDetailsId', 'id']);
+
         try {
             const result = await prisma.fpoCbboDetails.update({
                 where: { fpoCbboDetailsId: parsedId },
-                data: updateData,
+                data: finalUpdateData,
                 include: {
-                    kvk: { select: { kvkName: true } }
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearId: true, yearName: true } }
                 }
             });
 
@@ -157,9 +175,10 @@ function _mapResponse(r) {
     return {
         id: r.fpoCbboDetailsId,
         kvkId: r.kvkId,
-        yearId: r.reportingYear, // Frontend alias
+        reportingYearId: r.reportingYearId,
+        yearId: r.reportingYearId, // Frontend alias
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: r.reportingYear,
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
         blocksAllocated: r.blocksAllocated,
         fposRegisteredAsCbbo: r.fposRegisteredAsCbbo,
         avgMembersPerFpo: r.avgMembersPerFpo,

@@ -1,5 +1,5 @@
 const prisma = require('../../config/prisma.js');
-const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet } = require('../../utils/dataSanitizer.js');
+const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 
 const oftRepository = {
@@ -45,9 +45,8 @@ const oftRepository = {
         }
 
         // Sanitize all fields
-        const reportingYear = sanitizeInteger(safeGet(data, 'reportingYear'), { 
-            defaultValue: new Date().getFullYear() 
-        });
+        // Standardize on reportingYearId 
+        const reportingYearId = sanitizeInteger(safeGet(data, 'reportingYearId'))
         const seasonId = sanitizeInteger(safeGet(data, 'seasonId'), { defaultValue: 1 });
         const staffId = sanitizeInteger(safeGet(data, 'staffId') || safeGet(data, 'staffName'), { defaultValue: 1 });
         const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
@@ -61,7 +60,7 @@ const oftRepository = {
 
         const createData = {
             kvkId: kvkId,
-            reportingYear: reportingYear,
+            reportingYearId: reportingYearId,
             seasonId: seasonId,
             staffId: staffId,
             oftSubjectId: oftSubjectId,
@@ -95,10 +94,14 @@ const oftRepository = {
             };
         }
 
+        // CRITICAL: Remove ID fields from createData - Prisma doesn't accept them in data object
+        const finalCreateData = removeIdFieldsForUpdate(createData, ['kvkOftId', 'id']);
+
         const result = await prisma.kvkoft.create({
-            data: createData,
+            data: finalCreateData,
             include: {
                 kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 staff: { select: { staffName: true } },
                 season: { select: { seasonName: true } },
                 oftSubject: { select: { subjectName: true } },
@@ -123,14 +126,16 @@ const oftRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYear) {
-            where.reportingYear = parseInt(filters.reportingYear);
+        // Standardize on reportingYearId 
+        if (filters.reportingYearId) {
+            where.reportingYearId = parseInt(filters.reportingYearId);
         }
 
         const results = await prisma.kvkoft.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 staff: { select: { staffName: true } },
                 season: { select: { seasonName: true } },
                 oftSubject: { select: { subjectName: true } },
@@ -158,6 +163,7 @@ const oftRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 staff: { select: { staffName: true } },
                 season: { select: { seasonName: true } },
                 oftSubject: { select: { subjectName: true } },
@@ -185,7 +191,10 @@ const oftRepository = {
         if (!existing) throw new Error("Record not found or unauthorized");
 
         const updateData = {};
-        if (data.reportingYear !== undefined) updateData.reportingYear = parseInt(data.reportingYear);
+        // Standardize on reportingYearId 
+        if (data.reportingYearId !== undefined) {
+            updateData.reportingYearId = sanitizeInteger(data.reportingYearId);
+        }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
         if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = parseInt(data.staffId || data.staffName);
         if (data.oftSubjectId !== undefined) updateData.oftSubjectId = parseInt(data.oftSubjectId);
@@ -245,11 +254,15 @@ const oftRepository = {
             };
         }
 
+        // CRITICAL: Remove ID fields from updateData - Prisma doesn't accept them in data object
+        const finalUpdateData = removeIdFieldsForUpdate(updateData, ['kvkOftId', 'id']);
+
         const result = await prisma.kvkoft.update({
             where: { kvkOftId: parseInt(id) },
-            data: updateData,
+            data: finalUpdateData,
             include: {
                 kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 staff: { select: { staffName: true } },
                 season: { select: { seasonName: true } },
                 oftSubject: { select: { subjectName: true } },
@@ -297,7 +310,8 @@ function _mapResponse(r) {
         kvkOftId: r.kvkOftId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: r.reportingYear,
+        reportingYearId: r.reportingYearId, // Standardized field name
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name for table view
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         staffId: r.staffId,
@@ -331,7 +345,7 @@ function _mapResponse(r) {
         st_m: r.farmersStM, st_f: r.farmersStF,
 
         // Frontend friendly table labels (matching routeConfig.ts exactly, including typos)
-        'Reporting Year': r.reportingYear,
+        'Reporting Year': r.reportingYear ? r.reportingYear.yearName : undefined,
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
         'Staff': r.staff ? r.staff.staffName : undefined,
         'Trail on form': r.title, // Frontend has typo 'Trail'

@@ -111,6 +111,18 @@ export function useOftThematicAreas() {
     };
 }
 
+/**
+ * Hook for fetching OFT thematic areas by subject ID (for dependent dropdowns)
+ */
+export function useOftThematicAreasBySubject(subjectId: number | null | undefined) {
+    return useQuery({
+        queryKey: ['oft-thematic-areas-by-subject', subjectId],
+        queryFn: () => oftFldApi.getOftThematicAreasBySubject(subjectId!).then((res) => res.data),
+        enabled: !!subjectId && subjectId > 0,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
 // ============================================
 // FLD Sector Hooks
 // ============================================

@@ -1,34 +1,27 @@
-// Zone, State, District, Org - hierarchy / geography
-// Models only; generator/datasource in schema.prisma
-
 model Zone {
   zoneId    Int              @id @default(autoincrement()) @map("zone_id")
   zoneName  String           @unique @map("zone_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
   districts DistrictMaster[]
+  kvks      Kvk[]
   states    StateMaster[]
   users     User[]
-  kvks      Kvk[]
 
-  @@map("zone")
   @@index([zoneId])
+  @@map("zone")
 }
 
 model StateMaster {
   stateId   Int              @id @default(autoincrement()) @map("state_id")
   stateName String           @map("state_name")
   zoneId    Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
   districts DistrictMaster[]
+  kvks      Kvk[]
   zone      Zone             @relation(fields: [zoneId], references: [zoneId])
   users     User[]
-  kvks      Kvk[]
 
   @@index([stateId])
   @@index([zoneId])
@@ -41,15 +34,13 @@ model DistrictMaster {
   districtName String      @map("district_name")
   stateId      Int
   zoneId       Int
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
   state        StateMaster @relation(fields: [stateId], references: [stateId])
   zone         Zone        @relation(fields: [zoneId], references: [zoneId])
+  kvks         Kvk[]
   orgs         OrgMaster[]
   users        User[]
-  kvks         Kvk[]
 
   @@index([districtId])
   @@index([stateId])
@@ -59,17 +50,15 @@ model DistrictMaster {
 }
 
 model OrgMaster {
-  orgId        Int              @id @default(autoincrement()) @map("org_id")
-  orgName      String?          @map("org_name")
-  districtId   Int?             @map("district_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  district     DistrictMaster?  @relation(fields: [districtId], references: [districtId])
+  orgId        Int                @id @default(autoincrement()) @map("org_id")
+  orgName      String?            @map("org_name")
+  districtId   Int?               @map("district_id")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  kvks         Kvk[]
+  district     DistrictMaster?    @relation(fields: [districtId], references: [districtId])
   universities UniversityMaster[]
   users        User[]
-  kvks         Kvk[]
 
   @@index([orgId])
   @@index([districtId])
@@ -78,15 +67,13 @@ model OrgMaster {
 }
 
 model UniversityMaster {
-  universityId   Int         @id @default(autoincrement()) @map("university_id")
-  universityName String     @map("university_name")
-  orgId          Int         @map("org_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  organization   OrgMaster   @relation(fields: [orgId], references: [orgId])
+  universityId   Int       @id @default(autoincrement()) @map("university_id")
+  universityName String    @map("university_name")
+  orgId          Int       @map("org_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
   kvks           Kvk[]
+  organization   OrgMaster @relation(fields: [orgId], references: [orgId])
   users          User[]
 
   @@index([universityId])
