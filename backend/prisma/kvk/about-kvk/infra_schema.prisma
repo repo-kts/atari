@@ -2,7 +2,7 @@ model KvkInfrastructure {
   infraId Int @id @default(autoincrement()) @map("infra_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   infraMasterId Int
   infraMaster   KvkInfrastructureMaster @relation(fields: [infraMasterId], references: [infraMasterId])

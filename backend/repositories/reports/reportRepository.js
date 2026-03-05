@@ -34,9 +34,35 @@ class ReportRepository {
     /**
      * Get KVK bank accounts
      */
-    async getKvkBankAccounts(kvkId) {
+    async getKvkBankAccounts(kvkId, filters = {}) {
+        const where = { kvkId };
+
+        // Apply date filters on created_at
+        if (filters.startDate || filters.endDate) {
+            const dateFilter = {};
+            if (filters.startDate) {
+                dateFilter.gte = new Date(filters.startDate);
+            }
+            if (filters.endDate) {
+                dateFilter.lte = new Date(filters.endDate);
+            }
+            if (Object.keys(dateFilter).length > 0) {
+                where.createdAt = dateFilter;
+            }
+        }
+
+        // Apply year filter - convert to date range on created_at
+        if (filters.year) {
+            const yearStart = new Date(filters.year, 0, 1);
+            const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
+        }
+
         return await prisma.kvkBankAccount.findMany({
-            where: { kvkId },
+            where,
             orderBy: { createdAt: 'asc' },
         });
     }
@@ -50,35 +76,28 @@ class ReportRepository {
             transferStatus: 'ACTIVE',
         };
 
-        // Apply date filters
+        // Apply date filters on created_at
         if (filters.startDate || filters.endDate) {
-            where.OR = [];
-            if (filters.startDate || filters.endDate) {
-                const dateFilter = {};
-                if (filters.startDate) {
-                    dateFilter.gte = new Date(filters.startDate);
-                }
-                if (filters.endDate) {
-                    dateFilter.lte = new Date(filters.endDate);
-                }
-                if (Object.keys(dateFilter).length > 0) {
-                    where.OR.push({ dateOfJoining: dateFilter });
-                    where.OR.push({ dateOfBirth: dateFilter });
-                }
+            const dateFilter = {};
+            if (filters.startDate) {
+                dateFilter.gte = new Date(filters.startDate);
+            }
+            if (filters.endDate) {
+                dateFilter.lte = new Date(filters.endDate);
+            }
+            if (Object.keys(dateFilter).length > 0) {
+                where.createdAt = dateFilter;
             }
         }
 
-        // Apply year filter
+        // Apply year filter - convert to date range on created_at
         if (filters.year) {
             const yearStart = new Date(filters.year, 0, 1);
             const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
-            if (!where.OR) where.OR = [];
-            where.OR.push({
-                dateOfJoining: {
-                    gte: yearStart,
-                    lte: yearEnd,
-                },
-            });
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
         }
 
         return await prisma.kvkStaff.findMany({
@@ -109,7 +128,7 @@ class ReportRepository {
             transferStatus: 'TRANSFERRED',
         };
 
-        // Apply date filters
+        // Apply date filters on created_at
         if (filters.startDate || filters.endDate) {
             const dateFilter = {};
             if (filters.startDate) {
@@ -119,15 +138,15 @@ class ReportRepository {
                 dateFilter.lte = new Date(filters.endDate);
             }
             if (Object.keys(dateFilter).length > 0) {
-                where.lastTransferDate = dateFilter;
+                where.createdAt = dateFilter;
             }
         }
 
-        // Apply year filter
+        // Apply year filter - convert to date range on created_at
         if (filters.year) {
             const yearStart = new Date(filters.year, 0, 1);
             const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
-            where.lastTransferDate = {
+            where.createdAt = {
                 gte: yearStart,
                 lte: yearEnd,
             };
@@ -167,7 +186,7 @@ class ReportRepository {
     async getKvkInfrastructure(kvkId, filters = {}) {
         const where = { kvkId };
 
-        // Apply date filters
+        // Apply date filters on created_at
         if (filters.startDate || filters.endDate) {
             const dateFilter = {};
             if (filters.startDate) {
@@ -177,21 +196,18 @@ class ReportRepository {
                 dateFilter.lte = new Date(filters.endDate);
             }
             if (Object.keys(dateFilter).length > 0) {
-                where.OR = [
-                    { createdAt: dateFilter },
-                    { updatedAt: dateFilter },
-                ];
+                where.createdAt = dateFilter;
             }
         }
 
-        // Apply year filter
+        // Apply year filter - convert to date range on created_at
         if (filters.year) {
             const yearStart = new Date(filters.year, 0, 1);
             const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
-            where.OR = [
-                { createdAt: { gte: yearStart, lte: yearEnd } },
-                { updatedAt: { gte: yearStart, lte: yearEnd } },
-            ];
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
         }
 
         return await prisma.kvkInfrastructure.findMany({
@@ -211,29 +227,28 @@ class ReportRepository {
     async getKvkVehicles(kvkId, filters = {}) {
         const where = { kvkId };
 
-        // Apply date/year filters
-        if (filters.startDate || filters.endDate || filters.year) {
-            const yearFilter = {};
-            if (filters.year) {
-                yearFilter.yearOfPurchase = filters.year;
-            } else if (filters.startDate || filters.endDate) {
-                // Convert date range to year range
-                if (filters.startDate) {
-                    const startYear = new Date(filters.startDate).getFullYear();
-                    yearFilter.yearOfPurchase = { gte: startYear };
-                }
-                if (filters.endDate) {
-                    const endYear = new Date(filters.endDate).getFullYear();
-                    if (yearFilter.yearOfPurchase) {
-                        yearFilter.yearOfPurchase.lte = endYear;
-                    } else {
-                        yearFilter.yearOfPurchase = { lte: endYear };
-                    }
-                }
+        // Apply date filters on created_at
+        if (filters.startDate || filters.endDate) {
+            const dateFilter = {};
+            if (filters.startDate) {
+                dateFilter.gte = new Date(filters.startDate);
             }
-            if (Object.keys(yearFilter).length > 0) {
-                Object.assign(where, yearFilter);
+            if (filters.endDate) {
+                dateFilter.lte = new Date(filters.endDate);
             }
+            if (Object.keys(dateFilter).length > 0) {
+                where.createdAt = dateFilter;
+            }
+        }
+
+        // Apply year filter - convert to date range on created_at
+        if (filters.year) {
+            const yearStart = new Date(filters.year, 0, 1);
+            const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
         }
 
         return await prisma.kvkVehicle.findMany({
@@ -251,29 +266,28 @@ class ReportRepository {
     async getKvkEquipments(kvkId, filters = {}) {
         const where = { kvkId };
 
-        // Apply date/year filters
-        if (filters.startDate || filters.endDate || filters.year) {
-            const yearFilter = {};
-            if (filters.year) {
-                yearFilter.yearOfPurchase = filters.year;
-            } else if (filters.startDate || filters.endDate) {
-                // Convert date range to year range
-                if (filters.startDate) {
-                    const startYear = new Date(filters.startDate).getFullYear();
-                    yearFilter.yearOfPurchase = { gte: startYear };
-                }
-                if (filters.endDate) {
-                    const endYear = new Date(filters.endDate).getFullYear();
-                    if (yearFilter.yearOfPurchase) {
-                        yearFilter.yearOfPurchase.lte = endYear;
-                    } else {
-                        yearFilter.yearOfPurchase = { lte: endYear };
-                    }
-                }
+        // Apply date filters on created_at
+        if (filters.startDate || filters.endDate) {
+            const dateFilter = {};
+            if (filters.startDate) {
+                dateFilter.gte = new Date(filters.startDate);
             }
-            if (Object.keys(yearFilter).length > 0) {
-                Object.assign(where, yearFilter);
+            if (filters.endDate) {
+                dateFilter.lte = new Date(filters.endDate);
             }
+            if (Object.keys(dateFilter).length > 0) {
+                where.createdAt = dateFilter;
+            }
+        }
+
+        // Apply year filter - convert to date range on created_at
+        if (filters.year) {
+            const yearStart = new Date(filters.year, 0, 1);
+            const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
         }
 
         return await prisma.kvkEquipment.findMany({
@@ -291,29 +305,28 @@ class ReportRepository {
     async getKvkFarmImplements(kvkId, filters = {}) {
         const where = { kvkId };
 
-        // Apply date/year filters
-        if (filters.startDate || filters.endDate || filters.year) {
-            const yearFilter = {};
-            if (filters.year) {
-                yearFilter.yearOfPurchase = filters.year;
-            } else if (filters.startDate || filters.endDate) {
-                // Convert date range to year range
-                if (filters.startDate) {
-                    const startYear = new Date(filters.startDate).getFullYear();
-                    yearFilter.yearOfPurchase = { gte: startYear };
-                }
-                if (filters.endDate) {
-                    const endYear = new Date(filters.endDate).getFullYear();
-                    if (yearFilter.yearOfPurchase) {
-                        yearFilter.yearOfPurchase.lte = endYear;
-                    } else {
-                        yearFilter.yearOfPurchase = { lte: endYear };
-                    }
-                }
+        // Apply date filters on created_at
+        if (filters.startDate || filters.endDate) {
+            const dateFilter = {};
+            if (filters.startDate) {
+                dateFilter.gte = new Date(filters.startDate);
             }
-            if (Object.keys(yearFilter).length > 0) {
-                Object.assign(where, yearFilter);
+            if (filters.endDate) {
+                dateFilter.lte = new Date(filters.endDate);
             }
+            if (Object.keys(dateFilter).length > 0) {
+                where.createdAt = dateFilter;
+            }
+        }
+
+        // Apply year filter - convert to date range on created_at
+        if (filters.year) {
+            const yearStart = new Date(filters.year, 0, 1);
+            const yearEnd = new Date(filters.year, 11, 31, 23, 59, 59);
+            where.createdAt = {
+                gte: yearStart,
+                lte: yearEnd,
+            };
         }
 
         return await prisma.kvkFarmImplement.findMany({

@@ -10,7 +10,7 @@ model KvkBankAccount {
   bankAccountId Int @id @default(autoincrement()) @map("bank_account_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   accountType   AccountType @map("account_type")
   accountName   String      @map("account_name")

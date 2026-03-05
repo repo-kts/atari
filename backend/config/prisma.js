@@ -19,10 +19,7 @@ if (isAccelerate) {
         accelerateUrl: process.env.DATABASE_URL,
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     });
-} else {
-    // Using direct connection - use pg adapter for better serverless support
-    console.log('🔌 Using direct PostgreSQL connection with pg adapter');
-    
+} else {    
     // Create a PostgreSQL connection pool configured for Neon serverless
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,

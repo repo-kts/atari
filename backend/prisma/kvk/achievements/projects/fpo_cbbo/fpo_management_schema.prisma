@@ -2,7 +2,7 @@ model FpoManagement {
   fpoManagementId Int @id @default(autoincrement()) @map("fpo_management_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
   fpoName String @map("fpo_name")
@@ -15,6 +15,9 @@ model FpoManagement {
   totalFarmersAttached Int @map("total_farmers_attached")
   financialPositionLakh Float @map("financial_position_lakh")
   successIndicator String @map("success_indicator")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([fpoName])

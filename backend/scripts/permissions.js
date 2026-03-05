@@ -166,6 +166,8 @@ const ROLE_PERMISSIONS = {
 async function run() {
   console.log('🌱 Permissions (modules + role assignments)\n');
 
+  // Step 1: Create modules
+  console.log('   Creating modules...');
   let createdModules = 0, createdPermissions = 0;
   for (const { menuName, subMenuName, moduleCode } of MODULES) {
     let module = await prisma.module.findUnique({ where: { moduleCode } });
@@ -173,6 +175,7 @@ async function run() {
       module = await prisma.module.create({ data: { menuName, subMenuName, moduleCode } });
       createdModules++;
     }
+    // Create permissions for this module
     for (const action of PERMISSION_ACTIONS) {
       const existing = await prisma.permission.findFirst({ where: { moduleId: module.moduleId, action } });
       if (!existing) {
@@ -183,29 +186,74 @@ async function run() {
   }
   console.log(`   ✅ ${createdModules} new modules, ${createdPermissions} new permissions\n`);
 
+  // Step 2: Assign permissions to roles
+  console.log('   Assigning permissions to roles...');
+  
+  // Pre-fetch all modules for efficiency
+  const allModules = await prisma.module.findMany({ select: { moduleId: true, moduleCode: true } });
+  const moduleCodeToIdMap = new Map(allModules.map(m => [m.moduleCode, m.moduleId]));
+  
   for (const [roleName, config] of Object.entries(ROLE_PERMISSIONS)) {
+    console.log(`   Processing role: ${roleName}...`);
     const role = await prisma.role.findFirst({ where: { roleName } });
-    if (!role) continue;
+    if (!role) {
+      console.log(`   ⚠️  Role ${roleName} not found, skipping`);
+      continue;
+    }
+    
     let permissionIds = [];
     if (config.permissions === 'ALL') {
       const all = await prisma.permission.findMany({ select: { permissionId: true } });
       permissionIds = all.map((p) => p.permissionId);
     } else {
+      // Get module IDs for the specified module codes
+      const moduleIds = config.permissions.modules
+        .map(code => moduleCodeToIdMap.get(code))
+        .filter(id => id !== undefined);
+      
+      if (moduleIds.length === 0) {
+        console.log(`   ⚠️  No matching modules found for ${roleName}, skipping`);
+        continue;
+      }
+      
       const perms = await prisma.permission.findMany({
-        where: { module: { moduleCode: { in: config.permissions.modules } }, action: { in: config.permissions.actions } },
+        where: {
+          moduleId: { in: moduleIds },
+          action: { in: config.permissions.actions },
+        },
         select: { permissionId: true },
       });
       permissionIds = perms.map((p) => p.permissionId);
     }
-    if (permissionIds.length === 0) continue;
-    await prisma.$transaction([
-      prisma.rolePermission.deleteMany({ where: { roleId: role.roleId } }),
-      prisma.rolePermission.createMany({
-        data: permissionIds.map((permissionId) => ({ roleId: role.roleId, permissionId })),
-        skipDuplicates: true,
-      }),
-    ]);
-    console.log(`   ✅ ${roleName}: ${permissionIds.length} permissions`);
+    
+    if (permissionIds.length === 0) {
+      console.log(`   ⚠️  No permissions found for ${roleName}, skipping`);
+      continue;
+    }
+    
+    try {
+      // Use a transaction with timeout
+      await prisma.$transaction(async (tx) => {
+        await tx.rolePermission.deleteMany({ where: { roleId: role.roleId } });
+        if (permissionIds.length > 0) {
+          // Batch create in chunks to avoid issues with large arrays
+          const chunkSize = 1000;
+          for (let i = 0; i < permissionIds.length; i += chunkSize) {
+            const chunk = permissionIds.slice(i, i + chunkSize);
+            await tx.rolePermission.createMany({
+              data: chunk.map((permissionId) => ({ roleId: role.roleId, permissionId })),
+              skipDuplicates: true,
+            });
+          }
+        }
+      }, {
+        timeout: 30000, // 30 second timeout
+      });
+      console.log(`   ✅ ${roleName}: ${permissionIds.length} permissions`);
+    } catch (error) {
+      console.error(`   ❌ Error assigning permissions to ${roleName}:`, error.message);
+      // Continue with other roles even if one fails
+    }
   }
   console.log('');
 }

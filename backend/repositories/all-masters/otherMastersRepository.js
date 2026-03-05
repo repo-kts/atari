@@ -234,14 +234,18 @@ const findAll = async (entityType, options = {}) => {
  * Generic find by ID
  */
 const findById = async (entityType, id) => {
-    if (!id) {
-        throw new Error(`ID is required for ${entityType}`);
-    }
     const config = getEntityConfig(entityType);
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Missing ID field: ${config.idField}`);
+    }
+    
     const parsedId = parseInt(id);
     if (isNaN(parsedId)) {
-        throw new Error(`Invalid ID format for ${entityType}: ${id}`);
+        throw new Error(`Invalid ID: ${id}. Expected a number.`);
     }
+    
     return prisma[config.model].findUnique({
         where: { [config.idField]: parsedId },
         include: config.includes,
@@ -302,8 +306,15 @@ const create = async (entityType, data) => {
     ];
     
     // Only include the name field (these are simple master entities)
+    // Validate that the name field is provided and not empty
     if (data[config.nameField]) {
-        sanitizedData[config.nameField] = data[config.nameField];
+        const nameValue = String(data[config.nameField]).trim();
+        if (nameValue === '') {
+            throw new Error(`${config.nameField} is required and cannot be empty`);
+        }
+        sanitizedData[config.nameField] = nameValue;
+    } else {
+        throw new Error(`${config.nameField} is required`);
     }
     
     // Ensure no ID field is accidentally included
@@ -455,10 +466,76 @@ const create = async (entityType, data) => {
  */
 const update = async (entityType, id, data) => {
     const config = getEntityConfig(entityType);
+    
+    // Build sanitized data object with only allowed fields
+    const sanitizedData = {};
+    
+    // Only include the name field if provided
+    if (data[config.nameField] !== undefined) {
+        const nameValue = String(data[config.nameField]).trim();
+        if (nameValue === '') {
+            throw new Error(`${config.nameField} cannot be empty`);
+        }
+        sanitizedData[config.nameField] = nameValue;
+    }
+    
+    // Remove ID fields from update data
+    const idFieldVariations = [
+        config.idField,
+        'id',
+        '_id',
+        config.idField.toLowerCase(),
+        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
+    ];
+    
+    for (const idField of idFieldVariations) {
+        if (sanitizedData[idField] !== undefined) {
+            delete sanitizedData[idField];
+        }
+    }
+    
+    // If no fields to update, throw error
+    if (Object.keys(sanitizedData).length === 0) {
+        throw new Error(`No valid fields provided for update`);
+    }
+    
     return prisma[config.model].update({
         where: { [config.idField]: parseInt(id) },
-        data,
+        data: sanitizedData,
+        include: config.includes,
     });
+};
+
+/**
+ * Check for dependent records before deletion
+ */
+const checkDependentRecords = async (entityType, config, id) => {
+    // Check _count if available in includes
+    if (config.includes && config.includes._count && config.includes._count.select) {
+        // Properly structure _count query - Prisma expects _count: { select: {...} }
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: id },
+            select: { 
+                _count: {
+                    select: config.includes._count.select
+                }
+            },
+        });
+        
+        if (entity && entity._count) {
+            const dependentCounts = Object.entries(entity._count)
+                .filter(([_, count]) => count > 0);
+            
+            if (dependentCounts.length > 0) {
+                return {
+                    hasDependents: true,
+                    counts: Object.fromEntries(dependentCounts),
+                };
+            }
+        }
+    }
+    
+    return { hasDependents: false };
 };
 
 /**
@@ -466,9 +543,34 @@ const update = async (entityType, id, data) => {
  */
 const deleteEntity = async (entityType, id) => {
     const config = getEntityConfig(entityType);
-    return prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
-    });
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Cannot delete ${entityType}: missing ID field`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Cannot delete ${entityType}: invalid ID: ${id}`);
+    }
+    
+    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
+    try {
+        return await prisma[config.model].delete({
+            where: { [config.idField]: parsedId },
+        });
+    } catch (error) {
+        // Handle foreign key constraint violations (if schema doesn't have SetNull)
+        if (error.code === 'P2003') {
+            throw new Error(`Cannot delete ${entityType}: has dependent records. Please try again or contact support.`);
+        }
+        // Handle record not found
+        if (error.code === 'P2025') {
+            throw new Error(`${entityType} not found`);
+        }
+        // Re-throw other errors
+        throw error;
+    }
 };
 
 /**

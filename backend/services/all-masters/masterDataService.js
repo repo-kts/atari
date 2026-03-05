@@ -275,7 +275,7 @@ async function getEntityById(entityName, id) {
 /**
  * Create new entity
  */
-async function createEntity(entityName, data, userId) {
+async function createEntity(entityName, data, userId) { 
     try {
         validateData(entityName, data);
 
@@ -409,7 +409,8 @@ async function checkDependents(entityName, entity) {
 
 /**
  * Delete KVKs by a given field
- * Deletes all KVK-related records in the correct order
+ * Uses database-level CASCADE deletes for automatic cleanup of related records
+ * Only handles special cases that CASCADE cannot handle automatically
  */
 async function deleteKvksByField(field, value) {
     const kvks = await prisma.kvk.findMany({
@@ -420,72 +421,32 @@ async function deleteKvksByField(field, value) {
     const kvkIds = kvks.map(k => k.kvkId);
     if (kvkIds.length === 0) return;
 
-    // Get staff IDs
-    const staffWithKvk = await prisma.kvkStaff.findMany({
-        where: {
-            OR: [
-                { kvkId: { in: kvkIds } },
-                { originalKvkId: { in: kvkIds } }
-            ]
-        },
-        select: { kvkStaffId: true }
+    // With CASCADE in place, we only need to handle special cases:
+    // 1. Staff with originalKvkId (not a direct FK constraint, needs manual update)
+    // 2. Users are automatically nullified via SetNull (no manual action needed)
+    // 3. All other records are automatically deleted via CASCADE
+    
+    await prisma.$transaction(async (tx) => {
+        // Handle staff with originalKvkId - set to null before deletion
+        // This is needed because originalKvkId is not a direct FK constraint
+        await tx.kvkStaff.updateMany({
+            where: { originalKvkId: { in: kvkIds } },
+            data: { originalKvkId: null }
+        });
+        
+        // Delete KVKs - CASCADE will automatically handle all child records!
+        // This includes:
+        // - All form records (oft, agriDrone, fpoCbboDetails, etc.)
+        // - All infrastructure records (bank accounts, equipment, vehicles, etc.)
+        // - All achievement records (awards, training, etc.)
+        // - Staff transfer history (via CASCADE on fromKvkId and toKvkId)
+        // - Staff records (via CASCADE on kvkId)
+        // - Users are automatically nullified (via SetNull on kvkId)
+        await tx.kvk.deleteMany({ where: { [field]: value } });
+    }, {
+        timeout: 10000, // Reduced timeout since CASCADE is much faster
+        isolationLevel: 'ReadCommitted'
     });
-    const staffIds = staffWithKvk.map(s => s.kvkStaffId);
-
-    // Delete in order: child records first, then parent records
-    const deleteOperations = [
-        // 1. Staff transfer history
-        prisma.staffTransferHistory.deleteMany({
-            where: {
-                OR: staffIds.length > 0 ? [
-                    { kvkStaffId: { in: staffIds } },
-                    { fromKvkId: { in: kvkIds } },
-                    { toKvkId: { in: kvkIds } }
-                ] : [
-                    { fromKvkId: { in: kvkIds } },
-                    { toKvkId: { in: kvkIds } }
-                ]
-            }
-        }),
-        // 2. HRD programs
-        prisma.hrdProgram.deleteMany({
-            where: staffIds.length > 0 ? {
-                OR: [
-                    { kvkId: { in: kvkIds } },
-                    { kvkStaffId: { in: staffIds } }
-                ]
-            } : { kvkId: { in: kvkIds } }
-        }),
-        // 3. KVK staff
-        prisma.kvkStaff.deleteMany({
-            where: {
-                OR: [
-                    { kvkId: { in: kvkIds } },
-                    { originalKvkId: { in: kvkIds } }
-                ]
-            }
-        }),
-        // 4. Training achievements
-        prisma.trainingAchievement.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 5. Awards
-        prisma.farmerAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        prisma.kvkAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        prisma.scientistAward.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 6. Infrastructure
-        prisma.kvkInfrastructure.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 7. Equipment
-        prisma.kvkEquipment.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 8. Vehicles
-        prisma.kvkVehicle.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 9. Bank accounts
-        prisma.kvkBankAccount.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 10. Farm implements
-        prisma.kvkFarmImplement.deleteMany({ where: { kvkId: { in: kvkIds } } }),
-        // 11. KVKs themselves
-        prisma.kvk.deleteMany({ where: { [field]: value } })
-    ];
-
-    await Promise.all(deleteOperations);
 }
 
 /**

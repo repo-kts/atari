@@ -2,6 +2,10 @@ model Enterprise {
   enterpriseId Int @id @default(autoincrement()) @map("enterprise_id")
 
   enterpriseName String @unique @map("enterprise_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   aryaCurrentYearRecords AryaCurrentYear[]
   aryaPrevYearRecords AryaPrevYear[]
 
@@ -14,7 +18,7 @@ model AryaCurrentYear {
   aryaCurrentYearId Int @id @default(autoincrement()) @map("arya_current_year_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
 
@@ -43,6 +47,9 @@ model AryaCurrentYear {
   employmentGeneratedMandays Float @map("employment_generated_mandays")
 
   imagePath String? @map("image_path")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([enterpriseId])

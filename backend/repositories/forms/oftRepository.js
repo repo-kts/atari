@@ -1,13 +1,24 @@
 const prisma = require('../../config/prisma.js');
+const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet } = require('../../utils/dataSanitizer.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
 
 const oftRepository = {
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
-        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
-        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+        // Validate input
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new ValidationError('Invalid data: must be an object');
+        }
 
-        if (isNaN(kvkId)) {
-            throw new Error('Valid kvkId is required');
+        if (!user || typeof user !== 'object') {
+            throw new ValidationError('User information is required');
+        }
+
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const kvkIdSource = isKvkScoped ? safeGet(user, 'kvkId') : safeGet(data, 'kvkId');
+        const kvkId = sanitizeInteger(kvkIdSource);
+
+        if (kvkId === null || kvkId === undefined || isNaN(kvkId)) {
+            throw new ValidationError('Valid kvkId is required');
         }
 
         // Prepare technology types mapping
@@ -15,8 +26,8 @@ const oftRepository = {
         const technologiesData = [];
 
         for (const key of techKeys) {
-            const detail = data[`tech_${key}`];
-            if (detail && detail.trim()) {
+            const detail = sanitizeString(safeGet(data, `tech_${key}`), { allowEmpty: false });
+            if (detail) {
                 // Find or create technology type
                 let techType = await prisma.oftTechnologyType.findUnique({
                     where: { name: key }
@@ -28,43 +39,64 @@ const oftRepository = {
                 }
                 technologiesData.push({
                     oftTechnologyTypeId: techType.oftTechnologyTypeId,
-                    details: detail.trim()
+                    details: detail
                 });
             }
         }
 
+        // Sanitize all fields
+        const reportingYear = sanitizeInteger(safeGet(data, 'reportingYear'), { 
+            defaultValue: new Date().getFullYear() 
+        });
+        const seasonId = sanitizeInteger(safeGet(data, 'seasonId'), { defaultValue: 1 });
+        const staffId = sanitizeInteger(safeGet(data, 'staffId') || safeGet(data, 'staffName'), { defaultValue: 1 });
+        const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
+        const oftThematicAreaId = sanitizeInteger(safeGet(data, 'oftThematicAreaId') || safeGet(data, 'thematicArea'), { defaultValue: 1 });
+        const disciplineId = sanitizeInteger(safeGet(data, 'disciplineId') || safeGet(data, 'discipline'), { defaultValue: 1 });
+
+        // Validate required fields
+        if (!oftSubjectId || oftSubjectId === null) {
+            throw new ValidationError('oftSubjectId is required', 'oftSubjectId');
+        }
+
+        const createData = {
+            kvkId: kvkId,
+            reportingYear: reportingYear,
+            seasonId: seasonId,
+            staffId: staffId,
+            oftSubjectId: oftSubjectId,
+            oftThematicAreaId: oftThematicAreaId,
+            disciplineId: disciplineId,
+            title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
+            problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
+            sourceOfTechnology: sanitizeString(safeGet(data, 'sourceOfTechnology'), { allowEmpty: true }) || '',
+            productionSystem: sanitizeString(safeGet(data, 'productionSystem'), { allowEmpty: true }) || '',
+            performanceIndicators: sanitizeString(safeGet(data, 'performanceIndicators'), { allowEmpty: true }) || '',
+            areaHaNumber: sanitizeNumber(safeGet(data, 'areaHaNumber') || safeGet(data, 'area'), { defaultValue: 0 }),
+            numberOfLocation: sanitizeInteger(safeGet(data, 'numberOfLocation') || safeGet(data, 'locations'), { defaultValue: 0 }),
+            numberOfTrialReplication: sanitizeInteger(safeGet(data, 'numberOfTrialReplication') || safeGet(data, 'replications'), { defaultValue: 0 }),
+            oftStartDate: sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date(),
+            criticalInput: sanitizeString(safeGet(data, 'criticalInput'), { allowEmpty: true }) || '',
+            costOfOft: sanitizeNumber(safeGet(data, 'costOfOft') || safeGet(data, 'cost'), { defaultValue: 0 }),
+            farmersGeneralM: sanitizeInteger(safeGet(data, 'farmersGeneralM') || safeGet(data, 'gen_m'), { defaultValue: 0 }),
+            farmersGeneralF: sanitizeInteger(safeGet(data, 'farmersGeneralF') || safeGet(data, 'gen_f'), { defaultValue: 0 }),
+            farmersObcM: sanitizeInteger(safeGet(data, 'farmersObcM') || safeGet(data, 'obc_m'), { defaultValue: 0 }),
+            farmersObcF: sanitizeInteger(safeGet(data, 'farmersObcF') || safeGet(data, 'obc_f'), { defaultValue: 0 }),
+            farmersScM: sanitizeInteger(safeGet(data, 'farmersScM') || safeGet(data, 'sc_m'), { defaultValue: 0 }),
+            farmersScF: sanitizeInteger(safeGet(data, 'farmersScF') || safeGet(data, 'sc_f'), { defaultValue: 0 }),
+            farmersStM: sanitizeInteger(safeGet(data, 'farmersStM') || safeGet(data, 'st_m'), { defaultValue: 0 }),
+            farmersStF: sanitizeInteger(safeGet(data, 'farmersStF') || safeGet(data, 'st_f'), { defaultValue: 0 }),
+        };
+
+        // Add technologies if any
+        if (technologiesData.length > 0) {
+            createData.technologies = {
+                create: technologiesData
+            };
+        }
+
         const result = await prisma.kvkoft.create({
-            data: {
-                kvkId: kvkId,
-                reportingYear: parseInt(data.reportingYear) || new Date().getFullYear(),
-                seasonId: parseInt(data.seasonId) || 1,
-                staffId: parseInt(data.staffId || data.staffName) || 1,
-                oftSubjectId: parseInt(data.oftSubjectId) || 1,
-                oftThematicAreaId: parseInt(data.oftThematicAreaId || data.thematicArea) || 1,
-                disciplineId: parseInt(data.disciplineId || data.discipline) || 1,
-                title: data.title || '',
-                problemDiagnosed: data.problemDiagnosed || '',
-                sourceOfTechnology: data.sourceOfTechnology || '',
-                productionSystem: data.productionSystem || '',
-                performanceIndicators: data.performanceIndicators || '',
-                areaHaNumber: parseFloat(data.areaHaNumber || data.area) || 0,
-                numberOfLocation: parseInt(data.numberOfLocation || data.locations) || 0,
-                numberOfTrialReplication: parseInt(data.numberOfTrialReplication || data.replications) || 0,
-                oftStartDate: data.oftStartDate || data.duration ? new Date(data.oftStartDate || data.duration) : new Date(),
-                criticalInput: data.criticalInput || '',
-                costOfOft: parseFloat(data.costOfOft || data.cost) || 0,
-                farmersGeneralM: parseInt(data.farmersGeneralM || data.gen_m) || 0,
-                farmersGeneralF: parseInt(data.farmersGeneralF || data.gen_f) || 0,
-                farmersObcM: parseInt(data.farmersObcM || data.obc_m) || 0,
-                farmersObcF: parseInt(data.farmersObcF || data.obc_f) || 0,
-                farmersScM: parseInt(data.farmersScM || data.sc_m) || 0,
-                farmersScF: parseInt(data.farmersScF || data.sc_f) || 0,
-                farmersStM: parseInt(data.farmersStM || data.st_m) || 0,
-                farmersStF: parseInt(data.farmersStF || data.st_f) || 0,
-                technologies: {
-                    create: technologiesData
-                }
-            },
+            data: createData,
             include: {
                 kvk: { select: { kvkName: true } },
                 staff: { select: { staffName: true } },

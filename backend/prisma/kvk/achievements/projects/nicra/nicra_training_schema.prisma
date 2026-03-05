@@ -2,7 +2,7 @@ model NicraTraining {
   nicraTrainingId Int @id @default(autoincrement()) @map("nicra_training_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   titleOfTraining String @map("title_of_training")
   campusType CampusType @map("campus_type")

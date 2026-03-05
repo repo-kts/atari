@@ -7,7 +7,7 @@ model SacMeeting {
   sacMeetingId Int @id @default(autoincrement()) @map("sac_meeting_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   startDate DateTime @map("start_date")
   endDate DateTime @map("end_date")
@@ -17,6 +17,9 @@ model SacMeeting {
   actionTaken ActionStatus
   reason String @map("reason")
   uploadedFile String @map("uploaded_file")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
 

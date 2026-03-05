@@ -2,7 +2,7 @@ model KvkOtherProgramme {
   kvkOtherProgrammeId Int @id @default(autoincrement()) @map("kvk_other_programme_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   programmeName String @map("name_of_programme")
   programmeDate DateTime @map("programme_date")
@@ -17,6 +17,9 @@ model KvkOtherProgramme {
   farmersScF Int @map("farmers_sc_f")
   farmersStM Int @map("farmers_st_m")
   farmersStF Int @map("farmers_st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
 

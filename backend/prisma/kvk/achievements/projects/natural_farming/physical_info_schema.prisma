@@ -9,7 +9,7 @@ model PhysicalInfo {
   physicalInfoId Int @id @default(autoincrement()) @map("physical_info_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   activity NaturalFarmingActivity
 

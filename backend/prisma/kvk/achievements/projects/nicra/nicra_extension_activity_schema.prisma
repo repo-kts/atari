@@ -2,7 +2,7 @@ model NicraExtensionActivity {
   nicraExtensionActivityId Int @id @default(autoincrement()) @map("nicra_extension_activity_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   activityName String @map("activity_name")
   startDate DateTime @map("start_date")

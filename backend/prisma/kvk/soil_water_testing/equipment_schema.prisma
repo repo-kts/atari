@@ -2,6 +2,9 @@ model SoilWaterAnalysis {
   soilWaterAnalysisId Int    @id @default(autoincrement()) @map("soil_water_analysis_id")
   analysisName        String @unique @map("analysis_name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   equipments KkvSoilWaterEquipment[]
   analysis KkvSoilWaterAnalysis[]
 
@@ -13,7 +16,7 @@ model KkvSoilWaterEquipment {
   soilWaterEquipmentId Int @id @default(autoincrement()) @map("soil_water_equipment_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
 
@@ -22,6 +25,9 @@ model KkvSoilWaterEquipment {
 
   equipmentName String @map("equipment_name")
   quantity Int @map("quantity")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([soilWaterAnalysisId])

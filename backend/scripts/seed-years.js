@@ -19,15 +19,20 @@ async function seedYears() {
         });
         console.log(`   ✅ Seeded year: ${yearName}`);
     }
+    console.log('   ✅ Done\n');
 }
 
-seedYears()
-    .then(() => {
-        console.log('✨ Years seeded successfully!');
-        process.exit(0);
-    })
-    .catch((err) => {
-        console.error('❌ Error seeding years:', err);
-        process.exit(1);
-    })
-    .finally(() => prisma.$disconnect());
+if (require.main === module) {
+    seedYears()
+        .then(() => {
+            console.log('✨ Years seeded successfully!');
+            process.exit(0);
+        })
+        .catch((err) => {
+            console.error('❌ Error seeding years:', err);
+            process.exit(1);
+        })
+        .finally(() => prisma.$disconnect());
+} else {
+    module.exports = { run: seedYears };
+}

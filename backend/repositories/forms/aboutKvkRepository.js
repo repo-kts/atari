@@ -1,4 +1,6 @@
 const prisma = require('../../config/prisma.js');
+const { sanitizeForPrisma, sanitizeString, sanitizeInteger, sanitizeNumber, safeGet, validateAndSanitize } = require('../../utils/dataSanitizer.js');
+const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 /**
  * About KVK Repository
@@ -353,12 +355,118 @@ async function findById(entityName, id) {
 }
 
 /**
+ * Convert relation ID fields to Prisma relation connect operations for KVK
+ * @param {object} data - Data with relation ID fields
+ * @returns {object} Data with relation connect operations
+ */
+function convertRelationFieldsForKvk(data) {
+    const converted = { ...data };
+    
+    // Required relations - must use connect
+    if (converted.zoneId !== undefined && converted.zoneId !== null) {
+        converted.zone = { connect: { zoneId: sanitizeInteger(converted.zoneId) } };
+        delete converted.zoneId;
+    }
+    
+    if (converted.stateId !== undefined && converted.stateId !== null) {
+        converted.state = { connect: { stateId: sanitizeInteger(converted.stateId) } };
+        delete converted.stateId;
+    }
+    
+    if (converted.districtId !== undefined && converted.districtId !== null) {
+        converted.district = { connect: { districtId: sanitizeInteger(converted.districtId) } };
+        delete converted.districtId;
+    }
+    
+    if (converted.orgId !== undefined && converted.orgId !== null) {
+        converted.org = { connect: { orgId: sanitizeInteger(converted.orgId) } };
+        delete converted.orgId;
+    }
+    
+    // Optional relation - can be null (disconnect) or connect
+    if (converted.universityId !== undefined) {
+        if (converted.universityId === null || converted.universityId === '' || converted.universityId === undefined) {
+            converted.university = { disconnect: true };
+        } else {
+            converted.university = { connect: { universityId: sanitizeInteger(converted.universityId) } };
+        }
+        delete converted.universityId;
+    }
+    
+    // Remove id field if present (shouldn't be in update data)
+    delete converted.id;
+    delete converted.kvkId;
+    
+    return converted;
+}
+
+/**
+ * Convert relation ID fields to Prisma relation connect operations for kvkStaff
+ * @param {object} data - Data with relation ID fields
+ * @returns {object} Data with relation connect operations
+ */
+function convertRelationFieldsForStaff(data) {
+    const converted = { ...data };
+    
+    // Convert relation ID fields to relation connect operations
+    if (converted.sanctionedPostId !== undefined) {
+        converted.sanctionedPost = { connect: { sanctionedPostId: converted.sanctionedPostId } };
+        delete converted.sanctionedPostId;
+    }
+    
+    if (converted.disciplineId !== undefined) {
+        converted.discipline = { connect: { disciplineId: converted.disciplineId } };
+        delete converted.disciplineId;
+    }
+    
+    if (converted.kvkId !== undefined) {
+        converted.kvk = { connect: { kvkId: converted.kvkId } };
+        delete converted.kvkId;
+    }
+    
+    // Handle optional relations (can be null)
+    if (converted.staffCategoryId !== undefined) {
+        if (converted.staffCategoryId === null || converted.staffCategoryId === '') {
+            converted.staffCategory = { disconnect: true };
+        } else {
+            converted.staffCategory = { connect: { staffCategoryId: converted.staffCategoryId } };
+        }
+        delete converted.staffCategoryId;
+    }
+    
+    if (converted.payLevelId !== undefined) {
+        if (converted.payLevelId === null || converted.payLevelId === '') {
+            converted.payLevel = { disconnect: true };
+        } else {
+            converted.payLevel = { connect: { payLevelId: converted.payLevelId } };
+        }
+        delete converted.payLevelId;
+    }
+    
+    if (converted.originalKvkId !== undefined) {
+        if (converted.originalKvkId === null || converted.originalKvkId === '') {
+            converted.originalKvk = { disconnect: true };
+        } else {
+            converted.originalKvk = { connect: { kvkId: converted.originalKvkId } };
+        }
+        delete converted.originalKvkId;
+    }
+    
+    return converted;
+}
+
+/**
  * Sanitize data by removing fields that don't exist in the Prisma schema
  * @param {string} entityName - Entity name
  * @param {object} data - Data to sanitize
  * @returns {object} Sanitized data
  */
 function sanitizeData(entityName, data) {
+    // Validate input
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new ValidationError('Invalid data: must be an object');
+    }
+
     const sanitized = { ...data };
 
     // Remove fields that don't exist in Prisma schema for KVK
@@ -366,14 +474,49 @@ function sanitizeData(entityName, data) {
         // Prisma schema only has: kvkName, zoneId, stateId, districtId, orgId, universityId,
         // hostOrg, mobile, email, address, yearOfSanction
         // Remove all fields that don't exist in the schema
-        const invalidFields = ['hostMobile', 'hostLandline', 'hostFax', 'hostEmail'];
+        const invalidFields = ['hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'id', 'createdAt', 'updatedAt'];
         invalidFields.forEach(field => {
             delete sanitized[field];
         });
 
-        // Handle optional fields: convert empty strings to null
-        if (sanitized.universityId === null || sanitized.universityId === undefined || sanitized.universityId === '') {
-            sanitized.universityId = null;
+        // Sanitize string fields
+        if (sanitized.kvkName !== undefined) {
+            sanitized.kvkName = sanitizeString(safeGet(data, 'kvkName'), { allowEmpty: false });
+        }
+        if (sanitized.hostOrg !== undefined) {
+            sanitized.hostOrg = sanitizeString(safeGet(data, 'hostOrg'), { allowEmpty: true });
+        }
+        if (sanitized.mobile !== undefined) {
+            sanitized.mobile = sanitizeString(safeGet(data, 'mobile'), { allowEmpty: true });
+        }
+        if (sanitized.email !== undefined) {
+            sanitized.email = sanitizeString(safeGet(data, 'email'), { allowEmpty: true });
+        }
+        if (sanitized.address !== undefined) {
+            sanitized.address = sanitizeString(safeGet(data, 'address'), { allowEmpty: true });
+        }
+        if (sanitized.yearOfSanction !== undefined) {
+            sanitized.yearOfSanction = sanitizeInteger(safeGet(data, 'yearOfSanction'));
+        }
+
+        // Sanitize relation IDs (will be converted to relations in update/create)
+        if (sanitized.zoneId !== undefined) {
+            sanitized.zoneId = sanitizeInteger(safeGet(data, 'zoneId'));
+        }
+        if (sanitized.stateId !== undefined) {
+            sanitized.stateId = sanitizeInteger(safeGet(data, 'stateId'));
+        }
+        if (sanitized.districtId !== undefined) {
+            sanitized.districtId = sanitizeInteger(safeGet(data, 'districtId'));
+        }
+        if (sanitized.orgId !== undefined) {
+            sanitized.orgId = sanitizeInteger(safeGet(data, 'orgId'));
+        }
+        if (sanitized.universityId !== undefined) {
+            const universityId = safeGet(data, 'universityId');
+            sanitized.universityId = (universityId === null || universityId === undefined || universityId === '') 
+                ? null 
+                : sanitizeInteger(universityId);
         }
     }
 
@@ -381,10 +524,28 @@ function sanitizeData(entityName, data) {
 }
 
 async function create(entityName, data) {
+    // Validate input
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new ValidationError('Invalid data: must be an object');
+    }
+
     const config = getEntityConfig(entityName);
 
     // Sanitize data to remove fields not in Prisma schema
     const sanitizedData = sanitizeData(entityName, data);
+
+    // For KVKs, convert relation IDs to relation connect operations
+    if (entityName === 'kvks') {
+        const convertedData = convertRelationFieldsForKvk(sanitizedData);
+        try {
+            return await prisma[config.model].create({
+                data: convertedData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, 'KVK', 'create');
+        }
+    }
 
     // For vehicle-details and equipment-details: if vehicleId/equipmentId is provided,
     // update the existing record instead of creating a new one
@@ -412,27 +573,63 @@ async function create(entityName, data) {
         });
     }
 
-    return await prisma[config.model].create({
-        data: sanitizedData,
-        include: config.includes,
-    });
+    // For kvk-employees and kvk-staff-transferred, convert relation ID fields to relation connect operations
+    if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
+        const convertedData = convertRelationFieldsForStaff(sanitizedData);
+        try {
+            return await prisma[config.model].create({
+                data: convertedData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, entityName, 'create');
+        }
+    }
+
+    try {
+        return await prisma[config.model].create({
+            data: sanitizedData,
+            include: config.includes,
+        });
+    } catch (error) {
+        throw translatePrismaError(error, entityName, 'create');
+    }
 }
 
 async function update(entityName, id, data) {
+    // Validate input
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new ValidationError('Invalid data: must be an object');
+    }
+
     const config = getEntityConfig(entityName);
 
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
-        throw new Error(`ID is required for ${entityName}. Received: ${id}`);
+        throw new ValidationError(`ID is required for ${entityName}. Received: ${id}`);
     }
 
-    const parsedId = parseInt(id, 10);
-    if (isNaN(parsedId) || parsedId <= 0) {
-        throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+    const parsedId = sanitizeInteger(id);
+    if (!parsedId || parsedId <= 0) {
+        throw new ValidationError(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
 
     // Sanitize data to remove fields not in Prisma schema
     const sanitizedData = sanitizeData(entityName, data);
+
+    // For KVKs, convert relation IDs to relation connect/disconnect operations
+    if (entityName === 'kvks') {
+        const convertedData = convertRelationFieldsForKvk(sanitizedData);
+        try {
+            return await prisma[config.model].update({
+                where: { [config.idField]: parsedId },
+                data: convertedData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, 'KVK', 'update');
+        }
+    }
 
     // For vehicle-details and equipment-details, only update the fields provided
     // Don't require base fields like vehicleName/equipmentName
@@ -452,11 +649,61 @@ async function update(entityName, id, data) {
         });
     }
 
-    return await prisma[config.model].update({
-        where: { [config.idField]: parsedId },
-        data: sanitizedData,
-        include: config.includes,
-    });
+    // For kvk-employees and kvk-staff-transferred, convert relation ID fields to relation connect operations
+    if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
+        const convertedData = convertRelationFieldsForStaff(sanitizedData);
+        try {
+            return await prisma[config.model].update({
+                where: { [config.idField]: parsedId },
+                data: convertedData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, entityName, 'update');
+        }
+    }
+
+    try {
+        return await prisma[config.model].update({
+            where: { [config.idField]: parsedId },
+            data: sanitizedData,
+            include: config.includes,
+        });
+    } catch (error) {
+        throw translatePrismaError(error, entityName, 'update');
+    }
+}
+
+/**
+ * Check for dependent records before deletion
+ */
+async function checkDependentRecords(entityName, config, id) {
+    // Check _count if available in includes
+    if (config.includes && config.includes._count && config.includes._count.select) {
+        // Properly structure _count query - Prisma expects _count: { select: {...} }
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: id },
+            select: { 
+                _count: {
+                    select: config.includes._count.select
+                }
+            },
+        });
+        
+        if (entity && entity._count) {
+            const dependentCounts = Object.entries(entity._count)
+                .filter(([_, count]) => count > 0);
+            
+            if (dependentCounts.length > 0) {
+                return {
+                    hasDependents: true,
+                    counts: Object.fromEntries(dependentCounts),
+                };
+            }
+        }
+    }
+    
+    return { hasDependents: false };
 }
 
 async function deleteEntity(entityName, id) {
@@ -464,17 +711,37 @@ async function deleteEntity(entityName, id) {
 
     // Validate ID is provided and is a valid number
     if (id === undefined || id === null || id === '' || id === 'undefined' || id === 'null') {
-        throw new Error(`ID is required for ${entityName}. Received: ${id}`);
+        throw new Error(`Cannot delete ${entityName}: missing ID field`);
     }
 
     const parsedId = parseInt(id, 10);
     if (isNaN(parsedId) || parsedId <= 0) {
-        throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
+        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
+    }
+    
+    // Check for dependent records
+    const dependentCheck = await checkDependentRecords(entityName, config, parsedId);
+    if (dependentCheck.hasDependents) {
+        const dependentNames = Object.keys(dependentCheck.counts).join(', ');
+        throw new Error(`Cannot delete ${entityName}: has dependent records (${dependentNames})`);
     }
 
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parsedId },
-    });
+    try {
+        return await prisma[config.model].delete({
+            where: { [config.idField]: parsedId },
+        });
+    } catch (error) {
+        // Handle foreign key constraint violations
+        if (error.code === 'P2003') {
+            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
+        }
+        // Handle record not found
+        if (error.code === 'P2025') {
+            throw new Error(`${entityName} not found`);
+        }
+        // Re-throw other errors
+        throw error;
+    }
 }
 /**
  * Get all sanctioned posts (for dropdown)

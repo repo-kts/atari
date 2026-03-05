@@ -2,7 +2,7 @@ model KvkTechnologyWeekCelebration {
   techWeekId Int @id @default(autoincrement()) @map("tech_week_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   startDate DateTime @map("start_date")
   endDate   DateTime @map("end_date")
@@ -23,6 +23,9 @@ model KvkTechnologyWeekCelebration {
 
   farmersStM Int @map("farmers_st_m")
   farmersStF Int @map("farmers_st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([startDate])

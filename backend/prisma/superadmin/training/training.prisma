@@ -4,6 +4,9 @@ model TrainingType {
   trainingTypeId   Int    @id @default(autoincrement()) @map("training_type_id")
   trainingTypeName String @unique @map("training_type_name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   trainingAreas TrainingArea[]
 
   @@index([trainingTypeId])
@@ -15,8 +18,12 @@ model TrainingArea {
   trainingAreaId   Int    @id @default(autoincrement()) @map("training_area_id")
   trainingAreaName String @map("training_area_name")
 
-  trainingTypeId Int
-  trainingType   TrainingType @relation(fields: [trainingTypeId], references: [trainingTypeId])
+  trainingTypeId Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trainingType   TrainingType? @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
 
   thematicAreas TrainingThematicArea[]
 
@@ -30,8 +37,12 @@ model TrainingThematicArea {
   trainingThematicAreaId   Int    @id @default(autoincrement()) @map("training_thematic_area_id")
   trainingThematicAreaName String @map("training_thematic_area_name")
 
-  trainingAreaId Int
-  trainingArea   TrainingArea @relation(fields: [trainingAreaId], references: [trainingAreaId])
+  trainingAreaId Int?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  trainingArea   TrainingArea? @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: SetNull)
 
   @@index([trainingThematicAreaId])
   @@index([trainingAreaId])

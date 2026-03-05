@@ -1,7 +1,9 @@
 const prisma = require('../../config/prisma.js');
+const { sanitizeString, sanitizeInteger, safeGet } = require('../../utils/dataSanitizer.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
 
 /**
- * Generic Master Data Repository
+ * Generic Master Data Repository 
  * Ultra-optimized repository for all master data CRUD operations
  * Supports Zones, States, Districts, and Organizations
  */
@@ -225,53 +227,118 @@ async function findAll(entityName, options = {}) {
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Missing ID field: ${config.idField}`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Invalid ID: ${id}. Expected a number.`);
+    }
 
     return await prisma[config.model].findUnique({
-        where: { [config.idField]: parseInt(id) },
+        where: { [config.idField]: parsedId },
         include: config.includes,
     });
 }
 
 /**
- * Sanitize data: only keep fields listed in allowedFields, parse integers for FK fields.
- * This prevents Prisma errors from nested objects, _count, IDs, or extraneous fields.
+ * Sanitize and validate data for entity creation
+ * @param {string} entityName - Entity name
+ * @param {object} data - Entity data
+ * @returns {object} Sanitized data
  */
-function sanitizeData(config, data) {
-    const sanitized = {};
-    for (const field of config.allowedFields) {
-        if (data[field] === undefined || data[field] === null) continue;
-        // Foreign key fields (ending in "Id") must be integers
-        if (field.endsWith('Id')) {
-            const parsed = parseInt(data[field], 10);
-            if (!isNaN(parsed)) {
-                sanitized[field] = parsed;
-            }
-        } else {
-            sanitized[field] = typeof data[field] === 'string' ? data[field].trim() : data[field];
+function sanitizeAndValidateData(entityName, data) {
+    const config = getEntityConfig(entityName);
+    const sanitized = { ...data };
+
+    // Remove ID fields to prevent conflicts
+    const idFieldVariations = [
+        config.idField,
+        'id',
+        '_id',
+        config.idField.toLowerCase(),
+        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
+    ];
+
+    for (const idField of idFieldVariations) {
+        if (sanitized[idField] !== undefined) {
+            delete sanitized[idField];
         }
     }
-    return sanitized;
-}
 
-/**
- * Fix PostgreSQL sequence for auto-increment columns that may be out of sync.
- */
-async function fixSequence(config) {
-    try {
-        const maxIdResult = await prisma.$queryRawUnsafe(
-            `SELECT COALESCE(MAX(${config.idColumn}), 0) as max_id FROM ${config.tableName}`
-        );
-        const maxId = Number(maxIdResult[0]?.max_id || 0);
-        const nextId = maxId > 0 ? maxId + 1 : 1;
-        const seqName = `${config.tableName.replace(/"/g, '')}_${config.idColumn}_seq`;
-        await prisma.$executeRawUnsafe(
-            `SELECT setval('"${seqName}"', ${nextId}, false)`
-        );
-        return nextId;
-    } catch (err) {
-        console.error(`Error fixing sequence for ${config.model}:`, err.message);
-        return null;
+    // Validate required fields based on entity type
+    switch (entityName) {
+        case 'zones':
+            const zoneName = sanitizeString(safeGet(data, 'zoneName'), { allowEmpty: false });
+            if (!zoneName) {
+                throw new ValidationError('zoneName is required', 'zoneName');
+            }
+            sanitized.zoneName = zoneName;
+            break;
+
+        case 'states':
+            const stateName = sanitizeString(safeGet(data, 'stateName'), { allowEmpty: false });
+            if (!stateName) {
+                throw new ValidationError('stateName is required', 'stateName');
+            }
+            const zoneId = sanitizeInteger(safeGet(data, 'zoneId'));
+            if (!zoneId || zoneId === null) {
+                throw new ValidationError('zoneId is required', 'zoneId');
+            }
+            sanitized.stateName = stateName;
+            sanitized.zoneId = zoneId;
+            break;
+
+        case 'districts':
+            if (!data.districtName || String(data.districtName).trim() === '') {
+                throw new Error('districtName is required');
+            }
+            if (!data.stateId) {
+                throw new Error('stateId is required');
+            }
+            if (!data.zoneId) {
+                throw new Error('zoneId is required');
+            }
+            sanitized.districtName = String(data.districtName).trim();
+            sanitized.stateId = parseInt(data.stateId);
+            sanitized.zoneId = parseInt(data.zoneId);
+            break;
+
+        case 'organizations':
+            if (!data.orgName || String(data.orgName).trim() === '') {
+                throw new Error('orgName is required');
+            }
+            sanitized.orgName = String(data.orgName).trim();
+            // districtId is optional but should be parsed if provided
+            if (data.districtId !== undefined && data.districtId !== null && data.districtId !== '') {
+                sanitized.districtId = parseInt(data.districtId);
+            } else {
+                sanitized.districtId = null;
+            }
+            break;
+
+        case 'universities':
+            if (!data.universityName || String(data.universityName).trim() === '') {
+                throw new Error('universityName is required');
+            }
+            if (!data.orgId) {
+                throw new Error('orgId is required');
+            }
+            sanitized.universityName = String(data.universityName).trim();
+            sanitized.orgId = parseInt(data.orgId);
+            break;
+
+        default:
+            // For other entities, validate name field if it exists
+            if (config.nameField && data[config.nameField]) {
+                sanitized[config.nameField] = String(data[config.nameField]).trim();
+            }
     }
+
+    return sanitized;
 }
 
 /**
@@ -281,29 +348,135 @@ async function fixSequence(config) {
  * @returns {Promise<object>}
  */
 async function create(entityName, data) {
-    const config = getEntityConfig(entityName);
-    const sanitized = sanitizeData(config, data);
-
-    try {
-        return await prisma[config.model].create({
-            data: sanitized,
-            include: config.includes,
-        });
-    } catch (error) {
-        // If it looks like a sequence/null-constraint issue, fix the sequence and retry once
-        if (error.code === 'P2011' || error.code === 'P2002' ||
-            (error.message && error.message.includes('Null constraint violation'))) {
-            console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
-            const fixed = await fixSequence(config);
-            if (fixed !== null) {
-                return await prisma[config.model].create({
-                    data: sanitized,
-                    include: config.includes,
-                });
-            }
-        }
-        throw error;
+    // Validate input
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new ValidationError('Invalid data: must be an object');
     }
+
+    const config = getEntityConfig(entityName);
+
+    // Sanitize and validate data
+    const sanitizedData = sanitizeAndValidateData(entityName, data);
+
+    // Ensure sanitizedData is not empty
+    if (!sanitizedData || Object.keys(sanitizedData).length === 0) {
+        throw new ValidationError('No valid data provided for creation');
+    }
+
+    return await prisma[config.model].create({
+        data: sanitizedData,
+        include: config.includes,
+    });
+}
+
+/**
+ * Sanitize data for entity update
+ * @param {string} entityName - Entity name
+ * @param {object} data - Entity data
+ * @returns {object} Sanitized data
+ */
+function sanitizeUpdateData(entityName, data) {
+    const config = getEntityConfig(entityName);
+    const sanitized = { ...data };
+
+    // Remove ID fields
+    const idFieldVariations = [
+        config.idField,
+        'id',
+        '_id',
+        config.idField.toLowerCase(),
+        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
+    ];
+
+    for (const idField of idFieldVariations) {
+        if (sanitized[idField] !== undefined) {
+            delete sanitized[idField];
+        }
+    }
+
+    // Validate and sanitize fields based on entity type
+    switch (entityName) {
+        case 'zones':
+            if (sanitized.zoneName !== undefined) {
+                if (!sanitized.zoneName || String(sanitized.zoneName).trim() === '') {
+                    throw new Error('zoneName cannot be empty');
+                }
+                sanitized.zoneName = String(sanitized.zoneName).trim();
+            }
+            break;
+
+        case 'states':
+            if (sanitized.stateName !== undefined) {
+                if (!sanitized.stateName || String(sanitized.stateName).trim() === '') {
+                    throw new Error('stateName cannot be empty');
+                }
+                sanitized.stateName = String(sanitized.stateName).trim();
+            }
+            if (sanitized.zoneId !== undefined) {
+                sanitized.zoneId = parseInt(sanitized.zoneId);
+            }
+            break;
+
+        case 'districts':
+            if (sanitized.districtName !== undefined) {
+                if (!sanitized.districtName || String(sanitized.districtName).trim() === '') {
+                    throw new Error('districtName cannot be empty');
+                }
+                sanitized.districtName = String(sanitized.districtName).trim();
+            }
+            if (sanitized.stateId !== undefined) {
+                sanitized.stateId = parseInt(sanitized.stateId);
+            }
+            if (sanitized.zoneId !== undefined) {
+                sanitized.zoneId = parseInt(sanitized.zoneId);
+            }
+            break;
+
+        case 'organizations':
+            if (sanitized.orgName !== undefined) {
+                if (!sanitized.orgName || String(sanitized.orgName).trim() === '') {
+                    throw new Error('orgName cannot be empty');
+                }
+                sanitized.orgName = String(sanitized.orgName).trim();
+            }
+            if (sanitized.districtId !== undefined) {
+                if (sanitized.districtId === null || sanitized.districtId === '') {
+                    sanitized.districtId = null;
+                } else {
+                    sanitized.districtId = parseInt(sanitized.districtId);
+                }
+            }
+            break;
+
+        case 'universities':
+            if (sanitized.universityName !== undefined) {
+                if (!sanitized.universityName || String(sanitized.universityName).trim() === '') {
+                    throw new Error('universityName cannot be empty');
+                }
+                sanitized.universityName = String(sanitized.universityName).trim();
+            }
+            if (sanitized.orgId !== undefined) {
+                sanitized.orgId = parseInt(sanitized.orgId);
+            }
+            break;
+
+        default:
+            // For other entities, sanitize name field if provided
+            if (config.nameField && sanitized[config.nameField] !== undefined) {
+                const nameValue = String(sanitized[config.nameField]).trim();
+                if (nameValue === '') {
+                    throw new Error(`${config.nameField} cannot be empty`);
+                }
+                sanitized[config.nameField] = nameValue;
+            }
+    }
+
+    // Ensure at least one field is being updated
+    if (Object.keys(sanitized).length === 0) {
+        throw new Error('No valid fields provided for update');
+    }
+
+    return sanitized;
 }
 
 /**
@@ -314,14 +487,67 @@ async function create(entityName, data) {
  * @returns {Promise<object>}
  */
 async function update(entityName, id, data) {
+    // Validate input
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new ValidationError('Invalid data: must be an object');
+    }
+
     const config = getEntityConfig(entityName);
-    const sanitized = sanitizeData(config, data);
+    const entityId = sanitizeInteger(id);
+    
+    if (!entityId || entityId === null || isNaN(entityId)) {
+        throw new ValidationError(`Invalid ${config.idField}: ${id}`);
+    }
+
+    // Sanitize update data
+    const sanitizedData = sanitizeUpdateData(entityName, data);
+
+    // Ensure sanitizedData is not empty
+    if (!sanitizedData || Object.keys(sanitizedData).length === 0) {
+        throw new ValidationError('No valid fields provided for update');
+    }
 
     return await prisma[config.model].update({
-        where: { [config.idField]: parseInt(id) },
-        data: sanitized,
+        where: { [config.idField]: entityId },
+        data: sanitizedData,
         include: config.includes,
     });
+}
+
+/**
+ * Check for dependent records before deletion
+ * @param {string} entityName - Entity name
+ * @param {object} config - Entity configuration
+ * @param {number} id - Entity ID
+ * @returns {Promise<object|null>} Dependent records info or null
+ */
+async function checkDependentRecords(entityName, config, id) {
+    // Check _count if available in includes
+    if (config.includes && config.includes._count && config.includes._count.select) {
+        // Properly structure _count query - Prisma expects _count: { select: {...} }
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: id },
+            select: { 
+                _count: {
+                    select: config.includes._count.select
+                }
+            },
+        });
+        
+        if (entity && entity._count) {
+            const dependentCounts = Object.entries(entity._count)
+                .filter(([_, count]) => count > 0);
+            
+            if (dependentCounts.length > 0) {
+                return {
+                    hasDependents: true,
+                    counts: Object.fromEntries(dependentCounts),
+                };
+            }
+        }
+    }
+    
+    return { hasDependents: false };
 }
 
 /**
@@ -332,10 +558,34 @@ async function update(entityName, id, data) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-
-    return await prisma[config.model].delete({
-        where: { [config.idField]: parseInt(id) },
-    });
+    
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new Error(`Cannot delete ${entityName}: missing ID field`);
+    }
+    
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId)) {
+        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
+    }
+    
+    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
+    try {
+        return await prisma[config.model].delete({
+            where: { [config.idField]: parsedId },
+        });
+    } catch (error) {
+        // Handle foreign key constraint violations (if schema doesn't have SetNull)
+        if (error.code === 'P2003') {
+            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
+        }
+        // Handle record not found
+        if (error.code === 'P2025') {
+            throw new Error(`${entityName} not found`);
+        }
+        // Re-throw other errors
+        throw error;
+    }
 }
 
 /**

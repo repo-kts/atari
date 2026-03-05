@@ -2,7 +2,7 @@ model FpoCbboDetails {
   fpoCbboDetailsId Int @id @default(autoincrement()) @map("fpo_cbbo_details_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   reportingYear Int @map("reporting_year")
   blocksAllocated Int @map("blocks_allocated")
@@ -17,6 +17,9 @@ model FpoCbboDetails {
   businessPlanPreparedWithCbbo Boolean @map("business_plan_prepared_with_cbbo")
   businessPlanPreparedWithoutCbbo Boolean @map("business_plan_prepared_without_cbbo")
   fposDoingBusiness Int @map("fpos_doing_business")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
 

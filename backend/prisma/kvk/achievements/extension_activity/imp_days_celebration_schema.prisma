@@ -2,7 +2,7 @@ model KvkImportantDayCelebration {
   celebrationId Int @id @default(autoincrement()) @map("celebration_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   eventDate DateTime @map("event_date")
 
@@ -34,6 +34,9 @@ model KvkImportantDayCelebration {
 
   officialsStM Int @map("officials_st_m")
   officialsStF Int @map("officials_st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([importantDayId])

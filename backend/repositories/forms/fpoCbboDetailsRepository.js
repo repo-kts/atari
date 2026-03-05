@@ -1,32 +1,43 @@
 const prisma = require('../../config/prisma.js');
+const { sanitizeForPrisma, sanitizeInteger, sanitizeBoolean, safeGet } = require('../../utils/dataSanitizer.js');
+const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 const fpoCbboDetailsRepository = {
     create: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        // Validate input
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new ValidationError('Invalid data: must be an object');
+        }
 
-        const result = await prisma.fpoCbboDetails.create({
-            data: {
-                kvkId,
-                reportingYear: parseInt(data.yearId ?? data.reportingYear) || new Date().getFullYear(),
-                blocksAllocated: parseInt(data.blocksAllocated) || 0,
-                fposRegisteredAsCbbo: parseInt(data.fposRegisteredAsCbbo) || 0,
-                avgMembersPerFpo: parseInt(data.avgMembersPerFpo) || 0,
-                fposReceivedManagementCost: parseInt(data.fposReceivedMgmtCost ?? data.fposReceivedManagementCost) || 0,
-                fposReceivedEquityGrant: parseInt(data.fposReceivedEquityGrant) || 0,
-                techBackstoppingProvided: parseInt(data.techBackstoppingFpos ?? data.techBackstoppingProvided) || 0,
-                trainingProgrammeOrganized: parseInt(data.trainingProgsOrganized ?? data.trainingProgrammeOrganized) || 0,
-                trainingReceivedByMembers: data.trainingReceivedByMembers === 'Yes' || data.trainingReceivedByMembers === true,
-                assistanceInEconomicActivities: parseInt(data.assistanceEconomicActivities ?? data.assistanceInEconomicActivities) || 0,
-                businessPlanPreparedWithCbbo: data.businessPlanCbbo === 'Yes' || data.businessPlanCbbo === true || !!data.businessPlanPreparedWithCbbo,
-                businessPlanPreparedWithoutCbbo: data.businessPlanWithoutCbbo === 'Yes' || data.businessPlanWithoutCbbo === true || !!data.businessPlanPreparedWithoutCbbo,
-                fposDoingBusiness: parseInt(data.fposDoingBusiness) || 0,
-            },
-            include: {
-                kvk: { select: { kvkName: true } }
-            }
-        });
+        const kvkId = sanitizeInteger(safeGet(user, 'kvkId') || safeGet(data, 'kvkId'), { defaultValue: 1 });
 
-        return _mapResponse(result);
+        try {
+            const result = await prisma.fpoCbboDetails.create({
+                data: {
+                    kvkId,
+                    reportingYear: sanitizeInteger(safeGet(data, 'yearId') || safeGet(data, 'reportingYear'), { defaultValue: new Date().getFullYear() }),
+                    blocksAllocated: sanitizeInteger(safeGet(data, 'blocksAllocated'), { defaultValue: 0 }),
+                    fposRegisteredAsCbbo: sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'), { defaultValue: 0 }),
+                    avgMembersPerFpo: sanitizeInteger(safeGet(data, 'avgMembersPerFpo'), { defaultValue: 0 }),
+                    fposReceivedManagementCost: sanitizeInteger(safeGet(data, 'fposReceivedMgmtCost') || safeGet(data, 'fposReceivedManagementCost'), { defaultValue: 0 }),
+                    fposReceivedEquityGrant: sanitizeInteger(safeGet(data, 'fposReceivedEquityGrant'), { defaultValue: 0 }),
+                    techBackstoppingProvided: sanitizeInteger(safeGet(data, 'techBackstoppingFpos') || safeGet(data, 'techBackstoppingProvided'), { defaultValue: 0 }),
+                    trainingProgrammeOrganized: sanitizeInteger(safeGet(data, 'trainingProgsOrganized') || safeGet(data, 'trainingProgrammeOrganized'), { defaultValue: 0 }),
+                    trainingReceivedByMembers: sanitizeBoolean(safeGet(data, 'trainingReceivedByMembers'), false),
+                    assistanceInEconomicActivities: sanitizeInteger(safeGet(data, 'assistanceEconomicActivities') || safeGet(data, 'assistanceInEconomicActivities'), { defaultValue: 0 }),
+                    businessPlanPreparedWithCbbo: sanitizeBoolean(safeGet(data, 'businessPlanCbbo') || safeGet(data, 'businessPlanPreparedWithCbbo'), false),
+                    businessPlanPreparedWithoutCbbo: sanitizeBoolean(safeGet(data, 'businessPlanWithoutCbbo') || safeGet(data, 'businessPlanPreparedWithoutCbbo'), false),
+                    fposDoingBusiness: sanitizeInteger(safeGet(data, 'fposDoingBusiness'), { defaultValue: 0 }),
+                },
+                include: {
+                    kvk: { select: { kvkName: true } }
+                }
+            });
+
+            return _mapResponse(result);
+        } catch (error) {
+            throw translatePrismaError(error, 'FPOCbboDetails', 'create');
+        }
     },
 
     findAll: async (filters = {}, user) => {
@@ -64,37 +75,80 @@ const fpoCbboDetailsRepository = {
     },
 
     update: async (id, data) => {
+        // Validate input
+        if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            throw new ValidationError('Invalid data: must be an object');
+        }
+
+        const parsedId = sanitizeInteger(id);
+        if (!parsedId || parsedId <= 0) {
+            throw new ValidationError(`Invalid ID: ${id}`);
+        }
+
         const updateData = {};
 
-        if (data.yearId !== undefined || data.reportingYear !== undefined) updateData.reportingYear = parseInt(data.yearId ?? data.reportingYear);
-        if (data.blocksAllocated !== undefined) updateData.blocksAllocated = parseInt(data.blocksAllocated);
-        if (data.fposRegisteredAsCbbo !== undefined) updateData.fposRegisteredAsCbbo = parseInt(data.fposRegisteredAsCbbo);
-        if (data.avgMembersPerFpo !== undefined) updateData.avgMembersPerFpo = parseInt(data.avgMembersPerFpo);
-        if (data.fposReceivedMgmtCost !== undefined || data.fposReceivedManagementCost !== undefined) updateData.fposReceivedManagementCost = parseInt(data.fposReceivedMgmtCost ?? data.fposReceivedManagementCost);
-        if (data.fposReceivedEquityGrant !== undefined) updateData.fposReceivedEquityGrant = parseInt(data.fposReceivedEquityGrant);
-        if (data.techBackstoppingFpos !== undefined || data.techBackstoppingProvided !== undefined) updateData.techBackstoppingProvided = parseInt(data.techBackstoppingFpos ?? data.techBackstoppingProvided);
-        if (data.trainingProgsOrganized !== undefined || data.trainingProgrammeOrganized !== undefined) updateData.trainingProgrammeOrganized = parseInt(data.trainingProgsOrganized ?? data.trainingProgrammeOrganized);
-        if (data.trainingReceivedByMembers !== undefined) updateData.trainingReceivedByMembers = data.trainingReceivedByMembers === 'Yes' || data.trainingReceivedByMembers === true;
-        if (data.assistanceEconomicActivities !== undefined || data.assistanceInEconomicActivities !== undefined) updateData.assistanceInEconomicActivities = parseInt(data.assistanceEconomicActivities ?? data.assistanceInEconomicActivities);
-        if (data.businessPlanCbbo !== undefined || data.businessPlanPreparedWithCbbo !== undefined) updateData.businessPlanPreparedWithCbbo = data.businessPlanCbbo === 'Yes' || data.businessPlanCbbo === true || !!data.businessPlanPreparedWithCbbo;
-        if (data.businessPlanWithoutCbbo !== undefined || data.businessPlanPreparedWithoutCbbo !== undefined) updateData.businessPlanPreparedWithoutCbbo = data.businessPlanWithoutCbbo === 'Yes' || data.businessPlanWithoutCbbo === true || !!data.businessPlanPreparedWithoutCbbo;
-        if (data.fposDoingBusiness !== undefined) updateData.fposDoingBusiness = parseInt(data.fposDoingBusiness);
+        if (safeGet(data, 'yearId') !== undefined || safeGet(data, 'reportingYear') !== undefined) {
+            updateData.reportingYear = sanitizeInteger(safeGet(data, 'yearId') || safeGet(data, 'reportingYear'));
+        }
+        if (safeGet(data, 'blocksAllocated') !== undefined) updateData.blocksAllocated = sanitizeInteger(safeGet(data, 'blocksAllocated'));
+        if (safeGet(data, 'fposRegisteredAsCbbo') !== undefined) updateData.fposRegisteredAsCbbo = sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'));
+        if (safeGet(data, 'avgMembersPerFpo') !== undefined) updateData.avgMembersPerFpo = sanitizeInteger(safeGet(data, 'avgMembersPerFpo'));
+        if (safeGet(data, 'fposReceivedMgmtCost') !== undefined || safeGet(data, 'fposReceivedManagementCost') !== undefined) {
+            updateData.fposReceivedManagementCost = sanitizeInteger(safeGet(data, 'fposReceivedMgmtCost') || safeGet(data, 'fposReceivedManagementCost'));
+        }
+        if (safeGet(data, 'fposReceivedEquityGrant') !== undefined) updateData.fposReceivedEquityGrant = sanitizeInteger(safeGet(data, 'fposReceivedEquityGrant'));
+        if (safeGet(data, 'techBackstoppingFpos') !== undefined || safeGet(data, 'techBackstoppingProvided') !== undefined) {
+            updateData.techBackstoppingProvided = sanitizeInteger(safeGet(data, 'techBackstoppingFpos') || safeGet(data, 'techBackstoppingProvided'));
+        }
+        if (safeGet(data, 'trainingProgsOrganized') !== undefined || safeGet(data, 'trainingProgrammeOrganized') !== undefined) {
+            updateData.trainingProgrammeOrganized = sanitizeInteger(safeGet(data, 'trainingProgsOrganized') || safeGet(data, 'trainingProgrammeOrganized'));
+        }
+        if (safeGet(data, 'trainingReceivedByMembers') !== undefined) {
+            updateData.trainingReceivedByMembers = sanitizeBoolean(safeGet(data, 'trainingReceivedByMembers'), false);
+        }
+        if (safeGet(data, 'assistanceEconomicActivities') !== undefined || safeGet(data, 'assistanceInEconomicActivities') !== undefined) {
+            updateData.assistanceInEconomicActivities = sanitizeInteger(safeGet(data, 'assistanceEconomicActivities') || safeGet(data, 'assistanceInEconomicActivities'));
+        }
+        if (safeGet(data, 'businessPlanCbbo') !== undefined || safeGet(data, 'businessPlanPreparedWithCbbo') !== undefined) {
+            updateData.businessPlanPreparedWithCbbo = sanitizeBoolean(safeGet(data, 'businessPlanCbbo') || safeGet(data, 'businessPlanPreparedWithCbbo'), false);
+        }
+        if (safeGet(data, 'businessPlanWithoutCbbo') !== undefined || safeGet(data, 'businessPlanPreparedWithoutCbbo') !== undefined) {
+            updateData.businessPlanPreparedWithoutCbbo = sanitizeBoolean(safeGet(data, 'businessPlanWithoutCbbo') || safeGet(data, 'businessPlanPreparedWithoutCbbo'), false);
+        }
+        if (safeGet(data, 'fposDoingBusiness') !== undefined) updateData.fposDoingBusiness = sanitizeInteger(safeGet(data, 'fposDoingBusiness'));
 
-        const result = await prisma.fpoCbboDetails.update({
-            where: { fpoCbboDetailsId: parseInt(id) },
-            data: updateData,
-            include: {
-                kvk: { select: { kvkName: true } }
-            }
-        });
+        if (Object.keys(updateData).length === 0) {
+            throw new ValidationError('No valid fields provided for update');
+        }
 
-        return _mapResponse(result);
+        try {
+            const result = await prisma.fpoCbboDetails.update({
+                where: { fpoCbboDetailsId: parsedId },
+                data: updateData,
+                include: {
+                    kvk: { select: { kvkName: true } }
+                }
+            });
+
+            return _mapResponse(result);
+        } catch (error) {
+            throw translatePrismaError(error, 'FPOCbboDetails', 'update');
+        }
     },
 
     delete: async (id) => {
-        return await prisma.fpoCbboDetails.delete({
-            where: { fpoCbboDetailsId: parseInt(id) }
-        });
+        const parsedId = sanitizeInteger(id);
+        if (!parsedId || parsedId <= 0) {
+            throw new ValidationError(`Invalid ID: ${id}`);
+        }
+
+        try {
+            return await prisma.fpoCbboDetails.delete({
+                where: { fpoCbboDetailsId: parsedId }
+            });
+        } catch (error) {
+            throw translatePrismaError(error, 'FPOCbboDetails', 'delete');
+        }
     }
 };
 

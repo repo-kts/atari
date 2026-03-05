@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const oftController = require('../../controllers/forms/oftController.js');
 const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { ensureBody } = require('../../middleware/validateInput.js');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -13,7 +14,7 @@ const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'dist
 /**
  * @route   POST /api/forms/achievements/oft
  */
-router.post('/', requireRole([...kvkRoles, 'super_admin']), oftController.create);
+router.post('/', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.create);
 
 /**
  * @route   GET /api/forms/achievements/oft
@@ -28,8 +29,8 @@ router.get('/:id', requireRole(allRoles), oftController.getById);
 /**
  * @route   PATCH /api/forms/achievements/oft/:id
  */
-router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), oftController.update);
-router.put('/:id', requireRole([...kvkRoles, 'super_admin']), oftController.update);
+router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
 
 /**
  * @route   DELETE /api/forms/achievements/oft/:id

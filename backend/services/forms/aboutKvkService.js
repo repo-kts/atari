@@ -261,19 +261,25 @@ class AboutKvkService {
     sanitizeUpdateData(entityName, data) {
         // List of fields that should never be updated (read-only)
         const readOnlyFields = [
-            // ID fields
+            // ID fields (primary keys and system-managed IDs)
             'kvkId', 'bankAccountId', 'kvkStaffId', 'employeeId', 'infraId',
             'vehicleId', 'vehicleDetailId', 'equipmentId', 'equipmentDetailId', 'implementId',
-            'zoneId', 'stateId', 'districtId', 'orgId',
+            'zoneId', 'stateId', 'districtId', 'orgId', 
+            // Transfer-related fields (managed by transfer system)
+            'originalKvkId', 'transferCount', 'lastTransferDate',
             // Timestamps
             'createdAt', 'updatedAt',
             // Metadata
             '_count',
             // Nested objects (these are relations, not data fields)
             'kvk', 'zone', 'state', 'district', 'org', 'organization',
-            'sanctionedPost', 'discipline', 'infraMaster',
+            'sanctionedPost', 'discipline', 'infraMaster', 'staffCategory', 'payLevel',
             'vehicle', 'equipment'
         ];
+        
+        // For employee updates, allow updating foreign key IDs but not the relation objects
+        // Note: sanctionedPostId, disciplineId, staffCategoryId, and payLevelId are updatable
+        // They are foreign keys that users should be able to change
 
         // Create a clean copy of data without read-only fields
         const sanitized = {};
@@ -375,10 +381,6 @@ class AboutKvkService {
         });
 
         if (missing.length > 0) {
-            console.error('❌ Validation failed for:', entityName);
-            console.error('📦 Received data:', JSON.stringify(data, null, 2));
-            console.error('❌ Missing fields:', missing);
-            console.error('✅ Received fields:', Object.keys(data));
             throw new Error(`Missing required fields: ${missing.join(', ')}. Received: ${Object.keys(data).join(', ')}`);
         }
     }

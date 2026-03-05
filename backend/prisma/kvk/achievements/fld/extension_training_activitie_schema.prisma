@@ -3,10 +3,10 @@ model FldExtension {
   reportingYear Int @map("reporting_year")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId]) 
+  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade) 
 
   activityId Int
   activity   FldActivity @relation(fields: [activityId], references: [activityId])
@@ -26,6 +26,9 @@ model FldExtension {
 
   stM Int @map("st_m")
   stF Int @map("st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([fldId])

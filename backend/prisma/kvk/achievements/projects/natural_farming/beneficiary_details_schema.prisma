@@ -2,7 +2,7 @@ model BeneficiariesDetails {
   beneficiariesDetailsId Int @id @default(autoincrement()) @map("beneficiaries_details_id")
 
   kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   year Int
   blocksCovered  Int @map("blocks_covered")

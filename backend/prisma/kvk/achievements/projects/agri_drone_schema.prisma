@@ -2,7 +2,7 @@ model KvkAgriDrone {
     agriDroneId Int @id @default(autoincrement()) @map("agri_drone_id")
 
     kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
     reportingYear Int @map("reporting_year")
     projectImplementingCentre String @map("project_implementing_centre")
@@ -19,6 +19,9 @@ model KvkAgriDrone {
     demoAmountUtilised Float @map("demo_amount_utilised")
     operationType String @map("operation_type")
     advantagesObserved String @map("advantages_observed")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@index([kvkId])
 

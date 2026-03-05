@@ -4,6 +4,9 @@ model Sector {
   sectorId   Int    @id @default(autoincrement()) @map("sector_id")
   sectorName String @unique @map("sector_name")
 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   thematicAreas FldThematicArea[]
   categories    FldCategory[]
   subCategories FldSubcategory[]
@@ -19,6 +22,10 @@ model FldThematicArea {
   thematicAreaName String @map("thematic_area_name")
 
   sectorId Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   kvkFldIntroductions KvkFldIntroduction[]
@@ -33,6 +40,10 @@ model FldCategory {
   categoryName String @map("category_name")
 
   sectorId Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   subCategories FldSubcategory[]
@@ -49,9 +60,12 @@ model FldSubcategory {
   subCategoryName String @map("sub_category_name")
 
   categoryId Int
-  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
-
   sectorId Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  category   FldCategory @relation(fields: [categoryId], references: [categoryId])
   sector   Sector @relation(fields: [sectorId], references: [sectorId])
 
   crops FldCrop[]
@@ -69,9 +83,12 @@ model FldCrop {
   cropName String @map("crop_name")
 
   categoryId    Int
-  category      FldCategory @relation(fields: [categoryId], references: [categoryId])
-
   subCategoryId Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  category      FldCategory @relation(fields: [categoryId], references: [categoryId])
   subCategory   FldSubcategory @relation(fields: [subCategoryId], references: [subCategoryId])
 
   kvkFldIntroductions  KvkFldIntroduction[] 

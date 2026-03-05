@@ -2,7 +2,7 @@ model KkvWorldSoilCelebration {
     worldSoilCelebrationId Int @id @default(autoincrement()) @map("world_soil_celebration_id")
 
     kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
     activitiesConducted Int @map("activities_conducted")
     soilHealthCardDistributed Int @map("soil_health_card_distributed")
@@ -21,6 +21,9 @@ model KkvWorldSoilCelebration {
 
     stM Int @map("st_m")
     stF Int @map("st_f")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@index([kvkId])
     @@map("kvk_world_soil_celebration")

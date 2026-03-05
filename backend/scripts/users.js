@@ -26,7 +26,7 @@ async function seedSuperAdmin() {
     return;
   }
   const email = (process.env.SUPER_ADMIN_EMAIL || 'superadmin@atari.gov.in').toLowerCase().trim();
-  const password = process.env.SUPER_ADMIN_PASSWORD;
+  const password = process.env.SUPER_ADMIN_PASSWORD || "Atari@123";
   if (!password) throw new Error('SUPER_ADMIN_PASSWORD env var is required.');
   const name = process.env.SUPER_ADMIN_NAME || 'Super Administrator';
   const existingEmail = await prisma.user.findUnique({ where: { email } });
@@ -83,7 +83,7 @@ async function seedKvkUser() {
     return;
   }
 
-  const kvkPassword = process.env.KVK_USER_PASSWORD;
+  const kvkPassword = process.env.KVK_USER_PASSWORD || "Atari@123";
   if (!kvkPassword) throw new Error('KVK_USER_PASSWORD env var is required.');
   const passwordHash = await hashPassword(kvkPassword);
   await prisma.user.create({
