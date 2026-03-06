@@ -642,6 +642,36 @@ async function create(entityName, data) {
     // Note: vehicleId/equipmentId validation is done before sanitization above
     // They are restored in sanitizedData after sanitization
 
+    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
+        const convertedData = { ...sanitizedData };
+        
+        // Remove old reportingYear and yearId fields
+        delete convertedData.reportingYear;
+        delete convertedData.yearId;
+        
+        // Convert reportingYearId to relation connect/disconnect
+        if (convertedData.reportingYearId !== undefined) {
+            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
+                convertedData.reportingYear = { disconnect: true };
+            } else {
+                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
+            }
+            delete convertedData.reportingYearId;
+        }
+        
+        // Ensure ID fields are removed
+        const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
+        try {
+            return await prisma[config.model].create({
+                data: finalData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, entityName, 'create');
+        }
+    }
+
     // Generic create path - ensure ID fields are removed
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
     // For vehicle-details and equipment-details, remove old reportingYear and yearId fields
@@ -727,6 +757,37 @@ async function update(entityName, id, data) {
             return await prisma[config.model].update({
                 where: { [config.idField]: parsedId },
                 data: convertedData,
+                include: config.includes,
+            });
+        } catch (error) {
+            throw translatePrismaError(error, entityName, 'update');
+        }
+    }
+
+    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
+        const convertedData = { ...sanitizedData };
+        
+        // Remove old reportingYear and yearId fields
+        delete convertedData.reportingYear;
+        delete convertedData.yearId;
+        
+        // Convert reportingYearId to relation connect/disconnect
+        if (convertedData.reportingYearId !== undefined) {
+            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
+                convertedData.reportingYear = { disconnect: true };
+            } else {
+                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
+            }
+            delete convertedData.reportingYearId;
+        }
+        
+        // Ensure ID fields are removed
+        const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
+        try {
+            return await prisma[config.model].update({
+                where: { [config.idField]: parsedId },
+                data: finalData,
                 include: config.includes,
             });
         } catch (error) {

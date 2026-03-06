@@ -79,20 +79,23 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // Extract reportingYearId from nested reportingYear object when editing OFT
     useEffect(() => {
-        if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && Object.keys(formData).length > 0) {
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT) {
             setFormData((prev: any) => {
+                // Only update if we need to extract data and haven't already extracted it
+                if (prev.reportingYearId) return prev // Already has reportingYearId, no need to update
+
                 const updates: any = {}
 
                 // Extract reportingYearId from nested reportingYear object if not directly available
-                if (!prev.reportingYearId && prev.reportingYear && prev.reportingYear.yearId) {
+                if (prev.reportingYear && prev.reportingYear.yearId) {
                     updates.reportingYearId = prev.reportingYear.yearId
                 }
                 // Handle legacy yearId (backward compatibility - map to reportingYearId)
-                if (!prev.reportingYearId && prev.yearId) {
+                else if (prev.yearId) {
                     updates.reportingYearId = prev.yearId
                 }
                 // Handle legacy reportingYear as integer (backward compatibility)
-                if (!prev.reportingYearId && typeof prev.reportingYear === 'number') {
+                else if (typeof prev.reportingYear === 'number') {
                     updates.reportingYearId = prev.reportingYear
                 }
 
@@ -100,36 +103,38 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 return { ...prev, ...updates }
             })
         }
-    }, [entityType, formData, setFormData])
+    }, [entityType, setFormData])
 
     // Ensure CropName, seasonId, and typeId are correctly populated for CFLD_CROPS
     useEffect(() => {
-        if (entityType === ENTITY_TYPES.CFLD_CROPS && Object.keys(formData).length > 0) {
+        if (entityType === ENTITY_TYPES.CFLD_CROPS) {
             setFormData((prev: any) => {
                 const updates: any = {}
+                let hasUpdates = false
 
                 // Preserve CropName if it exists (check both capital C and lowercase for compatibility)
-                if (prev.CropName && !updates.CropName) {
-                    updates.CropName = prev.CropName
-                } else if (prev.cropName && !updates.CropName) {
+                if (prev.cropName && !prev.CropName) {
                     updates.CropName = prev.cropName
+                    hasUpdates = true
                 }
 
                 // Extract seasonId from nested season object if not directly available
                 if (!prev.seasonId && prev.season && prev.season.seasonId) {
                     updates.seasonId = prev.season.seasonId
+                    hasUpdates = true
                 }
 
                 // Extract typeId from nested cropType object if not directly available
                 if (!prev.typeId && prev.cropType && prev.cropType.typeId) {
                     updates.typeId = prev.cropType.typeId
+                    hasUpdates = true
                 }
 
-                if (Object.keys(updates).length === 0) return prev
+                if (!hasUpdates) return prev
                 return { ...prev, ...updates }
             })
         }
-    }, [entityType, formData, setFormData])
+    }, [entityType, setFormData])
 
     if (!entityType) return null
 

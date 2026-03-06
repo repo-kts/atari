@@ -620,8 +620,9 @@ export const VehiclePresentStatusEnum = {
 
 export const EquipmentPresentStatusEnum = {
     WORKING: 'Working',
-    GOOD_CONDITION: 'Good Condition',
-    NEW: 'New'
+    NOT_WORKING: 'Not Working',
+    CONDEMED: 'Condemned',
+    AUCTION: 'Auction'
 }
 
 export const ImplementPresentStatusEnum = {

@@ -447,6 +447,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             type="number"
                             value={formData.totalCost || ''}
                             onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
+                            required
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -454,7 +455,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Total Run (Kms)"
                             type="number"
                             value={formData.totalRun || ''}
-                            onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
+                            onChange= {(e) => setFormData({ ...formData, totalRun: e.target.value })}
+                            required
                         />
                         <FormSelect
                             label="Present Status"

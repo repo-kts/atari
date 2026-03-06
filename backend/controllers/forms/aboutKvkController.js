@@ -26,6 +26,7 @@ const getAll = (entityName) => async (req, res) => {
                 limit: result.limit,
                 totalPages: Math.ceil(result.total / result.limit),
             },
+            ...(result.noKvkLinked && { noKvkLinked: true }),
         });
     } catch (error) {
         console.error(`Error fetching ${entityName}:`, error);
