@@ -32,6 +32,7 @@ export interface UpdateUserData {
   districtId?: number | null;
   orgId?: number | null;
   kvkId?: number | null;
+  permissions?: PermissionAction[];
 }
 
 export interface RoleInfo {

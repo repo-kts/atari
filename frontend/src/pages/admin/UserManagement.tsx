@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel } from '../../services/userApi'
 import { useUsers, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
+import { EditUserModal } from '@/components/admin/EditUserModal'
+import type { EditUser } from '@/components/admin/EditUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -28,6 +30,7 @@ interface User {
     kvkId?: number | null
     createdAt?: string
     lastLoginAt?: string | null
+    permissions?: ('VIEW' | 'ADD' | 'EDIT' | 'DELETE')[]
 }
 
 export const UserManagement: React.FC = () => {
@@ -36,6 +39,8 @@ export const UserManagement: React.FC = () => {
     const { hasPermission, canActOnRole } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [editingUser, setEditingUser] = useState<EditUser | null>(null)
 
     const routeConfig = getRouteConfig(location.pathname)
     const breadcrumbs = getBreadcrumbsForPath(location.pathname)
@@ -271,11 +276,16 @@ export const UserManagement: React.FC = () => {
                                                             {canEditUser && canActOnRole(user.roleName) && (
                                                                 <button
                                                                     onClick={() => {
-                                                                        alert({
-                                                                            title: 'Coming Soon',
-                                                                            message: 'Edit functionality coming soon',
-                                                                            variant: 'info',
+                                                                        setEditingUser({
+                                                                            userId: user.userId,
+                                                                            name: user.name,
+                                                                            email: user.email,
+                                                                            phoneNumber: user.phoneNumber,
+                                                                            roleId: user.roleId,
+                                                                            roleName: user.roleName,
+                                                                            permissions: user.permissions,
                                                                         })
+                                                                        setIsEditModalOpen(true)
                                                                     }}
                                                                     className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
                                                                     aria-label="Edit user"
@@ -313,8 +323,21 @@ export const UserManagement: React.FC = () => {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onSuccess={() => {
-                    refetchUsers() // Refresh user list after creation
+                    refetchUsers()
                 }}
+            />
+
+            {/* Edit User Modal */}
+            <EditUserModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false)
+                    setEditingUser(null)
+                }}
+                onSuccess={() => {
+                    refetchUsers()
+                }}
+                user={editingUser}
             />
 
             {/* Modals */}

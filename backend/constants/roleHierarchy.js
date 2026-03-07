@@ -64,13 +64,25 @@ function getManageableRoles(callerRole) {
 }
 
 /**
- * Returns the role names that a given creator can assign (strictly lower hierarchy).
+ * Defines which roles each admin role is allowed to create.
+ * A KVK admin should only create KVK-level users, not state/district/org users
+ * which belong to a higher organizational scope.
+ */
+const CREATABLE_ROLES_MAP = {
+  super_admin: ['zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'kvk_user', 'state_user', 'district_user', 'org_user'],
+  zone_admin: ['state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'state_user', 'district_user', 'org_user', 'kvk_user'],
+  state_admin: ['state_user', 'district_user', 'org_user', 'kvk_user'],
+  district_admin: ['district_user', 'org_user', 'kvk_user'],
+  org_admin: ['org_user', 'kvk_user'],
+  kvk_admin: ['kvk_user'],
+};
+
+/**
+ * Returns the role names that a given creator can assign.
+ * Uses an explicit map to ensure admins can only create roles within their organizational scope.
  */
 function getCreatableRoles(callerRole) {
-  const callerLevel = getRoleLevel(callerRole);
-  return Object.entries(ROLE_HIERARCHY)
-    .filter(([, level]) => level > callerLevel)
-    .map(([name]) => name);
+  return CREATABLE_ROLES_MAP[callerRole] || [];
 }
 
 module.exports = {
