@@ -33,11 +33,22 @@ export function outranksOrEqual(callerRole: string, targetRole: string): boolean
   return getRoleLevel(callerRole) <= getRoleLevel(targetRole)
 }
 
+/**
+ * Defines which roles each admin role is allowed to create.
+ * A KVK admin should only create KVK-level users, not state/district/org users
+ * which belong to a higher organizational scope.
+ */
+const CREATABLE_ROLES_MAP: Record<string, string[]> = {
+  super_admin: ['zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'kvk_user', 'state_user', 'district_user', 'org_user'],
+  zone_admin: ['state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'state_user', 'district_user', 'org_user', 'kvk_user'],
+  state_admin: ['state_user', 'district_user', 'org_user', 'kvk_user'],
+  district_admin: ['district_user', 'org_user', 'kvk_user'],
+  org_admin: ['org_user', 'kvk_user'],
+  kvk_admin: ['kvk_user'],
+}
+
 export function getCreatableRoles(callerRole: string): string[] {
-  const callerLevel = getRoleLevel(callerRole)
-  return Object.entries(ROLE_HIERARCHY)
-    .filter(([, level]) => level > callerLevel)
-    .map(([name]) => name)
+  return CREATABLE_ROLES_MAP[callerRole] || []
 }
 
 export function getManageableRoles(callerRole: string): string[] {
