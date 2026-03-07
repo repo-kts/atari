@@ -60,7 +60,10 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             setName(user.name || '')
             setEmail(user.email || '')
             setPhoneNumber(user.phoneNumber || '')
-            setPermissions(user.permissions || [])
+            const allowedActions: PermissionAction[] = NON_ADMIN_ROLES_WITH_ADD.includes(user.roleName as typeof NON_ADMIN_ROLES_WITH_ADD[number])
+                ? ['VIEW', 'ADD', 'EDIT', 'DELETE']
+                : ['VIEW', 'EDIT', 'DELETE']
+            setPermissions((user.permissions || []).filter(p => allowedActions.includes(p)))
             setErrors({})
             setSubmitError(null)
             setSubmitSuccess(false)
@@ -121,11 +124,14 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             if (name.trim() !== user.name) updateData.name = name.trim()
             if (email.trim().toLowerCase() !== (user.email || '').toLowerCase()) updateData.email = email.trim().toLowerCase()
 
-            const cleanedPhone = phoneNumber.trim() || null
+            const cleanedPhone = phoneNumber.replace(/[\s\-()]/g, '') || null
             if (cleanedPhone !== (user.phoneNumber || null)) updateData.phoneNumber = cleanedPhone
 
             if (isUserRole) {
-                updateData.permissions = permissions
+                const allowedActions: PermissionAction[] = NON_ADMIN_ROLES_WITH_ADD.includes(user.roleName as typeof NON_ADMIN_ROLES_WITH_ADD[number])
+                    ? ['VIEW', 'ADD', 'EDIT', 'DELETE']
+                    : ['VIEW', 'EDIT', 'DELETE']
+                updateData.permissions = permissions.filter(p => allowedActions.includes(p))
             }
 
             await userApi.updateUser(user.userId, updateData)
