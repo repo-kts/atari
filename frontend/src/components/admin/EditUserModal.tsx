@@ -119,7 +119,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             const updateData: UpdateUserData = {}
 
             if (name.trim() !== user.name) updateData.name = name.trim()
-            if (email.trim().toLowerCase() !== user.email) updateData.email = email.trim().toLowerCase()
+            if (email.trim().toLowerCase() !== (user.email || '').toLowerCase()) updateData.email = email.trim().toLowerCase()
 
             const cleanedPhone = phoneNumber.trim() || null
             if (cleanedPhone !== (user.phoneNumber || null)) updateData.phoneNumber = cleanedPhone

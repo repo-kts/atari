@@ -82,7 +82,11 @@ const CREATABLE_ROLES_MAP = {
  * Uses an explicit map to ensure admins can only create roles within their organizational scope.
  */
 function getCreatableRoles(callerRole) {
-  return CREATABLE_ROLES_MAP[callerRole] || [];
+  const roles = CREATABLE_ROLES_MAP[callerRole];
+  if (!roles) {
+    throw new Error(`Unsupported caller role: ${callerRole}`);
+  }
+  return roles;
 }
 
 module.exports = {

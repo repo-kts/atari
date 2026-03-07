@@ -48,7 +48,11 @@ const CREATABLE_ROLES_MAP: Record<string, string[]> = {
 }
 
 export function getCreatableRoles(callerRole: string): string[] {
-  return CREATABLE_ROLES_MAP[callerRole] || []
+  const roles = CREATABLE_ROLES_MAP[callerRole]
+  if (!roles) {
+    throw new Error(`Unsupported caller role: ${callerRole}`)
+  }
+  return roles
 }
 
 export function getManageableRoles(callerRole: string): string[] {
