@@ -5,48 +5,59 @@ const masterDataController = require('../../controllers/all-masters/masterDataCo
 
 /**
  * Master Data Routes
- * Access is controlled by the Role Permission Editor (granular per module).
- * GET  → VIEW,  POST → ADD,  PUT → EDIT,  DELETE → DELETE
+ *
+ * GET (read) endpoints require only authentication — master data is
+ * non-sensitive reference/lookup data (zones, states, districts, etc.) used
+ * as dropdown sources across many forms (About KVK, Achievements, user
+ * creation, etc.). Gating reads by master-specific permissions would block
+ * form users who have form permissions but not master-management permissions.
+ *
+ * POST/PUT/DELETE (write) endpoints require granular master module permissions
+ * controlled by the Role Permission Editor.
+ *
+ * Master management PAGES are still protected on the frontend by sidebar
+ * filtering (hasPermission) and ProtectedRoute — users without the VIEW
+ * permission on a master module won't see or navigate to those pages.
  */
 
 // Apply authentication to all routes
 router.use(authenticateToken);
 
 // ============ ZONES ============
-router.get('/zones',     requirePermission('all_masters_zone_master', 'VIEW'), masterDataController.getAllZones);
-router.get('/zones/:id', requirePermission('all_masters_zone_master', 'VIEW'), masterDataController.getZoneById);
+router.get('/zones',     masterDataController.getAllZones);
+router.get('/zones/:id', masterDataController.getZoneById);
 router.post('/zones',    requirePermission('all_masters_zone_master', 'ADD'),  masterDataController.createZone);
 router.put('/zones/:id', requirePermission('all_masters_zone_master', 'EDIT'), masterDataController.updateZone);
 router.delete('/zones/:id', requirePermission('all_masters_zone_master', 'DELETE'), masterDataController.deleteZone);
 
 // ============ STATES ============
-router.get('/states',                    requirePermission('all_masters_states_master', 'VIEW'), masterDataController.getAllStates);
-router.get('/states/:id',                requirePermission('all_masters_states_master', 'VIEW'), masterDataController.getStateById);
-router.get('/states/zone/:zoneId',       requirePermission('all_masters_states_master', 'VIEW'), masterDataController.getStatesByZone);
+router.get('/states',                    masterDataController.getAllStates);
+router.get('/states/:id',                masterDataController.getStateById);
+router.get('/states/zone/:zoneId',       masterDataController.getStatesByZone);
 router.post('/states',                   requirePermission('all_masters_states_master', 'ADD'),  masterDataController.createState);
 router.put('/states/:id',                requirePermission('all_masters_states_master', 'EDIT'), masterDataController.updateState);
 router.delete('/states/:id',             requirePermission('all_masters_states_master', 'DELETE'), masterDataController.deleteState);
 
 // ============ DISTRICTS ============
-router.get('/districts',                    requirePermission('all_masters_districts_master', 'VIEW'), masterDataController.getAllDistricts);
-router.get('/districts/:id',                requirePermission('all_masters_districts_master', 'VIEW'), masterDataController.getDistrictById);
-router.get('/districts/state/:stateId',     requirePermission('all_masters_districts_master', 'VIEW'), masterDataController.getDistrictsByState);
+router.get('/districts',                    masterDataController.getAllDistricts);
+router.get('/districts/:id',                masterDataController.getDistrictById);
+router.get('/districts/state/:stateId',     masterDataController.getDistrictsByState);
 router.post('/districts',                   requirePermission('all_masters_districts_master', 'ADD'),  masterDataController.createDistrict);
 router.put('/districts/:id',                requirePermission('all_masters_districts_master', 'EDIT'), masterDataController.updateDistrict);
 router.delete('/districts/:id',             requirePermission('all_masters_districts_master', 'DELETE'), masterDataController.deleteDistrict);
 
 // ============ ORGANIZATIONS ============
-router.get('/organizations',                        requirePermission('all_masters_organization_master', 'VIEW'), masterDataController.getAllOrganizations);
-router.get('/organizations/:id',                    requirePermission('all_masters_organization_master', 'VIEW'), masterDataController.getOrganizationById);
-router.get('/organizations/district/:districtId',   requirePermission('all_masters_organization_master', 'VIEW'), masterDataController.getOrganizationsByDistrict);
+router.get('/organizations',                        masterDataController.getAllOrganizations);
+router.get('/organizations/:id',                    masterDataController.getOrganizationById);
+router.get('/organizations/district/:districtId',   masterDataController.getOrganizationsByDistrict);
 router.post('/organizations',                       requirePermission('all_masters_organization_master', 'ADD'),  masterDataController.createOrganization);
 router.put('/organizations/:id',                    requirePermission('all_masters_organization_master', 'EDIT'), masterDataController.updateOrganization);
 router.delete('/organizations/:id',                 requirePermission('all_masters_organization_master', 'DELETE'), masterDataController.deleteOrganization);
 
 // ============ UNIVERSITIES ============
-router.get('/universities',                         requirePermission('all_masters_university_master', 'VIEW'), masterDataController.getAllUniversities);
-router.get('/universities/:id',                     requirePermission('all_masters_university_master', 'VIEW'), masterDataController.getUniversityById);
-router.get('/universities/organization/:orgId',     requirePermission('all_masters_university_master', 'VIEW'), masterDataController.getUniversitiesByOrganization);
+router.get('/universities',                         masterDataController.getAllUniversities);
+router.get('/universities/:id',                     masterDataController.getUniversityById);
+router.get('/universities/organization/:orgId',     masterDataController.getUniversitiesByOrganization);
 router.post('/universities',                        requirePermission('all_masters_university_master', 'ADD'),  masterDataController.createUniversity);
 router.put('/universities/:id',                     requirePermission('all_masters_university_master', 'EDIT'), masterDataController.updateUniversity);
 router.delete('/universities/:id',                  requirePermission('all_masters_university_master', 'DELETE'), masterDataController.deleteUniversity);

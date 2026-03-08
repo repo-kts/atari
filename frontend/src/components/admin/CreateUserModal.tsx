@@ -100,6 +100,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     // Check if current user is a sub-admin (not super_admin)
     const isSubAdmin = currentUser?.role !== 'super_admin'
     const creatorLevel = getRoleLevel(currentUser?.role || '')
+    const isKvkAdminCreating = currentUser?.role === 'kvk_admin'
 
     // Fetch roles using hooks
     const { data: allRoles = [] } = useRoles()
@@ -263,8 +264,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 newErrors.orgId = 'Organization is required for this role'
             }
         }
-        // KVK validation applies to both Super Admin and sub-admins
-        if (kvkRequired && !formData.kvkId) {
+        // KVK validation — skip when kvk_admin (auto-inherited)
+        if (kvkRequired && !isKvkAdminCreating && !formData.kvkId) {
             newErrors.kvkId = 'KVK is required for KVK user'
         }
 
@@ -330,8 +331,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 orgId: isSubAdmin
                     ? (showOrgForSubAdmin ? (formData.orgId ? Number(formData.orgId) : null) : (currentUser?.orgId ?? null))
                     : (formData.orgId ? (formData.orgId as number) : null),
-                universityId: (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') ? (formData.universityId ? (formData.universityId as number) : null) : null,
-                kvkId: formData.kvkId ? (formData.kvkId as number) : null,
+                universityId: (selectedRole === 'kvk_admin' || selectedRole === 'kvk_user')
+                    ? (isKvkAdminCreating ? ((currentUser as any)?.universityId ?? null) : (formData.universityId ? (formData.universityId as number) : null))
+                    : null,
+                kvkId: isKvkAdminCreating ? (currentUser?.kvkId ?? null) : (formData.kvkId ? (formData.kvkId as number) : null),
             }
             if (showPermissionsSection && formData.permissions.length > 0) {
                 userData.permissions = formData.permissions
@@ -820,7 +823,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 )}
 
                 {/* University dropdown - only shown for KVK-level roles that need it */}
-                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && ((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
+                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminCreating && ((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
                     <DependentDropdown
                         label="University"
                         value={formData.universityId || ''}
@@ -853,7 +856,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && (
+                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminCreating && (
                     <DependentDropdown
                         label={`KVK ${kvkRequired ? '*' : ''}`}
                         value={formData.kvkId || ''}

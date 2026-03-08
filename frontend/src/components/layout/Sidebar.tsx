@@ -25,7 +25,6 @@ import {
     FileCheck,
     BookOpen,
 } from 'lucide-react'
-import { ADMIN_ROLES } from '../../constants/roleHierarchy'
 
 interface MenuItem {
     label: string
@@ -174,96 +173,6 @@ const superAdminMenuItems: MenuItem[] = [
     },
 ]
 
-// Regular menu items for non-admin roles
-const regularMenuItems: MenuItem[] = [
-    {
-        label: 'Dashboard',
-        path: '/dashboard',
-        icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-        label: 'Form Management',
-        path: '/forms',
-        icon: <FileText className="w-5 h-5" />,
-        dropdown: true,
-        children: [
-            {
-                label: 'About KVK',
-                path: '/forms/about-kvk',
-                icon: <Building2 className="w-4 h-4" />,
-                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
-            },
-            {
-                label: 'Achievements',
-                path: '/forms/achievements',
-                icon: <ClipboardList className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
-            },
-        ],
-    },
-]
-
-// KVK menu items - Restricted access
-const kvkMenuItems: MenuItem[] = [
-    {
-        label: 'Dashboard',
-        path: '/dashboard',
-        icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-        label: 'Form Management',
-        path: '/forms',
-        icon: <FileText className="w-5 h-5" />,
-        dropdown: true,
-        children: [
-            {
-                label: 'About KVK',
-                path: '/forms/about-kvk',
-                icon: <Building2 className="w-4 h-4" />,
-                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
-            },
-            {
-                label: 'Achievements',
-                path: '/forms/achievements',
-                icon: <ClipboardList className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
-            },
-            {
-                label: 'Success Stories',
-                path: '/forms/success-stories',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCode: 'form_management_success_stories',
-            },
-            {
-                label: 'Projects',
-                path: '/forms/achievements/projects',
-                icon: <Briefcase className="w-4 h-4" />,
-                moduleCodes: ['achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd'],
-                moduleCode: 'achievements_projects',
-            },
-        ],
-    },
-    {
-        label: 'Module Images',
-        path: '/module-images',
-        icon: <ImageIcon className="w-5 h-5" />,
-        moduleCode: 'module_images',
-    },
-    {
-        label: 'Targets',
-        path: '/targets',
-        icon: <Target className="w-5 h-5" />,
-        moduleCode: 'targets',
-    },
-    {
-        label: 'Reports',
-        path: '/all-reports',
-        icon: <FileBarChart className="w-5 h-5" />,
-        moduleCode: 'reports',
-    },
-]
-
-
 interface SidebarProps {
     isOpen: boolean
     onToggle: () => void
@@ -281,16 +190,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // Check if form is open (create or edit mode)
     const isFormOpen = location.pathname.includes('/create') || location.pathname.includes('/edit/')
 
-    // Roles that get admin UI
-    const isAdmin = user?.role && (ADMIN_ROLES as readonly string[]).includes(user.role)
-    const isKvk = user?.role === 'kvk_user'
-
-    // Determine menu items based on role - memoize to avoid new ref on every render (prevents useEffect loop)
+    // All roles use the full menu set — permission filtering (below) controls visibility
+    // based on the Role Permission Editor assignments
     const rawMenuItems = React.useMemo(() => {
-        if (isKvk) return kvkMenuItems
-        if (isAdmin) return superAdminMenuItems
-        return regularMenuItems
-    }, [isAdmin, isKvk])
+        return superAdminMenuItems
+    }, [])
 
     // Filter menu items based on VIEW permission where moduleCode is defined
     const menuItems = React.useMemo(() => {

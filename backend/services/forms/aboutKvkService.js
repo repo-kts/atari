@@ -212,25 +212,12 @@ class AboutKvkService {
         // Ensure entity exists and user has access
         const currentEntity = await this.getById(entityName, id, user);
 
-        // Authorization checks
-        if (entityName === 'kvks') {
-            // Only super_admin can delete KVKs
-            if (!user || user.roleName !== 'super_admin') {
-                throw new Error('Only super admin can delete KVKs');
-            }
-        } else {
-            // For all other About KVK entities, only KVK roles can delete their own data
-            if (!user || !KVK_ROLES.includes(user.roleName)) {
-                throw new Error('Only KVK users can delete this resource');
-            }
-
-            // For employees: prevent source KVKs from deleting transferred employees
-            // Only the current KVK (where employee is now) can delete
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
-                currentEntity.transferStatus === 'TRANSFERRED') {
-                if (currentEntity.kvkId !== user.kvkId) {
-                    throw new Error('You cannot delete employees that were transferred from your KVK. Only the current KVK can manage this employee.');
-                }
+        // For employees: prevent source KVKs from deleting transferred employees
+        // Only the current KVK (where employee is now) can delete
+        if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
+            currentEntity.transferStatus === 'TRANSFERRED') {
+            if (user && user.kvkId && currentEntity.kvkId !== user.kvkId) {
+                throw new Error('You cannot delete employees that were transferred from your KVK. Only the current KVK can manage this employee.');
             }
         }
 

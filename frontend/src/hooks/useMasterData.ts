@@ -29,15 +29,6 @@ type EntityData = Zone | State | District | Organization | University;
 type CreateDto = CreateZoneDto | CreateStateDto | CreateDistrictDto | CreateOrganizationDto | CreateUniversityDto;
 type UpdateDto = UpdateZoneDto | UpdateStateDto | UpdateDistrictDto | UpdateOrganizationDto | UpdateUniversityDto;
 
-// Module codes for permission check (VIEW required to fetch)
-const MASTER_DATA_MODULE_CODES: Record<EntityType, string> = {
-    zones: 'all_masters_zone_master',
-    states: 'all_masters_states_master',
-    districts: 'all_masters_districts_master',
-    organizations: 'all_masters_organization_master',
-    universities: 'all_masters_university_master',
-};
-
 // API call mapping
 const apiCalls = {
     zones: {
@@ -81,13 +72,13 @@ export function useMasterData<T extends EntityData>(
     options?: { enabled?: boolean }
 ) {
     const queryClient = useQueryClient();
-    const { user, hasPermission } = useAuth();
+    const { user } = useAuth();
     const [params, setParams] = useState<QueryParams | undefined>();
     const queryKey = ['master-data', entityType, params, user?.userId, user?.role];
 
-    // Fetch only when caller allows (enabled !== false) AND user has VIEW permission (avoids 403 for roles without All Masters)
-    const hasViewPermission = hasPermission('VIEW', MASTER_DATA_MODULE_CODES[entityType]);
-    const enabled = (options?.enabled !== false) && hasViewPermission;
+    // No frontend permission gate for reads — backend GET endpoints only require authentication,
+    // not module permissions. CUD operations are still protected by backend middleware.
+    const enabled = options?.enabled !== false;
 
     // Query for fetching data with error handling
     const query = useQuery({

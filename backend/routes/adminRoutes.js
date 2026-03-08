@@ -4,7 +4,7 @@ const router = express.Router();
 const userManagementController = require('../controllers/userManagementController.js');
 const rolePermissionController = require('../controllers/rolePermissionController.js');
 const prisma = require('../config/prisma.js');
-const { authenticateToken, requireRole, requirePermission } = require('../middleware/auth.js');
+const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
 const { getRoleLevel } = require('../constants/roleHierarchy.js');
 
@@ -12,13 +12,10 @@ const { getRoleLevel } = require('../constants/roleHierarchy.js');
 const USER_MANAGEMENT_MODULE = 'user_management_users';
 const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
 
-// Apply authentication and role check to all admin routes.
-// kvk_admin is included as an admin role that can manage users within its KVK scope.
-// kvk_user does NOT have access here — it relies on granular permissions only.
-router.use(
-  authenticateToken,
-  requireRole(['super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin']),
-);
+// Apply authentication to all admin routes.
+// Individual routes use requirePermission for granular access control
+// driven by the Role Permission Editor — no blanket role gate needed.
+router.use(authenticateToken);
 
 // List users (with filters) – requires VIEW
 router.get('/users', apiRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'), userManagementController.getUsers);
@@ -35,11 +32,11 @@ router.put('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MO
 // Delete user (soft delete) – requires DELETE
 router.delete('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'DELETE'), userManagementController.deleteUser);
 
-// Create role – super_admin only (must be before /roles/:roleId)
+// Create role – requires ADD on role management (must be before /roles/:roleId)
 router.post(
   '/roles',
   strictRateLimiter,
-  requireRole(['super_admin']),
+  requirePermission(ROLE_MANAGEMENT_MODULE, 'ADD'),
   rolePermissionController.createRole,
 );
 
