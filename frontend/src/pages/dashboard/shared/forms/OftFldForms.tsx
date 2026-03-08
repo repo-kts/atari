@@ -16,8 +16,13 @@ import {
     useFldCrops,
 } from '../../../../hooks/useOftFldData'
 import { useAuth } from '@/contexts/AuthContext'
-import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
+import {
+    useKvkEmployees,
+    useDisciplines
+} from '../../../../hooks/forms/useAboutKvkData'
 import { useMemo } from 'react'
+import { oftFldApi } from '../../../../services/oftFldApi'
+import { createMasterDataOptions, filterByParentId } from '../../../../utils/formHelpers'
 
 interface OftFldFormsProps {
     entityType: ExtendedEntityType | null
@@ -53,6 +58,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
     const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
+    const { data: disciplines = [] } = useDisciplines()
+
+    // OFT Thematic Areas - depends on subjectId
+    const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
+        formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
+    )
+    const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
+    const { data: fldCrops = [], isLoading: isLoadingFldCrops } = useFldCrops()
+
 
     const scientistOptions = useMemo(() => {
         const fallbacks = [
@@ -355,10 +369,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Reporting Year"
                             required
                             value={formData.reportingYear || ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, reportingYear: value })}
                             options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' }
+                                { value: '2023', label: '2023' },
+                                { value: '2024', label: '2024' },
+                                { value: '2025', label: '2025' },
+                                { value: '2026', label: '2026' },
+
                             ]}
                         />
                         <FormSelect
@@ -567,7 +584,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Name of SMS/KVK Head"
                             required
                             value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, staffName: value })}
                             options={[
                                 { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
                                 { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
@@ -636,6 +653,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             cacheKey="fld-thematic-areas-by-sector"
                             emptyMessage="No thematic areas available for this sector"
                             loadingMessage="Loading thematic areas..."
+                            isLoading={isLoadingFldThematicAreas}
                         />
 
                         {/* Category - Dependent on Sector */}
