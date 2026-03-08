@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getRoleLabel, type RoleInfo } from '../../services/userApi'
 import { useRoles, useCreateRole } from '../../hooks/useUserManagement'
-import { outranksOrEqual } from '../../constants/roleHierarchy'
 import { Plus, MoreVertical, Trash2, Shield, Search, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -17,7 +16,7 @@ const PAGE_SIZE = 10
 export const RoleManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { user: currentUser } = useAuth()
+    const { user: currentUser, hasPermission } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [openActionId, setOpenActionId] = useState<number | null>(null)
@@ -155,7 +154,7 @@ export const RoleManagement: React.FC = () => {
                             <h2 className="text-xl font-semibold text-[#487749]">Role Management</h2>
                             <p className="text-sm text-[#757575] mt-1">Manage system roles and their permissions</p>
                         </div>
-                        {currentUser?.role === 'super_admin' && (
+                        {hasPermission('ADD', 'role_management_roles') && (
                             <button
                                 onClick={handleAddRole}
                                 className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] border border-[#487749] transition-all duration-200 shadow-sm hover:shadow-md"
@@ -261,9 +260,9 @@ export const RoleManagement: React.FC = () => {
                                                                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[#212121] hover:bg-[#F5F5F5] text-left"
                                                                         >
                                                                             <Shield className="w-4 h-4 text-[#757575]" />
-                                                                            {(currentUser?.role === 'super_admin' || currentUser?.role === 'zone_admin' || outranksOrEqual(currentUser?.role || '', role.roleName)) ? 'Add/Edit Permission' : 'View Permission'}
+                                                                            {hasPermission('EDIT', 'role_management_roles') ? 'Add/Edit Permission' : 'View Permission'}
                                                                         </button>
-                                                                        {currentUser?.role === 'super_admin' && (
+                                                                        {hasPermission('DELETE', 'role_management_roles') && (
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => handleDelete(role)}

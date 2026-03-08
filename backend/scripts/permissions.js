@@ -83,6 +83,7 @@ const MODULES = [
   { menuName: 'Log History', subMenuName: '—', moduleCode: 'log_history' },
   { menuName: 'Notifications', subMenuName: '—', moduleCode: 'notifications' },
   { menuName: 'Reports', subMenuName: '—', moduleCode: 'reports' },
+  { menuName: 'User Scope', subMenuName: 'User Actions', moduleCode: 'USER_SCOPE' },
 ];
 
 // Shared modules for _user roles (ceiling pattern). kvk_user gets these; other _user roles get these + 'reports'.

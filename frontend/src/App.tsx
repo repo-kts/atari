@@ -66,7 +66,7 @@ function AppRoutes() {
                             key={route.path}
                             path={route.path}
                             element={
-                                <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode={route.moduleCode}>
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
                                     <DataManagementView
                                         key={route.path}
                                         title={route.title}
@@ -90,7 +90,7 @@ function AppRoutes() {
                     <Route
                         path="/role-view"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="role_management_roles">
+                            <ProtectedRoute requiredModuleCode="role_management_roles">
                                 <RoleManagement />
                             </ProtectedRoute>
                         }
@@ -98,7 +98,7 @@ function AppRoutes() {
                     <Route
                         path="/role-view/:roleId/permissions"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="role_management_roles">
+                            <ProtectedRoute requiredModuleCode="role_management_roles">
                                 <RolePermissionEditor />
                             </ProtectedRoute>
                         }
@@ -106,7 +106,7 @@ function AppRoutes() {
                     <Route
                         path="/view-users"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="user_management_users">
+                            <ProtectedRoute requiredModuleCode="user_management_users">
                                 <UserManagement />
                             </ProtectedRoute>
                         }
@@ -114,7 +114,7 @@ function AppRoutes() {
                     <Route
                         path="/view-log-history"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="log_history">
+                            <ProtectedRoute requiredModuleCode="log_history">
                                 <LogHistory />
                             </ProtectedRoute>
                         }
@@ -122,7 +122,7 @@ function AppRoutes() {
                     <Route
                         path="/view-email-notifications"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES} requiredModuleCode="notifications">
+                            <ProtectedRoute requiredModuleCode="notifications">
                                 <Notifications />
                             </ProtectedRoute>
                         }
