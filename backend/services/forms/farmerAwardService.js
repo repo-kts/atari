@@ -77,7 +77,11 @@ const farmerAwardService = {
         if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
         if (data.achievement !== undefined) updateData.achievement = data.achievement;
         if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
-        if (data.image !== undefined) updateData.image = (typeof data.image === 'string') ? data.image : null;
+
+        // Handle images defensively - only update if it's a valid string (URL/Path)
+        if (data.image !== undefined && typeof data.image === 'string' && data.image.trim() !== '') {
+            updateData.image = data.image;
+        }
 
         return await farmerAwardRepository.update(id, updateData);
     },
