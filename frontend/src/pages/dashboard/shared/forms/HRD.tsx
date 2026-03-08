@@ -19,10 +19,35 @@ export const HRD: React.FC<HRDProps> = ({
 
     if (!entityType) return null
 
-    const staffOptions = employees?.map((emp: any) => ({
-        value: emp.id,
-        label: emp.staffName || emp.employeeName || emp.name || `Staff ${emp.id}`
-    })) || []
+    const staffOptions = React.useMemo(() => {
+        const fallbacks = [
+            'Sri Akhilesh Kumar',
+            'Dr. Reeta Singh',
+            'Sri Rajeev Kumar',
+            'Dr. Prakash Chandra Gupta',
+            'Dr. Pushpam Patel',
+            'Smt. Sangeeta Kumari',
+            'Sri Chandan Kumar',
+            'Sri Kanhaiya Kumar Rai',
+            'Sri Bachan Sah',
+            'Sri Mukesh Kumar'
+        ].map(name => ({ value: name, label: name }));
+
+        const dbOptions = employees?.map((emp: any) => ({
+            value: String(emp.kvkStaffId || emp.id),
+            label: emp.staffName || emp.employeeName || emp.name || `Staff ${emp.id}`
+        })) || [];
+
+        // Merge and remove duplicates by label
+        const result = [...dbOptions];
+        fallbacks.forEach(fb => {
+            if (!result.some(r => r.label === fb.label)) {
+                result.push(fb);
+            }
+        });
+
+        return result;
+    }, [employees]);
 
     return (
         <>

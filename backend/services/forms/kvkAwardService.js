@@ -5,14 +5,19 @@ const kvkAwardService = {
      * Create a new KVK Award
      */
     createKvkAward: async (data, user) => {
-        // Basic validation
+        // Enforce KVK selection if user has no assigned KVK
+        const kvkId = parseInt(user.kvkId || data.kvkId);
+
+        if (!kvkId || isNaN(kvkId)) {
+            throw new Error('KVK selection is required');
+        }
+
         if (!data.awardName || !data.amount || !data.achievement || !data.conferringAuthority) {
             throw new Error('All fields are required');
         }
 
-        // Ensure the KVK ID is correct (from user context if KVK login)
         const awardData = {
-            kvkId: parseInt(user.kvkId || data.kvkId),
+            kvkId: kvkId,
             awardName: data.awardName,
             year: data.year,
             reportingYear: data.reportingYear || data.year,

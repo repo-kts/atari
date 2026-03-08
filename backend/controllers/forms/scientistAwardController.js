@@ -1,27 +1,25 @@
 const scientistAwardService = require('../../services/forms/scientistAwardService.js');
 
 const scientistAwardController = {
-    createScientistAward: async (req, res) => {
+    createScientistAward: async (req, res, next) => {
         try {
             const result = await scientistAwardService.createScientistAward(req.body, req.user);
             res.status(201).json({ success: true, message: 'Scientist award created successfully', data: result });
         } catch (error) {
-            console.error('Error in scientistAwardController.create:', error);
-            res.status(500).json({ success: false, message: 'Failed to create scientist award' });
+            next(error);
         }
     },
 
-    getAllScientistAwards: async (req, res) => {
+    getAllScientistAwards: async (req, res, next) => {
         try {
             const result = await scientistAwardService.getAllScientistAwards(req.user);
             res.status(200).json({ success: true, count: result.length, data: result });
         } catch (error) {
-            console.error('Error in scientistAwardController.getAll:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch scientist awards' });
+            next(error);
         }
     },
 
-    getScientistAwardById: async (req, res) => {
+    getScientistAwardById: async (req, res, next) => {
         try {
             const result = await scientistAwardService.getScientistAwardById(req.params.id, req.user);
             if (!result) {
@@ -29,28 +27,25 @@ const scientistAwardController = {
             }
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            console.error('Error in scientistAwardController.getById:', error);
-            res.status(500).json({ success: false, message: 'Failed to fetch scientist award' });
+            next(error);
         }
     },
 
-    updateScientistAward: async (req, res) => {
+    updateScientistAward: async (req, res, next) => {
         try {
             const result = await scientistAwardService.updateScientistAward(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, message: 'Scientist award updated successfully', data: result });
         } catch (error) {
-            console.error('Error in scientistAwardController.update:', error);
-            res.status(500).json({ success: false, message: 'Failed to update scientist award' });
+            next(error);
         }
     },
 
-    deleteScientistAward: async (req, res) => {
+    deleteScientistAward: async (req, res, next) => {
         try {
             await scientistAwardService.deleteScientistAward(req.params.id, req.user);
             res.status(200).json({ success: true, message: 'Scientist award deleted successfully' });
         } catch (error) {
-            console.error('Error in scientistAwardController.delete:', error);
-            res.status(500).json({ success: false, message: 'Failed to delete scientist award' });
+            next(error);
         }
     },
 };

@@ -5,12 +5,18 @@ const farmerAwardService = {
      * Create a new Farmer Award
      */
     createFarmerAward: async (data, user) => {
+        const kvkId = parseInt(user.kvkId || data.kvkId);
+
+        if (!kvkId || isNaN(kvkId)) {
+            throw new Error('KVK selection is required');
+        }
+
         if (!data.awardName || !data.farmerName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
             throw new Error('All required fields must be filled');
         }
 
         const awardData = {
-            kvkId: parseInt(user.kvkId || data.kvkId),
+            kvkId: kvkId,
             awardName: data.awardName,
             farmerName: data.farmerName,
             contactNumber: (data.contactNumber || data.contactNo || '').toString(),

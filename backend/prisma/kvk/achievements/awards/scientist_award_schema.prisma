@@ -1,13 +1,19 @@
 model ScientistAward {
-  scientistAwardID    Int      @id @default(autoincrement()) @map("scientist_award_id")
-  kvkId               Int
-  awardName           String   @map("award_name")
-  amount              Int      @map("amount")
-  achievement         String   @map("achievement")
-  conferringAuthority String   @map("conferring_authority")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  kvk                 Kvk      @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  scientistAwardID Int @id @default(autoincrement()) @map("scientist_award_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  scientistName String @map("scientist_name")
+  awardName String @map("award_name")
+  amount Int @map("amount")
+  achievement   String @map("achievement")
+  conferringAuthority String @map("conferring_authority")
+  reportingYear Int? @map("reporting_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
 
   @@index([kvkId])
   @@map("scientist_award")

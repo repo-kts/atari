@@ -709,7 +709,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     'Head Scientist': {
-        extractor: (item) => item.headScientist || item.head_scientist || null,
+        extractor: (item) => item.headScientist || item.head_scientist || item.scientistName || item.scientist_name || null,
     },
     'Farmer Name': {
         extractor: (item) => item.farmerName || item.farmer_name || null,

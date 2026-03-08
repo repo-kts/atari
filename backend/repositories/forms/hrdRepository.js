@@ -3,14 +3,49 @@ const prisma = require('../../config/prisma.js');
 const hrdRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        const staffIdOrName = data.kvkStaffId || data.staffId;
+        const staffId = await hrdRepository._resolveStaffId(staffIdOrName, kvkId);
 
-        await prisma.$queryRawUnsafe(`
+        const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO hrd_program 
             ("kvkId", "kvkStaffId", course_name, start_date, end_date, organizer_venue, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, parseInt(data.kvkStaffId || data.staffId), data.courseName, new Date(data.startDate), new Date(data.endDate), data.organizerVenue);
+            RETURNING hrd_program_id;
+        `, kvkId, staffId, data.courseName, new Date(data.startDate), new Date(data.endDate), data.organizerVenue);
 
-        return { success: true };
+        return await hrdRepository.findById(inserted[0].hrd_program_id);
+    },
+
+    _resolveStaffId: async (value, kvkId) => {
+        if (!value) return null;
+        if (!isNaN(parseInt(value))) return parseInt(value);
+
+        // Value is a name, try to find in DB
+        const existing = await prisma.kvkStaff.findFirst({
+            where: { staffName: String(value), kvkId: parseInt(kvkId) }
+        });
+
+        if (existing) return existing.kvkStaffId;
+
+        // Auto-create minimal staff if not found
+        // Use default post and discipline if available
+        const p = await prisma.sanctionedPost.findFirst();
+        const d = await prisma.discipline.findFirst();
+
+        const created = await prisma.kvkStaff.create({
+            data: {
+                kvkId: parseInt(kvkId),
+                staffName: String(value),
+                mobile: '0000000000',
+                dateOfBirth: new Date('1980-01-01'),
+                dateOfJoining: new Date('2010-01-01'),
+                sanctionedPostId: p ? p.sanctionedPostId : 1,
+                disciplineId: d ? d.disciplineId : 1,
+                positionOrder: 0,
+                transferStatus: 'ACTIVE'
+            }
+        });
+        return created.kvkStaffId;
     },
 
     findAll: async (user) => {
@@ -66,8 +101,11 @@ const hrdRepository = {
         let index = 1;
 
         if (data.kvkStaffId !== undefined || data.staffId !== undefined) {
+            const existing = await hrdRepository.findById(id);
+            const kvkId = existing?.kvkId || 1;
+            const staffId = await hrdRepository._resolveStaffId(data.kvkStaffId || data.staffId, kvkId);
             updates.push(`"kvkStaffId" = $${index++}`);
-            values.push(parseInt(data.kvkStaffId || data.staffId));
+            values.push(staffId);
         }
         if (data.courseName !== undefined) {
             updates.push(`course_name = $${index++}`);
@@ -92,7 +130,7 @@ const hrdRepository = {
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
         }
-        return { success: true };
+        return await hrdRepository.findById(id);
     },
 
     delete: async (id) => {

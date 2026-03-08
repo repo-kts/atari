@@ -1,14 +1,20 @@
 model KvkAward {
-  kvkAwardID          Int      @id @default(autoincrement()) @map("kvk_award_id")
-  kvkId               Int
-  awardName           String   @map("award_name")
-  amount              Int      @map("amount")
-  achievement         String   @map("achievement")
-  conferringAuthority String   @map("conferring_authority")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  kvk                 Kvk      @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  kvkAwardID Int @id @default(autoincrement()) @map("kvk_award_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  awardName String @map("award_name")
+  amount Int @map("amount")
+  achievement   String @map("achievement")
+  conferringAuthority String @map("conferring_authority")
+  reportingYear       Int?    @map("reporting_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+
 
   @@index([kvkId])
-  @@map("kvk_award")
 }
+

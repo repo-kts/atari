@@ -15,18 +15,14 @@ import {
     useFldThematicAreas,
     useFldCrops,
 } from '../../../../hooks/useOftFldData'
-import { useYears } from '../../../../hooks/useOtherMastersData'
-import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
-import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
-import { useAuth } from '../../../../contexts/AuthContext'
-import { aboutKvkApi } from '../../../../services/aboutKvkApi'
-import { oftFldApi } from '../../../../services/oftFldApi'
+import { useAuth } from '@/contexts/AuthContext'
 import {
-    createStaffOptions,
-    handleStaffChange,
-    createMasterDataOptions,
-    filterByParentId
-} from '../../../../utils/formHelpers'
+    useKvkEmployees,
+    useDisciplines
+} from '../../../../hooks/forms/useAboutKvkData'
+import { useMemo } from 'react'
+import { oftFldApi } from '../../../../services/oftFldApi'
+import { createMasterDataOptions, filterByParentId } from '../../../../utils/formHelpers'
 
 interface OftFldFormsProps {
     entityType: ExtendedEntityType | null
@@ -39,6 +35,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const { user } = useAuth()
+
+    // Automatically sync kvkId from user session if it's missing in formData
+    useEffect(() => {
+        if (user?.kvkId && !formData.kvkId && !formData.id) {
+            setFormData((prev: any) => ({ ...prev, kvkId: user.kvkId }))
+        }
+    }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
 
     // These hooks use React Query and should support 'enabled' if we add it,
     // but even without it, moving them here means they only run when the component mounts.
@@ -46,26 +50,61 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     // Since we are not updating hooks yet, conditional rendering of this component in the parent is key.
 
     // We'll call them here. React Query hooks will trigger fetches if component is mounted.
-    const { user } = useAuth()
+
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
     const { data: fldCategories = [] } = useFldCategories()
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
-    const { data: years = [] } = useYears()
+    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
     const { data: disciplines = [] } = useDisciplines()
-    const { data: fldThematicAreas = [] } = useFldThematicAreas()
-    const { data: fldCrops = [] } = useFldCrops()
-
-    // KVK Staff dropdown - depends on kvkId
-    const activeKvkId = user?.kvkId || formData.kvkId
-    const { data: kvkStaffData = [], isLoading: isLoadingKvkStaff } = useKvkStaffForDropdown(activeKvkId)
 
     // OFT Thematic Areas - depends on subjectId
     const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
         formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
     )
+    const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
+    const { data: fldCrops = [], isLoading: isLoadingFldCrops } = useFldCrops()
+
+
+    const scientistOptions = useMemo(() => {
+        const fallbacks = [
+            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
+            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
+        ];
+
+        if (!employees || employees.length === 0) {
+            return fallbacks;
+        }
+
+        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
+        const mapped = employees
+            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
+            .map((emp: any) => ({
+                value: emp.staffName,
+                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
+            }));
+
+        const result = [...mapped];
+        fallbacks.forEach(fb => {
+            if (!result.some(r => r.value === fb.value)) {
+                result.push(fb);
+            }
+        });
+
+        return result;
+    }, [employees]);
+
+    const yearOptions = [
+        { value: '2022', label: '2022' },
+        { value: '2023', label: '2023' },
+        { value: '2024', label: '2024' },
+        { value: '2025', label: '2025' },
+        { value: '2026', label: '2026' },
+    ]
 
     // Derive sectorId from categoryId when editing FLD_CROPS
     useEffect(() => {
@@ -329,31 +368,22 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
-                        />
+                            value={formData.reportingYear || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYear: value })}
+                            options={[
+                                { value: '2023', label: '2023' },
+                                { value: '2024', label: '2024' },
+                                { value: '2025', label: '2025' },
+                                { value: '2026', label: '2026' },
 
-                        {/* Name of SMS/KVK Head - From KVK Staff API */}
-                        <DependentDropdown
+                            ]}
+                        />
+                        <FormSelect
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffId || formData.staffName || ''}
-                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
-                            options={createStaffOptions(kvkStaffData || [])}
-                            dependsOn={{
-                                value: activeKvkId,
-                                field: 'kvkId',
-                            }}
-                            onOptionsLoad={async (kvkId) => {
-                                const response = await aboutKvkApi.getKvkStaffForDropdown(kvkId as number);
-                                return createStaffOptions(response.data);
-                            }}
-                            cacheKey="kvk-staff-dropdown"
-                            emptyMessage="No SMS/KVK Head staff available for this KVK"
-                            loadingMessage="Loading staff..."
-                            isLoading={isLoadingKvkStaff}
+                            value={formData.staffName || ''}
+                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
+                            options={scientistOptions}
                         />
 
                         {/* Season - From Season Master */}
@@ -553,21 +583,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffId || formData.staffName || ''}
-                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
-                            options={createStaffOptions(kvkStaffData || [])}
-                            dependsOn={{
-                                value: activeKvkId,
-                                field: 'kvkId',
-                            }}
-                            onOptionsLoad={async (kvkId) => {
-                                const response = await aboutKvkApi.getKvkStaffForDropdown(kvkId as number);
-                                return createStaffOptions(response.data);
-                            }}
-                            cacheKey="kvk-staff-dropdown"
-                            emptyMessage="No SMS/KVK Head staff available for this KVK"
-                            loadingMessage="Loading staff..."
-                            isLoading={isLoadingKvkStaff}
+                            value={formData.staffName || ''}
+                            onChange={(value) => setFormData({ ...formData, staffName: value })}
+                            options={[
+                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
+                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
+                            ]}
                         />
 
                         {/* Season - From Season Master */}
@@ -630,6 +653,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             cacheKey="fld-thematic-areas-by-sector"
                             emptyMessage="No thematic areas available for this sector"
                             loadingMessage="Loading thematic areas..."
+                            isLoading={isLoadingFldThematicAreas}
                         />
 
                         {/* Category - Dependent on Sector */}

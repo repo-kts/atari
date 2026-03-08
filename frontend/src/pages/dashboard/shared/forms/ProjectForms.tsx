@@ -4,6 +4,8 @@ import { useCropTypes, useFldCategories, useFldSubcategories } from '../../../..
 import { useSeasons, useYears, useExtensionActivityTypes, useCfldExtensionActivityTypes } from '../../../../hooks/useOtherMastersData'
 import { useAryaEnterprises, useCraFarmingSystems } from '../../../../hooks/useProductionProjectsData'
 import { useMasterData } from '../../../../hooks/useMasterData'
+import { useAuth } from '@/contexts/AuthContext'
+import { useEffect } from 'react'
 
 // Project-specific form components
 import { CfldForms } from './projects/CfldForms'
@@ -31,6 +33,14 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const { user } = useAuth()
+
+    // Automatically sync kvkId from user session if it's missing in formData
+    useEffect(() => {
+        if (user?.kvkId && !formData.kvkId && !formData.id) {
+            setFormData((prev: any) => ({ ...prev, kvkId: user.kvkId }))
+        }
+    }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
     const { data: years = [] } = useYears()

@@ -2,6 +2,10 @@ import React from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityTypes'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
+import { useAuth } from '@/contexts/AuthContext'
+import { useYears } from '../../../../hooks/useOtherMastersData'
+import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
+import { useMemo } from 'react'
 
 interface AwardRecognitionProps {
     entityType: ExtendedEntityType | null
@@ -14,6 +18,72 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
     formData,
     setFormData,
 }) => {
+    const { user } = useAuth()
+    const { data: years = [] } = useYears();
+    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId });
+
+    const yearOptions = useMemo(() => {
+        const result = years.map((y: any) => {
+            const label = String(y.yearName || y.year || y.name);
+            return { value: label, label: label };
+        });
+
+        // Ensure years up to 2026 are included if not present
+        const currentYears = result.map(r => r.value);
+        ['2023', '2024', '2025', '2026'].forEach(y => {
+            if (!currentYears.includes(y)) {
+                result.push({ value: y, label: y });
+            }
+        });
+
+        // Sort years descending
+        return result.sort((a, b) => b.value.localeCompare(a.value));
+    }, [years]);
+
+    const scientistOptions = useMemo(() => {
+        const fallbacks = [
+            { value: 'Sri Akhilesh Kumar', label: 'Sri Akhilesh Kumar' },
+            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
+            { value: 'Dr. Prakash Chandra Gupta', label: 'Dr. Prakash Chandra Gupta' },
+            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
+            { value: 'Sri Chandan Kumar', label: 'Sri Chandan Kumar' },
+            { value: 'Sri Kanhaiya Kumar Rai', label: 'Sri Kanhaiya Kumar Rai' },
+            { value: 'Sri Bachan Sah', label: 'Sri Bachan Sah' },
+            { value: 'Sri Mukesh Kumar', label: 'Sri Mukesh Kumar' },
+        ];
+
+        if (!employees || employees.length === 0) {
+            return fallbacks;
+        }
+
+        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
+        const mapped = employees
+            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
+            .map((emp: any) => ({
+                value: emp.staffName,
+                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
+            }));
+
+        // Merge mapped with fallbacks, prioritizing mapped
+        const result = [...mapped];
+        fallbacks.forEach(fb => {
+            if (!result.some(r => r.value === fb.value)) {
+                result.push(fb);
+            }
+        });
+
+        return result;
+    }, [employees]);
+
+    // Automatically sync kvkId from user session if it's missing in formData
+    React.useEffect(() => {
+        if (user?.kvkId && !formData.kvkId) {
+            setFormData({ ...formData, kvkId: user.kvkId })
+        }
+    }, [user?.kvkId, formData.kvkId, setFormData])
+
     if (!entityType) return null
 
     return (
@@ -28,11 +98,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             required
                             value={formData.year || ''}
                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            options={yearOptions}
                         />
                         <FormInput
                             label="Name of the Award"
@@ -64,7 +130,6 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
             )}
 
             {/* Scientist Awards */}
-            {/* Scientist Awards */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST && (
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Recognition received by Head/Scientist</h2>
@@ -74,23 +139,15 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             required
                             value={formData.year || ''}
                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            options={yearOptions}
                         />
                         <FormSelect
                             label="Head/Scientist"
                             required
                             value={formData.scientistName || ''}
                             onChange={(e) => setFormData({ ...formData, scientistName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Sharma', label: 'Dr. Sharma' },
-                                { value: 'Dr. Patel', label: 'Dr. Patel' },
-                                { value: 'Dr. Singh', label: 'Dr. Singh' },
-                            ]}
-                            placeholder="--Please Select--"
+                            options={scientistOptions}
+                            placeholder="--Please Select Scientist--"
                         />
                         <FormInput
                             label="Name of the Award"
@@ -121,7 +178,6 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
             )}
 
             {/* Farmer Awards */}
-            {/* Farmer Awards */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER && (
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Recognition received by Farmers</h2>
@@ -131,11 +187,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             required
                             value={formData.year || ''}
                             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            options={yearOptions}
                         />
                         <FormInput
                             label="Name of the Award"

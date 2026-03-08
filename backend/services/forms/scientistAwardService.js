@@ -5,12 +5,18 @@ const scientistAwardService = {
      * Create a new Scientist Award
      */
     createScientistAward: async (data, user) => {
+        const kvkId = parseInt(user.kvkId || data.kvkId);
+
+        if (!kvkId || isNaN(kvkId)) {
+            throw new Error('KVK selection is required');
+        }
+
         if (!data.awardName || !data.scientistName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
             throw new Error('All fields are required');
         }
 
         const awardData = {
-            kvkId: parseInt(user.kvkId || data.kvkId),
+            kvkId: kvkId,
             awardName: data.awardName,
             scientistName: data.scientistName,
             year: data.year || data.reportingYear,

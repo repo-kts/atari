@@ -6,6 +6,9 @@ import {
     useTrainingTypes,
     useTrainingAreas,
 } from '../../../../hooks/useTrainingExtensionEventsData'
+import { useAuth } from '@/contexts/AuthContext'
+import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
+import { useMemo } from 'react'
 
 interface TrainingExtensionFormsProps {
     entityType: ExtendedEntityType | null
@@ -18,9 +21,48 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     formData,
     setFormData,
 }) => {
-
+    const { user } = useAuth()
     const { data: trainingTypes = [] } = useTrainingTypes()
     const { data: trainingAreas = [] } = useTrainingAreas()
+    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
+
+    const scientistOptions = useMemo(() => {
+        const fallbacks = [
+            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
+            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
+        ];
+
+        if (!employees || employees.length === 0) {
+            return fallbacks;
+        }
+
+        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
+        const mapped = employees
+            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
+            .map((emp: any) => ({
+                value: emp.staffName,
+                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
+            }));
+
+        const result = [...mapped];
+        fbLoop: for (const fb of fallbacks) {
+            for (const r of result) {
+                if (r.value === fb.value) continue fbLoop;
+            }
+            result.push(fb);
+        }
+
+        return result;
+    }, [employees]);
+
+    // Automatically sync kvkId from user session if it's missing in formData
+    React.useEffect(() => {
+        if (user?.kvkId && !formData.kvkId && !formData.id) {
+            setFormData({ ...formData, kvkId: user.kvkId })
+        }
+    }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
 
     if (!entityType) return null
 
@@ -204,12 +246,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.coordinator || ''}
                             onChange={(e) => setFormData({ ...formData, coordinator: e.target.value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            options={scientistOptions}
                         />
                         <FormInput
                             label="Venue"
@@ -259,12 +296,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.staffName || ''}
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            options={scientistOptions}
                         />
                         <FormSelect
                             label="Nature of Extension Activity"
@@ -348,12 +380,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             required
                             value={formData.staffName || ''}
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            options={scientistOptions}
                         />
                         <FormSelect
                             label="Nature of Extension Activity"
