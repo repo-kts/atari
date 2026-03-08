@@ -85,6 +85,15 @@ export interface FldCrop {
     };
 }
 
+export interface FldActivity {
+    activityId: number;
+    activityName: string;
+    _count?: {
+        extensions: number;
+        kvkExtensionActivities: number;
+    };
+}
+
 // CFLD Types
 export interface Season {
     seasonId: number;
@@ -168,6 +177,10 @@ export interface FldSubcategoryFormData {
 export interface FldCropFormData {
     cropName: string;
     subCategoryId: number;
+}
+
+export interface FldActivityFormData {
+    activityName: string;
 }
 
 export interface SeasonFormData {

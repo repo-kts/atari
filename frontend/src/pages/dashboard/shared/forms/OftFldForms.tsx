@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
+import React, { useEffect, useCallback } from 'react'
+import { ENTITY_TYPES } from '../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
 import { DependentDropdown } from '../../../../components/common/DependentDropdown'
@@ -14,15 +14,20 @@ import {
     useOftThematicAreasBySubject,
     useFldThematicAreas,
     useFldCrops,
+    useFldActivities,
 } from '../../../../hooks/useOftFldData'
-import { useAuth } from '@/contexts/AuthContext'
-import {
-    useKvkEmployees,
-    useDisciplines
-} from '../../../../hooks/forms/useAboutKvkData'
-import { useMemo } from 'react'
+import { useYears } from '../../../../hooks/useOtherMastersData'
+import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
+import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
+import { useAuth } from '../../../../contexts/AuthContext'
+import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
-import { createMasterDataOptions, filterByParentId } from '../../../../utils/formHelpers'
+import {
+    createStaffOptions,
+    handleStaffChange,
+    createMasterDataOptions,
+    filterByParentId
+} from '../../../../utils/formHelpers'
 
 interface OftFldFormsProps {
     entityType: ExtendedEntityType | null
@@ -57,54 +62,60 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
-    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
+    const { data: years = [] } = useYears()
     const { data: disciplines = [] } = useDisciplines()
+    const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
+    const { data: fldCrops = [] } = useFldCrops()
+
+    // KVK Staff dropdown - depends on kvkId
+    const activeKvkId = user?.kvkId || formData.kvkId
+    const { data: kvkStaffData = [], isLoading: isLoadingKvkStaff } = useKvkStaffForDropdown(activeKvkId)
+
+    // FLD list for extension training and technical feedback
+    const { data: fldList = [] } = useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD)
+
+    // FldActivity list for extension training - using the proper hook
+    const { data: activityList = [] } = useFldActivities()
 
     // OFT Thematic Areas - depends on subjectId
     const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
         formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
     )
-    const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
-    const { data: fldCrops = [], isLoading: isLoadingFldCrops } = useFldCrops()
 
+    // Memoized onOptionsLoad functions to prevent infinite re-renders
+    const loadOftThematicAreas = useCallback(async (subjectId: any) => {
+        const response = await oftFldApi.getOftThematicAreasBySubject(subjectId as number);
+        return response.data.map((thematicArea: any) => ({
+            value: thematicArea.oftThematicAreaId,
+            label: thematicArea.thematicAreaName
+        }));
+    }, []);
 
-    const scientistOptions = useMemo(() => {
-        const fallbacks = [
-            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-        ];
+    const loadFldThematicAreas = useCallback(async (sectorId: any) => {
+        const response = await oftFldApi.getFldThematicAreasBySector(sectorId as number);
+        return response.data.map((thematicArea: any) => ({
+            value: thematicArea.thematicAreaId || thematicArea.fldThematicAreaId,
+            label: thematicArea.thematicAreaName
+        }));
+    }, []);
 
-        if (!employees || employees.length === 0) {
-            return fallbacks;
-        }
+    const loadFldCategories = useCallback(async (sectorId: any) => {
+        const response = await oftFldApi.getFldCategoriesBySector(sectorId as number);
+        return createMasterDataOptions(response.data, 'categoryId', 'categoryName');
+    }, []);
 
-        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
-        const mapped = employees
-            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
-            .map((emp: any) => ({
-                value: emp.staffName,
-                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
-            }));
+    const loadFldSubcategories = useCallback(async (categoryId: any) => {
+        const response = await oftFldApi.getFldSubcategoriesByCategory(categoryId as number);
+        return createMasterDataOptions(response.data, 'subCategoryId', 'subCategoryName');
+    }, []);
 
-        const result = [...mapped];
-        fallbacks.forEach(fb => {
-            if (!result.some(r => r.value === fb.value)) {
-                result.push(fb);
-            }
-        });
-
-        return result;
-    }, [employees]);
-
-    const yearOptions = [
-        { value: '2022', label: '2022' },
-        { value: '2023', label: '2023' },
-        { value: '2024', label: '2024' },
-        { value: '2025', label: '2025' },
-        { value: '2026', label: '2026' },
-    ]
+    const loadFldCrops = useCallback(async (subCategoryId: any) => {
+        const response = await oftFldApi.getFldCropsBySubcategory(subCategoryId as number);
+        return response.data.map((crop: any) => ({
+            value: crop.cropId || crop.fldCropId,
+            label: crop.cropName
+        }));
+    }, []);
 
     // Derive sectorId from categoryId when editing FLD_CROPS
     useEffect(() => {
@@ -120,22 +131,24 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     useEffect(() => {
         if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT) {
             setFormData((prev: any) => {
-                // Only update if we need to extract data and haven't already extracted it
-                if (prev.reportingYearId) return prev // Already has reportingYearId, no need to update
+                // Skip if reportingYearId already exists
+                if (prev.reportingYearId) return prev
 
                 const updates: any = {}
 
                 // Extract reportingYearId from nested reportingYear object if not directly available
-                if (prev.reportingYear && prev.reportingYear.yearId) {
-                    updates.reportingYearId = prev.reportingYear.yearId
+                if (prev.reportingYear) {
+                    if (prev.reportingYear.yearId) {
+                        // Nested object case: { reportingYear: { yearId: X, yearName: "..." } }
+                        updates.reportingYearId = prev.reportingYear.yearId
+                    } else if (typeof prev.reportingYear === 'number') {
+                        // Legacy: reportingYear is already the ID
+                        updates.reportingYearId = prev.reportingYear
+                    }
                 }
                 // Handle legacy yearId (backward compatibility - map to reportingYearId)
-                else if (prev.yearId) {
+                if (!updates.reportingYearId && prev.yearId) {
                     updates.reportingYearId = prev.yearId
-                }
-                // Handle legacy reportingYear as integer (backward compatibility)
-                else if (typeof prev.reportingYear === 'number') {
-                    updates.reportingYearId = prev.reportingYear
                 }
 
                 if (Object.keys(updates).length === 0) return prev
@@ -179,6 +192,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     return (
         <>
+            {/* ALL MAsters forms-------------- */}
             {entityType === ENTITY_TYPES.OFT_SUBJECTS && (
                 <FormInput
                     label="Subject Name"
@@ -191,19 +205,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
             {entityType === ENTITY_TYPES.OFT_THEMATIC_AREAS && (
                 <div className="space-y-4">
-                    <FormInput
-                        label="Thematic Area Name"
-                        required
-                        value={formData.thematicAreaName || ''}
-                        onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
-                        placeholder="Enter thematic area name"
-                    />
                     <FormSelect
                         label="Subject"
                         required
                         value={formData.oftSubjectId || ''}
                         onChange={(e) => setFormData({ ...formData, oftSubjectId: parseInt(e.target.value) })}
                         options={oftSubjects.map(s => ({ value: s.oftSubjectId, label: s.subjectName }))}
+                    />
+                    <FormInput
+                        label="Thematic Area Name"
+                        required
+                        value={formData.thematicAreaName || ''}
+                        onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
+                        placeholder="Enter thematic area name"
                     />
                 </div>
             )}
@@ -220,6 +234,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
             {entityType === ENTITY_TYPES.FLD_THEMATIC_AREAS && (
                 <div className="space-y-4">
+                    <FormSelect
+                        label="Sector"
+                        required
+                        value={formData.sectorId || ''}
+                        onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
+                        options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
+                    />
                     <FormInput
                         label="Thematic Area Name"
                         required
@@ -227,6 +248,11 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
+                </div>
+            )}
+
+            {entityType === ENTITY_TYPES.FLD_CATEGORIES && (
+                <div className="space-y-4">
                     <FormSelect
                         label="Sector"
                         required
@@ -234,11 +260,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
                         options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
                     />
-                </div>
-            )}
-
-            {entityType === ENTITY_TYPES.FLD_CATEGORIES && (
-                <div className="space-y-4">
                     <FormInput
                         label="Category Name"
                         required
@@ -246,25 +267,11 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, categoryName: e.target.value })}
                         placeholder="Enter category name"
                     />
-                    <FormSelect
-                        label="Sector"
-                        required
-                        value={formData.sectorId || ''}
-                        onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
-                        options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
-                    />
                 </div>
             )}
 
             {entityType === ENTITY_TYPES.FLD_SUBCATEGORIES && (
                 <div className="space-y-4">
-                    <FormInput
-                        label="Subcategory Name"
-                        required
-                        value={formData.subCategoryName || ''}
-                        onChange={(e) => setFormData({ ...formData, subCategoryName: e.target.value })}
-                        placeholder="Enter subcategory name"
-                    />
                     <FormSelect
                         label="Sector"
                         required
@@ -284,6 +291,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         options={fldCategories
                             .filter((c: any) => c.sectorId === formData.sectorId)
                             .map(c => ({ value: c.categoryId, label: c.categoryName }))}
+                    />
+                    <FormInput
+                        label="Subcategory Name"
+                        required
+                        value={formData.subCategoryName || ''}
+                        onChange={(e) => setFormData({ ...formData, subCategoryName: e.target.value })}
+                        placeholder="Enter subcategory name"
                     />
                 </div>
             )}
@@ -333,6 +347,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 </div>
             )}
 
+            {entityType === ENTITY_TYPES.FLD_ACTIVITIES && (
+                <FormInput
+                    label="Activity Name"
+                    required
+                    value={formData.activityName || ''}
+                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                    placeholder="Enter activity name"
+                />
+            )}
+
             {entityType === ENTITY_TYPES.CFLD_CROPS && (
                 <div className="space-y-4">
                     <MasterDataDropdown
@@ -360,6 +384,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 </div>
             )}
 
+            {/* Achievement OFT forms-------------- */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && (
                 <div className="space-y-8">
                     {/* Basic Information Section */}
@@ -368,22 +393,28 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYear: value })}
-                            options={[
-                                { value: '2023', label: '2023' },
-                                { value: '2024', label: '2024' },
-                                { value: '2025', label: '2025' },
-                                { value: '2026', label: '2026' },
-
-                            ]}
+                            value={formData.reportingYearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value as number })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
-                        <FormSelect
+                        {/* Name of SMS/KVK Head - From KVK Staff API */}
+                        <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={scientistOptions}
+                            value={formData.staffId || formData.staffName || ''}
+                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
+                            options={createStaffOptions(kvkStaffData || [])}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            // Don't use onOptionsLoad - we already have data from useKvkStaffForDropdown hook
+                            // This prevents duplicate API calls
+                            cacheKey="kvk-staff-dropdown"
+                            emptyMessage="No SMS/KVK Head staff available for this KVK"
+                            loadingMessage="Loading staff..."
+                            isLoading={isLoadingKvkStaff}
                         />
 
                         {/* Season - From Season Master */}
@@ -434,13 +465,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 value: formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null,
                                 field: 'oftSubjectId',
                             }}
-                            onOptionsLoad={async (subjectId) => {
-                                const response = await oftFldApi.getOftThematicAreasBySubject(subjectId as number);
-                                return response.data.map((thematicArea: any) => ({
-                                    value: thematicArea.oftThematicAreaId,
-                                    label: thematicArea.thematicAreaName
-                                }));
-                            }}
+                            onOptionsLoad={loadOftThematicAreas}
                             cacheKey="oft-thematic-areas-by-subject"
                             emptyMessage="No thematic areas available for this subject"
                             loadingMessage="Loading thematic areas..."
@@ -575,6 +600,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 </div>
             )}
 
+            {/* WIP: result form is pending and some more fields are needed(end date) */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD && (
                 <div className="space-y-8">
                     {/* Basic Information Section */}
@@ -583,14 +609,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffName || ''}
-                            onChange={(value) => setFormData({ ...formData, staffName: value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            value={formData.staffId || formData.staffName || ''}
+                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
+                            options={createStaffOptions(kvkStaffData || [])}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            // Don't use onOptionsLoad - we already have data from useKvkStaffForDropdown hook
+                            // This prevents duplicate API calls
+                            cacheKey="kvk-staff-dropdown"
+                            emptyMessage="No SMS/KVK Head staff available for this KVK"
+                            loadingMessage="Loading staff..."
+                            isLoading={isLoadingKvkStaff}
                         />
 
                         {/* Season - From Season Master */}
@@ -624,32 +655,42 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Thematic Area"
                             required
-                            value={formData.fldThematicAreaId || formData.thematicArea || ''}
+                            value={formData.fldThematicAreaId || formData.thematicAreaId || ''}
                             onChange={(value) => {
-                                const selectedThematicArea = fldThematicAreas.find((t: any) => t.fldThematicAreaId === value);
+                                // Ensure value is a number (ID), not a string
+                                const numericValue = value === '' || value === null || value === undefined
+                                    ? null
+                                    : (typeof value === 'number' ? value : parseInt(String(value), 10));
+
+                                // Validate that we got a valid number
+                                if (numericValue !== null && isNaN(numericValue)) {
+                                    console.error('Invalid thematic area ID:', value);
+                                    return;
+                                }
+
+                                // API returns thematicAreaId (not fldThematicAreaId)
+                                const selectedThematicArea = fldThematicAreas.find((t: any) =>
+                                    (t.thematicAreaId === numericValue) || (t.fldThematicAreaId === numericValue)
+                                );
                                 setFormData({
                                     ...formData,
-                                    fldThematicAreaId: value as number,
+                                    fldThematicAreaId: numericValue, // Frontend uses fldThematicAreaId for consistency
+                                    thematicAreaId: numericValue, // Backend uses thematicAreaId
                                     thematicArea: selectedThematicArea?.thematicAreaName || ''
                                 });
                             }}
                             options={fldThematicAreas
                                 .filter((t: any) => t.sectorId === formData.sectorId)
                                 .map((t: any) => ({
-                                    value: t.fldThematicAreaId,
+                                    // API returns thematicAreaId, but we map it to fldThematicAreaId for frontend consistency
+                                    value: t.thematicAreaId || t.fldThematicAreaId,
                                     label: t.thematicAreaName
                                 }))}
                             dependsOn={{
                                 value: formData.sectorId,
                                 field: 'sectorId',
                             }}
-                            onOptionsLoad={async (sectorId) => {
-                                const response = await oftFldApi.getFldThematicAreasBySector(sectorId as number);
-                                return response.data.map((thematicArea: any) => ({
-                                    value: thematicArea.fldThematicAreaId,
-                                    label: thematicArea.thematicAreaName
-                                }));
-                            }}
+                            onOptionsLoad={loadFldThematicAreas}
                             cacheKey="fld-thematic-areas-by-sector"
                             emptyMessage="No thematic areas available for this sector"
                             loadingMessage="Loading thematic areas..."
@@ -674,10 +715,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 value: formData.sectorId,
                                 field: 'sectorId',
                             }}
-                            onOptionsLoad={async (sectorId) => {
-                                const response = await oftFldApi.getFldCategoriesBySector(sectorId as number);
-                                return createMasterDataOptions(response.data, 'categoryId', 'categoryName');
-                            }}
+                            onOptionsLoad={loadFldCategories}
                             cacheKey="fld-categories-by-sector"
                             emptyMessage="No categories available for this sector"
                             loadingMessage="Loading categories..."
@@ -701,10 +739,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 value: formData.categoryId,
                                 field: 'categoryId',
                             }}
-                            onOptionsLoad={async (categoryId) => {
-                                const response = await oftFldApi.getFldSubcategoriesByCategory(categoryId as number);
-                                return createMasterDataOptions(response.data, 'subCategoryId', 'subCategoryName');
-                            }}
+                            onOptionsLoad={loadFldSubcategories}
                             cacheKey="fld-subcategories-by-category"
                             emptyMessage="No subcategories available for this category"
                             loadingMessage="Loading subcategories..."
@@ -715,24 +750,32 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Crop"
                             required
                             value={formData.cropId || ''}
-                            onChange={(value) => setFormData({ ...formData, cropId: value as number })}
+                            onChange={(value) => {
+                                // Ensure value is a number (ID), not a string
+                                const numericValue = value === '' || value === null || value === undefined
+                                    ? null
+                                    : (typeof value === 'number' ? value : parseInt(String(value), 10));
+
+                                // Validate that we got a valid number
+                                if (numericValue !== null && isNaN(numericValue)) {
+                                    console.error('Invalid crop ID:', value);
+                                    return;
+                                }
+
+                                setFormData({ ...formData, cropId: numericValue });
+                            }}
                             options={fldCrops
                                 .filter((c: any) => c.subCategoryId === formData.subCategoryId)
                                 .map((c: any) => ({
-                                    value: c.fldCropId,
+                                    // API returns cropId (not fldCropId)
+                                    value: c.cropId || c.fldCropId,
                                     label: c.cropName
                                 }))}
                             dependsOn={{
                                 value: formData.subCategoryId,
                                 field: 'subCategoryId',
                             }}
-                            onOptionsLoad={async (subCategoryId) => {
-                                const response = await oftFldApi.getFldCropsBySubcategory(subCategoryId as number);
-                                return response.data.map((crop: any) => ({
-                                    value: crop.fldCropId,
-                                    label: crop.cropName
-                                }));
-                            }}
+                            onOptionsLoad={loadFldCrops}
                             cacheKey="fld-crops-by-subcategory"
                             emptyMessage="No crops available for this subcategory"
                             loadingMessage="Loading crops..."
@@ -783,6 +826,171 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
                     </FormSection>
+                </div>
+            )}
+
+            {/* Extension & Training activities under FLD */}
+            {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING && (
+                <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
+                        />
+
+                        <DependentDropdown
+                            label="FLD"
+                            required
+                            value={formData.fldId || ''}
+                            onChange={(value) => {
+                                const selectedFld = fldList.find((f: any) => f.kvkFldId === value || f.id === value)
+                                setFormData({
+                                    ...formData,
+                                    fldId: value as number,
+                                    fldName: selectedFld?.fldName || selectedFld?.technologyName
+                                })
+                            }}
+                            options={fldList.map((f: any) => ({
+                                value: f.kvkFldId || f.id,
+                                label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
+                            }))}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            emptyMessage="No FLD available for this KVK"
+                            loadingMessage="Loading FLD..."
+                        />
+
+                        <MasterDataDropdown
+                            label="Activity"
+                            required
+                            value={formData.activityId || ''}
+                            onChange={(value) => {
+                                const selectedActivity = activityList.find((a: any) => a.activityId === value)
+                                setFormData({
+                                    ...formData,
+                                    activityId: value as number,
+                                    activity: selectedActivity?.activityName || ''
+                                })
+                            }}
+                            options={createMasterDataOptions(activityList, 'activityId', 'activityName')}
+                            emptyMessage="No activities available"
+                        />
+
+                        <FormInput
+                            label="Date"
+                            required
+                            type="date"
+                            value={formData.activityDate || formData.date || ''}
+                            onChange={(e) => setFormData({ ...formData, activityDate: e.target.value, date: e.target.value })}
+                        />
+
+                        <FormInput
+                            label="No. of activities"
+                            required
+                            type="number"
+                            value={formData.numberOfActivities || formData.noOfActivities || formData.activityCount || ''}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                numberOfActivities: e.target.value,
+                                noOfActivities: e.target.value,
+                                activityCount: e.target.value
+                            })}
+                        />
+                    </div>
+
+                    <FormTextArea
+                        label="Remarks"
+                        value={formData.remarks || formData.remark || ''}
+                        onChange={(e) => setFormData({ ...formData, remarks: e.target.value, remark: e.target.value })}
+                        placeholder="Enter remarks"
+                    />
+
+                    <FormSection title="Participants">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput label="General_M*" required type="number" value={formData.gen_m || formData.generalM || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value, generalM: e.target.value })} />
+                            <FormInput label="General_F*" required type="number" value={formData.gen_f || formData.generalF || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value, generalF: e.target.value })} />
+                            <FormInput label="OBC_M*" required type="number" value={formData.obc_m || formData.obcM || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value, obcM: e.target.value })} />
+                            <FormInput label="OBC_F*" required type="number" value={formData.obc_f || formData.obcF || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value, obcF: e.target.value })} />
+
+                            <FormInput label="SC_M*" required type="number" value={formData.sc_m || formData.scM || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value, scM: e.target.value })} />
+                            <FormInput label="SC_F*" required type="number" value={formData.sc_f || formData.scF || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value, scF: e.target.value })} />
+                            <FormInput label="ST_M*" required type="number" value={formData.st_m || formData.stM || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value, stM: e.target.value })} />
+                            <FormInput label="ST_F*" required type="number" value={formData.st_f || formData.stF || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value, stF: e.target.value })} />
+                        </div>
+                    </FormSection>
+                </div>
+            )}
+
+            {/* Technical Feedback on FLD */}
+            {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK && (
+                <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
+                        />
+
+                        <DependentDropdown
+                            label="FLD"
+                            required
+                            value={formData.fldId || ''}
+                            onChange={(value) => {
+                                const selectedFld = fldList.find((f: any) => f.kvkFldId === value || f.id === value)
+                                setFormData({
+                                    ...formData,
+                                    fldId: value as number,
+                                    fldName: selectedFld?.fldName || selectedFld?.technologyName
+                                })
+                            }}
+                            options={fldList.map((f: any) => ({
+                                value: f.kvkFldId || f.id,
+                                label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
+                            }))}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            emptyMessage="No FLD available for this KVK"
+                            loadingMessage="Loading FLD..."
+                        />
+
+                        <DependentDropdown
+                            label="Crop"
+                            required
+                            value={formData.cropId || ''}
+                            onChange={(value) => {
+                                const selectedCrop = fldCrops.find((c: any) => c.cropId === value)
+                                setFormData({
+                                    ...formData,
+                                    cropId: value as number,
+                                    crop: selectedCrop?.cropName || ''
+                                })
+                            }}
+                            options={fldCrops.map((c: any) => ({
+                                value: c.cropId,
+                                label: c.cropName
+                            }))}
+                            emptyMessage="No crops available"
+                        />
+                    </div>
+
+                    <FormTextArea
+                        label="FeedBack"
+                        required
+                        value={formData.feedback || formData.feedBack || ''}
+                        onChange={(e) => setFormData({ ...formData, feedback: e.target.value, feedBack: e.target.value })}
+                        placeholder="Enter technical feedback"
+                    />
                 </div>
             )}
         </>

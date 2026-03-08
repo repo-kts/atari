@@ -1,6 +1,6 @@
 import React from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
 
 interface PublicationFormsProps {

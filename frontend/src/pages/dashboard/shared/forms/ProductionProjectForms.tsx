@@ -1,12 +1,12 @@
 import React from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormSection } from './shared/FormComponents'
 import {
     useProductCategories,
     useProductTypes,
-} from '../../../../hooks/useProductionProjectsData'
-import { useSeasons } from '../../../../hooks/useOftFldData'
+} from '@/hooks/useProductionProjectsData'
+import { useSeasons } from '@/hooks/useOftFldData'
 
 interface ProductionProjectFormsProps {
     entityType: ExtendedEntityType | null

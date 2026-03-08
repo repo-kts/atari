@@ -1,0 +1,92 @@
+/**
+ * Master Sibling Groups
+ *
+ * Centralized sibling route groups for All Masters navigation.
+ * These groups define which master routes should appear as tabs together.
+ *
+ * Usage:
+ *   import { MASTER_SIBLING_GROUPS } from '@/config/masterSiblingGroups'
+ *   siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS
+ */
+
+import { ENTITY_PATHS } from '../constants/entityConstants'
+
+export const MASTER_SIBLING_GROUPS = {
+    // Basic Masters
+    BASIC_MASTERS: [
+        ENTITY_PATHS.ZONES,
+        ENTITY_PATHS.STATES,
+        ENTITY_PATHS.DISTRICTS,
+        ENTITY_PATHS.ORGANIZATIONS,
+        ENTITY_PATHS.UNIVERSITIES,
+    ],
+
+    // OFT Masters
+    OFT_MASTERS: [
+        ENTITY_PATHS.OFT_SUBJECT,
+        ENTITY_PATHS.OFT_THEMATIC_AREA,
+    ],
+
+    // FLD Masters
+    FLD_MASTERS: [
+        ENTITY_PATHS.FLD_SECTOR,
+        ENTITY_PATHS.FLD_THEMATIC_AREA,
+        ENTITY_PATHS.FLD_CATEGORY,
+        ENTITY_PATHS.FLD_SUBCATEGORY,
+        ENTITY_PATHS.FLD_CROP,
+        ENTITY_PATHS.FLD_ACTIVITY,
+    ],
+
+    // CFLD Masters
+    CFLD_MASTERS: [
+        ENTITY_PATHS.CFLD_CROP,
+    ],
+
+    // Training Basic Masters
+    TRAINING_BASIC_MASTERS: [
+        ENTITY_PATHS.TRAINING_TYPE,
+        ENTITY_PATHS.TRAINING_AREA,
+        ENTITY_PATHS.TRAINING_THEMATIC,
+        ENTITY_PATHS.TRAINING_CLIENTELE,
+        ENTITY_PATHS.FUNDING_SOURCE,
+    ],
+
+    // Training Extension Masters
+    TRAINING_EXTENSION_MASTERS: [
+        ENTITY_PATHS.EXTENSION_ACTIVITY,
+        ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
+    ],
+
+    // Production & Projects Masters
+    PRODUCT_MASTERS: [
+        ENTITY_PATHS.PRODUCT_CATEGORY,
+        ENTITY_PATHS.PRODUCT_TYPE,
+        ENTITY_PATHS.PRODUCT,
+    ],
+
+    CRA_MASTERS: [
+        ENTITY_PATHS.CRA_CROPPING_SYSTEM,
+        ENTITY_PATHS.CRA_FARMING_SYSTEM,
+    ],
+
+    ARYA_MASTERS: [
+        ENTITY_PATHS.ARYA_ENTERPRISE,
+    ],
+
+    // Employee Masters
+    EMPLOYEE_MASTERS: [
+        ENTITY_PATHS.STAFF_CATEGORY,
+        ENTITY_PATHS.PAY_LEVEL,
+        ENTITY_PATHS.SANCTIONED_POST,
+        ENTITY_PATHS.DISCIPLINE,
+    ],
+
+    // Other Masters
+    OTHER_MASTERS: [
+        ENTITY_PATHS.SEASON,
+        ENTITY_PATHS.YEAR,
+        ENTITY_PATHS.CROP_TYPE,
+        ENTITY_PATHS.INFRASTRUCTURE_MASTER,
+        ENTITY_PATHS.IMPORTANT_DAY,
+    ],
+} as const;

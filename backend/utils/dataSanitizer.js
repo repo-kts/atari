@@ -382,6 +382,16 @@ function safeGet(obj, path, defaultValue = null) {
         return defaultValue;
     }
     
+    // Ensure path is a string
+    if (typeof path !== 'string') {
+        // If path is not a string, try to convert it or return default
+        if (path === null || path === undefined) {
+            return defaultValue;
+        }
+        // Convert to string if it's a number or other type
+        path = String(path);
+    }
+    
     const keys = path.split('.');
     let current = obj;
     

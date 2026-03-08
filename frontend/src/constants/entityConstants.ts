@@ -1,3 +1,13 @@
+/**
+ * Entity Constants Configuration
+ *
+ * Centralized constants for entity types and their corresponding paths.
+ * This file serves as the single source of truth for entity identification
+ * and routing throughout the application.
+ *
+ * For route paths, prefer using ROUTE_PATHS from './routePaths' for consistency.
+ */
+
 export const ENTITY_TYPES = {
     // Basic Masters
     ZONES: 'zones',
@@ -14,6 +24,7 @@ export const ENTITY_TYPES = {
     FLD_CATEGORIES: 'fld-categories',
     FLD_SUBCATEGORIES: 'fld-subcategories',
     FLD_CROPS: 'fld-crops',
+    FLD_ACTIVITIES: 'fld-activities',
     CFLD_CROPS: 'cfld-crops',
     SEASONS: 'seasons',
 
@@ -74,6 +85,9 @@ export const ENTITY_TYPES = {
     // Achievements (OFT & FLD)
     ACHIEVEMENT_OFT: 'achievement-oft',
     ACHIEVEMENT_FLD: 'achievement-fld',
+    ACHIEVEMENT_FLD_EXTENSION_TRAINING: 'achievement-fld-extension-training',
+    ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK: 'achievement-fld-technical-feedback',
+
     ACHIEVEMENT_TRAINING: 'achievement-training',
     ACHIEVEMENT_EXTENSION: 'achievement-extension',
     ACHIEVEMENT_OTHER_EXTENSION: 'achievement-other-extension',
@@ -161,6 +175,7 @@ export const ENTITY_PATHS = {
     FLD_CATEGORY: '/all-master/fld/category',
     FLD_SUBCATEGORY: '/all-master/fld/sub-category',
     FLD_CROP: '/all-master/fld/crop',
+    FLD_ACTIVITY: '/all-master/fld/activity',
     CFLD_CROP: '/all-master/cfld-crop',
 
     // Training, Extension & Events

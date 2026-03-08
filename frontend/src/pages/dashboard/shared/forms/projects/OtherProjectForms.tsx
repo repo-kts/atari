@@ -1,5 +1,5 @@
 import React from 'react'
-import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
 
 interface OtherProjectFormsProps {

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
+import { ROUTE_PATHS } from '../constants/routePaths';
 
 const EMPTY_ARRAY: any[] = [];
 
@@ -33,7 +34,11 @@ export function useProjectData(entityType: string) {
         'project-csisa': '/forms/achievements/projects/csisa',
         'project-agri-drone': '/forms/achievements/projects/agri-drone',
         'project-agri-drone-demo': '/forms/achievements/projects/agri-drone',
-        'achievement-oft': '/forms/achievements/oft',
+        'achievement-oft': ROUTE_PATHS.ACHIEVEMENTS.OFT,
+        'achievement-fld': ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
+        'achievement-fld-extension-training': ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
+        'achievement-fld-technical-feedback': ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
+        'achievement-training': ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;

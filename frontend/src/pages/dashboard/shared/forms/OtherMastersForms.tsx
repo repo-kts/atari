@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput } from './shared/FormComponents'
 

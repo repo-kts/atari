@@ -10,7 +10,7 @@ import type {
     KvkEquipmentFormData,
     KvkFarmImplementFormData,
 } from '../../types/aboutKvk';
-import { ENTITY_TYPES } from '../../constants/entityTypes';
+import { ENTITY_TYPES } from '@/constants/entityConstants';
 
 // Helper to build user-aware query keys
 // Takes user from hook context instead of accessing store directly

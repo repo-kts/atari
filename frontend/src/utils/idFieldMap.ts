@@ -5,7 +5,7 @@
  * Replaces large switch statement with maintainable configuration
  */
 
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
 /**
@@ -27,6 +27,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.FLD_CATEGORIES]: 'categoryId',
     [ENTITY_TYPES.FLD_SUBCATEGORIES]: 'subCategoryId',
     [ENTITY_TYPES.FLD_CROPS]: 'cropId',
+    [ENTITY_TYPES.FLD_ACTIVITIES]: 'activityId',
     [ENTITY_TYPES.CFLD_CROPS]: 'cfldId',
     [ENTITY_TYPES.SEASONS]: 'seasonId',
     [ENTITY_TYPES.SEASON]: 'seasonId',

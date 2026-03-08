@@ -3,7 +3,7 @@
  * Provides reusable, maintainable, and optimized delete handlers
  */
 
-import { ENTITY_TYPES } from '@/constants/entityTypes';
+import { ENTITY_TYPES } from '@/constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
 /**

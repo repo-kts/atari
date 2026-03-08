@@ -6,9 +6,9 @@
 
 import React from 'react'
 import { ChevronLeft } from 'lucide-react'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { getEntityTypeChecks } from '@/utils/entityTypeUtils'
+import { getEntityTypeChecks } from '@/utils/entityTypeHelpers'
 import { LoadingButton } from '@/components/common/LoadingButton'
 
 // Form Components
