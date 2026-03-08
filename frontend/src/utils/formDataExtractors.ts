@@ -144,6 +144,18 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
             formData.eventDate = new Date(item.eventDate).toISOString().split('T')[0];
         }
     },
+    [ENTITY_TYPES.ACHIEVEMENT_HRD]: (item: any, formData: any) => {
+        // Ensure kvkStaffId is mapped correctly for selection
+        if (item.kvkStaffId) formData.kvkStaffId = String(item.kvkStaffId);
+
+        // Format dates for HTML date input (YYYY-MM-DD)
+        if (item.startDate) {
+            formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        }
+        if (item.endDate) {
+            formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        }
+    },
 };
 
 /**

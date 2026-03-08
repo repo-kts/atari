@@ -26,7 +26,11 @@ const scientistAwardService = {
             conferringAuthority: data.conferringAuthority,
         };
 
-        return await scientistAwardRepository.create(awardData, user);
+        console.log('--- Scientist Award Service: Creating Scientist Award ---');
+        console.log('Data:', awardData);
+        const newAward = await scientistAwardRepository.create(awardData, user);
+        console.log('Scientist Award created:', newAward);
+        return newAward;
     },
 
     /**
@@ -57,19 +61,17 @@ const scientistAwardService = {
         const existing = await scientistAwardRepository.findById(id);
         if (!existing) throw new Error('Award not found');
 
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
-        }
-
         const updateData = {};
         if (data.awardName !== undefined) updateData.awardName = data.awardName;
         if (data.scientistName !== undefined) updateData.scientistName = data.scientistName;
-        if (data.year !== undefined) updateData.year = data.year;
-        if (data.reportingYear !== undefined) updateData.year = data.reportingYear;
-        if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
+        if (data.year !== undefined || data.reportingYear !== undefined) {
+            updateData.reportingYear = data.year || data.reportingYear;
+        }
+        if (data.amount !== undefined) updateData.amount = parseInt(data.amount) || 0;
         if (data.achievement !== undefined) updateData.achievement = data.achievement;
         if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
 
+        console.log(`Updating Scientist Award ${id} with:`, updateData);
         return await scientistAwardRepository.update(id, updateData);
     },
 

@@ -46,7 +46,8 @@ const farmerAwardRepository = {
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
             year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            image: r.image
+            image: r.image,
+            kvkId: r.kvkId || r.kvk_id
         }));
     },
 
@@ -72,7 +73,8 @@ const farmerAwardRepository = {
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
             year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            image: r.image
+            image: r.image,
+            kvkId: r.kvkId || r.kvk_id
         };
     },
 
@@ -105,7 +107,11 @@ const farmerAwardRepository = {
             updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = 'UPDATE farmer_award SET ' + updates.join(', ') + ' WHERE farmer_award_id = $' + index;
             values.push(parseInt(id));
+            console.log('--- Farmer Award Update ---');
+            console.log('SQL:', sql);
+            console.log('Values:', values);
             await prisma.$queryRawUnsafe(sql, ...values);
+            console.log('Update executed successfully');
         }
         return await farmerAwardRepository.findById(id);
     },

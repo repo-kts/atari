@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronLeft } from 'lucide-react'
@@ -160,85 +160,20 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         if (moduleCode) return hasPermission('DELETE', moduleCode)
         return user.role === 'super_admin'
     }
-    // Initialize items - all entities use real data from hooks
-    const [items, setItems] = useState<any[]>([])
+    // Use data directly from the hook — React Query updates this reference on every
+    // successful mutation/invalidation, so the table re-renders automatically without
+    // needing a manual local state layer or a page refresh.
+    const items = Array.isArray(activeHook?.data) ? activeHook.data : []
 
     const fields = propFields && propFields.length > 0 ? propFields : ['name']
     const itemsPerPage = 10
 
-    // Refs to track previous values and prevent infinite loops
-    const prevPathRef = useRef<string>(location.pathname)
-    const prevDataHashRef = useRef<string | null>(null)
-    const prevDataRef = useRef<any[] | null>(null) // Track previous data reference
-
-    // Create comprehensive hash for hook data to detect ALL changes
-    // Includes all IDs and a checksum to detect any updates
-    const hookDataHash = useMemo(() => {
-        if (!activeHook?.data || !Array.isArray(activeHook.data)) return null
-        const data = activeHook.data
-        if (data.length === 0) return 'empty'
-
-        // Create a hash that includes all IDs to detect changes anywhere in the list
-        // Also include a simple checksum of key fields to detect field updates
-        const ids = data.map((item: any) => {
-            const id = item.id || item.zoneId || item.stateId || item.districtId ||
-                item.orgId || item.universityId || item.cropId || item.cfldId ||
-                item.seasonId || item.sanctionedPostId || item.yearId ||
-                item.publicationId || item.kvkId || item.employeeId || ''
-            // Include a hash of the name field to detect name changes
-            const name = item.name || item.zoneName || item.stateName || item.districtName ||
-                item.orgName || item.universityName || item.cropName || item.CropName ||
-                item.seasonName || item.postName || item.yearName ||
-                item.publicationName || item.kvkName || ''
-            return `${id}:${name ? name.substring(0, 20) : ''}` // Truncate name for performance
-        }).join('|')
-
-        // Use length + all IDs + simple checksum
-        return `${data.length}-${ids.substring(0, 500)}` // Limit length for performance
-    }, [activeHook?.data])
-
-
-    // Reset state when route changes (tab switch)
+    // Reset pagination/search when route changes (tab switch)
     useEffect(() => {
-        // Only reset if path actually changed
-        if (prevPathRef.current !== location.pathname) {
-            prevPathRef.current = location.pathname
-            // Clear items immediately when route changes
-            setItems([])
-            setSearchQuery('')
-            setCurrentPage(1)
-            closeForm()
-            // Reset data refs
-            prevDataHashRef.current = null
-            prevDataRef.current = null
-        }
+        setSearchQuery('')
+        setCurrentPage(1)
+        closeForm()
     }, [location.pathname, closeForm])
-
-    // Sync data from API - real-time updates
-    // Check both hash changes AND reference changes (React Query gives new reference on refetch)
-    useEffect(() => {
-        // All entities use real data from hooks
-        if (activeHook?.data) {
-            const data = activeHook.data
-            const dataRefChanged = prevDataRef.current !== data
-            const hashChanged = hookDataHash !== null && hookDataHash !== prevDataHashRef.current
-
-            // Update if either the reference changed (React Query refetch) or hash changed (data content changed)
-            if (dataRefChanged || hashChanged) {
-                prevDataRef.current = data
-                prevDataHashRef.current = hookDataHash
-                setItems([...data]) // Create new array reference to ensure React detects the change
-            }
-        } else if (activeHook && !activeHook.data && !activeHook.isLoading) {
-            // If hook exists but has no data and is not loading, set empty array
-            // Only update if we haven't already set it to empty
-            if (prevDataRef.current !== null) {
-                prevDataRef.current = null
-                prevDataHashRef.current = null
-                setItems([])
-            }
-        }
-    }, [hookDataHash, location.pathname, activeHook?.isLoading]) // Use hookDataHash for data changes, not activeHook?.data to avoid infinite loops
 
     // Debounce search
     useEffect(() => {
@@ -260,8 +195,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     })
 
     // Pagination
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
+    // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
+    const safePage = Math.min(currentPage, totalPages)
+    const startIndex = (safePage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     const paginatedData = filteredData.slice(startIndex, endIndex)
 
@@ -526,7 +463,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     />
 
                                     <Pagination
-                                        currentPage={currentPage}
+                                        currentPage={safePage}
                                         totalPages={totalPages}
                                         startIndex={startIndex}
                                         endIndex={endIndex}

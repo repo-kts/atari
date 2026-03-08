@@ -33,9 +33,13 @@ const farmerAwardController = {
 
     updateFarmerAward: async (req, res, next) => {
         try {
+            console.log('--- Farmer Award Update Requested ---');
+            console.log('ID:', req.params.id);
+            console.log('Body:', req.body);
             const result = await farmerAwardService.updateFarmerAward(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, message: 'Farmer award updated successfully', data: result });
         } catch (error) {
+            console.error('Update Error:', error.message);
             next(error);
         }
     },

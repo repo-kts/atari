@@ -39,7 +39,8 @@ const kvkAwardRepository = {
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            kvkId: r.kvkId || r.kvk_id || r['kvkId']
         }));
     },
     findById: async (id) => {
@@ -59,7 +60,8 @@ const kvkAwardRepository = {
             awardName: r.award_name,
             conferringAuthority: r.conferring_authority,
             reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            kvkId: r.kvkId || r.kvk_id || r['kvkId']
         };
     },
     update: async (id, data) => {
@@ -82,7 +84,11 @@ const kvkAwardRepository = {
             updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = 'UPDATE kvk_award SET ' + updates.join(', ') + ' WHERE kvk_award_id = $' + index;
             values.push(parseInt(id));
+            console.log('--- KVK Award Update ---');
+            console.log('SQL:', sql);
+            console.log('Values:', values);
             await prisma.$queryRawUnsafe(sql, ...values);
+            console.log('Update executed successfully');
         }
         return await kvkAwardRepository.findById(id);
     },

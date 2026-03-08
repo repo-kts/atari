@@ -33,9 +33,13 @@ const scientistAwardController = {
 
     updateScientistAward: async (req, res, next) => {
         try {
+            console.log('--- Scientist Award Update Requested ---');
+            console.log('ID:', req.params.id);
+            console.log('Body:', req.body);
             const result = await scientistAwardService.updateScientistAward(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, message: 'Scientist award updated successfully', data: result });
         } catch (error) {
+            console.error('Update Error:', error.message);
             next(error);
         }
     },
