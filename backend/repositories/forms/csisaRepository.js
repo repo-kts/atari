@@ -45,7 +45,8 @@ const csisaRepository = {
             }];
         }
 
-        const reportingYear = parseInt(data.yearId || data.reportingYear) || new Date().getFullYear();
+        // Accept reportingYearId (yearId from YearMaster) from frontend
+        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
         const seasonId = parseInt(data.seasonId) || 1;
         const villagesCovered = parseInt(data.villageCovered || data.villagesCovered) || 0;
         const blocksCovered = parseInt(data.blockCovered || data.blocksCovered) || 0;
@@ -56,13 +57,13 @@ const csisaRepository = {
 
         const [csisaRecord] = await prisma.$queryRawUnsafe(`
             INSERT INTO csisa (
-                "kvkId", reporting_year, "seasonId", 
+                "kvkId", reporting_year_id, "seasonId", 
                 villages_covered, blocks_covered, districts_covered, 
                 respondents, trial_name, area_covered_ha,
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYear, seasonId, villagesCovered, blocksCovered, districtsCovered,
+        `, kvkId, reportingYearId, seasonId, villagesCovered, blocksCovered, districtsCovered,
             respondents, trialName, areaCoveredHa);
 
         const csisaId = csisaRecord.csisa_id;
@@ -100,8 +101,11 @@ const csisaRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYear) {
-            where.reportingYear = parseInt(filters.reportingYear);
+        if (filters.reportingYearId) {
+            where.reportingYearId = parseInt(filters.reportingYearId);
+        } else if (filters.reportingYear) {
+            // Backward compatibility: if reportingYear is provided, try to find yearId
+            where.reportingYearId = parseInt(filters.reportingYear);
         }
 
         const results = await prisma.csisa.findMany({
@@ -109,6 +113,7 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             },
             orderBy: { csisaId: 'desc' }
@@ -128,6 +133,7 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             }
         });
@@ -147,8 +153,12 @@ const csisaRepository = {
         if (!existing) throw new Error("Record not found or unauthorized");
 
         const updateData = {};
-        if (data.yearId !== undefined || data.reportingYear !== undefined)
-            updateData.reportingYear = parseInt(data.yearId ?? data.reportingYear);
+        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
+            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
+        } else if (data.reportingYear !== undefined) {
+            // Backward compatibility
+            updateData.reportingYearId = parseInt(data.reportingYear);
+        }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
         if (data.villageCovered !== undefined || data.villagesCovered !== undefined)
             updateData.villagesCovered = parseInt(data.villageCovered ?? data.villagesCovered);
@@ -200,12 +210,12 @@ const csisaRepository = {
             await tx.$executeRawUnsafe(`
                 UPDATE csisa 
                 SET 
-                    reporting_year = $1, "seasonId" = $2, villages_covered = $3, 
+                    reporting_year_id = $1, "seasonId" = $2, villages_covered = $3, 
                     blocks_covered = $4, districts_covered = $5, respondents = $6, 
                     trial_name = $7, area_covered_ha = $8, updated_at = CURRENT_TIMESTAMP
                 WHERE csisa_id = $9
             `,
-                updateData.reportingYear ?? existing.reportingYear,
+                updateData.reportingYearId ?? existing.reportingYearId,
                 updateData.seasonId ?? existing.seasonId,
                 updateData.villagesCovered ?? existing.villagesCovered,
                 updateData.blocksCovered ?? existing.blocksCovered,
@@ -238,6 +248,7 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             }
         });
@@ -277,8 +288,9 @@ function _mapResponse(r) {
         csisaId: r.csisaId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: r.reportingYear,
-        yearId: r.reportingYear,
+        reportingYearId: r.reportingYearId,
+        yearId: r.reportingYearId, // Frontend alias
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         villagesCovered: r.villagesCovered,
@@ -296,7 +308,7 @@ function _mapResponse(r) {
 
         // Frontend friendly table labels (matching routeConfig.ts and the image)
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Year': r.reportingYear,
+        'Year': r.reportingYear ? r.reportingYear.yearName : r.reportingYearId,
         'Season': r.season ? r.season.seasonName : undefined,
         'Trial Name': r.trialName,
         'Crop': r.cropDetails?.[0]?.cropName || '-',

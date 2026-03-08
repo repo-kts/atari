@@ -1,11 +1,9 @@
 model ThematicAreaMaster {
-  thematicAreaId Int    @id @default(autoincrement()) @map("thematic_area_id")
-  name           String @unique @map("name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  trainings TrainingAchievement[]
+  thematicAreaId Int                   @id @default(autoincrement()) @map("thematic_area_id")
+  name           String                @unique @map("name")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  updatedAt      DateTime              @updatedAt @map("updated_at")
+  trainings      TrainingAchievement[]
 
   @@map("thematic_area_master")
 }

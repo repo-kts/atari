@@ -13,16 +13,31 @@ class AboutKvkService {
     async getAll(entityName, options = {}, user = null) {
         options.filters = options.filters || {};
 
+        // Check if KVK role user doesn't have kvkId linked
+        if (user && KVK_ROLES.includes(user.roleName) && !user.kvkId) {
+            // Return empty result with a flag indicating no KVK linked
+            return {
+                data: [],
+                total: 0,
+                page: options.page || 1,
+                limit: options.limit || 100,
+                noKvkLinked: true,
+            };
+        }
 
-
-
+        // KVK role users (kvk_admin, kvk_user) with kvkId should only see their own KVK data
         if (user && user.kvkId) {
             if (entityName === 'kvk-staff-transferred') {
                 options.filters.sourceKvkIds = user.kvkId;
+            } else if (entityName === 'kvks') {
+                // For KVKs list, filter to show only their KVK
+                options.filters.kvkId = user.kvkId;
             } else {
+                // For all other entities (bank-accounts, employees, etc.), filter by kvkId
                 options.filters.kvkId = user.kvkId;
             }
         } else if (user && user.roleName !== 'super_admin') {
+            // Admin users without kvkId: apply geographic scope
             if (entityName === 'kvks') {
                 this._applyGeoFilter(options.filters, user);
             } else {
@@ -39,52 +54,6 @@ class AboutKvkService {
             page: options.page || 1,
             limit: options.limit || 100,
         };
-    }
-
-    async _ensureStaffExist() {
-        try {
-            const names = [
-                'Sri Akhilesh Kumar',
-                'Dr. Reeta Singh',
-                'Sri Rajeev Kumar',
-                'Dr. Prakash Chandra Gupta',
-                'Dr. Pushpam Patel',
-                'Smt. Sangeeta Kumari',
-                'Sri Chandan Kumar',
-                'Sri Kanhaiya Kumar Rai',
-                'Sri Bachan Sah',
-                'Sri Mukesh Kumar'
-            ];
-
-            const kvks = await prisma.kvk.findMany();
-            const p = await prisma.sanctionedPost.findFirst();
-            const d = await prisma.discipline.findFirst();
-            if (!kvks.length || !p || !d) return;
-
-            for (const kvk of kvks) {
-                for (let i = 0; i < names.length; i++) {
-                    const existing = await prisma.kvkStaff.findFirst({
-                        where: {
-                            staffName: names[i],
-                            kvkId: kvk.kvkId
-                        }
-                    });
-
-                    if (!existing) {
-                        await prisma.$executeRawUnsafe(`
-                            INSERT INTO kvk_staff (
-                                "kvkId", staff_name, mobile, date_of_birth, date_of_joining, 
-                                "sanctionedPostId", "disciplineId", position_order, transfer_status,
-                                created_at, updated_at
-                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                        `, kvk.kvkId, names[i], '943141200' + i, new Date('1980-01-01'), new Date('2010-01-01'),
-                            p.sanctionedPostId, d.disciplineId, i + 1, 'ACTIVE');
-                    }
-                }
-            }
-        } catch (e) {
-            console.error('❌ Staff ensures failed:', e.message);
-        }
     }
 
     async getById(entityName, id, user = null) {
@@ -136,7 +105,10 @@ class AboutKvkService {
             if (!user || !KVK_ROLES.includes(user.roleName)) {
                 throw new Error('Only KVK users can create this resource');
             }
-            // Auto-fill kvkId for KVK role users
+            // Auto-fill kvkId for KVK role users - ensure it exists
+            if (!user.kvkId) {
+                throw new Error('KVK ID is missing from user profile. Please contact administrator to assign a KVK to your account.');
+            }
             data.kvkId = user.kvkId;
 
             // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
@@ -180,6 +152,11 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
+        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
+        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
+            finalData.totalRun = String(finalData.totalRun);
+        }
+
         return await aboutKvkRepository.create(entityName, finalData);
     }
 
@@ -222,6 +199,11 @@ class AboutKvkService {
 
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
+
+        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
+        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
+            finalData.totalRun = String(finalData.totalRun);
+        }
 
         return await aboutKvkRepository.update(entityName, id, finalData);
     }
@@ -363,13 +345,13 @@ class AboutKvkService {
             'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is optional (can be required based on business rules)
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
-            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
-            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'category', 'photoPath'],
+            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
+            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
-            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'presentStatus'],
+            'kvk-vehicle-details': ['kvkId', 'reportingYearId', 'vehicleId', 'totalRun', 'presentStatus'],
             'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFunding'],
-            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'presentStatus'],
+            'kvk-equipment-details': ['kvkId', 'reportingYearId', 'equipmentId', 'presentStatus'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
         };
 
@@ -377,6 +359,8 @@ class AboutKvkService {
         const missing = required.filter(field => {
             const value = data[field];
             // Check for null, undefined, or empty string (but allow 0 and false) 
+            // Special handling: allow 0 for numeric fields, false for boolean fields
+            if (value === 0 || value === false) return false;
             return value === null || value === undefined || value === '';
         });
 
@@ -404,6 +388,15 @@ class AboutKvkService {
      */
     async getAllInfraMasters() {
         return await aboutKvkRepository.getAllInfraMasters();
+    }
+
+    /**
+     * Get KVK staff for dropdown (filtered by kvkId)
+     * @param {number} kvkId - KVK ID to filter staff
+     * @returns {Promise<Array>} Array of staff with kvkStaffId, staffName, email, and sanctionedPost
+     */
+    async getStaffForDropdown(kvkId) {
+        return await aboutKvkRepository.getStaffForDropdown(kvkId);
     }
 
     /**

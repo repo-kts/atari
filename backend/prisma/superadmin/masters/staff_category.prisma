@@ -1,13 +1,9 @@
-// Staff Category Master - converted from enum
-
 model StaffCategoryMaster {
-  staffCategoryId Int    @id @default(autoincrement()) @map("staff_category_id")
-  categoryName    String @unique @map("category_name")
+  staffCategoryId Int        @id @default(autoincrement()) @map("staff_category_id")
+  categoryName    String     @unique @map("category_name")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  staff           KvkStaff[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  staff KvkStaff[] 
-  
   @@map("staff_category_master")
 }

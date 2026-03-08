@@ -1,19 +1,23 @@
 import React from 'react'
-import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
-import { FormInput, FormSelect } from '../shared/FormComponents'
+import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { FormInput } from '../shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface CsisaFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
     years: any[]
+    seasons: any[]
 }
 
 export const CsisaForms: React.FC<CsisaFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years
+    years = [],
+    seasons = []
 }) => {
     return (
         <>
@@ -21,18 +25,21 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                 <div className="space-y-10">
                     {/* Header Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: y.id || y.yearId, label: y.yearName }))}
+                            value={formData.reportingYearId || formData.yearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
-                        <FormInput
+                        <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.season || ''}
-                            onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                            value={formData.seasonId || ''}
+                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
+                            options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
+                            emptyMessage="No seasons available"
                         />
                         <FormInput
                             label="Village Covered(no.)"

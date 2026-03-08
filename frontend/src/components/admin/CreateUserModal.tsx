@@ -819,8 +819,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     />
                 )}
 
-                {/* University dropdown - shown when Organization is visible */}
-                {((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
+                {/* University dropdown - only shown for KVK-level roles that need it */}
+                {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && ((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
                     <DependentDropdown
                         label="University"
                         value={formData.universityId || ''}

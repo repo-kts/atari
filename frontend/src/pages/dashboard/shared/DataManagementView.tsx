@@ -101,6 +101,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Check if this is an About KVK entity
     const { isAboutKvk: isAboutKvkEntity } = getEntityTypeChecks(entityType)
 
+    // Check if KVK admin/user doesn't have kvkId linked
+    const isKvkRoleWithoutKvk = user &&
+        (user.role === 'kvk_admin' || user.role === 'kvk_user') &&
+        !user.kvkId &&
+        isAboutKvkEntity
+
     // Determine if "Add New" button should be shown
     const canUserCreate = () => {
         if (!user) return false
@@ -225,9 +231,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             }
         } else if (activeHook && !activeHook.data && !activeHook.isLoading) {
             // If hook exists but has no data and is not loading, set empty array
-            setItems([])
+            // Only update if we haven't already set it to empty
+            if (prevDataRef.current !== null) {
+                prevDataRef.current = null
+                prevDataHashRef.current = null
+                setItems([])
+            }
         }
-    }, [hookDataHash, location.pathname, activeHook?.data, activeHook?.isLoading]) // Include activeHook?.data to detect reference changes
+    }, [hookDataHash, location.pathname, activeHook?.isLoading]) // Use hookDataHash for data changes, not activeHook?.data to avoid infinite loops
 
     // Debounce search
     useEffect(() => {
@@ -481,6 +492,20 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex-1 flex flex-col min-h-0 px-6 pb-6 overflow-hidden">
                             {loading ? (
                                 <LoadingState />
+                            ) : isKvkRoleWithoutKvk ? (
+                                <div className="flex-1 bg-white rounded-xl border border-[#E0E0E0] overflow-hidden flex flex-col min-h-0 relative shadow-sm">
+                                    <div className="absolute inset-0 overflow-auto flex items-center justify-center">
+                                        <div className="text-center px-6 py-12">
+                                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#F5F5F5] mb-4">
+                                                <svg className="w-8 h-8 text-[#757575]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-lg font-semibold text-[#212121] mb-2">No KVK Linked</h3>
+                                            <p className="text-[#757575] mb-4">You do not have a linked KVK yet. Please contact administrator to assign a KVK to your account.</p>
+                                        </div>
+                                    </div>
+                                </div>
                             ) : (
                                 <>
                                     <DataTable

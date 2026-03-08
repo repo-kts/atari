@@ -10,7 +10,8 @@ const aryaCurrentYearRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        const reportingYear = parseInt(data.yearId || data.reportingYear) || new Date().getFullYear();
+        // Accept reportingYearId (yearId from YearMaster) from frontend
+        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
         const enterpriseId = parseInt(data.enterpriseId, 10);
         if (isNaN(enterpriseId)) {
             throw new Error('Valid enterpriseId is required');
@@ -37,7 +38,7 @@ const aryaCurrentYearRepository = {
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO arya_current_year (
-                "kvkId", reporting_year, "enterpriseId", 
+                "kvkId", reporting_year_id, "enterpriseId", 
                 units_male, units_female, viable_units, closed_units, 
                 trainings_conducted, start_date, end_date, youth_male, youth_female, 
                 groups_formed, groups_active, persons_left_group, members_per_group, 
@@ -45,7 +46,7 @@ const aryaCurrentYearRepository = {
                 sale_value_of_produce, employment_generated_mandays, image_path,
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, reportingYear, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
+        `, kvkId, reportingYearId, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
             trainingsConducted, startDate, endDate, youthMale, youthFemale, groupsFormed, groupsActive,
             personsLeftGroup, membersPerGroup, avgSizeOfUnit, totalProductionPerYear,
             perUnitCostOfProduction, saleValueOfProduce, employmentGeneratedMandays, imagePath);
@@ -53,12 +54,13 @@ const aryaCurrentYearRepository = {
         const result = await prisma.aryaCurrentYear.findFirst({
             where: {
                 kvkId: kvkId,
-                reportingYear: reportingYear,
+                reportingYearId: reportingYearId,
                 enterpriseId: enterpriseId
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                enterprise: { select: { enterpriseName: true } }
+                enterprise: { select: { enterpriseName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { aryaCurrentYearId: 'desc' }
         });
@@ -74,8 +76,11 @@ const aryaCurrentYearRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYear) {
-            where.reportingYear = parseInt(filters.reportingYear);
+        if (filters.reportingYearId) {
+            where.reportingYearId = parseInt(filters.reportingYearId);
+        } else if (filters.reportingYear) {
+            // Backward compatibility: if reportingYear is provided, try to find yearId
+            where.reportingYearId = parseInt(filters.reportingYear);
         }
         if (filters.enterpriseId) {
             where.enterpriseId = parseInt(filters.enterpriseId);
@@ -85,7 +90,8 @@ const aryaCurrentYearRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                enterprise: { select: { enterpriseName: true } }
+                enterprise: { select: { enterpriseName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { aryaCurrentYearId: 'desc' }
         });
@@ -105,7 +111,8 @@ const aryaCurrentYearRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                enterprise: { select: { enterpriseName: true } }
+                enterprise: { select: { enterpriseName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -123,7 +130,12 @@ const aryaCurrentYearRepository = {
         if (!existing) throw new Error("Record not found or unauthorized");
 
         const updateData = {};
-        if (data.reportingYear !== undefined || data.yearId !== undefined) updateData.reportingYear = parseInt(data.reportingYear || data.yearId);
+        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
+            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
+        } else if (data.reportingYear !== undefined) {
+            // Backward compatibility
+            updateData.reportingYearId = parseInt(data.reportingYear);
+        }
         if (data.enterpriseId !== undefined) updateData.enterpriseId = parseInt(data.enterpriseId);
         if (data.unitsMale !== undefined) updateData.unitsMale = parseInt(data.unitsMale);
         if (data.unitsFemale !== undefined) updateData.unitsFemale = parseInt(data.unitsFemale);
@@ -148,7 +160,7 @@ const aryaCurrentYearRepository = {
         await prisma.$executeRawUnsafe(`
             UPDATE arya_current_year 
             SET 
-                reporting_year = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
+                reporting_year_id = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
                 viable_units = $5, closed_units = $6, trainings_conducted = $7, 
                 start_date = $8, end_date = $9, youth_male = $10, youth_female = $11, 
                 groups_formed = $12, groups_active = $13, persons_left_group = $14, 
@@ -158,7 +170,7 @@ const aryaCurrentYearRepository = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE arya_current_year_id = $22
         `,
-            updateData.reportingYear ?? existing.reportingYear,
+            updateData.reportingYearId ?? existing.reportingYearId,
             updateData.enterpriseId ?? existing.enterpriseId,
             updateData.unitsMale ?? existing.unitsMale,
             updateData.unitsFemale ?? existing.unitsFemale,
@@ -186,7 +198,8 @@ const aryaCurrentYearRepository = {
             where: { aryaCurrentYearId },
             include: {
                 kvk: { select: { kvkName: true } },
-                enterprise: { select: { enterpriseName: true } }
+                enterprise: { select: { enterpriseName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -218,8 +231,9 @@ function _mapResponse(r) {
         aryaCurrentYearId: r.aryaCurrentYearId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        yearId: r.reportingYear,
-        reportingYear: r.reportingYear,
+        reportingYearId: r.reportingYearId,
+        yearId: r.reportingYearId, // Frontend alias
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
         enterpriseId: r.enterpriseId,
         enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,
         unitsMale: r.unitsMale,

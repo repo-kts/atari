@@ -1,6 +1,8 @@
 import React from 'react'
 import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
 import { FormInput, FormSelect } from '../shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface AryaFormsProps {
     entityType: string
@@ -25,12 +27,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Basic Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FormSelect
+                            <MasterDataDropdown
                                 label="Reporting Year"
                                 required
-                                value={formData.yearId || ''}
-                                onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                                options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                                value={formData.reportingYearId || formData.yearId || ''}
+                                onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                                options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                                emptyMessage="No reporting years available"
                             />
                             <FormSelect
                                 label="Name of enterprises"
@@ -207,12 +210,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                     <div>
                         <h3 className="text-xl font-bold text-[#487749] mb-6">Basic Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <FormSelect
+                            <MasterDataDropdown
                                 label="Reporting Year"
                                 required
-                                value={formData.yearId || ''}
-                                onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                                options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                                value={formData.reportingYearId || formData.yearId || ''}
+                                onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                                options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                                emptyMessage="No reporting years available"
                             />
                             <FormSelect
                                 label="Name of enterprises"

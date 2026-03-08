@@ -1,64 +1,48 @@
 model BudgetItem {
-  budgetItemId Int    @id @default(autoincrement()) @map("budget_item_id")
-  itemName     String @unique @map("item_name")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
+  budgetItemId Int                        @id @default(autoincrement()) @map("budget_item_id")
+  itemName     String                     @unique @map("item_name")
+  createdAt    DateTime                   @default(now()) @map("created_at")
+  updatedAt    DateTime                   @updatedAt @map("updated_at")
   utilizations KvkBudgetUtilizationItem[]
 
   @@map("budget_item")
 }
 
 model KvkBudgetUtilization {
-  budgetId Int @id @default(autoincrement()) @map("budget_id")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  year Int @map("year")
-
-  seasonId Int
-  season   Season @relation(fields: [seasonId], references: [seasonId])
-
-  cropId Int
-  crop   FldCrop @relation(fields: [cropId], references: [cropId])
-
-  overallFundAllocation Float @map("overall_crop_wise_fund_allocation")
-
-  areaAllotted Float @map("area_ha_allotted")
-  areaAchieved Float @map("area_ha_achieved")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  items KvkBudgetUtilizationItem[]
+  budgetId              Int                        @id @default(autoincrement()) @map("budget_id")
+  kvkId                 Int
+  year                  Int                        @map("year")
+  seasonId              Int?
+  cropId                Int?
+  overallFundAllocation Float                      @map("overall_crop_wise_fund_allocation")
+  areaAllotted          Float                      @map("area_ha_allotted")
+  areaAchieved          Float                      @map("area_ha_achieved")
+  createdAt             DateTime                   @default(now()) @map("created_at")
+  updatedAt             DateTime                   @updatedAt @map("updated_at")
+  crop                  FldCrop?                   @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
+  kvk                   Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  season                Season?                    @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  items                 KvkBudgetUtilizationItem[]
 
   @@index([kvkId])
   @@index([year])
   @@index([seasonId])
   @@index([cropId])
-
   @@map("kvk_budget_utilization")
 }
 
 model KvkBudgetUtilizationItem {
-  utilizationItemId Int @id @default(autoincrement()) @map("utilization_item_id")
-
-  budgetId Int
-  budget   KvkBudgetUtilization @relation(fields: [budgetId], references: [budgetId], onDelete: Cascade)
-
-  budgetItemId Int
-  budgetItem   BudgetItem @relation(fields: [budgetItemId], references: [budgetItemId])
-
-  budgetReceived   Float @map("budget_received")
-  budgetUtilized   Float @map("budget_utilization")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  utilizationItemId Int                  @id @default(autoincrement()) @map("utilization_item_id")
+  budgetId          Int
+  budgetItemId      Int
+  budgetReceived    Float                @map("budget_received")
+  budgetUtilized    Float                @map("budget_utilization")
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+  budget            KvkBudgetUtilization @relation(fields: [budgetId], references: [budgetId], onDelete: Cascade)
+  budgetItem        BudgetItem           @relation(fields: [budgetItemId], references: [budgetItemId])
 
   @@index([budgetId])
   @@index([budgetItemId])
-
   @@map("kvk_budget_utilization_item")
 }

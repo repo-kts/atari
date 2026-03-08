@@ -642,8 +642,23 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     'No. of VIP(s)': {
         extractor: (item) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
     },
-    'Reporting Year': {
-        extractor: (item) => item.reportingYearLabel || item.reportingYear || null,
+    reportingYear : {
+        extractor: (item) => {
+            // Handle relation object (YearMaster)
+            if (item.reportingYear?.yearName) {
+                return item.reportingYear.yearName;
+            }
+            // Handle reportingYearLabel (if backend provides it)
+            if (item.reportingYearLabel) {
+                return item.reportingYearLabel;
+            }
+            // Handle direct reportingYear string (backward compatibility)
+            if (item.reportingYear && typeof item.reportingYear === 'string') {
+                return item.reportingYear;
+            }
+            // Handle reportingYearId (if we need to look it up, but this shouldn't happen)
+            return null;
+        },
     },
     'Start Date': {
         extractor: (item) => {

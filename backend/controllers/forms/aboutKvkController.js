@@ -26,6 +26,7 @@ const getAll = (entityName) => async (req, res) => {
                 limit: result.limit,
                 totalPages: Math.ceil(result.total / result.limit),
             },
+            ...(result.noKvkLinked && { noKvkLinked: true }),
         });
     } catch (error) {
         console.error(`Error fetching ${entityName}:`, error);
@@ -236,6 +237,29 @@ exports.getAllInfraMasters = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching infrastructure masters:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+        });
+    }
+};
+
+exports.getStaffForDropdown = async (req, res) => {
+    try {
+        const { kvkId } = req.query;
+        if (!kvkId) {
+            return res.status(400).json({
+                success: false,
+                error: 'kvkId is required',
+            });
+        }
+        const data = await aboutKvkService.getStaffForDropdown(parseInt(kvkId));
+        res.json({
+            success: true,
+            data,
+        });
+    } catch (error) {
+        console.error('Error fetching KVK staff for dropdown:', error);
         res.status(500).json({
             success: false,
             error: error.message,

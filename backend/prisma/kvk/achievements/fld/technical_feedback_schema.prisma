@@ -1,25 +1,20 @@
 model FldTechnicalFeedback {
-  feedbackId Int @id @default(autoincrement()) @map("feedback_id")
-
-  reportingYear Int @map("reporting_year")
-
-  kvkId Int
-  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-  fldId Int
-  fld   KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
-
-  cropId Int
-  crop   FldCrop @relation(fields: [cropId], references: [cropId])
-
-  feedback String @map("feedback")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  feedbackId      Int                @id @default(autoincrement()) @map("feedback_id")
+  kvkId           Int
+  fldId           Int
+  cropId          Int?
+  feedback        String             @map("feedback")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  reportingYearId Int?               @map("reporting_year_id")
+  crop            FldCrop?           @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
+  fld             KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
+  kvk             Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear   YearMaster?        @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
   @@index([fldId])
   @@index([cropId])
-  @@index([reportingYear])
+  @@index([reportingYearId])
   @@map("fld_technical_feedback")
 }

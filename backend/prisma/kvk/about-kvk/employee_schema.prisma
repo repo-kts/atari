@@ -1,5 +1,3 @@
-// KVK staff / employee - models only; generator/datasource in schema.prisma
-
 model KvkStaff {
   kvkStaffId                  Int                         @id @default(autoincrement()) @map("kvk_staff_id")
   kvkId                       Int
@@ -9,9 +7,9 @@ model KvkStaff {
   dateOfBirth                 DateTime                    @map("date_of_birth")
   photoPath                   String?                     @map("photo_path")
   resumePath                  String?                     @map("resume_path")
-  sanctionedPostId            Int
+  sanctionedPostId            Int?
   positionOrder               Int                         @map("position_order")
-  disciplineId                Int
+  disciplineId                Int?
   payScale                    String?                     @map("pay_scale")
   dateOfJoining               DateTime                    @map("date_of_joining")
   jobType                     JobType?                    @map("job_type")
@@ -21,26 +19,22 @@ model KvkStaff {
   originalKvkId               Int?                        @map("original_kvk_id")
   transferCount               Int                         @default(0) @map("transfer_count")
   lastTransferDate            DateTime?                   @map("last_transfer_date")
-
   staffCategoryId             Int?
-  staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId])
   payLevelId                  Int?
-  payLevel                    PayLevelMaster?             @relation(fields: [payLevelId], references: [payLevelId])
-
+  createdAt                   DateTime                    @default(now()) @map("created_at")
+  updatedAt                   DateTime                    @updatedAt @map("updated_at")
   hrdPrograms                 HrdProgram[]
   kvkExtensionActivities      KvkExtensionActivity[]
   kvkFldIntroductions         KvkFldIntroduction[]
-  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
   kvkOfts                     Kvkoft[]
-
-  discipline                  Discipline                  @relation(fields: [disciplineId], references: [disciplineId])
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
+  discipline                  Discipline?                 @relation(fields: [disciplineId], references: [disciplineId], onDelete: SetNull)
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId], onDelete: SetNull)
-  sanctionedPost              SanctionedPost              @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+  originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
+  payLevel                    PayLevelMaster?             @relation(fields: [payLevelId], references: [payLevelId], onDelete: SetNull)
+  sanctionedPost              SanctionedPost?             @relation(fields: [sanctionedPostId], references: [sanctionedPostId], onDelete: SetNull)
+  staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId], onDelete: SetNull)
   transferHistory             StaffTransferHistory[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([kvkId])
   @@index([sanctionedPostId])

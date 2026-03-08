@@ -1,32 +1,28 @@
 model KvkSeedHubProgram {
-    seedHubId Int @id @default(autoincrement()) @map("seed_hub_id")
+  seedHubId               Int         @id @default(autoincrement()) @map("seed_hub_id")
+  kvkId                   Int
+  seasonId                Int?
+  cropName                String      @map("crop_name")
+  varietyName             String      @map("variety_name")
+  areaCoveredHa           Float       @map("area_covered_ha")
+  yieldQPerHa             Float       @map("yield_q_per_ha")
+  quantityProducedQ       Float       @map("quantity_produced_q")
+  quantitySaleOutQ        Float       @map("quantity_sale_out_q")
+  farmersPurchased        Int         @map("farmers_purchased")
+  quantitySaleToFarmersQ  Float       @map("quantity_sale_to_farmers_q")
+  villagesCovered         Int         @map("villages_covered")
+  quantitySaleToOtherOrgQ Float       @map("quantity_sale_to_other_org_q")
+  amountGeneratedLakh     Float       @map("amount_generated_lakh")
+  totalAmountPresentLakh  Float       @map("total_amount_present_lakh")
+  createdAt               DateTime    @default(now()) @map("created_at")
+  updatedAt               DateTime    @updatedAt @map("updated_at")
+  reportingYearId         Int?        @map("reporting_year_id")
+  kvk                     Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear           YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  season                  Season?     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
 
-    kvkId Int
-    kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-
-    reportingYear Int @map("reporting_year")
-
-    seasonId Int
-    season   Season @relation(fields: [seasonId], references: [seasonId])
-
-    cropName String @map("crop_name")
-    varietyName String @map("variety_name")
-    areaCoveredHa Float @map("area_covered_ha")
-    yieldQPerHa Float @map("yield_q_per_ha")
-    quantityProducedQ Float @map("quantity_produced_q")
-    quantitySaleOutQ Float @map("quantity_sale_out_q")
-    farmersPurchased Int @map("farmers_purchased")
-    quantitySaleToFarmersQ Float @map("quantity_sale_to_farmers_q")
-    villagesCovered Int @map("villages_covered")
-    quantitySaleToOtherOrgQ Float @map("quantity_sale_to_other_org_q")
-    amountGeneratedLakh Float @map("amount_generated_lakh")
-    totalAmountPresentLakh Float @map("total_amount_present_lakh")
-
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@index([kvkId])
-    @@index([seasonId])
-
-    @@map("kvk_seed_hub_program")
+  @@index([kvkId])
+  @@index([seasonId])
+  @@index([reportingYearId])
+  @@map("kvk_seed_hub_program")
 }

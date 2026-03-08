@@ -1,6 +1,8 @@
 import React from 'react'
 import { ENTITY_TYPES } from '../../../../../constants/entityTypes'
 import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface AgriDroneFormsProps {
     entityType: string
@@ -20,12 +22,13 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_AGRI_DRONE && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: y.id || y.yearId, label: y.yearName }))}
+                            value={formData.reportingYearId || formData.yearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
                         />
                         <FormInput
                             label="Name of the project implementing centre (PIC)"
