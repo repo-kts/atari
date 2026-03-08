@@ -6,10 +6,12 @@ const {
     resolveKvkId,
     buildRoleBasedWhere,
     validateRequiredInteger,
+    validateOptionalInteger,
     validateRequiredString,
     buildUpdateData,
     checkRecordOwnership,
     applyFilters,
+    validateId,
 } = require('../../utils/formRepositoryHelpers.js');
 
 /**
@@ -110,9 +112,9 @@ const fldTechnicalFeedbackRepository = {
 
         const kvkId = await resolveKvkId(data, user);
         const fldId = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.fldId);
-        const cropId = data.cropId ? parseInt(data.cropId) : null;
+        const cropId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.cropId);
         const feedback = validateRequiredString(data, CREATE_FIELD_DEFINITIONS.feedback);
-        const reportingYearId = data.reportingYearId ? parseInt(data.reportingYearId) : null;
+        const reportingYearId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.reportingYearId);
 
         // Verify FLD exists and belongs to the same KVK
         const fld = await prisma.kvkFldIntroduction.findFirst({
@@ -198,15 +200,8 @@ const fldTechnicalFeedbackRepository = {
      * Get a single FLD Technical Feedback record by ID
      */
     findById: async (id, user) => {
-        // Validate ID
-        if (id === undefined || id === null || id === '') {
-            throw new ValidationError(`Missing required field: ${FLD_TECHNICAL_FEEDBACK_CONFIG.idField}`, FLD_TECHNICAL_FEEDBACK_CONFIG.idField);
-        }
-
-        const parsedId = parseInt(id);
-        if (isNaN(parsedId)) {
-            throw new ValidationError(`Invalid ${FLD_TECHNICAL_FEEDBACK_CONFIG.idField}: ${id}. Expected a number.`, FLD_TECHNICAL_FEEDBACK_CONFIG.idField);
-        }
+        // Validate ID with strict regex check
+        const parsedId = validateId(id, FLD_TECHNICAL_FEEDBACK_CONFIG.idField);
 
         const where = buildRoleBasedWhere(user, { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parsedId });
         if (where === null) {
@@ -227,12 +222,15 @@ const fldTechnicalFeedbackRepository = {
     update: async (id, data, user) => {
         validateInput(data, user);
 
-        const where = buildRoleBasedWhere(user, { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parseInt(id) });
+        // Validate ID first
+        const parsedId = validateId(id, FLD_TECHNICAL_FEEDBACK_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
 
-        await checkRecordOwnership(
+        // Load existing record to get kvkId for validation
+        const existingRecord = await checkRecordOwnership(
             (query) => prisma[FLD_TECHNICAL_FEEDBACK_CONFIG.model].findFirst(query),
             where
         );
@@ -241,7 +239,8 @@ const fldTechnicalFeedbackRepository = {
 
         // Verify FLD exists and belongs to the same KVK if fldId is being updated
         if (updateData.fldId !== undefined) {
-            const kvkId = await resolveKvkId(data, user);
+            // Use existing record's kvkId instead of resolving from data/user
+            const kvkId = existingRecord.kvkId;
             const fld = await prisma.kvkFldIntroduction.findFirst({
                 where: {
                     kvkFldId: updateData.fldId,
@@ -284,7 +283,7 @@ const fldTechnicalFeedbackRepository = {
 
         try {
             const result = await prisma[FLD_TECHNICAL_FEEDBACK_CONFIG.model].update({
-                where: { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parseInt(id) },
+                where: { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parsedId },
                 data: finalUpdateData,
                 include: FLD_TECHNICAL_FEEDBACK_CONFIG.includes,
             });
@@ -306,7 +305,9 @@ const fldTechnicalFeedbackRepository = {
      * Delete an FLD Technical Feedback record
      */
     delete: async (id, user) => {
-        const where = buildRoleBasedWhere(user, { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parseInt(id) });
+        // Validate ID first
+        const parsedId = validateId(id, FLD_TECHNICAL_FEEDBACK_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -317,7 +318,7 @@ const fldTechnicalFeedbackRepository = {
         );
 
         await prisma[FLD_TECHNICAL_FEEDBACK_CONFIG.model].delete({
-            where: { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parseInt(id) },
+            where: { [FLD_TECHNICAL_FEEDBACK_CONFIG.idField]: parsedId },
         });
 
         return { success: true };

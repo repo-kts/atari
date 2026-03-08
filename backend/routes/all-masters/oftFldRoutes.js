@@ -83,8 +83,8 @@ router.put('/fld/crops/:id', requirePermission('all_masters_fld_master', 'EDIT')
 router.delete('/fld/crops/:id', requirePermission('all_masters_fld_master', 'DELETE'), oftFldController.deleteFldCrop);
 
 // FLD Activity Routes
-router.get('/fld/activities',     requirePermission('all_masters_fld_master', 'VIEW'), oftFldController.getAllFldActivities);
-router.get('/fld/activities/:id', requirePermission('all_masters_fld_master', 'VIEW'), oftFldController.getFldActivityById);
+router.get('/fld/activities',     oftFldController.getAllFldActivities);
+router.get('/fld/activities/:id', oftFldController.getFldActivityById);
 router.post('/fld/activities',    requirePermission('all_masters_fld_master', 'ADD'),  oftFldController.createFldActivity);
 router.put('/fld/activities/:id', requirePermission('all_masters_fld_master', 'EDIT'), oftFldController.updateFldActivity);
 router.delete('/fld/activities/:id', requirePermission('all_masters_fld_master', 'DELETE'), oftFldController.deleteFldActivity);

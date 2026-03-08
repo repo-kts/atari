@@ -135,6 +135,53 @@ function validateRequiredInteger(data, fieldNames, errorMessage, errorField, opt
 }
 
 /**
+ * Validate and sanitize an optional integer field (for foreign keys)
+ * @param {Object} data - Data object
+ * @param {string|Array|Object} fieldDef - Field definition object or field names
+ * @returns {number|null} Sanitized integer value or null if not provided
+ * @throws {ValidationError} If validation fails
+ */
+function validateOptionalInteger(data, fieldDef) {
+    // Handle field definition object (e.g., CREATE_FIELD_DEFINITIONS.reportingYearId)
+    let actualFieldNames = fieldDef;
+    let actualErrorMessage = '';
+    let actualErrorField = '';
+    
+    if (fieldDef && typeof fieldDef === 'object' && !Array.isArray(fieldDef) && fieldDef.fieldNames) {
+        actualFieldNames = fieldDef.fieldNames;
+        actualErrorMessage = fieldDef.errorMessage || '';
+        actualErrorField = fieldDef.errorField || '';
+    }
+    
+    const fieldNameArray = Array.isArray(actualFieldNames) ? actualFieldNames : [actualFieldNames];
+    let value = null;
+    let rawValue = null;
+
+    // Find if any of the field names exist in data
+    for (const fieldName of fieldNameArray) {
+        if (typeof fieldName !== 'string') continue;
+        const fieldValue = safeGet(data, fieldName);
+        if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
+            rawValue = fieldValue;
+            value = sanitizeInteger(fieldValue);
+            break;
+        }
+    }
+
+    // If a value was provided but couldn't be parsed as integer
+    if (rawValue !== null && rawValue !== undefined && rawValue !== '' && (value === null || value === undefined || isNaN(value))) {
+        const fieldDisplayName = actualErrorField || fieldNameArray[0];
+        throw new ValidationError(
+            `${fieldDisplayName} must be a valid integer ID. Received: "${rawValue}"`,
+            fieldDisplayName
+        );
+    }
+
+    // Return null if no value provided, or the validated integer
+    return (value !== null && value !== undefined && !isNaN(value)) ? value : null;
+}
+
+/**
  * Validate and sanitize a required string field
  * @param {Object} data - Data object
  * @param {string|Array} fieldNames - Field name(s) to check
@@ -232,12 +279,12 @@ function validateRequiredNumber(data, fieldNames, errorMessage, errorField, opti
         throw new ValidationError(actualErrorMessage, actualErrorField || fieldNameArray[0]);
     }
 
-    if (options.min !== undefined && value < options.min) {
-        throw new ValidationError(`${errorMessage} (minimum: ${options.min})`, errorField || fieldNameArray[0]);
+    if (actualOptions.min !== undefined && value < actualOptions.min) {
+        throw new ValidationError(`${actualErrorMessage} (minimum: ${actualOptions.min})`, actualErrorField || fieldNameArray[0]);
     }
 
-    if (options.allowNegative === false && value < 0) {
-        throw new ValidationError(`${errorMessage} (must be non-negative)`, errorField || fieldNameArray[0]);
+    if (actualOptions.allowNegative === false && value < 0) {
+        throw new ValidationError(`${actualErrorMessage} (must be non-negative)`, actualErrorField || fieldNameArray[0]);
     }
 
     return value;
@@ -293,15 +340,38 @@ function validateRequiredDate(data, fieldNames, errorMessage, errorField) {
  * @returns {Object} Object with sanitized farmer counts
  */
 function validateFarmerCounts(data, fieldMapping, options = {}) {
-    const defaultValue = options.defaultValue !== undefined ? options.defaultValue : 0;
+    const defaultValue = options.defaultValue;
     const validateNonNegative = options.validateNonNegative !== false;
+    const required = options.required !== false; // Default to required unless explicitly set
     const farmerCounts = {};
 
     for (const [frontendKey, backendKey] of Object.entries(fieldMapping)) {
+        // Use nullish coalescing to preserve 0 values
+        const frontendValue = safeGet(data, frontendKey);
+        const backendValue = safeGet(data, backendKey);
+        const rawValue = frontendValue !== undefined && frontendValue !== null ? frontendValue : backendValue;
+        
+        // Only process if value is provided or defaultValue is explicitly set
+        if (rawValue === undefined || rawValue === null || rawValue === '') {
+            if (defaultValue !== undefined) {
+                farmerCounts[backendKey] = defaultValue;
+            }
+            // Skip this field if no value provided and no defaultValue
+            continue;
+        }
+        
         const value = sanitizeInteger(
-            safeGet(data, frontendKey) || safeGet(data, backendKey),
-            { defaultValue }
+            rawValue,
+            defaultValue !== undefined ? { defaultValue } : {}
         );
+
+        if (value === null || value === undefined || isNaN(value)) {
+            if (required) {
+                throw new ValidationError(`${frontendKey} must be a valid integer`, frontendKey);
+            }
+            // Skip invalid values for optional fields
+            continue;
+        }
 
         if (validateNonNegative && value < 0) {
             throw new ValidationError(`${frontendKey} must be a non-negative integer`, frontendKey);
@@ -416,12 +486,47 @@ function applyFilters(where, filters, filterableFields) {
     if (!where || !filters) return where;
 
     for (const field of filterableFields) {
-        if (filters[field] !== undefined && filters[field] !== null && filters[field] !== '') {
-            where[field] = parseInt(filters[field]);
+        const filterValue = filters[field];
+        if (filterValue !== undefined && filterValue !== null && filterValue !== '') {
+            // Validate that the filter value is a valid integer string
+            const strValue = String(filterValue).trim();
+            if (/^\s*-?\d+\s*$/.test(strValue)) {
+                const parsedValue = parseInt(strValue, 10);
+                if (Number.isInteger(parsedValue)) {
+                    where[field] = parsedValue;
+                }
+            }
+            // Silently skip invalid filter values (or throw ValidationError if strict validation preferred)
         }
     }
 
     return where;
+}
+
+/**
+ * Validate and parse ID parameter with strict validation
+ * @param {string|number} id - ID to validate
+ * @param {string} idField - Field name for error reporting
+ * @returns {number} Validated integer ID
+ * @throws {ValidationError} If ID is invalid
+ */
+function validateId(id, idField = 'id') {
+    if (id === undefined || id === null || id === '') {
+        throw new ValidationError(`Missing required field: ${idField}`, idField);
+    }
+
+    const strId = String(id).trim();
+    // Strict validation: only digits allowed
+    if (!/^\d+$/.test(strId)) {
+        throw new ValidationError(`Invalid ${idField}: ${id}. Expected a positive integer.`, idField);
+    }
+
+    const parsedId = parseInt(strId, 10);
+    if (!Number.isInteger(parsedId) || String(parsedId) !== strId) {
+        throw new ValidationError(`Invalid ${idField}: ${id}. Expected a valid integer.`, idField);
+    }
+
+    return parsedId;
 }
 
 module.exports = {
@@ -429,6 +534,7 @@ module.exports = {
     resolveKvkId,
     buildRoleBasedWhere,
     validateRequiredInteger,
+    validateOptionalInteger,
     validateRequiredString,
     validateRequiredNumber,
     validateRequiredDate,
@@ -436,4 +542,5 @@ module.exports = {
     buildUpdateData,
     checkRecordOwnership,
     applyFilters,
+    validateId,
 };

@@ -370,10 +370,15 @@ export function getEntityTypeFromPathMap(path: string): ExtendedEntityType | nul
         return PATH_TO_ENTITY_MAP[path];
     }
 
-    // Then try prefix matching (for paths like /all-master/zones/create or /all-master/zones/edit/1)
-    for (const [pattern, entityType] of Object.entries(PATH_TO_ENTITY_MAP)) {
+    // Then try prefix matching, preferring the longest/most specific match
+    // Sort patterns by length (longest first) to ensure most specific routes match before generic ones
+    const sortedPatterns = Object.entries(PATH_TO_ENTITY_MAP)
+        .sort(([a], [b]) => b.length - a.length); // Sort by length descending
+
+    for (const [pattern, entityType] of sortedPatterns) {
         if (path.startsWith(pattern)) {
             // Match if path starts with the pattern (handles /create, /edit/:id suffixes)
+            // Longest patterns are checked first, so more specific routes win
             return entityType;
         }
     }

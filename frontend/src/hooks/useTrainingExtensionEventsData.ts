@@ -163,7 +163,7 @@ export function useTrainingThematicAreas() {
  */
 export function useTrainingThematicAreasByArea(trainingAreaId: number | null) {
     return useQuery({
-        queryKey: ['training-thematic-areas-by-area', trainingAreaId],
+        queryKey: ['training-thematic-areas', 'by-area', trainingAreaId],
         queryFn: () => trainingExtensionEventsApi.getTrainingThematicAreasByArea(trainingAreaId!).then((res) => res.data),
         enabled: !!trainingAreaId && trainingAreaId > 0,
         staleTime: 5 * 60 * 1000,

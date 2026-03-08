@@ -46,6 +46,10 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
     const [hasFetched, setHasFetched] = useState(false)
     const [lastParentValue, setLastParentValue] = useState<any>(null)
 
+    // Generate stable IDs for accessibility
+    const selectId = React.useMemo(() => `dependent-dropdown-${label.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 9)}`, [label])
+    const errorId = React.useMemo(() => `error-${selectId}`, [selectId])
+
     // AbortController for canceling in-flight requests
     const abortControllerRef = useRef<AbortController | null>(null)
     const currentRequestIdRef = useRef<number>(0)
@@ -202,16 +206,23 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
     return (
         <div className="space-y-2">
             <div className="relative pt-2">
-                <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
+                <label
+                    htmlFor={selectId}
+                    className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10"
+                >
                     {label} {required && <span className="text-red-500">*</span>}
                 </label>
                 <div className="relative">
                     <select
                         {...props}
+                        id={selectId}
                         value={props.value || ''}
                         onChange={handleChange}
                         disabled={isActuallyDisabled}
                         required={required}
+                        aria-invalid={!!error}
+                        aria-describedby={error ? errorId : undefined}
+                        aria-required={required}
                         className={`
                             w-full px-4 py-3 pr-10
                             border border-[#E0E0E0] rounded-xl
@@ -242,7 +253,9 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
                 </div>
                 {/* Error State */}
                 {error && (
-                    <p className="text-xs text-red-500 mt-1">{error}</p>
+                    <p id={errorId} className="text-xs text-red-500 mt-1" role="alert">
+                        {error}
+                    </p>
                 )}
             </div>
 

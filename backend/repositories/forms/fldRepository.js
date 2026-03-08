@@ -13,6 +13,7 @@ const {
     buildUpdateData,
     checkRecordOwnership,
     applyFilters,
+    validateId,
 } = require('../../utils/formRepositoryHelpers.js');
 
 /**
@@ -365,15 +366,8 @@ const fldRepository = {
      * Find a single FLD record by ID
      */
     findById: async (id, user) => {
-        // Validate ID
-        if (id === undefined || id === null || id === '') {
-            throw new ValidationError(`Missing required field: ${FLD_CONFIG.idField}`, FLD_CONFIG.idField);
-        }
-
-        const parsedId = parseInt(id);
-        if (isNaN(parsedId)) {
-            throw new ValidationError(`Invalid ${FLD_CONFIG.idField}: ${id}. Expected a number.`, FLD_CONFIG.idField);
-        }
+        // Validate ID with strict regex check
+        const parsedId = validateId(id, FLD_CONFIG.idField);
 
         const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parsedId });
         if (where === null) return null; // User has no KVK access
@@ -390,7 +384,9 @@ const fldRepository = {
      * Update an existing FLD record
      */
     update: async (id, data, user) => {
-        const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parseInt(id) });
+        // Validate and normalize ID at the start
+        const parsedId = validateId(id, FLD_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -418,7 +414,7 @@ const fldRepository = {
 
         try {
             const result = await prisma[FLD_CONFIG.model].update({
-                where: { [FLD_CONFIG.idField]: parseInt(id) },
+                where: { [FLD_CONFIG.idField]: parsedId },
                 data: finalUpdateData,
                 include: FLD_CONFIG.includes,
             });
@@ -451,7 +447,9 @@ const fldRepository = {
      * Delete an FLD record
      */
     delete: async (id, user) => {
-        const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parseInt(id) });
+        // Validate and normalize ID at the start
+        const parsedId = validateId(id, FLD_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -462,7 +460,7 @@ const fldRepository = {
         );
 
         await prisma[FLD_CONFIG.model].delete({
-            where: { [FLD_CONFIG.idField]: parseInt(id) },
+            where: { [FLD_CONFIG.idField]: parsedId },
         });
 
         return { success: true };

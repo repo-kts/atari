@@ -6,11 +6,13 @@ const {
     resolveKvkId,
     buildRoleBasedWhere,
     validateRequiredInteger,
+    validateOptionalInteger,
     validateRequiredDate,
     validateFarmerCounts,
     buildUpdateData,
     checkRecordOwnership,
     applyFilters,
+    validateId,
 } = require('../../utils/formRepositoryHelpers.js');
 
 /**
@@ -152,7 +154,7 @@ const fldExtensionRepository = {
         const activityId = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.activityId);
         const activityDate = validateRequiredDate(data, CREATE_FIELD_DEFINITIONS.activityDate);
         const numberOfActivities = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.numberOfActivities);
-        const reportingYearId = data.reportingYearId ? parseInt(data.reportingYearId) : null;
+        const reportingYearId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.reportingYearId);
         const remarks = data.remarks || data.remark || null;
 
         // Validate farmer counts
@@ -244,15 +246,8 @@ const fldExtensionRepository = {
      * Get a single FLD Extension record by ID
      */
     findById: async (id, user) => {
-        // Validate ID
-        if (id === undefined || id === null || id === '') {
-            throw new ValidationError(`Missing required field: ${FLD_EXTENSION_CONFIG.idField}`, FLD_EXTENSION_CONFIG.idField);
-        }
-
-        const parsedId = parseInt(id);
-        if (isNaN(parsedId)) {
-            throw new ValidationError(`Invalid ${FLD_EXTENSION_CONFIG.idField}: ${id}. Expected a number.`, FLD_EXTENSION_CONFIG.idField);
-        }
+        // Validate ID with strict regex check
+        const parsedId = validateId(id, FLD_EXTENSION_CONFIG.idField);
 
         const where = buildRoleBasedWhere(user, { [FLD_EXTENSION_CONFIG.idField]: parsedId });
         if (where === null) {
@@ -273,7 +268,8 @@ const fldExtensionRepository = {
     update: async (id, data, user) => {
         validateInput(data, user);
 
-        const where = buildRoleBasedWhere(user, { [FLD_EXTENSION_CONFIG.idField]: parseInt(id) });
+        const parsedId = validateId(id, FLD_EXTENSION_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_EXTENSION_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -344,7 +340,7 @@ const fldExtensionRepository = {
 
         try {
             const result = await prisma[FLD_EXTENSION_CONFIG.model].update({
-                where: { [FLD_EXTENSION_CONFIG.idField]: parseInt(id) },
+                where: { [FLD_EXTENSION_CONFIG.idField]: parsedId },
                 data: finalUpdateData,
                 include: FLD_EXTENSION_CONFIG.includes,
             });
@@ -366,7 +362,8 @@ const fldExtensionRepository = {
      * Delete an FLD Extension record
      */
     delete: async (id, user) => {
-        const where = buildRoleBasedWhere(user, { [FLD_EXTENSION_CONFIG.idField]: parseInt(id) });
+        const parsedId = validateId(id, FLD_EXTENSION_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_EXTENSION_CONFIG.idField]: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -377,7 +374,7 @@ const fldExtensionRepository = {
         );
 
         await prisma[FLD_EXTENSION_CONFIG.model].delete({
-            where: { [FLD_EXTENSION_CONFIG.idField]: parseInt(id) },
+            where: { [FLD_EXTENSION_CONFIG.idField]: parsedId },
         });
 
         return { success: true };

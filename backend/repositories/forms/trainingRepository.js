@@ -11,6 +11,7 @@ const {
     validateRequiredDate,
     validateFarmerCounts,
     checkRecordOwnership,
+    validateId,
 } = require('../../utils/formRepositoryHelpers.js');
 
 /**
@@ -22,21 +23,24 @@ const {
 /**
  * Map coordinator name to coordinatorId
  * If coordinator doesn't exist, create it
+ * @param {string} coordinatorName - Coordinator name
+ * @param {Object} tx - Transaction-bound Prisma client (optional, defaults to global prisma)
+ * @returns {Promise<number|null>} Coordinator ID or null
  */
-const resolveCoordinatorId = async (coordinatorName) => {
+const resolveCoordinatorId = async (coordinatorName, tx = prisma) => {
     if (!coordinatorName || typeof coordinatorName !== 'string') return null;
     
     const name = sanitizeString(coordinatorName);
     if (!name || name.length === 0) return null;
 
     // Try to find existing coordinator
-    let coordinator = await prisma.courseCoordinatorMaster.findFirst({
+    let coordinator = await tx.courseCoordinatorMaster.findFirst({
         where: { name: { equals: name, mode: 'insensitive' } }
     });
 
     // If not found, create it
     if (!coordinator) {
-        coordinator = await prisma.courseCoordinatorMaster.create({
+        coordinator = await tx.courseCoordinatorMaster.create({
             data: { name }
         });
     }
@@ -47,13 +51,17 @@ const resolveCoordinatorId = async (coordinatorName) => {
 /**
  * Map staff name to coordinatorId
  * First tries to find staff, then creates/finds coordinator
+ * @param {string} staffName - Staff name
+ * @param {number} staffId - Staff ID (optional)
+ * @param {Object} tx - Transaction-bound Prisma client (optional, defaults to global prisma)
+ * @returns {Promise<number|null>} Coordinator ID or null
  */
-const resolveCoordinatorFromStaff = async (staffName, staffId) => {
+const resolveCoordinatorFromStaff = async (staffName, staffId, tx = prisma) => {
     // If staffId is provided, try to get staff name
     if (staffId && !staffName) {
         const sanitizedStaffId = sanitizeInteger(staffId);
         if (sanitizedStaffId) {
-            const staff = await prisma.kvkStaff.findUnique({
+            const staff = await tx.kvkStaff.findUnique({
                 where: { kvkStaffId: sanitizedStaffId },
                 select: { staffName: true }
             });
@@ -62,7 +70,7 @@ const resolveCoordinatorFromStaff = async (staffName, staffId) => {
     }
 
     if (!staffName) return null;
-    return await resolveCoordinatorId(staffName);
+    return await resolveCoordinatorId(staffName, tx);
 };
 
 /**
@@ -160,24 +168,27 @@ const trainingRepository = {
         validateInput(data, user);
         const kvkId = resolveKvkId(data, user);
 
-        // Resolve coordinatorId from staffId or coordinator name
-        let coordinatorId = null;
-        if (data.coordinatorId) {
-            coordinatorId = validateRequiredInteger(
-                data,
-                ['coordinatorId'],
-                'Valid coordinator ID is required',
-                'coordinatorId'
-            );
-        } else if (data.staffId || data.coordinator || data.staffName) {
-            const staffId = data.staffId ? sanitizeInteger(data.staffId) : null;
-            const coordinatorName = sanitizeString(data.coordinator || data.staffName);
-            coordinatorId = await resolveCoordinatorFromStaff(coordinatorName, staffId);
-        }
-        
-        if (!coordinatorId || isNaN(coordinatorId)) {
-            throw new ValidationError('Valid coordinator is required. Please select a course coordinator.', 'coordinator');
-        }
+        // Use transaction to ensure atomicity of master data creation
+        try {
+            return await prisma.$transaction(async (tx) => {
+            // Resolve coordinatorId from staffId or coordinator name (within transaction)
+            let coordinatorId = null;
+            if (data.coordinatorId) {
+                coordinatorId = validateRequiredInteger(
+                    data,
+                    ['coordinatorId'],
+                    'Valid coordinator ID is required',
+                    'coordinatorId'
+                );
+            } else if (data.staffId || data.coordinator || data.staffName) {
+                const staffId = data.staffId ? sanitizeInteger(data.staffId) : null;
+                const coordinatorName = sanitizeString(data.coordinator || data.staffName);
+                coordinatorId = await resolveCoordinatorFromStaff(coordinatorName, staffId, tx);
+            }
+            
+            if (!coordinatorId || isNaN(coordinatorId)) {
+                throw new ValidationError('Valid coordinator is required. Please select a course coordinator.', 'coordinator');
+            }
 
         // Validate and sanitize required fields
         const clienteleId = data.clienteleId ? validateRequiredInteger(
@@ -219,20 +230,20 @@ const trainingRepository = {
                 'trainingThematicAreaId'
             );
             
-            const trainingThematicArea = await prisma.trainingThematicArea.findUnique({
+            const trainingThematicArea = await tx.trainingThematicArea.findUnique({
                 where: { trainingThematicAreaId },
                 select: { trainingThematicAreaName: true }
             });
             
             if (trainingThematicArea) {
-                // Find or create ThematicAreaMaster with the same name
-                let thematicArea = await prisma.thematicAreaMaster.findFirst({
+                // Find or create ThematicAreaMaster with the same name (within transaction)
+                let thematicArea = await tx.thematicAreaMaster.findFirst({
                     where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
                 });
                 
                 if (!thematicArea) {
                     // Create if doesn't exist
-                    thematicArea = await prisma.thematicAreaMaster.create({
+                    thematicArea = await tx.thematicAreaMaster.create({
                         data: { name: sanitizeString(trainingThematicArea.trainingThematicAreaName) }
                     });
                 }
@@ -319,9 +330,8 @@ const trainingRepository = {
             { defaultValue: 0, validateNonNegative: true }
         );
 
-        // Create the record
-        try {
-            const result = await prisma.trainingAchievement.create({
+            // Create the record (within transaction)
+            const result = await tx.trainingAchievement.create({
                 data: {
                     kvkId,
                     clienteleId,
@@ -356,7 +366,8 @@ const trainingRepository = {
                 }
             });
 
-            return _mapResponse(result);
+                return _mapResponse(result);
+            });
         } catch (error) {
             // Provide better error messages for common Prisma errors
             if (error.code === 'P2003') {
@@ -384,10 +395,13 @@ const trainingRepository = {
      * Find all Training Achievements
      */
     findAll: async (filters = {}, user) => {
-        const where = buildRoleBasedWhere(user, {});
-        if (where === null) {
+        const roleWhere = buildRoleBasedWhere(user, {});
+        if (roleWhere === null) {
             return []; // User has no KVK access
         }
+
+        // Merge role-based where with filters
+        const where = { ...roleWhere, ...filters };
 
         const results = await prisma.trainingAchievement.findMany({
             where,
@@ -410,7 +424,9 @@ const trainingRepository = {
      * Find Training Achievement by ID
      */
     findById: async (id, user) => {
-        const where = buildRoleBasedWhere(user, { trainingAchievementId: parseInt(id) });
+        // Validate ID first
+        const parsedId = validateId(id, 'trainingAchievementId');
+        const where = buildRoleBasedWhere(user, { trainingAchievementId: parsedId });
         if (where === null) {
             return null; // User has no KVK access
         }
@@ -437,13 +453,15 @@ const trainingRepository = {
     update: async (id, data, user) => {
         validateInput(data, user);
         
-        const where = buildRoleBasedWhere(user, { trainingAchievementId: parseInt(id) });
+        // Validate ID first
+        const parsedId = validateId(id, 'trainingAchievementId');
+        const where = buildRoleBasedWhere(user, { trainingAchievementId: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
 
-        // Check if record exists and user has access
-        await checkRecordOwnership(
+        // Check if record exists and user has access, get existing record for date validation
+        const existingRecord = await checkRecordOwnership(
             (query) => prisma.trainingAchievement.findFirst(query),
             where
         );
@@ -459,8 +477,11 @@ const trainingRepository = {
                 'coordinatorId'
             ) : null;
         } else if (data.staffId || data.coordinator || data.staffName) {
+            // Use transaction for coordinator resolution in updates
             const staffId = data.staffId ? sanitizeInteger(data.staffId) : null;
             const coordinatorName = sanitizeString(data.coordinator || data.staffName);
+            // Note: For updates, we'll resolve coordinator outside transaction for now
+            // If needed, wrap entire update in transaction
             const coordinatorId = await resolveCoordinatorFromStaff(coordinatorName, staffId);
             if (coordinatorId) updateData.coordinatorId = coordinatorId;
         }
@@ -517,6 +538,8 @@ const trainingRepository = {
             
             if (trainingThematicArea) {
                 // Find or create ThematicAreaMaster with the same name
+                // Note: For updates, we'll create outside transaction for now
+                // If needed, wrap entire update in transaction
                 let thematicArea = await prisma.thematicAreaMaster.findFirst({
                     where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
                 });
@@ -582,8 +605,12 @@ const trainingRepository = {
             );
         }
 
-        // Validate date logic if both dates are being updated
-        if (updateData.startDate && updateData.endDate && updateData.endDate < updateData.startDate) {
+        // Validate date chronology with existing record dates
+        // Compute effective dates (use updateData if provided, otherwise existing record)
+        const effectiveStart = updateData.startDate || (existingRecord.startDate ? new Date(existingRecord.startDate) : null);
+        const effectiveEnd = updateData.endDate || (existingRecord.endDate ? new Date(existingRecord.endDate) : null);
+        
+        if (effectiveStart && effectiveEnd && effectiveEnd < effectiveStart) {
             throw new ValidationError('End date must be after start date', 'endDate');
         }
 
@@ -613,6 +640,7 @@ const trainingRepository = {
             data.st_m !== undefined || data.stM !== undefined ||
             data.st_f !== undefined || data.stF !== undefined) {
             
+            // Only validate and include fields that are explicitly provided
             const farmerCounts = validateFarmerCounts(
                 data,
                 {
@@ -625,9 +653,10 @@ const trainingRepository = {
                     st_m: 'stM',
                     st_f: 'stF',
                 },
-                { defaultValue: 0, validateNonNegative: true }
+                { validateNonNegative: true } // Remove defaultValue to avoid emitting zeros
             );
 
+            // Only assign fields that were actually provided in data
             Object.assign(updateData, farmerCounts);
         }
 
@@ -651,7 +680,7 @@ const trainingRepository = {
 
         try {
             const result = await prisma.trainingAchievement.update({
-                where: { trainingAchievementId: parseInt(id) },
+                where: { trainingAchievementId: parsedId },
                 data: updateData,
                 include: {
                     kvk: { select: { kvkName: true } },
@@ -689,7 +718,9 @@ const trainingRepository = {
      * Delete Training Achievement
      */
     delete: async (id, user) => {
-        const where = buildRoleBasedWhere(user, { trainingAchievementId: parseInt(id) });
+        // Validate ID first
+        const parsedId = validateId(id, 'trainingAchievementId');
+        const where = buildRoleBasedWhere(user, { trainingAchievementId: parsedId });
         if (where === null) {
             throw new ValidationError('Record not found or unauthorized');
         }
@@ -700,7 +731,7 @@ const trainingRepository = {
         );
 
         await prisma.trainingAchievement.delete({
-            where: { trainingAchievementId: parseInt(id) },
+            where: { trainingAchievementId: parsedId },
         });
 
         return { success: true };

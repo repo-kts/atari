@@ -382,16 +382,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 7,
     },
     [FIELD_NAMES.IMPORTANT_DAYS]: {
-        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
         priority: 7,
     },
     // Display name fallbacks (for backward compatibility)
     'Important Days': {
-        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
         priority: 7,
     },
     'Important days': {
-        extractor: (item) => item.importantDays || item['Important days'] || item['Important Days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        extractor: (item) => item.importantDays || item['Important days'] || item['Important Days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
         priority: 7,
     },
     [FIELD_NAMES.NO_OF_ACTIVITIES]: {
@@ -746,10 +746,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     // FLD Technical Feedback Fields - using FIELD_NAMES constants (camelCase first, then fallback)
     [FIELD_NAMES.FLD]: {
-        extractor: (item) => item.fld || item.fldName || item.fld?.fldName || item['FLD'] || null,
+        extractor: (item) => item.fldName || (item.fld?.fldName) || item.fld || item['FLD'] || null,
     },
     [FIELD_NAMES.CROP]: {
-        extractor: (item) => item.crop || item.cropName || item.crop?.cropName || item['Crop'] || null,
+        extractor: (item) => item.cropName || (item.crop?.cropName) || item.crop || item['Crop'] || null,
     },
     [FIELD_NAMES.FEEDBACK]: {
         extractor: (item) => item.feedback || item.feedBack || item['Feedback'] || null,
