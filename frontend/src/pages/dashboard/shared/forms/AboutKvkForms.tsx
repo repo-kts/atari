@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
 import { State, District, Organization, University } from '@/types/masterData'

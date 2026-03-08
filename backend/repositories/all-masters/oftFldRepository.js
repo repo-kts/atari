@@ -137,6 +137,21 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'fld-activities': {
+        model: 'fldActivity',
+        idField: 'activityId',
+        nameField: 'activityName',
+        tableName: 'fld_activity',
+        idColumn: 'activity_id',
+        includes: {
+            _count: {
+                select: {
+                    extensions: true,
+                    kvkExtensionActivities: true,
+                },
+            },
+        },
+    },
 
     // CFLD Entities
     'seasons': {

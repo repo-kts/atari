@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { publicationApi } from '../services/publicationApi';
 import { invalidateEntityType } from '../utils/queryInvalidation';
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type { PublicationItemFormData } from '../types/publication';
 
 // ============================================

@@ -5,7 +5,7 @@
  * Reduces repetitive array checks and improves maintainability
  */
 
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
 // ============================================
@@ -33,11 +33,13 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.FLD_CATEGORIES,
         ENTITY_TYPES.FLD_SUBCATEGORIES,
         ENTITY_TYPES.FLD_CROPS,
-        ENTITY_TYPES.FLD_CROPS,
+        ENTITY_TYPES.FLD_ACTIVITIES,
         ENTITY_TYPES.CFLD_CROPS,
         // Achievements
         ENTITY_TYPES.ACHIEVEMENT_OFT,
         ENTITY_TYPES.ACHIEVEMENT_FLD,
+        ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING,
+        ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK,
     ] as ExtendedEntityType[],
 
     TRAINING_EXTENSION: [
@@ -214,11 +216,14 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/fld/category': ENTITY_TYPES.FLD_CATEGORIES,
     '/all-master/fld/sub-category': ENTITY_TYPES.FLD_SUBCATEGORIES,
     '/all-master/fld/crop': ENTITY_TYPES.FLD_CROPS,
+    '/all-master/fld/activity': ENTITY_TYPES.FLD_ACTIVITIES,
     '/all-master/cfld-crop': ENTITY_TYPES.CFLD_CROPS,
 
     // Achievements (OFT & FLD)
     '/forms/achievements/oft': ENTITY_TYPES.ACHIEVEMENT_OFT,
     '/forms/achievements/fld': ENTITY_TYPES.ACHIEVEMENT_FLD,
+    '/forms/achievements/fld/extension-training': ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING,
+    '/forms/achievements/fld/technical-feedback': ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK,
 
     // Training, Extension & Events masters
     '/all-master/training-type': ENTITY_TYPES.TRAINING_TYPES,

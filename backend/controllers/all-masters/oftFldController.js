@@ -168,6 +168,13 @@ exports.createFldCrop = create('fld-crops');
 exports.updateFldCrop = update('fld-crops');
 exports.deleteFldCrop = deleteEntity('fld-crops');
 
+// FLD Activity Controllers
+exports.getAllFldActivities = getAll('fld-activities');
+exports.getFldActivityById = getById('fld-activities');
+exports.createFldActivity = create('fld-activities');
+exports.updateFldActivity = update('fld-activities');
+exports.deleteFldActivity = deleteEntity('fld-activities');
+
 // CFLD Controllers
 exports.getAllCfldCrops = getAll('cfld-crops');
 exports.getCfldCropById = getById('cfld-crops');

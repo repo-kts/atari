@@ -6,7 +6,7 @@
 
 import React from 'react'
 import { Edit2, Trash2, ArrowRight, History } from 'lucide-react'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 
 interface TableActionsProps {

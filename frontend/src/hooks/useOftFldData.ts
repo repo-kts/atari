@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { oftFldApi } from '../services/oftFldApi';
 import { invalidateOftFldEntity, invalidateQueriesWithRefetch } from '../utils/queryInvalidation';
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type {
     OftSubjectFormData,
     OftThematicAreaFormData,
@@ -10,6 +10,7 @@ import type {
     FldCategoryFormData,
     FldSubcategoryFormData,
     FldCropFormData,
+    FldActivityFormData,
     CfldCropFormData,
 } from '../types/oftFld';
 
@@ -355,6 +356,54 @@ export function useFldCrops() {
         onSuccess: () => {
             invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_CROPS);
             invalidateOftFldEntity(queryClient, ENTITY_TYPES.FLD_SUBCATEGORIES);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// FLD Activity Hooks
+// ============================================
+
+export function useFldActivities() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['fld-activities'],
+        queryFn: () => oftFldApi.getFldActivities().then((res) => res.data),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: FldActivityFormData) => oftFldApi.createFldActivity(data),
+        onSuccess: () => {
+            invalidateQueriesWithRefetch(queryClient, ['fld-activities']);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<FldActivityFormData> }) =>
+            oftFldApi.updateFldActivity(id, data),
+        onSuccess: () => {
+            invalidateQueriesWithRefetch(queryClient, ['fld-activities']);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => oftFldApi.deleteFldActivity(id),
+        onSuccess: () => {
+            invalidateQueriesWithRefetch(queryClient, ['fld-activities']);
         },
     });
 

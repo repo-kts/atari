@@ -20,6 +20,7 @@ const sections: FeatureSection[] = [
             { label: 'Category', path: '/all-master/fld/category' },
             { label: 'Sub-category', path: '/all-master/fld/sub-category' },
             { label: 'Crop', path: '/all-master/fld/crop' },
+            { label: 'Activity', path: '/all-master/fld/activity' },
         ],
     },
     {

@@ -5,6 +5,8 @@
  * Replaces 250+ lines of if statements with maintainable configuration
  */
 
+import { FIELD_NAMES } from '../constants/fieldNames';
+
 // ============================================
 // Type Definitions
 // ============================================
@@ -22,7 +24,7 @@ interface FieldExtractorConfig {
 
 const fieldExtractors: Record<string, FieldExtractorConfig> = {
     // Date fields
-    dateOfJoining: {
+    [FIELD_NAMES.DATE_OF_JOINING]: {
         extractor: (item) => {
             if (!item.dateOfJoining) return null;
             try {
@@ -35,7 +37,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
-    dateOfBirth: {
+    [FIELD_NAMES.DATE_OF_BIRTH]: {
         extractor: (item) => {
             if (!item.dateOfBirth) return null;
             try {
@@ -50,7 +52,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // Vehicle field mappings
-    registrationNumber: {
+    [FIELD_NAMES.REGISTRATION_NUMBER]: {
         extractor: (item) => item.registrationNo || null,
         priority: 9,
     },
@@ -72,15 +74,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.totalRun ? `${item.totalRun} Kms` : null,
         priority: 9,
     },
-    vehicleName: {
+    // Vehicle/Equipment fields - using FIELD_NAMES constants
+    [FIELD_NAMES.VEHICLE_NAME]: {
         extractor: (item) => item.vehicleName || null,
         priority: 8,
     },
-    equipmentName: {
+    [FIELD_NAMES.EQUIPMENT_NAME]: {
         extractor: (item) => item.equipmentName || null,
         priority: 8,
     },
-    implementName: {
+    [FIELD_NAMES.IMPLEMENT_NAME]: {
         extractor: (item) => item.implementName || null,
         priority: 8,
     },
@@ -95,7 +98,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // Nested hierarchy fields
-    zoneName: {
+    [FIELD_NAMES.ZONE_NAME]: {
         extractor: (item) => {
             if (item.zone?.zoneName) return item.zone.zoneName;
             if (item.district?.state?.zone?.zoneName) return item.district.state.zone.zoneName;
@@ -104,7 +107,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    stateName: {
+    [FIELD_NAMES.STATE_NAME]: {
         extractor: (item) => {
             if (item.state?.stateName) return item.state.stateName;
             if (item.district?.state?.stateName) return item.district.state.stateName;
@@ -112,7 +115,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    districtName: {
+    [FIELD_NAMES.DISTRICT_NAME]: {
         extractor: (item) => {
             if (item.districtName) return item.districtName;
             if (item.district?.districtName) return item.district.districtName;
@@ -120,7 +123,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    'organization.orgName': {
+    [FIELD_NAMES.ORGANIZATION_ORG_NAME]: {
         extractor: (item) => {
             if (item.org?.orgName) return item.org.orgName;
             if (item.organization?.orgName) return item.organization.orgName;
@@ -130,7 +133,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    organizationName: {
+    [FIELD_NAMES.ORGANIZATION_NAME]: {
         extractor: (item) => {
             if (item.org?.orgName) return item.org.orgName;
             if (item.organization?.orgName) return item.organization.orgName;
@@ -142,25 +145,21 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // Direct fields with fallback
-    orgName: {
+    [FIELD_NAMES.ORG_NAME]: {
         extractor: (item) => item.orgName || null,
         priority: 6,
     },
-    universityName: {
+    [FIELD_NAMES.UNIVERSITY_NAME]: {
         extractor: (item) => item.universityName || null,
-        priority: 6,
-    },
-    uniName: {
-        extractor: (item) => item.uniName || null, // Legacy
         priority: 6,
     },
 
     // OFT/FLD fields
-    subjectName: {
+    [FIELD_NAMES.SUBJECT_NAME]: {
         extractor: (item) => item.subject?.subjectName || null,
         priority: 5,
     },
-    sectorName: {
+    [FIELD_NAMES.SECTOR_NAME]: {
         extractor: (item) => {
             if (item.sector?.sectorName) return item.sector.sectorName;
             if (item.category?.sector?.sectorName) return item.category.sector.sectorName;
@@ -168,15 +167,26 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    categoryName: {
+    [FIELD_NAMES.CATEGORY_NAME]: {
         extractor: (item) => item.category?.categoryName || null,
         priority: 5,
     },
-    subCategoryName: {
+    [FIELD_NAMES.SUB_CATEGORY_NAME]: {
         extractor: (item) => item.subCategory?.subCategoryName || null,
         priority: 5,
     },
-    seasonName: {
+    // Sub Category (for FLD table display)
+    [FIELD_NAMES.SUB_CATEGORY]: {
+        extractor: (item) => {
+            if (item.subCategoryName) return item.subCategoryName;
+            if (item.subCategory?.subCategoryName) return item.subCategory.subCategoryName;
+            if (item['Sub-Category']) return item['Sub-Category'];
+            if (item['Sub Category']) return item['Sub Category'];
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.SEASON_NAME]: {
         extractor: (item) => {
             if (item.seasonName) return item.seasonName;
             if (item.season?.seasonName) return item.season.seasonName;
@@ -184,7 +194,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    sanctionedPostName: {
+    [FIELD_NAMES.SANCTIONED_POST]: {
         extractor: (item) => {
             if (item.postName) return item.postName;
             if (item.sanctionedPostName) return item.sanctionedPostName;
@@ -193,44 +203,128 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    yearName: {
+    [FIELD_NAMES.YEAR_NAME]: {
         extractor: (item) => item.yearName || null,
         priority: 5,
     },
-    publicationItem: {
+    [FIELD_NAMES.PUBLICATION_ITEM]: {
         extractor: (item) => item.publicationName || null,
         priority: 5,
     },
-    cropTypeName: {
+    [FIELD_NAMES.CROP_TYPE_NAME]: {
         extractor: (item) => item.cropType?.typeName || null,
         priority: 5,
     },
-    cropName: {
+    // Crop field - using FIELD_NAMES constant (note: FIELD_NAMES.CROP_NAME = 'cropName')
+    [FIELD_NAMES.CROP_NAME]: {
         extractor: (item) => item.cropName || item.CropName || null,
         priority: 5,
     },
 
     // Training fields
-    trainingType: {
+    [FIELD_NAMES.TRAINING_TYPE]: {
         extractor: (item) => {
+            // Handle nested object first (for master tables)
+            if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.name) return item.trainingType.name;
+                if (item.trainingType.trainingTypeName) return item.trainingType.trainingTypeName;
+            }
+            // Handle direct string value (for achievement tables)
+            if (typeof item.trainingType === 'string') return item.trainingType;
+            // Handle direct field
             if (item.trainingTypeName) return item.trainingTypeName;
-            if (item.trainingType?.trainingTypeName) return item.trainingType.trainingTypeName;
             return null;
         },
         priority: 5,
     },
-    trainingAreaName: {
+    [FIELD_NAMES.TRAINING_AREA_NAME]: {
         extractor: (item) => {
+            // Handle nested object first (for master tables)
+            if (item.trainingArea && typeof item.trainingArea === 'object') {
+                if (item.trainingArea.name) return item.trainingArea.name;
+                if (item.trainingArea.trainingAreaName) return item.trainingArea.trainingAreaName;
+            }
+            // Handle direct string value (for achievement tables)
+            if (typeof item.trainingArea === 'string') return item.trainingArea;
+            // Handle direct field
             if (item.trainingAreaName) return item.trainingAreaName;
-            if (item.trainingArea?.trainingAreaName) return item.trainingArea.trainingAreaName;
             return null;
         },
         priority: 5,
     },
-    trainingThematicArea: {
+    [FIELD_NAMES.TRAINING_THEMATIC_AREA]: {
         extractor: (item) => {
+            // Handle nested object first (for master tables)
+            if (item.trainingThematicArea && typeof item.trainingThematicArea === 'object') {
+                if (item.trainingThematicArea.trainingThematicAreaName) return item.trainingThematicArea.trainingThematicAreaName;
+                if (item.trainingThematicArea.name) return item.trainingThematicArea.name;
+            }
+            // Handle direct string value (for achievement tables)
+            if (typeof item.trainingThematicArea === 'string') return item.trainingThematicArea;
+            // Handle thematicArea (for achievement tables)
+            if (typeof item.thematicArea === 'string') return item.thematicArea;
+            if (item.thematicArea?.name) return item.thematicArea.name;
+            // Handle direct field
             if (item.trainingThematicAreaName) return item.trainingThematicAreaName;
-            if (item.trainingThematicArea?.trainingThematicAreaName) return item.trainingThematicArea.trainingThematicAreaName;
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.TRAINING_PROGRAM]: {
+        extractor: (item) => {
+            // Training Program = Training Type
+            // Handle nested object first (for master tables)
+            if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.name) return item.trainingType.name;
+                if (item.trainingType.trainingTypeName) return item.trainingType.trainingTypeName;
+            }
+            // Handle direct string value (for achievement tables)
+            if (typeof item.trainingType === 'string') return item.trainingType;
+            // Handle direct field
+            if (item.trainingTypeName) return item.trainingTypeName;
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.TRAINING_TITLE]: {
+        extractor: (item) => {
+            if (item.titleOfTraining) return item.titleOfTraining;
+            if (item.title) return item.title;
+            if (item.trainingTitle) return item.trainingTitle;
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.TRAINING_DISCIPLINE]: {
+        extractor: (item) => {
+            // Training Discipline = Training Area
+            // Handle nested object first (for master tables)
+            if (item.trainingArea && typeof item.trainingArea === 'object') {
+                if (item.trainingArea.name) return item.trainingArea.name;
+                if (item.trainingArea.trainingAreaName) return item.trainingArea.trainingAreaName;
+            }
+            // Handle direct string value (for achievement tables)
+            if (typeof item.trainingArea === 'string') return item.trainingArea;
+            // Handle direct field
+            if (item.trainingAreaName) return item.trainingAreaName;
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.THEMATIC_AREA]: {
+        extractor: (item) => {
+            // Thematic Area for training - can come from thematicArea or trainingThematicArea
+            if (item.thematicArea) {
+                if (typeof item.thematicArea === 'string') return item.thematicArea;
+                if (item.thematicArea.name) return item.thematicArea.name;
+            }
+            if (item.trainingThematicArea) {
+                if (typeof item.trainingThematicArea === 'string') return item.trainingThematicArea;
+                if (item.trainingThematicArea.trainingThematicAreaName) return item.trainingThematicArea.trainingThematicAreaName;
+                if (item.trainingThematicArea.name) return item.trainingThematicArea.name;
+            }
+            if (item.trainingThematicAreaName) return item.trainingThematicAreaName;
+            if (item.thematicAreaName) return item.thematicAreaName;
             return null;
         },
         priority: 5,
@@ -245,54 +339,94 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    eventName: {
+    // Trial On Form (for OFT table display)
+    [FIELD_NAMES.TRIAL_ON_FORM]: {
+        extractor: (item) => {
+            if (item.trialOnForm) return item.trialOnForm;
+            if (item.title) return item.title; // OFT uses 'title' field
+            if (item['Trail on form']) return item['Trail on form']; // Note: typo in backend
+            if (item['Trial On Form']) return item['Trial On Form'];
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.EVENT_NAME]: {
         extractor: (item) => item.eventName || null,
         priority: 5,
     },
+    // Extension Activity fields - using camelCase
+    [FIELD_NAMES.NAME_OF_EXTENSION_ACTIVITIES]: {
+        extractor: (item) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        priority: 7,
+    },
+    // Display name fallbacks (for backward compatibility)
     'Name of Extension activities': {
-        extractor: (item) => item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        extractor: (item) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
         priority: 7,
     },
     'Name of Extension Activities': {
-        extractor: (item) => item['Name of Extension Activities'] || item['Name of Extension activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+        extractor: (item) => item.nameOfExtensionActivities || item['Name of Extension Activities'] || item['Name of Extension activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
         priority: 7,
     },
+    [FIELD_NAMES.NATURE_OF_EXTENSION_ACTIVITY]: {
+        extractor: (item) => item.natureOfExtensionActivity || item['Nature of Extension Activity'] || item['Nature of Extension activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        priority: 7,
+    },
+    // Display name fallbacks (for backward compatibility)
     'Nature of Extension Activity': {
-        extractor: (item) => item['Nature of Extension Activity'] || item['Nature of Extension activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        extractor: (item) => item.natureOfExtensionActivity || item['Nature of Extension Activity'] || item['Nature of Extension activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
         priority: 7,
     },
     'Nature of Extension activity': {
-        extractor: (item) => item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
+        extractor: (item) => item.natureOfExtensionActivity || item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
         priority: 7,
     },
+    [FIELD_NAMES.IMPORTANT_DAYS]: {
+        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        priority: 7,
+    },
+    // Display name fallbacks (for backward compatibility)
     'Important Days': {
-        extractor: (item) => item['Important Days'] || item['Important days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        extractor: (item) => item.importantDays || item['Important Days'] || item['Important days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
         priority: 7,
     },
     'Important days': {
-        extractor: (item) => item['Important days'] || item['Important Days'] || item.importantDay || item.importantDays || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
+        extractor: (item) => item.importantDays || item['Important days'] || item['Important Days'] || item.importantDay || (item.importantDay?.dayName) || item.dayName || item.day_name || null,
         priority: 7,
     },
+    [FIELD_NAMES.NO_OF_ACTIVITIES]: {
+        extractor: (item) => {
+            const val = item.noOfActivities || item.numberOfActivities || item.activityCount || item.number_of_activities || item['No. of Activities'] || item['No. of activities'];
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 5,
+    },
+    // Display name fallbacks (for backward compatibility)
     'No. of Activities': {
         extractor: (item) => {
-            const val = item['No. of Activities'] || item['No. of activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            const val = item.noOfActivities || item.numberOfActivities || item.activityCount || item.number_of_activities || item['No. of Activities'] || item['No. of activities'];
             return val !== undefined && val !== null ? String(val) : null;
         },
         priority: 5,
     },
     'No. of activities': {
         extractor: (item) => {
-            const val = item['No. of activities'] || item['No. of Activities'] || item.numberOfActivities || item.activityCount || item.number_of_activities;
+            const val = item.noOfActivities || item.numberOfActivities || item.activityCount || item.number_of_activities || item['No. of activities'] || item['No. of Activities'];
             return val !== undefined && val !== null ? String(val) : null;
         },
         priority: 5,
     },
+    [FIELD_NAMES.TYPE_OF_ACTIVITIES]: {
+        extractor: (item) => item.typeOfActivities || item.activityType || item['Type Of Activities'] || item['Type of activities'] || null,
+        priority: 5,
+    },
+    // Display name fallbacks (for backward compatibility)
     'Type Of Activities': {
-        extractor: (item) => item['Type Of Activities'] || item['Type of activities'] || item.typeOfActivities || item.activityType || null,
+        extractor: (item) => item.typeOfActivities || item.activityType || item['Type Of Activities'] || item['Type of activities'] || null,
         priority: 5,
     },
     'Type of activities': {
-        extractor: (item) => item['Type of activities'] || item['Type Of Activities'] || item.typeOfActivities || item.activityType || null,
+        extractor: (item) => item.typeOfActivities || item.activityType || item['Type of activities'] || item['Type Of Activities'] || null,
         priority: 5,
     },
 
@@ -362,16 +496,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return null;
         },
         priority: 6,
-    },
-    sanctionedPost: {
-        extractor: (item) => {
-            if (item.sanctionedPost?.postName) return item.sanctionedPost.postName;
-            if (item.postName) return item.postName;
-            if (item.sanctionedPost?.post_name) return item.sanctionedPost.post_name;
-            if (item.post_name) return item.post_name;
-            return null;
-        },
-        priority: 7,
     },
     postName: {
         extractor: (item) => {
@@ -461,8 +585,8 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 7,
     },
 
-    // Infrastructure specific fields
-    infraMasterName: {
+    // Infrastructure specific fields - using camelCase
+    [FIELD_NAMES.INFRA_MASTER_NAME]: {
         extractor: (item) => {
             if (item.infraMaster?.name) return item.infraMaster.name;
             if (item.infraMasterName) return item.infraMasterName;
@@ -470,14 +594,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    sourceOfFunding: {
+    [FIELD_NAMES.SOURCE_OF_FUNDING]: {
         extractor: (item) => {
             if (item.sourceOfFunding) return item.sourceOfFunding;
             return null;
         },
         priority: 6,
     },
-    sourceOfFund: {
+    [FIELD_NAMES.SOURCE_OF_FUND]: {
         extractor: (item) => {
             // Map sourceOfFund to sourceOfFunding (for equipment and farm implements)
             if (item.sourceOfFunding) return item.sourceOfFunding;
@@ -487,8 +611,8 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
 
-    // CFLD Technical Parameter fields
-    Month: {
+    // CFLD Technical Parameter fields - using camelCase
+    [FIELD_NAMES.MONTH]: {
         extractor: (item) => {
             if (!item.month) return null;
             try {
@@ -500,22 +624,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             }
         },
     },
-    Type: {
+    [FIELD_NAMES.TYPE]: {
         extractor: (item) => item.type || item.typeName || null,
     },
-    Season: {
+    [FIELD_NAMES.SEASON]: {
         extractor: (item) => item.seasonName || (item.season?.seasonName) || null,
     },
-    Crop: {
-        extractor: (item) => item.cropName || (item.crop?.cropName) || null,
-    },
-    Variety: {
+    // Note: 'Crop' extractor is defined below using FIELD_NAMES.CROP constant
+    [FIELD_NAMES.VARIETY]: {
         extractor: (item) => item.varietyName || item.variety || null,
     },
     'Name of Variety': {
         extractor: (item) => item.varietyName || null,
     },
-    Area: {
+    [FIELD_NAMES.AREA]: {
         extractor: (item) => item.areaHectare !== undefined ? String(item.areaHectare) : (item.areaInHa !== undefined ? String(item.areaInHa) : null),
     },
     'Area (in ha)': {
@@ -524,21 +646,22 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     'Demo Yield (Avg)': {
         extractor: (item) => item.yieldAvg !== undefined ? String(item.yieldAvg) : (item.demoYieldAvg !== undefined ? String(item.demoYieldAvg) : null),
     },
-    '% Increase': {
+    [FIELD_NAMES.PERCENT_INCREASE]: {
         extractor: (item) => item.yieldIncreasePercent !== undefined ? `${item.yieldIncreasePercent}%` : (item.percentIncrease !== undefined ? `${item.percentIncrease}%` : null),
     },
 
-    // ARYA fields
-    Year: {
+    // ARYA fields - using camelCase
+    [FIELD_NAMES.YEAR]: {
         extractor: (item) => item.yearName || (item.year?.yearName) || null,
     },
-    Enterprise: {
+    [FIELD_NAMES.ENTERPRISE]: {
         extractor: (item) => item.enterpriseName || (item.enterprise?.enterpriseName) || null,
     },
+    // ARYA fields - using camelCase
     Trainings: {
         extractor: (item) => item.noOfTraining !== undefined ? String(item.noOfTraining) : null,
     },
-    Participants: {
+    [FIELD_NAMES.PARTICIPANTS]: {
         extractor: (item) => item.noOfParticipants !== undefined ? String(item.noOfParticipants) : null,
     },
     Units: {
@@ -557,34 +680,88 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.functionalPercentage !== undefined ? `${item.functionalPercentage}%` : null,
     },
 
-    // CRA & NARI & FPO & NICRA fields
-    Villages: {
+    // CRA & NARI & FPO & NICRA fields - using camelCase
+    [FIELD_NAMES.VILLAGES]: {
         extractor: (item) => item.noOfVillages !== undefined ? String(item.noOfVillages) : null,
     },
-    'Village Name': {
+    [FIELD_NAMES.VILLAGE_NAME]: {
         extractor: (item) => item.villageName || null,
     },
-    Farmers: {
+    [FIELD_NAMES.FARMERS]: {
         extractor: (item) => item.noOfFarmers !== undefined ? String(item.noOfFarmers) : null,
     },
-    Households: {
+    [FIELD_NAMES.HOUSEHOLDS]: {
         extractor: (item) => item.noOfHouseholds !== undefined ? String(item.noOfHouseholds) : null,
     },
+    // Activity fields - using camelCase
     'Activity Type': {
         extractor: (item) => item.activityType || null,
     },
-    Activity: {
-        extractor: (item) => item.activity || null,
+    [FIELD_NAMES.ACTIVITY]: {
+        extractor: (item) => item.activity || item.activityName || item['Activity'] || null,
     },
     Activities: {
         extractor: (item) => item.noOfActivities !== undefined ? String(item.noOfActivities) : null,
     },
-    Gardens: {
+    // FLD Extension Training Fields - using FIELD_NAMES constants (camelCase first, then fallback)
+    [FIELD_NAMES.FLD_NAME]: {
+        extractor: (item) => item.fldName || item['FLD Name'] || item.fld?.fldName || item['FLD'] || null,
+    },
+    // Name of Technology Demonstrated (for FLD base table display)
+    [FIELD_NAMES.NAME_OF_TECHNOLOGY_DEMONSTRATED]: {
+        extractor: (item) => {
+            if (item.nameOfTechnologyDemonstrated) return item.nameOfTechnologyDemonstrated;
+            if (item.fldName) return item.fldName;
+            if (item.technologyName) return item.technologyName;
+            if (item['Name of Technnology Demonstrated']) return item['Name of Technnology Demonstrated']; // Note: typo in backend
+            if (item['Name Of Technology Demonstrated']) return item['Name Of Technology Demonstrated'];
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.DATE]: {
+        extractor: (item) => {
+            const dateVal = item.date || item.activityDate || item.eventDate || item['Date'];
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                return date.toLocaleDateString('en-GB');
+            } catch { return null; }
+        },
+    },
+    [FIELD_NAMES.NUMBER_OF_ACTIVITIES]: {
+        extractor: (item) => {
+            const value = item.numberOfActivities || item.noOfActivities || item.activityCount || item['No. of Activity'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    [FIELD_NAMES.NUMBER_OF_PARTICIPANTS]: {
+        extractor: (item) => {
+            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    [FIELD_NAMES.REMARK]: {
+        extractor: (item) => item.remark || item.remarks || item['Remark'] || null,
+    },
+    // FLD Technical Feedback Fields - using FIELD_NAMES constants (camelCase first, then fallback)
+    [FIELD_NAMES.FLD]: {
+        extractor: (item) => item.fld || item.fldName || item.fld?.fldName || item['FLD'] || null,
+    },
+    [FIELD_NAMES.CROP]: {
+        extractor: (item) => item.crop || item.cropName || item.crop?.cropName || item['Crop'] || null,
+    },
+    [FIELD_NAMES.FEEDBACK]: {
+        extractor: (item) => item.feedback || item.feedBack || item['Feedback'] || null,
+    },
+    // NARI fields - using camelCase
+    [FIELD_NAMES.GARDENS]: {
         extractor: (item) => item.noOfGardens !== undefined ? String(item.noOfGardens) : null,
     },
-    Beneficiaries: {
+    [FIELD_NAMES.BENEFICIARIES]: {
         extractor: (item) => item.noOfBeneficiaries !== undefined ? String(item.noOfBeneficiaries) : null,
     },
+    // Other fields (keeping display names for backward compatibility where no camelCase equivalent exists)
     'Name of FPO': {
         extractor: (item) => item.fpoName || null,
     },
@@ -597,52 +774,52 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     Theme: {
         extractor: (item) => item.theme || null,
     },
+    // Note: 'FLD' extractor is defined above using FIELD_NAMES.FLD constant
     Courses: {
         extractor: (item) => item.noOfCourses !== undefined ? String(item.noOfCourses) : null,
     },
-    // Soil and Water Testing
+    // Soil and Water Testing - display name fallbacks (for backward compatibility)
     'KVK NAME': {
-        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
+        extractor: (item) => item.kvkName || item.kvk?.kvkName || null,
         priority: 7,
     },
     'KVK Name': {
-        extractor: (item) => item.kvk?.kvkName || item.kvkName || null,
+        extractor: (item) => item.kvkName || item.kvk?.kvkName || null,
         priority: 7,
     },
-    'Equipment Name': {
-        extractor: (item) => item.equipmentName || null,
-    },
-    'Quantity': {
+    // Equipment and Analysis fields - using camelCase (already defined above)
+    [FIELD_NAMES.QUANTITY]: {
         extractor: (item) => item.quantity !== undefined ? String(item.quantity) : null,
     },
-    'Analysis': {
+    [FIELD_NAMES.ANALYSIS]: {
         extractor: (item) => item.analysisName || null,
     },
-    'No. of samples Analyzed': {
+    [FIELD_NAMES.NO_OF_SAMPLES_ANALYZED]: {
         extractor: (item) => item.samplesAnalysed !== undefined ? String(item.samplesAnalysed) : null,
     },
-    'No. of Villages Covered': {
+    [FIELD_NAMES.NO_OF_VILLAGES_COVERED]: {
         extractor: (item) => item.villagesNumber !== undefined ? String(item.villagesNumber) : null,
     },
-    'Amount Released': {
+    [FIELD_NAMES.AMOUNT_RELEASED]: {
         extractor: (item) => item.amountRealized !== undefined ? `₹${item.amountRealized.toLocaleString('en-IN')}` : null,
     },
-    'No. Of Activities Conducted': {
+    [FIELD_NAMES.NO_OF_ACTIVITIES_CONDUCTED]: {
         extractor: (item) => item.activitiesConducted !== undefined ? String(item.activitiesConducted) : null,
     },
-    'Soil Health Cards Distributed': {
+    [FIELD_NAMES.SOIL_HEALTH_CARDS_DISTRIBUTED]: {
         extractor: (item) => item.soilHealthCardDistributed !== undefined ? String(item.soilHealthCardDistributed) : null,
     },
-    'Name(s) of VIP(s) Involved': {
+    [FIELD_NAMES.VIP_NAMES]: {
         extractor: (item) => item.vipNames || null,
     },
-    'Total No. of Participants attended the program': {
+    [FIELD_NAMES.TOTAL_PARTICIPANTS_ATTENDED]: {
         extractor: (item) => item.participants !== undefined ? String(item.participants) : null,
     },
-    'No. of VIP(s)': {
+    [FIELD_NAMES.NO_OF_VIPS]: {
         extractor: (item) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
     },
-    reportingYear : {
+    // Reporting and Date fields - using camelCase
+    [FIELD_NAMES.REPORTING_YEAR]: {
         extractor: (item) => {
             // Handle relation object (YearMaster)
             if (item.reportingYear?.yearName) {
@@ -660,7 +837,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return null;
         },
     },
-    'Start Date': {
+    [FIELD_NAMES.START_DATE]: {
         extractor: (item) => {
             if (!item.startDate) return null;
             try {
@@ -669,7 +846,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             } catch { return null; }
         }
     },
-    'End Date': {
+    [FIELD_NAMES.END_DATE]: {
         extractor: (item) => {
             if (!item.endDate) return null;
             try {
@@ -678,7 +855,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             } catch { return null; }
         }
     },
-    'Event Date': {
+    [FIELD_NAMES.EVENT_DATE]: {
         extractor: (item) => {
             const dateVal = item.eventDate || item.event_date || item['Event Date'];
             if (!dateVal) return null;
@@ -688,52 +865,52 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             } catch { return null; }
         }
     },
-    // Award Fields
-    Award: {
+    // Award Fields - using camelCase
+    [FIELD_NAMES.AWARD]: {
         extractor: (item) => item.awardName || item.award_name || null,
         priority: 5,
     },
-    Amount: {
+    [FIELD_NAMES.AMOUNT]: {
         extractor: (item) => {
             if (item.amount === undefined || item.amount === null) return null;
             return `₹${Number(item.amount).toLocaleString('en-IN')}`;
         },
         priority: 5,
     },
-    Achievement: {
+    [FIELD_NAMES.ACHIEVEMENT]: {
         extractor: (item) => item.achievement || null,
         priority: 5,
     },
-    'Conferring Authority': {
+    [FIELD_NAMES.CONFERRING_AUTHORITY]: {
         extractor: (item) => item.conferringAuthority || item.conferring_authority || null,
         priority: 5,
     },
-    'Head Scientist': {
-        extractor: (item) => item.headScientist || item.head_scientist || item.scientistName || item.scientist_name || null,
+    [FIELD_NAMES.HEAD_SCIENTIST]: {
+        extractor: (item) => item.headScientist || item.head_scientist || null,
     },
-    'Farmer Name': {
+    [FIELD_NAMES.FARMER_NAME]: {
         extractor: (item) => item.farmerName || item.farmer_name || null,
     },
-    'Address': {
+    [FIELD_NAMES.ADDRESS]: {
         extractor: (item) => item.address || null,
     },
-    'Contact Number': {
+    [FIELD_NAMES.CONTACT_NUMBER]: {
         extractor: (item) => item.contactNumber || item.contact_number || null,
     },
-    'Staff': {
+    [FIELD_NAMES.STAFF]: {
         extractor: (item) => item.staffName || item.staff_name || null,
     },
-    'Course': {
+    [FIELD_NAMES.COURSE]: {
         extractor: (item) => item.courseName || item.course_name || null,
     },
-    'Organizer': {
+    [FIELD_NAMES.ORGANIZER]: {
         extractor: (item) => item.organizerVenue || item.organizer_venue || null,
     },
-    // FPO Management mappings
+    // FPO Management mappings - using camelCase
     'Registration No': {
         extractor: (item) => item.registrationNumber || null,
     },
-    'Date of Registration': {
+    [FIELD_NAMES.DATE_OF_REGISTRATION]: {
         extractor: (item) => {
             if (!item.registrationDate) return null;
             try {
@@ -742,33 +919,30 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             } catch { return null; }
         }
     },
-    'Name of the FPO': {
+    [FIELD_NAMES.NAME_OF_THE_FPO]: {
         extractor: (item) => item.fpoName || null,
     },
-    'Address of FPO': {
+    [FIELD_NAMES.ADDRESS_OF_FPO]: {
         extractor: (item) => item.address || null,
     },
-    'Total Number of BOM Members': {
+    [FIELD_NAMES.TOTAL_NUMBER_OF_BOM_MEMBERS]: {
         extractor: (item) => item.totalBomMembers !== undefined ? String(item.totalBomMembers) : null,
     },
-    'Financial Position': {
+    [FIELD_NAMES.FINANCIAL_POSITION]: {
         extractor: (item) => item.financialPositionLakh !== undefined ? `Rs. ${item.financialPositionLakh} Lakh` : null,
     },
-    // FPO Details mappings
-    'No. of blocks allocated': {
+    // FPO Details mappings - using camelCase
+    [FIELD_NAMES.NO_OF_BLOCKS_ALLOCATED]: {
         extractor: (item) => item.blocksAllocated !== undefined ? String(item.blocksAllocated) : null,
     },
-    'No. of FPOs registered as CBBO': {
+    [FIELD_NAMES.NO_OF_FPOS_REGISTERED_AS_CBBO]: {
         extractor: (item) => item.fposRegisteredAsCbbo !== undefined ? String(item.fposRegisteredAsCbbo) : null,
     },
-    'Average members per FPO': {
+    [FIELD_NAMES.AVERAGE_MEMBERS_PER_FPO]: {
         extractor: (item) => item.avgMembersPerFpo !== undefined ? String(item.avgMembersPerFpo) : null,
     },
-    // Seed Hub mappings
-    'Crop Name': {
-        extractor: (item) => item.cropName || null,
-    },
-    'Area (ha)': {
+    // Seed Hub mappings - using camelCase (CROP_NAME already defined above)
+    [FIELD_NAMES.AREA_HA]: {
         extractor: (item) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
     },
     'Area(ha)': {
@@ -780,7 +954,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     'Yield(ha)': {
         extractor: (item) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
     },
-    'Farmers Influenced': {
+    [FIELD_NAMES.FARMERS_INFLUENCED]: {
         extractor: (item) => item.farmersPurchased !== undefined ? String(item.farmersPurchased) : null,
     },
 };

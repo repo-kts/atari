@@ -7,12 +7,12 @@
 import React from 'react'
 import { formatHeaderLabel } from '@/utils/exportUtils'
 import { getFieldValue, ExtendedEntityType } from '@/utils/masterUtils'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { TableCell } from './TableCell'
 import { TableActions } from './TableActions'
 
 interface DataTableProps {
-    fields: string[]
+    fields: readonly string[] | string[]
     data: any[]
     entityType: ExtendedEntityType | null
     user: any

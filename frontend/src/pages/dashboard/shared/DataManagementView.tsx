@@ -11,14 +11,14 @@ import { LoadingState } from '@/components/common/LoadingState'
 import { ErrorState } from '@/components/common/ErrorState'
 import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '@/config/routeConfig'
 import { DataManagementFormPage } from './DataManagementFormPage'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
 import { useFormState } from '@/hooks/useFormState'
 import { getHookLoading, getHookError } from '@/hooks/useHookState'
-import { getEntityTypeChecks } from '@/utils/entityTypeUtils'
+import { getEntityTypeChecks } from '@/utils/entityTypeHelpers'
 import { TransferModal } from '@/components/forms/TransferModal'
 import { TransferHistoryModal } from '@/components/forms/TransferHistoryModal'
 import type { KvkEmployee } from '@/types/aboutKvk'
@@ -32,7 +32,7 @@ import { LoadingButton } from '@/components/common/LoadingButton'
 interface DataManagementViewProps {
     title: string
     description?: string
-    fields?: string[]
+    fields?: readonly string[] | string[]
 }
 
 
@@ -185,7 +185,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }, [searchQuery])
 
     // Filter data based on search
-    const filteredData = items.filter(item => {
+    const filteredData = items.filter((item: any) => {
         if (!debouncedSearch.trim()) return true
         const query = debouncedSearch.toLowerCase()
         return fields.some(field => {

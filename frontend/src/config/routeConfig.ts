@@ -1,6 +1,10 @@
 // Route configuration for all forms and pages
 // This centralizes all route definitions to avoid bloating App.tsx
-import { ENTITY_PATHS } from '../constants/entityTypes'
+import { ENTITY_PATHS } from '../constants/entityConstants'
+import { ROUTE_PATHS } from '../constants/routePaths'
+import { FIELD_GROUPS } from '../constants/fieldNames'
+import { ROUTE_SIBLING_GROUPS } from './routeSiblingGroups'
+import { MASTER_SIBLING_GROUPS } from './masterSiblingGroups'
 import { UserRole } from '../types/auth'
 
 
@@ -14,9 +18,9 @@ export interface RouteConfig {
     // Optional path for the subcategory breadcrumb (e.g. Basic Masters tab)
     subcategoryPath?: string
     // Paths of sibling routes for tab navigation
-    siblings?: string[]
+    siblings?: readonly string[] | string[]
     // Optional field configuration for generic master views
-    fields?: string[]
+    fields?: readonly string[] | string[]
     // Authorization: which roles can create new items (undefined = all roles can create)
     canCreate?: UserRole[] | 'none'
     // Optional module code for Role Permission-based access control
@@ -28,84 +32,6 @@ export interface RouteConfig {
     mockData?: any[]
 }
 
-// Sibling groups for All Masters
-const basicMastersPaths = [
-    ENTITY_PATHS.ZONES,
-    ENTITY_PATHS.STATES,
-    ENTITY_PATHS.DISTRICTS,
-    ENTITY_PATHS.ORGANIZATIONS,
-    ENTITY_PATHS.UNIVERSITIES,
-]
-
-// OFT Masters group
-const oftMastersPaths = [
-    ENTITY_PATHS.OFT_SUBJECT,
-    ENTITY_PATHS.OFT_THEMATIC_AREA,
-]
-
-// FLD Masters group
-const fldMastersPaths = [
-    ENTITY_PATHS.FLD_SECTOR,
-    ENTITY_PATHS.FLD_THEMATIC_AREA,
-    ENTITY_PATHS.FLD_CATEGORY,
-    ENTITY_PATHS.FLD_SUBCATEGORY,
-    ENTITY_PATHS.FLD_CROP,
-]
-
-// CFLD Masters group
-const cfldMastersPaths = [
-    ENTITY_PATHS.CFLD_CROP,
-]
-
-const trainingBasicMastersSiblingsPaths = [
-    ENTITY_PATHS.TRAINING_TYPE,
-    ENTITY_PATHS.TRAINING_AREA,
-    ENTITY_PATHS.TRAINING_THEMATIC,
-    ENTITY_PATHS.TRAINING_CLIENTELE,
-    ENTITY_PATHS.FUNDING_SOURCE,
-]
-
-const trainingExtensionMastersSiblingsPaths = [
-    ENTITY_PATHS.EXTENSION_ACTIVITY,
-    ENTITY_PATHS.OTHER_EXTENSION_ACTIVITY,
-]
-
-// Production & Projects - split by tab sections
-const productMastersPaths = [
-    ENTITY_PATHS.PRODUCT_CATEGORY,
-    ENTITY_PATHS.PRODUCT_TYPE,
-    ENTITY_PATHS.PRODUCT,
-]
-
-const craMastersPaths = [
-    ENTITY_PATHS.CRA_CROPPING_SYSTEM,
-    ENTITY_PATHS.CRA_FARMING_SYSTEM,
-]
-
-const aryaMastersPaths = [
-    ENTITY_PATHS.ARYA_ENTERPRISE,
-]
-
-// Employee Masters group
-const employeeMastersPaths = [
-    ENTITY_PATHS.STAFF_CATEGORY,
-    ENTITY_PATHS.PAY_LEVEL,
-    ENTITY_PATHS.SANCTIONED_POST,
-    ENTITY_PATHS.DISCIPLINE,
-]
-
-
-
-
-// Other Masters - split by tab sections
-const otherMastersPaths = [
-    ENTITY_PATHS.SEASON,
-    ENTITY_PATHS.YEAR,
-    ENTITY_PATHS.CROP_TYPE,
-    ENTITY_PATHS.INFRASTRUCTURE_MASTER,
-    ENTITY_PATHS.IMPORTANT_DAY,
-]
-
 // All Masters Routes
 export const allMastersRoutes: RouteConfig[] = [
     // Basic Masters
@@ -116,8 +42,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Basic Masters',
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
-        siblings: basicMastersPaths,
-        fields: ['zoneName'],
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.ZONE_MASTER,
         moduleCode: 'all_masters_zone_master',
     },
     {
@@ -127,8 +53,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Basic Masters',
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
-        siblings: basicMastersPaths,
-        fields: ['zoneName', 'stateName'],
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.STATE_MASTER,
         moduleCode: 'all_masters_states_master',
     },
     {
@@ -138,8 +64,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Basic Masters',
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
-        siblings: basicMastersPaths,
-        fields: ['zoneName', 'stateName', 'districtName', 'orgName'],
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.ORGANIZATION_MASTER,
         moduleCode: 'all_masters_organization_master',
     },
     {
@@ -149,8 +75,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Basic Masters',
         parent: '/all-master',
         subcategoryPath: '/all-master/basic',
-        siblings: basicMastersPaths,
-        fields: ['organization.orgName', 'universityName'],
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.UNIVERSITY_MASTER,
         moduleCode: 'all_masters_university_master',
     },
     {
@@ -160,8 +86,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Basic Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.BASIC_MASTERS,
-        siblings: basicMastersPaths,
-        fields: ['zoneName', 'stateName', 'districtName'],
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.DISTRICT_MASTER,
         moduleCode: 'all_masters_districts_master',
     },
 
@@ -173,8 +99,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftMastersPaths,
-        fields: ['subjectName', 'thematicAreasCount'],
+        siblings: MASTER_SIBLING_GROUPS.OFT_MASTERS,
+        fields: FIELD_GROUPS.OFT_SUBJECT_MASTER,
         moduleCode: 'all_masters_oft_master',
     },
     {
@@ -184,8 +110,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: oftMastersPaths,
-        fields: ['thematicAreaName', 'subjectName'],
+        siblings: MASTER_SIBLING_GROUPS.OFT_MASTERS,
+        fields: FIELD_GROUPS.OFT_THEMATIC_AREA_MASTER,
         moduleCode: 'all_masters_oft_master',
     },
 
@@ -197,8 +123,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: fldMastersPaths,
-        fields: ['sectorName', 'categoriesCount'],
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_SECTOR_MASTER,
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -208,8 +134,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: fldMastersPaths,
-        fields: ['thematicAreaName', 'sectorName'],
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_THEMATIC_AREA_MASTER,
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -219,8 +145,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: fldMastersPaths,
-        fields: ['categoryName', 'sectorName', 'subCategoriesCount'],
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_CATEGORY_MASTER,
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -230,8 +156,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: fldMastersPaths,
-        fields: ['subCategoryName', 'categoryName', 'sectorName', 'cropsCount'],
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_SUBCATEGORY_MASTER,
         moduleCode: 'all_masters_fld_master',
     },
     {
@@ -241,8 +167,19 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: fldMastersPaths,
-        fields: ['cropName', 'subCategoryName', 'categoryName'],
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_CROP_MASTER,
+        moduleCode: 'all_masters_fld_master',
+    },
+    {
+        path: ENTITY_PATHS.FLD_ACTIVITY,
+        title: 'Activity Master',
+        category: 'All Masters',
+        subcategory: 'OFT & FLD Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.FLD_MASTERS,
+        fields: FIELD_GROUPS.FLD_ACTIVITY_MASTER,
         moduleCode: 'all_masters_fld_master',
     },
 
@@ -254,8 +191,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'OFT & FLD Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OFT_FLD_MASTERS,
-        siblings: cfldMastersPaths,
-        fields: ['seasonName', 'cropTypeName', 'cropName'],
+        siblings: MASTER_SIBLING_GROUPS.CFLD_MASTERS,
+        fields: FIELD_GROUPS.CFLD_CROP_MASTER,
         moduleCode: 'all_masters_cfld_master',
     },
 
@@ -268,8 +205,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingBasicMastersSiblingsPaths,
-        fields: ['trainingType'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_TYPE_MASTER,
         moduleCode: 'all_masters_training_master',
     },
     {
@@ -279,8 +216,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingBasicMastersSiblingsPaths,
-        fields: ['trainingType', 'trainingAreaName'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_AREA_MASTER,
         moduleCode: 'all_masters_training_master',
     },
     {
@@ -290,8 +227,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingBasicMastersSiblingsPaths,
-        fields: ['trainingAreaName', 'trainingThematicArea'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_THEMATIC_AREA_MASTER,
         moduleCode: 'all_masters_training_master',
     },
 
@@ -303,8 +240,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingBasicMastersSiblingsPaths,
-        fields: ['name'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_training_master',
     },
     {
@@ -314,8 +251,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingBasicMastersSiblingsPaths,
-        fields: ['name'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_BASIC_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_training_master',
     },
 
@@ -327,8 +264,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingExtensionMastersSiblingsPaths,
-        fields: ['name'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_EXTENSION_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_extension_activity_master',
     },
     {
@@ -338,8 +275,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Training & Extension Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
-        siblings: trainingExtensionMastersSiblingsPaths,
-        fields: ['name'],
+        siblings: MASTER_SIBLING_GROUPS.TRAINING_EXTENSION_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_other_extension_activity_master',
     },
     {
@@ -350,7 +287,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.TRAINING_EXTENSION_MASTERS,
         siblings: [],
-        fields: ['eventName'],
+        fields: FIELD_GROUPS.EVENTS_MASTER,
         moduleCode: 'all_masters_events_master',
     },
 
@@ -362,8 +299,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: productMastersPaths,
-        fields: ['productCategoryName'],
+        siblings: MASTER_SIBLING_GROUPS.PRODUCT_MASTERS,
+        fields: FIELD_GROUPS.PRODUCT_CATEGORY_MASTER,
         moduleCode: 'all_masters_products_master',
     },
     {
@@ -373,8 +310,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: productMastersPaths,
-        fields: ['productCategoryName', 'productCategoryType'],
+        siblings: MASTER_SIBLING_GROUPS.PRODUCT_MASTERS,
+        fields: FIELD_GROUPS.PRODUCT_TYPE_MASTER,
         moduleCode: 'all_masters_products_master',
     },
     {
@@ -384,8 +321,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: productMastersPaths,
-        fields: ['productCategoryName', 'productCategoryType', 'productName'],
+        siblings: MASTER_SIBLING_GROUPS.PRODUCT_MASTERS,
+        fields: FIELD_GROUPS.PRODUCT_MASTER,
         moduleCode: 'all_masters_products_master',
     },
 
@@ -397,8 +334,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: craMastersPaths,
-        fields: ['seasonName', 'cropName'],
+        siblings: MASTER_SIBLING_GROUPS.CRA_MASTERS,
+        fields: FIELD_GROUPS.CRA_CROPPING_SYSTEM_MASTER,
         moduleCode: 'all_masters_climate_master',
     },
     {
@@ -408,8 +345,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: craMastersPaths,
-        fields: ['seasonName', 'farmingSystemName'],
+        siblings: MASTER_SIBLING_GROUPS.CRA_MASTERS,
+        fields: FIELD_GROUPS.CRA_FARMING_SYSTEM_MASTER,
         moduleCode: 'all_masters_climate_master',
     },
 
@@ -421,8 +358,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Production & Projects Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PRODUCTION_PROJECTS_MASTERS,
-        siblings: aryaMastersPaths,
-        fields: ['enterpriseName'],
+        siblings: MASTER_SIBLING_GROUPS.ARYA_MASTERS,
+        fields: FIELD_GROUPS.ARYA_ENTERPRISE_MASTER,
         moduleCode: 'all_masters_arya_master',
     },
 
@@ -435,7 +372,7 @@ export const allMastersRoutes: RouteConfig[] = [
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.PUBLICATIONS_MASTERS,
         siblings: [ENTITY_PATHS.PUBLICATION_ITEM],
-        fields: ['publicationItem'],
+        fields: FIELD_GROUPS.PUBLICATION_ITEM_MASTER,
         moduleCode: 'all_masters_publication_master',
     },
 
@@ -447,8 +384,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['categoryName'],
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.STAFF_CATEGORY_MASTER,
         moduleCode: 'all_masters_staff_category_master',
     },
     {
@@ -458,8 +395,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['levelName'],
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.PAY_LEVEL_MASTER,
         moduleCode: 'all_masters_pay_level_master',
     },
     {
@@ -469,8 +406,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['disciplineName'],
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.DISCIPLINE_MASTER,
         moduleCode: 'all_masters_discipline_master',
     },
     {
@@ -480,8 +417,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: employeeMastersPaths,
-        fields: ['postName'],
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.SANCTIONED_POST_MASTER,
         moduleCode: 'all_masters_sanctioned_post_master',
     },
     {
@@ -491,8 +428,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['seasonName'],
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.SEASON_MASTER,
         moduleCode: 'all_masters_season_master',
     },
     {
@@ -502,8 +439,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['yearName'],
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.YEAR_MASTER,
         moduleCode: 'all_masters_year_master',
     },
     {
@@ -513,8 +450,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['typeName'],
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.CROP_TYPE_MASTER,
         moduleCode: 'all_masters_crop_type_master',
     },
     {
@@ -524,8 +461,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['name'],
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.TRAINING_CLIENTELE_MASTER,
         moduleCode: 'all_masters_infrastructure_master',
     },
     {
@@ -535,8 +472,8 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategory: 'Other Masters',
         parent: '/all-master',
         subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: otherMastersPaths,
-        fields: ['dayName'],
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.IMPORTANT_DAY_MASTER,
         moduleCode: 'all_masters_events_master',
     },
 ]
@@ -552,7 +489,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        fields: ['zoneName', 'stateName', 'organizationName', 'districtName', 'kvkName', 'mobile', 'email', 'address', 'yearOfSanction'],
+        fields: FIELD_GROUPS.VIEW_KVKS,
         canCreate: ['super_admin'], // Only super_admin can create KVKs
         moduleCode: 'about_kvks_view_kvks',
     },
@@ -569,7 +506,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['kvk', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
+        fields: FIELD_GROUPS.BANK_ACCOUNT_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_bank_account_details',
     },
@@ -586,7 +523,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['kvkName', 'photo', 'resume', 'staffName', 'position', 'mobile', 'email', 'sanctionedPost', 'payScale', 'dateOfJoining', 'jobType', 'detailsOfAllowences', 'category', 'transferStatus'],
+        fields: FIELD_GROUPS.EMPLOYEE_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_employee_details',
     },
@@ -603,7 +540,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['staffName', 'kvkNameBeforeTransfer', 'latestKvkName'],
+        fields: FIELD_GROUPS.STAFF_TRANSFERRED,
         canCreate: 'none',
         moduleCode: 'about_kvks_staff_details',
     },
@@ -620,7 +557,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
             ENTITY_PATHS.KVK_INFRASTRUCTURE,
         ],
-        fields: ['kvk', 'infraMasterName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
+        fields: FIELD_GROUPS.INFRASTRUCTURE_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_infrastructure_details',
     },
@@ -637,7 +574,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLES,
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
-        fields: ['vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost', 'totalRun', 'presentStatus'],
+        fields: FIELD_GROUPS.VIEW_VEHICLES,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_vehicle_details',
     },
@@ -652,7 +589,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_VEHICLES,
             ENTITY_PATHS.KVK_VEHICLE_DETAILS,
         ],
-        fields: ['kvkName', 'vehicleName', 'registrationNumber', 'yearOfPurchase', 'totalCost (Rs.)', 'totalRun (Kms)', 'reportingYear', 'presentStatus'],
+        fields: FIELD_GROUPS.VEHICLE_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_vehicle_details',
     },
@@ -668,7 +605,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENTS,
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
-        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        fields: FIELD_GROUPS.VIEW_EQUIPMENTS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_equipment_details',
     },
@@ -683,7 +620,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
             ENTITY_PATHS.KVK_EQUIPMENTS,
             ENTITY_PATHS.KVK_EQUIPMENT_DETAILS,
         ],
-        fields: ['kvkName', 'equipmentName', 'yearOfPurchase', 'totalCost (Rs)', 'reportingYear', 'presentStatus', 'sourceOfFund'],
+        fields: FIELD_GROUPS.EQUIPMENT_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_equipment_details',
     },
@@ -695,7 +632,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        fields: ['kvkName', 'implementName', 'yearOfPurchase', 'totalCost (Rs)', 'presentStatus', 'sourceOfFund'],
+        fields: FIELD_GROUPS.FARM_IMPLEMENT_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_farm_implement_details',
     },
@@ -706,92 +643,62 @@ export const aboutKvkRoutes: RouteConfig[] = [
 // View KVK Routes (Admin)
 export const viewKvkRoutes: RouteConfig[] = [
     {
-        path: ENTITY_PATHS.KVK_VIEW,
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.BASE,
         title: 'View KVKs',
         description: 'View and manage all KVKs',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
+        parent: ROUTE_PATHS.ABOUT_KVK.BASE,
         moduleCode: 'about_kvks_view_kvks',
     },
     {
-        path: ENTITY_PATHS.KVK_VIEW_DETAILS,
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,
         title: 'KVK Information',
         description: 'View detailed KVK information',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VIEW,
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        parent: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.BASE,
+        siblings: ROUTE_SIBLING_GROUPS.KVK_VIEW,
         moduleCode: 'about_kvks_view_kvks',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id/bank',
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.BANK,
         title: 'Bank Accounts',
         description: 'View bank account details',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        parent: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.KVK_VIEW,
         moduleCode: 'about_kvks_bank_account_details',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id/employees',
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.EMPLOYEES,
         title: 'Employees',
         description: 'View employee details',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        parent: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.KVK_VIEW,
         moduleCode: 'about_kvks_employee_details',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id/vehicles',
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.VEHICLES,
         title: 'Vehicles',
         description: 'Vehicle details',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        parent: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.KVK_VIEW,
         moduleCode: 'about_kvks_vehicle_details',
     },
     {
-        path: '/forms/about-kvk/view-kvks/:id/equipments',
+        path: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.EQUIPMENTS,
         title: 'Equipments',
         description: 'Equipment details',
         category: 'Form Management',
         subcategory: 'About KVK',
-        parent: ENTITY_PATHS.KVK_VIEW_DETAILS,
-        siblings: [
-            '/forms/about-kvk/view-kvks/:id',
-            '/forms/about-kvk/view-kvks/:id/bank',
-            '/forms/about-kvk/view-kvks/:id/employees',
-            '/forms/about-kvk/view-kvks/:id/vehicles',
-            '/forms/about-kvk/view-kvks/:id/equipments',
-        ],
+        parent: ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.KVK_VIEW,
         moduleCode: 'about_kvks_equipment_details',
     },
 ]
@@ -800,673 +707,453 @@ export const viewKvkRoutes: RouteConfig[] = [
 export const projectsRoutes: RouteConfig[] = [
     // CFLD
     {
-        path: '/forms/achievements/projects/cfld/technical-parameter',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.TECHNICAL_PARAMETER,
         title: 'Technical Parameter',
         description: 'CFLD Technical Parameters',
         category: 'Projects',
         subcategory: 'CFLD',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Type', 'Season', 'Crop', 'Variety', 'Area', 'Demo Yield (Avg)', '% Increase'],
-        siblings: [
-            '/forms/achievements/projects/cfld/technical-parameter',
-            '/forms/achievements/projects/cfld/extension-activity',
-            '/forms/achievements/projects/cfld/budget-utilization'
-        ]
+        fields: FIELD_GROUPS.CFLD_TECHNICAL_PARAMETER,
+        siblings: ROUTE_SIBLING_GROUPS.CFLD,
     },
     {
-        path: '/forms/achievements/projects/cfld/extension-activity',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.EXTENSION_ACTIVITY,
         title: 'Extension Activity',
         description: 'CFLD Extension Activities',
         category: 'Projects',
         subcategory: 'CFLD',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Season', 'Extension Activities Organized', 'Date', 'Place of Activity', 'No. of Farmers attended'],
-        siblings: [
-            '/forms/achievements/projects/cfld/technical-parameter',
-            '/forms/achievements/projects/cfld/extension-activity',
-            '/forms/achievements/projects/cfld/budget-utilization'
-        ]
+        fields: FIELD_GROUPS.CFLD_EXTENSION_ACTIVITY,
+        siblings: ROUTE_SIBLING_GROUPS.CFLD,
     },
     {
-        path: '/forms/achievements/projects/cfld/budget-utilization',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.BUDGET_UTILIZATION,
         title: 'Budget Utilization',
         description: 'CFLD Budget Utilization',
         category: 'Projects',
         subcategory: 'CFLD',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Crop', 'Season', 'Overall Fund Allocation'],
-        siblings: [
-            '/forms/achievements/projects/cfld/technical-parameter',
-            '/forms/achievements/projects/cfld/extension-activity',
-            '/forms/achievements/projects/cfld/budget-utilization'
-        ]
+        fields: FIELD_GROUPS.CFLD_BUDGET_UTILIZATION,
+        siblings: ROUTE_SIBLING_GROUPS.CFLD,
     },
 
     // CRA
     {
-        path: '/forms/achievements/projects/cra/details',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.DETAILS,
         title: 'Climate Resilient',
         description: 'Climate Resilient Agriculture Details',
         category: 'Projects',
         subcategory: 'CRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Villages', 'Farmers', 'Area (ha)'],
-        siblings: [
-            '/forms/achievements/projects/cra/details',
-            '/forms/achievements/projects/cra/extension-activity'
-        ]
+        fields: FIELD_GROUPS.CRA_DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.CRA,
     },
     {
-        path: '/forms/achievements/projects/cra/extension-activity',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY,
         title: 'Extension Activity',
         description: 'CRA Extension Activities',
         category: 'Projects',
         subcategory: 'CRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Activity Type', 'Activities', 'Participants'],
-        siblings: [
-            '/forms/achievements/projects/cra/details',
-            '/forms/achievements/projects/cra/extension-activity'
-        ]
+        fields: FIELD_GROUPS.CRA_EXTENSION_ACTIVITY,
+        siblings: ROUTE_SIBLING_GROUPS.CRA,
     },
 
     // FPO
     {
-        path: '/forms/achievements/projects/fpo/details',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.DETAILS,
         title: 'FPO Details',
         description: 'Formation and Promotion of FPOs as CBBOs under NCDC funding',
         category: 'Projects',
         subcategory: 'FPO',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Reporting Year', 'No. of blocks allocated', 'No. of FPOs registered as CBBO', 'Average members per FPO'],
-        siblings: [
-            '/forms/achievements/projects/fpo/details',
-            '/forms/achievements/projects/fpo/management'
-        ]
+        fields: FIELD_GROUPS.FPO_DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.FPO,
     },
     {
-        path: '/forms/achievements/projects/fpo/management',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.MANAGEMENT,
         title: 'FPO Management',
         description: 'FPO Management',
         category: 'Projects',
         subcategory: 'FPO',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Registration No', 'Date of Registration', 'Name of the FPO', 'Address of FPO', 'Total Number of BOM Members', 'Financial Position'],
-        siblings: [
-            '/forms/achievements/projects/fpo/details',
-            '/forms/achievements/projects/fpo/management'
-        ]
+        fields: FIELD_GROUPS.FPO_MANAGEMENT,
+        siblings: ROUTE_SIBLING_GROUPS.FPO,
     },
 
     // DRMR
     {
-        path: '/forms/achievements/projects/drmr/details',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS,
         title: 'DRMR Details',
         description: 'DRMR Program Details',
         category: 'Projects',
         subcategory: 'DRMR',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Crop', 'Variety', 'Area (ha)'],
-        siblings: [
-            '/forms/achievements/projects/drmr/details',
-            '/forms/achievements/projects/drmr/activity'
-        ]
+        fields: FIELD_GROUPS.DRMR_DETAILS,
+        siblings: ROUTE_SIBLING_GROUPS.DRMR,
     },
     {
-        path: '/forms/achievements/projects/drmr/activity',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY,
         title: 'DRMR Activity',
         description: 'DRMR Activities',
         category: 'Projects',
         subcategory: 'DRMR',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/drmr/details',
-            '/forms/achievements/projects/drmr/activity'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.DRMR,
     },
 
     // NARI
     {
-        path: '/forms/achievements/projects/nari/nutri-smart',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART,
         title: 'Nutrition Garden',
         description: 'Details of Nutrition Garden in Nutri-Smart village',
         category: 'Projects',
         subcategory: 'NARI',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Month', 'Year', 'Gardens', 'Area (ha)', 'Beneficiaries'],
-        siblings: [
-            '/forms/achievements/projects/nari/nutri-smart',
-            '/forms/achievements/projects/nari/bio-fortified',
-            '/forms/achievements/projects/nari/value-addition',
-            '/forms/achievements/projects/nari/training-programm',
-            '/forms/achievements/projects/nari/extension-activities'
-        ]
+        fields: FIELD_GROUPS.NARI_NUTRI_SMART,
+        siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
-        path: '/forms/achievements/projects/nari/bio-fortified',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED,
         title: 'Bio-fortified Crops',
         description: 'Details of Bio-fortified crops used in Nutri-Smart village',
         category: 'Projects',
         subcategory: 'NARI',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Village', 'Season', 'Activity', 'Crop', 'Variety', 'Area (ha)'],
-        siblings: [
-            '/forms/achievements/projects/nari/nutri-smart',
-            '/forms/achievements/projects/nari/bio-fortified',
-            '/forms/achievements/projects/nari/value-addition',
-            '/forms/achievements/projects/nari/training-programm',
-            '/forms/achievements/projects/nari/extension-activities'
-        ]
+        fields: FIELD_GROUPS.NARI_BIO_FORTIFIED,
+        siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
-        path: '/forms/achievements/projects/nari/value-addition',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION,
         title: 'Value Addition',
         description: 'Details of Value addition',
         category: 'Projects',
         subcategory: 'NARI',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nari/nutri-smart',
-            '/forms/achievements/projects/nari/bio-fortified',
-            '/forms/achievements/projects/nari/value-addition',
-            '/forms/achievements/projects/nari/training-programm',
-            '/forms/achievements/projects/nari/extension-activities'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
-        path: '/forms/achievements/projects/nari/training-programm',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM,
         title: 'Training Programmes',
         description: 'Training programmes in Nutri-Smart village',
         category: 'Projects',
         subcategory: 'NARI',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nari/nutri-smart',
-            '/forms/achievements/projects/nari/bio-fortified',
-            '/forms/achievements/projects/nari/value-addition',
-            '/forms/achievements/projects/nari/training-programm',
-            '/forms/achievements/projects/nari/extension-activities'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
-        path: '/forms/achievements/projects/nari/extension-activities',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES,
         title: 'Extension Activities',
         description: 'Extension activities under NARI',
         category: 'Projects',
         subcategory: 'NARI',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nari/nutri-smart',
-            '/forms/achievements/projects/nari/bio-fortified',
-            '/forms/achievements/projects/nari/value-addition',
-            '/forms/achievements/projects/nari/training-programm',
-            '/forms/achievements/projects/nari/extension-activities'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
 
     // ARYA
     {
-        path: '/forms/achievements/projects/arya',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.CURRENT,
         title: 'Current Year',
         description: 'ARYA Current Year Details',
         category: 'Projects',
         subcategory: 'ARYA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Enterprise', 'Viable Units', 'Closed Units', 'Start Date', 'End Date', 'No. of Groups Formed', 'No. of Groups Active'],
-        siblings: [
-            '/forms/achievements/projects/arya',
-            '/forms/achievements/projects/arya-evaluation'
-        ]
+        fields: FIELD_GROUPS.ARYA_CURRENT,
+        siblings: ROUTE_SIBLING_GROUPS.ARYA,
     },
     {
-        path: '/forms/achievements/projects/arya-evaluation',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.EVALUATION,
         title: 'Previous Year',
         description: 'ARYA Previous Year Evaluation',
         category: 'Projects',
         subcategory: 'ARYA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Enterprise', 'Total Closed', 'Closing Date', 'Total Restarted', 'Restarted Date'],
-        siblings: [
-            '/forms/achievements/projects/arya',
-            '/forms/achievements/projects/arya-evaluation'
-        ]
+        fields: FIELD_GROUPS.ARYA_EVALUATION,
+        siblings: ROUTE_SIBLING_GROUPS.ARYA,
     },
 
     // Direct links (no siblings)
     {
-        path: '/forms/achievements/projects/csisa',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA,
         title: 'CSISA',
         description: 'Cereal Systems Initiative for South Asia (CSISA)',
         category: 'Projects',
         subcategory: 'CSISA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Season', 'Village Covered(no.)', 'Block Covered(no.)', 'District Covered(no.)'],
+        fields: FIELD_GROUPS.CSISA,
     },
     {
-        path: '/forms/achievements/projects/sub-plan-activity',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP,
         title: 'TSP/SCSP Activities',
         description: 'Tribal Sub Plan / Scheduled Caste Sub Plan (TSP/SCSP) Activities',
         category: 'Projects',
         subcategory: 'TSP/SCSP',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Type', 'Activity', 'Beneficiaries', 'Funds'],
+        fields: FIELD_GROUPS.TSP_SCSP,
     },
 
     // NICRA
     {
-        path: '/forms/achievements/projects/nicra/basic-information',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASIC_INFORMATION,
         title: 'Basic Information',
         description: 'NICRA Basic Information',
         category: 'Projects',
         subcategory: 'NICRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Village Name', 'Households'],
-        siblings: [
-            '/forms/achievements/projects/nicra/basic-information',
-            '/forms/achievements/projects/nicra/details',
-            '/forms/achievements/projects/nicra/training',
-            '/forms/achievements/projects/nicra/extension-activity'
-        ]
+        fields: FIELD_GROUPS.NICRA_BASIC_INFORMATION,
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
     },
     {
-        path: '/forms/achievements/projects/nicra/details',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.DETAILS,
         title: 'Details',
         description: 'NICRA Details',
         category: 'Projects',
         subcategory: 'NICRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/basic-information',
-            '/forms/achievements/projects/nicra/details',
-            '/forms/achievements/projects/nicra/training',
-            '/forms/achievements/projects/nicra/extension-activity'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
     },
     {
-        path: '/forms/achievements/projects/nicra/training',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.TRAINING,
         title: 'Training',
         description: 'NICRA Training',
         category: 'Projects',
         subcategory: 'NICRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/basic-information',
-            '/forms/achievements/projects/nicra/details',
-            '/forms/achievements/projects/nicra/training',
-            '/forms/achievements/projects/nicra/extension-activity'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
     },
     {
-        path: '/forms/achievements/projects/nicra/extension-activity',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.EXTENSION_ACTIVITY,
         title: 'Extension Activity',
         description: 'NICRA Extension Activity',
         category: 'Projects',
         subcategory: 'NICRA',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Activity Name', 'Start Date', 'End Date', 'Venue'],
-        siblings: [
-            '/forms/achievements/projects/nicra/basic-information',
-            '/forms/achievements/projects/nicra/details',
-            '/forms/achievements/projects/nicra/training',
-            '/forms/achievements/projects/nicra/extension-activity'
-        ]
+        fields: FIELD_GROUPS.NICRA_EXTENSION_ACTIVITY,
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
     },
 
-    // NICRA Others
+    // NICRA Others - using centralized paths
     {
-        path: '/forms/achievements/projects/nicra/others/intervention',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.INTERVENTION,
         title: 'Intervention',
         description: 'NICRA Others - Intervention',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/revenue-generated',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.REVENUE_GENERATED,
         title: 'Revenue Generated',
         description: 'NICRA Others - Revenue Generated',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/custom-hiring',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CUSTOM_HIRING,
         title: 'Custom Hiring',
         description: 'NICRA Others - Custom Hiring of Farm-Implement',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/vcrmc',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.VCRMC,
         title: 'Village VCRMC',
         description: 'NICRA Others - Village wise VCRMC',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/soil-health-card',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.SOIL_HEALTH_CARD,
         title: 'Soil Health Card',
         description: 'NICRA Others - Soil Health Card',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/convergence-programme',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CONVERGENCE_PROGRAMME,
         title: 'Convergence',
         description: 'NICRA Others - Convergence Programme',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/dignitaries-visited',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.DIGNITARIES_VISITED,
         title: 'Dignitaries',
         description: 'NICRA Others - Dignitaries Visited',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
     {
-        path: '/forms/achievements/projects/nicra/others/pi-copi-list',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.PI_COPI_LIST,
         title: 'PI & Co-PI',
         description: 'NICRA Others - PI & Co-PI List',
         category: 'Projects',
         subcategory: 'NICRA Others',
-        parent: '/forms/achievements/projects/nicra',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/nicra/others/intervention',
-            '/forms/achievements/projects/nicra/others/revenue-generated',
-            '/forms/achievements/projects/nicra/others/custom-hiring',
-            '/forms/achievements/projects/nicra/others/vcrmc',
-            '/forms/achievements/projects/nicra/others/soil-health-card',
-            '/forms/achievements/projects/nicra/others/convergence-programme',
-            '/forms/achievements/projects/nicra/others/dignitaries-visited',
-            '/forms/achievements/projects/nicra/others/pi-copi-list'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
     },
 
     // Natural Farming
     {
-        path: '/forms/achievements/projects/natural-farming/geographical-information',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.GEOGRAPHICAL_INFORMATION,
         title: 'Geographical',
         description: 'Geographical Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/physical-information',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.PHYSICAL_INFORMATION,
         title: 'Physical',
         description: 'Physical Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/demonstration-information',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.DEMONSTRATION_INFORMATION,
         title: 'Demonstration',
         description: 'Demonstration Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Farmer Name', 'Village Name', 'Crop', 'Variety', 'Season'],
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        fields: FIELD_GROUPS.NATURAL_FARMING_DEMONSTRATION,
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/farmers-practicing',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.FARMERS_PRACTICING,
         title: 'Farmers Practicing',
         description: 'Farmers Already Practicing Natural Farming',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Farmer Name', 'Village Name', 'Contact Number', 'Land Holding', 'Area Practicing'],
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        fields: FIELD_GROUPS.NATURAL_FARMING_FARMERS_PRACTICING,
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/beneficiaries',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BENEFICIARIES,
         title: 'Beneficiaries',
         description: 'Details of Beneficiaries',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Blocks Covered', 'Villages Covered', 'Total Trained Farmers', 'Farmers Influenced'],
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        fields: FIELD_GROUPS.NATURAL_FARMING_BENEFICIARIES,
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/soil-data',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.SOIL_DATA,
         title: 'Soil Data',
         description: 'Soil Data Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
     {
-        path: '/forms/achievements/projects/natural-farming/budget-expenditure',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BUDGET_EXPENDITURE,
         title: 'Budget Expenditure',
         description: 'Budget Expenditure Information',
         category: 'Projects',
         subcategory: 'Natural Farming',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['Year', 'Activity Name', 'Number of Activities', 'Budget Sanction', 'Budget Expenditure'],
-        siblings: [
-            '/forms/achievements/projects/natural-farming/geographical-information',
-            '/forms/achievements/projects/natural-farming/physical-information',
-            '/forms/achievements/projects/natural-farming/demonstration-information',
-            '/forms/achievements/projects/natural-farming/farmers-practicing',
-            '/forms/achievements/projects/natural-farming/beneficiaries',
-            '/forms/achievements/projects/natural-farming/soil-data',
-            '/forms/achievements/projects/natural-farming/budget-expenditure'
-        ]
+        fields: FIELD_GROUPS.NATURAL_FARMING_BUDGET_EXPENDITURE,
+        siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
     },
 
     // Agri-Drone
     {
-        path: '/forms/achievements/projects/agri-drone',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.AGRI_DRONE,
         title: 'Introduction',
         description: 'Agri-Drone Introduction',
         category: 'Projects',
         subcategory: 'Agri-Drone',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Year', 'Project Implementing centre name', 'Company of Drone', 'Model of Drone', 'No. of Agri Drones Sanctioned', 'No. of Agri Drones Purchased', 'Cost Sanctioned'],
-        siblings: [
-            '/forms/achievements/projects/agri-drone',
-            '/forms/achievements/projects/demonstration-details'
-        ]
+        fields: FIELD_GROUPS.AGRI_DRONE,
+        siblings: ROUTE_SIBLING_GROUPS.AGRI_DRONE,
     },
     {
-        path: '/forms/achievements/projects/demonstration-details',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS,
         title: 'Demonstration',
         description: 'Agri-Drone Demonstration Details',
         category: 'Projects',
         subcategory: 'Agri-Drone',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        siblings: [
-            '/forms/achievements/projects/agri-drone',
-            '/forms/achievements/projects/demonstration-details'
-        ]
+        siblings: ROUTE_SIBLING_GROUPS.AGRI_DRONE,
     },
 
     // Other direct links
     {
-        path: '/forms/achievements/projects/seed-hub-program',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.SEED_HUB_PROGRAM,
         title: 'Seed Hub Program',
         description: 'Seed Hub Program details',
         category: 'Projects',
         subcategory: 'Seed Hub',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: ['KVK Name', 'Season', 'Crop Name', 'Variety', 'Area(ha)', 'Yield(ha)'],
+        fields: FIELD_GROUPS.SEED_HUB_PROGRAM,
     },
     {
-        path: '/forms/achievements/other-program',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.OTHER_PROGRAM,
         title: 'Other Programmes',
         description: 'Other programmes organized by KVK',
         category: 'Projects',
         subcategory: 'Other',
-        parent: '/forms/achievements/projects',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
     },
 ]
@@ -1546,187 +1233,186 @@ export const featureRoutes: RouteConfig[] = [
 // Achievements Routes
 export const achievementsRoutes: RouteConfig[] = [
     {
-        path: '/forms/achievements/oft',
+        path: ROUTE_PATHS.ACHIEVEMENTS.OFT,
         title: 'On Farm Trials (OFT)',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_oft',
-        fields: ['Reporting Year', 'KVK Name', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
+        fields: FIELD_GROUPS.OFT,
+        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
     },
     {
-        path: '/forms/achievements/fld',
+        path: ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
         title: 'Front Line Demonstrations (FLD)',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_fld',
-        fields: ['Reporting Year', 'Start Date', 'End Date', 'KVK Name', 'Category', 'Sub-Category', 'Name of Technnology Demonstrated', 'Ongoing/Completed'],
+        fields: FIELD_GROUPS.FLD_BASE,
+        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
     },
     {
-        path: '/forms/achievements/trainings',
+        path: ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
+        title: 'Extension & Training activities under FLD',
+        category: 'Form Management',
+        subcategory: 'Achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
+        moduleCode: 'achievements_fld_extension_training',
+        fields: FIELD_GROUPS.FLD_EXTENSION_TRAINING,
+        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+    },
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
+        title: 'Technical Feedback on FLD',
+        category: 'Form Management',
+        subcategory: 'Achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
+        moduleCode: 'achievements_fld_technical_feedback',
+        fields: FIELD_GROUPS.FLD_TECHNICAL_FEEDBACK,
+        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+    },
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
         title: 'Trainings',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_trainings',
-        fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Training Program', 'Training Title', 'Venue', 'Training Discipline', 'Thematic Area'],
+        fields: FIELD_GROUPS.TRAININGS,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
     },
     {
-        path: '/forms/achievements/extension-activities',
+        path: ROUTE_PATHS.ACHIEVEMENTS.EXTENSION_ACTIVITIES,
         title: 'Extension Activities',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_extension_activities',
-        fields: ['Reporting Year', 'KVK Name', 'Start Date', 'End Date', 'Name of Extension activities', 'No. of Activities', 'No. of Participants'],
+        fields: FIELD_GROUPS.EXTENSION_ACTIVITIES,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
     },
     {
-        path: '/forms/achievements/other-extension',
+        path: ROUTE_PATHS.ACHIEVEMENTS.OTHER_EXTENSION,
         title: 'Extension Activities',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_other_extension_activities',
-        fields: ['Reporting Year', 'KVK Name', 'Nature of Extension Activity', 'No. of activities'],
+        fields: FIELD_GROUPS.OTHER_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
     },
     {
-        path: '/forms/achievements/technology-week',
+        path: ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK,
         title: 'Technology Week Celebration',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_technology_week_celebration',
-        fields: ['Start Date', 'End Date', 'KVK Name', 'Type Of Activities', 'No. of activities', 'Related Crop/Live Stock Technology', 'No. of Participants'],
+        fields: FIELD_GROUPS.TECHNOLOGY_WEEK,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
     },
     {
-        path: '/forms/achievements/celebration-days',
+        path: ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
         title: 'Celebration Days',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_celebration_days',
-        fields: ['KVK Name', 'Important Days', 'Event Date', 'No. of Activities'],
+        fields: FIELD_GROUPS.CELEBRATION_DAYS,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
     },
     {
-        path: '/forms/achievements/production-supply',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PRODUCTION_SUPPLY,
         title: 'Production and supply of Technological products',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_production_supply_tech_products',
-        fields: ['KVK Name', 'Category', 'Variety', 'Quantity'],
+        fields: FIELD_GROUPS.PRODUCTION_SUPPLY,
+        siblings: [ROUTE_PATHS.ACHIEVEMENTS.PRODUCTION_SUPPLY],
     },
     {
-        path: '/forms/achievements/publications',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PUBLICATIONS,
         title: 'KVKs Publication Details',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_publications',
-        fields: ['KVK Name', 'Item Name', 'Title', 'Author Name', 'Journal Name'],
+        fields: FIELD_GROUPS.PUBLICATIONS,
+        siblings: [ROUTE_PATHS.ACHIEVEMENTS.PUBLICATIONS],
     },
     {
-        path: '/forms/achievements/soil-equipment',
+        path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT,
         title: 'Soil Equipment',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_soil_water_testing',
-        fields: ['KVK Name', 'Analysis', 'Equipment Name', 'Quantity'],
+        fields: FIELD_GROUPS.SOIL_EQUIPMENT,
+        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
     },
     {
-        path: '/forms/achievements/soil-analysis',
+        path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
         title: 'Soil Analysis',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_soil_water_testing',
-        fields: ['KVK NAME', 'Start Date', 'End Date', 'Analysis', 'No. of samples Analyzed', 'No. of Villages Covered', 'Amount Released'],
+        fields: FIELD_GROUPS.SOIL_ANALYSIS,
+        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
     },
     {
-        path: '/forms/achievements/world-soil-day',
+        path: ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY,
         title: 'World Soil Day',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_soil_water_testing',
-        fields: ['KVK NAME', 'No. Of Activities Conducted', 'Soil Health Cards Distributed', 'No. of VIP(s)', 'Name(s) of VIP(s) Involved', 'Total No. of Participants attended the program'],
+        fields: FIELD_GROUPS.WORLD_SOIL_DAY,
+        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
     },
     {
-        path: '/forms/achievements/awards/kvk',
+        path: ROUTE_PATHS.ACHIEVEMENTS.AWARDS.KVK,
         title: 'Awards (KVK)',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_award_recognition',
-        fields: ['KVK Name', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        fields: FIELD_GROUPS.AWARDS_KVK,
+        siblings: ROUTE_SIBLING_GROUPS.AWARDS,
     },
     {
-        path: '/forms/achievements/awards/scientist',
+        path: ROUTE_PATHS.ACHIEVEMENTS.AWARDS.SCIENTIST,
         title: 'Scientist',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_award_recognition',
-        fields: ['KVK Name', 'Head Scientist', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
-        // mockData: [
-        //     { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-        //     { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-        // ],
+        fields: FIELD_GROUPS.AWARDS_SCIENTIST,
+        siblings: ROUTE_SIBLING_GROUPS.AWARDS,
     },
     {
-        path: '/forms/achievements/awards/farmer',
+        path: ROUTE_PATHS.ACHIEVEMENTS.AWARDS.FARMER,
         title: 'Farmer',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_award_recognition',
-        fields: ['KVK Name', 'Farmer Name', 'Address', 'Contact Number', 'Award', 'Amount', 'Achievement', 'Conferring Authority'],
+        fields: FIELD_GROUPS.AWARDS_FARMER,
+        siblings: ROUTE_SIBLING_GROUPS.AWARDS,
     },
     {
-        path: '/forms/achievements/hrd',
+        path: ROUTE_PATHS.ACHIEVEMENTS.HRD,
         title: 'Human-Resource Development',
         category: 'Form Management',
         subcategory: 'Achievements',
-        parent: '/forms/achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_hrd',
-        fields: ['KVK Name', 'Staff', 'Course', 'Start Date', 'End Date', 'Organizer'],
-
+        fields: FIELD_GROUPS.HRD,
+        siblings: [ROUTE_PATHS.ACHIEVEMENTS.HRD],
     },
 ]
-// export const achievementsRoutes2: RouteConfig[] = [
-//     {
-//         path: '/forms/achievements/fld',
-//         title: 'On Farm Trials (OFT)',
-//         category: 'Form Management',
-//         subcategory: 'Achievements',
-//         parent: '/forms/achievements',
-//         fields: ['s.no', 'Reporting Year', 'KVK', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
-//         mockData: [
-//             { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-//             { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-//         ],
-//     },
-// ]
-// export const trainings: RouteConfig[] = [
-//     {
-//         path: '/forms/achievements/trainings',
-//         title: 'On Farm Trials (OFT)',
-//         category: 'Form Management',
-//         subcategory: 'Achievements',
-//         parent: '/forms/achievements',
-//         fields: ['s.no', 'Reporting Year', 'KVK', 'Staff', 'Trail on form', 'Problem Diagnoised', 'Ongoing/Completed'],
-//         mockData: [
-//             { 's.no': 1, 'Reporting Year': '2023-24', 'KVK': 'KVK Bangalore', 'Staff': 'Dr. Sharma', 'Trail on form': 'Completed' },
-//             { 's.no': 2, 'Reporting Year': '2023-24', 'KVK': 'KVK Mysore', 'Staff': 'Dr. Patel', 'Trail on form': 'Ongoing' },
-//         ],
-//     },
-// ]
 
 
 // Combine all routes
@@ -1738,8 +1424,6 @@ export const allRoutes: RouteConfig[] = [
     ...adminManagementRoutes,
     ...featureRoutes,
     ...achievementsRoutes,
-    // ...achievementsRoutes2,
-    // ...trainings,
 ]
 
 // Helper functions

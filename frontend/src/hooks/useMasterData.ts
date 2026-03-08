@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { masterDataApi } from '../services/masterDataApi';
 import { useAuth } from '../contexts/AuthContext';
 import { invalidateMasterDataEntity } from '../utils/queryInvalidation';
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type {
     EntityType,
     Zone,

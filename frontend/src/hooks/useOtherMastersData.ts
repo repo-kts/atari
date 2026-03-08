@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { otherMastersApi } from '../services/otherMastersApi';
 import { invalidateEntityType } from '../utils/queryInvalidation';
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import { useAuth } from '../contexts/AuthContext';
 import type {
     SeasonFormData,

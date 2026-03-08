@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback } from 'react'
-import { ENTITY_TYPES } from '@/constants/entityTypes'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
 import { DependentDropdown } from '@/components/common/DependentDropdown'

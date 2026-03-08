@@ -157,6 +157,19 @@ export function useTrainingThematicAreas() {
     };
 }
 
+/**
+ * Get training thematic areas by training area ID
+ * Similar to useOftThematicAreasBySubject
+ */
+export function useTrainingThematicAreasByArea(trainingAreaId: number | null) {
+    return useQuery({
+        queryKey: ['training-thematic-areas-by-area', trainingAreaId],
+        queryFn: () => trainingExtensionEventsApi.getTrainingThematicAreasByArea(trainingAreaId!).then((res) => res.data),
+        enabled: !!trainingAreaId && trainingAreaId > 0,
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
 // ============================================
 // Extension Activity Hooks
 // ============================================

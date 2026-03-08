@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
-import { useYears } from '../../../../hooks/useOtherMastersData'
-import { useSoilWaterAnalysisMasters } from '../../../../hooks/useSoilWaterData'
+import { useYears } from '@/hooks/useOtherMastersData'
+import { useSoilWaterAnalysisMasters } from '@/hooks/useSoilWaterData'
 import { useAuth } from '@/contexts/AuthContext'
 
 interface SoilWaterTestingProps {

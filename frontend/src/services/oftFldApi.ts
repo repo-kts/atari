@@ -9,6 +9,7 @@ import type {
     FldCategory,
     FldSubcategory,
     FldCrop,
+    FldActivity,
     Season,
     CropType,
     CfldCrop,
@@ -19,6 +20,7 @@ import type {
     FldCategoryFormData,
     FldSubcategoryFormData,
     FldCropFormData,
+    FldActivityFormData,
     SeasonFormData,
     CropTypeFormData,
     CfldCropFormData,
@@ -171,6 +173,24 @@ export const oftFldApi = {
 
     getFldCropsBySubcategory: (subCategoryId: number) =>
         apiClient.get<ApiResponse<FldCrop[]>>(`${BASE_URL}/fld/subcategories/${subCategoryId}/crops`),
+
+    // ============================================
+    // FLD Activity APIs
+    // ============================================
+    getFldActivities: () =>
+        apiClient.get<PaginatedResponse<FldActivity>>(`${BASE_URL}/fld/activities`),
+
+    getFldActivityById: (id: number) =>
+        apiClient.get<ApiResponse<FldActivity>>(`${BASE_URL}/fld/activities/${id}`),
+
+    createFldActivity: (data: FldActivityFormData) =>
+        apiClient.post<ApiResponse<FldActivity>>(`${BASE_URL}/fld/activities`, data),
+
+    updateFldActivity: (id: number, data: Partial<FldActivityFormData>) =>
+        apiClient.put<ApiResponse<FldActivity>>(`${BASE_URL}/fld/activities/${id}`, data),
+
+    deleteFldActivity: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/fld/activities/${id}`),
 
     // ============================================
     // Season APIs

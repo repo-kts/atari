@@ -6,7 +6,7 @@
  */
 
 import { ExtendedEntityType } from '../utils/masterUtils'
-import { ENTITY_TYPES } from '../constants/entityTypes'
+import { ENTITY_TYPES } from '../constants/entityConstants'
 import { useMasterData } from './useMasterData'
 import type { EntityType } from '../types/masterData'
 import {
@@ -17,6 +17,7 @@ import {
     useFldCategories,
     useFldSubcategories,
     useFldCrops,
+    useFldActivities,
     useCfldCrops,
     useSeasons as useOftFldSeasons,
 } from './useOftFldData'
@@ -55,7 +56,7 @@ import {
     useInfrastructureMasters,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
-import { getEntityTypeChecks } from '../utils/entityTypeUtils'
+import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
 
 /**
  * Hook factory function type
@@ -87,6 +88,7 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.FLD_CATEGORIES]: () => useFldCategories(),
     [ENTITY_TYPES.FLD_SUBCATEGORIES]: () => useFldSubcategories(),
     [ENTITY_TYPES.FLD_CROPS]: () => useFldCrops(),
+    [ENTITY_TYPES.FLD_ACTIVITIES]: () => useFldActivities(),
     [ENTITY_TYPES.CFLD_CROPS]: () => useCfldCrops(),
     [ENTITY_TYPES.SEASONS]: () => useOftFldSeasons(),
 
@@ -170,6 +172,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     // Achievements
     [ENTITY_TYPES.ACHIEVEMENT_OFT]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_OFT),
     [ENTITY_TYPES.ACHIEVEMENT_FLD]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD),
+    [ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING),
+    [ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK),
     [ENTITY_TYPES.ACHIEVEMENT_TRAINING]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_TRAINING),
     [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_EXTENSION),
     [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]: () => useProjectData(ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION),

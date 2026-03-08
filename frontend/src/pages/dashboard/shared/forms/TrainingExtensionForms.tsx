@@ -1,14 +1,30 @@
-import React from 'react'
-import { ENTITY_TYPES } from '../../../../constants/entityTypes'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
+import React, { useEffect, useCallback } from 'react'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormSection } from './shared/FormComponents'
+import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import {
     useTrainingTypes,
     useTrainingAreas,
-} from '../../../../hooks/useTrainingExtensionEventsData'
+    useTrainingThematicAreasByArea,
+} from '@/hooks/useTrainingExtensionEventsData'
 import { useAuth } from '@/contexts/AuthContext'
-import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
-import { useMemo } from 'react'
+import { useKvkStaffForDropdown } from '@/hooks/forms/useAboutKvkData'
+import {
+    useTrainingClientele,
+    useFundingSources,
+    useExtensionActivityTypes,
+    useOtherExtensionActivityTypes,
+    useImportantDays,
+} from '@/hooks/useOtherMastersData'
+import { trainingExtensionEventsApi } from '@/services/trainingExtensionEventsApi'
+import {
+    createStaffOptions,
+    handleStaffChange,
+    createMasterDataOptions,
+    filterByParentId,
+} from '@/utils/formHelpers'
 
 interface TrainingExtensionFormsProps {
     entityType: ExtendedEntityType | null
@@ -22,52 +38,126 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     setFormData,
 }) => {
     const { user } = useAuth()
-    const { data: trainingTypes = [] } = useTrainingTypes()
-    const { data: trainingAreas = [] } = useTrainingAreas()
-    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
-
-    const scientistOptions = useMemo(() => {
-        const fallbacks = [
-            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-        ];
-
-        if (!employees || employees.length === 0) {
-            return fallbacks;
-        }
-
-        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
-        const mapped = employees
-            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
-            .map((emp: any) => ({
-                value: emp.staffName,
-                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
-            }));
-
-        const result = [...mapped];
-        fbLoop: for (const fb of fallbacks) {
-            for (const r of result) {
-                if (r.value === fb.value) continue fbLoop;
-            }
-            result.push(fb);
-        }
-
-        return result;
-    }, [employees]);
 
     // Automatically sync kvkId from user session if it's missing in formData
-    React.useEffect(() => {
+    useEffect(() => {
         if (user?.kvkId && !formData.kvkId && !formData.id) {
-            setFormData({ ...formData, kvkId: user.kvkId })
+            setFormData((prev: any) => ({ ...prev, kvkId: user.kvkId }))
         }
     }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
+
+    // Master data hooks
+    const { data: trainingTypes = [] } = useTrainingTypes()
+    const { data: trainingAreas = [] } = useTrainingAreas()
+    const { data: trainingClientele = [] } = useTrainingClientele()
+    const { data: fundingSources = [] } = useFundingSources()
+    const { data: extensionActivityTypes = [] } = useExtensionActivityTypes()
+    const { data: otherExtensionActivityTypes = [] } = useOtherExtensionActivityTypes()
+    const { data: importantDays = [] } = useImportantDays()
+
+    // KVK Staff dropdown - depends on kvkId
+    const activeKvkId = user?.kvkId || formData.kvkId
+    const { data: kvkStaffData = [], isLoading: isLoadingKvkStaff } = useKvkStaffForDropdown(activeKvkId)
+
+    // Training Thematic Areas - depends on trainingAreaId
+    const { data: trainingThematicAreasData = [], isLoading: isLoadingTrainingThematicAreas } = useTrainingThematicAreasByArea(
+        formData.trainingAreaId ? parseInt(formData.trainingAreaId) : null
+    )
+
+    // Memoized onOptionsLoad functions to prevent infinite re-renders
+    const loadTrainingAreasByType = useCallback(async (trainingTypeId: any) => {
+        const response = await trainingExtensionEventsApi.getTrainingAreasByType(trainingTypeId as number);
+        return response.data.map((area: any) => ({
+            value: area.trainingAreaId,
+            label: area.trainingAreaName
+        }));
+    }, []);
+
+    const loadTrainingThematicAreasByArea = useCallback(async (trainingAreaId: any) => {
+        const response = await trainingExtensionEventsApi.getTrainingThematicAreasByArea(trainingAreaId as number);
+        return response.data.map((thematicArea: any) => ({
+            value: thematicArea.trainingThematicAreaId,
+            label: thematicArea.trainingThematicAreaName
+        }));
+    }, []);
+
+    // Memoized onChange handlers
+    const handleTrainingTypeChange = useCallback((value: string | number) => {
+        setFormData((prev: any) => ({
+            ...prev,
+            trainingTypeId: value as number,
+            trainingAreaId: '', // Reset training area when type changes
+            trainingThematicAreaId: '', // Reset thematic area when type changes
+        }));
+    }, [setFormData]);
+
+    const handleTrainingAreaChange = useCallback((value: string | number) => {
+        setFormData((prev: any) => ({
+            ...prev,
+            trainingAreaId: value as number,
+            trainingThematicAreaId: '', // Reset thematic area when area changes
+        }));
+    }, [setFormData]);
+
+    const handleTrainingThematicAreaChange = useCallback((value: string | number) => {
+        const selectedThematicArea = trainingThematicAreasData?.find((t: any) => t.trainingThematicAreaId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            trainingThematicAreaId: value as number,
+            thematicArea: selectedThematicArea?.trainingThematicAreaName || '',
+        }));
+    }, [trainingThematicAreasData, setFormData]);
+
+    const handleClienteleChange = useCallback((value: string | number) => {
+        const selectedClientele = trainingClientele.find((c: any) => c.clienteleId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            clienteleId: value as number,
+            clientele: selectedClientele?.name || '',
+        }));
+    }, [trainingClientele, setFormData]);
+
+    const handleFundingSourceChange = useCallback((value: string | number) => {
+        const selectedFundingSource = fundingSources.find((f: any) => f.fundingSourceId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            fundingSourceId: value as number,
+            fundingSource: selectedFundingSource?.name || '',
+        }));
+    }, [fundingSources, setFormData]);
+
+    const handleExtensionActivityTypeChange = useCallback((value: string | number) => {
+        const selectedActivity = extensionActivityTypes.find((a: any) => a.activityId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            extensionActivityTypeId: value as number,
+            extensionActivityType: selectedActivity?.activityName || '',
+        }));
+    }, [extensionActivityTypes, setFormData]);
+
+    const handleOtherExtensionActivityTypeChange = useCallback((value: string | number) => {
+        const selectedActivity = otherExtensionActivityTypes.find((a: any) => a.activityTypeId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            otherExtensionActivityTypeId: value as number,
+            extensionActivityType: selectedActivity?.activityName || '',
+        }));
+    }, [otherExtensionActivityTypes, setFormData]);
+
+    const handleImportantDayChange = useCallback((value: string | number) => {
+        const selectedDay = importantDays.find((d: any) => d.importantDayId === value);
+        setFormData((prev: any) => ({
+            ...prev,
+            importantDayId: value as number,
+            importantDay: selectedDay?.dayName || '',
+        }));
+    }, [importantDays, setFormData]);
 
     if (!entityType) return null
 
     return (
         <>
+            {/* ALL Masters forms-------------- */}
             {entityType === ENTITY_TYPES.TRAINING_TYPES && (
                 <FormInput
                     label="Training Type Name"
@@ -80,12 +170,13 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
             {entityType === ENTITY_TYPES.TRAINING_AREAS && (
                 <div className="space-y-4">
-                    <FormSelect
+                    <MasterDataDropdown
                         label="Training Type"
                         required
                         value={formData.trainingTypeId || ''}
-                        onChange={(e) => setFormData({ ...formData, trainingTypeId: parseInt(e.target.value) })}
-                        options={trainingTypes.map(t => ({ value: t.trainingTypeId, label: t.trainingTypeName }))}
+                        onChange={handleTrainingTypeChange}
+                        options={createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName')}
+                        emptyMessage="No training types available"
                     />
                     <FormInput
                         label="Training Area Name"
@@ -99,12 +190,13 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
             {entityType === ENTITY_TYPES.TRAINING_THEMATIC_AREAS && (
                 <div className="space-y-4">
-                    <FormSelect
+                    <MasterDataDropdown
                         label="Training Area"
                         required
                         value={formData.trainingAreaId || ''}
-                        onChange={(e) => setFormData({ ...formData, trainingAreaId: parseInt(e.target.value) })}
-                        options={trainingAreas.map(a => ({ value: a.trainingAreaId, label: a.trainingAreaName }))}
+                        onChange={handleTrainingAreaChange}
+                        options={createMasterDataOptions(trainingAreas, 'trainingAreaId', 'trainingAreaName')}
+                        emptyMessage="No training areas available"
                     />
                     <FormInput
                         label="Thematic Area Name"
@@ -166,28 +258,31 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 />
             )}
 
+            {/* Achievement Training forms-------------- */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_TRAINING && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        {/* Clientele - From Training Clientele Master */}
+                        <MasterDataDropdown
                             label="Clientele"
                             required
-                            value={formData.clientele || ''}
-                            onChange={(e) => setFormData({ ...formData, clientele: e.target.value })}
-                            options={[
-                                { value: 'Farmers', label: 'Farmers' },
-                                { value: 'Farm Women', label: 'Farm Women' },
-                                { value: 'Rural Youth', label: 'Rural Youth' },
-                                { value: 'Extension Personnel', label: 'Extension Personnel' },
-                            ]}
+                            value={formData.clienteleId || formData.clientele || ''}
+                            onChange={handleClienteleChange}
+                            options={createMasterDataOptions(trainingClientele, 'clienteleId', 'name')}
+                            emptyMessage="No clientele available"
                         />
-                        <FormSelect
+
+                        {/* Training Type - From Training Type Master */}
+                        <MasterDataDropdown
                             label="Training Type"
                             required
                             value={formData.trainingTypeId || ''}
-                            onChange={(e) => setFormData({ ...formData, trainingTypeId: e.target.value })}
-                            options={trainingTypes.map(t => ({ value: t.trainingTypeId, label: t.trainingTypeName }))}
+                            onChange={handleTrainingTypeChange}
+                            options={createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName' as any)}
+                            emptyMessage="No training types available"
                         />
+
+                        {/* On Campus/Off Campus - Static options */}
                         <FormSelect
                             label="On Campus/Off Campus"
                             required
@@ -198,29 +293,49 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                                 { value: 'Off Campus', label: 'Off Campus' },
                             ]}
                         />
-                        <FormSelect
+
+                        {/* Training Area - Dependent on Training Type */}
+                        <DependentDropdown
                             label="Training Area"
                             required
                             value={formData.trainingAreaId || ''}
-                            onChange={(e) => setFormData({ ...formData, trainingAreaId: e.target.value })}
-                            options={trainingAreas.map(a => ({ value: a.trainingAreaId, label: a.trainingAreaName }))}
+                            onChange={handleTrainingAreaChange}
+                            options={filterByParentId(trainingAreas, 'trainingTypeId', formData.trainingTypeId)
+                                .map((a: any) => ({
+                                    value: a.trainingAreaId,
+                                    label: a.trainingAreaName || a.name || ''
+                                }))}
+                            dependsOn={{
+                                value: formData.trainingTypeId,
+                                field: 'trainingTypeId',
+                            }}
+                            onOptionsLoad={loadTrainingAreasByType}
+                            cacheKey="training-areas-by-type"
+                            emptyMessage="No training areas available for this training type"
+                            loadingMessage="Loading training areas..."
                         />
-                        <FormSelect
+
+                        {/* Thematic Area - Dependent on Training Area */}
+                        <DependentDropdown
                             label="Thematic Area"
                             required
-                            value={formData.thematicArea || ''}
-                            onChange={(e) => setFormData({ ...formData, thematicArea: e.target.value })}
-                            options={[
-                                { value: 'Crop Production', label: 'Crop Production' },
-                                { value: 'Horticulture', label: 'Horticulture' },
-                                { value: 'Livestock Production', label: 'Livestock Production' },
-                                { value: 'Home Science', label: 'Home Science' },
-                                { value: 'Plant Protection', label: 'Plant Protection' },
-                                { value: 'Fisheries', label: 'Fisheries' },
-                                { value: 'Production of Inputs', label: 'Production of Inputs' },
-                                { value: 'Capacity Building', label: 'Capacity Building' },
-                            ]}
+                            value={formData.trainingThematicAreaId || formData.thematicAreaId || formData.thematicArea || ''}
+                            onChange={handleTrainingThematicAreaChange}
+                            options={trainingThematicAreasData?.map((t: any) => ({
+                                value: t.trainingThematicAreaId,
+                                label: t.trainingThematicAreaName
+                            })) || []}
+                            dependsOn={{
+                                value: formData.trainingAreaId ? parseInt(formData.trainingAreaId) : null,
+                                field: 'trainingAreaId',
+                            }}
+                            onOptionsLoad={loadTrainingThematicAreasByArea}
+                            cacheKey="training-thematic-areas-by-area"
+                            emptyMessage="No thematic areas available for this training area"
+                            loadingMessage="Loading thematic areas..."
+                            isLoading={isLoadingTrainingThematicAreas}
                         />
+
                         <FormInput
                             label="Title of Training"
                             required
@@ -241,30 +356,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             value={formData.endDate || ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
-                        <FormSelect
+
+                        {/* Course Co-ordinator - From KVK Staff */}
+                        <DependentDropdown
                             label="Course Co-ordinator"
                             required
-                            value={formData.coordinator || ''}
-                            onChange={(e) => setFormData({ ...formData, coordinator: e.target.value })}
-                            options={scientistOptions}
+                            value={formData.staffId || formData.coordinatorId || formData.coordinator || ''}
+                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
+                            options={createStaffOptions(kvkStaffData || [])}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            cacheKey="kvk-staff-dropdown"
+                            emptyMessage="No staff available for this KVK"
+                            loadingMessage="Loading staff..."
+                            isLoading={isLoadingKvkStaff}
                         />
+
                         <FormInput
                             label="Venue"
                             required
                             value={formData.venue || ''}
                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                         />
-                        <FormSelect
+
+                        {/* Funding Source - From Funding Source Master */}
+                        <MasterDataDropdown
                             label="Funding Source"
-                            value={formData.fundingSource || ''}
-                            onChange={(e) => setFormData({ ...formData, fundingSource: e.target.value })}
-                            options={[
-                                { value: 'ICAR', label: 'ICAR' },
-                                { value: 'State Govt', label: 'State Govt' },
-                                { value: 'NGO', label: 'NGO' },
-                                { value: 'Other', label: 'Other' },
-                            ]}
+                            value={formData.fundingSourceId || formData.fundingSource || ''}
+                            onChange={handleFundingSourceChange}
+                            options={createMasterDataOptions(fundingSources, 'fundingSourceId', 'name')}
+                            emptyMessage="No funding sources available"
                         />
+
                         <FormInput
                             label="Funding Agency Name"
                             value={formData.fundingAgency || ''}
@@ -291,32 +416,33 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             {entityType === ENTITY_TYPES.ACHIEVEMENT_EXTENSION && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        {/* Name of SMS/KVK Head - From KVK Staff API */}
+                        <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={scientistOptions}
+                            value={formData.staffId || formData.staffName || ''}
+                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
+                            options={createStaffOptions(kvkStaffData || [])}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            cacheKey="kvk-staff-dropdown"
+                            emptyMessage="No SMS/KVK Head staff available for this KVK"
+                            loadingMessage="Loading staff..."
+                            isLoading={isLoadingKvkStaff}
                         />
-                        <FormSelect
+
+                        {/* Nature of Extension Activity - From Extension Activity Type Master */}
+                        <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
-                            value={formData.extensionActivityType || ''}
-                            onChange={(e) => setFormData({ ...formData, extensionActivityType: e.target.value })}
-                            options={[
-                                { value: 'Field Day', label: 'Field Day' },
-                                { value: 'Kisan Mela', label: 'Kisan Mela' },
-                                { value: 'Kisan Gosthi', label: 'Kisan Gosthi' },
-                                { value: 'Exhibition', label: 'Exhibition' },
-                                { value: 'Film Show', label: 'Film Show' },
-                                { value: 'Method Demonstrations', label: 'Method Demonstrations' },
-                                { value: 'Group Meetings', label: 'Group Meetings' },
-                                { value: 'Workshops', label: 'Workshops' },
-                                { value: 'Soil Health Camps', label: 'Soil Health Camps' },
-                                { value: 'Farm Advisory Services', label: 'Farm Advisory Services' },
-                                { value: 'Diagnostic Visits', label: 'Diagnostic Visits' },
-                            ]}
+                            value={formData.extensionActivityTypeId || formData.extensionActivityType || ''}
+                            onChange={handleExtensionActivityTypeChange}
+                            options={createMasterDataOptions(extensionActivityTypes, 'activityId', 'activityName')}
+                            emptyMessage="No extension activity types available"
                         />
+
                         <FormInput
                             label="No. of activities"
                             required
@@ -324,7 +450,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             value={formData.activityCount || ''}
                             onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                         />
-                        <div className="hidden md:block"></div> { /* Spacer */}
+                        <div className="hidden md:block"></div> {/* Spacer */}
 
                         <FormInput
                             label="Start Date"
@@ -375,28 +501,33 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             {entityType === ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        {/* Name of SMS/KVK Head - From KVK Staff API */}
+                        <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
-                            value={formData.staffName || ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={scientistOptions}
+                            value={formData.staffId || formData.staffName || ''}
+                            onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
+                            options={createStaffOptions(kvkStaffData || [])}
+                            dependsOn={{
+                                value: activeKvkId,
+                                field: 'kvkId',
+                            }}
+                            cacheKey="kvk-staff-dropdown"
+                            emptyMessage="No SMS/KVK Head staff available for this KVK"
+                            loadingMessage="Loading staff..."
+                            isLoading={isLoadingKvkStaff}
                         />
-                        <FormSelect
+
+                        {/* Nature of Extension Activity - From Other Extension Activity Type Master */}
+                        <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
-                            value={formData.extensionActivityType || ''}
-                            onChange={(e) => setFormData({ ...formData, extensionActivityType: e.target.value })}
-                            options={[
-                                { value: 'Newspaper coverage', label: 'Newspaper coverage' },
-                                { value: 'Popular articles', label: 'Popular articles' },
-                                { value: 'Radio Talks', label: 'Radio Talks' },
-                                { value: 'TV Talks', label: 'TV Talks' },
-                                { value: 'Animal Health Camps', label: 'Animal Health Camps' },
-                                { value: 'Advisory Services', label: 'Advisory Services' },
-                                { value: 'Others', label: 'Others' },
-                            ]}
+                            value={formData.otherExtensionActivityTypeId || formData.extensionActivityType || ''}
+                            onChange={handleOtherExtensionActivityTypeChange}
+                            options={createMasterDataOptions(otherExtensionActivityTypes, 'activityTypeId', 'activityName')}
+                            emptyMessage="No other extension activity types available"
                         />
+
                         <FormInput
                             label="No. of activities"
                             required
@@ -404,7 +535,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             value={formData.activityCount || ''}
                             onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                         />
-                        <div className="hidden md:block"></div> { /* Spacer */}
+                        <div className="hidden md:block"></div> {/* Spacer */}
 
                         <FormInput
                             label="Start Date"
@@ -518,18 +649,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             value={formData.eventDate || ''}
                             onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
                         />
-                        <FormSelect
+                        {/* Important Days - From Important Days Master */}
+                        <MasterDataDropdown
                             label="Important days"
                             required
-                            value={formData.importantDay || ''}
-                            onChange={(e) => setFormData({ ...formData, importantDay: e.target.value })}
-                            options={[
-                                { value: 'World Soil Day', label: 'World Soil Day' },
-                                { value: 'International Women\'s Day', label: 'International Women\'s Day' },
-                                { value: 'World Environment Day', label: 'World Environment Day' },
-                                { value: 'Kisan Diwas', label: 'Kisan Diwas' },
-                                { value: 'Others', label: 'Others' },
-                            ]}
+                            value={formData.importantDayId || formData.importantDay || ''}
+                            onChange={handleImportantDayChange}
+                            options={createMasterDataOptions(importantDays, 'importantDayId', 'dayName')}
+                            emptyMessage="No important days available"
                         />
                         <div className="md:col-span-2">
                             <FormInput
@@ -570,6 +697,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         </div>
                     </FormSection>
                 </div>
-            )}        </>
+            )}
+        </>
     )
 }

@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { ENTITY_TYPES } from '@/constants/entityTypes';
+import { ENTITY_TYPES } from '@/constants/entityConstants';
 
 /**
  * Entity dependency configuration

@@ -25,7 +25,7 @@ export type ExportFormat = 'pdf' | 'excel' | 'word' | 'csv';
  */
 export interface ExportOptions {
     title: string;
-    fields: string[];
+    fields: readonly string[] | string[];
     data: any[];
     pathname: string;
 }

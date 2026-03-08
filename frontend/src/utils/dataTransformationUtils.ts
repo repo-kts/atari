@@ -6,7 +6,7 @@
  * data structures and prevents "Unknown argument" errors.
  */
 
-import { ENTITY_TYPES } from '../constants/entityTypes';
+import { ENTITY_TYPES } from '../constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
 // ============================================

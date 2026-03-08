@@ -36,7 +36,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
         <select
             {...props}
             required={required}
-            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base ${className}`}
+            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base h-[48px] ${className}`}
         >
             <option value="">{placeholder || `Select`}</option>
             {options.map((opt) => (

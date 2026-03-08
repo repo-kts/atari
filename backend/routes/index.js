@@ -1,6 +1,3 @@
-
-//
-
 const express = require('express');
 const router = express.Router();
 
@@ -20,6 +17,7 @@ const scientistAwardRoutes = require('./forms/scientistAwardRoutes.js');
 const farmerAwardRoutes = require('./forms/farmerAwardRoutes.js');
 const extensionActivityRoutes = require('./forms/extensionActivityRoutes.js');
 const otherExtensionActivityRoutes = require('./forms/otherExtensionActivityRoutes.js');
+const trainingRoutes = require('./forms/trainingRoutes.js');
 const cfldTechnicalParameterRoutes = require('./forms/cfldTechnicalParameterRoutes.js');
 const cfldExtensionActivityRoutes = require('./forms/cfldExtensionActivityRoutes.js');
 const cfldBudgetUtilizationRoutes = require('./forms/cfldBudgetUtilizationRoutes.js');
@@ -33,6 +31,7 @@ const seedHubRoutes = require('./forms/seedHubRoutes.js');
 const aryaCurrentYearRoutes = require('./forms/aryaCurrentYearRoutes.js');
 const aryaPrevYearRoutes = require('./forms/aryaPrevYearRoutes.js');
 const oftRoutes = require('./forms/oftRoutes.js');
+const fldRoutes = require('./forms/fldRoutes.js');
 const csisaRoutes = require('./forms/csisaRoutes.js');
 const agriDroneRoutes = require('./forms/agriDroneRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
@@ -55,6 +54,7 @@ router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
 router.use('/forms/achievements/farmer-awards', farmerAwardRoutes);
 router.use('/forms/achievements/extension-activities', extensionActivityRoutes);
 router.use('/forms/achievements/other-extension-activities', otherExtensionActivityRoutes);
+router.use('/forms/achievements/trainings', trainingRoutes);
 router.use('/forms/achievements/cfld-technical-parameters', cfldTechnicalParameterRoutes);
 router.use('/forms/achievements/cfld-extension-activities', cfldExtensionActivityRoutes);
 router.use('/forms/achievements/cfld-budget-utilizations', cfldBudgetUtilizationRoutes);
@@ -70,6 +70,9 @@ router.use('/forms/achievements/projects/arya/previous', aryaPrevYearRoutes);
 router.use('/forms/achievements/projects/csisa', csisaRoutes);
 router.use('/forms/achievements/projects/agri-drone', agriDroneRoutes);
 router.use('/forms/achievements/oft', oftRoutes);
+router.use('/forms/achievements/fld/extension-training', require('./forms/fldExtensionRoutes.js'));
+router.use('/forms/achievements/fld/technical-feedback', require('./forms/fldTechnicalFeedbackRoutes.js'));
+router.use('/forms/achievements/fld', fldRoutes);
 router.use('/reports', reportRoutes);
 
 
