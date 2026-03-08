@@ -2,16 +2,16 @@ const prisma = require('../../config/prisma.js');
 
 const farmerAwardRepository = {
     create: async (data, user) => {
-        // Enforce KVK ID from user context if possible
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
+        // Enforce KVK ID from user context or data
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         const amount = parseInt(data.amount || 0);
 
         const inserted = await prisma.$queryRawUnsafe(`
             INSERT INTO farmer_award
-            ("kvkId", farmer_name, contact_number, address, award_name, amount, achievement, conferring_authority, created_at, updated_at)
-            VALUES($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ("kvkId", farmer_name, contact_number, address, award_name, amount, achievement, conferring_authority, reporting_year, image, created_at, updated_at)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING farmer_award_id;
-        `, kvkId, data.farmerName || '', data.contactNumber || data.contactNo || '', data.address || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '');
+        `, kvkId, data.farmerName || '', data.contactNumber || data.contactNo || '', data.address || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '', parseInt(data.reportingYear || data.year) || null, data.image || '');
 
         return { farmerAwardID: inserted[0].farmer_award_id };
     },
@@ -19,11 +19,8 @@ const farmerAwardRepository = {
     findAll: async (user) => {
         let whereClause = '';
         const params = [];
-        // Strict isolation for KVK roles
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            whereClause = 'WHERE a."kvkId" = $1';
-            params.push(parseInt(user.kvkId));
-        } else if (user && user.kvkId) {
+        // Strict isolation for KVK-scoped users (like Gaya)
+        if (user && user.kvkId) {
             whereClause = 'WHERE a."kvkId" = $1';
             params.push(parseInt(user.kvkId));
         }
@@ -46,7 +43,10 @@ const farmerAwardRepository = {
             contactNo: r.contact_number,
             address: r.address,
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority
+            conferringAuthority: r.conferring_authority,
+            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            image: r.image
         }));
     },
 
@@ -69,7 +69,10 @@ const farmerAwardRepository = {
             contactNo: r.contact_number,
             address: r.address,
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority
+            conferringAuthority: r.conferring_authority,
+            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            image: r.image
         };
     },
 
@@ -78,17 +81,25 @@ const farmerAwardRepository = {
         const values = [];
         let index = 1;
 
-        if (data.kvkId !== undefined) { updates.push('"kvkId" = $' + (index++)); values.push(parseInt(data.kvkId) || 1); }
+        if (data.kvkId !== undefined) {
+            updates.push('"kvkId" = $' + (index++));
+            values.push(data.kvkId ? parseInt(data.kvkId) : null);
+        }
         if (data.farmerName !== undefined) { updates.push('farmer_name = $' + (index++)); values.push(data.farmerName || ''); }
-        if (data.contactNumber !== undefined) {
+        if (data.contactNumber !== undefined || data.contactNo !== undefined) {
             updates.push('contact_number = $' + (index++));
-            values.push(String(data.contactNumber));
+            values.push(String(data.contactNumber || data.contactNo));
         }
         if (data.address !== undefined) { updates.push('address = $' + (index++)); values.push(data.address || ''); }
         if (data.awardName !== undefined) { updates.push('award_name = $' + (index++)); values.push(data.awardName || ''); }
         if (data.amount !== undefined) { updates.push('amount = $' + (index++)); values.push(parseInt(data.amount) || 0); }
         if (data.achievement !== undefined) { updates.push('achievement = $' + (index++)); values.push(data.achievement || ''); }
         if (data.conferringAuthority !== undefined) { updates.push('conferring_authority = $' + (index++)); values.push(data.conferringAuthority || ''); }
+        if (data.image !== undefined) { updates.push('image = $' + (index++)); values.push(data.image || ''); }
+        if (data.reportingYear !== undefined || data.year !== undefined) {
+            updates.push('reporting_year = $' + (index++));
+            values.push(parseInt(data.reportingYear || data.year) || null);
+        }
 
         if (updates.length > 0) {
             updates.push('updated_at = CURRENT_TIMESTAMP');
@@ -96,7 +107,7 @@ const farmerAwardRepository = {
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
         }
-        return { success: true };
+        return await farmerAwardRepository.findById(id);
     },
 
     delete: async (id) => {

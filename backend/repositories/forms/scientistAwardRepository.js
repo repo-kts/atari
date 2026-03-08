@@ -1,15 +1,15 @@
 const prisma = require('../../config/prisma.js');
 const scientistAwardRepository = {
     create: async (data, user) => {
-        // Enforce KVK ID from user context if possible
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
+        // Enforce KVK ID from user context or data
+        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         const amount = parseInt(data.amount || 0);
         const inserted = await prisma.$queryRawUnsafe(`
-            INSERT INTO scientist_award 
-            ("kvkId", award_name, amount, achievement, conferring_authority, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            INSERT INTO scientist_award
+            ("kvkId", scientist_name, award_name, amount, achievement, conferring_authority, reporting_year, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING scientist_award_id;
-        `, kvkId, data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '');
+        `, kvkId, data.scientistName || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '', parseInt(data.reportingYear || data.year) || null);
         return { scientistAwardID: inserted[0].scientist_award_id };
     },
     findAll: async (user) => {
@@ -36,7 +36,10 @@ const scientistAwardRepository = {
             scientistAwardID: r.scientist_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority
+            conferringAuthority: r.conferring_authority,
+            scientistName: r.scientist_name,
+            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year
         }));
     },
     findById: async (id) => {
@@ -54,25 +57,36 @@ const scientistAwardRepository = {
             scientistAwardID: r.scientist_award_id,
             kvk: { kvkName: r.kvk_name },
             awardName: r.award_name,
-            conferringAuthority: r.conferring_authority
+            conferringAuthority: r.conferring_authority,
+            scientistName: r.scientist_name,
+            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
+            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year
         };
     },
     update: async (id, data) => {
         const updates = [];
         const values = [];
         let index = 1;
-        if (data.kvkId !== undefined) { updates.push('"kvkId" = $' + (index++)); values.push(parseInt(data.kvkId) || 1); }
+        if (data.kvkId !== undefined) {
+            updates.push('"kvkId" = $' + (index++));
+            values.push(data.kvkId ? parseInt(data.kvkId) : null);
+        }
         if (data.awardName !== undefined) { updates.push('award_name = $' + (index++)); values.push(data.awardName || ''); }
         if (data.amount !== undefined) { updates.push('amount = $' + (index++)); values.push(parseInt(data.amount) || 0); }
         if (data.achievement !== undefined) { updates.push('achievement = $' + (index++)); values.push(data.achievement || ''); }
         if (data.conferringAuthority !== undefined) { updates.push('conferring_authority = $' + (index++)); values.push(data.conferringAuthority || ''); }
+        if (data.scientistName !== undefined) { updates.push('scientist_name = $' + (index++)); values.push(data.scientistName || ''); }
+        if (data.reportingYear !== undefined || data.year !== undefined) {
+            updates.push('reporting_year = $' + (index++));
+            values.push(parseInt(data.reportingYear || data.year) || null);
+        }
         if (updates.length > 0) {
             updates.push('updated_at = CURRENT_TIMESTAMP');
             const sql = 'UPDATE scientist_award SET ' + updates.join(', ') + ' WHERE scientist_award_id = $' + index;
             values.push(parseInt(id));
             await prisma.$queryRawUnsafe(sql, ...values);
         }
-        return { success: true };
+        return await scientistAwardRepository.findById(id);
     },
     delete: async (id) => {
         await prisma.$queryRawUnsafe('DELETE FROM scientist_award WHERE scientist_award_id = $1', parseInt(id));

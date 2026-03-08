@@ -8,13 +8,13 @@ const normalizeActivityName = (v) => {
 
 const otherExtensionActivityRepository = {
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
-        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
-        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+        // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
 
-        if (isNaN(kvkId)) {
+        if (!kvkId || isNaN(kvkId)) {
             throw new Error('Valid kvkId is required');
         }
+        kvkId = parseInt(kvkId);
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = parseInt(data.staffId);
         if (isNaN(staffId) && data.staffName) {
@@ -38,7 +38,7 @@ const otherExtensionActivityRepository = {
                         return activityRows[0].activity_type_id;
                     } else {
                         const insertedType = await tx.$queryRawUnsafe(
-                            `INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`,
+                            `INSERT INTO other_extension_activity_type (activity_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING activity_type_id`,
                             activityName
                         );
                         return insertedType[0].activity_type_id;
@@ -95,8 +95,8 @@ const otherExtensionActivityRepository = {
     findAll: async (filters = {}, user) => {
         let whereClause = '';
         const queryParams = [];
-        // Strict isolation for KVK roles
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        // Strict isolation for KVK-scoped users (like Gaya)
+        if (user && user.kvkId) {
             whereClause = `WHERE o."kvkId" = $1`;
             queryParams.push(parseInt(user.kvkId));
         } else if (filters.kvkId) {
@@ -119,7 +119,7 @@ const otherExtensionActivityRepository = {
         let whereClause = 'WHERE o.kvk_other_extension_activity_id = $1';
         const params = [parseInt(id)];
 
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             whereClause += ' AND o."kvkId" = $2';
             params.push(parseInt(user.kvkId));
         }
@@ -144,14 +144,14 @@ const otherExtensionActivityRepository = {
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
             const startYear = month >= 4 ? year : year - 1;
-            reportingYearStr = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+            reportingYearStr = String(startYear);
         } else {
             // Compute from current date when startDate is missing
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth() + 1;
             const startYear = month >= 4 ? year : year - 1;
-            reportingYearStr = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+            reportingYearStr = String(startYear);
         }
         const safeInt = (v) => (v === null || v === undefined) ? null : Number(String(v));
         const activityCount = safeInt(r.number_of_activities);
@@ -177,10 +177,10 @@ const otherExtensionActivityRepository = {
             reportingYear: reportingYearStr,
 
             // Participant fields
-            gen_m: safeInt(r.farmers_general_m), gen_f: safeInt(r.farmers_general_f),
-            obc_m: safeInt(r.farmers_obc_m), obc_f: safeInt(r.farmers_obc_f),
-            sc_m: safeInt(r.farmers_sc_m), sc_f: safeInt(r.farmers_sc_f),
-            st_m: safeInt(r.farmers_st_m), st_f: safeInt(r.farmers_st_f),
+            gen_m: safeInt(r.farmers_general_m || r.gen_m), gen_f: safeInt(r.farmers_general_f || r.gen_f),
+            obc_m: safeInt(r.farmers_obc_m || r.obc_m), obc_f: safeInt(r.farmers_obc_f || r.obc_f),
+            sc_m: safeInt(r.farmers_sc_m || r.sc_m), sc_f: safeInt(r.farmers_sc_f || r.sc_f),
+            st_m: safeInt(r.farmers_st_m || r.st_m), st_f: safeInt(r.farmers_st_f || r.st_f),
             ext_gen_m: safeInt(r.officials_general_m), ext_gen_f: safeInt(r.officials_general_f),
             ext_obc_m: safeInt(r.officials_obc_m), ext_obc_f: safeInt(r.officials_obc_f),
             ext_sc_m: safeInt(r.officials_sc_m), ext_sc_f: safeInt(r.officials_sc_f),
@@ -222,7 +222,7 @@ const otherExtensionActivityRepository = {
                     if (typeRows && typeRows.length > 0) {
                         return Number(String(typeRows[0].activity_type_id));
                     } else {
-                        const inserted = await tx.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name) VALUES ($1) RETURNING activity_type_id`, activityName);
+                        const inserted = await tx.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING activity_type_id`, activityName);
                         return Number(String(inserted[0].activity_type_id));
                     }
                 });
@@ -276,7 +276,7 @@ const otherExtensionActivityRepository = {
             let sql = 'UPDATE kvk_other_extension_activity SET ' + updates.join(', ') + ' WHERE kvk_other_extension_activity_id = $' + index;
             const finalParams = [...values, parseInt(id)];
 
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && user.kvkId) {
                 sql += ' AND "kvkId" = $' + (index + 1);
                 finalParams.push(parseInt(user.kvkId));
             }
@@ -290,7 +290,7 @@ const otherExtensionActivityRepository = {
         let sql = 'DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
         const params = [parseInt(id)];
 
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             sql += ' AND "kvkId" = $2';
             params.push(parseInt(user.kvkId));
         }

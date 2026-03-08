@@ -109,7 +109,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
             setFormData((prev: any) => extractNestedIds(prev, entityType))
         }
     }, [entityType, setFormData])
-
+   
     if (!entityType) return null
 
     return (

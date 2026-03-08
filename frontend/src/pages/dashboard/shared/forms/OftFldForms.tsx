@@ -10,6 +10,9 @@ import {
     useSeasons,
     useCropTypes,
 } from '../../../../hooks/useOftFldData'
+import { useAuth } from '@/contexts/AuthContext'
+import { useKvkEmployees } from '../../../../hooks/forms/useAboutKvkData'
+import { useMemo } from 'react'
 
 interface OftFldFormsProps {
     entityType: ExtendedEntityType | null
@@ -22,6 +25,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const { user } = useAuth()
+
+    // Automatically sync kvkId from user session if it's missing in formData
+    useEffect(() => {
+        if (user?.kvkId && !formData.kvkId && !formData.id) {
+            setFormData((prev: any) => ({ ...prev, kvkId: user.kvkId }))
+        }
+    }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
 
     // These hooks use React Query and should support 'enabled' if we add it,
     // but even without it, moving them here means they only run when the component mounts.
@@ -35,6 +46,45 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
+    const { data: employees = [] } = useKvkEmployees({ kvkId: formData.kvkId || user?.kvkId })
+
+    const scientistOptions = useMemo(() => {
+        const fallbacks = [
+            { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
+            { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
+            { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
+            { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
+        ];
+
+        if (!employees || employees.length === 0) {
+            return fallbacks;
+        }
+
+        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi'];
+        const mapped = employees
+            .filter((emp: any) => emp.staffName && emp.staffName !== 'undefined' && !excludedNames.includes(emp.staffName))
+            .map((emp: any) => ({
+                value: emp.staffName,
+                label: `${emp.staffName} (${emp.sanctionedPost?.postName || emp.postName || 'Staff'})`
+            }));
+
+        const result = [...mapped];
+        fallbacks.forEach(fb => {
+            if (!result.some(r => r.value === fb.value)) {
+                result.push(fb);
+            }
+        });
+
+        return result;
+    }, [employees]);
+
+    const yearOptions = [
+        { value: '2022', label: '2022' },
+        { value: '2023', label: '2023' },
+        { value: '2024', label: '2024' },
+        { value: '2025', label: '2025' },
+        { value: '2026', label: '2026' },
+    ]
 
     // Derive sectorId from categoryId when editing FLD_CROPS
     useEffect(() => {
@@ -268,22 +318,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.reportingYear || ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' }
-                            ]}
+                            options={yearOptions}
                         />
                         <FormSelect
                             label="Name of SMS/KVK Head"
                             required
                             value={formData.staffName || ''}
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            options={scientistOptions}
                         />
                         <FormSelect
                             label="Season"
@@ -456,12 +498,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.staffName || ''}
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            options={[
-                                { value: 'Dr. Reeta Singh', label: 'Dr. Reeta Singh' },
-                                { value: 'Sri Rajeev Kumar', label: 'Sri Rajeev Kumar' },
-                                { value: 'Dr. Pushpam Patel', label: 'Dr. Pushpam Patel' },
-                                { value: 'Smt. Sangeeta Kumari', label: 'Smt. Sangeeta Kumari' },
-                            ]}
+                            options={scientistOptions}
                         />
                         <FormSelect
                             label="Season"

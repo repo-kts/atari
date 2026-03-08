@@ -1,21 +1,41 @@
 const prisma = require('../../config/prisma.js');
 
 const soilWaterRepository = {
+    // Helper to resolve year_id from string like "2022-23" or "2022"
+    resolveYearId: async (yearValue) => {
+        if (!yearValue) return null;
+        let yearStr = String(yearValue).split('-')[0]; // Extract "2022" from "2022-23" or just "2022"
+        const yearInt = parseInt(yearStr);
+        if (isNaN(yearInt)) return null;
+
+        return await prisma.$transaction(async (tx) => {
+            const rows = await tx.$queryRawUnsafe(`SELECT year_id FROM year_master WHERE year_name = $1 LIMIT 1`, String(yearInt));
+            if (rows && rows.length > 0) {
+                return rows[0].year_id;
+            } else {
+                const inserted = await tx.$queryRawUnsafe(`INSERT INTO year_master (year_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING year_id`, String(yearInt));
+                return inserted[0].year_id;
+            }
+        });
+    },
+
     // ============================================
     // Soil Water Equipment
     // ============================================
     createEquipment: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
+        if (!kvkId) kvkId = 1; // Fallback to 1 if absolutely nothing found
 
-        const rYear = parseInt(data.reportingYear);
+        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
         const analysisId = parseInt(data.soilWaterAnalysisId);
         const qty = parseInt(data.quantity);
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_equipment 
-            ("kvkId", reporting_year, "soilWaterAnalysisId", equipment_name, quantity, created_at, updated_at)
+            ("kvkId", reporting_year_id, "soilWaterAnalysisId", equipment_name, quantity, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, isNaN(rYear) ? null : rYear, isNaN(analysisId) ? null : analysisId, data.equipmentName || '', isNaN(qty) ? 0 : qty);
+        `, kvkId, rYearId, isNaN(analysisId) ? null : analysisId, data.equipmentName || '', isNaN(qty) ? 0 : qty);
 
         return { success: true };
     },
@@ -23,59 +43,69 @@ const soilWaterRepository = {
     findAllEquipment: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             whereClause = 'WHERE e."kvkId" = $1';
             params.push(parseInt(user.kvkId));
         }
 
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT e.*, k.kvk_name, a.analysis_name
+            SELECT e.*, k.kvk_name, a.analysis_name, y.year_name
             FROM kvk_soil_water_equipment e
             LEFT JOIN kvk k ON e."kvkId" = k.kvk_id
             LEFT JOIN soil_water_analysis a ON e."soilWaterAnalysisId" = a.soil_water_analysis_id
+            LEFT JOIN year_master y ON e.reporting_year_id = y.year_id
             ${whereClause}
             ORDER BY e.soil_water_equipment_id DESC
         `, ...params);
 
-        return rows.map(r => ({
-            ...r,
-            id: r.soil_water_equipment_id,
-            kvkName: r.kvk_name,
-            reportingYear: r.reporting_year,
-            reportingYearLabel: r.reporting_year,
-            analysisName: r.analysis_name,
-            equipmentName: r.equipment_name,
-            soilWaterAnalysisId: r.soilWaterAnalysisId,
-            quantity: r.quantity
-        }));
+        return rows.map(r => {
+            const yName = r.year_name;
+            const yLabel = yName ? String(yName) : null;
+            return {
+                ...r,
+                id: r.soil_water_equipment_id,
+                kvkName: r.kvk_name,
+                reportingYear: yLabel,
+                reportingYearLabel: yLabel,
+                analysisName: r.analysis_name,
+                equipmentName: r.equipment_name,
+                soilWaterAnalysisId: r.soilWaterAnalysisId,
+                quantity: r.quantity
+            };
+        });
     },
 
     findEquipmentById: async (id) => {
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT * FROM kvk_soil_water_equipment WHERE soil_water_equipment_id = $1
+            SELECT e.*, y.year_name 
+            FROM kvk_soil_water_equipment e
+            LEFT JOIN year_master y ON e.reporting_year_id = y.year_id
+            WHERE e.soil_water_equipment_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
         const r = rows[0];
+        const yName = r.year_name;
+        const yLabel = yName ? String(yName) : null;
         return {
             ...r,
             id: r.soil_water_equipment_id,
             kvkId: r.kvkId,
-            reportingYear: r.reporting_year,
+            reportingYear: yLabel,
             equipmentName: r.equipment_name,
             soilWaterAnalysisId: r.soilWaterAnalysisId,
             quantity: r.quantity
         };
     },
 
-    updateEquipment: async (id, data) => {
+    updateEquipment: async (id, data, user) => {
         const updates = [];
         const values = [];
         let index = 1;
 
-        if (data.reportingYear !== undefined) {
-            updates.push(`reporting_year = $${index++}`);
-            const val = parseInt(data.reportingYear);
-            values.push(isNaN(val) ? null : val);
+        if (data.reportingYear !== undefined || data.year !== undefined) {
+            updates.push(`reporting_year_id = $${index++}`);
+            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            values.push(rYearId);
         }
         if (data.soilWaterAnalysisId !== undefined) {
             updates.push(`"soilWaterAnalysisId" = $${index++}`);
@@ -94,15 +124,25 @@ const soilWaterRepository = {
 
         if (updates.length > 0) {
             updates.push('updated_at = CURRENT_TIMESTAMP');
-            const sql = `UPDATE kvk_soil_water_equipment SET ${updates.join(', ')} WHERE soil_water_equipment_id = $${index}`;
-            values.push(parseInt(id));
-            await prisma.$queryRawUnsafe(sql, ...values);
+            let sql = `UPDATE kvk_soil_water_equipment SET ${updates.join(', ')} WHERE soil_water_equipment_id = $${index++}`;
+            const finalParams = [...values, parseInt(id)];
+            if (user && user.kvkId) {
+                sql += ` AND "kvkId" = $${index++}`;
+                finalParams.push(parseInt(user.kvkId));
+            }
+            await prisma.$queryRawUnsafe(sql, ...finalParams);
         }
         return { success: true };
     },
 
-    deleteEquipment: async (id) => {
-        await prisma.$queryRawUnsafe(`DELETE FROM kvk_soil_water_equipment WHERE soil_water_equipment_id = $1`, parseInt(id));
+    deleteEquipment: async (id, user) => {
+        let sql = `DELETE FROM kvk_soil_water_equipment WHERE soil_water_equipment_id = $1`;
+        const params = [parseInt(id)];
+        if (user && user.kvkId) {
+            sql += ` AND "kvkId" = $2`;
+            params.push(parseInt(user.kvkId));
+        }
+        await prisma.$queryRawUnsafe(sql, ...params);
         return { success: true };
     },
 
@@ -110,33 +150,37 @@ const soilWaterRepository = {
     // Soil Water Analysis
     // ============================================
     createAnalysis: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
+        if (!kvkId) { throw new Error('Valid kvkId is required'); }
 
         const aId = parseInt(data.analysisId || data.soilWaterAnalysisId);
         const sAnalysed = parseInt(data.samplesAnalysed || 0);
         const vNum = parseInt(data.villagesNumber || data.numberOfVillages || 0);
         const aRealized = parseInt(data.amountRealized || 0);
-        const rYear = parseInt(data.reportingYear || data.year);
+        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
 
+        // All NOT NULL columns MUST have values.
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_soil_water_analysis 
-            ("kvkId", start_date, end_date, analysis_id, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            ("kvkId", start_date, end_date, analysis_id, samples_analysed_through, samples_analysed, villages_number, amount_realized, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year_id, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, kvkId, new Date(data.startDate), new Date(data.endDate),
+        `, kvkId,
+            data.startDate ? new Date(data.startDate) : new Date(),
+            data.endDate ? new Date(data.endDate) : new Date(),
             isNaN(aId) ? null : aId,
-            data.samplesAnalysedThrough || '',
+            data.samplesAnalysedThrough || 'Other',
             isNaN(sAnalysed) ? 0 : sAnalysed,
             isNaN(vNum) ? 0 : vNum,
             isNaN(aRealized) ? 0 : aRealized,
-            parseInt(data.generalM || 0) || 0,
-            parseInt(data.generalF || 0) || 0,
-            parseInt(data.obcM || 0) || 0,
-            parseInt(data.obcF || 0) || 0,
-            parseInt(data.scM || 0) || 0,
-            parseInt(data.scF || 0) || 0,
-            parseInt(data.stM || 0) || 0,
-            parseInt(data.stF || 0) || 0,
-            isNaN(rYear) ? null : rYear
+            parseInt(data.generalM || 0),
+            parseInt(data.generalF || 0),
+            parseInt(data.obcM || 0),
+            parseInt(data.obcF || 0),
+            parseInt(data.scM || 0),
+            parseInt(data.scF || 0),
+            parseInt(data.stM || 0),
+            parseInt(data.stF || 0),
+            rYearId
         );
 
         return { success: true };
@@ -145,51 +189,61 @@ const soilWaterRepository = {
     findAllAnalysis: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             whereClause = 'WHERE a."kvkId" = $1';
             params.push(parseInt(user.kvkId));
         }
 
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT a.*, k.kvk_name, m.analysis_name
+            SELECT a.*, k.kvk_name, m.analysis_name, y.year_name
             FROM kvk_soil_water_analysis a
             LEFT JOIN kvk k ON a."kvkId" = k.kvk_id
             LEFT JOIN soil_water_analysis m ON a.analysis_id = m.soil_water_analysis_id
+            LEFT JOIN year_master y ON a.reporting_year_id = y.year_id
             ${whereClause}
             ORDER BY a.soil_water_analysis_id DESC
         `, ...params);
 
-        return rows.map(r => ({
-            ...r,
-            id: r.soil_water_analysis_id,
-            kvkName: r.kvk_name,
-            analysisName: r.analysis_name,
-            startDate: r.start_date,
-            endDate: r.end_date,
-            analysisId: r.analysis_id,
-            samplesAnalysedThrough: r.samples_analysed_through,
-            samplesAnalysed: r.samples_analysed,
-            villagesNumber: r.villages_number,
-            amountRealized: r.amount_realized,
-            generalM: r.general_m,
-            generalF: r.general_f,
-            obcM: r.obc_m,
-            obcF: r.obc_f,
-            scM: r.sc_m,
-            scF: r.sc_f,
-            stM: r.st_m,
-            stF: r.st_f,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
-        }));
+        return rows.map(r => {
+            const yName = r.year_name;
+            const yLabel = yName ? String(yName) : null;
+            return {
+                ...r,
+                id: r.soil_water_analysis_id,
+                kvkName: r.kvk_name,
+                analysisName: r.analysis_name,
+                startDate: r.start_date,
+                endDate: r.end_date,
+                analysisId: r.analysis_id,
+                samplesAnalysedThrough: r.samples_analysed_through,
+                samplesAnalysed: r.samples_analysed,
+                villagesNumber: r.villages_number,
+                amountRealized: r.amount_realized,
+                generalM: r.general_m,
+                generalF: r.general_f,
+                obcM: r.obc_m,
+                obcF: r.obc_f,
+                scM: r.sc_m,
+                scF: r.sc_f,
+                stM: r.st_m,
+                stF: r.st_f,
+                reportingYear: yLabel,
+                year: yLabel
+            };
+        });
     },
 
     findAnalysisById: async (id) => {
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT * FROM kvk_soil_water_analysis WHERE soil_water_analysis_id = $1
+            SELECT a.*, y.year_name 
+            FROM kvk_soil_water_analysis a
+            LEFT JOIN year_master y ON a.reporting_year_id = y.year_id
+            WHERE a.soil_water_analysis_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
         const r = rows[0];
+        const yName = r.year_name;
+        const yLabel = yName ? String(yName) : null;
         return {
             ...r,
             id: r.soil_water_analysis_id,
@@ -209,12 +263,12 @@ const soilWaterRepository = {
             scF: r.sc_f,
             stM: r.st_m,
             stF: r.st_f,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
+            reportingYear: yLabel,
+            year: yLabel
         };
     },
 
-    updateAnalysis: async (id, data) => {
+    updateAnalysis: async (id, data, user) => {
         const updates = [];
         const values = [];
         let index = 1;
@@ -234,8 +288,7 @@ const soilWaterRepository = {
             scM: 'sc_m',
             scF: 'sc_f',
             stM: 'st_m',
-            stF: 'st_f',
-            reportingYear: 'reporting_year'
+            stF: 'st_f'
         };
 
         for (const [key, dbCol] of Object.entries(fieldMap)) {
@@ -243,26 +296,42 @@ const soilWaterRepository = {
                 updates.push(`${dbCol} = $${index++}`);
                 if (key === 'startDate' || key === 'endDate') {
                     values.push(new Date(data[key]));
-                } else if (typeof data[key] === 'string' && key !== 'samplesAnalysedThrough' && key !== 'vipNames') {
+                } else if (typeof data[key] === 'string' && key !== 'samplesAnalysedThrough') {
                     const parsed = parseInt(data[key]);
-                    values.push(isNaN(parsed) ? (key === 'reportingYear' || key === 'analysisId' ? null : 0) : parsed);
+                    values.push(isNaN(parsed) ? (key === 'analysisId' ? null : 0) : parsed);
                 } else {
                     values.push(data[key]);
                 }
             }
         }
 
+        if (data.reportingYear !== undefined || data.year !== undefined) {
+            updates.push(`reporting_year_id = $${index++}`);
+            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            values.push(rYearId);
+        }
+
         if (updates.length > 0) {
             updates.push('updated_at = CURRENT_TIMESTAMP');
-            const sql = `UPDATE kvk_soil_water_analysis SET ${updates.join(', ')} WHERE soil_water_analysis_id = $${index}`;
-            values.push(parseInt(id));
-            await prisma.$queryRawUnsafe(sql, ...values);
+            let sql = `UPDATE kvk_soil_water_analysis SET ${updates.join(', ')} WHERE soil_water_analysis_id = $${index++}`;
+            const finalParams = [...values, parseInt(id)];
+            if (user && user.kvkId) {
+                sql += ` AND "kvkId" = $${index++}`;
+                finalParams.push(parseInt(user.kvkId));
+            }
+            await prisma.$queryRawUnsafe(sql, ...finalParams);
         }
         return { success: true };
     },
 
-    deleteAnalysis: async (id) => {
-        await prisma.$queryRawUnsafe(`DELETE FROM kvk_soil_water_analysis WHERE soil_water_analysis_id = $1`, parseInt(id));
+    deleteAnalysis: async (id, user) => {
+        let sql = `DELETE FROM kvk_soil_water_analysis WHERE soil_water_analysis_id = $1`;
+        const params = [parseInt(id)];
+        if (user && user.kvkId) {
+            sql += ` AND "kvkId" = $2`;
+            params.push(parseInt(user.kvkId));
+        }
+        await prisma.$queryRawUnsafe(sql, ...params);
         return { success: true };
     },
 
@@ -270,16 +339,17 @@ const soilWaterRepository = {
     // World Soil Day
     // ============================================
     createWorldSoilDay: async (data, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
+        if (!kvkId) { throw new Error('Valid kvkId is required'); }
 
         const actCond = parseInt(data.activitiesConducted || 0);
         const shcDist = parseInt(data.soilHealthCardDistributed || 0);
         const part = parseInt(data.participants || 0);
-        const rYear = parseInt(data.reportingYear || data.year);
+        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_world_soil_celebration 
-            ("kvkId", activities_conducted, soil_health_card_distributed, vip_names, participants, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year, created_at, updated_at)
+            ("kvkId", activities_conducted, soil_health_card_distributed, vip_names, participants, general_m, general_f, obc_m, obc_f, sc_m, sc_f, st_m, st_f, reporting_year_id, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
         `, kvkId,
             isNaN(actCond) ? 0 : actCond,
@@ -294,7 +364,7 @@ const soilWaterRepository = {
             parseInt(data.scF || 0),
             parseInt(data.stM || 0),
             parseInt(data.stF || 0),
-            isNaN(rYear) ? null : rYear
+            rYearId
         );
 
         return { success: true };
@@ -303,46 +373,56 @@ const soilWaterRepository = {
     findAllWorldSoilDay: async (user) => {
         let whereClause = '';
         const params = [];
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             whereClause = 'WHERE w."kvkId" = $1';
             params.push(parseInt(user.kvkId));
         }
 
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT w.*, k.kvk_name
+            SELECT w.*, k.kvk_name, y.year_name
             FROM kvk_world_soil_celebration w
             LEFT JOIN kvk k ON w."kvkId" = k.kvk_id
+            LEFT JOIN year_master y ON w.reporting_year_id = y.year_id
             ${whereClause}
             ORDER BY w.world_soil_celebration_id DESC
         `, ...params);
 
-        return rows.map(r => ({
-            ...r,
-            id: r.world_soil_celebration_id,
-            kvkName: r.kvk_name,
-            activitiesConducted: r.activities_conducted,
-            soilHealthCardDistributed: r.soil_health_card_distributed,
-            vipNames: r.vip_names,
-            participants: r.participants,
-            generalM: r.general_m,
-            generalF: r.general_f,
-            obcM: r.obc_m,
-            obcF: r.obc_f,
-            scM: r.sc_m,
-            scF: r.sc_f,
-            stM: r.st_m,
-            stF: r.st_f,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
-        }));
+        return rows.map(r => {
+            const yName = r.year_name;
+            const yLabel = yName ? String(yName) : null;
+            return {
+                ...r,
+                id: r.world_soil_celebration_id,
+                kvkName: r.kvk_name,
+                activitiesConducted: r.activities_conducted,
+                soilHealthCardDistributed: r.soil_health_card_distributed,
+                vipNames: r.vip_names,
+                participants: r.participants,
+                generalM: r.general_m,
+                generalF: r.general_f,
+                obcM: r.obc_m,
+                obcF: r.obc_f,
+                scM: r.sc_m,
+                scF: r.sc_f,
+                stM: r.st_m,
+                stF: r.st_f,
+                reportingYear: yLabel,
+                year: yLabel
+            };
+        });
     },
 
     findWorldSoilDayById: async (id) => {
         const rows = await prisma.$queryRawUnsafe(`
-            SELECT * FROM kvk_world_soil_celebration WHERE world_soil_celebration_id = $1
+            SELECT w.*, y.year_name 
+            FROM kvk_world_soil_celebration w
+            LEFT JOIN year_master y ON w.reporting_year_id = y.year_id
+            WHERE w.world_soil_celebration_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
         const r = rows[0];
+        const yName = r.year_name;
+        const yLabel = yName ? String(yName) : null;
         return {
             ...r,
             id: r.world_soil_celebration_id,
@@ -359,12 +439,12 @@ const soilWaterRepository = {
             scF: r.sc_f,
             stM: r.st_m,
             stF: r.st_f,
-            reportingYear: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year,
-            year: r.reporting_year ? `${r.reporting_year}-${(r.reporting_year + 1).toString().slice(2)}` : r.reporting_year
+            reportingYear: yLabel,
+            year: yLabel
         };
     },
 
-    updateWorldSoilDay: async (id, data) => {
+    updateWorldSoilDay: async (id, data, user) => {
         const updates = [];
         const values = [];
         let index = 1;
@@ -381,8 +461,7 @@ const soilWaterRepository = {
             scM: 'sc_m',
             scF: 'sc_f',
             stM: 'st_m',
-            stF: 'st_f',
-            reportingYear: 'reporting_year'
+            stF: 'st_f'
         };
 
         for (const [key, dbCol] of Object.entries(fieldMap)) {
@@ -390,24 +469,40 @@ const soilWaterRepository = {
                 updates.push(`${dbCol} = $${index++}`);
                 if (typeof data[key] === 'string' && key !== 'vipNames') {
                     const parsed = parseInt(data[key]);
-                    values.push(isNaN(parsed) ? (key === 'reportingYear' ? null : 0) : parsed);
+                    values.push(isNaN(parsed) ? 0 : parsed);
                 } else {
                     values.push(data[key]);
                 }
             }
         }
 
+        if (data.reportingYear !== undefined || data.year !== undefined) {
+            updates.push(`reporting_year_id = $${index++}`);
+            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            values.push(rYearId);
+        }
+
         if (updates.length > 0) {
             updates.push('updated_at = CURRENT_TIMESTAMP');
-            const sql = `UPDATE kvk_world_soil_celebration SET ${updates.join(', ')} WHERE world_soil_celebration_id = $${index}`;
-            values.push(parseInt(id));
-            await prisma.$queryRawUnsafe(sql, ...values);
+            let sql = `UPDATE kvk_world_soil_celebration SET ${updates.join(', ')} WHERE world_soil_celebration_id = $${index++}`;
+            const finalParams = [...values, parseInt(id)];
+            if (user && user.kvkId) {
+                sql += ` AND "kvkId" = $${index++}`;
+                finalParams.push(parseInt(user.kvkId));
+            }
+            await prisma.$queryRawUnsafe(sql, ...finalParams);
         }
         return { success: true };
     },
 
-    deleteWorldSoilDay: async (id) => {
-        await prisma.$queryRawUnsafe(`DELETE FROM kvk_world_soil_celebration WHERE world_soil_celebration_id = $1`, parseInt(id));
+    deleteWorldSoilDay: async (id, user) => {
+        let sql = `DELETE FROM kvk_world_soil_celebration WHERE world_soil_celebration_id = $1`;
+        const params = [parseInt(id)];
+        if (user && user.kvkId) {
+            sql += ` AND "kvkId" = $2`;
+            params.push(parseInt(user.kvkId));
+        }
+        await prisma.$queryRawUnsafe(sql, ...params);
         return { success: true };
     },
 

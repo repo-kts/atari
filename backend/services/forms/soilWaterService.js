@@ -11,18 +11,18 @@ const soilWaterService = {
     updateEquipment: async (id, data, user) => {
         const existing = await soilWaterRepository.findEquipmentById(id);
         if (!existing) throw new Error('Equipment not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.updateEquipment(id, data);
+        return await soilWaterRepository.updateEquipment(id, data, user);
     },
     deleteEquipment: async (id, user) => {
         const existing = await soilWaterRepository.findEquipmentById(id);
         if (!existing) throw new Error('Equipment not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.deleteEquipment(id);
+        return await soilWaterRepository.deleteEquipment(id, user);
     },
 
     // Analysis
@@ -35,18 +35,18 @@ const soilWaterService = {
     updateAnalysis: async (id, data, user) => {
         const existing = await soilWaterRepository.findAnalysisById(id);
         if (!existing) throw new Error('Analysis not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.updateAnalysis(id, data);
+        return await soilWaterRepository.updateAnalysis(id, data, user);
     },
     deleteAnalysis: async (id, user) => {
         const existing = await soilWaterRepository.findAnalysisById(id);
         if (!existing) throw new Error('Analysis not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.deleteAnalysis(id);
+        return await soilWaterRepository.deleteAnalysis(id, user);
     },
 
     // World Soil Day
@@ -59,18 +59,18 @@ const soilWaterService = {
     updateWorldSoilDay: async (id, data, user) => {
         const existing = await soilWaterRepository.findWorldSoilDayById(id);
         if (!existing) throw new Error('Record not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.updateWorldSoilDay(id, data);
+        return await soilWaterRepository.updateWorldSoilDay(id, data, user);
     },
     deleteWorldSoilDay: async (id, user) => {
         const existing = await soilWaterRepository.findWorldSoilDayById(id);
         if (!existing) throw new Error('Record not found');
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && existing.kvkId !== user.kvkId) {
+        if (user.kvkId && existing.kvkId !== user.kvkId) {
             throw new Error('Unauthorized');
         }
-        return await soilWaterRepository.deleteWorldSoilDay(id);
+        return await soilWaterRepository.deleteWorldSoilDay(id, user);
     },
 
     // Masters

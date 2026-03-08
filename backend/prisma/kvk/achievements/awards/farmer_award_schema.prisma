@@ -11,6 +11,8 @@ model FarmerAward {
   amount Int @map("amount")
   achievement   String @map("achievement")
   conferringAuthority String @map("conferring_authority")
+  reportingYear Int? @map("reporting_year")
+  image String? @map("image")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

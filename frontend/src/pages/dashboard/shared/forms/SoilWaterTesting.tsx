@@ -4,6 +4,7 @@ import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
 import { useYears } from '../../../../hooks/useOtherMastersData'
 import { useSoilWaterAnalysisMasters } from '../../../../hooks/useSoilWaterData'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface SoilWaterTestingProps {
     entityType: ExtendedEntityType | null
@@ -16,17 +17,20 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
     formData,
     setFormData,
 }) => {
+    const { user } = useAuth()
     const { data: years = [] } = useYears();
     const { data: analysisMasters = [] } = useSoilWaterAnalysisMasters();
 
+    // Automatically sync kvkId from user session if it's missing in formData
+    React.useEffect(() => {
+        if (user?.kvkId && !formData.kvkId && !formData.id) {
+            setFormData({ ...formData, kvkId: user.kvkId })
+        }
+    }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
+
     const yearOptions = useMemo(() => {
         return years.map((y: any) => {
-            let label = y.yearName || y.year || y.name;
-            // If the label is just a 4-digit number (e.g. "2024"), format it to "2024-25"
-            if (label && /^\d{4}$/.test(String(label))) {
-                const startYear = parseInt(label);
-                label = `${startYear}-${(startYear + 1).toString().slice(2)}`;
-            }
+            const label = String(y.yearName || y.year || y.name);
             return { value: label, label: label };
         });
     }, [years]);
@@ -137,13 +141,6 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             value={formData.amountRealized || ''}
                             onChange={(e) => setFormData({ ...formData, amountRealized: e.target.value })}
                             placeholder="Enter amount"
-                        />
-                        <FormSelect
-                            label="Reporting Year"
-                            required
-                            value={formData.reportingYear || ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                            options={yearOptions}
                         />
                     </div>
 

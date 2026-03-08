@@ -8,13 +8,13 @@ const normalizeActivityName = (v) => {
 
 const extensionActivityRepository = {
     create: async (data, opts, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
-        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
-        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+        // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
 
-        if (isNaN(kvkId)) {
+        if (!kvkId || isNaN(kvkId)) {
             throw new Error('Valid kvkId is required');
         }
+        kvkId = parseInt(kvkId);
         const fldId = data.fldId ? parseInt(data.fldId) : null;
         let staffId = data.staffId ? parseInt(data.staffId) : null;
         if ((staffId === null || isNaN(staffId)) && data.staffName) {
@@ -102,11 +102,10 @@ const extensionActivityRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        // Strict isolation for KVK roles
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        // Strict isolation for KVK-scoped users (like Gaya)
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
-            // Only allow filtering by kvkId if the user is an admin
             where.kvkId = parseInt(filters.kvkId);
         }
 
@@ -124,7 +123,7 @@ const extensionActivityRepository = {
 
     findById: async (id, user) => {
         const where = { extensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -141,7 +140,7 @@ const extensionActivityRepository = {
 
     update: async (id, data, user) => {
         const where = { extensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -233,7 +232,7 @@ const extensionActivityRepository = {
             let sql = `UPDATE kvk_extension_activity SET ${updates.join(', ')} WHERE extension_activity_id = $${index++}`;
             const params = [...values, parseInt(id)];
 
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && user.kvkId) {
                 sql += ` AND "kvkId" = $${index++}`;
                 params.push(parseInt(user.kvkId));
             }
@@ -254,7 +253,7 @@ const extensionActivityRepository = {
 
     delete: async (id, user) => {
         const where = { extensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -275,7 +274,7 @@ function _mapResponse(r) {
     if (startDate && !isNaN(startDate.getTime())) {
         const month = startDate.getMonth() + 1;
         const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-        reportingYear = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+        reportingYear = String(startYear);
     }
 
     const activityName = r.activity ? r.activity.activityName : undefined;

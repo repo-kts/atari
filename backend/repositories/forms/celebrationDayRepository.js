@@ -2,13 +2,13 @@ const prisma = require('../../config/prisma.js');
 
 const celebrationDayRepository = {
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
-        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
-        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+        // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
+        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
 
-        if (isNaN(kvkId)) {
+        if (!kvkId || isNaN(kvkId)) {
             throw new Error('Valid kvkId is required');
         }
+        kvkId = parseInt(kvkId);
 
         let importantDayId = data.importantDayId;
         if (!importantDayId && data.importantDay) {
@@ -53,7 +53,7 @@ const celebrationDayRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -73,7 +73,7 @@ const celebrationDayRepository = {
 
     findById: async (id, user) => {
         const where = { celebrationId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -89,7 +89,7 @@ const celebrationDayRepository = {
 
     update: async (id, data, user) => {
         const where = { celebrationId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && user.kvkId) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -155,7 +155,7 @@ const celebrationDayRepository = {
             let sql = `UPDATE kvk_important_day_celebration SET ${updates.join(', ')} WHERE celebration_id = $${index++}`;
             const params = [...values, parseInt(id)];
 
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && user.kvkId) {
                 sql += ` AND "kvkId" = $${index++}`;
                 params.push(parseInt(user.kvkId));
             }
@@ -190,7 +190,7 @@ const celebrationDayRepository = {
         const eventDate = new Date(a.eventDate);
         const month = eventDate.getMonth() + 1;
         const startYear = month >= 4 ? eventDate.getFullYear() : eventDate.getFullYear() - 1;
-        const reportingYear = `${startYear}-${(startYear + 1).toString().slice(2)}`;
+        const reportingYear = String(startYear);
 
         const participants = a.farmersGeneralM + a.farmersGeneralF + a.farmersObcM + a.farmersObcF +
             a.farmersScM + a.farmersScF + a.farmersStM + a.farmersStF +
