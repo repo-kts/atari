@@ -819,6 +819,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'DRMR',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.DRMR_ACTIVITY,
         siblings: ROUTE_SIBLING_GROUPS.DRMR,
     },
 
@@ -853,6 +854,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NARI',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.NARI_VALUE_ADDITION,
         siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
@@ -863,6 +865,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NARI',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.NARI_TRAINING_PROGRAMM,
         siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
     {
@@ -873,6 +876,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NARI',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.NARI_EXTENSION_ACTIVITIES,
         siblings: ROUTE_SIBLING_GROUPS.NARI,
     },
 
@@ -943,6 +947,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
+        fields: FIELD_GROUPS.NICRA_DETAILS,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.TRAINING,
@@ -953,6 +958,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         siblings: ROUTE_SIBLING_GROUPS.NICRA_BASE,
+        fields: FIELD_GROUPS.NICRA_TRAINING,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.EXTENSION_ACTIVITY,
@@ -975,7 +981,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_INTERVENTION,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.REVENUE_GENERATED,
@@ -985,7 +992,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_REVENUE_GENERATED,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CUSTOM_HIRING,
@@ -995,7 +1003,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_CUSTOM_HIRING,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.VCRMC,
@@ -1005,7 +1014,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_VCRMC,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.SOIL_HEALTH_CARD,
@@ -1015,7 +1025,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_SOIL_HEALTH_CARD,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CONVERGENCE_PROGRAMME,
@@ -1025,7 +1036,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_CONVERGENCE_PROGRAMME,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.DIGNITARIES_VISITED,
@@ -1035,7 +1047,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_DIGNITARIES_VISITED,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.PI_COPI_LIST,
@@ -1045,7 +1058,8 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'NICRA Others',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASE,
         moduleCode: 'achievements_projects',
-        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS
+        siblings: ROUTE_SIBLING_GROUPS.NICRA_OTHERS,
+        fields: FIELD_GROUPS.NICRA_OTHERS_PI_COPI_LIST,
     },
 
     // Natural Farming
@@ -1058,6 +1072,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
+        fields: FIELD_GROUPS.NATURAL_FARMING_GEOGRAPHICAL_INFORMATION,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.PHYSICAL_INFORMATION,
@@ -1068,6 +1083,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
+        fields: FIELD_GROUPS.NATURAL_FARMING_PHYSICAL_INFORMATION,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.DEMONSTRATION_INFORMATION,
@@ -1111,6 +1127,7 @@ export const projectsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
         siblings: ROUTE_SIBLING_GROUPS.NATURAL_FARMING,
+        fields: FIELD_GROUPS.NATURAL_FARMING_SOIL_DATA,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BUDGET_EXPENDITURE,
@@ -1133,7 +1150,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Agri-Drone',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: FIELD_GROUPS.AGRI_DRONE,
+        fields: FIELD_GROUPS.AGRI_DRONE_INTRODUCTION,
         siblings: ROUTE_SIBLING_GROUPS.AGRI_DRONE,
     },
     {
@@ -1144,6 +1161,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Agri-Drone',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.AGRI_DRONE_DEMONSTRATION,
         siblings: ROUTE_SIBLING_GROUPS.AGRI_DRONE,
     },
 
@@ -1166,6 +1184,7 @@ export const projectsRoutes: RouteConfig[] = [
         subcategory: 'Other',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.OTHER_PROGRAM,
     },
 ]
 

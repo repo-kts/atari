@@ -24,8 +24,6 @@ import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
-import { ProjectsOverview } from './pages/dashboard/forms/projects/ProjectsOverview'
-
 // Import route config for dynamic rendering
 import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, achievementsRoutes } from './config/routeConfig'
 import type { UserRole } from './types/auth'
@@ -157,9 +155,6 @@ function AppRoutes() {
 
                     {/* Form Management */}
                     <Route path="/forms" element={<FormManagement />} />
-
-                    {/* Projects Overview */}
-                    <Route path="/forms/achievements/projects" element={<ProjectsOverview />} />
 
                     {/* Dynamic Project Form Routes - All rendered by DynamicFormPage */}
                     {projectsRoutes.map(route => (

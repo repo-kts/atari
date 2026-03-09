@@ -1,5 +1,4 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
     Leaf,
     Sun,
@@ -13,170 +12,146 @@ import {
     Sprout,
     Plane,
     Warehouse,
-    MoreHorizontal
+    MoreHorizontal,
+    FolderOpen
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/Card'
-import { SmartBackButton } from '@/components/common/SmartBackButton'
+import { FeatureTabLayout, FeatureSection } from '../../shared/FeatureTabLayout'
+import { ROUTE_PATHS } from '@/constants/routePaths'
 
-interface ProjectCategory {
-    id: string
-    title: string
-    description: string
-    icon: React.ReactNode
-    path: string
-    subItems?: string[]
-}
-
-const projectCategories: ProjectCategory[] = [
+const sections: FeatureSection[] = [
     {
-        id: 'cfld',
         title: 'CFLD',
-        description: 'Cluster Front Line Demonstration',
-        icon: <Leaf className="w-6 h-6" />,
-        path: '/forms/achievements/projects/cfld/technical-parameter',
-        subItems: ['Technical Parameter', 'Extension Activity', 'Budget Utilization']
+        icon: <Leaf className="w-5 h-5" />,
+        items: [
+            { label: 'Technical Parameter', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.TECHNICAL_PARAMETER },
+            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.EXTENSION_ACTIVITY },
+            { label: 'Budget Utilization', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CFLD.BUDGET_UTILIZATION },
+        ],
     },
     {
-        id: 'cra',
         title: 'Climate Resilient Agriculture (CRA)',
-        description: 'CRA programs and extension activities',
-        icon: <Sun className="w-6 h-6" />,
-        path: '/forms/achievements/projects/cra/details',
-        subItems: ['CRA Details', 'Extension Activity']
+        icon: <Sun className="w-5 h-5" />,
+        items: [
+            { label: 'CRA Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.DETAILS },
+            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY },
+        ],
     },
     {
-        id: 'fpo',
         title: 'FPO And CBBO',
-        description: 'Farmer Producer Organizations and CBBO',
-        icon: <Users className="w-6 h-6" />,
-        path: '/forms/achievements/projects/fpo/details',
-        subItems: ['Details FPO and CBBO', 'FPO Management']
+        icon: <Users className="w-5 h-5" />,
+        items: [
+            { label: 'Details FPO and CBBO', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.DETAILS },
+            { label: 'FPO Management', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.MANAGEMENT },
+        ],
     },
     {
-        id: 'drmr',
         title: 'DRMR',
-        description: 'Directorate of Rapeseed-Mustard Research',
-        icon: <FlaskConical className="w-6 h-6" />,
-        path: '/forms/achievements/projects/drmr/details',
-        subItems: ['DRMR Details', 'DRMR Activity']
+        icon: <FlaskConical className="w-5 h-5" />,
+        items: [
+            { label: 'DRMR Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS },
+            { label: 'DRMR Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY },
+        ],
     },
     {
-        id: 'nari',
         title: 'NARI',
-        description: 'Nutri-Smart village program',
-        icon: <Utensils className="w-6 h-6" />,
-        path: '/forms/achievements/projects/nari/nutri-smart',
-        subItems: ['Nutrition Garden', 'Bio-fortified Crops', 'Value Addition', 'Training', 'Extension']
+        icon: <Utensils className="w-5 h-5" />,
+        items: [
+            { label: 'Nutrition Garden', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART },
+            { label: 'Bio-fortified Crops', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED },
+            { label: 'Value Addition', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION },
+            { label: 'Training Program', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM },
+            { label: 'Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES },
+        ],
     },
     {
-        id: 'arya',
         title: 'ARYA',
-        description: 'Attracting and Retaining Youth in Agriculture',
-        icon: <UserCheck className="w-6 h-6" />,
-        path: '/forms/achievements/projects/arya',
-        subItems: ['Current Year Details', 'Previous Year Evaluation']
+        icon: <UserCheck className="w-5 h-5" />,
+        items: [
+            { label: 'Current Year Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.CURRENT },
+            { label: 'Previous Year Evaluation', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.EVALUATION },
+        ],
     },
     {
-        id: 'csisa',
         title: 'CSISA',
-        description: 'Cereal Systems Initiative for South Asia',
-        icon: <Building2 className="w-6 h-6" />,
-        path: '/forms/achievements/projects/csisa'
+        icon: <Building2 className="w-5 h-5" />,
+        items: [
+            { label: 'CSISA', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA },
+        ],
     },
     {
-        id: 'tsp-scsp',
         title: 'TSP/SCSP',
-        description: 'Tribal Sub Plan / Scheduled Caste Sub Plan',
-        icon: <FileText className="w-6 h-6" />,
-        path: '/forms/achievements/projects/sub-plan-activity'
+        icon: <FileText className="w-5 h-5" />,
+        items: [
+            { label: 'TSP/SCSP', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP },
+        ],
     },
     {
-        id: 'nicra',
         title: 'NICRA',
-        description: 'National Innovations on Climate Resilient Agriculture',
-        icon: <Thermometer className="w-6 h-6" />,
-        path: '/forms/achievements/projects/nicra/basic-information',
-        subItems: ['Basic Info', 'Details', 'Training', 'Extension', 'Others']
+        icon: <Thermometer className="w-5 h-5" />,
+        items: [
+            { label: 'Basic Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.BASIC_INFORMATION },
+            { label: 'Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.DETAILS },
+            { label: 'Training', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.TRAINING },
+            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.EXTENSION_ACTIVITY },
+        ],
     },
     {
-        id: 'natural-farming',
+        title: 'NICRA Others',
+        icon: <FolderOpen className="w-5 h-5" />,
+        items: [
+            { label: 'Intervention', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.INTERVENTION },
+            { label: 'Revenue Generated', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.REVENUE_GENERATED },
+            { label: 'Custom Hiring', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CUSTOM_HIRING },
+            { label: 'VCRMC', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.VCRMC },
+            { label: 'Soil Health Card', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.SOIL_HEALTH_CARD },
+            { label: 'Convergence Programme', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.CONVERGENCE_PROGRAMME },
+            { label: 'Dignitaries Visited', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.DIGNITARIES_VISITED },
+            { label: 'PI/Co-PI List', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NICRA.OTHERS.PI_COPI_LIST },
+        ],
+    },
+    {
         title: 'Natural Farming',
-        description: 'Out-scaling of Natural Farming',
-        icon: <Sprout className="w-6 h-6" />,
-        path: '/forms/achievements/projects/natural-farming/geographical-information',
-        subItems: ['Geographical', 'Physical', 'Demonstration', 'Beneficiaries', 'Soil Data', 'Budget']
+        icon: <Sprout className="w-5 h-5" />,
+        items: [
+            { label: 'Geographical Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.GEOGRAPHICAL_INFORMATION },
+            { label: 'Physical Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.PHYSICAL_INFORMATION },
+            { label: 'Demonstration Information', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.DEMONSTRATION_INFORMATION },
+            { label: 'Farmers Practicing', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.FARMERS_PRACTICING },
+            { label: 'Beneficiaries', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BENEFICIARIES },
+            { label: 'Soil Data', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.SOIL_DATA },
+            { label: 'Budget Expenditure', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NATURAL_FARMING.BUDGET_EXPENDITURE },
+        ],
     },
     {
-        id: 'agri-drone',
         title: 'Agri-Drone',
-        description: 'Agricultural drone programs',
-        icon: <Plane className="w-6 h-6" />,
-        path: '/forms/achievements/projects/agri-drone',
-        subItems: ['Introduction', 'Demonstration Details']
+        icon: <Plane className="w-5 h-5" />,
+        items: [
+            { label: 'Introduction', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.AGRI_DRONE },
+            { label: 'Demonstration', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS },
+        ],
     },
     {
-        id: 'seed-hub',
         title: 'Seed Hub Program',
-        description: 'Seed hub development programs',
-        icon: <Warehouse className="w-6 h-6" />,
-        path: '/forms/achievements/projects/seed-hub-program'
+        icon: <Warehouse className="w-5 h-5" />,
+        items: [
+            { label: 'Seed Hub Program', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.SEED_HUB_PROGRAM },
+        ],
     },
     {
-        id: 'other',
         title: 'Other Programmes',
-        description: 'Any other programme organized by KVK',
-        icon: <MoreHorizontal className="w-6 h-6" />,
-        path: '/forms/achievements/other-program'
-    }
+        icon: <MoreHorizontal className="w-5 h-5" />,
+        items: [
+            { label: 'Other Programmes', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.OTHER_PROGRAM },
+        ],
+    },
 ]
 
 export const ProjectsOverview: React.FC = () => {
-    const navigate = useNavigate()
-
     return (
-        <div className="space-y-6">
-            <SmartBackButton
-                fallbackPath="/forms/achievements"
-                showBreadcrumbs
-            />
-
-            <div>
-                <h1 className="text-2xl font-semibold text-[#487749]">Projects</h1>
-                <p className="text-sm text-[#757575] mt-1">
-                    Select a project category to view or manage details
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {projectCategories.map((category) => (
-                    <Card
-                        key={category.id}
-                        className="cursor-pointer hover:shadow-md transition-all duration-200 hover:border-[#487749]"
-                        onClick={() => navigate(category.path)}
-                    >
-                        <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                                <div className="p-2 bg-[#E8F5E9] rounded-lg text-[#487749] shrink-0">
-                                    {category.icon}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-[#212121] truncate">
-                                        {category.title}
-                                    </h3>
-                                    <p className="text-xs text-[#757575] mt-1 line-clamp-2">
-                                        {category.description}
-                                    </p>
-                                    {category.subItems && (
-                                        <p className="text-xs text-[#487749] mt-2">
-                                            {category.subItems.length} sub-forms
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        </div>
+        <FeatureTabLayout
+            title="Projects"
+            description="Manage project details, technical parameters, extension activities, and budget utilization"
+            sections={sections}
+        />
     )
 }
