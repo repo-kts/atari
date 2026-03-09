@@ -1,4 +1,5 @@
 const celebrationDayRepository = require('../../repositories/forms/celebrationDayRepository.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
 const celebrationDayController = {
     create: async (req, res) => {
@@ -6,7 +7,13 @@ const celebrationDayController = {
             const result = await celebrationDayRepository.create(req.body, req.user);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in celebrationDayController:', error);
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({ 
+                success: false, 
+                message: error.message || 'An error occurred',
+                error: error.message 
+            });
         }
     },
 
@@ -15,7 +22,13 @@ const celebrationDayController = {
             const result = await celebrationDayRepository.findAll(req.query, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in celebrationDayController:', error);
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({ 
+                success: false, 
+                message: error.message || 'An error occurred',
+                error: error.message 
+            });
         }
     },
 
@@ -25,7 +38,13 @@ const celebrationDayController = {
             if (!result) return res.status(404).json({ success: false, message: 'Record not found' });
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in celebrationDayController:', error);
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({ 
+                success: false, 
+                message: error.message || 'An error occurred',
+                error: error.message 
+            });
         }
     },
 
@@ -34,7 +53,13 @@ const celebrationDayController = {
             const result = await celebrationDayRepository.update(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in celebrationDayController:', error);
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({ 
+                success: false, 
+                message: error.message || 'An error occurred',
+                error: error.message 
+            });
         }
     },
 
@@ -43,7 +68,13 @@ const celebrationDayController = {
             await celebrationDayRepository.delete(req.params.id, req.user);
             res.status(200).json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('Error in celebrationDayController:', error);
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({ 
+                success: false, 
+                message: error.message || 'An error occurred',
+                error: error.message 
+            });
         }
     }
 };

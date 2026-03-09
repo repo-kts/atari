@@ -1,93 +1,96 @@
-const scientistAwardRepository = require('../../repositories/forms/scientistAwardRepository');
+const scientistAwardRepository = require('../../repositories/forms/scientistAwardRepository.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
-const scientistAwardService = {
+/**
+ * Scientist Award Service
+ * Business logic layer for Scientist Award operations
+ */
+class ScientistAwardService {
     /**
-     * Create a new Scientist Award
+     * Create new scientist award record
+     * @param {object} data - Scientist award data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Created record
      */
-    createScientistAward: async (data, user) => {
-        const kvkId = parseInt(user.kvkId || data.kvkId);
-
-        if (!kvkId || isNaN(kvkId)) {
-            throw new Error('KVK selection is required');
+    async createScientistAward(data, user) {
+        try {
+            return await scientistAwardRepository.create(data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to create scientist award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        if (!data.awardName || !data.scientistName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
-            throw new Error('All fields are required');
-        }
-
-        const awardData = {
-            kvkId: kvkId,
-            awardName: data.awardName,
-            scientistName: data.scientistName,
-            year: data.year || data.reportingYear,
-            reportingYear: data.reportingYear || data.year,
-            amount: parseInt(data.amount),
-            achievement: data.achievement,
-            conferringAuthority: data.conferringAuthority,
-        };
-
-        console.log('--- Scientist Award Service: Creating Scientist Award ---');
-        console.log('Data:', awardData);
-        const newAward = await scientistAwardRepository.create(awardData, user);
-        console.log('Scientist Award created:', newAward);
-        return newAward;
-    },
+    }
 
     /**
-     * Get all Scientist Awards
+     * Get all scientist award records
+     * @param {object} filters - Filter options
+     * @param {object} user - User object from session
+     * @returns {Promise<Array>} Array of records
      */
-    getAllScientistAwards: async (user) => {
-        return await scientistAwardRepository.findAll(user);
-    },
+    async getAllScientistAwards(filters = {}, user) {
+        try {
+            return await scientistAwardRepository.findAll(filters, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch scientist awards: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
 
     /**
-     * Get Scientist Award by ID
+     * Get scientist award record by ID
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Record
      */
-    getScientistAwardById: async (id, user) => {
-        const award = await scientistAwardRepository.findById(id);
-        if (!award) throw new Error('Award not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized access');
+    async getScientistAwardById(id, user) {
+        try {
+            return await scientistAwardRepository.findById(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch scientist award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        return award;
-    },
+    }
 
     /**
-     * Update Scientist Award
+     * Update scientist award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} data - Updated data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Updated record
      */
-    updateScientistAward: async (id, data, user) => {
-        const existing = await scientistAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        const updateData = {};
-        if (data.awardName !== undefined) updateData.awardName = data.awardName;
-        if (data.scientistName !== undefined) updateData.scientistName = data.scientistName;
-        if (data.year !== undefined || data.reportingYear !== undefined) {
-            updateData.reportingYear = data.year || data.reportingYear;
+    async updateScientistAward(id, data, user) {
+        try {
+            return await scientistAwardRepository.update(id, data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to update scientist award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-        if (data.amount !== undefined) updateData.amount = parseInt(data.amount) || 0;
-        if (data.achievement !== undefined) updateData.achievement = data.achievement;
-        if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
-
-        console.log(`Updating Scientist Award ${id} with:`, updateData);
-        return await scientistAwardRepository.update(id, updateData);
-    },
+    }
 
     /**
-     * Delete Scientist Award
+     * Delete scientist award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Success message
      */
-    deleteScientistAward: async (id, user) => {
-        const existing = await scientistAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
+    async deleteScientistAward(id, user) {
+        try {
+            return await scientistAwardRepository.delete(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to delete scientist award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
+    }
+}
 
-        return await scientistAwardRepository.delete(id);
-    },
-};
-
-module.exports = scientistAwardService;
+module.exports = new ScientistAwardService();

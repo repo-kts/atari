@@ -83,6 +83,7 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
             ENTITY_TYPES.KVK_VEHICLES,
             ENTITY_TYPES.KVK_EQUIPMENTS,
             ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
+            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
         ],
         dependencyField: 'kvkId',
         relatedQueryPatterns: [],
@@ -143,20 +144,38 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
         dependents: [
             ENTITY_TYPES.PRODUCT_TYPES,
             ENTITY_TYPES.PRODUCTS,
+            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
         ],
         dependencyField: 'categoryId',
         relatedQueryPatterns: [],
     },
 
     [ENTITY_TYPES.PRODUCT_TYPES]: {
-        dependents: [ENTITY_TYPES.PRODUCTS],
+        dependents: [
+            ENTITY_TYPES.PRODUCTS,
+            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
+        ],
         dependencyField: 'typeId',
         relatedQueryPatterns: [],
     },
 
     [ENTITY_TYPES.PRODUCTS]: {
-        dependents: [],
+        dependents: [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY],
         dependencyField: 'productId',
+        relatedQueryPatterns: [],
+    },
+
+    // Production Supply Achievement - Depends on Product Categories, Types, Products, Years, and KVKs
+    [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]: {
+        dependents: [],
+        dependencyField: 'productionSupplyId',
+        relatedQueryPatterns: [],
+    },
+
+    // Publication Details Achievement - Depends on Years, Publications, and KVKs
+    [ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS]: {
+        dependents: [],
+        dependencyField: 'publicationDetailsId',
         relatedQueryPatterns: [],
     },
 
@@ -195,6 +214,26 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
     [ENTITY_TYPES.TRAINING_THEMATIC_AREAS]: {
         dependents: [],
         dependencyField: 'thematicAreaId',
+        relatedQueryPatterns: [],
+    },
+
+    // Year Master Dependencies
+    [ENTITY_TYPES.YEAR]: {
+        dependents: [
+            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
+            ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
+        ],
+        dependencyField: 'yearId',
+        relatedQueryPatterns: [],
+    },
+
+    // Soil Water Analysis Master Dependencies
+    [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: {
+        dependents: [
+            ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
+            ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
+        ],
+        dependencyField: 'analysisId',
         relatedQueryPatterns: [],
     },
 };
@@ -337,6 +376,7 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.FLD_CROPS]: ['fld-crops'],
     [ENTITY_TYPES.CFLD_CROPS]: ['cfld-crops'],
     [ENTITY_TYPES.PUBLICATION_ITEMS]: ['publication-items'],
+    [ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS]: ['publication-details', 'publication-detail', 'project-data'],
     [ENTITY_TYPES.TRAINING_TYPES]: ['training-types'],
     [ENTITY_TYPES.TRAINING_AREAS]: ['training-areas'],
     [ENTITY_TYPES.TRAINING_THEMATIC_AREAS]: ['training-thematic-areas'],
@@ -351,6 +391,8 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: ['cra-cropping-systems'],
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: ['cra-farming-systems'],
     [ENTITY_TYPES.ARYA_ENTERPRISES]: ['arya-enterprises'],
+    // Achievement Forms
+    [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]: ['production-supplies', 'production-supply', 'project-data'],
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: ['staff-categories'],
     [ENTITY_TYPES.PAY_LEVEL]: ['pay-levels'],
@@ -363,6 +405,7 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     // Other Masters
     [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
+    [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: ['soil-water-analyses', 'soil-water-analysis-masters'],
 };
 
 /**

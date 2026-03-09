@@ -1,5 +1,5 @@
 model HrdProgram {
-  hrdProgramId   Int      @id @default(autoincrement()) @map("hrd_program_id")
+  hrdProgramId   String   @id @default(uuid()) @map("hrd_program_id")
   kvkId          Int
   kvkStaffId     Int
   courseName     String   @map("course_name")
@@ -9,10 +9,11 @@ model HrdProgram {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
   kvk            Kvk      @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  staff          KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId])
+  staff          KvkStaff @relation(fields: [kvkStaffId], references: [kvkStaffId], onDelete: SetNull)
 
   @@index([kvkId])
   @@index([kvkStaffId])
   @@index([startDate])
+  @@index([createdAt])
   @@map("hrd_program")
 }

@@ -269,6 +269,7 @@ export const FIELD_NAMES = {
 
     // Soil & Water Testing Fields
     ANALYSIS: 'analysis',
+    ANALYSIS_NAME: 'analysisName',
     NO_OF_SAMPLES_ANALYZED: 'noOfSamplesAnalyzed',
     SOIL_HEALTH_CARDS_DISTRIBUTED: 'soilHealthCardsDistributed',
     NO_OF_VIPS: 'noOfVips',
@@ -392,6 +393,7 @@ export const FIELD_GROUPS = {
     CROP_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,
+    SOIL_WATER_ANALYSIS_MASTER: [FIELD_NAMES.ANALYSIS_NAME] as const,
 
     // About KVK Routes
     VIEW_KVKS: [
@@ -772,7 +774,7 @@ export const FIELD_GROUPS = {
     // Achievements Routes - Publications
     PUBLICATIONS: [
         FIELD_NAMES.KVK_NAME,
-        FIELD_NAMES.ITEM_NAME,
+        FIELD_NAMES.PUBLICATION_ITEM,
         FIELD_NAMES.TITLE,
         FIELD_NAMES.AUTHOR_NAME,
         FIELD_NAMES.JOURNAL_NAME,
@@ -788,7 +790,7 @@ export const FIELD_GROUPS = {
 
     // Achievements Routes - Soil Analysis
     SOIL_ANALYSIS: [
-        'KVK NAME',
+        FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.START_DATE,
         FIELD_NAMES.END_DATE,
         FIELD_NAMES.ANALYSIS,
@@ -799,7 +801,7 @@ export const FIELD_GROUPS = {
 
     // Achievements Routes - World Soil Day
     WORLD_SOIL_DAY: [
-        'KVK NAME',
+        FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.NO_OF_ACTIVITIES_CONDUCTED,
         FIELD_NAMES.SOIL_HEALTH_CARDS_DISTRIBUTED,
         FIELD_NAMES.NO_OF_VIPS,

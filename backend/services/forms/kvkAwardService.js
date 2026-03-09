@@ -1,93 +1,96 @@
-const kvkAwardRepository = require('../../repositories/forms/kvkAwardRepository');
+const kvkAwardRepository = require('../../repositories/forms/kvkAwardRepository.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
-const kvkAwardService = {
+/**
+ * KVK Award Service
+ * Business logic layer for KVK Award operations
+ */
+class KvkAwardService {
     /**
-     * Create a new KVK Award
+     * Create new KVK award record
+     * @param {object} data - KVK award data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Created record
      */
-    createKvkAward: async (data, user) => {
-        // Enforce KVK selection if user has no assigned KVK
-        const kvkId = parseInt(user.kvkId || data.kvkId);
-
-        if (!kvkId || isNaN(kvkId)) {
-            throw new Error('KVK selection is required');
+    async createKvkAward(data, user) {
+        try {
+            return await kvkAwardRepository.create(data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to create KVK award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        if (!data.awardName || !data.amount || !data.achievement || !data.conferringAuthority) {
-            throw new Error('All fields are required');
-        }
-
-        const awardData = {
-            kvkId: kvkId,
-            awardName: data.awardName,
-            year: data.year,
-            reportingYear: data.reportingYear || data.year,
-            amount: parseInt(data.amount),
-            achievement: data.achievement,
-            conferringAuthority: data.conferringAuthority,
-        };
-
-        return await kvkAwardRepository.create(awardData, user);
-    },
+    }
 
     /**
-     * Get all KVK Awards (filtered by KVK if user is KVK role)
+     * Get all KVK award records
+     * @param {object} filters - Filter options
+     * @param {object} user - User object from session
+     * @returns {Promise<Array>} Array of records
      */
-    getAllKvkAwards: async (user) => {
-        return await kvkAwardRepository.findAll(user);
-    },
+    async getAllKvkAwards(filters = {}, user) {
+        try {
+            return await kvkAwardRepository.findAll(filters, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch KVK awards: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
 
     /**
-     * Get KVK Award by ID
+     * Get KVK award record by ID
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Record
      */
-    getKvkAwardById: async (id, user) => {
-        const award = await kvkAwardRepository.findById(id);
-        if (!award) throw new Error('Award not found');
-
-        // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized access');
+    async getKvkAwardById(id, user) {
+        try {
+            return await kvkAwardRepository.findById(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch KVK award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        return award;
-    },
+    }
 
     /**
-     * Update KVK Award
+     * Update KVK award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} data - Updated data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Updated record
      */
-    updateKvkAward: async (id, data, user) => {
-        const existing = await kvkAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
+    async updateKvkAward(id, data, user) {
+        try {
+            return await kvkAwardRepository.update(id, data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to update KVK award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        const updateData = {};
-        if (data.awardName) updateData.awardName = data.awardName;
-        if (data.year) updateData.year = data.year;
-        if (data.reportingYear || data.year) updateData.reportingYear = data.reportingYear || data.year;
-        if (data.amount) updateData.amount = parseInt(data.amount);
-        if (data.achievement) updateData.achievement = data.achievement;
-        if (data.conferringAuthority) updateData.conferringAuthority = data.conferringAuthority;
-
-        return await kvkAwardRepository.update(id, updateData);
-    },
+    }
 
     /**
-     * Delete KVK Award
+     * Delete KVK award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Success message
      */
-    deleteKvkAward: async (id, user) => {
-        const existing = await kvkAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        // Authorization check
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
+    async deleteKvkAward(id, user) {
+        try {
+            return await kvkAwardRepository.delete(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to delete KVK award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
+    }
+}
 
-        return await kvkAwardRepository.delete(id);
-    },
-};
-
-module.exports = kvkAwardService;
+module.exports = new KvkAwardService();

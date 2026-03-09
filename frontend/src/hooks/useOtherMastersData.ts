@@ -17,6 +17,7 @@ import type {
     FundingSourceFormData,
     CropTypeFormData,
     InfrastructureMasterFormData,
+    SoilWaterAnalysisFormData,
 } from '../services/otherMastersApi';
 
 // ============================================
@@ -633,6 +634,50 @@ export function useInfrastructureMasters() {
         mutationFn: (id: number) => otherMastersApi.deleteInfrastructureMaster(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.INFRASTRUCTURE_MASTER);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useSoilWaterAnalyses() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['soil-water-analyses'],
+        queryFn: () => otherMastersApi.getSoilWaterAnalyses().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: SoilWaterAnalysisFormData) => otherMastersApi.createSoilWaterAnalysis(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.SOIL_WATER_ANALYSIS);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<SoilWaterAnalysisFormData> }) =>
+            otherMastersApi.updateSoilWaterAnalysis(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.SOIL_WATER_ANALYSIS);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteSoilWaterAnalysis(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.SOIL_WATER_ANALYSIS);
         },
     });
 

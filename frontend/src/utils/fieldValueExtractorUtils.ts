@@ -208,11 +208,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.PUBLICATION_ITEM]: {
-        extractor: (item) => item.publicationName || null,
+        extractor: (item) => {
+            if (item.publication) return item.publication;
+            if (item.publicationItem) return item.publicationItem;
+            if (item.publication?.publicationName) return item.publication.publicationName;
+            return null;
+        },
         priority: 5,
     },
     [FIELD_NAMES.CROP_TYPE_NAME]: {
         extractor: (item) => item.cropType?.typeName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.ANALYSIS_NAME]: {
+        extractor: (item) => item.analysisName || null,
         priority: 5,
     },
     // Crop field - using FIELD_NAMES constant (note: FIELD_NAMES.CROP_NAME = 'cropName')
@@ -522,17 +531,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
-    category: {
+    [FIELD_NAMES.CATEGORY]: {
         extractor: (item) => {
-            // Primary: Check nested relation object (preferred - backend should include this)
+            if(item.productCategory) return item.productCategory.productCategoryName;
             if (item.staffCategory?.categoryName) return item.staffCategory.categoryName;
             // Fallback: Check direct field (if backend includes it separately)
             if (item.categoryName) return item.categoryName;
             // Legacy: Check old field name
             if (item.category) return item.category;
-            // Note: If staffCategoryId exists but staffCategory relation is null,
-            // the backend query should include the staffCategory relation in the 'include' clause.
-            // Check backend/repositories/forms/aboutKvkRepository.js line 59-61 for includes config.
             return null;
         },
         priority: 7,
@@ -632,7 +638,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     // Note: 'Crop' extractor is defined below using FIELD_NAMES.CROP constant
     [FIELD_NAMES.VARIETY]: {
-        extractor: (item) => item.varietyName || item.variety || null,
+        extractor: (item) => {
+            if (item.varietyName) return item.variety;
+            if (item.speciesName) return item.speciesName;
+            return null
+        }
     },
     'Name of Variety': {
         extractor: (item) => item.varietyName || null,
@@ -737,7 +747,52 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.NUMBER_OF_PARTICIPANTS]: {
         extractor: (item) => {
-            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'];
+            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    [FIELD_NAMES.NO_OF_PARTICIPANTS]: {
+        extractor: (item) => {
+            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    [FIELD_NAMES.RELATED_CROP_LIVESTOCK_TECHNOLOGY]: {
+        extractor: (item) => {
+            // Check display name first (as it exists in the response)
+            const value = item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'] || item.relatedTechnology || item.relatedCropLivestockTechnology;
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    // Display name fallbacks for Related Crop Livestock Technology
+    'Related Crop/Live Stock Technology': {
+        extractor: (item) => {
+            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    'Related crop/livestock technology': {
+        extractor: (item) => {
+            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    'Related Crop Livestock Technology': {
+        extractor: (item) => {
+            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    // Display name fallbacks for No Of Participants
+    'No. of Participants': {
+        extractor: (item) => {
+            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
+            return value !== undefined && value !== null ? String(value) : null;
+        },
+    },
+    'No Of Participants': {
+        extractor: (item) => {
+            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
             return value !== undefined && value !== null ? String(value) : null;
         },
     },
@@ -886,7 +941,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.HEAD_SCIENTIST]: {
-        extractor: (item) => item.headScientist || item.head_scientist || null,
+        extractor: (item) => {
+            if (item.staffName) return item.staffName;
+            if (item.headScientist) return item.headScientist;
+            if (item.scientistName) return item.scientistName;
+            return null;
+        }
     },
     [FIELD_NAMES.FARMER_NAME]: {
         extractor: (item) => item.farmerName || item.farmer_name || null,
@@ -898,7 +958,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item) => item.contactNumber || item.contact_number || null,
     },
     [FIELD_NAMES.STAFF]: {
-        extractor: (item) => item.staffName || item.staff_name || null,
+        extractor: (item) => {
+            if (item.staffName) return item.staffName;
+            if (item.staff_name) return item.staff_name;
+            if (item.staff?.staffName) return item.staff.staffName;
+            return null;
+        }
     },
     [FIELD_NAMES.COURSE]: {
         extractor: (item) => item.courseName || item.course_name || null,

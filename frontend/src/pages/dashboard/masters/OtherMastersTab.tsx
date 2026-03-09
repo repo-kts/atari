@@ -22,6 +22,7 @@ const sections: FeatureSection[] = [
             { label: 'Crop Type Master', path: '/all-master/crop-type' },
             { label: 'Infrastructure Master', path: '/all-master/infrastructure-master' },
             { label: 'Important Day Master', path: '/all-master/important-day' },
+            { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
         ],
     },
 ]

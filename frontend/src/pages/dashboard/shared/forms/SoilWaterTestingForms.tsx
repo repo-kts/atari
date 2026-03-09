@@ -2,9 +2,10 @@ import React, { useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
-import { useYears } from '@/hooks/useOtherMastersData'
-import { useSoilWaterAnalysisMasters } from '@/hooks/useSoilWaterData'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { useYears, useSoilWaterAnalyses } from '@/hooks/useOtherMastersData'
 import { useAuth } from '@/contexts/AuthContext'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface SoilWaterTestingProps {
     entityType: ExtendedEntityType | null
@@ -12,14 +13,14 @@ interface SoilWaterTestingProps {
     setFormData: (data: any) => void
 }
 
-export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
+export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
     entityType,
     formData,
     setFormData,
 }) => {
     const { user } = useAuth()
     const { data: years = [] } = useYears();
-    const { data: analysisMasters = [] } = useSoilWaterAnalysisMasters();
+    const { data: soilWaterAnalyses = [] } = useSoilWaterAnalyses();
 
     // Automatically sync kvkId from user session if it's missing in formData
     React.useEffect(() => {
@@ -36,8 +37,8 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
     }, [years]);
 
     const analysisOptions = useMemo(() =>
-        analysisMasters.map((a: any) => ({ value: String(a.soilWaterAnalysisId), label: a.analysisName })),
-        [analysisMasters]);
+        createMasterDataOptions(soilWaterAnalyses, 'soilWaterAnalysisId', 'analysisName'),
+        [soilWaterAnalyses]);
 
     if (!entityType) return null
 
@@ -55,12 +56,13 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                             options={yearOptions}
                         />
-                        <FormSelect
-                            label="Analysis Type"
+                        <MasterDataDropdown
+                            label="Soil Water Analysis Type"
                             required
                             value={formData.soilWaterAnalysisId || ''}
-                            onChange={(e) => setFormData({ ...formData, soilWaterAnalysisId: e.target.value })}
+                            onChange={(value) => setFormData({ ...formData, soilWaterAnalysisId: value })}
                             options={analysisOptions}
+                            emptyMessage="No soil water analysis types available. Add them from All Masters."
                         />
                         <FormInput
                             label="Name of the Equipment"
@@ -100,12 +102,13 @@ export const SoilWaterTesting: React.FC<SoilWaterTestingProps> = ({
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Analysis"
                             required
-                            value={formData.analysisId || ''}
-                            onChange={(e) => setFormData({ ...formData, analysisId: e.target.value })}
+                            value={formData.analysisId || formData.soilWaterAnalysisId || ''}
+                            onChange={(value) => setFormData({ ...formData, analysisId: value, soilWaterAnalysisId: value })}
                             options={analysisOptions}
+                            emptyMessage="No soil water analysis types available. Add them from All Masters."
                         />
                         <FormSelect
                             label="Samples analyzed Through"

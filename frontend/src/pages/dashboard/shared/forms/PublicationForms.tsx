@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSelect } from './shared/FormComponents'
+import { FormInput } from './shared/FormComponents'
+import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { useYears } from '@/hooks/useOtherMastersData'
+import { usePublicationItems } from '@/hooks/usePublicationData'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface PublicationFormsProps {
     entityType: ExtendedEntityType | null
@@ -14,6 +18,91 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    // Fetch master data from APIs
+    const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: publicationItems = [], isLoading: isLoadingPublications } = usePublicationItems()
+
+    // Memoized options for Year dropdown
+    const yearOptions = useMemo(
+        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        [years]
+    )
+
+    // Memoized options for Publication dropdown
+    // Using publication items from API, fallback to static types if needed
+    const publicationOptions = useMemo(() => {
+        // If publication items exist, use them; otherwise use static types
+        if (publicationItems.length > 0) {
+            return createMasterDataOptions(publicationItems, 'publicationId', 'publicationName')
+        }
+        return []
+    }, [publicationItems])
+
+    // Optimized onChange handlers using useCallback with functional updates
+    // This ensures we always work with the latest state and prevents unnecessary dependencies
+    const handleYearChange = useCallback(
+        (value: string | number) => {
+            setFormData((prev: any) => {
+                const selectedYear = years.find((y: any) => y.yearId === value)
+                return {
+                    ...prev,
+                    year: value,
+                    yearId: value,
+                    reportingYearId: value,
+                    yearName: selectedYear?.yearName || '',
+                }
+            })
+        },
+        [setFormData, years]
+    )
+
+    const handlePublicationChange = useCallback(
+        (value: string | number) => {
+            setFormData((prev: any) => {
+                const selectedPublication = publicationItems.find((p: any) => p.publicationId === value)
+                return {
+                    ...prev,
+                    publication: value,
+                    publicationId: value,
+                    publicationName:
+                        selectedPublication?.publicationName ||
+                        (typeof value === 'string' ? value : ''),
+                }
+            })
+        },
+        [setFormData, publicationItems]
+    )
+
+    // Optimized input change handlers using functional updates
+    // This prevents unnecessary recreations and ensures we always have the latest formData
+    const handleTitleChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, title: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handleAuthorNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, authorName: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handleJournalNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, journalName: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handlePublicationNameChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, publicationName: e.target.value }))
+        },
+        [setFormData]
+    )
+
     if (!entityType) return null
 
     return (
@@ -23,7 +112,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                     label="Publication Item"
                     required
                     value={formData.publicationName || ''}
-                    onChange={(e) => setFormData({ ...formData, publicationName: e.target.value })}
+                    onChange={handlePublicationNameChange}
                     placeholder="Enter publication item"
                 />
             )}
@@ -32,46 +121,41 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Add Publication</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Year"
                             required
-                            value={formData.year || ''}
-                            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                            options={[
-                                { value: '2023-24', label: '2023-24' },
-                                { value: '2024-25', label: '2024-25' },
-                                { value: '2025-26', label: '2025-26' },
-                            ]}
+                            value={formData.yearId || formData.year || formData.reportingYearId || ''}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            isLoading={isLoadingYears}
+                            emptyMessage="No years available. Add them from All Masters."
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Publication"
                             required
-                            value={formData.publication || ''}
-                            onChange={(e) => setFormData({ ...formData, publication: e.target.value })}
-                            options={[
-                                { value: 'Research Paper', label: 'Research Paper' },
-                                { value: 'Technical Bulletins', label: 'Technical Bulletins' },
-                                { value: 'Newsletter', label: 'Newsletter' },
-                                { value: 'Books', label: 'Books' },
-                            ]}
+                            value={formData.publicationId || formData.publication || ''}
+                            onChange={handlePublicationChange}
+                            options={publicationOptions}
+                            isLoading={isLoadingPublications}
+                            emptyMessage="No publications available. Add them from All Masters."
                         />
                         <FormInput
                             label="Title"
                             required
                             value={formData.title || ''}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                            onChange={handleTitleChange}
                         />
                         <FormInput
                             label="Author Name"
                             required
                             value={formData.authorName || ''}
-                            onChange={(e) => setFormData({ ...formData, authorName: e.target.value })}
+                            onChange={handleAuthorNameChange}
                         />
                         <FormInput
                             label="Journal Name"
                             required
                             value={formData.journalName || ''}
-                            onChange={(e) => setFormData({ ...formData, journalName: e.target.value })}
+                            onChange={handleJournalNameChange}
                         />
                     </div>
                 </div>

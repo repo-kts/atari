@@ -171,6 +171,21 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    // Soil Water Testing Masters
+    'soil-water-analysis': {
+        model: 'soilWaterAnalysis',
+        idField: 'soilWaterAnalysisId',
+        nameField: 'analysisName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    analysis: true,
+                    equipments: true,
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -346,6 +361,7 @@ const create = async (entityType, data) => {
         'years',
         'crop-type',
         'important-day',
+        'soil-water-analysis',
     ];
     
     if (entitiesWithSeededData.includes(entityType)) {
@@ -361,7 +377,8 @@ const create = async (entityType, data) => {
                          entityType === 'training-clientele' ? 'clientele_master' :
                          entityType === 'funding-source' ? 'funding_source_master' :
                          entityType === 'crop-type' ? 'crop_type' :
-                         entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' : null;
+                         entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
+                         entityType === 'soil-water-analysis' ? 'soil_water_analysis' : null;
         
         if (tableName) {
             const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
@@ -411,7 +428,8 @@ const create = async (entityType, data) => {
                                  entityType === 'training-clientele' ? 'clientele_master' :
                                  entityType === 'funding-source' ? 'funding_source_master' :
                                  entityType === 'crop-type' ? 'crop_type' :
-                                 entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' : null; 
+                                 entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
+                                 entityType === 'soil-water-analysis' ? 'soil_water_analysis' : null; 
                 
                 const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
                 

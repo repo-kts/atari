@@ -1,104 +1,96 @@
-const farmerAwardRepository = require('../../repositories/forms/farmerAwardRepository');
+const farmerAwardRepository = require('../../repositories/forms/farmerAwardRepository.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
-const farmerAwardService = {
+/**
+ * Farmer Award Service
+ * Business logic layer for Farmer Award operations
+ */
+class FarmerAwardService {
     /**
-     * Create a new Farmer Award
+     * Create new farmer award record
+     * @param {object} data - Farmer award data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Created record
      */
-    createFarmerAward: async (data, user) => {
-        const kvkId = parseInt(user.kvkId || data.kvkId);
-
-        if (!kvkId || isNaN(kvkId)) {
-            throw new Error('KVK selection is required');
+    async createFarmerAward(data, user) {
+        try {
+            return await farmerAwardRepository.create(data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to create farmer award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        if (!data.awardName || !data.farmerName || !(data.year || data.reportingYear) || !data.amount || !data.achievement || !data.conferringAuthority) {
-            throw new Error('All required fields must be filled');
-        }
-
-        const awardData = {
-            kvkId: kvkId,
-            awardName: data.awardName,
-            farmerName: data.farmerName,
-            contactNumber: (data.contactNumber || data.contactNo || '').toString(),
-            address: data.address,
-            year: data.year || data.reportingYear,
-            reportingYear: data.reportingYear || data.year,
-            amount: parseInt(data.amount),
-            achievement: data.achievement,
-            conferringAuthority: data.conferringAuthority,
-            image: (typeof data.image === 'string') ? data.image : null
-        };
-
-        return await farmerAwardRepository.create(awardData, user);
-    },
+    }
 
     /**
-     * Get all Farmer Awards
+     * Get all farmer award records
+     * @param {object} filters - Filter options
+     * @param {object} user - User object from session
+     * @returns {Promise<Array>} Array of records
      */
-    getAllFarmerAwards: async (user) => {
-        return await farmerAwardRepository.findAll(user);
-    },
+    async getAllFarmerAwards(filters = {}, user) {
+        try {
+            return await farmerAwardRepository.findAll(filters, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch farmer awards: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
 
     /**
-     * Get Farmer Award by ID
+     * Get farmer award record by ID
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Record
      */
-    getFarmerAwardById: async (id, user) => {
-        const award = await farmerAwardRepository.findById(id);
-        if (!award) throw new Error('Award not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(award.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized access');
+    async getFarmerAwardById(id, user) {
+        try {
+            return await farmerAwardRepository.findById(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch farmer award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        return award;
-    },
+    }
 
     /**
-     * Update Farmer Award
+     * Update farmer award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} data - Updated data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Updated record
      */
-    updateFarmerAward: async (id, data, user) => {
-        const existing = await farmerAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
+    async updateFarmerAward(id, data, user) {
+        try {
+            return await farmerAwardRepository.update(id, data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to update farmer award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-
-        const updateData = {};
-        if (data.awardName !== undefined) updateData.awardName = data.awardName;
-        if (data.farmerName !== undefined) updateData.farmerName = data.farmerName;
-        if (data.contactNumber !== undefined || data.contactNo !== undefined) {
-            updateData.contactNumber = String(data.contactNumber !== undefined ? data.contactNumber : data.contactNo);
-        }
-        if (data.address !== undefined) updateData.address = data.address;
-        if (data.year !== undefined || data.reportingYear !== undefined) {
-            updateData.reportingYear = data.year || data.reportingYear;
-        }
-        if (data.amount !== undefined) updateData.amount = parseInt(data.amount);
-        if (data.achievement !== undefined) updateData.achievement = data.achievement;
-        if (data.conferringAuthority !== undefined) updateData.conferringAuthority = data.conferringAuthority;
-
-        // Handle images defensively - only update if it's a valid string (URL/Path)
-        if (data.image !== undefined && typeof data.image === 'string' && data.image.trim() !== '') {
-            updateData.image = data.image;
-        }
-
-        return await farmerAwardRepository.update(id, updateData);
-    },
+    }
 
     /**
-     * Delete Farmer Award
+     * Delete farmer award record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Success message
      */
-    deleteFarmerAward: async (id, user) => {
-        const existing = await farmerAwardRepository.findById(id);
-        if (!existing) throw new Error('Award not found');
-
-        if (['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
+    async deleteFarmerAward(id, user) {
+        try {
+            return await farmerAwardRepository.delete(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to delete farmer award: ${error.message}`, 'SERVICE_ERROR', 500);
         }
+    }
+}
 
-        return await farmerAwardRepository.delete(id);
-    },
-};
-
-module.exports = farmerAwardService;
+module.exports = new FarmerAwardService();

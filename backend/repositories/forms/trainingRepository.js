@@ -1,5 +1,5 @@
 const prisma = require('../../config/prisma.js');
-const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet } = require('../../utils/dataSanitizer.js');
+const { sanitizeString, sanitizeInteger } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const {
     validateInput,
@@ -7,7 +7,6 @@ const {
     buildRoleBasedWhere,
     validateRequiredInteger,
     validateRequiredString,
-    validateRequiredNumber,
     validateRequiredDate,
     validateFarmerCounts,
     checkRecordOwnership,
@@ -75,8 +74,9 @@ const resolveCoordinatorFromStaff = async (staffName, staffId, tx = prisma) => {
 
 /**
  * Map response to frontend-friendly format
+ * Note: This function now needs to be async to resolve trainingThematicAreaId and staffId
  */
-const _mapResponse = (r) => {
+const _mapResponse = async (r) => {
     if (!r) return null;
 
     const startDate = r.startDate ? new Date(r.startDate) : null;
@@ -94,6 +94,77 @@ const _mapResponse = (r) => {
         (r.scM || 0) + (r.scF || 0) +
         (r.stM || 0) + (r.stF || 0);
 
+    // Resolve trainingThematicAreaId from thematicArea name
+    let trainingThematicAreaId = null;
+    if (r.thematicArea && r.thematicArea.name && r.trainingAreaId) {
+        try {
+            // First try exact match with trainingAreaId
+            let trainingThematicArea = await prisma.trainingThematicArea.findFirst({
+                where: {
+                    trainingThematicAreaName: { equals: r.thematicArea.name, mode: 'insensitive' },
+                    trainingAreaId: r.trainingAreaId
+                },
+                select: { trainingThematicAreaId: true }
+            });
+            
+            // If not found, try without trainingAreaId constraint (in case the area changed)
+            if (!trainingThematicArea) {
+                trainingThematicArea = await prisma.trainingThematicArea.findFirst({
+                    where: {
+                        trainingThematicAreaName: { equals: r.thematicArea.name, mode: 'insensitive' }
+                    },
+                    select: { trainingThematicAreaId: true }
+                });
+            }
+            
+            // If still not found, try partial match (contains)
+            if (!trainingThematicArea) {
+                trainingThematicArea = await prisma.trainingThematicArea.findFirst({
+                    where: {
+                        trainingThematicAreaName: { contains: r.thematicArea.name, mode: 'insensitive' },
+                        trainingAreaId: r.trainingAreaId
+                    },
+                    select: { trainingThematicAreaId: true }
+                });
+            }
+            
+            if (trainingThematicArea) {
+                trainingThematicAreaId = trainingThematicArea.trainingThematicAreaId;
+            } else {
+                // Try to find any thematic area with similar name as last resort
+                const allThematicAreas = await prisma.trainingThematicArea.findMany({
+                    where: {
+                        trainingAreaId: r.trainingAreaId
+                    },
+                    select: { trainingThematicAreaId: true, trainingThematicAreaName: true }
+                });
+            }
+        } catch (error) {
+            // If lookup fails, log the error
+            console.error('Failed to resolve trainingThematicAreaId:', error);
+        }
+    }
+
+    // Resolve staffId (kvkStaffId) from coordinator name
+    let staffId = null;
+    if (r.coordinator && r.coordinator.name && r.kvkId) {
+        try {
+            const staff = await prisma.kvkStaff.findFirst({
+                where: {
+                    staffName: { equals: r.coordinator.name, mode: 'insensitive' },
+                    kvkId: r.kvkId
+                },
+                select: { kvkStaffId: true }
+            });
+            if (staff) {
+                staffId = staff.kvkStaffId;
+            }
+        } catch (error) {
+            // If lookup fails, staffId remains null
+            console.warn('Failed to resolve staffId from coordinator:', error);
+        }
+    }
+
     return {
         ...r,
         id: r.trainingAchievementId,
@@ -109,10 +180,11 @@ const _mapResponse = (r) => {
         trainingAreaId: r.trainingAreaId,
         trainingArea: r.trainingArea ? r.trainingArea.name : undefined,
         thematicAreaId: r.thematicAreaId,
-        trainingThematicAreaId: r.thematicAreaId, // Map to trainingThematicAreaId for frontend compatibility
+        trainingThematicAreaId: trainingThematicAreaId || r.thematicAreaId, // Resolved from TrainingThematicArea
         thematicArea: r.thematicArea ? r.thematicArea.name : undefined,
         coordinatorId: r.coordinatorId,
         coordinator: r.coordinator ? r.coordinator.name : undefined,
+        staffId: staffId, // Resolved from KvkStaff
         fundingSourceId: r.fundingSourceId,
         fundingSource: r.fundingSource ? r.fundingSource.name : undefined,
         
@@ -366,7 +438,10 @@ const trainingRepository = {
                 }
             });
 
-                return _mapResponse(result);
+                return await _mapResponse(result);
+            }, {
+                maxWait: 15000, // Maximum time to wait for a transaction slot (15 seconds)
+                timeout: 15000, // Maximum time the transaction can run (15 seconds)
             });
         } catch (error) {
             // Provide better error messages for common Prisma errors
@@ -417,7 +492,8 @@ const trainingRepository = {
             orderBy: { trainingAchievementId: 'desc' },
         });
 
-        return results.map(_mapResponse);
+        const mappedResults = await Promise.all(results.map(r => _mapResponse(r)));
+        return mappedResults;
     },
 
     /**
@@ -444,7 +520,7 @@ const trainingRepository = {
             },
         });
 
-        return result ? _mapResponse(result) : null;
+        return result ? await _mapResponse(result) : null;
     },
 
     /**

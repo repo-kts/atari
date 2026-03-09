@@ -164,12 +164,19 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.trainingAreaId) formData.trainingAreaId = item.trainingAreaId;
 
         // Extract thematicAreaId - can come as thematicAreaId or trainingThematicAreaId
-        if (item.thematicAreaId) {
-            formData.thematicAreaId = item.thematicAreaId;
-            formData.trainingThematicAreaId = item.thematicAreaId; // Map for frontend compatibility
-        } else if (item.trainingThematicAreaId) {
-            formData.thematicAreaId = item.trainingThematicAreaId;
+        // Backend now returns both, prioritize trainingThematicAreaId if available
+        if (item.trainingThematicAreaId) {
             formData.trainingThematicAreaId = item.trainingThematicAreaId;
+            // Also set thematicAreaId for backward compatibility
+            if (item.thematicAreaId) {
+                formData.thematicAreaId = item.thematicAreaId;
+            } else {
+                formData.thematicAreaId = item.trainingThematicAreaId;
+            }
+        } else if (item.thematicAreaId) {
+            formData.thematicAreaId = item.thematicAreaId;
+            // Try to use thematicAreaId as trainingThematicAreaId (fallback)
+            formData.trainingThematicAreaId = item.thematicAreaId;
         }
 
         // Extract campusType - convert from enum to display format

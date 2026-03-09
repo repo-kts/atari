@@ -154,6 +154,7 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.CROP_TYPE,
         ENTITY_TYPES.INFRASTRUCTURE_MASTER,
         ENTITY_TYPES.IMPORTANT_DAY,
+        ENTITY_TYPES.SOIL_WATER_ANALYSIS,
     ] as ExtendedEntityType[],
 } as const;
 
@@ -295,6 +296,7 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/all-master/year': ENTITY_TYPES.YEAR,
     '/all-master/crop-type': ENTITY_TYPES.CROP_TYPE,
     '/all-master/infrastructure-master': ENTITY_TYPES.INFRASTRUCTURE_MASTER,
+    '/all-master/soil-water-analysis': ENTITY_TYPES.SOIL_WATER_ANALYSIS,
 
     // Projects
     '/forms/achievements/projects/cfld/technical-parameter': ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM,
