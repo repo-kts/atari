@@ -184,6 +184,21 @@ export interface InfrastructureMasterFormData {
     name: string;
 }
 
+export interface SoilWaterAnalysis {
+    soilWaterAnalysisId: number;
+    analysisName: string;
+    createdAt?: string;
+    updatedAt?: string;
+    _count?: {
+        analysis: number;
+        equipments: number;
+    };
+}
+
+export interface SoilWaterAnalysisFormData {
+    analysisName: string;
+}
+
 // ============================================
 // Season APIs
 // ============================================
@@ -350,4 +365,16 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<InfrastructureMaster>>(`${BASE_URL}/infrastructure-master/${id}`, data),
     deleteInfrastructureMaster: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/infrastructure-master/${id}`),
+
+    // Soil Water Analysis Masters
+    getSoilWaterAnalyses: () =>
+        apiClient.get<PaginatedResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis`),
+    getSoilWaterAnalysisById: (id: number) =>
+        apiClient.get<ApiResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis/${id}`),
+    createSoilWaterAnalysis: (data: SoilWaterAnalysisFormData) =>
+        apiClient.post<ApiResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis`, data),
+    updateSoilWaterAnalysis: (id: number, data: Partial<SoilWaterAnalysisFormData>) =>
+        apiClient.put<ApiResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis/${id}`, data),
+    deleteSoilWaterAnalysis: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/soil-water-analysis/${id}`),
 };

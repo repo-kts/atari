@@ -1,39 +1,96 @@
-const hrdRepository = require('../../repositories/forms/hrdRepository');
+const hrdRepository = require('../../repositories/forms/hrdRepository.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
-const hrdService = {
-    create: async (data, user) => {
-        return await hrdRepository.create(data, user);
-    },
-
-    findAll: async (user) => {
-        return await hrdRepository.findAll(user);
-    },
-
-    findById: async (id) => {
-        return await hrdRepository.findById(id);
-    },
-
-    update: async (id, data, user) => {
-        // Optional: Check if record exists and user has permission to update it
-        if (user.roleName === 'kvk_admin' || user.roleName === 'kvk_user') {
-            const existing = await hrdRepository.findById(id);
-            if (!existing || existing.kvkId !== parseInt(user.kvkId)) {
-                throw new Error('Unauthorized or record not found');
+/**
+ * HRD Program Service
+ * Business logic layer for HRD Program operations
+ */
+class HrdService {
+    /**
+     * Create new HRD program record
+     * @param {object} data - HRD program data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Created record
+     */
+    async create(data, user) {
+        try {
+            return await hrdRepository.create(data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
             }
+            throw new RepositoryError(`Failed to create HRD program: ${error.message}`, 'SERVICE_ERROR', 500);
         }
-        return await hrdRepository.update(id, data);
-    },
-
-    delete: async (id, user) => {
-        // Optional: Check if record exists and user has permission to delete it
-        if (user.roleName === 'kvk_admin' || user.roleName === 'kvk_user') {
-            const existing = await hrdRepository.findById(id);
-            if (!existing || existing.kvkId !== parseInt(user.kvkId)) {
-                throw new Error('Unauthorized or record not found');
-            }
-        }
-        return await hrdRepository.delete(id);
     }
-};
 
-module.exports = hrdService;
+    /**
+     * Get all HRD program records
+     * @param {object} filters - Filter options
+     * @param {object} user - User object from session
+     * @returns {Promise<Array>} Array of records
+     */
+    async findAll(filters = {}, user) {
+        try {
+            return await hrdRepository.findAll(filters, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch HRD programs: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
+
+    /**
+     * Get HRD program record by ID
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Record
+     */
+    async findById(id, user) {
+        try {
+            return await hrdRepository.findById(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch HRD program: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
+
+    /**
+     * Update HRD program record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} data - Updated data
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Updated record
+     */
+    async update(id, data, user) {
+        try {
+            return await hrdRepository.update(id, data, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to update HRD program: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
+
+    /**
+     * Delete HRD program record
+     * @param {string} id - Record ID (UUID)
+     * @param {object} user - User object from session
+     * @returns {Promise<object>} Success message
+     */
+    async delete(id, user) {
+        try {
+            return await hrdRepository.delete(id, user);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to delete HRD program: ${error.message}`, 'SERVICE_ERROR', 500);
+        }
+    }
+}
+
+module.exports = new HrdService();

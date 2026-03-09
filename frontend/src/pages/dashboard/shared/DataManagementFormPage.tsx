@@ -19,9 +19,9 @@ import { TrainingExtensionForms } from './forms/TrainingExtensionForms'
 import { ProductionProjectForms } from './forms/ProductionProjectForms'
 import { PublicationForms } from './forms/PublicationForms'
 import { AboutKvkForms } from './forms/AboutKvkForms'
-import { SoilWaterTesting } from './forms/SoilWaterTesting'
-import { HRD } from './forms/HRD'
-import { AwardRecognition } from './forms/AwardRecognition'
+import { SoilWaterTestingForms } from './forms/SoilWaterTestingForms'
+import { HRDForms } from './forms/HRDForms'
+import { AwardRecognition } from './forms/AwardRecognitionForms'
 import { ProjectForms } from './forms/ProjectForms'
 
 interface DataManagementFormPageProps {
@@ -134,7 +134,7 @@ export function DataManagementFormPage({
                         )}
 
                         {isSoilWaterTesting && (
-                            <SoilWaterTesting
+                            <SoilWaterTestingForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}
@@ -142,7 +142,7 @@ export function DataManagementFormPage({
                         )}
 
                         {isHrd && (
-                            <HRD
+                            <HRDForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}

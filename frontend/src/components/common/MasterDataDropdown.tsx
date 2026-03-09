@@ -13,6 +13,7 @@ interface MasterDataDropdownProps {
     placeholder?: string;
     disabled?: boolean;
     emptyMessage?: string;
+    loadingMessage?: string;
     showEmptyState?: boolean;
 }
 
@@ -31,6 +32,7 @@ export const MasterDataDropdown: React.FC<MasterDataDropdownProps> = ({
     placeholder,
     disabled = false,
     emptyMessage = 'No options available',
+    loadingMessage = 'Loading...',
     showEmptyState = true,
 }) => {
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -53,6 +55,14 @@ export const MasterDataDropdown: React.FC<MasterDataDropdownProps> = ({
                 placeholder={placeholder || `Select ${label}`}
                 disabled={disabled || isLoading}
             />
+
+            {/* Loading State */}
+            {isLoading && (
+                <div className="flex items-center gap-2 p-3 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl">
+                    <Info className="w-4 h-4 text-[#757575] animate-pulse" />
+                    <span className="text-sm text-[#757575]">{loadingMessage}</span>
+                </div>
+            )}
 
             {/* Empty State */}
             {showEmpty && (

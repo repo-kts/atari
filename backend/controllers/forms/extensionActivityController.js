@@ -1,4 +1,5 @@
 const extensionActivityService = require('../../services/forms/extensionActivityService.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
 const extensionActivityController = {
     /**
@@ -14,9 +15,10 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.create:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to create extension activity',
+                message: error.message || 'Failed to create extension activity',
                 error: error.message
             });
         }
@@ -36,9 +38,10 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.getAll:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to fetch extension activities',
+                message: error.message || 'Failed to fetch extension activities',
                 error: error.message
             });
         }
@@ -62,9 +65,10 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.getById:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to fetch extension activity',
+                message: error.message || 'Failed to fetch extension activity',
                 error: error.message
             });
         }
@@ -83,10 +87,11 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.update:', error);
-            const status = error.message === 'Extension activity not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
-            res.status(status).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
                 message: error.message || 'Failed to update extension activity',
+                error: error.message
             });
         }
     },
@@ -103,10 +108,11 @@ const extensionActivityController = {
             });
         } catch (error) {
             console.error('Error in extensionActivityController.delete:', error);
-            const status = error.message === 'Extension activity not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
-            res.status(status).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
                 message: error.message || 'Failed to delete extension activity',
+                error: error.message
             });
         }
     },

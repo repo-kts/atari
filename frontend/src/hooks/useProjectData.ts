@@ -19,6 +19,8 @@ export function useProjectData(entityType: string) {
         'achievement-other-extension': '/forms/achievements/other-extension-activities',
         'achievement-technology-week': '/forms/achievements/technology-week',
         'achievement-celebration-days': '/forms/achievements/celebration-days',
+        'achievement-production-supply': '/forms/achievements/production-supply',
+        'achievement-publication-details': '/forms/achievements/publication-details',
         'project-cfld-technical-param': '/forms/achievements/cfld-technical-parameters',
         'project-cfld-extension-activity': '/forms/achievements/cfld-extension-activities',
         'project-cfld-budget': '/forms/achievements/cfld-budget-utilizations',
@@ -65,7 +67,7 @@ export function useProjectData(entityType: string) {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: any }) =>
+        mutationFn: ({ id, data }: { id: number | string; data: any }) =>
             apiClient.patch(`${endpoint}/${id}`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
@@ -73,7 +75,7 @@ export function useProjectData(entityType: string) {
     });
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number) => apiClient.delete(`${endpoint}/${id}`),
+        mutationFn: (id: number | string) => apiClient.delete(`${endpoint}/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
         },

@@ -46,6 +46,35 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
         }
     }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
 
+    // Sync activityId to extensionActivityTypeId for edit mode compatibility
+    useEffect(() => {
+        if (formData.activityId && !formData.extensionActivityTypeId && entityType === ENTITY_TYPES.ACHIEVEMENT_EXTENSION) {
+            setFormData((prev: any) => ({ ...prev, extensionActivityTypeId: prev.activityId }))
+        }
+    }, [formData.activityId, formData.extensionActivityTypeId, entityType, setFormData])
+
+    // Sync activityTypeId to otherExtensionActivityTypeId for edit mode compatibility
+    useEffect(() => {
+        if (formData.activityTypeId && !formData.otherExtensionActivityTypeId && entityType === ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION) {
+            setFormData((prev: any) => ({ ...prev, otherExtensionActivityTypeId: prev.activityTypeId }))
+        }
+    }, [formData.activityTypeId, formData.otherExtensionActivityTypeId, entityType, setFormData])
+
+    // Sync thematicAreaId to trainingThematicAreaId for edit mode compatibility
+    // Backend now returns trainingThematicAreaId, but we still sync if only thematicAreaId is present
+    useEffect(() => {
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_TRAINING) {
+            // If we have thematicAreaId but no trainingThematicAreaId, use thematicAreaId as fallback
+            if (formData.thematicAreaId && !formData.trainingThematicAreaId) {
+                setFormData((prev: any) => ({ ...prev, trainingThematicAreaId: prev.thematicAreaId }))
+            }
+            // Also ensure trainingThematicAreaId is set if we have it from backend
+            if (formData.trainingThematicAreaId && !formData.thematicAreaId) {
+                setFormData((prev: any) => ({ ...prev, thematicAreaId: prev.trainingThematicAreaId }))
+            }
+        }
+    }, [formData.thematicAreaId, formData.trainingThematicAreaId, entityType, setFormData])
+
     // Master data hooks
     const { data: trainingTypes = [] } = useTrainingTypes()
     const { data: trainingAreas = [] } = useTrainingAreas()
@@ -58,6 +87,31 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     // KVK Staff dropdown - depends on kvkId
     const activeKvkId = user?.kvkId || formData.kvkId
     const { data: kvkStaffData = [], isLoading: isLoadingKvkStaff } = useKvkStaffForDropdown(activeKvkId)
+
+    // Sync coordinatorId/coordinator to staffId for edit mode compatibility
+    // Backend now returns staffId, but we still sync if only coordinatorId/coordinator is present
+    useEffect(() => {
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_TRAINING && kvkStaffData && kvkStaffData.length > 0) {
+            // If we have coordinatorId or coordinator name but no staffId, try to find matching staff
+            if ((formData.coordinatorId || formData.coordinator) && !formData.staffId) {
+                const coordinatorName = formData.coordinator || formData.coordinatorName || formData.staffName;
+                if (coordinatorName) {
+                    // Find staff by name (case-insensitive)
+                    const matchingStaff = kvkStaffData.find((staff: any) =>
+                        staff.staffName &&
+                        staff.staffName.toLowerCase() === coordinatorName.toLowerCase()
+                    );
+                    if (matchingStaff) {
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            staffId: matchingStaff.kvkStaffId,
+                            staffName: matchingStaff.staffName
+                        }));
+                    }
+                }
+            }
+        }
+    }, [formData.coordinatorId, formData.coordinator, formData.staffId, entityType, kvkStaffData, setFormData])
 
     // Training Thematic Areas - depends on trainingAreaId
     const { data: trainingThematicAreasData = [], isLoading: isLoadingTrainingThematicAreas } = useTrainingThematicAreasByArea(
@@ -319,7 +373,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <DependentDropdown
                             label="Thematic Area"
                             required
-                            value={formData.trainingThematicAreaId || formData.thematicAreaId || formData.thematicArea || ''}
+                            value={formData.trainingThematicAreaId ? parseInt(formData.trainingThematicAreaId) : (formData.thematicAreaId ? parseInt(formData.thematicAreaId) : '')}
                             onChange={handleTrainingThematicAreaChange}
                             options={trainingThematicAreasData?.map((t: any) => ({
                                 value: t.trainingThematicAreaId,
@@ -361,7 +415,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <DependentDropdown
                             label="Course Co-ordinator"
                             required
-                            value={formData.staffId || formData.coordinatorId || formData.coordinator || ''}
+                            value={formData.staffId ? parseInt(formData.staffId) : (formData.coordinatorId ? parseInt(formData.coordinatorId) : '')}
                             onChange={(value) => handleStaffChange(value, kvkStaffData || [], setFormData, formData)}
                             options={createStaffOptions(kvkStaffData || [])}
                             dependsOn={{
@@ -437,7 +491,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
-                            value={formData.extensionActivityTypeId || formData.extensionActivityType || ''}
+                            value={formData.extensionActivityTypeId || formData.activityId || formData.extensionActivityType || ''}
                             onChange={handleExtensionActivityTypeChange}
                             options={createMasterDataOptions(extensionActivityTypes, 'activityId', 'activityName')}
                             emptyMessage="No extension activity types available"
@@ -522,7 +576,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
-                            value={formData.otherExtensionActivityTypeId || formData.extensionActivityType || ''}
+                            value={formData.otherExtensionActivityTypeId || formData.activityTypeId || formData.extensionActivityType || ''}
                             onChange={handleOtherExtensionActivityTypeChange}
                             options={createMasterDataOptions(otherExtensionActivityTypes, 'activityTypeId', 'activityName')}
                             emptyMessage="No other extension activity types available"
@@ -552,34 +606,6 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
-
-                    <FormSection title="Farmers">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
-
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
-                        </div>
-                    </FormSection>
-
-                    <FormSection title="Extension Officials">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.ext_gen_m || ''} onChange={e => setFormData({ ...formData, ext_gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.ext_gen_f || ''} onChange={e => setFormData({ ...formData, ext_gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.ext_obc_m || ''} onChange={e => setFormData({ ...formData, ext_obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.ext_obc_f || ''} onChange={e => setFormData({ ...formData, ext_obc_f: e.target.value })} />
-
-                            <FormInput label="SC_M" required type="number" value={formData.ext_sc_m || ''} onChange={e => setFormData({ ...formData, ext_sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
-                        </div>
-                    </FormSection>
                 </div>
             )}
 

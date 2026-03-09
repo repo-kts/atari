@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronLeft } from 'lucide-react'
@@ -12,7 +12,7 @@ import { ErrorState } from '@/components/common/ErrorState'
 import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '@/config/routeConfig'
 import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { getEntityTypeFromPath, getFieldValue } from '@/utils/masterUtils'
+import { getEntityTypeFromPath, getFieldValue, resolveTableFields } from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
@@ -165,7 +165,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // needing a manual local state layer or a page refresh.
     const items = Array.isArray(activeHook?.data) ? activeHook.data : []
 
-    const fields = propFields && propFields.length > 0 ? propFields : ['name']
+    // Resolve fields using centralized utility function
+    // This ensures fields are always available even when there's no data
+    const fields = useMemo(
+        () => resolveTableFields(routeConfig, propFields),
+        [routeConfig, propFields]
+    )
     const itemsPerPage = 10
 
     // Reset pagination/search when route changes (tab switch)
@@ -184,23 +189,32 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return () => clearTimeout(timer)
     }, [searchQuery])
 
-    // Filter data based on search
-    const filteredData = items.filter((item: any) => {
-        if (!debouncedSearch.trim()) return true
-        const query = debouncedSearch.toLowerCase()
-        return fields.some(field => {
-            const value = getFieldValue(item, field)
-            return value && String(value).toLowerCase().includes(query)
-        })
-    })
+    // Filter data based on search - memoized for performance
+    const filteredData = useMemo(() => {
+        if (!debouncedSearch.trim()) return items
 
-    // Pagination
-    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
-    // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
-    const safePage = Math.min(currentPage, totalPages)
-    const startIndex = (safePage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedData = filteredData.slice(startIndex, endIndex)
+        const query = debouncedSearch.toLowerCase()
+        return items.filter((item: any) => {
+            return fields.some(field => {
+                const value = getFieldValue(item, field)
+                return value && String(value).toLowerCase().includes(query)
+            })
+        })
+    }, [items, debouncedSearch, fields])
+
+    // Pagination calculations - memoized for performance
+    const paginationData = useMemo(() => {
+        const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
+        // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
+        const safePage = Math.min(currentPage, totalPages)
+        const startIndex = (safePage - 1) * itemsPerPage
+        const endIndex = startIndex + itemsPerPage
+        const paginatedData = filteredData.slice(startIndex, endIndex)
+
+        return { totalPages, safePage, startIndex, endIndex, paginatedData }
+    }, [filteredData, currentPage, itemsPerPage])
+
+    const { totalPages, safePage, startIndex, endIndex, paginatedData } = paginationData
 
     const handleEdit = (item: any) => {
         handleEditItem({

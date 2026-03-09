@@ -1,303 +1,375 @@
 const prisma = require('../../config/prisma.js');
-
-const normalizeActivityName = (v) => {
-    if (v === undefined || v === null) return null;
-    const name = String(v).trim();
-    return name.length > 0 ? name : null;
-};
+const { Prisma } = require('@prisma/client');
+const {
+    RepositoryError,
+    parseInteger,
+    parseDate,
+    validateDateRange,
+    validateKvkExists,
+    validateFldExists,
+    resolveStaffId,
+    resolveOtherExtensionActivityTypeId,
+} = require('../../utils/repositoryHelpers');
 
 const otherExtensionActivityRepository = {
-    create: async (data, user) => {
-        // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
-        let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
+    create: async (data, opts, user) => {
+        try {
+            // Validate input data
+            if (!data || typeof data !== 'object') {
+                throw new RepositoryError('Invalid input data', 'VALIDATION_ERROR', 400);
+            }
 
-        if (!kvkId || isNaN(kvkId)) {
-            throw new Error('Valid kvkId is required');
-        }
-        kvkId = parseInt(kvkId);
-        const fldId = data.fldId ? parseInt(data.fldId) : null;
-        let staffId = parseInt(data.staffId);
-        if (isNaN(staffId) && data.staffName) {
-            const staffRows = await prisma.$queryRawUnsafe(
-                `SELECT kvk_staff_id FROM kvk_staff WHERE staff_name = $1 LIMIT 1`,
-                String(data.staffName)
+            // Resolve kvkId: prioritized from user session (if linked to a KVK like Gaya), then from data.
+            let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
+
+            if (!kvkId || isNaN(kvkId)) {
+                throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);
+            }
+            kvkId = parseInt(kvkId);
+
+            // Validate KVK exists
+            await validateKvkExists(kvkId);
+
+            // Resolve staff ID
+            let staffId = null;
+            if (data.staffId !== undefined) {
+                staffId = await resolveStaffId(data.staffId, kvkId, false);
+            } else if (data.staffName !== undefined) {
+                staffId = await resolveStaffId(data.staffName, kvkId, false);
+            }
+
+            // Resolve activity type ID
+            let activityTypeId = null;
+            if (data.activityTypeId !== undefined) {
+                activityTypeId = await resolveOtherExtensionActivityTypeId(data.activityTypeId, false);
+            } else if (data.extensionActivityType !== undefined) {
+                activityTypeId = await resolveOtherExtensionActivityTypeId(data.extensionActivityType, false);
+            }
+
+            // Validate and parse fldId
+            const fldId = data.fldId ? parseInteger(data.fldId, 'fldId', true) : null;
+            if (fldId) {
+                await validateFldExists(fldId, kvkId);
+            }
+
+            // Validate and parse dates
+            const startDate = data.startDate ? parseDate(data.startDate, 'startDate', false) : null;
+            const endDate = data.endDate ? parseDate(data.endDate, 'endDate', false) : null;
+            validateDateRange(startDate, endDate);
+
+            // Validate numberOfActivities
+            const numberOfActivities = parseInteger(
+                data.numberOfActivities ?? data.activityCount ?? 0,
+                'numberOfActivities',
+                false
             );
-            if (staffRows && staffRows.length > 0) staffId = staffRows[0].kvk_staff_id;
-        }
-        let activityTypeId = parseInt(data.activityTypeId);
-        if (isNaN(activityTypeId) && data.extensionActivityType) {
-            const activityName = normalizeActivityName(data.extensionActivityType);
-            if (activityName) {
-                // Use a transaction and ILIKE check to avoid duplicates.
-                const activityIdResult = await prisma.$transaction(async (tx) => {
-                    const activityRows = await tx.$queryRawUnsafe(
-                        `SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`,
-                        activityName
-                    );
-                    if (activityRows && activityRows.length > 0) {
-                        return activityRows[0].activity_type_id;
-                    } else {
-                        const insertedType = await tx.$queryRawUnsafe(
-                            `INSERT INTO other_extension_activity_type (activity_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING activity_type_id`,
-                            activityName
-                        );
-                        return insertedType[0].activity_type_id;
-                    }
-                });
-                activityTypeId = activityIdResult;
+
+            // Prepare create data (no participant fields)
+            const createData = {
+                kvkId,
+                fldId,
+                staffId,
+                activityTypeId,
+                numberOfActivities,
+                startDate,
+                endDate,
+            };
+
+            // Create the record using Prisma
+            const result = await prisma.kvkOtherExtensionActivity.create({
+                data: createData,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    staff: { select: { staffName: true } },
+                    activityType: { select: { activityName: true } },
+                }
+            });
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
             }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2002') {
+                    throw new RepositoryError('A record with these values already exists', 'DUPLICATE_ERROR', 409);
+                }
+                if (error.code === 'P2003') {
+                    throw new RepositoryError('Invalid foreign key reference', 'VALIDATION_ERROR', 400);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to create other extension activity: ${error.message}`, 'CREATE_ERROR', 500);
         }
-        if (isNaN(staffId)) staffId = null;
-        if (isNaN(activityTypeId)) activityTypeId = null;
-        const safeInt = (v) => (v === null || v === undefined || isNaN(parseInt(String(v)))) ? 0 : parseInt(String(v), 10);
-        const numberOfActivities = safeInt(data.activityCount ?? data.numberOfActivities);
-        const startDate = data.startDate ? new Date(data.startDate).toISOString() : null;
-        const endDate = data.endDate ? new Date(data.endDate).toISOString() : null;
-
-        const farmersGeneralM = safeInt(data.gen_m ?? data.farmersGeneralM);
-        const farmersGeneralF = safeInt(data.gen_f ?? data.farmersGeneralF);
-        const farmersObcM = safeInt(data.obc_m ?? data.farmersObcM);
-        const farmersObcF = safeInt(data.obc_f ?? data.farmersObcF);
-        const farmersScM = safeInt(data.sc_m ?? data.farmersScM);
-        const farmersScF = safeInt(data.sc_f ?? data.farmersScF);
-        const farmersStM = safeInt(data.st_m ?? data.farmersStM);
-        const farmersStF = safeInt(data.st_f ?? data.farmersStF);
-
-        const officialsGeneralM = safeInt(data.ext_gen_m ?? data.officialsGeneralM);
-        const officialsGeneralF = safeInt(data.ext_gen_f ?? data.officialsGeneralF);
-        const officialsObcM = safeInt(data.ext_obc_m ?? data.officialsObcM);
-        const officialsObcF = safeInt(data.ext_obc_f ?? data.officialsObcF);
-        const officialsScM = safeInt(data.ext_sc_m ?? data.officialsScM);
-        const officialsScF = safeInt(data.ext_sc_f ?? data.officialsScF);
-        const officialsStM = safeInt(data.ext_st_m ?? data.officialsStM);
-        const officialsStF = safeInt(data.ext_st_f ?? data.officialsStF);
-
-        const inserted = await prisma.$queryRawUnsafe(`
-            INSERT INTO kvk_other_extension_activity 
-            ("kvkId", "fldId", "staffId", "activityTypeId", number_of_activities, start_date, end_date,
-             farmers_general_m, farmers_general_f, farmers_obc_m, farmers_obc_f,
-             farmers_sc_m, farmers_sc_f, farmers_st_m, farmers_st_f,
-             officials_general_m, officials_general_f, officials_obc_m, officials_obc_f,
-             officials_sc_m, officials_sc_f, officials_st_m, officials_st_f,
-             created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6::timestamp, $7::timestamp,
-                    $8, $9, $10, $11, $12, $13, $14, $15,
-                    $16, $17, $18, $19, $20, $21, $22, $23,
-                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            RETURNING kvk_other_extension_activity_id;
-        `, kvkId, fldId, staffId, activityTypeId, numberOfActivities, startDate, endDate,
-            farmersGeneralM, farmersGeneralF, farmersObcM, farmersObcF,
-            farmersScM, farmersScF, farmersStM, farmersStF,
-            officialsGeneralM, officialsGeneralF, officialsObcM, officialsObcF,
-            officialsScM, officialsScF, officialsStM, officialsStF);
-        return await otherExtensionActivityRepository.findById(inserted[0].kvk_other_extension_activity_id, user);
     },
+
     findAll: async (filters = {}, user) => {
-        let whereClause = '';
-        const queryParams = [];
-        // Strict isolation for KVK-scoped users (like Gaya)
-        if (user && user.kvkId) {
-            whereClause = `WHERE o."kvkId" = $1`;
-            queryParams.push(parseInt(user.kvkId));
-        } else if (filters.kvkId) {
-            whereClause = `WHERE o."kvkId" = $1`;
-            queryParams.push(parseInt(filters.kvkId));
-        }
-        const sql = `
-            SELECT o.*, k.kvk_name, s.staff_name, t.activity_name
-            FROM kvk_other_extension_activity o
-            LEFT JOIN kvk k ON o."kvkId" = k.kvk_id
-            LEFT JOIN kvk_staff s ON o."staffId" = s.kvk_staff_id
-            LEFT JOIN other_extension_activity_type t ON o."activityTypeId" = t.activity_type_id
-            ${whereClause}
-            ORDER BY o.kvk_other_extension_activity_id DESC;
-        `;
-        const rows = await prisma.$queryRawUnsafe(sql, ...queryParams);
-        return rows.map(r => otherExtensionActivityRepository._mapResponse(r));
-    },
-    findById: async (id, user) => {
-        let whereClause = 'WHERE o.kvk_other_extension_activity_id = $1';
-        const params = [parseInt(id)];
-
-        if (user && user.kvkId) {
-            whereClause += ' AND o."kvkId" = $2';
-            params.push(parseInt(user.kvkId));
-        }
-
-        const rows = await prisma.$queryRawUnsafe(`
-            SELECT o.*, k.kvk_name, s.staff_name, t.activity_name
-            FROM kvk_other_extension_activity o
-            LEFT JOIN kvk k ON o."kvkId" = k.kvk_id
-            LEFT JOIN kvk_staff s ON o."staffId" = s.kvk_staff_id
-            LEFT JOIN other_extension_activity_type t ON o."activityTypeId" = t.activity_type_id
-            ${whereClause};
-        `, ...params);
-        if (!rows || !rows.length) return null;
-        return otherExtensionActivityRepository._mapResponse(rows[0]);
-    },
-    _mapResponse: (r) => {
-        const startDate = r.start_date ? new Date(r.start_date).toISOString().split('T')[0] : '';
-        const endDate = r.end_date ? new Date(r.end_date).toISOString().split('T')[0] : '';
-        let reportingYearStr = null;
-        if (startDate) {
-            const date = new Date(startDate);
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            const startYear = month >= 4 ? year : year - 1;
-            reportingYearStr = String(startYear);
-        } else {
-            // Compute from current date when startDate is missing
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const startYear = month >= 4 ? year : year - 1;
-            reportingYearStr = String(startYear);
-        }
-        const safeInt = (v) => (v === null || v === undefined) ? null : Number(String(v));
-        const activityCount = safeInt(r.number_of_activities);
-        const recordId = safeInt(r.kvk_other_extension_activity_id);
-        return {
-            id: recordId,
-            otherExtensionActivityId: recordId,
-            extensionActivityId: recordId,
-            kvkId: safeInt(r['kvkId'] ?? r.kvkId),
-            kvkName: r.kvk_name,
-            kvk: { kvkName: r.kvk_name },
-            staffId: safeInt(r['staffId'] ?? r.staffId),
-            staffName: r.staff_name,
-            staff: { staffName: r.staff_name },
-            activityTypeId: safeInt(r['activityTypeId'] ?? r.activityTypeId),
-            activityId: safeInt(r['activityTypeId'] ?? r.activityTypeId),
-            extensionActivityType: r.activity_name,
-            activity: { activityName: r.activity_name },
-            activityCount,
-            numberOfActivities: activityCount,
-            startDate,
-            endDate,
-            reportingYear: reportingYearStr,
-
-            // Participant fields
-            gen_m: safeInt(r.farmers_general_m || r.gen_m), gen_f: safeInt(r.farmers_general_f || r.gen_f),
-            obc_m: safeInt(r.farmers_obc_m || r.obc_m), obc_f: safeInt(r.farmers_obc_f || r.obc_f),
-            sc_m: safeInt(r.farmers_sc_m || r.sc_m), sc_f: safeInt(r.farmers_sc_f || r.sc_f),
-            st_m: safeInt(r.farmers_st_m || r.st_m), st_f: safeInt(r.farmers_st_f || r.st_f),
-            ext_gen_m: safeInt(r.officials_general_m), ext_gen_f: safeInt(r.officials_general_f),
-            ext_obc_m: safeInt(r.officials_obc_m), ext_obc_f: safeInt(r.officials_obc_f),
-            ext_sc_m: safeInt(r.officials_sc_m), ext_sc_f: safeInt(r.officials_sc_f),
-            ext_st_m: safeInt(r.officials_st_m), ext_st_f: safeInt(r.officials_st_f),
-
-            'Reporting Year': reportingYearStr,
-            'KVK Name': r.kvk_name,
-            'Nature of Extension Activity': r.activity_name,
-            'No. of activities': activityCount,
-        };
-    },
-    update: async (id, data, user) => {
-        const updates = [];
-        const values = [];
-        let index = 1;
-        const toInt = (v) => (v === null || v === undefined || isNaN(parseInt(String(v)))) ? 0 : parseInt(String(v), 10);
-
-        if (data.fldId !== undefined) {
-            updates.push('"fldId" = $' + (index++));
-            values.push(data.fldId ? parseInt(data.fldId) : null);
-        }
-
-        if (data.staffName !== undefined) {
-            const staffRows = await prisma.$queryRawUnsafe(`SELECT kvk_staff_id FROM kvk_staff WHERE staff_name = $1 LIMIT 1`, String(data.staffName));
-            if (staffRows && staffRows.length > 0) {
-                updates.push('"staffId" = $' + (index++));
-                values.push(Number(String(staffRows[0].kvk_staff_id)));
-            }
-        } else if (data.staffId !== undefined) {
-            updates.push('"staffId" = $' + (index++));
-            values.push(data.staffId ? parseInt(data.staffId) : null);
-        }
-
-        if (data.extensionActivityType !== undefined) {
-            const activityName = normalizeActivityName(data.extensionActivityType);
-            if (activityName) {
-                const typeId = await prisma.$transaction(async (tx) => {
-                    const typeRows = await tx.$queryRawUnsafe(`SELECT activity_type_id FROM other_extension_activity_type WHERE activity_name ILIKE $1 LIMIT 1`, activityName);
-                    if (typeRows && typeRows.length > 0) {
-                        return Number(String(typeRows[0].activity_type_id));
-                    } else {
-                        const inserted = await tx.$queryRawUnsafe(`INSERT INTO other_extension_activity_type (activity_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING activity_type_id`, activityName);
-                        return Number(String(inserted[0].activity_type_id));
-                    }
-                });
-                updates.push('"activityTypeId" = $' + (index++));
-                values.push(typeId);
-            } else {
-                updates.push('"activityTypeId" = $' + (index++));
-                values.push(null);
-            }
-        } else if (data.activityTypeId !== undefined) {
-            updates.push('"activityTypeId" = $' + (index++));
-            values.push(data.activityTypeId ? parseInt(data.activityTypeId) : null);
-        }
-
-        if (data.activityCount !== undefined || data.numberOfActivities !== undefined) {
-            updates.push('number_of_activities = $' + (index++));
-            const rawVal = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
-            values.push(toInt(rawVal));
-        }
-
-        if (data.startDate !== undefined) {
-            updates.push('start_date = $' + (index++) + '::timestamp');
-            values.push(new Date(data.startDate).toISOString());
-        }
-        if (data.endDate !== undefined) {
-            updates.push('end_date = $' + (index++) + '::timestamp');
-            values.push(new Date(data.endDate).toISOString());
-        }
-
-        // Participant fields mapping
-        const participantMapping = {
-            gen_m: 'farmers_general_m', gen_f: 'farmers_general_f',
-            obc_m: 'farmers_obc_m', obc_f: 'farmers_obc_f',
-            sc_m: 'farmers_sc_m', sc_f: 'farmers_sc_f',
-            st_m: 'farmers_st_m', st_f: 'farmers_st_f',
-            ext_gen_m: 'officials_general_m', ext_gen_f: 'officials_general_f',
-            ext_obc_m: 'officials_obc_m', ext_obc_f: 'officials_obc_f',
-            ext_sc_m: 'officials_sc_m', ext_sc_f: 'officials_sc_f',
-            ext_st_m: 'officials_st_m', ext_st_f: 'officials_st_f'
-        };
-
-        for (const [front, back] of Object.entries(participantMapping)) {
-            const val = data[front] !== undefined ? data[front] : data[back];
-            if (val !== undefined) {
-                updates.push(`${back} = $${index++}`);
-                values.push(toInt(val));
-            }
-        }
-
-        if (updates.length > 0) {
-            let sql = 'UPDATE kvk_other_extension_activity SET ' + updates.join(', ') + ' WHERE kvk_other_extension_activity_id = $' + index;
-            const finalParams = [...values, parseInt(id)];
-
+        try {
+            const where = {};
+            // Strict isolation for KVK-scoped users (like Gaya)
             if (user && user.kvkId) {
-                sql += ' AND "kvkId" = $' + (index + 1);
-                finalParams.push(parseInt(user.kvkId));
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            } else if (filters.kvkId) {
+                const kvkId = parseInteger(filters.kvkId, 'filters.kvkId', false);
+                where.kvkId = kvkId;
             }
 
-            const result = await prisma.$executeRawUnsafe(sql, ...finalParams);
-            if (result === 0) throw new Error("Record not found or unauthorized");
+            const results = await prisma.kvkOtherExtensionActivity.findMany({
+                where,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    staff: { select: { staffName: true } },
+                    activityType: { select: { activityName: true } },
+                },
+                orderBy: { otherExtensionActivityId: 'desc' },
+            });
+            return results.map(_mapResponse);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch other extension activities: ${error.message}`, 'FETCH_ERROR', 500);
         }
-        return await otherExtensionActivityRepository.findById(id, user);
     },
-    delete: async (id, user) => {
-        let sql = 'DELETE FROM kvk_other_extension_activity WHERE kvk_other_extension_activity_id = $1';
-        const params = [parseInt(id)];
 
-        if (user && user.kvkId) {
-            sql += ' AND "kvkId" = $2';
-            params.push(parseInt(user.kvkId));
+    findById: async (id, user) => {
+        try {
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+
+            const otherExtensionActivityId = parseInteger(id, 'id', false);
+            const where = { otherExtensionActivityId };
+            
+            if (user && user.kvkId) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            const result = await prisma.kvkOtherExtensionActivity.findFirst({
+                where,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    staff: { select: { staffName: true } },
+                    activityType: { select: { activityName: true } },
+                },
+            });
+
+            if (!result) {
+                throw new RepositoryError('Other extension activity not found', 'NOT_FOUND', 404);
+            }
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch other extension activity: ${error.message}`, 'FETCH_ERROR', 500);
         }
+    },
 
-        const result = await prisma.$executeRawUnsafe(sql, ...params);
-        if (result === 0) throw new Error("Record not found or unauthorized");
-        return { success: true };
+    update: async (id, data, user) => {
+        try {
+            // Validate input
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+            if (!data || typeof data !== 'object') {
+                throw new RepositoryError('Invalid input data', 'VALIDATION_ERROR', 400);
+            }
+
+            const otherExtensionActivityId = parseInteger(id, 'id', false);
+            const where = { otherExtensionActivityId };
+            
+            if (user && user.kvkId) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            // Verify record exists and user has access
+            const existing = await prisma.kvkOtherExtensionActivity.findFirst({ where });
+            if (!existing) {
+                throw new RepositoryError('Record not found or unauthorized', 'NOT_FOUND', 404);
+            }
+
+            const kvkId = existing.kvkId;
+            const updateData = {};
+
+            // Update fldId
+            if (data.fldId !== undefined) {
+                const fldId = data.fldId ? parseInteger(data.fldId, 'fldId', true) : null;
+                if (fldId) {
+                    await validateFldExists(fldId, kvkId);
+                }
+                updateData.fldId = fldId;
+            }
+
+            // Resolve and update staff ID
+            if (data.staffName !== undefined) {
+                updateData.staffId = await resolveStaffId(data.staffName, kvkId, false);
+            } else if (data.staffId !== undefined) {
+                updateData.staffId = await resolveStaffId(data.staffId, kvkId, false);
+            }
+
+            // Resolve and update activity type ID
+            if (data.extensionActivityType !== undefined) {
+                updateData.activityTypeId = await resolveOtherExtensionActivityTypeId(data.extensionActivityType, false);
+            } else if (data.activityTypeId !== undefined) {
+                updateData.activityTypeId = await resolveOtherExtensionActivityTypeId(data.activityTypeId, false);
+            }
+
+            // Update numberOfActivities
+            const numberOfActivities = data.activityCount !== undefined ? data.activityCount : data.numberOfActivities;
+            if (numberOfActivities !== undefined) {
+                updateData.numberOfActivities = parseInteger(numberOfActivities, 'numberOfActivities', false);
+            }
+
+            // Update dates
+            let startDate = existing.startDate;
+            let endDate = existing.endDate;
+            
+            if (data.startDate !== undefined) {
+                startDate = parseDate(data.startDate, 'startDate', false);
+            }
+            if (data.endDate !== undefined) {
+                endDate = parseDate(data.endDate, 'endDate', false);
+            }
+            
+            // Validate date range if both dates are present
+            if (startDate && endDate) {
+                validateDateRange(startDate, endDate);
+            }
+            
+            if (data.startDate !== undefined) {
+                updateData.startDate = startDate;
+            }
+            if (data.endDate !== undefined) {
+                updateData.endDate = endDate;
+            }
+
+            // Update the record using Prisma
+            if (Object.keys(updateData).length > 0) {
+                await prisma.kvkOtherExtensionActivity.update({
+                    where: { otherExtensionActivityId },
+                    data: updateData
+                });
+            }
+
+            // Return updated record with relations
+            return _mapResponse(await prisma.kvkOtherExtensionActivity.findUnique({
+                where: { otherExtensionActivityId },
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    staff: { select: { staffName: true } },
+                    activityType: { select: { activityName: true } },
+                },
+            }));
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new RepositoryError('Record not found', 'NOT_FOUND', 404);
+                }
+                if (error.code === 'P2002') {
+                    throw new RepositoryError('A record with these values already exists', 'DUPLICATE_ERROR', 409);
+                }
+                if (error.code === 'P2003') {
+                    throw new RepositoryError('Invalid foreign key reference', 'VALIDATION_ERROR', 400);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to update other extension activity: ${error.message}`, 'UPDATE_ERROR', 500);
+        }
+    },
+
+    delete: async (id, user) => {
+        try {
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+
+            const otherExtensionActivityId = parseInteger(id, 'id', false);
+            const where = { otherExtensionActivityId };
+            
+            if (user && user.kvkId) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            // Verify record exists before attempting delete
+            const existing = await prisma.kvkOtherExtensionActivity.findFirst({ where });
+            if (!existing) {
+                throw new RepositoryError('Record not found or unauthorized', 'NOT_FOUND', 404);
+            }
+
+            const result = await prisma.kvkOtherExtensionActivity.deleteMany({
+                where
+            });
+
+            if (result.count === 0) {
+                throw new RepositoryError('Failed to delete record', 'DELETE_ERROR', 500);
+            }
+
+            return { success: true };
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2003') {
+                    throw new RepositoryError('Cannot delete record due to foreign key constraints', 'CONSTRAINT_ERROR', 409);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to delete other extension activity: ${error.message}`, 'DELETE_ERROR', 500);
+        }
     },
 };
+
+function _mapResponse(r) {
+    if (!r) return null;
+    const startDate = r.startDate ? new Date(r.startDate) : null;
+    let reportingYear = null;
+    if (startDate && !isNaN(startDate.getTime())) {
+        const month = startDate.getMonth() + 1;
+        const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
+        reportingYear = String(startYear);
+    }
+
+    const activityName = r.activityType ? r.activityType.activityName : undefined;
+
+    return {
+        ...r,
+        id: r.otherExtensionActivityId,
+        otherExtensionActivityId: r.otherExtensionActivityId,
+        extensionActivityId: r.otherExtensionActivityId, // For compatibility
+        kvkId: r.kvkId,
+        kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        fldId: r.fldId,
+        staffId: r.staffId,
+        staffName: r.staff ? r.staff.staffName : undefined,
+        activityTypeId: r.activityTypeId,
+        activityId: r.activityTypeId, // For compatibility with frontend
+        extensionActivityType: activityName,
+        activity: r.activityType ? { activityName } : undefined,
+        numberOfActivities: r.numberOfActivities,
+        activityCount: r.numberOfActivities, // For compatibility
+        startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
+        endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
+        reportingYear,
+
+        // Frontend friendly aliases
+        'Reporting Year': reportingYear,
+        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
+        'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
+        'End Date': r.endDate ? new Date(r.endDate).toLocaleDateString('en-GB') : undefined,
+        'Nature of Extension Activity': activityName,
+        'No. of activities': r.numberOfActivities,
+    };
+}
+
 module.exports = otherExtensionActivityRepository;
+module.exports.RepositoryError = RepositoryError;

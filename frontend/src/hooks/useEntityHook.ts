@@ -54,6 +54,7 @@ import {
     useFundingSources,
     useCropTypes,
     useInfrastructureMasters,
+    useSoilWaterAnalyses,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
@@ -125,6 +126,7 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.FUNDING_SOURCE]: () => useFundingSources(),
     [ENTITY_TYPES.CROP_TYPE]: () => useCropTypes(),
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: () => useInfrastructureMasters(),
+    [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: () => useSoilWaterAnalyses(),
 
     // Projects (Achievements)
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: () => useCfldTechnicalParameters(),

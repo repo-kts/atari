@@ -127,6 +127,18 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                     placeholder="Enter important day name"
                 />
             )}
+
+            {entityType === ENTITY_TYPES.SOIL_WATER_ANALYSIS && (
+                <FormInput
+                    label="Analysis Name"
+                    required
+                    value={formData.analysisName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, analysisName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter soil water analysis name"
+                />
+            )}
         </>
     )
 }

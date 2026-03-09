@@ -476,6 +476,17 @@ export const allMastersRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.IMPORTANT_DAY_MASTER,
         moduleCode: 'all_masters_events_master',
     },
+    {
+        path: ENTITY_PATHS.SOIL_WATER_ANALYSIS,
+        title: 'Soil Water Analysis Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.OTHER_MASTERS,
+        fields: FIELD_GROUPS.SOIL_WATER_ANALYSIS_MASTER,
+        moduleCode: 'all_masters_soil_water_analysis_master',
+    },
 ]
 
 // FORMS
@@ -1294,7 +1305,7 @@ export const achievementsRoutes: RouteConfig[] = [
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.OTHER_EXTENSION,
-        title: 'Extension Activities',
+        title: 'Other Extension Activities',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
@@ -1354,7 +1365,7 @@ export const achievementsRoutes: RouteConfig[] = [
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
-        title: 'Soil Analysis',
+        title: 'Soil, Water and Plant analysis',
         category: 'Form Management',
         subcategory: 'Achievements',
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,

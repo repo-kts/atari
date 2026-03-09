@@ -1,4 +1,5 @@
 const otherExtensionActivityService = require('../../services/forms/otherExtensionActivityService.js');
+const { RepositoryError } = require('../../utils/repositoryHelpers');
 
 const otherExtensionActivityController = {
     create: async (req, res) => {
@@ -11,9 +12,10 @@ const otherExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in otherExtensionActivityController.create:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to create other extension activity',
+                message: error.message || 'Failed to create other extension activity',
                 error: error.message
             });
         }
@@ -30,9 +32,10 @@ const otherExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in otherExtensionActivityController.getAll:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to fetch other extension activities',
+                message: error.message || 'Failed to fetch other extension activities',
                 error: error.message
             });
         }
@@ -53,9 +56,10 @@ const otherExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in otherExtensionActivityController.getById:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to fetch other extension activity',
+                message: error.message || 'Failed to fetch other extension activity',
                 error: error.message
             });
         }
@@ -71,9 +75,10 @@ const otherExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in otherExtensionActivityController.update:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to update other extension activity',
+                message: error.message || 'Failed to update other extension activity',
                 error: error.message
             });
         }
@@ -88,9 +93,10 @@ const otherExtensionActivityController = {
             });
         } catch (error) {
             console.error('Error in otherExtensionActivityController.delete:', error);
-            res.status(500).json({
+            const statusCode = error instanceof RepositoryError ? error.statusCode : 500;
+            res.status(statusCode).json({
                 success: false,
-                message: 'Failed to delete other extension activity',
+                message: error.message || 'Failed to delete other extension activity',
                 error: error.message
             });
         }

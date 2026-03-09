@@ -226,3 +226,13 @@ exports.getInfrastructureMasterById = getById('infrastructure-master');
 exports.createInfrastructureMaster = create('infrastructure-master');
 exports.updateInfrastructureMaster = update('infrastructure-master');
 exports.deleteInfrastructureMaster = deleteEntity('infrastructure-master');
+
+// ============================================
+// Soil Water Analysis Masters Controllers
+// ============================================
+
+exports.getAllSoilWaterAnalyses = getAll('soil-water-analysis');
+exports.getSoilWaterAnalysisById = getById('soil-water-analysis');
+exports.createSoilWaterAnalysis = create('soil-water-analysis');
+exports.updateSoilWaterAnalysis = update('soil-water-analysis');
+exports.deleteSoilWaterAnalysis = deleteEntity('soil-water-analysis');

@@ -50,6 +50,7 @@ export const ENTITY_TYPES = {
     // Other Masters (continued)
     CROP_TYPE: 'crop-type',
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
+    SOIL_WATER_ANALYSIS: 'soil-water-analysis',
 
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
@@ -238,6 +239,7 @@ export const ENTITY_PATHS = {
     // Other Masters (continued)
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
+    SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',
 
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',

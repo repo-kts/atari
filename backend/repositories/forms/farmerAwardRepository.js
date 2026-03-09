@@ -1,124 +1,433 @@
 const prisma = require('../../config/prisma.js');
+const { Prisma } = require('@prisma/client');
+const {
+    RepositoryError,
+    parseInteger,
+    validateKvkExists,
+    validateUUID,
+} = require('../../utils/repositoryHelpers');
+
+/**
+ * Farmer Award Repository
+ * Handles all database operations for Farmer Awards
+ */
+
+/**
+ * Normalize string value
+ * @param {any} value - Value to normalize
+ * @param {string} fieldName - Field name for error messages
+ * @param {boolean} allowNull - Whether null is allowed
+ * @returns {string|null} Normalized string or null
+ * @throws {RepositoryError} If value is invalid
+ */
+const _normalizeString = (value, fieldName, allowNull = true) => {
+    if (value === null || value === undefined) {
+        if (allowNull) return null;
+        throw new RepositoryError(`${fieldName} is required`, 'VALIDATION_ERROR', 400);
+    }
+    const normalized = String(value).trim();
+    if (normalized.length === 0) {
+        if (allowNull) return null;
+        throw new RepositoryError(`${fieldName} cannot be empty`, 'VALIDATION_ERROR', 400);
+    }
+    return normalized;
+};
+
+/**
+ * Parse integer value with validation
+ * @param {any} value - Value to parse
+ * @param {string} fieldName - Field name for error messages
+ * @param {boolean} allowNull - Whether null is allowed
+ * @returns {number|null} Parsed integer or null
+ * @throws {RepositoryError} If value is invalid
+ */
+const _parseInteger = (value, fieldName, allowNull = true) => {
+    if (value === null || value === undefined) {
+        if (allowNull) return null;
+        throw new RepositoryError(`${fieldName} is required`, 'VALIDATION_ERROR', 400);
+    }
+    const parsed = parseInt(value);
+    if (isNaN(parsed) || parsed < 0) {
+        throw new RepositoryError(`Invalid ${fieldName}: must be a non-negative integer`, 'VALIDATION_ERROR', 400);
+    }
+    return parsed;
+};
+
+/**
+ * Validate foreign key exists
+ * @param {any} id - Foreign key ID
+ * @param {string} modelName - Prisma model name
+ * @param {string} idField - ID field name
+ * @param {string} displayName - Display name for errors
+ * @param {boolean} required - Whether the field is required
+ * @returns {Promise<void>}
+ * @throws {RepositoryError} If validation fails
+ */
+const _validateForeignKey = async (id, modelName, idField, displayName, required = false) => {
+    if (!id) {
+        if (required) {
+            throw new RepositoryError(`${displayName} is required`, 'VALIDATION_ERROR', 400);
+        }
+        return;
+    }
+
+    const parsedId = parseInteger(id, displayName, required);
+    if (!parsedId) return;
+
+    try {
+        const exists = await prisma[modelName].findUnique({
+            where: { [idField]: parsedId },
+            select: { [idField]: true },
+        });
+
+        if (!exists) {
+            throw new RepositoryError(`${displayName} not found`, 'VALIDATION_ERROR', 404);
+        }
+    } catch (error) {
+        if (error instanceof RepositoryError) {
+            throw error;
+        }
+        throw new RepositoryError(`Failed to validate ${displayName}: ${error.message}`, 'DATABASE_ERROR', 500);
+    }
+};
+
+/**
+ * Map database response to API format
+ * @param {object} r - Database record
+ * @returns {object} Mapped response
+ */
+const _mapResponse = (r) => {
+    if (!r) return null;
+
+    // Calculate reporting year from yearId if available
+    const reportingYear = r.reportingYear?.yearName || r.reportingYearId || null;
+
+    return {
+        ...r,
+        id: r.farmerAwardId,
+        reportingYear,
+        'Reporting Year': reportingYear,
+        'KVK Name': r.kvk?.kvkName,
+        'Farmer Name': r.farmerName,
+        'Contact Number': r.contactNumber,
+        'Address': r.address,
+        'Award Name': r.awardName,
+        'Amount': r.amount,
+        'Achievement': r.achievement,
+        'Conferring Authority': r.conferringAuthority,
+        'Image': r.image,
+        // Backend format
+        farmerAwardId: r.farmerAwardId,
+        farmerAwardID: r.farmerAwardId, // Legacy compatibility
+        kvkId: r.kvkId,
+        reportingYearId: r.reportingYearId,
+        farmerName: r.farmerName,
+        contactNumber: r.contactNumber,
+        contactNo: r.contactNumber, // Frontend compatibility
+        address: r.address,
+        awardName: r.awardName,
+        amount: r.amount,
+        achievement: r.achievement,
+        conferringAuthority: r.conferringAuthority,
+        image: r.image,
+        // Frontend format (for compatibility)
+        year: reportingYear,
+        yearId: r.reportingYearId,
+    };
+};
 
 const farmerAwardRepository = {
     create: async (data, user) => {
-        // Enforce KVK ID from user context or data
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
-        const amount = parseInt(data.amount || 0);
+        try {
+            // Validate input
+            if (!data || typeof data !== 'object') {
+                throw new RepositoryError('Invalid input data', 'VALIDATION_ERROR', 400);
+            }
 
-        const inserted = await prisma.$queryRawUnsafe(`
-            INSERT INTO farmer_award
-            ("kvkId", farmer_name, contact_number, address, award_name, amount, achievement, conferring_authority, reporting_year, image, created_at, updated_at)
-            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            RETURNING farmer_award_id;
-        `, kvkId, data.farmerName || '', data.contactNumber || data.contactNo || '', data.address || '', data.awardName || '', amount, data.achievement || '', data.conferringAuthority || '', parseInt(data.reportingYear || data.year) || null, data.image || '');
+            // Resolve kvkId: prioritized from user session, then from data
+            let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
+                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
-        return { farmerAwardID: inserted[0].farmer_award_id };
-    },
+            if (!kvkId) {
+                throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);
+            }
 
-    findAll: async (user) => {
-        let whereClause = '';
-        const params = [];
-        // Strict isolation for KVK-scoped users (like Gaya)
-        if (user && user.kvkId) {
-            whereClause = 'WHERE a."kvkId" = $1';
-            params.push(parseInt(user.kvkId));
+            // Validate KVK exists
+            await validateKvkExists(kvkId);
+
+            // Validate and resolve foreign keys
+            const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
+            if (reportingYearId) {
+                await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
+            }
+
+            // Validate required fields
+            const farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
+            const contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
+            const address = _normalizeString(data.address, 'Address', false);
+            const awardName = _normalizeString(data.awardName, 'Award Name', false);
+            const amount = _parseInteger(data.amount, 'Amount', false);
+            const achievement = _normalizeString(data.achievement, 'Achievement', false);
+            const conferringAuthority = _normalizeString(data.conferringAuthority, 'Conferring Authority', false);
+            const image = data.image ? _normalizeString(data.image, 'Image', true) : null;
+
+            // Prepare create data
+            const createData = {
+                kvkId,
+                reportingYearId: reportingYearId ? parseInteger(reportingYearId, 'reportingYearId', false) : null,
+                farmerName,
+                contactNumber,
+                address,
+                awardName,
+                amount,
+                achievement,
+                conferringAuthority,
+                image,
+            };
+
+            // Create the record using Prisma
+            const result = await prisma.farmerAward.create({
+                data: createData,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearName: true } },
+                }
+            });
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2002') {
+                    throw new RepositoryError('A record with these values already exists', 'DUPLICATE_ERROR', 409);
+                }
+                if (error.code === 'P2003') {
+                    throw new RepositoryError('Invalid foreign key reference', 'VALIDATION_ERROR', 400);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to create farmer award record: ${error.message}`, 'CREATE_ERROR', 500);
         }
-
-        const rows = await prisma.$queryRawUnsafe(`
-            SELECT a.*, k.kvk_name 
-            FROM farmer_award a
-            LEFT JOIN kvk k ON a."kvkId" = k.kvk_id
-            ${whereClause}
-            ORDER BY a.farmer_award_id DESC;
-        `, ...params);
-
-        return rows.map(r => ({
-            ...r,
-            id: r.farmer_award_id,
-            farmerAwardID: r.farmer_award_id,
-            kvk: { kvkName: r.kvk_name },
-            farmerName: r.farmer_name,
-            contactNumber: r.contact_number,
-            contactNo: r.contact_number,
-            address: r.address,
-            awardName: r.award_name,
-            conferringAuthority: r.conferring_authority,
-            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            image: r.image,
-            kvkId: r.kvkId || r.kvk_id
-        }));
     },
 
-    findById: async (id) => {
-        const rows = await prisma.$queryRawUnsafe(`
-            SELECT a.*, k.kvk_name 
-            FROM farmer_award a
-            LEFT JOIN kvk k ON a."kvkId" = k.kvk_id
-            WHERE a.farmer_award_id = $1;
-        `, parseInt(id));
-        if (!rows || !rows.length) return null;
-        let r = rows[0];
-        return {
-            ...r,
-            id: r.farmer_award_id,
-            farmerAwardID: r.farmer_award_id,
-            kvk: { kvkName: r.kvk_name },
-            farmerName: r.farmer_name,
-            contactNumber: r.contact_number,
-            contactNo: r.contact_number,
-            address: r.address,
-            awardName: r.award_name,
-            conferringAuthority: r.conferring_authority,
-            reportingYear: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            year: r.reporting_year ? String(r.reporting_year) : r.reporting_year,
-            image: r.image,
-            kvkId: r.kvkId || r.kvk_id
-        };
-    },
+    findAll: async (filters = {}, user) => {
+        try {
+            const where = {};
 
-    update: async (id, data) => {
-        const updates = [];
-        const values = [];
-        let index = 1;
+            // Strict isolation for KVK-scoped users
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            } else if (filters.kvkId) {
+                where.kvkId = parseInteger(filters.kvkId, 'kvkId', false);
+            }
 
-        if (data.kvkId !== undefined) {
-            updates.push('"kvkId" = $' + (index++));
-            values.push(data.kvkId ? parseInt(data.kvkId) : null);
+            // Additional filters
+            if (filters.reportingYearId) {
+                where.reportingYearId = parseInteger(filters.reportingYearId, 'reportingYearId', false);
+            }
+
+            // Fetch records with relations
+            const records = await prisma.farmerAward.findMany({
+                where,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearName: true } },
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+
+            return records.map(_mapResponse);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch farmer awards: ${error.message}`, 'FETCH_ERROR', 500);
         }
-        if (data.farmerName !== undefined) { updates.push('farmer_name = $' + (index++)); values.push(data.farmerName || ''); }
+    },
+
+    findById: async (id, user) => {
+        try {
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+
+            const farmerAwardId = validateUUID(id, 'id', false);
+            const where = { farmerAwardId };
+
+            // Check authorization
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            const record = await prisma.farmerAward.findFirst({
+                where,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearName: true } },
+                },
+            });
+
+            if (!record) {
+                throw new RepositoryError('Farmer award not found or unauthorized', 'NOT_FOUND', 404);
+            }
+
+            return _mapResponse(record);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            throw new RepositoryError(`Failed to fetch farmer award: ${error.message}`, 'FETCH_ERROR', 500);
+        }
+    },
+
+    update: async (id, data, user) => {
+        try {
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+
+            if (!data || typeof data !== 'object') {
+                throw new RepositoryError('Invalid input data', 'VALIDATION_ERROR', 400);
+            }
+
+            const farmerAwardId = validateUUID(id, 'id', false);
+            const where = { farmerAwardId };
+
+            // Check authorization
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            // Check if record exists
+            const existing = await prisma.farmerAward.findFirst({
+                where,
+                select: { farmerAwardId: true },
+            });
+
+            if (!existing) {
+                throw new RepositoryError('Farmer award not found or unauthorized', 'NOT_FOUND', 404);
+            }
+
+            // Validate and resolve foreign keys if provided
+            const updateData = {};
+
+            if (data.reportingYearId !== undefined || data.reportingYear !== undefined || data.yearId !== undefined) {
+                const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
+                if (reportingYearId) {
+                    await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
+                    updateData.reportingYearId = parseInteger(reportingYearId, 'reportingYearId', false);
+                } else {
+                    updateData.reportingYearId = null;
+                }
+            }
+
+            // Update fields if provided
+            if (data.farmerName !== undefined) {
+                updateData.farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
+            }
         if (data.contactNumber !== undefined || data.contactNo !== undefined) {
-            updates.push('contact_number = $' + (index++));
-            values.push(String(data.contactNumber || data.contactNo));
-        }
-        if (data.address !== undefined) { updates.push('address = $' + (index++)); values.push(data.address || ''); }
-        if (data.awardName !== undefined) { updates.push('award_name = $' + (index++)); values.push(data.awardName || ''); }
-        if (data.amount !== undefined) { updates.push('amount = $' + (index++)); values.push(parseInt(data.amount) || 0); }
-        if (data.achievement !== undefined) { updates.push('achievement = $' + (index++)); values.push(data.achievement || ''); }
-        if (data.conferringAuthority !== undefined) { updates.push('conferring_authority = $' + (index++)); values.push(data.conferringAuthority || ''); }
-        if (data.image !== undefined) { updates.push('image = $' + (index++)); values.push(data.image || ''); }
-        if (data.reportingYear !== undefined || data.year !== undefined) {
-            updates.push('reporting_year = $' + (index++));
-            values.push(parseInt(data.reportingYear || data.year) || null);
-        }
+                updateData.contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
+            }
+            if (data.address !== undefined) {
+                updateData.address = _normalizeString(data.address, 'Address', false);
+            }
+            if (data.awardName !== undefined) {
+                updateData.awardName = _normalizeString(data.awardName, 'Award Name', false);
+            }
+            if (data.amount !== undefined) {
+                updateData.amount = _parseInteger(data.amount, 'Amount', false);
+            }
+            if (data.achievement !== undefined) {
+                updateData.achievement = _normalizeString(data.achievement, 'Achievement', false);
+            }
+            if (data.conferringAuthority !== undefined) {
+                updateData.conferringAuthority = _normalizeString(data.conferringAuthority, 'Conferring Authority', false);
+            }
+            if (data.image !== undefined) {
+                // Handle images defensively - only update if it's a valid string (URL/Path)
+                if (typeof data.image === 'string' && data.image.trim() !== '') {
+                    updateData.image = _normalizeString(data.image, 'Image', true);
+                } else {
+                    updateData.image = null;
+                }
+            }
 
-        if (updates.length > 0) {
-            updates.push('updated_at = CURRENT_TIMESTAMP');
-            const sql = 'UPDATE farmer_award SET ' + updates.join(', ') + ' WHERE farmer_award_id = $' + index;
-            values.push(parseInt(id));
-            console.log('--- Farmer Award Update ---');
-            console.log('SQL:', sql);
-            console.log('Values:', values);
-            await prisma.$queryRawUnsafe(sql, ...values);
-            console.log('Update executed successfully');
+            // Update the record
+            const result = await prisma.farmerAward.update({
+                where: { farmerAwardId },
+                data: updateData,
+                include: {
+                    kvk: { select: { kvkName: true } },
+                    reportingYear: { select: { yearName: true } },
+                },
+            });
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new RepositoryError('Farmer award not found', 'NOT_FOUND', 404);
+                }
+                if (error.code === 'P2003') {
+                    throw new RepositoryError('Invalid foreign key reference', 'VALIDATION_ERROR', 400);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to update farmer award: ${error.message}`, 'UPDATE_ERROR', 500);
         }
-        return await farmerAwardRepository.findById(id);
     },
 
-    delete: async (id) => {
-        await prisma.$queryRawUnsafe('DELETE FROM farmer_award WHERE farmer_award_id = $1', parseInt(id));
-        return { success: true };
+    delete: async (id, user) => {
+        try {
+            if (!id) {
+                throw new RepositoryError('ID is required', 'VALIDATION_ERROR', 400);
+            }
+
+            const farmerAwardId = validateUUID(id, 'id', false);
+            const where = { farmerAwardId };
+
+            // Check authorization
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+                const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
+                where.kvkId = kvkId;
+            }
+
+            // Check if record exists
+            const existing = await prisma.farmerAward.findFirst({
+                where,
+                select: { farmerAwardId: true },
+            });
+
+            if (!existing) {
+                throw new RepositoryError('Farmer award not found or unauthorized', 'NOT_FOUND', 404);
+            }
+
+            // Delete the record
+            await prisma.farmerAward.delete({
+                where: { farmerAwardId },
+            });
+
+            return { success: true, message: 'Farmer award deleted successfully' };
+        } catch (error) {
+            if (error instanceof RepositoryError) {
+                throw error;
+            }
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new RepositoryError('Farmer award not found', 'NOT_FOUND', 404);
+                }
+                throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+            }
+            throw new RepositoryError(`Failed to delete farmer award: ${error.message}`, 'DELETE_ERROR', 500);
+        }
     },
 };
 

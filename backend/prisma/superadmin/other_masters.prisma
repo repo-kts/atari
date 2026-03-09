@@ -24,6 +24,11 @@ model YearMaster {
   worldSoilCelebrationRecords       KkvWorldSoilCelebration[]
   nicraDetailsRecords               NicraDetails[]
   swachhQuarterlyExpenditureRecords SwachhQuarterlyExpenditure[]
+  productionSupplyRecords           KvkProductionSupply[]
+  publicationDetailsRecords         KvkPublicationDetails[]
+  kvkAwardRecords                   KvkAward[]
+  scientistAwardRecords             ScientistAward[]
+  farmerAwardRecords                FarmerAward[]
 
   @@index([yearId])
   @@index([yearName])

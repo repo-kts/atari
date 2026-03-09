@@ -136,4 +136,14 @@ router.post('/infrastructure-master',    requirePermission('all_masters_infrastr
 router.put('/infrastructure-master/:id', requirePermission('all_masters_infrastructure_master', 'EDIT'),   otherMastersController.updateInfrastructureMaster);
 router.delete('/infrastructure-master/:id', requirePermission('all_masters_infrastructure_master', 'DELETE'), otherMastersController.deleteInfrastructureMaster);
 
+// ============================================
+// Soil Water Testing Masters Routes
+// ============================================
+
+router.get('/soil-water-analysis',     otherMastersController.getAllSoilWaterAnalyses);
+router.get('/soil-water-analysis/:id', otherMastersController.getSoilWaterAnalysisById);
+router.post('/soil-water-analysis',    requirePermission('all_masters_soil_water_analysis_master', 'ADD'),    otherMastersController.createSoilWaterAnalysis);
+router.put('/soil-water-analysis/:id', requirePermission('all_masters_soil_water_analysis_master', 'EDIT'), otherMastersController.updateSoilWaterAnalysis);
+router.delete('/soil-water-analysis/:id', requirePermission('all_masters_soil_water_analysis_master', 'DELETE'), otherMastersController.deleteSoilWaterAnalysis);
+
 module.exports = router;

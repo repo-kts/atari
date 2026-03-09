@@ -49,6 +49,8 @@ model Kvk {
   kvkOfts                       Kvkoft[]
   kvkOtherExtensionActivities   KvkOtherExtensionActivity[]
   kvkOtherProgrammes            KvkOtherProgramme[]
+  productionSupplies            KvkProductionSupply[]
+  publicationDetails            KvkPublicationDetails[]
   seedHubPrograms               KvkSeedHubProgram[]
   soilWaterAnalyses             KkvSoilWaterAnalysis[]
   soilWaterEquipments           KkvSoilWaterEquipment[]
