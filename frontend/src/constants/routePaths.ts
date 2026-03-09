@@ -115,4 +115,70 @@ export const ROUTE_PATHS = {
             OTHER_PROGRAM: '/forms/achievements/other-program',
         },
     },
+    // Performance Indicators Routes
+    PERFORMANCE: {
+        BASE: '/forms/performance',
+        IMPACT: {
+            KVK_ACTIVITIES: '/forms/performance/impact/kvk-activities',
+            ENTREPRENEURSHIP: '/forms/performance/impact/entrepreneurship',
+            SUCCESS_STORIES: '/forms/performance/impact/success-stories',
+        },
+        DISTRICT_VILLAGE: {
+            DISTRICT_LEVEL: '/forms/performance/district-village/district-level',
+            OPERATIONAL_AREA: '/forms/performance/district-village/operational-area',
+            VILLAGE_ADOPTION: '/forms/performance/district-village/village-adoption',
+            PRIORITY_THRUST: '/forms/performance/district-village/priority-thrust',
+        },
+        INFRASTRUCTURE: {
+            DEMONSTRATION_UNITS: '/forms/performance/infrastructure/demonstration-units',
+            INSTRUCTIONAL_FARM_CROPS: '/forms/performance/infrastructure/instructional-farm-crops',
+            PRODUCTION_UNITS: '/forms/performance/infrastructure/production-units',
+            INSTRUCTIONAL_FARM_LIVESTOCK: '/forms/performance/infrastructure/instructional-farm-livestock',
+            HOSTEL: '/forms/performance/infrastructure/hostel',
+            STAFF_QUARTERS: '/forms/performance/infrastructure/staff-quarters',
+            RAINWATER_HARVESTING: '/forms/performance/infrastructure/rainwater-harvesting',
+        },
+        FINANCIAL: {
+            BUDGET_DETAILS: '/forms/performance/financial/budget-details',
+            PROJECT_BUDGET: '/forms/performance/financial/project-budget',
+            REVOLVING_FUND: '/forms/performance/financial/revolving-fund',
+            REVENUE_GENERATION: '/forms/performance/financial/revenue-generation',
+            RESOURCE_GENERATION: '/forms/performance/financial/resource-generation',
+        },
+        LINKAGES: {
+            FUNCTIONAL_LINKAGE: '/forms/performance/linkages/functional-linkage',
+            SPECIAL_PROGRAMMES: '/forms/performance/linkages/special-programmes',
+        },
+    },
+    // Miscellaneous Routes
+    MISCELLANEOUS: {
+        BASE: '/forms/miscellaneous',
+        DISEASES: {
+            CROPS: '/forms/miscellaneous/diseases/crops',
+            LIVESTOCK: '/forms/miscellaneous/diseases/livestock',
+        },
+        NEHRU_YUVA_KENDRA: '/forms/miscellaneous/nehru-yuva-kendra',
+        PPV_FRA: {
+            TRAINING: '/forms/miscellaneous/ppv-fra/training',
+            PLANT_VARIETIES: '/forms/miscellaneous/ppv-fra/plant-varieties',
+        },
+        RAWE_FET: '/forms/miscellaneous/rawe-fet',
+        VIP_VISITORS: '/forms/miscellaneous/vip-visitors',
+        DIGITAL: {
+            MOBILE_APP: '/forms/miscellaneous/digital/mobile-app',
+            WEB_PORTAL: '/forms/miscellaneous/digital/web-portal',
+            KISAN_SARATHI: '/forms/miscellaneous/digital/kisan-sarathi',
+            KISAN_MOBILE_ADVISORY: '/forms/miscellaneous/digital/kisan-mobile-advisory',
+            OTHER_CHANNELS: '/forms/miscellaneous/digital/other-channels',
+        },
+        SWACHHTA: {
+            SEWA: '/forms/miscellaneous/swachhta/sewa',
+            PAKHWADA: '/forms/miscellaneous/swachhta/pakhwada',
+            BUDGET: '/forms/miscellaneous/swachhta/budget',
+        },
+        MEETINGS: {
+            SAC: '/forms/miscellaneous/meetings/sac',
+            OTHER: '/forms/miscellaneous/meetings/other',
+        },
+    },
 } as const;

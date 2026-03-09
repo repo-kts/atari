@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from './Breadcrumbs'
 import { TabNavigation } from './TabNavigation'
-import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../config/routeConfig'
+import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../config/route'
 import { Button } from '../ui/Button'
 
 interface RouteWrapperProps {

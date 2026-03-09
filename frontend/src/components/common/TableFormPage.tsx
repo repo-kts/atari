@@ -5,7 +5,7 @@ import { Card, CardContent } from '../ui/Card'
 import { Button } from '../ui/Button'
 import { Breadcrumbs } from './Breadcrumbs'
 import { TabNavigation } from './TabNavigation'
-import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../config/routeConfig'
+import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../config/route'
 
 export interface TableColumn {
     key: string

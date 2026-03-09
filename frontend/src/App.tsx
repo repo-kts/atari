@@ -24,8 +24,14 @@ import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
-// Import route config for dynamic rendering
-import { projectsRoutes, allMastersRoutes, aboutKvkRoutes, achievementsRoutes } from './config/routeConfig'
+import {
+    projectsRoutes,
+    allMastersRoutes,
+    aboutKvkRoutes,
+    achievementsRoutes,
+    performanceIndicatorRoutes,
+    miscellaneousRoutes
+} from './config/route'
 import type { UserRole } from './types/auth'
 import { ENTITY_PATHS } from './constants/entityConstants'
 
@@ -183,6 +189,42 @@ function AppRoutes() {
                                     <DataManagementView
                                         key={route.path}
                                         title={route.title}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+
+                    {/* Performance Indicator Routes */}
+                    {performanceIndicatorRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+
+                    {/* Miscellaneous Routes */}
+                    {miscellaneousRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
                                         fields={route.fields}
                                     />
                                 </ProtectedRoute>

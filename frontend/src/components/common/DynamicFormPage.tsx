@@ -1,7 +1,7 @@
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { TableFormPage } from './TableFormPage'
-import { getRouteConfig } from '../../config/routeConfig'
+import { getRouteConfig } from '../../config/route'
 import { useAlert } from '@/hooks/useAlert'
 
 // This component renders a form page dynamically based on the route

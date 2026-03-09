@@ -9,7 +9,7 @@ import type { EditUser } from '@/components/admin/EditUserModal'
 import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
-import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
+import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 import { useConfirm } from '@/hooks/useConfirm'
 import { useAlert } from '@/hooks/useAlert'
 

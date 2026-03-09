@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { useAuth } from '../../../contexts/AuthContext'
-import { getModuleCodeForPath } from '../../../config/routeConfig'
+import { getModuleCodeForPath } from '../../../config/route'
 
 export interface FeatureSection {
     title: string

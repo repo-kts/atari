@@ -7,7 +7,7 @@ import { useRolePermissions, useUpdateRolePermissions } from '../../hooks/useUse
 import { AlertCircle, CheckCircle2, ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
-import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
+import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 
 /** Display order of menus to match the design (Role Permissions UI) */
 const MENU_DISPLAY_ORDER = [

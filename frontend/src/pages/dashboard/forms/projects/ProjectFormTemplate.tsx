@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
-import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../../../config/routeConfig'
+import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../../../config/route'
 
 interface ProjectFormTemplateProps {
     title: string

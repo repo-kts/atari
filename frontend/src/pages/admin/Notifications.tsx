@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
-import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig'
+import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 
 export const Notifications: React.FC = () => {
     const navigate = useNavigate()

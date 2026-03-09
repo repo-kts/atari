@@ -7,7 +7,7 @@ import { ReportConfigurator } from '../../components/reports/ReportConfigurator'
 import { ReportScopeSelector } from '../../components/reports/ReportScopeSelector';
 import { reportApi } from '../../services/reportApi';
 import { useAuth } from '../../contexts/AuthContext';
-import { getBreadcrumbsForPath, getRouteConfig } from '../../config/routeConfig';
+import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route';
 import { useReportConfig } from '../../hooks/report/useReportScope';
 import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
