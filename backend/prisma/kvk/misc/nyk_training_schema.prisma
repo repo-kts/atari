@@ -1,0 +1,27 @@
+model NykTraining {
+  nykTrainingId Int @id @default(autoincrement()) @map("nyk_training_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  title String @map("training_title")
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+
+  // Participants
+
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  fundReceived Float @map("fund_received")
+
+  @@index([kvkId])
+
+  @@map("nyk_training")
+}

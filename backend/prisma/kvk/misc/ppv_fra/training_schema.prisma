@@ -1,0 +1,31 @@
+enum PpvFraTrainingType {
+  TRAINING
+  AWARENESS
+}
+
+model PpvFraTraining {
+  ppvFraTrainingId Int @id @default(autoincrement()) @map("ppv_fra_training_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  programmeDate DateTime @map("programme_date")
+  type PpvFraTrainingType
+  title String
+  venue String
+  resourcePerson String @map("resource_person")
+
+  // Participants
+  generalM Int @map("general_m")
+  generalF Int @map("general_f")
+  obcM Int @map("obc_m")
+  obcF Int @map("obc_f")
+  scM Int @map("sc_m")
+  scF Int @map("sc_f")
+  stM Int @map("st_m")
+  stF Int @map("st_f")
+
+  @@index([kvkId])
+
+  @@map("ppv_fra_training")
+}

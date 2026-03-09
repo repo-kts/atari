@@ -1,0 +1,29 @@
+model AttachmentType {
+  attachmentTypeId Int @id @default(autoincrement()) @map("attachment_type_id")
+  name String @unique
+
+  rawePrograms RaweFetFitProgramme[]
+
+  @@map("attachment_type")
+}
+
+model RaweFetFitProgramme {
+  raweProgrammeId Int @id @default(autoincrement()) @map("rawe_programme_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+
+  attachmentTypeId Int
+  attachmentType   AttachmentType @relation(fields: [attachmentTypeId], references: [attachmentTypeId])
+
+  attachmentPath String? @map("attachment_path")
+  maleStudents Int @map("male_students")
+  femaleStudents Int @map("female_students")
+
+  @@index([kvkId])
+
+  @@map("rawe_fet_fit_programme")
+}

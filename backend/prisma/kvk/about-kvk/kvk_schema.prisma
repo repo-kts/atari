@@ -67,6 +67,13 @@ model Kvk {
   soilDataInformation           SoilDataInformation[]
   transfersFrom                 StaffTransferHistory[]         @relation("TransferFrom")
   transfersTo                   StaffTransferHistory[]         @relation("TransferTo")
+  prevalentDiseasesInCrop       PrevalentDiseasesInCrop[]
+  prevalentDiseasesOnLivestock  PrevalentDiseasesOnLivestock[]
+  nykTraining                   NykTraining[]
+  vipVisitor                    VipVisitor[]
+  raweFetFitProgramme           RaweFetFitProgramme[]
+  ppvFraTraining                PpvFraTraining[]
+  ppvFraPlantVarieties          PpvFraPlantVarieties[]
   swachhQuarterlyExpenditure    SwachhQuarterlyExpenditure[]
   swachhtaHiSewa                SwachhtaHiSewa[]
   swachhtaPakhwada              SwachhtaPakhwada[]

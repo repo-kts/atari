@@ -1,0 +1,24 @@
+model DignitaryType {
+  dignitaryTypeId Int @id @default(autoincrement()) @map("dignitary_type_id")
+  name String @unique
+  visitors VipVisitor[]
+
+  @@map("dignitary_type")
+}
+
+model VipVisitor {
+  vipVisitorId Int @id @default(autoincrement()) @map("vip_visitor_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  dateOfVisit DateTime @map("date_of_visit")
+  dignitaryTypeId Int
+  dignitaryType   DignitaryType @relation(fields: [dignitaryTypeId], references: [dignitaryTypeId])
+  ministerName String @map("minister_name")
+  salientPoints String @map("salient_points")
+
+  @@index([kvkId])
+
+  @@map("vip_visitors")
+}

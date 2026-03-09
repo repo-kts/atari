@@ -1,0 +1,17 @@
+model PrevalentDiseasesOnLivestock {
+  prevalentLivestockDiseaseId Int @id @default(autoincrement()) @map("prevalent_livestock_disease_id")
+
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
+
+  diseaseName String @map("disease_name")
+  livestockType String @map("livestock_type")
+  dateOfOutbreak DateTime @map("date_of_outbreak")
+  mortalityCount Float @map("mortality_count")
+  animalsTreated Int @map("animals_treated")
+  preventiveMeasures String @map("preventive_measures")
+
+  @@index([kvkId])
+
+  @@map("prevalent_diseases_livestock")
+}
