@@ -101,19 +101,15 @@ class AboutKvkService {
                 throw new Error('Only super admin can create KVKs');
             }
         } else {
-            // For all other About KVK entities, only KVK roles can create
-            if (!user || !KVK_ROLES.includes(user.roleName)) {
-                throw new Error('Only KVK users can create this resource');
-            }
-            // Auto-fill kvkId for KVK role users - ensure it exists
-            if (!user.kvkId) {
-                throw new Error('KVK ID is missing from user profile. Please contact administrator to assign a KVK to your account.');
-            }
-            data.kvkId = user.kvkId;
+            // For other entities, permission is enforced by route middleware (requirePermission).
+            // Auto-fill kvkId from user profile if available
+            if (user && user.kvkId) {
+                data.kvkId = user.kvkId;
 
-            // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && !data.originalKvkId) {
-                data.originalKvkId = user.kvkId;
+                // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
+                if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && !data.originalKvkId) {
+                    data.originalKvkId = user.kvkId;
+                }
             }
         }
 
@@ -164,25 +160,14 @@ class AboutKvkService {
         // Ensure entity exists and user has access (getById enforces geographic scope)
         const currentEntity = await this.getById(entityName, id, user);
 
-        // Authorization checks
-        if (entityName === 'kvks') {
-            // Admin roles can update KVKs (scope already enforced by getById)
-            if (!user || user.kvkId) {
-                throw new Error('Only admin users can update KVKs');
-            }
-        } else {
-            // For all other About KVK entities, only KVK roles can update their own data
-            if (!user || !KVK_ROLES.includes(user.roleName)) {
-                throw new Error('Only KVK users can update this resource');
-            }
-
-            // For employees: prevent source KVKs from updating transferred employees
-            // Only the current KVK (where employee is now) can update
-            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
-                currentEntity.transferStatus === 'TRANSFERRED') {
-                if (currentEntity.kvkId !== user.kvkId) {
-                    throw new Error('You cannot update employees that were transferred from your KVK. Only the current KVK can manage this employee.');
-                }
+        // Authorization checks — permission enforced by route middleware (requirePermission).
+        // KVK entity updates: scope already enforced by getById.
+        // For employees: prevent source KVKs from updating transferred employees.
+        if (entityName !== 'kvks' &&
+            (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') &&
+            currentEntity.transferStatus === 'TRANSFERRED') {
+            if (user && user.kvkId && currentEntity.kvkId !== user.kvkId) {
+                throw new Error('You cannot update employees that were transferred from your KVK. Only the current KVK can manage this employee.');
             }
         }
 
@@ -211,6 +196,13 @@ class AboutKvkService {
     async delete(entityName, id, user = null) {
         // Ensure entity exists and user has access
         const currentEntity = await this.getById(entityName, id, user);
+
+        // Only super_admin can delete KVKs
+        if (entityName === 'kvks') {
+            if (!user || user.roleName !== 'super_admin') {
+                throw new Error('Only super admin can delete KVKs');
+            }
+        }
 
         // For employees: prevent source KVKs from deleting transferred employees
         // Only the current KVK (where employee is now) can delete
