@@ -54,6 +54,7 @@ model YearMaster {
   nicraRevenueGeneratedRecords    NicraRevenueGenerated[]
   nicraFarmImplementRecords       NicraFarmImplement[]
   nicraVcrmcRecords               NicraVcrmc[]
+  craDetailRecords                CraDetails[]
 
   @@index([yearId])
   @@index([yearName])

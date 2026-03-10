@@ -5,6 +5,12 @@ model FldActivity {
   updatedAt              DateTime               @updatedAt @map("updated_at")
   extensions             FldExtension[]
   kvkExtensionActivities KvkExtensionActivity[]
+  nariTrainingProgrammes   NariTrainingProgramme[]
+  nariValueAdditions       NariValueAddition[]
+  nariNutritionalGardens   NariNutritionalGarden[]
+  nariExtensionActivities  NariExtensionActivity[]
+  nariBioFortifiedCrops    NariBioFortifiedCrop[]
+  craExtensionActivities   CraExtensionActivity[]
 
   @@map("fld_activity")
 }

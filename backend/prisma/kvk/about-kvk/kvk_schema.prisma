@@ -116,6 +116,8 @@ model Kvk {
   nicraPiCopis                    NicraPiCopi[]
   nicraSoilHealthCards            NicraSoilHealthCard[]
   nicraVcrmcs                     NicraVcrmc[]
+  craDetails                      CraDetails[]
+  craExtensionActivities          CraExtensionActivity[]
 
   @@index([zoneId])
   @@index([stateId])
