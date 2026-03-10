@@ -23,7 +23,6 @@ import {
     Building2,
     Briefcase,
     FileCheck,
-    BookOpen,
 } from 'lucide-react'
 
 interface MenuItem {
@@ -136,7 +135,25 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Miscellaneous',
                 path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari'],
+                moduleCodes: ['misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors'],
+            },
+            {
+                label: 'Digital Information',
+                path: '/forms/digital-information',
+                icon: <FileCheck className="w-4 h-4" />,
+                moduleCodes: ['digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels'],
+            },
+            {
+                label: 'Swachhta Bharat Abhiyaan',
+                path: '/forms/swachhta-bharat-abhiyaan',
+                icon: <FileCheck className="w-4 h-4" />,
+                moduleCodes: ['swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
+            },
+            {
+                label: 'Meetings',
+                path: '/forms/meetings',
+                icon: <FileCheck className="w-4 h-4" />,
+                moduleCodes: ['meetings_sac', 'meetings_other_atari'],
             },
         ],
     },

@@ -13,10 +13,9 @@ export const Layout: React.FC = () => {
                 onToggle={() => setSidebarOpen(!sidebarOpen)}
             />
             <div
-                className="flex-1 flex flex-col h-screen transition-all duration-300"
-                style={{
-                    marginLeft: sidebarOpen ? '16rem' : '4rem', // 256px = 16rem, 64px = 4rem
-                }}
+                className={`flex-1 flex flex-col h-screen transition-all duration-300
+                    ml-0
+                    ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}
             >
                 <Header />
                 <main className="flex-1 overflow-y-auto p-4 relative">

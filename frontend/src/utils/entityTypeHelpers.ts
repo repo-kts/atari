@@ -156,6 +156,71 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.IMPORTANT_DAY,
         ENTITY_TYPES.SOIL_WATER_ANALYSIS,
     ] as ExtendedEntityType[],
+
+    PERFORMANCE_IMPACT: [
+        ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES,
+        ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP,
+        ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES,
+    ] as ExtendedEntityType[],
+
+    PERFORMANCE_DISTRICT_VILLAGE: [
+        ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL,
+        ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA,
+        ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION,
+        ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST,
+    ] as ExtendedEntityType[],
+
+    PERFORMANCE_INFRASTRUCTURE: [
+        ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS,
+        ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS,
+        ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS,
+        ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK,
+        ENTITY_TYPES.PERFORMANCE_HOSTEL,
+        ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS,
+        ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING,
+    ] as ExtendedEntityType[],
+
+    PERFORMANCE_FINANCIAL: [
+        ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS,
+        ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET,
+        ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND,
+        ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION,
+        ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION,
+    ] as ExtendedEntityType[],
+
+    PERFORMANCE_LINKAGES: [
+        ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE,
+        ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES,
+    ] as ExtendedEntityType[],
+
+    MISCELLANEOUS: [
+        ENTITY_TYPES.MISC_DISEASES_CROPS,
+        ENTITY_TYPES.MISC_DISEASES_LIVESTOCK,
+        ENTITY_TYPES.MISC_NEHRU_YUVA_KENDRA,
+        ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
+        ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,
+        ENTITY_TYPES.MISC_RAWE_FET,
+        ENTITY_TYPES.MISC_VIP_VISITORS,
+    ] as ExtendedEntityType[],
+
+    DIGITAL_INFORMATION: [
+        ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP,
+        ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL,
+        ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI,
+        ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY,
+        ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS,
+    ] as ExtendedEntityType[],
+
+    SWACHHTA_BHARAT_ABHIYAAN: [
+        ENTITY_TYPES.MISC_SWACHHTA_SEWA,
+        ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA,
+        ENTITY_TYPES.MISC_SWACHHTA_BUDGET,
+    ] as ExtendedEntityType[],
+
+    MEETINGS: [
+        ENTITY_TYPES.MISC_MEETINGS_SAC,
+        ENTITY_TYPES.MISC_MEETINGS_OTHER,
+    ] as ExtendedEntityType[],
 } as const;
 
 // ============================================
@@ -189,6 +254,15 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isAward: isEntityInCategory(entityType, 'AWARDS'),
         isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
         isProject: isEntityInCategory(entityType, 'PROJECTS'),
+        isPerformanceImpact: isEntityInCategory(entityType, 'PERFORMANCE_IMPACT'),
+        isPerformanceDistrictVillage: isEntityInCategory(entityType, 'PERFORMANCE_DISTRICT_VILLAGE'),
+        isPerformanceInfrastructure: isEntityInCategory(entityType, 'PERFORMANCE_INFRASTRUCTURE'),
+        isPerformanceFinancial: isEntityInCategory(entityType, 'PERFORMANCE_FINANCIAL'),
+        isPerformanceLinkages: isEntityInCategory(entityType, 'PERFORMANCE_LINKAGES'),
+        isMiscellaneous: isEntityInCategory(entityType, 'MISCELLANEOUS'),
+        isDigitalInformation: isEntityInCategory(entityType, 'DIGITAL_INFORMATION'),
+        isSwachhtaBharatAbhiyaan: isEntityInCategory(entityType, 'SWACHHTA_BHARAT_ABHIYAAN'),
+        isMeetings: isEntityInCategory(entityType, 'MEETINGS'),
         isAchievement: entityType?.startsWith('achievement-') || false,
     };
 }
@@ -360,6 +434,70 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/achievements/projects/demonstration-details': ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO,
     '/forms/achievements/projects/seed-hub-program': ENTITY_TYPES.PROJECT_SEED_HUB,
     '/forms/achievements/other-program': ENTITY_TYPES.PROJECT_OTHER,
+
+    // Performance Indicators - Impact
+    '/forms/performance/impact/kvk-activities': ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES,
+    '/forms/performance/impact/entrepreneurship': ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP,
+    '/forms/performance/impact/success-stories': ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES,
+
+    // Performance Indicators - District & Village
+    '/forms/performance/district-village/district-level': ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL,
+    '/forms/performance/district-village/operational-area': ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA,
+    '/forms/performance/district-village/village-adoption': ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION,
+    '/forms/performance/district-village/priority-thrust': ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST,
+
+    // Performance Indicators - Infrastructure
+    '/forms/performance/infrastructure/demonstration-units': ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS,
+    '/forms/performance/infrastructure/instructional-farm-crops': ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS,
+    '/forms/performance/infrastructure/production-units': ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS,
+    '/forms/performance/infrastructure/instructional-farm-livestock': ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK,
+    '/forms/performance/infrastructure/hostel': ENTITY_TYPES.PERFORMANCE_HOSTEL,
+    '/forms/performance/infrastructure/staff-quarters': ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS,
+    '/forms/performance/infrastructure/rainwater-harvesting': ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING,
+
+    // Performance Indicators - Financial
+    '/forms/performance/financial/budget-details': ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS,
+    '/forms/performance/financial/project-budget': ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET,
+    '/forms/performance/financial/revolving-fund': ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND,
+    '/forms/performance/financial/revenue-generation': ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION,
+    '/forms/performance/financial/resource-generation': ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION,
+
+    // Performance Indicators - Linkages
+    '/forms/performance/linkages/functional-linkage': ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE,
+    '/forms/performance/linkages/special-programmes': ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES,
+
+    // Miscellaneous - Diseases
+    '/forms/miscellaneous/diseases/crops': ENTITY_TYPES.MISC_DISEASES_CROPS,
+    '/forms/miscellaneous/diseases/livestock': ENTITY_TYPES.MISC_DISEASES_LIVESTOCK,
+
+    // Miscellaneous - Nehru Yuva Kendra
+    '/forms/miscellaneous/nehru-yuva-kendra': ENTITY_TYPES.MISC_NEHRU_YUVA_KENDRA,
+
+    // Miscellaneous - PPV & FRA
+    '/forms/miscellaneous/ppv-fra/training': ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
+    '/forms/miscellaneous/ppv-fra/plant-varieties': ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,
+
+    // Miscellaneous - RAWE/FET
+    '/forms/miscellaneous/rawe-fet': ENTITY_TYPES.MISC_RAWE_FET,
+
+    // Miscellaneous - VIP Visitors
+    '/forms/miscellaneous/vip-visitors': ENTITY_TYPES.MISC_VIP_VISITORS,
+
+    // Digital Information
+    '/forms/digital-information/mobile-app': ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP,
+    '/forms/digital-information/web-portal': ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL,
+    '/forms/digital-information/kisan-sarathi': ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI,
+    '/forms/digital-information/kisan-mobile-advisory': ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY,
+    '/forms/digital-information/other-channels': ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS,
+
+    // Swachhta Bharat Abhiyaan
+    '/forms/swachhta-bharat-abhiyaan/sewa': ENTITY_TYPES.MISC_SWACHHTA_SEWA,
+    '/forms/swachhta-bharat-abhiyaan/pakhwada': ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA,
+    '/forms/swachhta-bharat-abhiyaan/budget': ENTITY_TYPES.MISC_SWACHHTA_BUDGET,
+
+    // Meetings
+    '/forms/meetings/sac': ENTITY_TYPES.MISC_MEETINGS_SAC,
+    '/forms/meetings/other': ENTITY_TYPES.MISC_MEETINGS_OTHER,
 };
 
 /**

@@ -30,7 +30,10 @@ import {
     aboutKvkRoutes,
     achievementsRoutes,
     performanceIndicatorRoutes,
-    miscellaneousRoutes
+    miscellaneousRoutes,
+    digitalInformationRoutes,
+    swachhtaBharatAbhiyaanRoutes,
+    meetingsRoutes
 } from './config/route'
 import type { UserRole } from './types/auth'
 import { ENTITY_PATHS } from './constants/entityConstants'
@@ -216,6 +219,60 @@ function AppRoutes() {
 
                     {/* Miscellaneous Routes */}
                     {miscellaneousRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+
+                    {/* Digital Information Routes */}
+                    {digitalInformationRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+
+                    {/* Swachhta Bharat Abhiyaan Routes */}
+                    {swachhtaBharatAbhiyaanRoutes.map(route => (
+                        <Route
+                            key={route.path}
+                            path={route.path}
+                            element={
+                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                    <DataManagementView
+                                        key={route.path}
+                                        title={route.title}
+                                        description={route.description}
+                                        fields={route.fields}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+                    ))}
+
+                    {/* Meetings Routes */}
+                    {meetingsRoutes.map(route => (
                         <Route
                             key={route.path}
                             path={route.path}

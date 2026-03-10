@@ -164,21 +164,27 @@ export const ROUTE_PATHS = {
         },
         RAWE_FET: '/forms/miscellaneous/rawe-fet',
         VIP_VISITORS: '/forms/miscellaneous/vip-visitors',
-        DIGITAL: {
-            MOBILE_APP: '/forms/miscellaneous/digital/mobile-app',
-            WEB_PORTAL: '/forms/miscellaneous/digital/web-portal',
-            KISAN_SARATHI: '/forms/miscellaneous/digital/kisan-sarathi',
-            KISAN_MOBILE_ADVISORY: '/forms/miscellaneous/digital/kisan-mobile-advisory',
-            OTHER_CHANNELS: '/forms/miscellaneous/digital/other-channels',
-        },
-        SWACHHTA: {
-            SEWA: '/forms/miscellaneous/swachhta/sewa',
-            PAKHWADA: '/forms/miscellaneous/swachhta/pakhwada',
-            BUDGET: '/forms/miscellaneous/swachhta/budget',
-        },
-        MEETINGS: {
-            SAC: '/forms/miscellaneous/meetings/sac',
-            OTHER: '/forms/miscellaneous/meetings/other',
-        },
+    },
+    // Digital Information Routes
+    DIGITAL_INFORMATION: {
+        BASE: '/forms/digital-information',
+        MOBILE_APP: '/forms/digital-information/mobile-app',
+        WEB_PORTAL: '/forms/digital-information/web-portal',
+        KISAN_SARATHI: '/forms/digital-information/kisan-sarathi',
+        KISAN_MOBILE_ADVISORY: '/forms/digital-information/kisan-mobile-advisory',
+        OTHER_CHANNELS: '/forms/digital-information/other-channels',
+    },
+    // Swachhta Bharat Abhiyaan Routes
+    SWACHHTA_BHARAT_ABHIYAAN: {
+        BASE: '/forms/swachhta-bharat-abhiyaan',
+        SEWA: '/forms/swachhta-bharat-abhiyaan/sewa',
+        PAKHWADA: '/forms/swachhta-bharat-abhiyaan/pakhwada',
+        BUDGET: '/forms/swachhta-bharat-abhiyaan/budget',
+    },
+    // Meetings Routes
+    MEETINGS: {
+        BASE: '/forms/meetings',
+        SAC: '/forms/meetings/sac',
+        OTHER: '/forms/meetings/other',
     },
 } as const;
