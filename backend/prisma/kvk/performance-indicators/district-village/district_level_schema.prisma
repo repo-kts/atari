@@ -1,0 +1,17 @@
+model DistrictLevelData {
+  districtLevelDataId   String      @id @default(uuid()) @map("district_level_data_id")
+  kvkId                 Int
+  reportingYearId       Int?        @map("reporting_year_id")
+  accountType           String      @map("account_type")
+  information           String      @map("information")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@index([accountType])
+  @@index([createdAt])
+  @@map("district_level_data")
+}

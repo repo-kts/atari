@@ -1,0 +1,23 @@
+model KvkImpactActivity {
+  impactActivityId      String      @id @default(uuid()) @map("impact_activity_id")
+  kvkId                 Int
+  reportingYearId       Int?        @map("reporting_year_id")
+  specificArea          String      @map("specific_area")
+  briefDetails          String      @map("brief_details")
+  farmersBenefitted     Int         @map("farmers_benefitted")
+  horizontalSpread      String      @map("horizontal_spread")
+  adoptionPercentage    Float       @map("adoption_percentage")
+  qualitativeImpact     String      @map("qualitative_impact")
+  quantitativeImpact    String      @map("quantitative_impact")
+  incomeBefore          Float       @map("income_before")
+  incomeAfter           Float       @map("income_after")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@index([createdAt])
+  @@map("kvk_impact_activity")
+}

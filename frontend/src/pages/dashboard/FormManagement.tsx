@@ -5,6 +5,9 @@ import {
     Trophy,
     BarChart3,
     FolderTree,
+    Smartphone,
+    Sparkles,
+    Calendar,
 } from 'lucide-react'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
 import { LoadingState } from '../../components/common/LoadingState'
@@ -13,6 +16,9 @@ const AboutKVKTab = lazy(() => import('./forms/AboutKVKTab').then(m => ({ defaul
 const AchievementsTab = lazy(() => import('./forms/AchievementsTab').then(m => ({ default: m.AchievementsTab })))
 const PerformanceTab = lazy(() => import('./forms/PerformanceTab').then(m => ({ default: m.PerformanceTab })))
 const MiscellaneousTab = lazy(() => import('./forms/MiscellaneousTab').then(m => ({ default: m.MiscellaneousTab })))
+const DigitalInformationTab = lazy(() => import('./forms/DigitalInformationTab').then(m => ({ default: m.DigitalInformationTab })))
+const SwachhtaBharatAbhiyaanTab = lazy(() => import('./forms/SwachhtaBharatAbhiyaanTab').then(m => ({ default: m.SwachhtaBharatAbhiyaanTab })))
+const MeetingsTab = lazy(() => import('./forms/MeetingsTab').then(m => ({ default: m.MeetingsTab })))
 
 interface Tab {
     id: string
@@ -50,6 +56,27 @@ const tabs: Tab[] = [
         path: '/forms/miscellaneous',
         icon: <FolderTree className="w-4 h-4" />,
         component: <MiscellaneousTab />,
+    },
+    {
+        id: 'digital-information',
+        label: 'Digital Information',
+        path: '/forms/digital-information',
+        icon: <Smartphone className="w-4 h-4" />,
+        component: <DigitalInformationTab />,
+    },
+    {
+        id: 'swachhta-bharat-abhiyaan',
+        label: 'Swachhta Bharat Abhiyaan',
+        path: '/forms/swachhta-bharat-abhiyaan',
+        icon: <Sparkles className="w-4 h-4" />,
+        component: <SwachhtaBharatAbhiyaanTab />,
+    },
+    {
+        id: 'meetings',
+        label: 'Meetings',
+        path: '/forms/meetings',
+        icon: <Calendar className="w-4 h-4" />,
+        component: <MeetingsTab />,
     },
 ]
 

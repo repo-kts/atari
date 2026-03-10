@@ -4,9 +4,10 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string
     required?: boolean
     error?: string
+    helperText?: string
 }
 
-export const FormInput: React.FC<FormInputProps> = ({ label, required, error, className = '', ...props }) => (
+export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, className = '', ...props }) => (
     <div className="relative pt-2">
         <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
             {label} {required && <span className="text-red-500">*</span>}
@@ -14,8 +15,13 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, cl
         <input
             {...props}
             required={required}
-            className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
+            className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
         />
+        {helperText && (
+            <div className="-mt-1 border border-t-0 border-[#E0E0E0] rounded-b-xl bg-gray-50 px-4 py-2 text-xs text-gray-600">
+                {helperText}
+            </div>
+        )}
         {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
     </div>
 )
@@ -55,9 +61,9 @@ interface FormSectionProps {
 }
 
 export const FormSection: React.FC<FormSectionProps> = ({ title, children }) => (
-    <div className="space-y-6">
-        <h3 className="text-xl font-bold text-[#487749]">{title}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-3">
+        <h3 className="text-lg font-bold text-[#487749]">{title}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {children}
         </div>
     </div>

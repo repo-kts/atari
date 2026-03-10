@@ -24,6 +24,15 @@ import { HRDForms } from './forms/HRDForms'
 import { AwardRecognition } from './forms/AwardRecognitionForms'
 import { ProjectForms } from './forms/ProjectForms'
 import { MiscellaneousForms } from './forms/MiscellaneousForms'
+import { ImpactForms } from './forms/performance-indicators/ImpactForms'
+import { DistrictLevelDataForms } from './forms/performance-indicators/DistrictAndVillageForms'
+import { InfrastructurePerformanceForms } from './forms/performance-indicators/InfrastructurePerformanceForms'
+import { FinancialPerformanceForms } from './forms/performance-indicators/FinancialPerformanceForms'
+import { LinkageForms } from './forms/performance-indicators/LinkageForms'
+import { MiscellaneousForms } from './forms/miscellaneous/MiscellaneousForms'
+import { DigitalInformationForms } from './forms/digital-information/DigitalInformationForms'
+import { SwachhtaBharatAbhiyaanForms } from './forms/swachhta-bharat-abhiyaan/SwachhtaBharatAbhiyaanForms'
+import { MettingForms } from './forms/meetings/MettingForms'
 
 interface DataManagementFormPageProps {
     entityType: ExtendedEntityType | null
@@ -50,7 +59,7 @@ export function DataManagementFormPage({
     }
 
     // Use centralized entity type checks
-    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk, isSoilWaterTesting, isHrd, isAward, isOtherMaster, isProject, isMiscellaneous } =
+    const { isBasicMaster, isOftFld, isTrainingExtension, isProductionProject, isAboutKvk, isSoilWaterTesting, isHrd, isAward, isOtherMaster, isProject } =
         getEntityTypeChecks(entityType)
 
     return (
@@ -166,16 +175,8 @@ export function DataManagementFormPage({
                             />
                         )}
 
-                        {isMiscellaneous && (
-                            <MiscellaneousForms
-                                entityType={entityType}
-                                formData={formData}
-                                setFormData={setFormData}
-                            />
-                        )}
-
                         {/* Fallback if no form matches */}
-                        {!isBasicMaster && !isOtherMaster && !isOftFld && !isTrainingExtension && !isProductionProject && !isProject && !isMiscellaneous &&
+                        {!isBasicMaster && !isOtherMaster && !isOftFld && !isTrainingExtension && !isProductionProject && !isProject &&
                             entityType !== ENTITY_TYPES.PUBLICATION_ITEMS && entityType !== ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS && !isAboutKvk && !isSoilWaterTesting && !isHrd && !isAward && (
                                 <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
                                     <p className="font-semibold">Form not configured</p>

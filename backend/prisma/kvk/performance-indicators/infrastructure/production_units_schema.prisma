@@ -1,0 +1,20 @@
+model ProductionUnit {
+  productionUnitId      String      @id @default(uuid()) @map("production_unit_id")
+  kvkId                 Int
+  reportingYearId       Int?        @map("reporting_year_id")
+  productName           String      @map("product_name")
+  quantity              Float       @map("quantity")
+  costOfInputs          Float       @map("cost_of_inputs")
+  grossIncome           Float       @map("gross_income")
+  remarks               String      @map("remarks")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@index([productName])
+  @@index([createdAt])
+  @@map("production_unit")
+}

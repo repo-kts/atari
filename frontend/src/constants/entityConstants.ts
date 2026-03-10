@@ -164,6 +164,70 @@ export const ENTITY_TYPES = {
     MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
     MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
     MISC_RAWE_FET: 'misc-rawe-fet',
+
+    // Performance Indicators - Impact
+    PERFORMANCE_IMPACT_KVK_ACTIVITIES: 'performance-impact-kvk-activities',
+    PERFORMANCE_IMPACT_ENTREPRENEURSHIP: 'performance-impact-entrepreneurship',
+    PERFORMANCE_IMPACT_SUCCESS_STORIES: 'performance-impact-success-stories',
+
+    // Performance Indicators - District & Village
+    PERFORMANCE_DISTRICT_LEVEL: 'performance-district-level',
+    PERFORMANCE_OPERATIONAL_AREA: 'performance-operational-area',
+    PERFORMANCE_VILLAGE_ADOPTION: 'performance-village-adoption',
+    PERFORMANCE_PRIORITY_THRUST: 'performance-priority-thrust',
+
+    // Performance Indicators - Infrastructure
+    PERFORMANCE_DEMONSTRATION_UNITS: 'performance-demonstration-units',
+    PERFORMANCE_INSTRUCTIONAL_FARM_CROPS: 'performance-instructional-farm-crops',
+    PERFORMANCE_PRODUCTION_UNITS: 'performance-production-units',
+    PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK: 'performance-instructional-farm-livestock',
+    PERFORMANCE_HOSTEL: 'performance-hostel',
+    PERFORMANCE_STAFF_QUARTERS: 'performance-staff-quarters',
+    PERFORMANCE_RAINWATER_HARVESTING: 'performance-rainwater-harvesting',
+
+    // Performance Indicators - Financial
+    PERFORMANCE_BUDGET_DETAILS: 'performance-budget-details',
+    PERFORMANCE_PROJECT_BUDGET: 'performance-project-budget',
+    PERFORMANCE_REVOLVING_FUND: 'performance-revolving-fund',
+    PERFORMANCE_REVENUE_GENERATION: 'performance-revenue-generation',
+    PERFORMANCE_RESOURCE_GENERATION: 'performance-resource-generation',
+
+    // Performance Indicators - Linkages
+    PERFORMANCE_FUNCTIONAL_LINKAGE: 'performance-functional-linkage',
+    PERFORMANCE_SPECIAL_PROGRAMMES: 'performance-special-programmes',
+
+    // Miscellaneous - Diseases
+    MISC_DISEASES_CROPS: 'misc-diseases-crops',
+    MISC_DISEASES_LIVESTOCK: 'misc-diseases-livestock',
+
+    // Miscellaneous - Nehru Yuva Kendra
+    MISC_NEHRU_YUVA_KENDRA: 'misc-nehru-yuva-kendra',
+
+    // Miscellaneous - PPV & FRA
+    MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
+    MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
+
+    // Miscellaneous - RAWE/FET
+    MISC_RAWE_FET: 'misc-rawe-fet',
+
+    // Miscellaneous - VIP Visitors
+    MISC_VIP_VISITORS: 'misc-vip-visitors',
+
+    // Miscellaneous - Digital
+    MISC_DIGITAL_MOBILE_APP: 'misc-digital-mobile-app',
+    MISC_DIGITAL_WEB_PORTAL: 'misc-digital-web-portal',
+    MISC_DIGITAL_KISAN_SARATHI: 'misc-digital-kisan-sarathi',
+    MISC_DIGITAL_KISAN_MOBILE_ADVISORY: 'misc-digital-kisan-mobile-advisory',
+    MISC_DIGITAL_OTHER_CHANNELS: 'misc-digital-other-channels',
+
+    // Miscellaneous - Swachhta
+    MISC_SWACHHTA_SEWA: 'misc-swachhta-sewa',
+    MISC_SWACHHTA_PAKHWADA: 'misc-swachhta-pakhwada',
+    MISC_SWACHHTA_BUDGET: 'misc-swachhta-budget',
+
+    // Miscellaneous - Meetings
+    MISC_MEETINGS_SAC: 'misc-meetings-sac',
+    MISC_MEETINGS_OTHER: 'misc-meetings-other',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];

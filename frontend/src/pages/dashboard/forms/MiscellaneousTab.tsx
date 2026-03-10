@@ -5,9 +5,6 @@ import {
     Shield,
     GraduationCap,
     UserCircle,
-    Smartphone,
-    Sparkles,
-    Calendar,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
@@ -49,41 +46,13 @@ const sections: FeatureSection[] = [
             { label: 'VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
         ],
     },
-    {
-        title: 'Digital Information',
-        icon: <Smartphone className="w-5 h-5" />,
-        items: [
-            { label: 'Mobile App', path: '/forms/miscellaneous/digital/mobile-app' },
-            { label: 'Web Portal', path: '/forms/miscellaneous/digital/web-portal' },
-            { label: 'Kisan Sarathi', path: '/forms/miscellaneous/digital/kisan-sarathi' },
-            { label: 'Kisan Mobile Advisory', path: '/forms/miscellaneous/digital/kisan-mobile-advisory' },
-            { label: 'Other channels', path: '/forms/miscellaneous/digital/other-channels' },
-        ],
-    },
-    {
-        title: 'Swachhta Bharat Abhiyaan',
-        icon: <Sparkles className="w-5 h-5" />,
-        items: [
-            { label: 'Swachhta hi Sewa', path: '/forms/miscellaneous/swachhta/sewa' },
-            { label: 'Swachta Pakhwada', path: '/forms/miscellaneous/swachhta/pakhwada' },
-            { label: 'Budget expenditure', path: '/forms/miscellaneous/swachhta/budget' },
-        ],
-    },
-    {
-        title: 'Meetings',
-        icon: <Calendar className="w-5 h-5" />,
-        items: [
-            { label: 'SAC Meetings', path: '/forms/miscellaneous/meetings/sac' },
-            { label: 'Other meetings', path: '/forms/miscellaneous/meetings/other' },
-        ],
-    },
 ]
 
 export const MiscellaneousTab: React.FC = () => {
     return (
         <FeatureTabLayout
             title="Miscellaneous"
-            description="Manage prevalent diseases, programmes, digital information, Swachhta Bharat Abhiyaan, and meetings"
+            description="Manage prevalent diseases, programmes, and other miscellaneous information"
             sections={sections}
         />
     )

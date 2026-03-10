@@ -1,0 +1,20 @@
+model StaffQuartersUtilization {
+  staffQuartersUtilizationId String      @id @default(uuid()) @map("staff_quarters_utilization_id")
+  kvkId                 Int
+  dateOfCompletion     DateTime?   @map("date_of_completion")
+  isCompleted           String      @map("is_completed")
+  numberOfQuarters     Int         @map("number_of_quarters")
+  occupancyDetails     String      @map("occupancy_details")
+  // Occupancy table data stored as JSON or separate fields
+  // For simplicity, storing as JSON string - can be normalized later if needed
+  occupancyData        String?     @map("occupancy_data")
+  remark               String      @map("remark")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+  @@index([dateOfCompletion])
+  @@index([createdAt])
+  @@map("staff_quarters_utilization")
+}

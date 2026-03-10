@@ -1,6 +1,6 @@
 import React from 'react';
 import { FormSelect } from '@/pages/dashboard/shared/forms/shared/FormComponents';
-import { Info } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface MasterDataDropdownProps {
     label: string;
@@ -45,32 +45,33 @@ export const MasterDataDropdown: React.FC<MasterDataDropdownProps> = ({
 
     return (
         <div className="space-y-2">
-            <FormSelect
-                label={label}
-                required={required}
-                value={value}
-                onChange={handleChange}
-                options={isLoading ? [] : options}
-                error={error}
-                placeholder={placeholder || `Select ${label}`}
-                disabled={disabled || isLoading}
-            />
+            <div className="relative">
+                <FormSelect
+                    label={label}
+                    required={required}
+                    value={value}
+                    onChange={handleChange}
+                    options={hasOptions ? options : []}
+                    error={error}
+                    placeholder={
+                        showEmpty
+                            ? emptyMessage
+                            : placeholder || `Select ${label}`
+                    }
+                    disabled={disabled || isLoading || showEmpty}
+                    className={isLoading ? 'pr-32' : ''}
+                />
 
-            {/* Loading State */}
-            {isLoading && (
-                <div className="flex items-center gap-2 p-3 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl">
-                    <Info className="w-4 h-4 text-[#757575] animate-pulse" />
-                    <span className="text-sm text-[#757575]">{loadingMessage}</span>
-                </div>
-            )}
+                {/* Loading State - Inside the select box */}
+                {isLoading && (
+                    <div className="absolute right-4 top-[calc(50%+8px)] -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        <Loader2 className="w-4 h-4 text-[#487749] animate-spin" />
+                        <span className="text-sm text-[#757575] whitespace-nowrap">{loadingMessage}</span>
+                    </div>
+                )}
+            </div>
 
-            {/* Empty State */}
-            {showEmpty && (
-                <div className="flex items-center gap-2 p-3 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl">
-                    <Info className="w-4 h-4 text-[#757575]" />
-                    <span className="text-sm text-[#757575]">{emptyMessage}</span>
-                </div>
-            )}
+            {/* Empty State: now shown inside the select as placeholder and disabled */}
         </div>
     );
 };

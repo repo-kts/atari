@@ -11,6 +11,9 @@ import { projectsRoutes } from './projects'
 import { achievementsRoutes } from './achievements'
 import { performanceIndicatorRoutes } from './performanceIndicator'
 import { miscellaneousRoutes } from './miscellaneous'
+import { digitalInformationRoutes } from './digitalInformation'
+import { swachhtaBharatAbhiyaanRoutes } from './swachhtaBharatAbhiyaan'
+import { meetingsRoutes } from './meetings'
 import { adminManagementRoutes } from './adminManagement'
 import { featureRoutes } from './features'
 import { RouteConfig } from './types'
@@ -27,6 +30,9 @@ export {
     achievementsRoutes,
     performanceIndicatorRoutes,
     miscellaneousRoutes,
+    digitalInformationRoutes,
+    swachhtaBharatAbhiyaanRoutes,
+    meetingsRoutes,
     adminManagementRoutes,
     featureRoutes,
 }
@@ -42,6 +48,9 @@ export const allRoutes: RouteConfig[] = [
     ...achievementsRoutes,
     ...performanceIndicatorRoutes,
     ...miscellaneousRoutes,
+    ...digitalInformationRoutes,
+    ...swachhtaBharatAbhiyaanRoutes,
+    ...meetingsRoutes,
 ]
 
 /**

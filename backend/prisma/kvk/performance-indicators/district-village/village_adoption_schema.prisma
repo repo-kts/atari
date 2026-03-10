@@ -1,0 +1,18 @@
+model VillageAdoption {
+  villageAdoptionId     String      @id @default(uuid()) @map("village_adoption_id")
+  kvkId                 Int
+  reportingYearId       Int?        @map("reporting_year_id")
+  village               String      @map("village")
+  block                 String      @map("block")
+  actionTaken           String      @map("action_taken")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@index([village])
+  @@index([createdAt])
+  @@map("village_adoption")
+}
