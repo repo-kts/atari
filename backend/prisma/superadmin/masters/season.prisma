@@ -16,6 +16,7 @@ model Season {
   seedHubPrograms            KvkSeedHubProgram[]
   nicraDetails               NicraDetails[]
   soilDataInformation        SoilDataInformation[]
+  instructionalFarmCrops     InstructionalFarmCrop[]
 
   @@index([seasonId])
   @@index([seasonName])

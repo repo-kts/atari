@@ -1,0 +1,22 @@
+model OperationalArea {
+  operationalAreaId     String      @id @default(uuid()) @map("operational_area_id")
+  kvkId                 Int
+  reportingYearId       Int?        @map("reporting_year_id")
+  taluk                 String      @map("taluk")
+  block                 String      @map("block")
+  village               String      @map("village")
+  majorCrops            String      @map("major_crops")
+  majorProblems         String      @map("major_problems")
+  thrustAreas           String      @map("thrust_areas")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([reportingYearId])
+  @@index([village])
+  @@index([block])
+  @@index([createdAt])
+  @@map("operational_area")
+}

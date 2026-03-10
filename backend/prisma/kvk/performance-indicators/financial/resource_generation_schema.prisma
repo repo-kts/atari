@@ -1,0 +1,21 @@
+model ResourceGeneration {
+  resourceGenerationId  String      @id @default(uuid()) @map("resource_generation_id")
+  kvkId                 Int
+  startDate             DateTime    @map("start_date")
+  endDate               DateTime    @map("end_date")
+  programmeName         String      @map("programme_name")
+  programmePurpose      String      @map("programme_purpose")
+  sourcesOfFund         String      @map("sources_of_fund")
+  amount                Float       @map("amount")
+  infrastructureCreated String      @map("infrastructure_created")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+  @@index([programmeName])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([createdAt])
+  @@map("resource_generation")
+}
