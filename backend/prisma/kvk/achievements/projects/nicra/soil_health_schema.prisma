@@ -1,0 +1,23 @@
+model NicraSoilHealthCard {
+  nicraSoilHealthCardId Int       @id @default(autoincrement()) @map("nicra_soil_health_card_id")
+  kvkId                 Int       @map("kvk_id")
+  kvk                   Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  
+  startDate             DateTime  @map("start_date")
+  endDate               DateTime  @map("end_date")
+  noOfSoilSamplesCollected Int    @map("no_of_soil_samples_collected")
+  noOfSamplesAnalysed   Int       @map("no_of_samples_analysed")
+  shcIssued             Int       @map("shc_issued")
+
+  generalM              Int       @default(0) @map("general_m")
+  generalF              Int       @default(0) @map("general_f")
+  obcM                  Int       @default(0) @map("obc_m")
+  obcF                  Int       @default(0) @map("obc_f")
+  scM                   Int       @default(0) @map("sc_m")
+  scF                   Int       @default(0) @map("sc_f")
+  stM                   Int       @default(0) @map("st_m")
+  stF                   Int       @default(0) @map("st_f")
+
+  @@index([kvkId])
+  @@map("nicra_soil_health_card")
+}

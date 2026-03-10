@@ -17,6 +17,8 @@ model Season {
   nicraDetails               NicraDetails[]
   soilDataInformation        SoilDataInformation[]
   instructionalFarmCrops     InstructionalFarmCrop[]
+  craDetails                 CraDetails[]
+  nariBioFortifiedCrops      NariBioFortifiedCrop[]
 
   @@index([seasonId])
   @@index([seasonName])

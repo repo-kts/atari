@@ -1,0 +1,34 @@
+model CraDetails {
+  craDetailsId                    Int       @id @default(autoincrement()) @map("cra_details_id")
+  kvkId                           Int       @map("kvk_id")
+  kvk                             Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  
+  reportingYearId                 Int?      @map("reporting_year_id")
+  reportingYear                   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  seasonId                        Int?      @map("season_id")
+  season                          Season?   @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+
+  technologyDemonstrated          String    @map("technology_demonstrated")
+  cropingSystem                   String    @map("croping_system")
+  farmingSystemCrop               String    @map("farming_system_crop")
+  areaUnderDemonstrationAcre      Float     @map("area_under_demonstration_acre")
+
+  // Farmers Details
+  generalM                        Int       @default(0) @map("general_m")
+  generalF                        Int       @default(0) @map("general_f")
+  obcM                            Int       @default(0) @map("obc_m")
+  obcF                            Int       @default(0) @map("obc_f")
+  scM                             Int       @default(0) @map("sc_m")
+  scF                             Int       @default(0) @map("sc_f")
+  stM                             Int       @default(0) @map("st_m")
+  stF                             Int       @default(0) @map("st_f")
+
+  cropYieldQha                    Float     @map("crop_yield_qha")
+  systemProductivityQha           Float     @map("system_productivity_qha")
+  totalReturnRsHa                 Float     @map("total_return_rsha")
+  yieldObtainedUnderFarmerPracticesQha Float @map("yield_obtained_under_farmer_practices_qha")
+
+  @@index([kvkId])
+  @@map("cra_details")
+}

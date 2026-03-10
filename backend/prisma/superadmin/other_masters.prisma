@@ -30,7 +30,7 @@ model YearMaster {
   nicraDetailsRecords               NicraDetails[]
   swachhQuarterlyExpenditureRecords SwachhQuarterlyExpenditure[]
 
-  // Performance Indicators (from main/incoming change)
+  // Performance Indicators & Missing Relations
   kvkImpactActivityRecords          KvkImpactActivity[]
   entrepreneurshipRecords           Entrepreneurship[]
   successStoryRecords               SuccessStory[]
@@ -48,10 +48,11 @@ model YearMaster {
   functionalLinkageRecords          FunctionalLinkage[]
   specialProgrammeRecords           SpecialProgramme[]
   topCrop                           TopCrop[]
-  nariNutriGardenRecords            NariNutriGarden[]
-  nariBioFortifiedCropRecords       NariBioFortifiedCrop[]
+  tspScsp                           TspScsp[]
+  nariNutritionalGardenRecords      NariNutritionalGarden[]
+  nariBioFortifiedCropRecords       NariBioFortified[]
   nariValueAdditionRecords          NariValueAddition[]
-  nariTrainingProgramRecords        NariTrainingProgram[]
+  nariTrainingProgrammeRecords      NariTrainingProgramme[]
   nariExtensionActivityRecords      NariExtensionActivity[]
   nicraRevenueGeneratedRecords       NicraRevenueGenerated[]
   nicraFarmImplementRecords         NicraFarmImplement[]

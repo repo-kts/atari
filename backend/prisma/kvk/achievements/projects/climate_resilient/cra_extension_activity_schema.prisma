@@ -1,0 +1,26 @@
+model CraExtensionActivity {
+  craExtensionActivityId    Int       @id @default(autoincrement()) @map("cra_extension_activity_id")
+  kvkId                     Int       @map("kvk_id")
+  kvk                       Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  activityId                Int       @map("activity_id")
+  activity                  FldActivity @relation(fields: [activityId], references: [activityId])
+  
+  startDate                 DateTime  @map("start_date")
+  endDate                   DateTime  @map("end_date")
+
+  // Farmers Details
+  generalM                  Int       @default(0) @map("general_m")
+  generalF                  Int       @default(0) @map("general_f")
+  obcM                      Int       @default(0) @map("obc_m")
+  obcF                      Int       @default(0) @map("obc_f")
+  scM                       Int       @default(0) @map("sc_m")
+  scF                       Int       @default(0) @map("sc_f")
+  stM                       Int       @default(0) @map("st_m")
+  stF                       Int       @default(0) @map("st_f")
+
+  exposureVisitNo           Int       @map("exposure_visit_no")
+
+  @@index([kvkId])
+  @@map("cra_extension_activity")
+}

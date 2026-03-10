@@ -1,0 +1,15 @@
+model NicraConvergenceProgramme {
+  nicraConvergenceProgrammeId Int       @id @default(autoincrement()) @map("nicra_convergence_programme_id")
+  kvkId                       Int       @map("kvk_id")
+  kvk                         Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  
+  startDate                   DateTime  @map("start_date")
+  endDate                     DateTime  @map("end_date")
+  developmentSchemeProgramme  String    @map("development_scheme_programme")
+  natureOfWork                String    @map("nature_of_work")
+  amountRs                    Float     @map("amount_rs")
+  photographs                 String    @map("photographs")
+
+  @@index([kvkId])
+  @@map("nicra_convergence_programme")
+}
