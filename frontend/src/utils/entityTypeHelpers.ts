@@ -156,6 +156,15 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.IMPORTANT_DAY,
         ENTITY_TYPES.SOIL_WATER_ANALYSIS,
     ] as ExtendedEntityType[],
+
+    MISCELLANEOUS: [
+        ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS,
+        ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK,
+        ENTITY_TYPES.MISC_NYK_TRAINING,
+        ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
+        ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,
+        ENTITY_TYPES.MISC_RAWE_FET,
+    ] as ExtendedEntityType[],
 } as const;
 
 // ============================================
@@ -189,6 +198,7 @@ export function getEntityTypeChecks(entityType: ExtendedEntityType | null) {
         isAward: isEntityInCategory(entityType, 'AWARDS'),
         isOtherMaster: isEntityInCategory(entityType, 'OTHER_MASTERS'),
         isProject: isEntityInCategory(entityType, 'PROJECTS'),
+        isMiscellaneous: isEntityInCategory(entityType, 'MISCELLANEOUS'),
         isAchievement: entityType?.startsWith('achievement-') || false,
     };
 }
@@ -360,6 +370,14 @@ const PATH_TO_ENTITY_MAP: Record<string, ExtendedEntityType> = {
     '/forms/achievements/projects/demonstration-details': ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO,
     '/forms/achievements/projects/seed-hub-program': ENTITY_TYPES.PROJECT_SEED_HUB,
     '/forms/achievements/other-program': ENTITY_TYPES.PROJECT_OTHER,
+
+    // Miscellaneous
+    '/forms/miscellaneous/diseases/crops': ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS,
+    '/forms/miscellaneous/diseases/livestock': ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK,
+    '/forms/miscellaneous/nehru-yuva-kendra': ENTITY_TYPES.MISC_NYK_TRAINING,
+    '/forms/miscellaneous/ppv-fra/training': ENTITY_TYPES.MISC_PPV_FRA_TRAINING,
+    '/forms/miscellaneous/ppv-fra/plant-varieties': ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES,
+    '/forms/miscellaneous/rawe-fet': ENTITY_TYPES.MISC_RAWE_FET,
 };
 
 /**

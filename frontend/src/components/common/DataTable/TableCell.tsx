@@ -13,28 +13,31 @@ interface TableCellProps {
 }
 
 export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
-    const isPhotoField = field === 'photo' || field === 'photoPath'
-    const photoPath = item.photoPath || item.photo
+    // Photo/Attachment field
+    const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath'
+    const imagePath = item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment
     const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
 
-    // Photo field
-    if (isPhotoField && photoPath && photoPath !== '-') {
+    // Image field
+    if (isImageField && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
+        // Simple check to see if it might be an image data URL or path that ends in image extension
         return (
             <div className="flex items-center">
                 <img
-                    src={photoPath}
-                    alt="Staff photo"
-                    className="w-20 h-full object-cover"
+                    src={imagePath}
+                    alt="Image attachment"
+                    className="w-20 h-auto max-h-20 object-contain"
                     onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement
                         target.style.display = 'none'
                         const fallback = target.nextElementSibling as HTMLElement
                         if (fallback) {
                             fallback.classList.remove('hidden')
+                            fallback.textContent = imagePath // Show the raw path/name if image fails to load
                         }
                     }}
                 />
-                <span className="hidden text-xs text-gray-500 ml-2 truncate max-w-xs">No image</span>
+                <span className="hidden text-xs text-gray-500 ml-2 truncate max-w-[200px]"></span>
             </div>
         )
     }
@@ -44,11 +47,10 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         const status = item.transferStatus || 'ACTIVE'
         const isTransferred = status === 'TRANSFERRED'
         return (
-            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
-                isTransferred
+            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${isTransferred
                     ? 'bg-blue-100 text-blue-700 border border-blue-200'
                     : 'bg-green-100 text-green-700 border border-green-200'
-            }`}>
+                }`}>
                 {status}
             </span>
         )

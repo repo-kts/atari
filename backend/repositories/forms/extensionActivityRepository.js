@@ -100,7 +100,7 @@ const _validateKvkExists = async (kvkId) => {
 const _validateFldExists = async (fldId, kvkId) => {
     if (!fldId) return;
     const fld = await prisma.kvkFldIntroduction.findFirst({
-        where: { 
+        where: {
             kvkFldId: parseInt(fldId),
             kvkId: parseInt(kvkId)
         }
@@ -131,7 +131,7 @@ const _resolveStaffId = async (value, kvkId, required = false) => {
         const staffId = parseInt(value);
         try {
             const staff = await prisma.kvkStaff.findFirst({
-                where: { 
+                where: {
                     kvkStaffId: staffId,
                     kvkId: parseInt(kvkId)
                 }
@@ -152,7 +152,7 @@ const _resolveStaffId = async (value, kvkId, required = false) => {
     // Value is a name, try to find in DB
     try {
         const existing = await prisma.kvkStaff.findFirst({
-            where: { 
+            where: {
                 staffName: { equals: String(value), mode: 'insensitive' },
                 kvkId: parseInt(kvkId)
             }
@@ -409,7 +409,7 @@ const extensionActivityRepository = {
 
             const extensionActivityId = _parseInt(id, 'id', false);
             const where = { extensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = _parseInt(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -449,7 +449,7 @@ const extensionActivityRepository = {
 
             const extensionActivityId = _parseInt(id, 'id', false);
             const where = { extensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = _parseInt(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -496,19 +496,19 @@ const extensionActivityRepository = {
             // Update dates
             let startDate = existing.startDate;
             let endDate = existing.endDate;
-            
+
             if (data.startDate !== undefined) {
                 startDate = _parseDate(data.startDate, 'startDate', false);
             }
             if (data.endDate !== undefined) {
                 endDate = _parseDate(data.endDate, 'endDate', false);
             }
-            
+
             // Validate date range if both dates are present
             if (startDate && endDate) {
                 _validateDateRange(startDate, endDate);
             }
-            
+
             if (data.startDate !== undefined) {
                 updateData.startDate = startDate;
             }
@@ -565,7 +565,7 @@ const extensionActivityRepository = {
 
             const extensionActivityId = _parseInt(id, 'id', false);
             const where = { extensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = _parseInt(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -631,6 +631,9 @@ function _mapResponse(r) {
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
         reportingYear,
+        nameOfExtensionActivities: activityName,
+        noOfActivities: r.numberOfActivities,
+        noOfParticipants: totalParticipants,
 
         // Frontend friendly aliases
         'Reporting Year': reportingYear,

@@ -34,7 +34,7 @@ const geographicalInfoRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
-        return await prisma.geographicalInfo.findMany({
+        const records = await prisma.geographicalInfo.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
@@ -42,11 +42,32 @@ const geographicalInfoRepository = {
             },
             orderBy: { geographicalInfoId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.geographicalInfoId,
+            kvkName: r.kvk?.kvkName,
+            reportingYear: r.reportingYear?.yearName,
+        }));
     },
     findById: async (id, user) => {
         const where = { geographicalInfoId: parseInt(id) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.geographicalInfo.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.geographicalInfo.findFirst({
+            where,
+            include: {
+                kvk: { select: { kvkName: true } },
+                reportingYear: true,
+            }
+        });
+
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.geographicalInfoId,
+            kvkName: r.kvk?.kvkName,
+            reportingYear: r.reportingYear?.yearName,
+        };
     },
     update: async (id, data, user) => {
         const where = { geographicalInfoId: parseInt(id) };
@@ -103,16 +124,48 @@ const physicalInfoRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
-        return await prisma.physicalInfo.findMany({
+        const records = await prisma.physicalInfo.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
             orderBy: { physicalInfoId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.physicalInfoId,
+            kvkName: r.kvk?.kvkName,
+            genMale: r.generalM,
+            genFemale: r.generalF,
+            obcMale: r.obcM,
+            obcFemale: r.obcF,
+            scMale: r.scM,
+            scFemale: r.scF,
+            stMale: r.stM,
+            stFemale: r.stF,
+        }));
     },
     findById: async (id, user) => {
         const where = { physicalInfoId: parseInt(id) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.physicalInfo.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.physicalInfo.findFirst({
+            where,
+            include: { kvk: { select: { kvkName: true } } }
+        });
+
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.physicalInfoId,
+            kvkName: r.kvk?.kvkName,
+            genMale: r.generalM,
+            genFemale: r.generalF,
+            obcMale: r.obcM,
+            obcFemale: r.obcF,
+            scMale: r.scM,
+            scFemale: r.scF,
+            stMale: r.stM,
+            stFemale: r.stF,
+        };
     },
     update: async (id, data, user) => {
         const where = { physicalInfoId: parseInt(id) };
@@ -202,7 +255,7 @@ const demonstrationInfoRepository = {
 
         if (filters?.type) where.type = filters.type;
 
-        return await prisma.demonstrationInfo.findMany({
+        const records = await prisma.demonstrationInfo.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
@@ -210,11 +263,34 @@ const demonstrationInfoRepository = {
             },
             orderBy: { demonstrationInfoId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.demonstrationInfoId,
+            kvkName: r.kvk?.kvkName,
+            season: r.season?.seasonName,
+            area: r.areaInHa,
+        }));
     },
     findById: async (id, user) => {
         const where = { demonstrationInfoId: safeInt(id, 0) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.demonstrationInfo.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.demonstrationInfo.findFirst({
+            where,
+            include: {
+                kvk: { select: { kvkName: true } },
+                season: true,
+            }
+        });
+
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.demonstrationInfoId,
+            kvkName: r.kvk?.kvkName,
+            season: r.season?.seasonName,
+            area: r.areaInHa,
+        };
     },
     update: async (id, data, user) => {
         const where = { demonstrationInfoId: safeInt(id, 0) };
@@ -367,7 +443,7 @@ const soilDataRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
-        return await prisma.soilDataInformation.findMany({
+        const records = await prisma.soilDataInformation.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
@@ -375,11 +451,64 @@ const soilDataRepository = {
             },
             orderBy: { soilDataInformationId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.soilDataInformationId,
+            kvkName: r.kvk?.kvkName,
+            season: r.season?.seasonName,
+            type: r.soilParameter,
+            crop: r.crop,
+            beforePh: r.phBefore,
+            beforeEc: r.ecBefore,
+            beforeOc: r.ocBefore,
+            beforeN: r.nBefore,
+            beforeP: r.pBefore,
+            beforeK: r.kBefore,
+            beforeMicrobes: r.soilMicrobesBefore,
+            afterPh: r.phAfter,
+            afterEc: r.ecAfter,
+            afterOc: r.ocAfter,
+            afterN: r.nAfter,
+            afterP: r.pAfter,
+            afterK: r.kAfter,
+            afterMicrobes: r.soilMicrobesAfter,
+        }));
     },
     findById: async (id, user) => {
         const where = { soilDataInformationId: parseInt(id) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.soilDataInformation.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.soilDataInformation.findFirst({
+            where,
+            include: {
+                kvk: { select: { kvkName: true } },
+                season: true,
+            }
+        });
+
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.soilDataInformationId,
+            kvkName: r.kvk?.kvkName,
+            season: r.season?.seasonName,
+            type: r.soilParameter,
+            crop: r.crop,
+            beforePh: r.phBefore,
+            beforeEc: r.ecBefore,
+            beforeOc: r.ocBefore,
+            beforeN: r.nBefore,
+            beforeP: r.pBefore,
+            beforeK: r.kBefore,
+            beforeMicrobes: r.soilMicrobesBefore,
+            afterPh: r.phAfter,
+            afterEc: r.ecAfter,
+            afterOc: r.ocAfter,
+            afterN: r.nAfter,
+            afterP: r.pAfter,
+            afterK: r.kAfter,
+            afterMicrobes: r.soilMicrobesAfter,
+        };
     },
     update: async (id, data, user) => {
         const where = { soilDataInformationId: parseInt(id) };
@@ -439,16 +568,36 @@ const financialInfoRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
-        return await prisma.financialInformation.findMany({
+        const records = await prisma.financialInformation.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
             orderBy: { financialInformationId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.financialInformationId,
+            kvkName: r.kvk?.kvkName,
+            noOfActivities: r.numberOfActivities,
+            activityName: r.activity,
+        }));
     },
     findById: async (id, user) => {
         const where = { financialInformationId: parseInt(id) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.financialInformation.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.financialInformation.findFirst({
+            where,
+            include: { kvk: { select: { kvkName: true } } }
+        });
+
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.financialInformationId,
+            kvkName: r.kvk?.kvkName,
+            noOfActivities: r.numberOfActivities,
+            activityName: r.activity,
+        };
     },
     update: async (id, data, user) => {
         const where = { financialInformationId: parseInt(id) };

@@ -28,7 +28,7 @@ const {
  */
 const resolveCoordinatorId = async (coordinatorName, tx = prisma) => {
     if (!coordinatorName || typeof coordinatorName !== 'string') return null;
-    
+
     const name = sanitizeString(coordinatorName);
     if (!name || name.length === 0) return null;
 
@@ -88,7 +88,7 @@ const _mapResponse = async (r) => {
     }
 
     // Calculate total participants
-    const totalParticipants = 
+    const totalParticipants =
         (r.generalM || 0) + (r.generalF || 0) +
         (r.obcM || 0) + (r.obcF || 0) +
         (r.scM || 0) + (r.scF || 0) +
@@ -106,7 +106,7 @@ const _mapResponse = async (r) => {
                 },
                 select: { trainingThematicAreaId: true }
             });
-            
+
             // If not found, try without trainingAreaId constraint (in case the area changed)
             if (!trainingThematicArea) {
                 trainingThematicArea = await prisma.trainingThematicArea.findFirst({
@@ -116,7 +116,7 @@ const _mapResponse = async (r) => {
                     select: { trainingThematicAreaId: true }
                 });
             }
-            
+
             // If still not found, try partial match (contains)
             if (!trainingThematicArea) {
                 trainingThematicArea = await prisma.trainingThematicArea.findFirst({
@@ -127,7 +127,7 @@ const _mapResponse = async (r) => {
                     select: { trainingThematicAreaId: true }
                 });
             }
-            
+
             if (trainingThematicArea) {
                 trainingThematicAreaId = trainingThematicArea.trainingThematicAreaId;
             } else {
@@ -171,7 +171,7 @@ const _mapResponse = async (r) => {
         trainingAchievementId: r.trainingAchievementId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        
+
         // Master data references
         clienteleId: r.clienteleId,
         clientele: r.clientele ? r.clientele.name : undefined,
@@ -187,7 +187,7 @@ const _mapResponse = async (r) => {
         staffId: staffId, // Resolved from KvkStaff
         fundingSourceId: r.fundingSourceId,
         fundingSource: r.fundingSource ? r.fundingSource.name : undefined,
-        
+
         // Training details
         title: r.titleOfTraining,
         titleOfTraining: r.titleOfTraining,
@@ -197,7 +197,7 @@ const _mapResponse = async (r) => {
         fundingAgency: r.fundingAgencyName,
         fundingAgencyName: r.fundingAgencyName,
         campusType: r.campusType,
-        
+
         // Participants
         gen_m: r.generalM,
         gen_f: r.generalF,
@@ -215,12 +215,24 @@ const _mapResponse = async (r) => {
         scF: r.scF,
         stM: r.stM,
         stF: r.stF,
-        
+
         // Computed fields
         reportingYear,
         totalParticipants,
-        
-        // Frontend-friendly aliases
+
+        // Frontend FIELD_NAMES alignment
+        reportingYear: reportingYear,
+        kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : undefined,
+        endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : undefined,
+        trainingProgram: r.trainingType ? r.trainingType.name : undefined,
+        trainingTitle: r.titleOfTraining,
+        venue: r.venue,
+        trainingDiscipline: r.trainingArea ? r.trainingArea.name : undefined,
+        thematicArea: r.thematicArea ? r.thematicArea.name : undefined,
+        noOfParticipants: totalParticipants,
+
+        // Frontend-friendly aliases (Legacy)
         'Reporting Year': reportingYear,
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
         'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
@@ -243,200 +255,200 @@ const trainingRepository = {
         // Use transaction to ensure atomicity of master data creation
         try {
             return await prisma.$transaction(async (tx) => {
-            // Resolve coordinatorId from staffId or coordinator name (within transaction)
-            let coordinatorId = null;
-            if (data.coordinatorId) {
-                coordinatorId = validateRequiredInteger(
+                // Resolve coordinatorId from staffId or coordinator name (within transaction)
+                let coordinatorId = null;
+                if (data.coordinatorId) {
+                    coordinatorId = validateRequiredInteger(
+                        data,
+                        ['coordinatorId'],
+                        'Valid coordinator ID is required',
+                        'coordinatorId'
+                    );
+                } else if (data.staffId || data.coordinator || data.staffName) {
+                    const staffId = data.staffId ? sanitizeInteger(data.staffId) : null;
+                    const coordinatorName = sanitizeString(data.coordinator || data.staffName);
+                    coordinatorId = await resolveCoordinatorFromStaff(coordinatorName, staffId, tx);
+                }
+
+                if (!coordinatorId || isNaN(coordinatorId)) {
+                    throw new ValidationError('Valid coordinator is required. Please select a course coordinator.', 'coordinator');
+                }
+
+                // Validate and sanitize required fields
+                const clienteleId = data.clienteleId ? validateRequiredInteger(
                     data,
-                    ['coordinatorId'],
-                    'Valid coordinator ID is required',
-                    'coordinatorId'
-                );
-            } else if (data.staffId || data.coordinator || data.staffName) {
-                const staffId = data.staffId ? sanitizeInteger(data.staffId) : null;
-                const coordinatorName = sanitizeString(data.coordinator || data.staffName);
-                coordinatorId = await resolveCoordinatorFromStaff(coordinatorName, staffId, tx);
-            }
-            
-            if (!coordinatorId || isNaN(coordinatorId)) {
-                throw new ValidationError('Valid coordinator is required. Please select a course coordinator.', 'coordinator');
-            }
+                    ['clienteleId'],
+                    'Invalid clientele ID',
+                    'clienteleId'
+                ) : null;
 
-        // Validate and sanitize required fields
-        const clienteleId = data.clienteleId ? validateRequiredInteger(
-            data,
-            ['clienteleId'],
-            'Invalid clientele ID',
-            'clienteleId'
-        ) : null;
+                const trainingTypeId = data.trainingTypeId ? validateRequiredInteger(
+                    data,
+                    ['trainingTypeId'],
+                    'Invalid training type ID',
+                    'trainingTypeId'
+                ) : null;
 
-        const trainingTypeId = data.trainingTypeId ? validateRequiredInteger(
-            data,
-            ['trainingTypeId'],
-            'Invalid training type ID',
-            'trainingTypeId'
-        ) : null;
+                const trainingAreaId = data.trainingAreaId ? validateRequiredInteger(
+                    data,
+                    ['trainingAreaId'],
+                    'Invalid training area ID',
+                    'trainingAreaId'
+                ) : null;
 
-        const trainingAreaId = data.trainingAreaId ? validateRequiredInteger(
-            data,
-            ['trainingAreaId'],
-            'Invalid training area ID',
-            'trainingAreaId'
-        ) : null;
+                // Handle thematicAreaId - can come as thematicAreaId or trainingThematicAreaId
+                let thematicAreaId = null;
+                if (data.thematicAreaId) {
+                    thematicAreaId = validateRequiredInteger(
+                        data,
+                        ['thematicAreaId'],
+                        'Invalid thematic area ID',
+                        'thematicAreaId'
+                    );
+                } else if (data.trainingThematicAreaId) {
+                    // Try to find ThematicAreaMaster by matching with TrainingThematicArea name
+                    const trainingThematicAreaId = validateRequiredInteger(
+                        data,
+                        ['trainingThematicAreaId'],
+                        'Invalid training thematic area ID',
+                        'trainingThematicAreaId'
+                    );
 
-        // Handle thematicAreaId - can come as thematicAreaId or trainingThematicAreaId
-        let thematicAreaId = null;
-        if (data.thematicAreaId) {
-            thematicAreaId = validateRequiredInteger(
-                data,
-                ['thematicAreaId'],
-                'Invalid thematic area ID',
-                'thematicAreaId'
-            );
-        } else if (data.trainingThematicAreaId) {
-            // Try to find ThematicAreaMaster by matching with TrainingThematicArea name
-            const trainingThematicAreaId = validateRequiredInteger(
-                data,
-                ['trainingThematicAreaId'],
-                'Invalid training thematic area ID',
-                'trainingThematicAreaId'
-            );
-            
-            const trainingThematicArea = await tx.trainingThematicArea.findUnique({
-                where: { trainingThematicAreaId },
-                select: { trainingThematicAreaName: true }
-            });
-            
-            if (trainingThematicArea) {
-                // Find or create ThematicAreaMaster with the same name (within transaction)
-                let thematicArea = await tx.thematicAreaMaster.findFirst({
-                    where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
-                });
-                
-                if (!thematicArea) {
-                    // Create if doesn't exist
-                    thematicArea = await tx.thematicAreaMaster.create({
-                        data: { name: sanitizeString(trainingThematicArea.trainingThematicAreaName) }
+                    const trainingThematicArea = await tx.trainingThematicArea.findUnique({
+                        where: { trainingThematicAreaId },
+                        select: { trainingThematicAreaName: true }
                     });
+
+                    if (trainingThematicArea) {
+                        // Find or create ThematicAreaMaster with the same name (within transaction)
+                        let thematicArea = await tx.thematicAreaMaster.findFirst({
+                            where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
+                        });
+
+                        if (!thematicArea) {
+                            // Create if doesn't exist
+                            thematicArea = await tx.thematicAreaMaster.create({
+                                data: { name: sanitizeString(trainingThematicArea.trainingThematicAreaName) }
+                            });
+                        }
+                        thematicAreaId = thematicArea.thematicAreaId;
+                    }
                 }
-                thematicAreaId = thematicArea.thematicAreaId;
-            }
-        }
 
-        if (!thematicAreaId || isNaN(thematicAreaId)) {
-            throw new ValidationError('Valid thematic area is required. Please select a thematic area.', 'thematicArea');
-        }
-
-        const fundingSourceId = data.fundingSourceId ? validateRequiredInteger(
-            data,
-            ['fundingSourceId'],
-            'Invalid funding source ID',
-            'fundingSourceId'
-        ) : null;
-
-        // Validate and sanitize required string fields
-        const titleOfTraining = validateRequiredString(
-            data,
-            ['titleOfTraining', 'title'],
-            'Title of training is required',
-            'title'
-        );
-
-        const venue = validateRequiredString(
-            data,
-            ['venue'],
-            'Venue is required',
-            'venue'
-        );
-
-        // Validate and sanitize dates
-        const startDate = validateRequiredDate(
-            data,
-            ['startDate'],
-            'Start date is required and must be a valid date',
-            'startDate'
-        );
-
-        const endDate = validateRequiredDate(
-            data,
-            ['endDate'],
-            'End date is required and must be a valid date',
-            'endDate'
-        );
-
-        // Validate date logic
-        if (endDate < startDate) {
-            throw new ValidationError('End date must be after start date', 'endDate');
-        }
-
-        // Sanitize campus type (ON_CAMPUS or OFF_CAMPUS)
-        let campusType = sanitizeString(data.campusType || 'ON_CAMPUS');
-        if (campusType) {
-            campusType = campusType.toUpperCase().replace(/\s+/g, '_');
-            if (campusType !== 'ON_CAMPUS' && campusType !== 'OFF_CAMPUS') {
-                // Try to map common variations
-                if (campusType.includes('ON')) campusType = 'ON_CAMPUS';
-                else if (campusType.includes('OFF')) campusType = 'OFF_CAMPUS';
-                else campusType = 'ON_CAMPUS'; // Default
-            }
-        } else {
-            campusType = 'ON_CAMPUS'; // Default
-        }
-
-        // Sanitize optional funding agency name
-        const fundingAgencyName = sanitizeString(data.fundingAgencyName || data.fundingAgency, { allowEmpty: true });
-
-        // Validate and sanitize participant counts
-        const farmerCounts = validateFarmerCounts(
-            data,
-            {
-                gen_m: 'generalM',
-                gen_f: 'generalF',
-                obc_m: 'obcM',
-                obc_f: 'obcF',
-                sc_m: 'scM',
-                sc_f: 'scF',
-                st_m: 'stM',
-                st_f: 'stF',
-            },
-            { defaultValue: 0, validateNonNegative: true }
-        );
-
-            // Create the record (within transaction)
-            const result = await tx.trainingAchievement.create({
-                data: {
-                    kvkId,
-                    clienteleId,
-                    trainingTypeId,
-                    trainingAreaId,
-                    thematicAreaId,
-                    coordinatorId,
-                    fundingSourceId,
-                    titleOfTraining,
-                    startDate,
-                    endDate,
-                    venue,
-                    fundingAgencyName,
-                    campusType,
-                    generalM: farmerCounts.generalM,
-                    generalF: farmerCounts.generalF,
-                    obcM: farmerCounts.obcM,
-                    obcF: farmerCounts.obcF,
-                    scM: farmerCounts.scM,
-                    scF: farmerCounts.scF,
-                    stM: farmerCounts.stM,
-                    stF: farmerCounts.stF,
-                },
-                include: {
-                    kvk: { select: { kvkName: true } },
-                    clientele: { select: { name: true } },
-                    trainingType: { select: { name: true } },
-                    trainingArea: { select: { name: true } },
-                    thematicArea: { select: { name: true } },
-                    coordinator: { select: { name: true } },
-                    fundingSource: { select: { name: true } },
+                if (!thematicAreaId || isNaN(thematicAreaId)) {
+                    throw new ValidationError('Valid thematic area is required. Please select a thematic area.', 'thematicArea');
                 }
-            });
+
+                const fundingSourceId = data.fundingSourceId ? validateRequiredInteger(
+                    data,
+                    ['fundingSourceId'],
+                    'Invalid funding source ID',
+                    'fundingSourceId'
+                ) : null;
+
+                // Validate and sanitize required string fields
+                const titleOfTraining = validateRequiredString(
+                    data,
+                    ['titleOfTraining', 'title'],
+                    'Title of training is required',
+                    'title'
+                );
+
+                const venue = validateRequiredString(
+                    data,
+                    ['venue'],
+                    'Venue is required',
+                    'venue'
+                );
+
+                // Validate and sanitize dates
+                const startDate = validateRequiredDate(
+                    data,
+                    ['startDate'],
+                    'Start date is required and must be a valid date',
+                    'startDate'
+                );
+
+                const endDate = validateRequiredDate(
+                    data,
+                    ['endDate'],
+                    'End date is required and must be a valid date',
+                    'endDate'
+                );
+
+                // Validate date logic
+                if (endDate < startDate) {
+                    throw new ValidationError('End date must be after start date', 'endDate');
+                }
+
+                // Sanitize campus type (ON_CAMPUS or OFF_CAMPUS)
+                let campusType = sanitizeString(data.campusType || 'ON_CAMPUS');
+                if (campusType) {
+                    campusType = campusType.toUpperCase().replace(/\s+/g, '_');
+                    if (campusType !== 'ON_CAMPUS' && campusType !== 'OFF_CAMPUS') {
+                        // Try to map common variations
+                        if (campusType.includes('ON')) campusType = 'ON_CAMPUS';
+                        else if (campusType.includes('OFF')) campusType = 'OFF_CAMPUS';
+                        else campusType = 'ON_CAMPUS'; // Default
+                    }
+                } else {
+                    campusType = 'ON_CAMPUS'; // Default
+                }
+
+                // Sanitize optional funding agency name
+                const fundingAgencyName = sanitizeString(data.fundingAgencyName || data.fundingAgency, { allowEmpty: true });
+
+                // Validate and sanitize participant counts
+                const farmerCounts = validateFarmerCounts(
+                    data,
+                    {
+                        gen_m: 'generalM',
+                        gen_f: 'generalF',
+                        obc_m: 'obcM',
+                        obc_f: 'obcF',
+                        sc_m: 'scM',
+                        sc_f: 'scF',
+                        st_m: 'stM',
+                        st_f: 'stF',
+                    },
+                    { defaultValue: 0, validateNonNegative: true }
+                );
+
+                // Create the record (within transaction)
+                const result = await tx.trainingAchievement.create({
+                    data: {
+                        kvkId,
+                        clienteleId,
+                        trainingTypeId,
+                        trainingAreaId,
+                        thematicAreaId,
+                        coordinatorId,
+                        fundingSourceId,
+                        titleOfTraining,
+                        startDate,
+                        endDate,
+                        venue,
+                        fundingAgencyName,
+                        campusType,
+                        generalM: farmerCounts.generalM,
+                        generalF: farmerCounts.generalF,
+                        obcM: farmerCounts.obcM,
+                        obcF: farmerCounts.obcF,
+                        scM: farmerCounts.scM,
+                        scF: farmerCounts.scF,
+                        stM: farmerCounts.stM,
+                        stF: farmerCounts.stF,
+                    },
+                    include: {
+                        kvk: { select: { kvkName: true } },
+                        clientele: { select: { name: true } },
+                        trainingType: { select: { name: true } },
+                        trainingArea: { select: { name: true } },
+                        thematicArea: { select: { name: true } },
+                        coordinator: { select: { name: true } },
+                        fundingSource: { select: { name: true } },
+                    }
+                });
 
                 return await _mapResponse(result);
             }, {
@@ -528,7 +540,7 @@ const trainingRepository = {
      */
     update: async (id, data, user) => {
         validateInput(data, user);
-        
+
         // Validate ID first
         const parsedId = validateId(id, 'trainingAchievementId');
         const where = buildRoleBasedWhere(user, { trainingAchievementId: parsedId });
@@ -606,12 +618,12 @@ const trainingRepository = {
                 'Invalid training thematic area ID',
                 'trainingThematicAreaId'
             );
-            
+
             const trainingThematicArea = await prisma.trainingThematicArea.findUnique({
                 where: { trainingThematicAreaId },
                 select: { trainingThematicAreaName: true }
             });
-            
+
             if (trainingThematicArea) {
                 // Find or create ThematicAreaMaster with the same name
                 // Note: For updates, we'll create outside transaction for now
@@ -619,7 +631,7 @@ const trainingRepository = {
                 let thematicArea = await prisma.thematicAreaMaster.findFirst({
                     where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
                 });
-                
+
                 if (!thematicArea) {
                     // Create if doesn't exist
                     thematicArea = await prisma.thematicAreaMaster.create({
@@ -685,7 +697,7 @@ const trainingRepository = {
         // Compute effective dates (use updateData if provided, otherwise existing record)
         const effectiveStart = updateData.startDate || (existingRecord.startDate ? new Date(existingRecord.startDate) : null);
         const effectiveEnd = updateData.endDate || (existingRecord.endDate ? new Date(existingRecord.endDate) : null);
-        
+
         if (effectiveStart && effectiveEnd && effectiveEnd < effectiveStart) {
             throw new ValidationError('End date must be after start date', 'endDate');
         }
@@ -715,7 +727,7 @@ const trainingRepository = {
             data.sc_f !== undefined || data.scF !== undefined ||
             data.st_m !== undefined || data.stM !== undefined ||
             data.st_f !== undefined || data.stF !== undefined) {
-            
+
             // Only validate and include fields that are explicitly provided
             const farmerCounts = validateFarmerCounts(
                 data,

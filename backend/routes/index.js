@@ -40,6 +40,11 @@ const drmrDetailsRoutes = require('./forms/drmrDetailsRoutes.js');
 const nicraRoutes = require('./forms/nicraRoutes.js');
 const naturalFarmingRoutes = require('./forms/naturalFarmingRoutes.js');
 const kvkOtherProgrammeRoutes = require('./forms/kvkOtherProgrammeRoutes.js');
+const craRoutes = require('./forms/craRoutes.js');
+const prevalentDiseaseRoutes = require('./forms/prevalentDiseaseRoutes.js');
+const nykTrainingRoutes = require('./forms/nykTrainingRoutes.js');
+const ppvFraRoutes = require('./forms/ppvFraRoutes.js');
+const raweFetRoutes = require('./forms/raweFetRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 
@@ -79,8 +84,13 @@ router.use('/forms/achievements/projects/csisa', csisaRoutes);
 router.use('/forms/achievements/projects/agri-drone', agriDroneRoutes);
 router.use('/forms/achievements/projects/drmr/details', drmrDetailsRoutes);
 router.use('/forms/achievements/projects/nicra', nicraRoutes);
+router.use('/forms/achievements/projects/cra', craRoutes);
 router.use('/forms/achievements/projects/natural-farming', naturalFarmingRoutes);
 router.use('/forms/achievements/other-program', kvkOtherProgrammeRoutes);
+router.use('/forms/miscellaneous/prevalent-diseases', prevalentDiseaseRoutes);
+router.use('/forms/miscellaneous/nyk-training', nykTrainingRoutes);
+router.use('/forms/miscellaneous/ppv-fra', ppvFraRoutes);
+router.use('/forms/miscellaneous/rawe-fet', raweFetRoutes);
 router.use('/forms/achievements/oft', oftRoutes);
 router.use('/forms/achievements/fld/extension-training', require('./forms/fldExtensionRoutes.js'));
 router.use('/forms/achievements/fld/technical-feedback', require('./forms/fldTechnicalFeedbackRoutes.js'));

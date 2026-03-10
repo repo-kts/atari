@@ -1464,7 +1464,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.REGISTRATION_NO,
         FIELD_NAMES.FARMER_NAME,
         FIELD_NAMES.BLOCK,
-        FIELD_NAMES.DISTRICT_NAME,
+        FIELD_NAMES.DISTRICT,
     ] as const,
 
     // Miscellaneous Routes - RAWE/FET

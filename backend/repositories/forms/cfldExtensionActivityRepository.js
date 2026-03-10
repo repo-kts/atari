@@ -181,7 +181,13 @@ function _mapResponse(r) {
         genF: r.generalF, // Added for frontend consistency
         date: r.activityDate, // Added for frontend consistency
 
-        // Frontend friendly aliases
+        // Frontend FIELD_NAMES alignment
+        season: r.season ? r.season.seasonName : undefined,
+        extensionActivitiesOrganized: r.extensionActivity ? r.extensionActivity.extensionName : undefined,
+        activityDate: r.activityDate ? new Date(r.activityDate).toISOString().split('T')[0] : undefined,
+        noOfFarmersAttended: totalFarmers,
+
+        // Frontend friendly aliases (Legacy)
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
         'Season': r.season ? r.season.seasonName : undefined,
         'Extension Activities Organized': r.extensionActivity ? r.extensionActivity.extensionName : undefined,

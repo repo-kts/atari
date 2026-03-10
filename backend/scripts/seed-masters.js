@@ -134,7 +134,7 @@ const COURSE_COORDINATORS = [
 
 async function seedStaffMasters() {
   console.log('🌱 Staff masters...');
-  
+
   for (const categoryName of STAFF_CATEGORIES) {
     await prisma.staffCategoryMaster.upsert({
       where: { categoryName },
@@ -142,7 +142,7 @@ async function seedStaffMasters() {
       create: { categoryName },
     });
   }
-  
+
   for (const levelName of PAY_LEVELS) {
     await prisma.payLevelMaster.upsert({
       where: { levelName },
@@ -150,13 +150,13 @@ async function seedStaffMasters() {
       create: { levelName },
     });
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedTrainingMasters() {
   console.log('🌱 Training masters...');
-  
+
   for (const name of TRAINING_TYPES) {
     await prisma.trainingTypeMaster.upsert({
       where: { name },
@@ -164,7 +164,7 @@ async function seedTrainingMasters() {
       create: { name },
     });
   }
-  
+
   for (const name of TRAINING_AREAS) {
     await prisma.trainingAreaMaster.upsert({
       where: { name },
@@ -172,7 +172,7 @@ async function seedTrainingMasters() {
       create: { name },
     });
   }
-  
+
   for (const name of TRAINING_CLIENTELE) {
     await prisma.clienteleMaster.upsert({
       where: { name },
@@ -180,7 +180,7 @@ async function seedTrainingMasters() {
       create: { name },
     });
   }
-  
+
   for (const name of THEMATIC_AREAS) {
     await prisma.thematicAreaMaster.upsert({
       where: { name },
@@ -188,7 +188,7 @@ async function seedTrainingMasters() {
       create: { name },
     });
   }
-  
+
   for (const name of COURSE_COORDINATORS) {
     await prisma.courseCoordinatorMaster.upsert({
       where: { name },
@@ -196,13 +196,13 @@ async function seedTrainingMasters() {
       create: { name },
     });
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedExtensionMasters() {
   console.log('🌱 Extension activity masters...');
-  
+
   for (const activityName of EXTENSION_ACTIVITY_TYPES) {
     await prisma.fldActivity.upsert({
       where: { activityName },
@@ -210,7 +210,7 @@ async function seedExtensionMasters() {
       create: { activityName },
     });
   }
-  
+
   for (const activityName of OTHER_EXTENSION_ACTIVITY_TYPES) {
     await prisma.otherExtensionActivityType.upsert({
       where: { activityName },
@@ -218,7 +218,7 @@ async function seedExtensionMasters() {
       create: { activityName },
     });
   }
-  
+
   for (const dayName of IMPORTANT_DAYS) {
     await prisma.importantDay.upsert({
       where: { dayName },
@@ -226,13 +226,13 @@ async function seedExtensionMasters() {
       create: { dayName },
     });
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedFundingSources() {
   console.log('🌱 Funding sources...');
-  
+
   for (const name of FUNDING_SOURCES) {
     await prisma.fundingSourceMaster.upsert({
       where: { name },
@@ -240,20 +240,20 @@ async function seedFundingSources() {
       create: { name },
     });
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedProducts() {
   console.log('🌱 Products (categories, types, products)...');
-  
+
   for (const category of PRODUCT_CATEGORIES) {
     const productCategory = await prisma.productCategory.upsert({
       where: { productCategoryName: category.categoryName },
       update: {},
       create: { productCategoryName: category.categoryName },
     });
-    
+
     for (const typeName of category.types) {
       let productType = await prisma.productType.findFirst({
         where: {
@@ -261,7 +261,7 @@ async function seedProducts() {
           productCategoryId: productCategory.productCategoryId,
         },
       });
-      
+
       if (!productType) {
         productType = await prisma.productType.create({
           data: {
@@ -270,7 +270,7 @@ async function seedProducts() {
           },
         });
       }
-      
+
       // Create a sample product for each type (only if doesn't exist)
       const productName = `${typeName} - Sample Product`;
       const existingProduct = await prisma.product.findFirst({
@@ -280,7 +280,7 @@ async function seedProducts() {
           productTypeId: productType.productTypeId,
         },
       });
-      
+
       if (!existingProduct) {
         await prisma.product.create({
           data: {
@@ -292,29 +292,29 @@ async function seedProducts() {
       }
     }
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedCRASystems() {
   console.log('🌱 CRA cropping and farming systems...');
-  
+
   const seasons = await prisma.season.findMany();
   const seasonMap = {};
   for (const season of seasons) {
     seasonMap[season.seasonName] = season.seasonId;
   }
-  
+
   // Seed cropping systems
   for (const [seasonName, crops] of Object.entries(CRA_CROPPING_SYSTEMS)) {
     const seasonId = seasonMap[seasonName];
     if (!seasonId) continue;
-    
+
     for (const cropName of crops) {
       const existing = await prisma.craCropingSystem.findFirst({
         where: { cropName, seasonId },
       });
-      
+
       if (!existing) {
         await prisma.craCropingSystem.create({
           data: { cropName, seasonId },
@@ -322,17 +322,17 @@ async function seedCRASystems() {
       }
     }
   }
-  
+
   // Seed farming systems
   for (const [seasonName, systems] of Object.entries(CRA_FARMING_SYSTEMS)) {
     const seasonId = seasonMap[seasonName];
     if (!seasonId) continue;
-    
+
     for (const farmingSystemName of systems) {
       const existing = await prisma.craFarmingSystem.findFirst({
         where: { farmingSystemName, seasonId },
       });
-      
+
       if (!existing) {
         await prisma.craFarmingSystem.create({
           data: { farmingSystemName, seasonId },
@@ -340,13 +340,13 @@ async function seedCRASystems() {
       }
     }
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedARYAEnterprises() {
   console.log('🌱 ARYA enterprises...');
-  
+
   for (const enterpriseName of ARYA_ENTERPRISES) {
     await prisma.aryaEnterprise.upsert({
       where: { enterpriseName },
@@ -354,27 +354,27 @@ async function seedARYAEnterprises() {
       create: { enterpriseName },
     });
   }
-  
+
   console.log('   ✅ Done\n');
 }
 
 async function seedUniversities() {
   console.log('🌱 Universities...');
-  
+
   // Get existing orgs to attach universities
   const orgs = await prisma.orgMaster.findMany({ take: 5 });
-  
+
   if (orgs.length === 0) {
     console.log('   ⚠️  No organizations found. Run seed:data first.\n');
     return;
   }
-  
+
   const universities = [
     'Bihar Agricultural University', 'Rajendra Agricultural University',
     'Birsa Agricultural University', 'Orissa University of Agriculture and Technology',
     'Bidhan Chandra Krishi Viswavidyalaya', 'Uttar Banga Krishi Viswavidyalaya'
   ];
-  
+
   for (let i = 0; i < universities.length; i++) {
     const org = orgs[i % orgs.length];
     await prisma.universityMaster.upsert({
@@ -386,12 +386,29 @@ async function seedUniversities() {
         orgId: org.orgId,
       },
       create: {
-        universityName: universities[i], 
+        universityName: universities[i],
         orgId: org.orgId,
       },
     });
   }
-  
+
+  console.log('   ✅ Done\n');
+}
+
+// Attachment Types
+const ATTACHMENT_TYPES = [
+  'RAWE', 'FET', 'FIT', 'Orientation', 'Study Tour'
+];
+
+async function seedAttachmentTypes() {
+  console.log('🌱 Attachment types...');
+  for (const name of ATTACHMENT_TYPES) {
+    await prisma.attachmentType.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
   console.log('   ✅ Done\n');
 }
 
@@ -405,6 +422,7 @@ async function run() {
   await seedCRASystems();
   await seedARYAEnterprises();
   await seedUniversities();
+  await seedAttachmentTypes();
   console.log('✅ All masters seeded successfully!');
 }
 

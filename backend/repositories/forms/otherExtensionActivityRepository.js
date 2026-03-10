@@ -141,7 +141,7 @@ const otherExtensionActivityRepository = {
 
             const otherExtensionActivityId = parseInteger(id, 'id', false);
             const where = { otherExtensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -181,7 +181,7 @@ const otherExtensionActivityRepository = {
 
             const otherExtensionActivityId = parseInteger(id, 'id', false);
             const where = { otherExtensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -228,19 +228,19 @@ const otherExtensionActivityRepository = {
             // Update dates
             let startDate = existing.startDate;
             let endDate = existing.endDate;
-            
+
             if (data.startDate !== undefined) {
                 startDate = parseDate(data.startDate, 'startDate', false);
             }
             if (data.endDate !== undefined) {
                 endDate = parseDate(data.endDate, 'endDate', false);
             }
-            
+
             // Validate date range if both dates are present
             if (startDate && endDate) {
                 validateDateRange(startDate, endDate);
             }
-            
+
             if (data.startDate !== undefined) {
                 updateData.startDate = startDate;
             }
@@ -293,7 +293,7 @@ const otherExtensionActivityRepository = {
 
             const otherExtensionActivityId = parseInteger(id, 'id', false);
             const where = { otherExtensionActivityId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -361,13 +361,12 @@ function _mapResponse(r) {
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
         reportingYear,
 
-        // Frontend friendly aliases
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
-        'End Date': r.endDate ? new Date(r.endDate).toLocaleDateString('en-GB') : undefined,
-        'Nature of Extension Activity': activityName,
-        'No. of activities': r.numberOfActivities,
+        reportingYear: reportingYear,
+        kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
+        endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
+        natureOfExtensionActivity: activityName,
+        noOfActivities: r.numberOfActivities
     };
 }
 

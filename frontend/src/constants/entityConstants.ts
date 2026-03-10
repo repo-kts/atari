@@ -156,6 +156,14 @@ export const ENTITY_TYPES = {
 
     PROJECT_SEED_HUB: 'project-seed-hub',
     PROJECT_OTHER: 'project-other',
+
+    // Miscellaneous
+    MISC_PREVALENT_DISEASES_CROPS: 'misc-prevalent-diseases-crops',
+    MISC_PREVALENT_DISEASES_LIVESTOCK: 'misc-prevalent-diseases-livestock',
+    MISC_NYK_TRAINING: 'misc-nyk-training',
+    MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
+    MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
+    MISC_RAWE_FET: 'misc-rawe-fet',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
