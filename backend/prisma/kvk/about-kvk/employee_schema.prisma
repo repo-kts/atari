@@ -28,12 +28,12 @@ model KvkStaff {
   kvkFldIntroductions         KvkFldIntroduction[]
   kvkOfts                     Kvkoft[]
   kvkOtherExtensionActivities KvkOtherExtensionActivity[]
-  discipline                  Discipline?                 @relation(fields: [disciplineId], references: [disciplineId], onDelete: SetNull)
+  discipline                  Discipline?                 @relation(fields: [disciplineId], references: [disciplineId])
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
-  payLevel                    PayLevelMaster?             @relation(fields: [payLevelId], references: [payLevelId], onDelete: SetNull)
-  sanctionedPost              SanctionedPost?             @relation(fields: [sanctionedPostId], references: [sanctionedPostId], onDelete: SetNull)
-  staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId], onDelete: SetNull)
+  payLevel                    PayLevelMaster?             @relation(fields: [payLevelId], references: [payLevelId])
+  sanctionedPost              SanctionedPost?             @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
+  staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId])
   transferHistory             StaffTransferHistory[]
 
   @@index([kvkId])

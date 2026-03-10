@@ -36,6 +36,10 @@ const oftRoutes = require('./forms/oftRoutes.js');
 const fldRoutes = require('./forms/fldRoutes.js');
 const csisaRoutes = require('./forms/csisaRoutes.js');
 const agriDroneRoutes = require('./forms/agriDroneRoutes.js');
+const drmrDetailsRoutes = require('./forms/drmrDetailsRoutes.js');
+const nicraRoutes = require('./forms/nicraRoutes.js');
+const naturalFarmingRoutes = require('./forms/naturalFarmingRoutes.js');
+const kvkOtherProgrammeRoutes = require('./forms/kvkOtherProgrammeRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 
@@ -73,6 +77,10 @@ router.use('/forms/achievements/projects/arya/current', aryaCurrentYearRoutes);
 router.use('/forms/achievements/projects/arya/previous', aryaPrevYearRoutes);
 router.use('/forms/achievements/projects/csisa', csisaRoutes);
 router.use('/forms/achievements/projects/agri-drone', agriDroneRoutes);
+router.use('/forms/achievements/projects/drmr/details', drmrDetailsRoutes);
+router.use('/forms/achievements/projects/nicra', nicraRoutes);
+router.use('/forms/achievements/projects/natural-farming', naturalFarmingRoutes);
+router.use('/forms/achievements/other-program', kvkOtherProgrammeRoutes);
 router.use('/forms/achievements/oft', oftRoutes);
 router.use('/forms/achievements/fld/extension-training', require('./forms/fldExtensionRoutes.js'));
 router.use('/forms/achievements/fld/technical-feedback', require('./forms/fldTechnicalFeedbackRoutes.js'));

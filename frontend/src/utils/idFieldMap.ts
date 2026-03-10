@@ -99,6 +99,30 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: 'kvkAwardId',
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]: 'scientistAwardId',
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: 'farmerAwardId',
+
+    // NICRA
+    [ENTITY_TYPES.PROJECT_NICRA_BASIC]: 'nicraBasicInfoId',
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: 'nicraDetailsId',
+    [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: 'nicraTrainingId',
+    [ENTITY_TYPES.PROJECT_NICRA_EXTENSION]: 'nicraExtensionActivityId',
+
+    // Natural Farming
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: 'geographicalInfoId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: 'physicalInfoId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: 'demonstrationInfoId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]: 'demonstrationInfoId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]: 'beneficiariesDetailsId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL]: 'soilDataInformationId',
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET]: 'financialInformationId',
+    [ENTITY_TYPES.PROJECT_OTHER]: 'kvkOtherProgrammeId',
+
+    // Miscellaneous
+    [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'prevalentDiseaseId',
+    [ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK]: 'prevalentLivestockDiseaseId',
+    [ENTITY_TYPES.MISC_NYK_TRAINING]: 'nykTrainingId',
+    [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: 'ppvFraTrainingId',
+    [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]: 'ppvFraPlantVarietiesID',
+    [ENTITY_TYPES.MISC_RAWE_FET]: 'raweProgrammeId',
 };
 
 /**

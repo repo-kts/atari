@@ -99,8 +99,8 @@ const ENTITY_CONFIG = {
 
     // ARYA Entity
     'arya-enterprises': {
-        model: 'aryaEnterprise',
-        idField: 'aryaEnterpriseId',
+        model: 'enterprise',
+        idField: 'enterpriseId',
         nameField: 'enterpriseName',
         tableName: 'enterprise_master',
         idColumn: 'enterprise_id',
@@ -178,12 +178,12 @@ async function findAll(entityName, options = {}) {
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
         throw new Error(`Missing ID field: ${config.idField}`);
     }
-    
+
     const parsedId = parseInt(id);
     if (isNaN(parsedId)) {
         throw new Error(`Invalid ID: ${id}. Expected a number.`);
@@ -301,17 +301,17 @@ async function checkDependentRecords(entityName, config, id) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
         const entity = await prisma[config.model].findUnique({
             where: { [config.idField]: id },
-            select: { 
+            select: {
                 _count: {
                     select: config.includes._count.select
                 }
             },
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
-            
+
             if (dependentCounts.length > 0) {
                 return {
                     hasDependents: true,
@@ -320,7 +320,7 @@ async function checkDependentRecords(entityName, config, id) {
             }
         }
     }
-    
+
     return { hasDependents: false };
 }
 
@@ -332,17 +332,17 @@ async function checkDependentRecords(entityName, config, id) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
         throw new Error(`Cannot delete ${entityName}: missing ID field`);
     }
-    
+
     const parsedId = parseInt(id);
     if (isNaN(parsedId)) {
         throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
     }
-    
+
     // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
     // We don't need to check or manually nullify - the database handles it
     try {

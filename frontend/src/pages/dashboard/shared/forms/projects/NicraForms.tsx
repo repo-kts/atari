@@ -359,8 +359,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.campusType || ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
-                                { value: 'On Campus', label: 'On Campus' },
-                                { value: 'Off Campus', label: 'Off Campus' }
+                                { value: 'ON_CAMPUS', label: 'On Campus' },
+                                { value: 'OFF_CAMPUS', label: 'Off Campus' }
                             ]}
                             placeholder="Select"
                         />

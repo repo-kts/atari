@@ -20,7 +20,7 @@ model SoilDataInformation {
   kAfter                Float             @map("k_after")
   soilMicrobesAfter     Float             @map("soil_microbes_after")
   kvk                   Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season                Season?           @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season                Season?           @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@map("soil_data_information")

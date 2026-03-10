@@ -36,11 +36,34 @@ export function useProjectData(entityType: string) {
         'project-csisa': '/forms/achievements/projects/csisa',
         'project-agri-drone': '/forms/achievements/projects/agri-drone',
         'project-agri-drone-demo': '/forms/achievements/projects/agri-drone',
+        'project-drmr-details': '/forms/achievements/projects/drmr/details',
+        'project-nicra-basic': '/forms/achievements/projects/nicra/basic',
+        'project-nicra-details': '/forms/achievements/projects/nicra/details',
+        'project-nicra-training': '/forms/achievements/projects/nicra/training',
+        'project-nicra-extension': '/forms/achievements/projects/nicra/extension',
+        'project-cra-details': '/forms/achievements/projects/cra/details',
+        'project-cra-extension-activity': '/forms/achievements/projects/cra/extension',
+        // Natural Farming
+        'project-natural-farming-geo': '/forms/achievements/projects/natural-farming/geographical',
+        'project-natural-farming-physical': '/forms/achievements/projects/natural-farming/physical',
+        'project-natural-farming-demo': '/forms/achievements/projects/natural-farming/demonstration',
+        'project-natural-farming-farmers': '/forms/achievements/projects/natural-farming/farmers',
+        'project-natural-farming-beneficiaries': '/forms/achievements/projects/natural-farming/beneficiaries',
+        'project-natural-farming-soil': '/forms/achievements/projects/natural-farming/soil',
+        'project-natural-farming-budget': '/forms/achievements/projects/natural-farming/budget',
+        'project-other': '/forms/achievements/other-program',
         'achievement-oft': ROUTE_PATHS.ACHIEVEMENTS.OFT,
         'achievement-fld': ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
         'achievement-fld-extension-training': ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
         'achievement-fld-technical-feedback': ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
         'achievement-training': ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
+        // Miscellaneous
+        'misc-prevalent-diseases-crops': '/forms/miscellaneous/prevalent-diseases/crops',
+        'misc-prevalent-diseases-livestock': '/forms/miscellaneous/prevalent-diseases/livestock',
+        'misc-nyk-training': '/forms/miscellaneous/nyk-training',
+        'misc-ppv-fra-training': '/forms/miscellaneous/ppv-fra/training',
+        'misc-ppv-fra-plant-varieties': '/forms/miscellaneous/ppv-fra/plant-varieties',
+        'misc-rawe-fet': '/forms/miscellaneous/rawe-fet',
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;
@@ -50,9 +73,11 @@ export function useProjectData(entityType: string) {
         queryFn: async () => {
             try {
                 const res = await apiClient.get<any>(endpoint);
-                return res.data || EMPTY_ARRAY;
+                // Handle both { success: true, data: [...] } and direct array responses
+                const data = res?.data || (Array.isArray(res) ? res : null);
+                return data || EMPTY_ARRAY;
             } catch (err) {
-                console.warn(`No API for ${entityType}, returning empty array`);
+                console.warn(`No API or error for ${entityType}, returning empty array:`, err);
                 return EMPTY_ARRAY;
             }
         },

@@ -1,0 +1,184 @@
+model attachment_type {
+  attachment_type_id     Int                      @id @default(autoincrement())
+  name                   String                   @unique
+  rawe_fet_fit_programme rawe_fet_fit_programme[]
+}
+
+model dignitary_type {
+  dignitary_type_id Int            @id @default(autoincrement())
+  name              String         @unique
+  vip_visitors      vip_visitors[]
+}
+
+model kvk_production_supply {
+  production_supply_id String           @id
+  kvkId                Int
+  reporting_year_id    Int?
+  product_category_id  Int?
+  product_type_id      Int?
+  product_id           Int?
+  species_name         String
+  unit                 String
+  quantity             Float
+  value_rs             Float
+  farmers_general_m    Int
+  farmers_general_f    Int
+  farmers_obc_m        Int
+  farmers_obc_f        Int
+  farmers_sc_m         Int
+  farmers_sc_f         Int
+  farmers_st_m         Int
+  farmers_st_f         Int
+  created_at           DateTime         @default(now())
+  updated_at           DateTime
+  kvk                  Kvk              @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  product_category     ProductCategory? @relation(fields: [product_category_id], references: [productCategoryId])
+  product              Product?         @relation(fields: [product_id], references: [productId])
+  product_type         ProductType?     @relation(fields: [product_type_id], references: [productTypeId])
+  year_master          YearMaster?      @relation(fields: [reporting_year_id], references: [yearId])
+
+  @@index([kvkId])
+  @@index([product_category_id])
+  @@index([product_id])
+  @@index([product_type_id])
+  @@index([reporting_year_id])
+}
+
+model kvk_publication_details {
+  publication_details_id String       @id
+  kvkId                  Int
+  reporting_year_id      Int?
+  publication_id         Int?
+  title                  String
+  author_name            String
+  journal_name           String
+  created_at             DateTime     @default(now())
+  updated_at             DateTime
+  kvk                    Kvk          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  publication            Publication? @relation(fields: [publication_id], references: [publicationId])
+  year_master            YearMaster?  @relation(fields: [reporting_year_id], references: [yearId])
+
+  @@index([created_at])
+  @@index([kvkId])
+  @@index([publication_id])
+  @@index([reporting_year_id])
+}
+
+model nyk_training {
+  nyk_training_id Int      @id @default(autoincrement())
+  kvkId           Int
+  training_title  String
+  start_date      DateTime
+  end_date        DateTime
+  general_m       Int
+  general_f       Int
+  obc_m           Int
+  obc_f           Int
+  sc_m            Int
+  sc_f            Int
+  st_m            Int
+  st_f            Int
+  fund_received   Float
+  kvk             Kvk      @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+model ppv_fra_plant_varieties {
+  ppv_fra_plant_varieties_id Int     @id @default(autoincrement())
+  kvkId                      Int
+  reporting_year             Int
+  crop_name                  String
+  farmer_name                String
+  mobile                     String
+  village                    String
+  block                      String
+  district                   String
+  characteristics            String
+  image                      String?
+  kvk                        Kvk     @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+}
+
+model ppv_fra_training {
+  ppv_fra_training_id Int                @id @default(autoincrement())
+  kvkId               Int
+  programme_date      DateTime
+  type                PpvFraTrainingType
+  title               String
+  venue               String
+  resource_person     String
+  general_m           Int
+  general_f           Int
+  obc_m               Int
+  obc_f               Int
+  sc_m                Int
+  sc_f                Int
+  st_m                Int
+  st_f                Int
+  kvk                 Kvk                @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+model prevalent_diseases_in_crop {
+  prevalent_disease_id     Int      @id @default(autoincrement())
+  kvkId                    Int
+  disease_name             String
+  crop                     String
+  date_of_outbreak         DateTime
+  area_affected            Float
+  commodity_loss_percent   Float
+  preventive_measures_area Float
+  kvk                      Kvk      @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+model prevalent_diseases_livestock {
+  prevalent_livestock_disease_id Int      @id @default(autoincrement())
+  kvkId                          Int
+  disease_name                   String
+  livestock_type                 String
+  date_of_outbreak               DateTime
+  mortality_count                Float
+  animals_treated                Int
+  preventive_measures            String
+  kvk                            Kvk      @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+model rawe_fet_fit_programme {
+  rawe_programme_id Int             @id @default(autoincrement())
+  kvkId             Int
+  start_date        DateTime
+  end_date          DateTime
+  attachmentTypeId  Int
+  attachment_path   String?
+  male_students     Int
+  female_students   Int
+  attachment_type   attachment_type @relation(fields: [attachmentTypeId], references: [attachment_type_id])
+  kvk               Kvk             @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+model vip_visitors {
+  vip_visitor_id  Int            @id @default(autoincrement())
+  kvkId           Int
+  date_of_visit   DateTime
+  dignitaryTypeId Int
+  minister_name   String
+  salient_points  String
+  dignitary_type  dignitary_type @relation(fields: [dignitaryTypeId], references: [dignitary_type_id])
+  kvk             Kvk            @relation(fields: [kvkId], references: [kvkId])
+
+  @@index([kvkId])
+}
+
+enum PpvFraTrainingType {
+  TRAINING
+  AWARENESS
+}

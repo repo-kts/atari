@@ -3,6 +3,7 @@ import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { useCropTypes, useFldCategories, useFldSubcategories } from '../../../../hooks/useOftFldData'
 import { useSeasons, useYears, useExtensionActivityTypes, useCfldExtensionActivityTypes } from '../../../../hooks/useOtherMastersData'
 import { useAryaEnterprises, useCraFarmingSystems } from '../../../../hooks/useProductionProjectsData'
+import { useNicraCategories, useNicraSubCategories } from '../../../../hooks/useNicraData'
 import { useMasterData } from '../../../../hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect } from 'react'
@@ -52,8 +53,8 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     const { data: districts = [] } = useMasterData('districts')
     const { data: kvks = [] } = useMasterData('organizations')
 
-    const { data: fldCategories = [] } = useFldCategories()
-    const { data: fldSubcategories = [] } = useFldSubcategories()
+    const { data: nicraCategories = [] } = useNicraCategories()
+    const { data: nicraSubcategories = [] } = useNicraSubCategories(formData.categoryId)
 
     if (!entityType) return null
 
@@ -118,8 +119,8 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     setFormData={setFormData}
                     years={years}
                     seasons={seasons}
-                    categories={fldCategories}
-                    subCategories={fldSubcategories}
+                    categories={nicraCategories}
+                    subCategories={nicraSubcategories}
                 />
             )}
 

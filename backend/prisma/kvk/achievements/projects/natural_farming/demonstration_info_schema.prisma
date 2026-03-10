@@ -53,7 +53,7 @@ model DemonstrationInfo {
   farmerFeedback                String         @map("farmer_feedback")
   images                        String?        @map("images")
   kvk                           Kvk            @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season                        Season?        @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season                        Season?        @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@map("demonstration_info")

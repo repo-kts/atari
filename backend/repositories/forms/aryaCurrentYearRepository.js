@@ -10,33 +10,33 @@ const aryaCurrentYearRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        // Accept reportingYearId (yearId from YearMaster) from frontend
         const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
         const enterpriseId = parseInt(data.enterpriseId, 10);
         if (isNaN(enterpriseId)) {
             throw new Error('Valid enterpriseId is required');
         }
-        const unitsMale = parseInt(data.unitsMale) || 0;
-        const unitsFemale = parseInt(data.unitsFemale) || 0;
+
+        const unitsMale = parseInt(data.unitsEstablishedMale || data.unitsMale) || 0;
+        const unitsFemale = parseInt(data.unitsEstablishedFemale || data.unitsFemale) || 0;
         const viableUnits = parseInt(data.viableUnits) || 0;
         const closedUnits = parseInt(data.closedUnits) || 0;
-        const trainingsConducted = parseInt(data.trainingsConducted || data.trainings) || 0;
+        const trainingsConducted = parseInt(data.trainingConducted || data.trainingsConducted || data.trainings) || 0;
         const startDate = data.startDate ? new Date(data.startDate) : new Date();
         const endDate = data.endDate ? new Date(data.endDate) : new Date();
-        const youthMale = parseInt(data.youthMale) || 0;
-        const youthFemale = parseInt(data.youthFemale) || 0;
+        const youthMale = parseInt(data.youthTrainedMale || data.youthMale) || 0;
+        const youthFemale = parseInt(data.youthTrainedFemale || data.youthFemale) || 0;
         const groupsFormed = parseInt(data.groupsFormed || data.noOfGroupsFormed) || 0;
         const groupsActive = parseInt(data.groupsActive || data.noOfGroupsActive) || 0;
         const personsLeftGroup = parseInt(data.personsLeftGroup) || 0;
         const membersPerGroup = parseInt(data.membersPerGroup) || 0;
-        const avgSizeOfUnit = parseFloat(data.avgSizeOfUnit) || 0;
-        const totalProductionPerYear = parseFloat(data.totalProductionPerYear) || 0;
-        const perUnitCostOfProduction = parseFloat(data.perUnitCostOfProduction) || 0;
-        const saleValueOfProduce = parseFloat(data.saleValueOfProduce) || 0;
-        const employmentGeneratedMandays = parseFloat(data.employmentGeneratedMandays) || 0;
+        const avgSizeOfUnit = parseFloat(data.avgUnitSize || data.avgSizeOfUnit) || 0;
+        const totalProductionPerYear = parseFloat(data.totalProduction || data.totalProductionPerYear) || 0;
+        const perUnitCostOfProduction = parseFloat(data.perUnitCost || data.perUnitCostOfProduction) || 0;
+        const saleValueOfProduce = parseFloat(data.saleValue || data.saleValueOfProduce) || 0;
+        const employmentGeneratedMandays = parseFloat(data.employmentGenerated || data.employmentGeneratedMandays) || 0;
         const imagePath = data.imagePath || null;
 
-        await prisma.$executeRawUnsafe(`
+        const resultRows = await prisma.$queryRawUnsafe(`
             INSERT INTO arya_current_year (
                 "kvkId", reporting_year_id, "enterpriseId", 
                 units_male, units_female, viable_units, closed_units, 
@@ -46,23 +46,19 @@ const aryaCurrentYearRepository = {
                 sale_value_of_produce, employment_generated_mandays, image_path,
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            RETURNING *
         `, kvkId, reportingYearId, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
             trainingsConducted, startDate, endDate, youthMale, youthFemale, groupsFormed, groupsActive,
             personsLeftGroup, membersPerGroup, avgSizeOfUnit, totalProductionPerYear,
             perUnitCostOfProduction, saleValueOfProduce, employmentGeneratedMandays, imagePath);
 
-        const result = await prisma.aryaCurrentYear.findFirst({
-            where: {
-                kvkId: kvkId,
-                reportingYearId: reportingYearId,
-                enterpriseId: enterpriseId
-            },
+        const result = await prisma.aryaCurrentYear.findUnique({
+            where: { aryaCurrentYearId: resultRows[0].arya_current_year_id },
             include: {
                 kvk: { select: { kvkName: true } },
                 enterprise: { select: { enterpriseName: true } },
                 reportingYear: { select: { yearId: true, yearName: true } }
-            },
-            orderBy: { aryaCurrentYearId: 'desc' }
+            }
         });
 
         return _mapResponse(result);
@@ -79,7 +75,6 @@ const aryaCurrentYearRepository = {
         if (filters.reportingYearId) {
             where.reportingYearId = parseInt(filters.reportingYearId);
         } else if (filters.reportingYear) {
-            // Backward compatibility: if reportingYear is provided, try to find yearId
             where.reportingYearId = parseInt(filters.reportingYear);
         }
         if (filters.enterpriseId) {
@@ -129,33 +124,27 @@ const aryaCurrentYearRepository = {
         const existing = await prisma.aryaCurrentYear.findFirst({ where: whereSpec });
         if (!existing) throw new Error("Record not found or unauthorized");
 
-        const updateData = {};
-        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
-        } else if (data.reportingYear !== undefined) {
-            // Backward compatibility
-            updateData.reportingYearId = parseInt(data.reportingYear);
-        }
-        if (data.enterpriseId !== undefined) updateData.enterpriseId = parseInt(data.enterpriseId);
-        if (data.unitsMale !== undefined) updateData.unitsMale = parseInt(data.unitsMale);
-        if (data.unitsFemale !== undefined) updateData.unitsFemale = parseInt(data.unitsFemale);
-        if (data.viableUnits !== undefined) updateData.viableUnits = parseInt(data.viableUnits);
-        if (data.closedUnits !== undefined) updateData.closedUnits = parseInt(data.closedUnits);
-        if (data.trainingsConducted !== undefined || data.trainings !== undefined) updateData.trainingsConducted = parseInt(data.trainingsConducted || data.trainings);
-        if (data.startDate !== undefined) updateData.startDate = new Date(data.startDate);
-        if (data.endDate !== undefined) updateData.endDate = new Date(data.endDate);
-        if (data.youthMale !== undefined) updateData.youthMale = parseInt(data.youthMale);
-        if (data.youthFemale !== undefined) updateData.youthFemale = parseInt(data.youthFemale);
-        if (data.groupsFormed !== undefined || data.noOfGroupsFormed !== undefined) updateData.groupsFormed = parseInt(data.groupsFormed || data.noOfGroupsFormed);
-        if (data.groupsActive !== undefined || data.noOfGroupsActive !== undefined) updateData.groupsActive = parseInt(data.groupsActive || data.noOfGroupsActive);
-        if (data.personsLeftGroup !== undefined) updateData.personsLeftGroup = parseInt(data.personsLeftGroup);
-        if (data.membersPerGroup !== undefined) updateData.membersPerGroup = parseInt(data.membersPerGroup);
-        if (data.avgSizeOfUnit !== undefined) updateData.avgSizeOfUnit = parseFloat(data.avgSizeOfUnit);
-        if (data.totalProductionPerYear !== undefined) updateData.totalProductionPerYear = parseFloat(data.totalProductionPerYear);
-        if (data.perUnitCostOfProduction !== undefined) updateData.perUnitCostOfProduction = parseFloat(data.perUnitCostOfProduction);
-        if (data.saleValueOfProduce !== undefined) updateData.saleValueOfProduce = parseFloat(data.saleValueOfProduce);
-        if (data.employmentGeneratedMandays !== undefined) updateData.employmentGeneratedMandays = parseFloat(data.employmentGeneratedMandays);
-        if (data.imagePath !== undefined) updateData.imagePath = data.imagePath;
+        const reportingYearId = parseInt(data.reportingYearId || data.yearId || existing.reportingYearId);
+        const enterpriseId = parseInt(data.enterpriseId || existing.enterpriseId);
+        const unitsMale = parseInt(data.unitsEstablishedMale || data.unitsMale || existing.unitsMale);
+        const unitsFemale = parseInt(data.unitsEstablishedFemale || data.unitsFemale || existing.unitsFemale);
+        const viableUnits = parseInt(data.viableUnits ?? existing.viableUnits);
+        const closedUnits = parseInt(data.closedUnits ?? existing.closedUnits);
+        const trainingsConducted = parseInt(data.trainingConducted || data.trainingsConducted || data.trainings || existing.trainingsConducted);
+        const startDate = data.startDate ? new Date(data.startDate) : existing.startDate;
+        const endDate = data.endDate ? new Date(data.endDate) : existing.endDate;
+        const youthMale = parseInt(data.youthTrainedMale || data.youthMale || existing.youthMale);
+        const youthFemale = parseInt(data.youthTrainedFemale || data.youthFemale || existing.youthFemale);
+        const groupsFormed = parseInt(data.groupsFormed || data.noOfGroupsFormed || existing.groupsFormed);
+        const groupsActive = parseInt(data.groupsActive || data.noOfGroupsActive || existing.groupsActive);
+        const personsLeftGroup = parseInt(data.personsLeftGroup ?? existing.personsLeftGroup);
+        const membersPerGroup = parseInt(data.membersPerGroup ?? existing.membersPerGroup);
+        const avgSizeOfUnit = parseFloat(data.avgUnitSize || data.avgSizeOfUnit || existing.avgSizeOfUnit);
+        const totalProductionPerYear = parseFloat(data.totalProduction || data.totalProductionPerYear || existing.totalProductionPerYear);
+        const perUnitCostOfProduction = parseFloat(data.perUnitCost || data.perUnitCostOfProduction || existing.perUnitCostOfProduction);
+        const saleValueOfProduce = parseFloat(data.saleValue || data.saleValueOfProduce || existing.saleValueOfProduce);
+        const employmentGeneratedMandays = parseFloat(data.employmentGenerated || data.employmentGeneratedMandays || existing.employmentGeneratedMandays);
+        const imagePath = data.imagePath ?? existing.imagePath;
 
         await prisma.$executeRawUnsafe(`
             UPDATE arya_current_year 
@@ -170,27 +159,10 @@ const aryaCurrentYearRepository = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE arya_current_year_id = $22
         `,
-            updateData.reportingYearId ?? existing.reportingYearId,
-            updateData.enterpriseId ?? existing.enterpriseId,
-            updateData.unitsMale ?? existing.unitsMale,
-            updateData.unitsFemale ?? existing.unitsFemale,
-            updateData.viableUnits ?? existing.viableUnits,
-            updateData.closedUnits ?? existing.closedUnits,
-            updateData.trainingsConducted ?? existing.trainingsConducted,
-            updateData.startDate ?? existing.startDate,
-            updateData.endDate ?? existing.endDate,
-            updateData.youthMale ?? existing.youthMale,
-            updateData.youthFemale ?? existing.youthFemale,
-            updateData.groupsFormed ?? existing.groupsFormed,
-            updateData.groupsActive ?? existing.groupsActive,
-            updateData.personsLeftGroup ?? existing.personsLeftGroup,
-            updateData.membersPerGroup ?? existing.membersPerGroup,
-            updateData.avgSizeOfUnit ?? existing.avgSizeOfUnit,
-            updateData.totalProductionPerYear ?? existing.totalProductionPerYear,
-            updateData.perUnitCostOfProduction ?? existing.perUnitCostOfProduction,
-            updateData.saleValueOfProduce ?? existing.saleValueOfProduce,
-            updateData.employmentGeneratedMandays ?? existing.employmentGeneratedMandays,
-            updateData.imagePath ?? existing.imagePath,
+            reportingYearId, enterpriseId, unitsMale, unitsFemale, viableUnits, closedUnits,
+            trainingsConducted, startDate, endDate, youthMale, youthFemale, groupsFormed, groupsActive,
+            personsLeftGroup, membersPerGroup, avgSizeOfUnit, totalProductionPerYear,
+            perUnitCostOfProduction, saleValueOfProduce, employmentGeneratedMandays, imagePath,
             aryaCurrentYearId
         );
 
@@ -232,10 +204,12 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId, // Frontend alias
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
+        yearId: r.reportingYearId,
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined,
         enterpriseId: r.enterpriseId,
         enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,
+
+        // Internal fields
         unitsMale: r.unitsMale,
         unitsFemale: r.unitsFemale,
         viableUnits: r.viableUnits,
@@ -255,6 +229,18 @@ function _mapResponse(r) {
         saleValueOfProduce: r.saleValueOfProduce,
         employmentGeneratedMandays: r.employmentGeneratedMandays,
         imagePath: r.imagePath,
+
+        // Frontend aliases for forms
+        unitsEstablishedMale: r.unitsMale,
+        unitsEstablishedFemale: r.unitsFemale,
+        trainingConducted: r.trainingsConducted,
+        youthTrainedMale: r.youthMale,
+        youthTrainedFemale: r.youthFemale,
+        avgUnitSize: r.avgSizeOfUnit,
+        totalProduction: r.totalProductionPerYear,
+        perUnitCost: r.perUnitCostOfProduction,
+        saleValue: r.saleValueOfProduce,
+        employmentGenerated: r.employmentGeneratedMandays,
 
         // Frontend friendly table labels (matching routeConfig.ts)
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,

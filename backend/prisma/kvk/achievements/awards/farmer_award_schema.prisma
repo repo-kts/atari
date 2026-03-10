@@ -3,7 +3,7 @@ model FarmerAward {
   kvkId                Int
   reportingYearId      Int?        @map("reporting_year_id")
   farmerName           String      @map("farmer_name")
-  contactNumber         String      @map("contact_number")
+  contactNumber        String      @map("contact_number")
   address              String      @map("address")
   awardName            String      @map("award_name")
   amount               Int         @map("amount")

@@ -35,12 +35,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 options={createMasterDataOptions(years, 'yearId', 'yearName')}
                                 emptyMessage="No reporting years available"
                             />
-                            <FormSelect
+                            <MasterDataDropdown
                                 label="Name of enterprises"
                                 required
                                 value={formData.enterpriseId || ''}
-                                onChange={(e) => setFormData({ ...formData, enterpriseId: parseInt(e.target.value) })}
-                                options={aryaEnterprises.map((e: any) => ({ value: e.id || e.enterpriseId, label: e.enterpriseName }))}
+                                onChange={(value) => setFormData({ ...formData, enterpriseId: value })}
+                                options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
+                                emptyMessage="No enterprises available. Please add them in Master Data > ARYA Enterprises first."
                             />
                         </div>
                     </div>
@@ -218,12 +219,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 options={createMasterDataOptions(years, 'yearId', 'yearName')}
                                 emptyMessage="No reporting years available"
                             />
-                            <FormSelect
+                            <MasterDataDropdown
                                 label="Name of enterprises"
                                 required
                                 value={formData.enterpriseId || ''}
-                                onChange={(e) => setFormData({ ...formData, enterpriseId: parseInt(e.target.value) })}
-                                options={aryaEnterprises.map((e: any) => ({ value: e.id || e.enterpriseId, label: e.enterpriseName }))}
+                                onChange={(value) => setFormData({ ...formData, enterpriseId: value })}
+                                options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
+                                emptyMessage="No enterprises available. Please add them in Master Data > ARYA Enterprises first."
                             />
                         </div>
                     </div>

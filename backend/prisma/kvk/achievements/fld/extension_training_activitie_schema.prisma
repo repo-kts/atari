@@ -20,7 +20,7 @@ model FldExtension {
   activity           FldActivity        @relation(fields: [activityId], references: [activityId])
   fld                KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
   kvk                Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear      YearMaster?        @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear      YearMaster?        @relation(fields: [reportingYearId], references: [yearId])
 
   @@index([kvkId])
   @@index([fldId])

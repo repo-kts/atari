@@ -324,16 +324,18 @@ function _mapResponse(r) {
         Object.assign(mapped, {
             cropName: c.cropName,
             techOptions: c.technologyOption,
+            technologyOption: c.technologyOption,
             varietyName: c.varietyName,
             durationDays: c.durationDays,
             sowingDate: c.sowingDate ? c.sowingDate.toISOString().split('T')[0] : '',
             harvestingDate: c.harvestingDate ? c.harvestingDate.toISOString().split('T')[0] : '',
             daysOfMaturity: c.daysOfMaturity,
             grainYield: c.grainYieldQPerHa,
-            costOfCultivation: c.costOfCultivation_per_ha || c.costOfCultivation,
-            grossReturn: c.gross_return_per_ha || c.grossReturn,
-            netReturn: c.net_return_per_ha || c.netReturn,
-            bcr: c.bcr
+            grainYieldQPerHa: c.grainYieldQPerHa,
+            costOfCultivation: c.costOfCultivation,   // Prisma camelCase → cost_of_cultivation_per_ha
+            grossReturn: c.grossReturn,                 // Prisma camelCase → gross_return_per_ha
+            netReturn: c.netReturn,                     // Prisma camelCase → net_return_per_ha
+            bcr: c.bcr,
         });
     }
 

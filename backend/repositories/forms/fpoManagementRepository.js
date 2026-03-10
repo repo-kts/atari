@@ -26,31 +26,21 @@ const fpoManagementRepository = {
         const financialPositionLakh = parseFloat(data.financialPosition ?? data.financialPositionLakh) || 0;
         const successIndicator = data.successIndicator || '';
 
-        await prisma.$executeRawUnsafe(`
+        const [insertResult] = await prisma.$queryRawUnsafe(`
             INSERT INTO fpo_management (
                 "kvkId", reporting_year_id, fpo_name, address, registration_number, 
                 registration_date, proposed_activity, commodity_identified, 
                 total_bom_members, total_farmers_attached, financial_position_lakh, 
                 success_indicator, created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            RETURNING fpo_management_id
         `, kvkId, reportingYearId, fpoName, address, registrationNumber, registrationDate,
             proposedActivity, commodityIdentified, totalBomMembers, totalFarmersAttached,
             financialPositionLakh, successIndicator);
 
-        const result = await prisma.fpoManagement.findFirst({
-            where: {
-                kvkId,
-                reportingYearId: reportingYearId,
-                fpoName
-            },
-            include: {
-                kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
-            },
-            orderBy: { fpoManagementId: 'desc' }
-        });
+        const newId = insertResult.fpo_management_id;
 
-        return _mapResponse(result);
+        return fpoManagementRepository.findById(newId);
     },
 
     findAll: async (filters = {}, user) => {
@@ -84,7 +74,8 @@ const fpoManagementRepository = {
         const result = await prisma.fpoManagement.findUnique({
             where: { fpoManagementId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -191,6 +182,15 @@ function _mapResponse(r) {
         financialPositionLakh: r.financialPositionLakh,
         financialPosition: r.financialPositionLakh, // Frontend alias
         successIndicator: r.successIndicator,
+
+        // Dashboard table labels from routeConfig.ts
+        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
+        'Registration No': r.registrationNumber,
+        'Date of Registration': r.registrationDate ? new Date(r.registrationDate).toLocaleDateString('en-GB') : undefined,
+        'Name of the FPO': r.fpoName,
+        'Address of FPO': r.address,
+        'Total Number of BOM Members': r.totalBomMembers,
+        'Financial Position': r.financialPositionLakh,
     };
 }
 
