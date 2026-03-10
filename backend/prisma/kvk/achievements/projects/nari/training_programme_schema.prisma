@@ -1,0 +1,34 @@
+model NariTrainingProgramme {
+  nariTrainingProgrammeId     Int         @id @default(autoincrement()) @map("nari_training_programme_id")
+  
+  kvkId                       Int
+  kvk                         Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  
+  reportingYearId             Int?        @map("reporting_year_id")
+  reportingYear               YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  activityId                  Int         @map("activity_id")
+  activity                    FldActivity @relation(fields: [activityId], references: [activityId])
+  
+  campusType                  CampusType  @map("campus_type")
+
+  nameOfNutriSmartVillage     String      @map("name_of_nutri_smart_village")
+  areaOfTraining              String      @map("area_of_training")
+  titleOfTraining             String      @map("title_of_training")
+  noOfDays                    Int         @map("no_of_days")
+  noOfCourses                 Int         @map("no_of_courses")
+  venue                       String      @map("venue")
+  
+  generalM                    Int         @default(0) @map("general_m")
+  generalF                    Int         @default(0) @map("general_f")
+  obcM                        Int         @default(0) @map("obc_m")
+  obcF                        Int         @default(0) @map("obc_f")
+  scM                         Int         @default(0) @map("sc_m")
+  scF                         Int         @default(0) @map("sc_f")
+  stM                         Int         @default(0) @map("st_m")
+  stF                         Int         @default(0) @map("st_f")
+
+  @@index([kvkId])
+  @@index([activityId])
+  @@map("nari_training_programme")
+}

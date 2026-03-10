@@ -1,0 +1,13 @@
+model NicraRevenueGenerated {
+  nicraRevenueGeneratedId Int       @id @default(autoincrement()) @map("nicra_revenue_generated_id")
+  kvkId                   Int       @map("kvk_id")
+  kvk                     Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  
+  reportingYearId         Int?      @map("reporting_year_id")
+  reportingYear           YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  revenue                 Float     @map("revenue")
+
+  @@index([kvkId])
+  @@map("nicra_revenue_generated")
+}

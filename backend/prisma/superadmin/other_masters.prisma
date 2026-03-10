@@ -45,6 +45,15 @@ model YearMaster {
   revolvingFundRecords              RevolvingFund[]
   functionalLinkageRecords          FunctionalLinkage[]
   specialProgrammeRecords           SpecialProgramme[]
+  tspScsp                           TspScsp[]
+  nariNutritionalGardenRecords    NariNutritionalGarden[]
+  nariBioFortifiedCropRecords     NariBioFortifiedCrop[]
+  nariValueAdditionRecords        NariValueAddition[]
+  nariTrainingProgrammeRecords    NariTrainingProgramme[]
+  nariExtensionActivityRecords    NariExtensionActivity[]
+  nicraRevenueGeneratedRecords    NicraRevenueGenerated[]
+  nicraFarmImplementRecords       NicraFarmImplement[]
+  nicraVcrmcRecords               NicraVcrmc[]
 
   @@index([yearId])
   @@index([yearName])

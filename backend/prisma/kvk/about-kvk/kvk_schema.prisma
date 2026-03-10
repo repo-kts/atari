@@ -69,6 +69,7 @@ model Kvk {
   soilDataInformation           SoilDataInformation[]
   transfersFrom                 StaffTransferHistory[]         @relation("TransferFrom")
   transfersTo                   StaffTransferHistory[]         @relation("TransferTo")
+  tspScsp                       TspScsp[]
   prevalentDiseasesInCrop       PrevalentDiseasesInCrop[]
   prevalentDiseasesOnLivestock  PrevalentDiseasesOnLivestock[]
   nykTraining                   NykTraining[]
@@ -102,6 +103,19 @@ model Kvk {
   resourceGenerations           ResourceGeneration[]
   functionalLinkages            FunctionalLinkage[]
   specialProgrammes             SpecialProgramme[]
+  nariNutritionalGarden         NariNutritionalGarden[]
+  nariBioFortifiedCrops           NariBioFortifiedCrop[]
+  nariValueAdditions              NariValueAddition[]
+  nariTrainingProgrammes          NariTrainingProgramme[]
+  nariExtensionActivities         NariExtensionActivity[]
+  nicraInterventions              NicraIntervention[]
+  nicraRevenueGenerateds          NicraRevenueGenerated[]
+  nicraFarmImplements             NicraFarmImplement[]
+  nicraConvergenceProgrammes      NicraConvergenceProgramme[]
+  nicraDignitariesVisiteds        NicraDignitariesVisited[]
+  nicraPiCopis                    NicraPiCopi[]
+  nicraSoilHealthCards            NicraSoilHealthCard[]
+  nicraVcrmcs                     NicraVcrmc[]
 
   @@index([zoneId])
   @@index([stateId])
