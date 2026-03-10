@@ -6,7 +6,7 @@ import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
-interface MettingFormsProps {
+interface MeetingFormsProps {
     entityType: ExtendedEntityType | null
     formData: any
     setFormData: (data: any) => void
@@ -14,11 +14,11 @@ interface MettingFormsProps {
 
 // Yes/No options
 const YES_NO_OPTIONS = [
-    { value: 'Yes', label: 'Yes' },
-    { value: 'No', label: 'No' },
+    { value: 'YES', label: 'Yes' },
+    { value: 'NO', label: 'No' },
 ]
 
-export const MettingForms: React.FC<MettingFormsProps> = ({
+export const MeetingForms: React.FC<MeetingFormsProps> = ({
     entityType,
     formData,
     setFormData,
@@ -48,7 +48,8 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
 
     const handleDateChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            const dateVal = e.target.value ? new Date(e.target.value).toISOString() : null
+            setFormData({ ...formData, [field]: dateVal })
         },
         [formData, setFormData]
     )
@@ -69,6 +70,15 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
 
     if (!entityType) return null
 
+    const getDateValue = (d: any) => {
+        if (!d) return ''
+        try {
+            return new Date(d).toISOString().split('T')[0]
+        } catch {
+            return ''
+        }
+    }
+
     return (
         <div className="space-y-4">
             {/* 1. Create Details of Scientific Advisory Committee(SAC) Meetings */}
@@ -79,7 +89,7 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
+                            value={getDateValue(formData.startDate)}
                             onChange={handleDateChange('startDate')}
                         />
 
@@ -87,7 +97,7 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
+                            value={getDateValue(formData.endDate)}
                             onChange={handleDateChange('endDate')}
                         />
                     </div>
@@ -97,8 +107,8 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                             label="No of Participants"
                             required
                             type="number"
-                            value={formData.participantsCount || ''}
-                            onChange={handleNumberChange('participantsCount')}
+                            value={formData.numberOfParticipants || ''}
+                            onChange={handleNumberChange('numberOfParticipants')}
                             placeholder="Enter number"
                         />
 
@@ -112,43 +122,47 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                         />
                     </div>
 
-                    <FormTextArea
-                        label="Salient Recommendations"
-                        required
-                        value={formData.recommendations || ''}
-                        onChange={handleFieldChange('recommendations')}
-                        rows={4}
-                        placeholder="Enter recommendations"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-3">
+                            <FormTextArea
+                                label="Salient Recommendations"
+                                required
+                                value={formData.salientRecommendations || ''}
+                                onChange={handleFieldChange('salientRecommendations')}
+                                rows={4}
+                                placeholder="Enter recommendations"
+                            />
 
-                    <FormSelect
-                        label="Action Taken"
-                        required
-                        value={formData.actionTaken || ''}
-                        onChange={handleFieldChange('actionTaken')}
-                        options={YES_NO_OPTIONS}
-                        placeholder="Select action taken"
-                    />
+                            <FormInput
+                                label="Reason"
+                                required
+                                value={formData.reason || ''}
+                                onChange={handleFieldChange('reason')}
+                                placeholder="Enter reason"
+                            />
+                        </div>
 
-                    {formData.actionTaken === 'No' && (
-                        <FormInput
-                            label="Reason"
-                            required
-                            value={formData.reason || ''}
-                            onChange={handleFieldChange('reason')}
-                            placeholder="Enter reason"
-                        />
-                    )}
+                        <div className="space-y-3">
+                            <FormSelect
+                                label="Action Taken"
+                                required
+                                value={formData.actionTaken || ''}
+                                onChange={handleFieldChange('actionTaken')}
+                                options={YES_NO_OPTIONS}
+                                placeholder="Select"
+                            />
 
-                    <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-gray-700">
-                            Upload File <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                            type="file"
-                            onChange={handleFileChange('uploadFile')}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
-                        />
+                            <div className="space-y-2">
+                                <label className="block text-sm font-semibold text-gray-700">
+                                    Upload File <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="file"
+                                    onChange={handleFileChange('uploadedFile')}
+                                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -171,15 +185,15 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                             label="Meeting Date"
                             required
                             type="date"
-                            value={formData.meetingDate ? new Date(formData.meetingDate).toISOString().split('T')[0] : ''}
+                            value={getDateValue(formData.meetingDate)}
                             onChange={handleDateChange('meetingDate')}
                         />
 
                         <FormInput
                             label="Type of Meeting"
                             required
-                            value={formData.meetingType || ''}
-                            onChange={handleFieldChange('meetingType')}
+                            value={formData.typeOfMeeting || ''}
+                            onChange={handleFieldChange('typeOfMeeting')}
                             placeholder="Enter meeting type"
                         />
                     </div>
@@ -195,8 +209,8 @@ export const MettingForms: React.FC<MettingFormsProps> = ({
                     <FormInput
                         label="Representative from ATARI"
                         required
-                        value={formData.representative || ''}
-                        onChange={handleFieldChange('representative')}
+                        value={formData.representativeFromAtari || ''}
+                        onChange={handleFieldChange('representativeFromAtari')}
                         placeholder="Enter representative name"
                     />
                 </div>

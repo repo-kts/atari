@@ -45,8 +45,10 @@ const prevalentDiseaseRoutes = require('./forms/prevalentDiseaseRoutes.js');
 const nykTrainingRoutes = require('./forms/nykTrainingRoutes.js');
 const ppvFraRoutes = require('./forms/ppvFraRoutes.js');
 const raweFetRoutes = require('./forms/raweFetRoutes.js');
+const vipVisitorsRoutes = require('./forms/vipVisitorsRoutes.js');
+const swachhtaBharatRoutes = require('./forms/swachhtaBharatRoutes.js');
+const meetingsRoutes = require('./forms/meetingsRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
-
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -91,6 +93,9 @@ router.use('/forms/miscellaneous/prevalent-diseases', prevalentDiseaseRoutes);
 router.use('/forms/miscellaneous/nyk-training', nykTrainingRoutes);
 router.use('/forms/miscellaneous/ppv-fra', ppvFraRoutes);
 router.use('/forms/miscellaneous/rawe-fet', raweFetRoutes);
+router.use('/forms/miscellaneous/vip-visitors', vipVisitorsRoutes);
+router.use('/forms/miscellaneous/swachhta-bharat', swachhtaBharatRoutes);
+router.use('/forms/miscellaneous/meetings', meetingsRoutes);
 router.use('/forms/achievements/oft', oftRoutes);
 router.use('/forms/achievements/fld/extension-training', require('./forms/fldExtensionRoutes.js'));
 router.use('/forms/achievements/fld/technical-feedback', require('./forms/fldTechnicalFeedbackRoutes.js'));

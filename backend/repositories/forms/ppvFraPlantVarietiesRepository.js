@@ -30,7 +30,14 @@ const ppvFraPlantVarietiesRepository = {
         }
         return await prisma.ppvFraPlantVarieties.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } } },
+            include: {
+                kvk: {
+                    select: {
+                        kvkName: true,
+                        district: { select: { districtName: true } }
+                    }
+                }
+            },
             orderBy: { ppvFraPlantVarietiesID: 'desc' }
         });
     },
@@ -40,7 +47,14 @@ const ppvFraPlantVarietiesRepository = {
         if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
         return await prisma.ppvFraPlantVarieties.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } } }
+            include: {
+                kvk: {
+                    select: {
+                        kvkName: true,
+                        district: { select: { districtName: true } }
+                    }
+                }
+            }
         });
     },
 

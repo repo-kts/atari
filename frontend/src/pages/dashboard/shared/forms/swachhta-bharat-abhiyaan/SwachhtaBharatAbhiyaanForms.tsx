@@ -24,10 +24,9 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
         [years]
     )
 
-    const handleFieldChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-            const value = e.target.value
-            setFormData({ ...formData, [field]: value })
+    const handleDateChange = useCallback(
+        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData({ ...formData, [field]: e.target.value ? new Date(e.target.value).toISOString() : null })
         },
         [formData, setFormData]
     )
@@ -49,55 +48,67 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
 
     if (!entityType) return null
 
+    // Helper functions for date extraction
+    const getObservationDate = () => {
+        const d = formData.observationDate
+        if (!d) return ''
+        try { return new Date(d).toISOString().split('T')[0] } catch { return '' }
+    }
+
     return (
         <div className="space-y-4">
             {/* 1. Create Observation of Swachhta hi Sewa SBA */}
             {entityType === ENTITY_TYPES.MISC_SWACHHTA_SEWA && (
                 <div className="space-y-3">
-                    <FormInput
-                        label="Date/Duration of Observation"
-                        required
-                        value={formData.observationDate || ''}
-                        onChange={handleFieldChange('observationDate')}
-                        placeholder="Enter date/duration"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Date/Duration of Observation"
+                            required
+                            type="date"
+                            value={getObservationDate()}
+                            onChange={handleDateChange('observationDate')}
+                            placeholder="dd-mm-yyyy"
+                        />
 
-                    <FormInput
-                        label="Total No of Activities Undertaken"
-                        required
-                        type="number"
-                        value={formData.totalActivities || ''}
-                        onChange={handleNumberChange('totalActivities')}
-                        placeholder="Enter number"
-                    />
+                        <FormInput
+                            label="Total No of Activities undertaken"
+                            required
+                            type="number"
+                            value={formData.totalActivities ?? ''}
+                            onChange={handleNumberChange('totalActivities')}
+                            placeholder=""
+                        />
+                    </div>
 
                     <FormSection title="No. of Participants">
-                        <FormInput
-                            label="Staffs"
-                            required
-                            type="number"
-                            value={formData.participantsStaff || ''}
-                            onChange={handleNumberChange('participantsStaff')}
-                            placeholder="Enter number"
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormInput
+                                label="Staffs"
+                                required
+                                type="number"
+                                value={formData.participantsStaff ?? formData.staffCount ?? ''}
+                                onChange={handleNumberChange('participantsStaff')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Farmers"
-                            required
-                            type="number"
-                            value={formData.participantsFarmers || ''}
-                            onChange={handleNumberChange('participantsFarmers')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Farmers"
+                                required
+                                type="number"
+                                value={formData.participantsFarmers ?? formData.farmerCount ?? ''}
+                                onChange={handleNumberChange('participantsFarmers')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Others"
-                            required
-                            type="number"
-                            value={formData.participantsOthers || ''}
-                            onChange={handleNumberChange('participantsOthers')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Others"
+                                required
+                                type="number"
+                                value={formData.participantsOthers ?? formData.othersCount ?? ''}
+                                onChange={handleNumberChange('participantsOthers')}
+                                placeholder=""
+                            />
+                        </div>
                     </FormSection>
                 </div>
             )}
@@ -105,107 +116,118 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
             {/* 2. Create Observation of Swachta Pakhwada */}
             {entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA && (
                 <div className="space-y-3">
-                    <FormInput
-                        label="Date/Duration of Observation"
-                        required
-                        value={formData.observationDate || ''}
-                        onChange={handleFieldChange('observationDate')}
-                        placeholder="Enter date/duration"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Date/Duration of Observation"
+                            required
+                            type="date"
+                            value={getObservationDate()}
+                            onChange={handleDateChange('observationDate')}
+                            placeholder="dd-mm-yyyy"
+                        />
 
-                    <FormInput
-                        label="Total No of Activities Undertaken"
-                        required
-                        type="number"
-                        value={formData.totalActivities || ''}
-                        onChange={handleNumberChange('totalActivities')}
-                        placeholder="Enter number"
-                    />
+                        <FormInput
+                            label="Total No of Activities undertaken"
+                            required
+                            type="number"
+                            value={formData.totalActivities ?? ''}
+                            onChange={handleNumberChange('totalActivities')}
+                            placeholder=""
+                        />
+                    </div>
 
                     <FormSection title="No. of Participants">
-                        <FormInput
-                            label="Staffs"
-                            required
-                            type="number"
-                            value={formData.participantsStaff || ''}
-                            onChange={handleNumberChange('participantsStaff')}
-                            placeholder="Enter number"
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormInput
+                                label="Staffs"
+                                required
+                                type="number"
+                                value={formData.participantsStaff ?? formData.staffCount ?? ''}
+                                onChange={handleNumberChange('participantsStaff')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Farmers"
-                            required
-                            type="number"
-                            value={formData.participantsFarmers || ''}
-                            onChange={handleNumberChange('participantsFarmers')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Farmers"
+                                required
+                                type="number"
+                                value={formData.participantsFarmers ?? formData.farmerCount ?? ''}
+                                onChange={handleNumberChange('participantsFarmers')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Others"
-                            required
-                            type="number"
-                            value={formData.participantsOthers || ''}
-                            onChange={handleNumberChange('participantsOthers')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Others"
+                                required
+                                type="number"
+                                value={formData.participantsOthers ?? formData.othersCount ?? ''}
+                                onChange={handleNumberChange('participantsOthers')}
+                                placeholder=""
+                            />
+                        </div>
                     </FormSection>
                 </div>
             )}
 
-            {/* 3. Create Details of Quarterly Budget Expenditure on Swachh Activities */}
+            {/* 3. Create Details of quarterly budget expenditure on Swachh activities including SAP */}
             {entityType === ENTITY_TYPES.MISC_SWACHHTA_BUDGET && (
                 <div className="space-y-3">
-                    <MasterDataDropdown
-                        label="Reporting Year"
-                        required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={handleYearChange}
-                        options={yearOptions}
-                        isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            isLoading={isLoadingYears}
+                            emptyMessage="No reporting years available"
+                        />
+                    </div>
 
                     <FormSection title="Vermicomposting">
-                        <FormInput
-                            label="No of Village Covered"
-                            required
-                            type="number"
-                            value={formData.vermicompostingVillages || ''}
-                            onChange={handleNumberChange('vermicompostingVillages')}
-                            placeholder="Enter number"
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                label="No of village covered"
+                                required
+                                type="number"
+                                value={formData.vermicompostingVillages ?? formData.vermiVillageCovered ?? ''}
+                                onChange={handleNumberChange('vermicompostingVillages')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Total Expenditure (Rs.in Lakhs)"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.vermicompostingExpenditure || ''}
-                            onChange={(e) => setFormData({ ...formData, vermicompostingExpenditure: parseFloat(e.target.value) || 0 })}
-                            placeholder="Enter amount"
-                        />
+                            <FormInput
+                                label="Total Expenditure(Rs.in Lakhs)"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.vermicompostingExpenditure ?? formData.vermiTotalExpenditure ?? ''}
+                                onChange={(e) => setFormData({ ...formData, vermicompostingExpenditure: parseFloat(e.target.value) || 0 })}
+                                placeholder=""
+                            />
+                        </div>
                     </FormSection>
 
-                    <FormSection title="Other than Vermicomposting Activities under Swachata">
-                        <FormInput
-                            label="No of Village Covered"
-                            required
-                            type="number"
-                            value={formData.otherVillages || ''}
-                            onChange={handleNumberChange('otherVillages')}
-                            placeholder="Enter number"
-                        />
+                    <FormSection title="Other than vermicomposting activities under Swachata">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                label="No of village covered"
+                                required
+                                type="number"
+                                value={formData.otherVillages ?? formData.otherVillageCovered ?? ''}
+                                onChange={handleNumberChange('otherVillages')}
+                                placeholder=""
+                            />
 
-                        <FormInput
-                            label="Total Expenditure (Rs.in Lakhs)"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.otherExpenditure || ''}
-                            onChange={(e) => setFormData({ ...formData, otherExpenditure: parseFloat(e.target.value) || 0 })}
-                            placeholder="Enter amount"
-                        />
+                            <FormInput
+                                label="Total Expenditure(Rs.in Lakhs)"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.otherExpenditure ?? formData.otherTotalExpenditure ?? ''}
+                                onChange={(e) => setFormData({ ...formData, otherExpenditure: parseFloat(e.target.value) || 0 })}
+                                placeholder=""
+                            />
+                        </div>
                     </FormSection>
                 </div>
             )}

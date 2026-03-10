@@ -123,6 +123,12 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: 'ppvFraTrainingId',
     [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]: 'ppvFraPlantVarietiesID',
     [ENTITY_TYPES.MISC_RAWE_FET]: 'raweProgrammeId',
+    [ENTITY_TYPES.MISC_VIP_VISITORS]: 'vipVisitorId',
+    [ENTITY_TYPES.MISC_SWACHHTA_SEWA]: 'swachhtaHiSewaId',
+    [ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA]: 'swachhtaPakhwadaId',
+    [ENTITY_TYPES.MISC_SWACHHTA_BUDGET]: 'swachhQuarterlyExpenditureId',
+    [ENTITY_TYPES.MISC_MEETINGS_SAC]: 'sacMeetingId',
+    [ENTITY_TYPES.MISC_MEETINGS_OTHER]: 'atariMeetingId',
 };
 
 /**

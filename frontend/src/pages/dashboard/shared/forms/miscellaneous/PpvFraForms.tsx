@@ -217,7 +217,17 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                 onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                        setFormData({ ...formData, file });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            setFormData({
+                                ...formData,
+                                file, // Keep for UI if needed
+                                image: reader.result as string
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        setFormData({ ...formData, file: null, image: null });
                     }
                 }}
             />

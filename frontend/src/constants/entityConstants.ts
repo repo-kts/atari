@@ -164,6 +164,7 @@ export const ENTITY_TYPES = {
     MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
     MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
     MISC_RAWE_FET: 'misc-rawe-fet',
+    MISC_VIP_VISITORS: 'misc-vip-visitors',
 
     // Performance Indicators - Impact
     PERFORMANCE_IMPACT_KVK_ACTIVITIES: 'performance-impact-kvk-activities',
@@ -196,36 +197,19 @@ export const ENTITY_TYPES = {
     PERFORMANCE_FUNCTIONAL_LINKAGE: 'performance-functional-linkage',
     PERFORMANCE_SPECIAL_PROGRAMMES: 'performance-special-programmes',
 
-    // Miscellaneous - Diseases
-    MISC_DISEASES_CROPS: 'misc-diseases-crops',
-    MISC_DISEASES_LIVESTOCK: 'misc-diseases-livestock',
-
-    // Miscellaneous - Nehru Yuva Kendra
-    MISC_NEHRU_YUVA_KENDRA: 'misc-nehru-yuva-kendra',
-
-    // Miscellaneous - PPV & FRA
-    MISC_PPV_FRA_TRAINING: 'misc-ppv-fra-training',
-    MISC_PPV_FRA_PLANT_VARIETIES: 'misc-ppv-fra-plant-varieties',
-
-    // Miscellaneous - RAWE/FET
-    MISC_RAWE_FET: 'misc-rawe-fet',
-
-    // Miscellaneous - VIP Visitors
-    MISC_VIP_VISITORS: 'misc-vip-visitors',
-
-    // Miscellaneous - Digital
+    // Digital Information
     MISC_DIGITAL_MOBILE_APP: 'misc-digital-mobile-app',
     MISC_DIGITAL_WEB_PORTAL: 'misc-digital-web-portal',
     MISC_DIGITAL_KISAN_SARATHI: 'misc-digital-kisan-sarathi',
     MISC_DIGITAL_KISAN_MOBILE_ADVISORY: 'misc-digital-kisan-mobile-advisory',
     MISC_DIGITAL_OTHER_CHANNELS: 'misc-digital-other-channels',
 
-    // Miscellaneous - Swachhta
+    // Swachhta Bharat Abhiyaan
     MISC_SWACHHTA_SEWA: 'misc-swachhta-sewa',
     MISC_SWACHHTA_PAKHWADA: 'misc-swachhta-pakhwada',
     MISC_SWACHHTA_BUDGET: 'misc-swachhta-budget',
 
-    // Miscellaneous - Meetings
+    // Meetings
     MISC_MEETINGS_SAC: 'misc-meetings-sac',
     MISC_MEETINGS_OTHER: 'misc-meetings-other',
 } as const;

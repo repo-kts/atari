@@ -24,6 +24,42 @@ interface FieldExtractorConfig {
 
 const fieldExtractors: Record<string, FieldExtractorConfig> = {
     // Date fields
+    [FIELD_NAMES.DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.date || item.meetingDate || item.eventDate || item.activityDate || item.observationDate || item.programmeDate || item['Date'];
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
+    [FIELD_NAMES.START_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.startDate || item.start_date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
+    [FIELD_NAMES.END_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.endDate || item.end_date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
     [FIELD_NAMES.DATE_OF_JOINING]: {
         extractor: (item: any) => {
             if (!item.dateOfJoining) return null;
@@ -149,8 +185,9 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.DISTRICT]: {
         extractor: (item: any) => {
             const val = item.district || item.districtName || item.District;
-            if (typeof val === 'string') return val;
+            if (typeof val === 'string' && val.trim() !== '') return val;
             if (val && typeof val === 'object' && val.districtName) return val.districtName;
+            if (item.kvk?.district?.districtName) return item.kvk.district.districtName;
             return null;
         },
         priority: 7,
@@ -754,19 +791,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    [FIELD_NAMES.DATE]: {
-        extractor: (item: any) => {
-            const val = item.programmeDate || item.activityDate || item.eventDate || item.date || item['Date'];
-            if (!val) return null;
-            try {
-                const date = new Date(val);
-                if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            } catch {
-                return null;
-            }
-        },
-    },
+
     [FIELD_NAMES.NUMBER_OF_ACTIVITIES]: {
         extractor: (item: any) => {
             const value = item.numberOfActivities || item.noOfActivities || item.activityCount || item['No. of Activity'];
@@ -784,23 +809,8 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return value !== undefined && value !== null ? String(value) : null;
         },
     },
-    [FIELD_NAMES.NO_OF_PARTICIPANTS]: {
-        extractor: (item: any) => {
-            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
-                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
-                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
-                (Number(item.stM || 0)) + (Number(item.stF || 0));
-            if (sum > 0) return String(sum);
-            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
     [FIELD_NAMES.ATTACHMENT_TYPE]: {
         extractor: (item: any) => typeof item.attachmentType === 'string' ? item.attachmentType : (item.attachmentType?.name || item.attachmentType?.attachmentName || null),
-        priority: 5,
-    },
-    [FIELD_NAMES.ATTACHMENT]: {
-        extractor: (item: any) => item.attachmentPath || null,
         priority: 5,
     },
     [FIELD_NAMES.NUMBER_OF_STUDENT]: {
@@ -869,6 +879,29 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
             return value !== undefined && value !== null ? String(value) : null;
         },
+    },
+    [FIELD_NAMES.ATTACHMENT]: {
+        extractor: (item: any) => {
+            const path = item.attachment || item.attachmentPath || item.filePath || item.file;
+            if (path && typeof path === 'string') return path;
+            if (item.attachmentType?.name) return item.attachmentType.name;
+            return null;
+        }
+    },
+    [FIELD_NAMES.NO_OF_PARTICIPANTS]: {
+        extractor: (item: any) => {
+            const counts = [
+                item.generalM, item.generalF,
+                item.obcM, item.obcF,
+                item.scM, item.scF,
+                item.stM, item.stF,
+                item.male, item.female,
+                item.participants
+            ].map(v => Number(v || 0));
+
+            const total = counts.reduce((sum, val) => sum + val, 0);
+            return total > 0 ? String(total) : (item.noOfParticipants || item.numberOfParticipants || null);
+        }
     },
     [FIELD_NAMES.REMARK]: {
         extractor: (item: any) => item.remark || item.remarks || item['Remark'] || null,
@@ -964,43 +997,27 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return null;
         },
     },
-    [FIELD_NAMES.START_DATE]: {
-        extractor: (item: any) => {
-            const dateVal = item.startDate || item.start_date;
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
-            } catch { return null; }
-        }
-    },
+
     'Start Date': {
         extractor: (item: any) => {
             const dateVal = item.startDate || item.start_date;
             if (!dateVal) return null;
             try {
                 const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             } catch { return null; }
         }
     },
-    [FIELD_NAMES.END_DATE]: {
-        extractor: (item: any) => {
-            const dateVal = item.endDate || item.end_date;
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
-            } catch { return null; }
-        }
-    },
+
     'End Date': {
         extractor: (item: any) => {
             const dateVal = item.endDate || item.end_date;
             if (!dateVal) return null;
             try {
                 const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             } catch { return null; }
         }
     },
@@ -1342,10 +1359,131 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
     },
     [FIELD_NAMES.AMOUNT_OF_FUND_RECEIVED]: {
-        extractor: (item) => {
+        extractor: (item: any) => {
             const val = item.amountOfFundReceived ?? item.fundReceived;
             return val !== undefined && val !== null ? `₹${Number(val).toLocaleString('en-IN')}` : null;
         },
+    },
+
+    // VIP Visitors fields
+    [FIELD_NAMES.DATE_OF_VISIT]: {
+        extractor: (item: any) => {
+            const dateVal = item.dateOfVisit || item.date_of_visit;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 7,
+    },
+    [FIELD_NAMES.TYPE_OF_DIGNITARIES]: {
+        extractor: (item: any) => {
+            // Backend returns dignitaryType as a relation object { name: '...' }
+            if (item.dignitaryType && typeof item.dignitaryType === 'object' && item.dignitaryType.name) {
+                return item.dignitaryType.name;
+            }
+            // Fallback for string form data
+            if (typeof item.dignitaryType === 'string') return item.dignitaryType;
+            if (item.typeOfDignitaries) return item.typeOfDignitaries;
+            return null;
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_HONBLE_MINISTER]: {
+        extractor: (item: any) => item.ministerName || item.nameOfHonbleMinister || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.SALIENT_POINTS]: {
+        extractor: (item: any) => item.salientPoints || item.observations || null,
+        priority: 6,
+    },
+
+    // Swachhta Bharat Abhiyaan fields
+    [FIELD_NAMES.DATE_DURATION_OF_OBSERVATION]: {
+        extractor: (item: any) => {
+            const dateVal = item.observationDate || item.dateDurationOfObservation;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 7,
+    },
+    [FIELD_NAMES.TOTAL_NO_OF_ACTIVITIES_UNDERTAKEN]: {
+        extractor: (item: any) => String(item.totalActivities ?? item.totalNoOfActivitiesUndertaken ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_STAFFS]: {
+        extractor: (item: any) => String(item.staffCount ?? item.noOfStaffs ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_FARMERS]: {
+        extractor: (item: any) => String(item.farmerCount ?? item.noOfFarmers ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_OTHERS]: {
+        extractor: (item: any) => String(item.othersCount ?? item.noOfOthers ?? 0),
+        priority: 6,
+    },
+
+    // Meeting fields
+    [FIELD_NAMES.NO_OF_PARTICIPANTS_PERF]: {
+        extractor: (item: any) => String(item.numberOfParticipants ?? item.noOfParticipants ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.TOTAL_STATUTORY_MEMBERS_PRESENT]: {
+        extractor: (item: any) => String(item.statutoryMembersPresent ?? item.totalStatutoryMembersPresent ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.SALIENT_RECOMMENDATIONS]: {
+        extractor: (item: any) => item.salientRecommendations || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.TYPE_OF_MEETING]: {
+        extractor: (item: any) => item.typeOfMeeting || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.REPRESENTATIVE_FROM_ATARI]: {
+        extractor: (item: any) => item.representativeFromAtari || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.ACTION_TAKEN]: {
+        extractor: (item: any) => item.actionTaken || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.REASON]: {
+        extractor: (item: any) => item.reason || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.FILE]: {
+        extractor: (item: any) => item.uploadedFile || item.file || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.VERMICOMPOSTING_NO_OF_VILLAGE_COVERED]: {
+        extractor: (item: any) => String(item.vermiVillageCovered ?? item.vermicompostingNoOfVillageCovered ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.VERMICOMPOSTING_TOTAL_EXPENDITURE]: {
+        extractor: (item: any) => {
+            const val = item.vermiTotalExpenditure ?? item.vermicompostingTotalExpenditure;
+            return val !== undefined && val !== null ? String(val) : '0';
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.OTHER_NO_OF_VILLAGE_COVERED]: {
+        extractor: (item: any) => String(item.otherVillageCovered ?? item.otherNoOfVillageCovered ?? 0),
+        priority: 6,
+    },
+    [FIELD_NAMES.OTHER_TOTAL_EXPENDITURE]: {
+        extractor: (item: any) => {
+            const val = item.otherTotalExpenditure ?? item.otherTotalExpenditure;
+            return val !== undefined && val !== null ? String(val) : '0';
+        },
+        priority: 6,
     },
 
 } as any;

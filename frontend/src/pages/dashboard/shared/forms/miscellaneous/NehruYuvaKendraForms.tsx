@@ -44,7 +44,7 @@ export const NehruYuvaKendraForms: React.FC<NehruYuvaKendraFormsProps> = ({
 
     return (
         <div className="space-y-4">
-            {entityType === ENTITY_TYPES.MISC_NEHRU_YUVA_KENDRA && (
+            {entityType === ENTITY_TYPES.MISC_NYK_TRAINING && (
                 <div className="space-y-3">
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <p className="text-xs text-blue-700 font-medium">{FINANCIAL_YEAR_NOTE}</p>
@@ -53,8 +53,8 @@ export const NehruYuvaKendraForms: React.FC<NehruYuvaKendraFormsProps> = ({
                     <FormInput
                         label="Title of the Training Programme"
                         required
-                        value={formData.programmeTitle || ''}
-                        onChange={handleFieldChange('programmeTitle')}
+                        value={formData.title || ''}
+                        onChange={handleFieldChange('title')}
                         placeholder="Enter programme title"
                     />
 

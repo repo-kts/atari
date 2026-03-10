@@ -64,6 +64,12 @@ export function useProjectData(entityType: string) {
         'misc-ppv-fra-training': '/forms/miscellaneous/ppv-fra/training',
         'misc-ppv-fra-plant-varieties': '/forms/miscellaneous/ppv-fra/plant-varieties',
         'misc-rawe-fet': '/forms/miscellaneous/rawe-fet',
+        'misc-vip-visitors': '/forms/miscellaneous/vip-visitors',
+        'misc-swachhta-sewa': '/forms/miscellaneous/swachhta-bharat/sewa',
+        'misc-swachhta-pakhwada': '/forms/miscellaneous/swachhta-bharat/pakhwada',
+        'misc-swachhta-budget': '/forms/miscellaneous/swachhta-bharat/budget',
+        'misc-meetings-sac': '/forms/miscellaneous/meetings/sac',
+        'misc-meetings-other': '/forms/miscellaneous/meetings/other',
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;

@@ -18,6 +18,17 @@ const raweFetRepository = {
                 });
             }
             parsedAttachmentTypeId = typeRec.attachmentTypeId;
+        } else if (!parsedAttachmentTypeId || parsedAttachmentTypeId === 0) {
+            // Ensure we have a default attachment type if none provided
+            let defaultType = await prisma.attachmentType.findFirst({
+                where: { name: { equals: 'General', mode: 'insensitive' } }
+            });
+            if (!defaultType) {
+                defaultType = await prisma.attachmentType.create({
+                    data: { name: 'General' }
+                });
+            }
+            parsedAttachmentTypeId = defaultType.attachmentTypeId;
         }
 
         return await prisma.raweFetFitProgramme.create({

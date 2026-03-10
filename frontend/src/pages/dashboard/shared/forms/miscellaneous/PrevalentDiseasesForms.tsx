@@ -42,7 +42,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
     return (
         <div className="space-y-4">
             {/* 1. Prevalent diseases in crop */}
-            {entityType === ENTITY_TYPES.MISC_DISEASES_CROPS && (
+            {entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS && (
                 <div className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
@@ -86,8 +86,8 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.commodityLoss || ''}
-                            onChange={handleNumberChange('commodityLoss')}
+                            value={formData.commodityLossPercent || ''}
+                            onChange={handleNumberChange('commodityLossPercent')}
                             placeholder="Enter percentage"
                         />
 
@@ -105,7 +105,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
             )}
 
             {/* 2. Prevalent diseases in livestock */}
-            {entityType === ENTITY_TYPES.MISC_DISEASES_LIVESTOCK && (
+            {entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK && (
                 <div className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
@@ -117,11 +117,11 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         />
 
                         <FormInput
-                            label="Species Affected"
+                            label="Livestock Type"
                             required
-                            value={formData.speciesAffected || ''}
-                            onChange={handleFieldChange('speciesAffected')}
-                            placeholder="Enter species"
+                            value={formData.livestockType || ''}
+                            onChange={handleFieldChange('livestockType')}
+                            placeholder="Enter species/type"
                         />
                     </div>
 
@@ -135,32 +135,30 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <FormInput
-                            label="Number of Death/ Morbidity Rate (%)"
+                            label="Mortality Count"
                             required
                             type="number"
                             step="0.01"
-                            value={formData.deathMorbidityRate || ''}
-                            onChange={handleNumberChange('deathMorbidityRate')}
-                            placeholder="Enter rate"
+                            value={formData.mortalityCount || ''}
+                            onChange={handleNumberChange('mortalityCount')}
+                            placeholder="Enter count"
                         />
 
                         <FormInput
-                            label="Number of Animals Vaccinated"
+                            label="Animals Treated"
                             required
                             type="number"
-                            value={formData.animalsVaccinated || ''}
-                            onChange={handleNumberChange('animalsVaccinated')}
+                            value={formData.animalsTreated || ''}
+                            onChange={handleNumberChange('animalsTreated')}
                             placeholder="Enter number"
                         />
 
                         <FormInput
-                            label="Preventive Measures Taken for Area (in ha)"
+                            label="Preventive Measures Taken"
                             required
-                            type="number"
-                            step="0.01"
-                            value={formData.preventiveMeasuresArea || ''}
-                            onChange={handleNumberChange('preventiveMeasuresArea')}
-                            placeholder="Enter area"
+                            value={formData.preventiveMeasures || ''}
+                            onChange={handleFieldChange('preventiveMeasures')}
+                            placeholder="Enter measures"
                         />
                     </div>
                 </div>
