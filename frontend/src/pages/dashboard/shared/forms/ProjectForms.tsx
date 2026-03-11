@@ -1,7 +1,7 @@
 import React from 'react'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
-import { useCropTypes, useFldCategories, useFldSubcategories } from '../../../../hooks/useOftFldData'
-import { useSeasons, useYears, useExtensionActivityTypes, useCfldExtensionActivityTypes } from '../../../../hooks/useOtherMastersData'
+import { useFldActivities, useCropTypes } from '../../../../hooks/useOftFldData';
+import { useSeasons, useYears, useExtensionActivityTypes, useCfldExtensionActivityTypes, useNariCropCategories, useNariNutritionGardenTypes } from '../../../../hooks/useOtherMastersData'
 import { useAryaEnterprises, useCraFarmingSystems } from '../../../../hooks/useProductionProjectsData'
 import { useNicraCategories, useNicraSubCategories } from '../../../../hooks/useNicraData'
 import { useMasterData } from '../../../../hooks/useMasterData'
@@ -55,6 +55,10 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
 
     const { data: nicraCategories = [] } = useNicraCategories()
     const { data: nicraSubcategories = [] } = useNicraSubCategories(formData.categoryId)
+
+    const { data: fldActivities = [] } = useFldActivities()
+    const { data: nariCropCategories = [] } = useNariCropCategories()
+    const { data: nariNutritionGardenTypes = [] } = useNariNutritionGardenTypes()
 
     if (!entityType) return null
 
@@ -131,6 +135,9 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     setFormData={setFormData}
                     years={years}
                     seasons={seasons}
+                    fldActivities={fldActivities}
+                    nariCropCategories={nariCropCategories}
+                    nariNutritionGardenTypes={nariNutritionGardenTypes}
                 />
             )}
 

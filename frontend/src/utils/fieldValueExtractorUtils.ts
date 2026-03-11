@@ -60,6 +60,18 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.EVENT_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.eventDate || item.event_date || item.date || item['Event Date'];
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
     [FIELD_NAMES.CONSTITUTION_DATE]: {
         extractor: (item: any) => {
             const dateVal = item.constitutionDate || item.constitution_date;
@@ -1011,9 +1023,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.QUANTITY]: {
         extractor: (item: any) => item.quantity !== undefined ? String(item.quantity) : null,
     },
-    'Quantity': {
-        extractor: (item: any) => item.quantity !== undefined ? String(item.quantity) : null,
-    },
     [FIELD_NAMES.ANALYSIS]: {
         extractor: (item: any) => item.analysisName || null,
     },
@@ -1042,15 +1051,9 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
     },
 
-    [FIELD_NAMES.EVENT_DATE]: {
-        extractor: (item: any) => {
-            const dateVal = item.eventDate || item.event_date || item['Event Date'];
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
-            } catch { return null; }
-        }
+    [FIELD_NAMES.TYPE_OF_ACTIVITIES]: {
+        extractor: (item: any) => item.activityType || item.typeOfActivities || null,
+        priority: 7,
     },
     // Award Fields - using camelCase
     [FIELD_NAMES.AWARD]: {
@@ -1087,7 +1090,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.address || null,
     },
     [FIELD_NAMES.CONTACT_NUMBER]: {
-        extractor: (item: any) => item.contactNumber || item.contact_number || null,
+        extractor: (item: any) => item.contactNo || item.contactNumber || item.contact_number || null,
     },
     [FIELD_NAMES.STAFF]: {
         extractor: (item: any) => {

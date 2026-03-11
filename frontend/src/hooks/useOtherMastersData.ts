@@ -693,3 +693,33 @@ export function useSoilWaterAnalyses() {
         isDeleting: deleteMutation.isPending,
     };
 }
+
+// ============================================
+// NARI Masters Hooks
+// ============================================
+
+export function useNariCropCategories() {
+    const query = useQuery({
+        queryKey: ['nari-crop-categories'],
+        queryFn: () => otherMastersApi.getNariCropCategories().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+    };
+}
+
+export function useNariNutritionGardenTypes() {
+    const query = useQuery({
+        queryKey: ['nari-nutrition-garden-types'],
+        queryFn: () => otherMastersApi.getNariNutritionGardenTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+    };
+}

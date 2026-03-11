@@ -31,6 +31,12 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.EXTENSION_ACTIVITIES,
         ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
         ENTITY_TYPES.EVENTS,
+        // Achievement types that use TrainingExtensionForms
+        ENTITY_TYPES.ACHIEVEMENT_TRAINING,
+        ENTITY_TYPES.ACHIEVEMENT_EXTENSION,
+        ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION,
+        ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK,
+        ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS,
     ] as ExtendedEntityType[],
     PRODUCTION_PROJECTS: [
         ENTITY_TYPES.PRODUCT_CATEGORIES,
@@ -255,23 +261,23 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/achievements/fld/technical-feedback': ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK,
         '/forms/achievements/trainings': ENTITY_TYPES.ACHIEVEMENT_TRAINING,
         '/forms/achievements/extension-activities': ENTITY_TYPES.ACHIEVEMENT_EXTENSION,
-        '/forms/achievements/other-extension-activities': ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION,
+        '/forms/achievements/other-extension': ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION,
         '/forms/achievements/technology-week': ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK,
         '/forms/achievements/celebration-days': ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS,
         '/forms/achievements/production-supply': ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
         '/forms/achievements/publication-details': ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
-        '/forms/achievements/soil-water/equipments': ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
-        '/forms/achievements/soil-water/analysis': ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
-        '/forms/achievements/soil-water/world-soil-day': ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
+        '/forms/achievements/soil-equipment': ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
+        '/forms/achievements/soil-analysis': ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
+        '/forms/achievements/world-soil-day': ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
         '/forms/achievements/hrd': ENTITY_TYPES.ACHIEVEMENT_HRD,
-        '/forms/achievements/kvk-awards': ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK,
-        '/forms/achievements/scientist-awards': ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
-        '/forms/achievements/farmer-awards': ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
+        '/forms/achievements/awards/kvk': ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK,
+        '/forms/achievements/awards/scientist': ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST,
+        '/forms/achievements/awards/farmer': ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
 
         // Projects
-        '/forms/achievements/cfld-technical-parameters': ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM,
-        '/forms/achievements/cfld-extension-activities': ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY,
-        '/forms/achievements/cfld-budget-utilizations': ENTITY_TYPES.PROJECT_CFLD_BUDGET,
+        '/forms/achievements/projects/cfld/technical-parameter': ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM,
+        '/forms/achievements/projects/cfld/extension-activity': ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY,
+        '/forms/achievements/projects/cfld/budget-utilization': ENTITY_TYPES.PROJECT_CFLD_BUDGET,
         '/forms/achievements/projects/cra/details': ENTITY_TYPES.PROJECT_CRA_DETAILS,
         '/forms/achievements/projects/cra/extension': ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY,
         '/forms/achievements/projects/fpo/details': ENTITY_TYPES.PROJECT_FPO_DETAILS,
@@ -282,6 +288,12 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/achievements/projects/csisa': ENTITY_TYPES.PROJECT_CSISA,
         '/forms/achievements/projects/agri-drone': ENTITY_TYPES.PROJECT_AGRI_DRONE,
         '/forms/achievements/projects/drmr/details': ENTITY_TYPES.PROJECT_DRMR_DETAILS,
+        '/forms/achievements/projects/drmr/activity': ENTITY_TYPES.PROJECT_DRMR_ACTIVITY,
+        '/forms/achievements/projects/nari/nutri-smart': ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN,
+        '/forms/achievements/projects/nari/bio-fortified': ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED,
+        '/forms/achievements/projects/nari/value-addition': ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION,
+        '/forms/achievements/projects/nari/training-programm': ENTITY_TYPES.PROJECT_NARI_TRAINING,
+        '/forms/achievements/projects/nari/extension-activities': ENTITY_TYPES.PROJECT_NARI_EXTENSION,
         // NICRA
         '/forms/achievements/projects/nicra/basic': ENTITY_TYPES.PROJECT_NICRA_BASIC,
         '/forms/achievements/projects/nicra/details': ENTITY_TYPES.PROJECT_NICRA_DETAILS,
@@ -386,38 +398,17 @@ export const getEntityTypeChecks = (entityType: ExtendedEntityType | null) => {
             isProjects: false,
             isProject: false,
             isMiscellaneous: false,
-            // Specific flags used in DataManagementFormPage
-            isSoilWaterTesting: entityType === ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS ||
-                entityType === ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT ||
-                entityType === ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
-            isHrd: entityType === ENTITY_TYPES.ACHIEVEMENT_HRD,
-            isAward: entityType === ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK ||
-                entityType === ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST ||
-                entityType === ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER,
-            isPerformanceImpact: entityType?.startsWith('performance-impact-') || false,
-            isPerformanceDistrictVillage: entityType?.startsWith('performance-district-') ||
-                entityType?.startsWith('performance-operational-') ||
-                entityType?.startsWith('performance-village-') ||
-                entityType?.startsWith('performance-priority-') || false,
-            isPerformanceInfrastructure: entityType?.startsWith('performance-infrastructure-') ||
-                entityType?.startsWith('performance-demonstration-') ||
-                entityType?.startsWith('performance-instructional-') ||
-                entityType?.startsWith('performance-production-') ||
-                entityType?.startsWith('performance-hostel') ||
-                entityType?.startsWith('performance-staff-') ||
-                entityType?.startsWith('performance-rainwater-') || false,
-            isPerformanceFinancial: entityType?.startsWith('performance-financial-') ||
-                entityType?.startsWith('performance-budget-') ||
-                entityType?.startsWith('performance-project-budget') ||
-                entityType?.startsWith('performance-revolving-') ||
-                entityType?.startsWith('performance-revenue-') ||
-                entityType?.startsWith('performance-resource-') || false,
-            isPerformanceLinkages: entityType?.startsWith('performance-functional-') ||
-                entityType?.startsWith('performance-special-') ||
-                entityType?.startsWith('performance-linkages-') || false,
-            isDigitalInformation: entityType?.startsWith('misc-digital-') || false,
-            isSwachhtaBharatAbhiyaan: entityType?.startsWith('misc-swachhta-') || false,
-            isMeetings: entityType?.startsWith('misc-meetings-') || false,
+            isSoilWaterTesting: false,
+            isHrd: false,
+            isAward: false,
+            isPerformanceImpact: false,
+            isPerformanceDistrictVillage: false,
+            isPerformanceInfrastructure: false,
+            isPerformanceFinancial: false,
+            isPerformanceLinkages: false,
+            isDigitalInformation: false,
+            isSwachhtaBharatAbhiyaan: false,
+            isMeetings: false,
         };
     }
 

@@ -48,6 +48,7 @@ const raweFetRoutes = require('./forms/raweFetRoutes.js');
 const vipVisitorsRoutes = require('./forms/vipVisitorsRoutes.js');
 const swachhtaBharatRoutes = require('./forms/swachhtaBharatRoutes.js');
 const meetingsRoutes = require('./forms/meetingsRoutes.js');
+const nariRoutes = require('./forms/nariRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 
 // Mount routes
@@ -88,6 +89,7 @@ router.use('/forms/achievements/projects/drmr/details', drmrDetailsRoutes);
 router.use('/forms/achievements/projects/nicra', nicraRoutes);
 router.use('/forms/achievements/projects/cra', craRoutes);
 router.use('/forms/achievements/projects/natural-farming', naturalFarmingRoutes);
+router.use('/forms/achievements/projects/nari', nariRoutes);
 router.use('/forms/achievements/other-program', kvkOtherProgrammeRoutes);
 router.use('/forms/miscellaneous/prevalent-diseases', prevalentDiseaseRoutes);
 router.use('/forms/miscellaneous/nyk-training', nykTrainingRoutes);

@@ -51,6 +51,11 @@ export function useProjectData(entityType: string) {
         'project-nicra-pi-copi': '/forms/achievements/projects/nicra/pi-copi',
         'project-cra-details': '/forms/achievements/projects/cra/details',
         'project-cra-extension-activity': '/forms/achievements/projects/cra/extension',
+        // NARI
+        'project-nari-nutri-garden': '/forms/achievements/projects/nari/nutritional-garden',
+        'project-nari-bio-fortified': '/forms/achievements/projects/nari/bio-fortified-crop',
+        'project-nari-value-addition': '/forms/achievements/projects/nari/value-addition',
+        'project-nari-extension': '/forms/achievements/projects/nari/extension-activity',
         // Natural Farming
         'project-natural-farming-geo': '/forms/achievements/projects/natural-farming/geographical',
         'project-natural-farming-physical': '/forms/achievements/projects/natural-farming/physical',

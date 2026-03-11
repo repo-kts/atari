@@ -204,7 +204,13 @@ function _mapResponse(r) {
         bcRatioFarmer: r.bcRatioFarmer,
         bcRatioFarmerPractise: r.bcRatioFarmer,
 
-        // Frontend aliases from routeConfig.ts
+        // Standardized field names for frontend extraction (from FIELD_NAMES constants)
+        varietiesUsedInIp: r.varietyImprovedPractice,
+        varietiesUsedInFp: r.varietyFarmerPractice,
+        netReturnImprovedPractice: r.netReturnImprovedPerHa,
+        netReturnFarmerPractice: r.netReturnFarmerPerHa,
+
+        // Frontend aliases for backward compatibility or direct access
         'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
         'Varieties used in IP': r.varietyImprovedPractice,
         'Situations (Irrigated/ Rainfed)': r.situation,

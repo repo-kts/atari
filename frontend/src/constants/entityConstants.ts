@@ -52,6 +52,10 @@ export const ENTITY_TYPES = {
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
 
+    // NARI Masters
+    NARI_CROP_CATEGORY: 'nari-crop-category',
+    NARI_NUTRITION_GARDEN_TYPE: 'nari-nutrition-garden-type',
+
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
     TRAINING_AREAS: 'training-areas',
