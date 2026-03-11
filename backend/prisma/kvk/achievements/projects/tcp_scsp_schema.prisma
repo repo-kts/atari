@@ -12,14 +12,14 @@ model TspScspActivities {
   @@map("tsp_scsp_activities")
 }
 
-model TspScspActivities {
-  tspScspActivityId Int @id @default(autoincrement()) @map("tsp_scsp_activity_id")
-
-  activityName String @unique @map("activity_name")
+model TspScspDistrict {
+  tspScspDistrictId Int @id @default(autoincrement()) @map("tsp_scsp_district_id")
+  name String @unique @map("name")
   tspScspRecords TspScsp[]
 
-  @@map("tsp_scsp_activities")
+  @@map("tsp_scsp_district")
 }
+
 
 model TspScsp {
   tspScspId Int @id @default(autoincrement()) @map("tsp_scsp_id")

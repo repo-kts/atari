@@ -60,6 +60,44 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.CONSTITUTION_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.constitutionDate || item.constitution_date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
+    [FIELD_NAMES.MEETING_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.meetingDate || item.meeting_date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
+    [FIELD_NAMES.AMOUNT_RS]: {
+        extractor: (item: any) => {
+            if (item.amountRs === undefined || item.amountRs === null) return null;
+            return `₹${item.amountRs.toLocaleString('en-IN')}`;
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.QUANTITY_Q]: {
+        extractor: (item: any) => {
+            const val = item.quantityQ !== undefined ? item.quantityQ : item.quantity;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 6,
+    },
     [FIELD_NAMES.DATE_OF_JOINING]: {
         extractor: (item: any) => {
             if (!item.dateOfJoining) return null;
@@ -254,6 +292,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.YEAR_NAME]: {
         extractor: (item: any) => item.yearName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.REPORTING_YEAR]: {
+        extractor: (item: any) => {
+            if (item.reportingYear) {
+                if (typeof item.reportingYear === 'object' && item.reportingYear.yearName) {
+                    return item.reportingYear.yearName;
+                }
+                return item.reportingYear;
+            }
+            if (item.yearName) return item.yearName;
+            if (item.reportingYearName) return item.reportingYearName;
+            return null;
+        },
         priority: 5,
     },
     [FIELD_NAMES.PUBLICATION_ITEM]: {
@@ -757,7 +809,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.noOfVillages !== undefined ? String(item.noOfVillages) : null,
     },
     [FIELD_NAMES.VILLAGE_NAME]: {
-        extractor: (item: any) => item.villageName || null,
+        extractor: (item: any) => item.villageName || item.village || null,
     },
     [FIELD_NAMES.FARMERS]: {
         extractor: (item: any) => item.noOfFarmers !== undefined ? String(item.noOfFarmers) : null,
@@ -989,38 +1041,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.NO_OF_VIPS]: {
         extractor: (item: any) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
     },
-    [FIELD_NAMES.REPORTING_YEAR]: {
-        extractor: (item: any) => {
-            if (item.reportingYear?.yearName) return item.reportingYear.yearName;
-            if (item.reportingYearLabel) return item.reportingYearLabel;
-            if (item.reportingYear && typeof item.reportingYear === 'string') return item.reportingYear;
-            return null;
-        },
-    },
 
-    'Start Date': {
-        extractor: (item: any) => {
-            const dateVal = item.startDate || item.start_date;
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            } catch { return null; }
-        }
-    },
-
-    'End Date': {
-        extractor: (item: any) => {
-            const dateVal = item.endDate || item.end_date;
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                if (isNaN(date.getTime())) return null;
-                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            } catch { return null; }
-        }
-    },
     [FIELD_NAMES.EVENT_DATE]: {
         extractor: (item: any) => {
             const dateVal = item.eventDate || item.event_date || item['Event Date'];
@@ -1486,6 +1507,321 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
 
+    // Performance Impact - KVK Activities
+    [FIELD_NAMES.NAME_OF_SPECIFIC_AREA]: {
+        extractor: (item: any) => item.specificArea || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.BRIEF_DETAILS_OF_THE_AREA]: {
+        extractor: (item: any) => item.briefDetails || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_FARMERS_BENEFITTED]: {
+        extractor: (item: any) => item.farmersBenefitted !== undefined ? String(item.farmersBenefitted) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.HORIZONTAL_SPREAD]: {
+        extractor: (item: any) => item.horizontalSpread || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.PERCENT_OF_ADOPTION]: {
+        extractor: (item: any) => item.adoptionPercentage !== undefined ? `${item.adoptionPercentage}%` : null,
+        priority: 6,
+    },
+
+    // Performance Impact - Entrepreneurship
+    [FIELD_NAMES.NAME_OF_THE_ENTREPRENEUR]: {
+        extractor: (item: any) => item.entrepreneurName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_THE_ENTERPRISE]: {
+        extractor: (item: any) => item.entrepreneurName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.TYPE_OF_ENTERPRISE]: {
+        extractor: (item: any) => item.enterpriseType || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_MEMBERS_ASSOCIATED]: {
+        extractor: (item: any) => item.membersAssociated !== undefined ? String(item.membersAssociated) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.REVENUE_OF_THE_ENTERPRISE]: {
+        extractor: (item: any) => item.annualIncome !== undefined ? `₹${item.annualIncome.toLocaleString('en-IN')}` : null,
+        priority: 6,
+    },
+
+    // Performance Impact - Success Stories
+    [FIELD_NAMES.FARMING_EXPERIENCE]: {
+        extractor: (item: any) => item.experience || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.EXPERIENCE_IN_ENTERPRISE]: {
+        extractor: (item: any) => item.experience || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.TITLE_OF_THE_SUCCESS_STORY]: {
+        extractor: (item: any) => item.storyTitle || null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Demonstration Units
+    [FIELD_NAMES.NAME_OF_DEMO_UNIT]: {
+        extractor: (item: any) => item.demoUnitName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.YEAR_OF_ESTT]: {
+        extractor: (item: any) => item.yearOfEstablishment || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.AREA_SQ_MT]: {
+        extractor: (item: any) => item.area !== undefined && item.area !== null ? `${item.area} sq mt` : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.VARIETY_BREED]: {
+        extractor: (item: any) => item.varietyBreed || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.PRODUCE]: {
+        extractor: (item: any) => item.produce || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.COST_OF_INPUTS]: {
+        extractor: (item: any) => item.costOfInputs !== undefined && item.costOfInputs !== null ? `₹${item.costOfInputs.toLocaleString('en-IN')}` : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.GROSS_INCOME]: {
+        extractor: (item: any) => item.grossIncome !== undefined && item.grossIncome !== null ? `₹${item.grossIncome.toLocaleString('en-IN')}` : null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Production Units
+    [FIELD_NAMES.PRODUCT_NAME]: {
+        extractor: (item: any) => item.productName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.QTY_KG]: {
+        extractor: (item: any) => item.quantity !== undefined && item.quantity !== null ? `${item.quantity} kg` : null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Instructional Farm Livestock
+    [FIELD_NAMES.NAME_OF_THE_ANIMAL]: {
+        extractor: (item: any) => item.animalName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.SPECIES_BREED_VARIETY]: {
+        extractor: (item: any) => item.speciesBreed || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.TYPE_OF_PRODUCE]: {
+        extractor: (item: any) => item.typeOfProduce || null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Hostel
+    [FIELD_NAMES.REASON_FOR_SHORT_FALL]: {
+        extractor: (item: any) => item.reasonForShortFall || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.MONTHS]: {
+        extractor: (item: any) => item.months || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_TRAINEES_STAYED]: {
+        extractor: (item: any) => item.traineesStayed !== undefined && item.traineesStayed !== null ? String(item.traineesStayed) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.TRAINEE_DAYS]: {
+        extractor: (item: any) => item.traineeDays !== undefined && item.traineeDays !== null ? String(item.traineeDays) : null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Staff Quarters
+    [FIELD_NAMES.DATE_OF_COMPLETION]: {
+        extractor: (item: any) => item.dateOfCompletion ? new Date(item.dateOfCompletion).toLocaleDateString('en-IN') : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.WHETHER_STAFF_QUARTERS_COMPLETED]: {
+        extractor: (item: any) => item.isCompleted || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_STAFF_QUARTERS]: {
+        extractor: (item: any) => item.numberOfQuarters !== undefined && item.numberOfQuarters !== null ? String(item.numberOfQuarters) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.OCCUPANCY_DETAILS]: {
+        extractor: (item: any) => item.occupancyDetails || null,
+        priority: 6,
+    },
+
+    // Performance Infrastructure - Rainwater Harvesting
+    [FIELD_NAMES.NO_OF_TRAINING_PROGRAMME_CONDUCTED]: {
+        extractor: (item: any) => item.trainingProgrammes !== undefined && item.trainingProgrammes !== null ? String(item.trainingProgrammes) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_DEMONSTRATIONS]: {
+        extractor: (item: any) => item.demonstrations !== undefined && item.demonstrations !== null ? String(item.demonstrations) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_PLANT_MATERIAL_PRODUCED]: {
+        extractor: (item: any) => item.plantMaterial !== undefined && item.plantMaterial !== null ? String(item.plantMaterial) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.VISIT_BY_THE_FARMERS]: {
+        extractor: (item: any) => item.farmerVisits !== undefined && item.farmerVisits !== null ? String(item.farmerVisits) : null,
+        priority: 6,
+    },
+    [FIELD_NAMES.VISIT_BY_THE_OFFICIALS]: {
+        extractor: (item: any) => item.officialVisits !== undefined && item.officialVisits !== null ? String(item.officialVisits) : null,
+        priority: 6,
+    },
+    // Performance - Linkages
+    [FIELD_NAMES.NAME_OF_ORGANIZATION]: {
+        extractor: (item: any) => item.organizationName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NATURE_OF_LINKAGE]: {
+        extractor: (item: any) => item.natureOfLinkage || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.PROGRAMME_TYPE]: {
+        extractor: (item: any) => item.programmeType || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_THE_PROGRAMME_SCHEME]: {
+        extractor: (item: any) => item.programmeName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.DATE_MONTH_OF_INITIATION]: {
+        extractor: (item: any) => {
+            const dateVal = item.initiationDate || item.dateMonthOfInitiation;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.FUNDING_AGENCY]: {
+        extractor: (item: any) => item.fundingAgency || null,
+        priority: 6,
+    },
+    // Performance - District & Village
+    [FIELD_NAMES.TALUK]: {
+        extractor: (item: any) => item.taluk || null,
+
+        priority: 6,
+    },
+    [FIELD_NAMES.BLOCK]: {
+        extractor: (item: any) => item.block || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.MAJOR_CROPS]: {
+        extractor: (item: any) => item.majorCrops || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.MAJOR_PROBLEMS_IDENTIFIED]: {
+        extractor: (item: any) => item.majorProblems || item.majorProblemsIdentified || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.IDENTIFIED_THRUST_AREAS]: {
+        extractor: (item: any) => item.thrustAreas || item.identifiedThrustAreas || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.ACTION_TAKEN_FOR_DEVELOPMENT]: {
+        extractor: (item: any) => item.actionTaken || item.actionTakenForDevelopment || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.THRUST_AREA]: {
+        extractor: (item: any) => item.thrustArea || null,
+        priority: 6,
+    },
+    // Performance - Financial
+    [FIELD_NAMES.SALARY_ALLOCATION]: {
+        extractor: (item: any) => item.salaryAllocation ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.SALARY_EXPENDITURE]: {
+        extractor: (item: any) => item.salaryExpenditure ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.GENERAL_MAIN_GRANT_ALLOCATION]: {
+        extractor: (item: any) => item.generalMainGrantAllocation ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.GENERAL_MAIN_GRANT_EXPENDITURE]: {
+        extractor: (item: any) => item.generalMainGrantExpenditure ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.CAPITAL_MAIN_GRANT_ALLOCATION]: {
+        extractor: (item: any) => item.capitalMainGrantAllocation ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.CAPITAL_MAIN_GRANT_EXPENDITURE]: {
+        extractor: (item: any) => item.capitalMainGrantExpenditure ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.OPENING_BALANCE]: {
+        extractor: (item: any) => item.openingBalance ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.INCOME_DURING_THE_YEAR]: {
+        extractor: (item: any) => item.incomeDuringYear ?? item.incomeDuringTheYear ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.EXPENDITURE_DURING_THE_YEAR]: {
+        extractor: (item: any) => item.expenditureDuringYear ?? item.expenditureDuringTheYear ?? null,
+        priority: 6,
+    },
+    [FIELD_NAMES.CLOSING]: {
+        extractor: (item: any) => {
+            if (item.closing !== undefined && item.closing !== null) return item.closing;
+            const opening = parseFloat(item.openingBalance || 0);
+            const income = parseFloat(item.incomeDuringYear || item.incomeDuringTheYear || 0);
+            const expenditure = parseFloat(item.expenditureDuringYear || item.expenditureDuringTheYear || 0);
+            return (opening + income - expenditure).toFixed(2);
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.KIND]: {
+        extractor: (item: any) => item.kind || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_HEAD]: {
+        extractor: (item: any) => item.headName || item.nameOfHead || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.INCOME_RS]: {
+        extractor: (item: any) => (item.income ?? item.incomeRs) || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.SPONSORING_AGENCY]: {
+        extractor: (item: any) => item.sponsoringAgency || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_THE_PROGRAMME_PERF]: {
+        extractor: (item: any) => item.programmeName || item.nameOfTheProgrammePerf || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.PURPOSE_OF_THE_PROGRAMME]: {
+        extractor: (item: any) => item.programmePurpose || item.purposeOfTheProgramme || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.SOURCES_OF_FUND]: {
+        extractor: (item: any) => item.sourcesOfFund || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.AMOUNT_RS_LAKHS]: {
+        extractor: (item: any) => (item.amount ?? item.amountRsLakhs) || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.INFRASTRUCTURE_CREATED]: {
+        extractor: (item: any) => item.infrastructureCreated || null,
+        priority: 6,
+    },
 } as any;
 
 // ============================================
@@ -1496,7 +1832,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
  * Get field value from item using configuration-driven approach
  * Falls back to direct field access if no extractor is configured
  */
-export function getFieldValueConfig(item: any, field: string): string {
+export function getFieldValueConfig(item: any, field: string): any {
     // Try configured extractor first
     const config = fieldExtractors[field];
     if (config) {
@@ -1505,8 +1841,8 @@ export function getFieldValueConfig(item: any, field: string): string {
     }
 
     // Direct field access (fallback)
-    if (item[field] !== undefined && item[field] !== null && typeof item[field] !== 'object') {
-        return String(item[field]);
+    if (item[field] !== undefined && item[field] !== null) {
+        return item[field];
     }
 
     // Default fallback

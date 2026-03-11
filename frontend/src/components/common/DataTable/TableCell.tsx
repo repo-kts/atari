@@ -14,12 +14,13 @@ interface TableCellProps {
 
 export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
     // Photo/Attachment field
-    const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath'
-    const imagePath = item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment
+    const isImageValue = typeof value === 'string' && value.startsWith('data:image/') && value.includes('base64,');
+    const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath' || field === 'file' || field === 'uploadedFile';
+    const imagePath = isImageValue ? value : (item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment || item.uploadedFile || item.file);
     const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
 
     // Image field
-    if (isImageField && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
+    if ((isImageField || isImageValue) && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
         // Simple check to see if it might be an image data URL or path that ends in image extension
         return (
             <div className="flex items-center">
@@ -48,8 +49,8 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         const isTransferred = status === 'TRANSFERRED'
         return (
             <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${isTransferred
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                    : 'bg-green-100 text-green-700 border border-green-200'
+                ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                : 'bg-green-100 text-green-700 border border-green-200'
                 }`}>
                 {status}
             </span>

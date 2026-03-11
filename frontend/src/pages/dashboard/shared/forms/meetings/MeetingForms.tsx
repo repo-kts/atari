@@ -63,7 +63,19 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
 
     const handleFileChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: e.target.files })
+            const file = e.target.files?.[0]
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setFormData({
+                        ...formData,
+                        [field]: reader.result as string
+                    })
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setFormData({ ...formData, [field]: null })
+            }
         },
         [formData, setFormData]
     )

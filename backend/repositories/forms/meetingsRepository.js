@@ -22,7 +22,7 @@ const meetingsRepository = {
                     salientRecommendations: data.salientRecommendations || '',
                     actionTaken: data.actionTaken === 'YES' ? 'YES' : 'NO',
                     reason: data.reason || '',
-                    uploadedFile: data.uploadedFile || '',
+                    uploadedFile: Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || ''),
                 }
             });
         },
@@ -33,21 +33,35 @@ const meetingsRepository = {
             } else if (filters.kvkId) {
                 where.kvkId = parseInt(filters.kvkId);
             }
-            return await prisma.sacMeeting.findMany({
+            const data = await prisma.sacMeeting.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
                 orderBy: { sacMeetingId: 'desc' }
             });
+
+            return data.map(item => ({
+                ...item,
+                noOfParticipantsPerf: item.numberOfParticipants,
+                totalStatutoryMembersPresent: item.statutoryMembersPresent,
+                file: item.uploadedFile
+            }));
         },
         findById: async (id, user) => {
             const where = { sacMeetingId: parseInt(id) };
             if (user && user.kvkId) {
                 where.kvkId = parseInt(user.kvkId);
             }
-            return await prisma.sacMeeting.findFirst({
+            const item = await prisma.sacMeeting.findFirst({
                 where,
                 include: { kvk: { select: { kvkName: true } } }
             });
+            if (!item) return null;
+            return {
+                ...item,
+                noOfParticipantsPerf: item.numberOfParticipants,
+                totalStatutoryMembersPresent: item.statutoryMembersPresent,
+                file: item.uploadedFile
+            };
         },
         update: async (id, data, user) => {
             const where = { sacMeetingId: parseInt(id) };
@@ -65,7 +79,9 @@ const meetingsRepository = {
             if (data.salientRecommendations !== undefined) updateData.salientRecommendations = data.salientRecommendations;
             if (data.actionTaken !== undefined) updateData.actionTaken = data.actionTaken === 'YES' ? 'YES' : 'NO';
             if (data.reason !== undefined) updateData.reason = data.reason;
-            if (data.uploadedFile !== undefined) updateData.uploadedFile = data.uploadedFile;
+            if (data.uploadedFile !== undefined) {
+                updateData.uploadedFile = Array.isArray(data.uploadedFile) ? data.uploadedFile[0] : (data.uploadedFile || '');
+            }
 
             return await prisma.sacMeeting.update({
                 where: { sacMeetingId: parseInt(id) },

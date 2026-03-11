@@ -30,21 +30,41 @@ const swachhtaBharatRepository = {
             } else if (filters.kvkId) {
                 where.kvkId = parseInt(filters.kvkId);
             }
-            return await prisma.swachhtaHiSewa.findMany({
+            const data = await prisma.swachhtaHiSewa.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
                 orderBy: { swachhtaHiSewaId: 'desc' }
             });
+
+            return data.map(item => ({
+                ...item,
+                noOfTotal: (item.staffCount || 0) + (item.farmerCount || 0) + (item.othersCount || 0),
+                totalNoOfActivitiesUndertaken: item.totalActivities,
+                noOfStaffs: item.staffCount,
+                noOfFarmers: item.farmerCount,
+                noOfOthers: item.othersCount,
+                dateDurationOfObservation: item.observationDate
+            }));
         },
         findById: async (id, user) => {
             const where = { swachhtaHiSewaId: parseInt(id) };
             if (user && user.kvkId) {
                 where.kvkId = parseInt(user.kvkId);
             }
-            return await prisma.swachhtaHiSewa.findFirst({
+            const item = await prisma.swachhtaHiSewa.findFirst({
                 where,
                 include: { kvk: { select: { kvkName: true } } }
             });
+            if (!item) return null;
+            return {
+                ...item,
+                noOfTotal: (item.staffCount || 0) + (item.farmerCount || 0) + (item.othersCount || 0),
+                totalNoOfActivitiesUndertaken: item.totalActivities,
+                noOfStaffs: item.staffCount,
+                noOfFarmers: item.farmerCount,
+                noOfOthers: item.othersCount,
+                dateDurationOfObservation: item.observationDate
+            };
         },
         update: async (id, data, user) => {
             const where = { swachhtaHiSewaId: parseInt(id) };
@@ -99,21 +119,41 @@ const swachhtaBharatRepository = {
             } else if (filters.kvkId) {
                 where.kvkId = parseInt(filters.kvkId);
             }
-            return await prisma.swachhtaPakhwada.findMany({
+            const data = await prisma.swachhtaPakhwada.findMany({
                 where,
                 include: { kvk: { select: { kvkName: true } } },
                 orderBy: { swachhtaPakhwadaId: 'desc' }
             });
+
+            return data.map(item => ({
+                ...item,
+                noOfTotal: (item.staffCount || 0) + (item.farmerCount || 0) + (item.othersCount || 0),
+                totalNoOfActivitiesUndertaken: item.totalActivities,
+                noOfStaffs: item.staffCount,
+                noOfFarmers: item.farmerCount,
+                noOfOthers: item.othersCount,
+                dateDurationOfObservation: item.observationDate
+            }));
         },
         findById: async (id, user) => {
             const where = { swachhtaPakhwadaId: parseInt(id) };
             if (user && user.kvkId) {
                 where.kvkId = parseInt(user.kvkId);
             }
-            return await prisma.swachhtaPakhwada.findFirst({
+            const item = await prisma.swachhtaPakhwada.findFirst({
                 where,
                 include: { kvk: { select: { kvkName: true } } }
             });
+            if (!item) return null;
+            return {
+                ...item,
+                noOfTotal: (item.staffCount || 0) + (item.farmerCount || 0) + (item.othersCount || 0),
+                totalNoOfActivitiesUndertaken: item.totalActivities,
+                noOfStaffs: item.staffCount,
+                noOfFarmers: item.farmerCount,
+                noOfOthers: item.othersCount,
+                dateDurationOfObservation: item.observationDate
+            };
         },
         update: async (id, data, user) => {
             const where = { swachhtaPakhwadaId: parseInt(id) };
@@ -153,11 +193,11 @@ const swachhtaBharatRepository = {
             return await prisma.swachhQuarterlyExpenditure.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
-                    vermiVillageCovered: parseInt(data.vermiVillageCovered || data.vermicompostingVillages) || 0,
-                    vermiTotalExpenditure: parseFloat(data.vermiTotalExpenditure || data.vermicompostingExpenditure) || 0,
-                    otherVillageCovered: parseInt(data.otherVillageCovered || data.otherVillages) || 0,
-                    otherTotalExpenditure: parseFloat(data.otherTotalExpenditure || data.otherExpenditure) || 0,
+                    reportingYearId: (data.reportingYearId || data.yearId || data.reportingYear) ? parseInt(data.reportingYearId || data.yearId || data.reportingYear) : null,
+                    vermiVillageCovered: parseInt(data.vermicompostingNoOfVillageCovered || data.vermiVillageCovered || data.vermicompostingVillages) || 0,
+                    vermiTotalExpenditure: parseFloat(data.vermicompostingTotalExpenditure || data.vermiTotalExpenditure || data.vermicompostingExpenditure) || 0,
+                    otherVillageCovered: parseInt(data.otherNoOfVillageCovered || data.otherVillageCovered || data.otherVillages) || 0,
+                    otherTotalExpenditure: parseFloat(data.otherTotalExpenditure || data.otherTotalExpenditure || data.otherExpenditure) || 0,
                 }
             });
         },
@@ -168,7 +208,7 @@ const swachhtaBharatRepository = {
             } else if (filters.kvkId) {
                 where.kvkId = parseInt(filters.kvkId);
             }
-            return await prisma.swachhQuarterlyExpenditure.findMany({
+            const data = await prisma.swachhQuarterlyExpenditure.findMany({
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
@@ -176,19 +216,35 @@ const swachhtaBharatRepository = {
                 },
                 orderBy: { swachhQuarterlyExpenditureId: 'desc' }
             });
+
+            return data.map(item => ({
+                ...item,
+                vermicompostingNoOfVillageCovered: item.vermiVillageCovered,
+                vermicompostingTotalExpenditure: item.vermiTotalExpenditure,
+                otherNoOfVillageCovered: item.otherVillageCovered,
+                otherTotalExpenditure: item.otherTotalExpenditure
+            }));
         },
         findById: async (id, user) => {
             const where = { swachhQuarterlyExpenditureId: parseInt(id) };
             if (user && user.kvkId) {
                 where.kvkId = parseInt(user.kvkId);
             }
-            return await prisma.swachhQuarterlyExpenditure.findFirst({
+            const item = await prisma.swachhQuarterlyExpenditure.findFirst({
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
                     reportingYear: true
                 }
             });
+            if (!item) return null;
+            return {
+                ...item,
+                vermicompostingNoOfVillageCovered: item.vermiVillageCovered,
+                vermicompostingTotalExpenditure: item.vermiTotalExpenditure,
+                otherNoOfVillageCovered: item.otherVillageCovered,
+                otherTotalExpenditure: item.otherTotalExpenditure
+            };
         },
         update: async (id, data, user) => {
             const where = { swachhQuarterlyExpenditureId: parseInt(id) };
@@ -199,11 +255,16 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            if (data.reportingYearId !== undefined) updateData.reportingYearId = data.reportingYearId ? parseInt(data.reportingYearId) : null;
-            if (data.vermiVillageCovered !== undefined || data.vermicompostingVillages !== undefined) updateData.vermiVillageCovered = parseInt(data.vermiVillageCovered || data.vermicompostingVillages);
-            if (data.vermiTotalExpenditure !== undefined || data.vermicompostingExpenditure !== undefined) updateData.vermiTotalExpenditure = parseFloat(data.vermiTotalExpenditure || data.vermicompostingExpenditure);
-            if (data.otherVillageCovered !== undefined || data.otherVillages !== undefined) updateData.otherVillageCovered = parseInt(data.otherVillageCovered || data.otherVillages);
-            if (data.otherTotalExpenditure !== undefined || data.otherExpenditure !== undefined) updateData.otherTotalExpenditure = parseFloat(data.otherTotalExpenditure || data.otherExpenditure);
+            if (data.reportingYearId !== undefined || data.yearId !== undefined || data.reportingYear !== undefined)
+                updateData.reportingYearId = (data.reportingYearId || data.yearId || data.reportingYear) ? parseInt(data.reportingYearId || data.yearId || data.reportingYear) : null;
+            if (data.vermiVillageCovered !== undefined || data.vermicompostingNoOfVillageCovered !== undefined || data.vermicompostingVillages !== undefined)
+                updateData.vermiVillageCovered = parseInt(data.vermicompostingNoOfVillageCovered || data.vermiVillageCovered || data.vermicompostingVillages);
+            if (data.vermiTotalExpenditure !== undefined || data.vermicompostingTotalExpenditure !== undefined || data.vermicompostingExpenditure !== undefined)
+                updateData.vermiTotalExpenditure = parseFloat(data.vermicompostingTotalExpenditure || data.vermiTotalExpenditure || data.vermicompostingExpenditure);
+            if (data.otherVillageCovered !== undefined || data.otherNoOfVillageCovered !== undefined || data.otherVillages !== undefined)
+                updateData.otherVillageCovered = parseInt(data.otherNoOfVillageCovered || data.otherVillageCovered || data.otherVillages);
+            if (data.otherTotalExpenditure !== undefined || data.otherTotalExpenditure !== undefined || data.otherExpenditure !== undefined)
+                updateData.otherTotalExpenditure = parseFloat(data.otherTotalExpenditure || data.otherTotalExpenditure || data.otherExpenditure);
 
             return await prisma.swachhQuarterlyExpenditure.update({
                 where: { swachhQuarterlyExpenditureId: parseInt(id) },

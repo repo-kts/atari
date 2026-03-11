@@ -108,6 +108,17 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 onChange={handleNumberChange('participantsOthers')}
                                 placeholder=""
                             />
+
+                            <FormInput
+                                label="No. of Total"
+                                type="number"
+                                disabled
+                                value={(parseInt(formData.participantsStaff ?? formData.staffCount) || 0) +
+                                    (parseInt(formData.participantsFarmers ?? formData.farmerCount) || 0) +
+                                    (parseInt(formData.participantsOthers ?? formData.othersCount) || 0)}
+                                onChange={() => { }}
+                                placeholder=""
+                            />
                         </div>
                     </FormSection>
                 </div>
@@ -162,6 +173,17 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 type="number"
                                 value={formData.participantsOthers ?? formData.othersCount ?? ''}
                                 onChange={handleNumberChange('participantsOthers')}
+                                placeholder=""
+                            />
+
+                            <FormInput
+                                label="No. of Total"
+                                type="number"
+                                disabled
+                                value={(parseInt(formData.participantsStaff ?? formData.staffCount) || 0) +
+                                    (parseInt(formData.participantsFarmers ?? formData.farmerCount) || 0) +
+                                    (parseInt(formData.participantsOthers ?? formData.othersCount) || 0)}
+                                onChange={() => { }}
                                 placeholder=""
                             />
                         </div>

@@ -105,6 +105,14 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: 'nicraDetailsId',
     [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: 'nicraTrainingId',
     [ENTITY_TYPES.PROJECT_NICRA_EXTENSION]: 'nicraExtensionActivityId',
+    [ENTITY_TYPES.PROJECT_NICRA_INTERVENTION]: 'nicraInterventionId',
+    [ENTITY_TYPES.PROJECT_NICRA_REVENUE]: 'nicraRevenueGeneratedId',
+    [ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING]: 'nicraFarmImplementId',
+    [ENTITY_TYPES.PROJECT_NICRA_VCRMC]: 'nicraVcrmcId',
+    [ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH]: 'nicraSoilHealthCardId',
+    [ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE]: 'nicraConvergenceProgrammeId',
+    [ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES]: 'nicraDignitariesVisitedId',
+    [ENTITY_TYPES.PROJECT_NICRA_PI_COPI]: 'nicraPiCopiId',
 
     // Natural Farming
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: 'geographicalInfoId',
@@ -129,6 +137,31 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.MISC_SWACHHTA_BUDGET]: 'swachhQuarterlyExpenditureId',
     [ENTITY_TYPES.MISC_MEETINGS_SAC]: 'sacMeetingId',
     [ENTITY_TYPES.MISC_MEETINGS_OTHER]: 'atariMeetingId',
+
+    // Performance Indicators - Impact
+    [ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES]: 'impactActivityId',
+    [ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP]: 'entrepreneurshipId',
+    [ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES]: 'successStoryId',
+
+    // Performance Indicators - Other
+    [ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL]: 'districtLevelDataId',
+    [ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA]: 'operationalAreaId',
+    [ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION]: 'villageAdoptionId',
+    [ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST]: 'priorityThrustAreaId',
+    [ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS]: 'demonstrationUnitId',
+    [ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS]: 'instructionalFarmCropId',
+    [ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS]: 'productionUnitId',
+    [ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK]: 'instructionalFarmLivestockId',
+    [ENTITY_TYPES.PERFORMANCE_HOSTEL]: 'hostelUtilizationId',
+    [ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS]: 'staffQuartersUtilizationId',
+    [ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING]: 'rainwaterHarvestingId',
+    [ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS]: 'budgetDetailId',
+    [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: 'projectBudgetId',
+    [ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND]: 'revolvingFundId',
+    [ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION]: 'revenueGenerationId',
+    [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]: 'resourceGenerationId',
+    [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: 'functionalLinkageId',
+    [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: 'specialProgrammeId',
 };
 
 /**
