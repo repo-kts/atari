@@ -102,14 +102,29 @@ class AboutKvkService {
             }
         } else {
             // For other entities, permission is enforced by route middleware (requirePermission).
-            // Auto-fill kvkId from user profile if available
-            if (user && user.kvkId) {
-                data.kvkId = user.kvkId;
+            if (!user) {
+                throw new Error('Authentication required');
+            }
 
-                // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
-                if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && !data.originalKvkId) {
-                    data.originalKvkId = user.kvkId;
+            if (user.kvkId) {
+                // KVK-scoped users: auto-fill kvkId from profile
+                data.kvkId = user.kvkId;
+            } else if (user.roleName !== 'super_admin') {
+                // Admin users without kvkId: validate that data.kvkId is within their geographic scope
+                const requestedKvkId = data.kvkId ? Number(data.kvkId) : null;
+                if (!Number.isInteger(requestedKvkId)) {
+                    throw new Error('KVK ID is required');
                 }
+                const scopedKvkIds = await this._getScopedKvkIds(user);
+                if (!scopedKvkIds.includes(requestedKvkId)) {
+                    throw new Error('Access denied: This KVK is outside your geographic scope');
+                }
+                data.kvkId = requestedKvkId;
+            }
+
+            // For employees: set originalKvkId to the current kvkId (first KVK where staff is created)
+            if ((entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') && !data.originalKvkId && data.kvkId) {
+                data.originalKvkId = data.kvkId;
             }
         }
 
