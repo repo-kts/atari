@@ -17,6 +17,7 @@ const safeInt = (val, d = 0) => { const n = parseInt(val, 10); return isNaN(n) ?
 const geographicalInfoRepository = {
     create: async (data, user) => {
         const kvkId = getKvkId(user, data);
+        const reportingYearId = (data.reportingYearId || data.yearId) ? safeInt(data.reportingYearId || data.yearId, null) : null;
         return await prisma.geographicalInfo.create({
             data: {
                 kvkId,
@@ -26,7 +27,7 @@ const geographicalInfoRepository = {
                 farmingSituation: data.farmingSituation || '',
                 latitude: safeFloat(data.latitude, 0),
                 longitude: safeFloat(data.longitude, 0),
-                reportingYearId: data.reportingYearId ? safeInt(data.reportingYearId, null) : null,
+                reportingYearId,
             }
         });
     },
@@ -48,6 +49,13 @@ const geographicalInfoRepository = {
             id: r.geographicalInfoId,
             kvkName: r.kvk?.kvkName,
             reportingYear: r.reportingYear?.yearName,
+            reportingYearId: r.reportingYearId,
+            yearId: r.reportingYearId,
+            startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : null,
+            endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : null,
+            farmingSituationOfSelectedFarmer: r.farmingSituation,
+            latitudeN: r.latitude,
+            longitudeE: r.longitude,
         }));
     },
     findById: async (id, user) => {
@@ -67,6 +75,13 @@ const geographicalInfoRepository = {
             id: r.geographicalInfoId,
             kvkName: r.kvk?.kvkName,
             reportingYear: r.reportingYear?.yearName,
+            reportingYearId: r.reportingYearId,
+            yearId: r.reportingYearId,
+            startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : null,
+            endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : null,
+            farmingSituationOfSelectedFarmer: r.farmingSituation,
+            latitudeN: r.latitude,
+            longitudeE: r.longitude,
         };
     },
     update: async (id, data, user) => {
@@ -74,6 +89,10 @@ const geographicalInfoRepository = {
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         const existing = await prisma.geographicalInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        const reportingYearId = (data.reportingYearId || data.yearId) !== undefined ? 
+            (data.reportingYearId || data.yearId ? safeInt(data.reportingYearId || data.yearId, null) : null) : 
+            existing.reportingYearId;
+
         return await prisma.geographicalInfo.update({
             where: { geographicalInfoId: parseInt(id) },
             data: {
@@ -83,7 +102,7 @@ const geographicalInfoRepository = {
                 farmingSituation: data.farmingSituation !== undefined ? data.farmingSituation : existing.farmingSituation,
                 latitude: data.latitude !== undefined ? safeFloat(data.latitude, 0) : existing.latitude,
                 longitude: data.longitude !== undefined ? safeFloat(data.longitude, 0) : existing.longitude,
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? safeInt(data.reportingYearId, null) : null) : existing.reportingYearId,
+                reportingYearId,
             }
         });
     },
@@ -134,6 +153,7 @@ const physicalInfoRepository = {
             ...r,
             id: r.physicalInfoId,
             kvkName: r.kvk?.kvkName,
+            activityName: r.activity,
             genMale: r.generalM,
             genFemale: r.generalF,
             obcMale: r.obcM,
@@ -142,6 +162,7 @@ const physicalInfoRepository = {
             scFemale: r.scF,
             stMale: r.stM,
             stFemale: r.stF,
+            trainingDate: r.trainingDate ? r.trainingDate.toISOString().split('T')[0] : null,
         }));
     },
     findById: async (id, user) => {
@@ -165,39 +186,40 @@ const physicalInfoRepository = {
             scFemale: r.scF,
             stMale: r.stM,
             stFemale: r.stF,
+            trainingDate: r.trainingDate ? r.trainingDate.toISOString().split('T')[0] : null,
         };
     },
     update: async (id, data, user) => {
-        const where = { physicalInfoId: parseInt(id) };
-        if (isKvkUser(user)) where.kvkId = user.kvkId;
+        const where = { physicalInfoId: safeInt(id, 0) };
+        if (isKvkUser(user)) where.kvkId = safeInt(user.kvkId);
         const existing = await prisma.physicalInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
         return await prisma.physicalInfo.update({
-            where: { physicalInfoId: parseInt(id) },
+            where: { physicalInfoId: safeInt(id, 0) },
             data: {
-                activity: data.activity !== undefined ? data.activity : existing.activity,
+                activity: (data.activity || data.activityName) !== undefined ? (data.activity || data.activityName) : existing.activity,
                 trainingTitle: data.trainingTitle !== undefined ? data.trainingTitle : existing.trainingTitle,
                 trainingDate: data.trainingDate ? new Date(data.trainingDate) : existing.trainingDate,
                 venue: data.venue !== undefined ? data.venue : existing.venue,
-                generalM: data.genMale !== undefined ? parseInt(data.genMale || 0) : existing.generalM,
-                generalF: data.genFemale !== undefined ? parseInt(data.genFemale || 0) : existing.generalF,
-                obcM: data.obcMale !== undefined ? parseInt(data.obcMale || 0) : existing.obcM,
-                obcF: data.obcFemale !== undefined ? parseInt(data.obcFemale || 0) : existing.obcF,
-                scM: data.scMale !== undefined ? parseInt(data.scMale || 0) : existing.scM,
-                scF: data.scFemale !== undefined ? parseInt(data.scFemale || 0) : existing.scF,
-                stM: data.stMale !== undefined ? parseInt(data.stMale || 0) : existing.stM,
-                stF: data.stFemale !== undefined ? parseInt(data.stFemale || 0) : existing.stF,
+                generalM: data.genMale !== undefined ? safeInt(data.genMale, 0) : existing.generalM,
+                generalF: data.genFemale !== undefined ? safeInt(data.genFemale, 0) : existing.generalF,
+                obcM: data.obcMale !== undefined ? safeInt(data.obcMale, 0) : existing.obcM,
+                obcF: data.obcFemale !== undefined ? safeInt(data.obcFemale, 0) : existing.obcF,
+                scM: data.scMale !== undefined ? safeInt(data.scMale, 0) : existing.scM,
+                scF: data.scFemale !== undefined ? safeInt(data.scFemale, 0) : existing.scF,
+                stM: data.stMale !== undefined ? safeInt(data.stMale, 0) : existing.stM,
+                stF: data.stFemale !== undefined ? safeInt(data.stFemale, 0) : existing.stF,
                 remarks: data.remarks !== undefined ? data.remarks : existing.remarks,
-                images: data.images !== undefined ? data.images : existing.images,
+                images: data.images !== undefined ? String(data.images) : existing.images,
             }
         });
     },
     delete: async (id, user) => {
-        const where = { physicalInfoId: parseInt(id) };
-        if (isKvkUser(user)) where.kvkId = user.kvkId;
+        const where = { physicalInfoId: safeInt(id, 0) };
+        if (isKvkUser(user)) where.kvkId = safeInt(user.kvkId);
         const existing = await prisma.physicalInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
-        return await prisma.physicalInfo.delete({ where: { physicalInfoId: parseInt(id) } });
+        return await prisma.physicalInfo.delete({ where: { physicalInfoId: safeInt(id, 0) } });
     },
 };
 
@@ -242,9 +264,8 @@ const demonstrationInfoRepository = {
             soilPhWith: data.with_soilPh ? safeFloat(data.with_soilPh, null) : null,
             soilOcWithout: data.without_soilOc ? safeFloat(data.without_soilOc, null) : null,
             soilOcWith: data.with_soilOc ? safeFloat(data.with_soilOc, null) : null,
-            farmerFeedback: data.farmersFeedback || data.farmerFeedback || '',
-            images: data.images ? String(data.images) : null,
-            type: data.type || 'DEMONSTRATION',
+            farmerFeedback: data.farmerFeedback || data.farmersFeedback || '',
+            images: data.images || data.demoImages ? String(data.images || data.demoImages) : null,
         };
         return await prisma.demonstrationInfo.create({ data: mappedData });
     },
@@ -252,8 +273,6 @@ const demonstrationInfoRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = safeInt(filters.kvkId, null);
-
-        if (filters?.type) where.type = filters.type;
 
         const records = await prisma.demonstrationInfo.findMany({
             where,
@@ -270,6 +289,29 @@ const demonstrationInfoRepository = {
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
             area: r.areaInHa,
+            startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : null,
+            endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : null,
+            without_plantHeight: r.plantHeightWithout,
+            with_plantHeight: r.plantHeightWith,
+            without_yield: r.yieldWithout,
+            with_yield: r.yieldWith,
+            without_costOfCultivation: r.costWithout,
+            with_costOfCultivation: r.costWith,
+            without_grossReturn: r.grossReturnWithout,
+            with_grossReturn: r.grossReturnWith,
+            without_netReturn: r.netReturnWithout,
+            with_netReturn: r.netReturnWith,
+            without_bcrRatio: r.bcRatioWithout,
+            with_bcrRatio: r.bcRatioWith,
+            without_soilPh: r.soilPhWithout,
+            with_soilPh: r.soilPhWith,
+            without_soilOc: r.soilOcWithout,
+            with_soilOc: r.soilOcWith,
+            farmersFeedback: r.farmerFeedback,
+            normalCropsGrown: r.croppingPattern,
+            practicingYearOfNaturalFarming: r.farmerPracticeDetails,
+            cropSystem: r.croppingPattern,
+            motivationFactors: r.farmerPracticeDetails,
         }));
     },
     findById: async (id, user) => {
@@ -290,11 +332,34 @@ const demonstrationInfoRepository = {
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
             area: r.areaInHa,
+            startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : null,
+            endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : null,
+            without_plantHeight: r.plantHeightWithout,
+            with_plantHeight: r.plantHeightWith,
+            without_yield: r.yieldWithout,
+            with_yield: r.yieldWith,
+            without_costOfCultivation: r.costWithout,
+            with_costOfCultivation: r.costWith,
+            without_grossReturn: r.grossReturnWithout,
+            with_grossReturn: r.grossReturnWith,
+            without_netReturn: r.netReturnWithout,
+            with_netReturn: r.netReturnWith,
+            without_bcrRatio: r.bcRatioWithout,
+            with_bcrRatio: r.bcRatioWith,
+            without_soilPh: r.soilPhWithout,
+            with_soilPh: r.soilPhWith,
+            without_soilOc: r.soilOcWithout,
+            with_soilOc: r.soilOcWith,
+            farmersFeedback: r.farmerFeedback,
+            normalCropsGrown: r.croppingPattern,
+            practicingYearOfNaturalFarming: r.farmerPracticeDetails,
+            cropSystem: r.croppingPattern,
+            motivationFactors: r.farmerPracticeDetails,
         };
     },
     update: async (id, data, user) => {
         const where = { demonstrationInfoId: safeInt(id, 0) };
-        if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
+        if (isKvkUser(user)) where.kvkId = safeInt(user.kvkId);
         const existing = await prisma.demonstrationInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
         return await prisma.demonstrationInfo.update({
@@ -310,8 +375,8 @@ const demonstrationInfoRepository = {
                 category: data.category !== undefined ? data.category : existing.category,
                 croppingPattern: (data.croppingSystem || data.cropSystem || data.croppingPattern) !== undefined ? (data.croppingSystem || data.cropSystem || data.croppingPattern) : existing.croppingPattern,
                 farmingSituation: data.farmingSituation !== undefined ? data.farmingSituation : existing.farmingSituation,
-                latitude: data.latitude !== undefined ? safeFloat(data.latitude, 0) : existing.latitude,
-                longitude: data.longitude !== undefined ? safeFloat(data.longitude, 0) : existing.longitude,
+                latitude: (data.latitude || data.latitudeN) !== undefined ? safeFloat(data.latitude || data.latitudeN, 0) : existing.latitude,
+                longitude: (data.longitude || data.longitudeE) !== undefined ? safeFloat(data.longitude || data.longitudeE, 0) : existing.longitude,
                 activityName: data.activityName !== undefined ? data.activityName : existing.activityName,
                 crop: data.crop !== undefined ? data.crop : existing.crop,
                 variety: data.variety !== undefined ? data.variety : existing.variety,
@@ -319,8 +384,8 @@ const demonstrationInfoRepository = {
                 technologyDemonstrated: data.technologyDemonstrated !== undefined ? data.technologyDemonstrated : existing.technologyDemonstrated,
                 areaInHa: (data.area || data.areaInHa) !== undefined ? safeFloat(data.area || data.areaInHa, 0) : existing.areaInHa,
                 farmerPracticeDetails: (data.motivationFactors || data.farmerPracticeDetails) !== undefined ? (data.motivationFactors || data.farmerPracticeDetails) : existing.farmerPracticeDetails,
-                plantHeightWithout: data.without_plantHeight !== undefined ? safeFloat(data.without_plantHeight, null) : existing.plantHeightWithout,
-                plantHeightWith: data.with_plantHeight !== undefined ? safeFloat(data.with_plantHeight, null) : existing.plantHeightWith,
+                plantHeightWithout: (data.without_plantHeight || data.without_plantWeight) !== undefined ? safeFloat(data.without_plantHeight || data.without_plantWeight, null) : existing.plantHeightWithout,
+                plantHeightWith: (data.with_plantHeight || data.with_plantWeight) !== undefined ? safeFloat(data.with_plantHeight || data.with_plantWeight, null) : existing.plantHeightWith,
                 yieldWithout: data.without_yield !== undefined ? safeFloat(data.without_yield, null) : existing.yieldWithout,
                 yieldWith: data.with_yield !== undefined ? safeFloat(data.with_yield, null) : existing.yieldWith,
                 costWithout: data.without_costOfCultivation !== undefined ? safeFloat(data.without_costOfCultivation, null) : existing.costWithout,
@@ -335,18 +400,17 @@ const demonstrationInfoRepository = {
                 soilPhWith: data.with_soilPh !== undefined ? safeFloat(data.with_soilPh, null) : existing.soilPhWith,
                 soilOcWithout: data.without_soilOc !== undefined ? safeFloat(data.without_soilOc, null) : existing.soilOcWithout,
                 soilOcWith: data.with_soilOc !== undefined ? safeFloat(data.with_soilOc, null) : existing.soilOcWith,
-                farmerFeedback: (data.farmersFeedback || data.farmerFeedback) !== undefined ? (data.farmersFeedback || data.farmerFeedback) : existing.farmerFeedback,
-                images: data.images !== undefined ? String(data.images) : existing.images,
-                type: data.type !== undefined ? data.type : existing.type,
+                farmerFeedback: (data.farmerFeedback || data.farmersFeedback) !== undefined ? (data.farmerFeedback || data.farmersFeedback) : existing.farmerFeedback,
+                images: (data.images || data.demoImages) !== undefined ? String(data.images || data.demoImages) : existing.images,
             }
         });
     },
     delete: async (id, user) => {
         const where = { demonstrationInfoId: safeInt(id, 0) };
-        if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
+        if (isKvkUser(user)) where.kvkId = safeInt(user.kvkId);
         const existing = await prisma.demonstrationInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
-        return await prisma.demonstrationInfo.delete({ where: { demonstrationInfoId: parseInt(id) } });
+        return await prisma.demonstrationInfo.delete({ where: { demonstrationInfoId: safeInt(id, 0) } });
     },
 };
 
@@ -372,16 +436,34 @@ const beneficiariesRepository = {
         const where = {};
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         else if (filters?.kvkId) where.kvkId = parseInt(filters.kvkId);
-        return await prisma.beneficiariesDetails.findMany({
+        const records = await prisma.beneficiariesDetails.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
             orderBy: { beneficiariesDetailsId: 'desc' }
         });
+
+        return records.map(r => ({
+            ...r,
+            id: r.beneficiariesDetailsId,
+            kvkName: r.kvk?.kvkName,
+            noOfBlocks: r.blocksCovered,
+            noOfVillages: r.villagesCovered,
+            yearId: r.year,
+        }));
     },
     findById: async (id, user) => {
         const where = { beneficiariesDetailsId: parseInt(id) };
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
-        return await prisma.beneficiariesDetails.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        const r = await prisma.beneficiariesDetails.findFirst({ where, include: { kvk: { select: { kvkName: true } } } });
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.beneficiariesDetailsId,
+            kvkName: r.kvk?.kvkName,
+            noOfBlocks: r.blocksCovered,
+            noOfVillages: r.villagesCovered,
+            yearId: r.year,
+        };
     },
     update: async (id, data, user) => {
         const where = { beneficiariesDetailsId: parseInt(id) };
@@ -457,6 +539,8 @@ const soilDataRepository = {
             id: r.soilDataInformationId,
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
+            seasonId: r.seasonId,
+            yearId: r.year,
             type: r.soilParameter,
             crop: r.crop,
             beforePh: r.phBefore,
@@ -492,6 +576,8 @@ const soilDataRepository = {
             id: r.soilDataInformationId,
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
+            seasonId: r.seasonId,
+            yearId: r.year,
             type: r.soilParameter,
             crop: r.crop,
             beforePh: r.phBefore,
@@ -541,7 +627,7 @@ const soilDataRepository = {
     },
     delete: async (id, user) => {
         const where = { soilDataInformationId: parseInt(id) };
-        if (isKvkUser(user)) where.kvkId = user.kvkId;
+        if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         const existing = await prisma.soilDataInformation.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
         return await prisma.soilDataInformation.delete({ where: { soilDataInformationId: parseInt(id) } });
@@ -597,6 +683,7 @@ const financialInfoRepository = {
             kvkName: r.kvk?.kvkName,
             noOfActivities: r.numberOfActivities,
             activityName: r.activity,
+            yearId: r.year,
         };
     },
     update: async (id, data, user) => {
