@@ -124,26 +124,26 @@ const aryaCurrentYearRepository = {
         const existing = await prisma.aryaCurrentYear.findFirst({ where: whereSpec });
         if (!existing) throw new Error("Record not found or unauthorized");
 
-        const reportingYearId = parseInt(data.reportingYearId || data.yearId || existing.reportingYearId);
-        const enterpriseId = parseInt(data.enterpriseId || existing.enterpriseId);
-        const unitsMale = parseInt(data.unitsEstablishedMale || data.unitsMale || existing.unitsMale);
-        const unitsFemale = parseInt(data.unitsEstablishedFemale || data.unitsFemale || existing.unitsFemale);
-        const viableUnits = parseInt(data.viableUnits ?? existing.viableUnits);
-        const closedUnits = parseInt(data.closedUnits ?? existing.closedUnits);
-        const trainingsConducted = parseInt(data.trainingConducted || data.trainingsConducted || data.trainings || existing.trainingsConducted);
+        const reportingYearId = data.yearId !== undefined || data.reportingYearId !== undefined ? parseInt(data.yearId ?? data.reportingYearId) : existing.reportingYearId;
+        const enterpriseId = data.enterpriseId !== undefined ? parseInt(data.enterpriseId) : existing.enterpriseId;
+        const unitsMale = data.unitsMale !== undefined || data.unitsEstablishedMale !== undefined ? parseInt(data.unitsMale ?? data.unitsEstablishedMale) : existing.unitsMale;
+        const unitsFemale = data.unitsFemale !== undefined || data.unitsEstablishedFemale !== undefined ? parseInt(data.unitsFemale ?? data.unitsEstablishedFemale) : existing.unitsFemale;
+        const viableUnits = data.viableUnits !== undefined ? parseInt(data.viableUnits) : existing.viableUnits;
+        const closedUnits = data.closedUnits !== undefined ? parseInt(data.closedUnits) : existing.closedUnits;
+        const trainingsConducted = data.trainingsConducted !== undefined || data.trainingConducted !== undefined || data.trainings !== undefined ? parseInt(data.trainingsConducted ?? data.trainingConducted ?? data.trainings) : existing.trainingsConducted;
         const startDate = data.startDate ? new Date(data.startDate) : existing.startDate;
         const endDate = data.endDate ? new Date(data.endDate) : existing.endDate;
-        const youthMale = parseInt(data.youthTrainedMale || data.youthMale || existing.youthMale);
-        const youthFemale = parseInt(data.youthTrainedFemale || data.youthFemale || existing.youthFemale);
-        const groupsFormed = parseInt(data.groupsFormed || data.noOfGroupsFormed || existing.groupsFormed);
-        const groupsActive = parseInt(data.groupsActive || data.noOfGroupsActive || existing.groupsActive);
-        const personsLeftGroup = parseInt(data.personsLeftGroup ?? existing.personsLeftGroup);
-        const membersPerGroup = parseInt(data.membersPerGroup ?? existing.membersPerGroup);
-        const avgSizeOfUnit = parseFloat(data.avgUnitSize || data.avgSizeOfUnit || existing.avgSizeOfUnit);
-        const totalProductionPerYear = parseFloat(data.totalProduction || data.totalProductionPerYear || existing.totalProductionPerYear);
-        const perUnitCostOfProduction = parseFloat(data.perUnitCost || data.perUnitCostOfProduction || existing.perUnitCostOfProduction);
-        const saleValueOfProduce = parseFloat(data.saleValue || data.saleValueOfProduce || existing.saleValueOfProduce);
-        const employmentGeneratedMandays = parseFloat(data.employmentGenerated || data.employmentGeneratedMandays || existing.employmentGeneratedMandays);
+        const youthMale = data.youthMale !== undefined || data.youthTrainedMale !== undefined ? parseInt(data.youthMale ?? data.youthTrainedMale) : existing.youthMale;
+        const youthFemale = data.youthFemale !== undefined || data.youthTrainedFemale !== undefined ? parseInt(data.youthFemale ?? data.youthTrainedFemale) : existing.youthFemale;
+        const groupsFormed = data.groupsFormed !== undefined || data.noOfGroupsFormed !== undefined ? parseInt(data.groupsFormed ?? data.noOfGroupsFormed) : existing.groupsFormed;
+        const groupsActive = data.groupsActive !== undefined || data.noOfGroupsActive !== undefined ? parseInt(data.groupsActive ?? data.noOfGroupsActive) : existing.groupsActive;
+        const personsLeftGroup = data.personsLeftGroup !== undefined ? parseInt(data.personsLeftGroup) : existing.personsLeftGroup;
+        const membersPerGroup = data.membersPerGroup !== undefined ? parseInt(data.membersPerGroup) : existing.membersPerGroup;
+        const avgSizeOfUnit = data.avgSizeOfUnit !== undefined || data.avgUnitSize !== undefined ? parseFloat(data.avgSizeOfUnit ?? data.avgUnitSize) : existing.avgSizeOfUnit;
+        const totalProductionPerYear = data.totalProductionPerYear !== undefined || data.totalProduction !== undefined ? parseFloat(data.totalProductionPerYear ?? data.totalProduction) : existing.totalProductionPerYear;
+        const perUnitCostOfProduction = data.perUnitCostOfProduction !== undefined || data.perUnitCost !== undefined ? parseFloat(data.perUnitCostOfProduction ?? data.perUnitCost) : existing.perUnitCostOfProduction;
+        const saleValueOfProduce = data.saleValueOfProduce !== undefined || data.saleValue !== undefined ? parseFloat(data.saleValueOfProduce ?? data.saleValue) : existing.saleValueOfProduce;
+        const employmentGeneratedMandays = data.employmentGeneratedMandays !== undefined || data.employmentGenerated !== undefined ? parseFloat(data.employmentGeneratedMandays ?? data.employmentGenerated) : existing.employmentGeneratedMandays;
         const imagePath = data.imagePath ?? existing.imagePath;
 
         await prisma.$executeRawUnsafe(`

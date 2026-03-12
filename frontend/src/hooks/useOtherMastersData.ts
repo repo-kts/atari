@@ -28,10 +28,7 @@ export function useSeasons(options?: { enabled?: boolean }) {
     const queryClient = useQueryClient();
     const { hasPermission } = useAuth();
 
-    const enabled =
-        options?.enabled !== undefined
-            ? options.enabled
-            : hasPermission('VIEW', 'all_masters_season_master');
+    const enabled = options?.enabled !== undefined ? options.enabled : true;
 
     const query = useQuery({
         queryKey: ['seasons'],

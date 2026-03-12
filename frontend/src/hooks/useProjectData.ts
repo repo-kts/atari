@@ -131,7 +131,7 @@ export function useProjectData(entityType: string) {
 
     const updateMutation = useMutation({
         mutationFn: ({ id, data }: { id: number | string; data: any }) =>
-            apiClient.patch(`${endpoint}/${id}`, data),
+            apiClient.put(`${endpoint}/${id}`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
         },

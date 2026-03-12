@@ -122,25 +122,25 @@ const aryaPrevYearRepository = {
         const existing = await prisma.aryaPrevYear.findFirst({ where: whereSpec });
         if (!existing) throw new Error("Record not found or unauthorized");
 
-        const reportingYearId = parseInt(data.reportingYearId || data.yearId || existing.reportingYearId);
-        const enterpriseId = parseInt(data.enterpriseId || existing.enterpriseId);
-        const unitsMale = parseInt(data.unitsEstablishedMale || data.unitsMale || existing.unitsMale);
-        const unitsFemale = parseInt(data.unitsEstablishedFemale || data.unitsFemale || existing.unitsFemale);
-        const nonFunctionalUnitsClosed = parseInt(data.unitsClosed || data.nonFunctionalUnitsClosed || data.totalClosed || existing.nonFunctionalUnitsClosed);
-        const dateOfClosing = (data.closingDate || data.dateOfClosing) ? new Date(data.closingDate || data.dateOfClosing) : existing.dateOfClosing;
-        const nonFunctionalUnitsRestarted = parseInt(data.unitsRestarted || data.nonFunctionalUnitsRestarted || data.totalRestarted || existing.nonFunctionalUnitsRestarted);
-        const dateOfRestart = (data.restartDate || data.dateOfRestart) ? new Date(data.restartDate || data.dateOfRestart) : existing.dateOfRestart;
-        const numberOfUnits = parseInt(data.noOfUnit || data.numberOfUnits || existing.numberOfUnits);
-        const unitCapacity = parseFloat(data.unitCapacity ?? existing.unitCapacity);
-        const fixedCost = parseFloat(data.fixedCost ?? existing.fixedCost);
-        const variableCost = parseFloat(data.variableCost ?? existing.variableCost);
-        const totalProductionPerUnitYear = parseFloat(data.totalProductionPerUnit || data.totalProductionPerUnitYear || existing.totalProductionPerUnitYear);
-        const grossCostPerUnitYear = parseFloat(data.grossCost || data.grossCostPerUnitYear || existing.grossCostPerUnitYear);
-        const grossReturnPerUnitYear = parseFloat(data.grossValue || data.grossReturnPerUnitYear || existing.grossReturnPerUnitYear);
-        const netBenefitPerUnitYear = parseFloat(data.netBenefit || data.netBenefitPerUnitYear || existing.netBenefitPerUnitYear);
-        const employmentFamilyMandays = parseFloat(data.employmentFamily || data.employmentFamilyMandays || existing.employmentFamilyMandays);
-        const employmentOtherMandays = parseFloat(data.employmentOther || data.employmentOtherMandays || existing.employmentOtherMandays);
-        const personsVisitedUnit = parseInt(data.personsVisited || data.personsVisitedUnit || existing.personsVisitedUnit);
+        const reportingYearId = data.yearId !== undefined || data.reportingYearId !== undefined ? parseInt(data.yearId ?? data.reportingYearId) : existing.reportingYearId;
+        const enterpriseId = data.enterpriseId !== undefined ? parseInt(data.enterpriseId) : existing.enterpriseId;
+        const unitsMale = data.unitsMale !== undefined || data.unitsEstablishedMale !== undefined ? parseInt(data.unitsMale ?? data.unitsEstablishedMale) : existing.unitsMale;
+        const unitsFemale = data.unitsFemale !== undefined || data.unitsEstablishedFemale !== undefined ? parseInt(data.unitsFemale ?? data.unitsEstablishedFemale) : existing.unitsFemale;
+        const nonFunctionalUnitsClosed = data.unitsClosed !== undefined || data.nonFunctionalUnitsClosed !== undefined || data.totalClosed !== undefined ? parseInt(data.unitsClosed ?? data.nonFunctionalUnitsClosed ?? data.totalClosed) : existing.nonFunctionalUnitsClosed;
+        const dateOfClosing = (data.dateOfClosing ?? data.closingDate) ? new Date(data.dateOfClosing ?? data.closingDate) : existing.dateOfClosing;
+        const nonFunctionalUnitsRestarted = data.unitsRestarted !== undefined || data.nonFunctionalUnitsRestarted !== undefined || data.totalRestarted !== undefined ? parseInt(data.unitsRestarted ?? data.nonFunctionalUnitsRestarted ?? data.totalRestarted) : existing.nonFunctionalUnitsRestarted;
+        const dateOfRestart = (data.dateOfRestart ?? data.restartDate) ? new Date(data.dateOfRestart ?? data.restartDate) : existing.dateOfRestart;
+        const numberOfUnits = data.numberOfUnits !== undefined || data.noOfUnit !== undefined ? parseInt(data.numberOfUnits ?? data.noOfUnit) : existing.numberOfUnits;
+        const unitCapacity = data.unitCapacity !== undefined ? parseFloat(data.unitCapacity) : existing.unitCapacity;
+        const fixedCost = data.fixedCost !== undefined ? parseFloat(data.fixedCost) : existing.fixedCost;
+        const variableCost = data.variableCost !== undefined ? parseFloat(data.variableCost) : existing.variableCost;
+        const totalProductionPerUnitYear = data.totalProductionPerUnitYear !== undefined || data.totalProductionPerUnit !== undefined ? parseFloat(data.totalProductionPerUnitYear ?? data.totalProductionPerUnit) : existing.totalProductionPerUnitYear;
+        const grossCostPerUnitYear = data.grossCostPerUnitYear !== undefined || data.grossCost !== undefined ? parseFloat(data.grossCostPerUnitYear ?? data.grossCost) : existing.grossCostPerUnitYear;
+        const grossReturnPerUnitYear = data.grossReturnPerUnitYear !== undefined || data.grossValue !== undefined ? parseFloat(data.grossReturnPerUnitYear ?? data.grossValue) : existing.grossReturnPerUnitYear;
+        const netBenefitPerUnitYear = data.netBenefitPerUnitYear !== undefined || data.netBenefit !== undefined ? parseFloat(data.netBenefitPerUnitYear ?? data.netBenefit) : existing.netBenefitPerUnitYear;
+        const employmentFamilyMandays = data.employmentFamilyMandays !== undefined || data.employmentFamily !== undefined ? parseFloat(data.employmentFamilyMandays ?? data.employmentFamily) : existing.employmentFamilyMandays;
+        const employmentOtherMandays = data.employmentOtherMandays !== undefined || data.employmentOther !== undefined ? parseFloat(data.employmentOtherMandays ?? data.employmentOther) : existing.employmentOtherMandays;
+        const personsVisitedUnit = data.personsVisitedUnit !== undefined || data.personsVisited !== undefined ? parseInt(data.personsVisitedUnit ?? data.personsVisited) : existing.personsVisitedUnit;
 
         await prisma.$executeRawUnsafe(`
             UPDATE arya_prev_year 

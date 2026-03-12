@@ -126,10 +126,18 @@ const ARYA_ENTERPRISES = [
   'Food Processing', 'Value Addition', 'Agri-Entrepreneurship'
 ];
 
-// Course Coordinators
 const COURSE_COORDINATORS = [
   'Dr. A.K. Singh', 'Dr. B.K. Sharma', 'Dr. C.K. Verma', 'Dr. D.K. Patel',
   'Dr. E.K. Kumar', 'Dr. F.K. Yadav', 'Dr. G.K. Singh', 'Dr. H.K. Das'
+];
+
+// NARI Masters
+const NARI_NUTRITION_GARDEN_TYPES = [
+  'Backyard/Kitchen Garden', 'Community level', 'Terrace Garden', 'Vertical Garden'
+];
+
+const NARI_CROP_CATEGORIES = [
+  'Fruits', 'Vegetables', 'Pulses', 'Oilseeds', 'Cereals', 'Other'
 ];
 
 async function seedStaffMasters() {
@@ -412,6 +420,28 @@ async function seedAttachmentTypes() {
   console.log('   ✅ Done\n');
 }
 
+async function seedNariMasters() {
+  console.log('🌱 NARI masters...');
+  
+  for (const name of NARI_NUTRITION_GARDEN_TYPES) {
+    await prisma.nutritionGardenType.upsert({
+      where: { name },
+      update: {},
+      create: { name }
+    });
+  }
+
+  for (const name of NARI_CROP_CATEGORIES) {
+    await prisma.cropCategory.upsert({
+      where: { name },
+      update: {},
+      create: { name }
+    });
+  }
+  
+  console.log('   ✅ Done\n');
+}
+
 async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
@@ -423,6 +453,7 @@ async function run() {
   await seedARYAEnterprises();
   await seedUniversities();
   await seedAttachmentTypes();
+  await seedNariMasters();
   console.log('✅ All masters seeded successfully!');
 }
 

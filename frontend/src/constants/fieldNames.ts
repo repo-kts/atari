@@ -23,6 +23,7 @@ export const FIELD_NAMES = {
     REMARK: 'remark',
     REMARKS: 'remarks',
     DATE_OF_BIRTH: 'dateOfBirth',
+    PURPOSE: 'purpose',
 
     // Basic Master Fields
     ZONE_NAME: 'zoneName',
@@ -435,11 +436,17 @@ export const FIELD_NAMES = {
     NO_OF_DEMOS: 'noOfDemos',
     AREA_COVERED_UNDER_DEMOS: 'areaCoveredUnderDemos',
     NO_OF_FARMERS: 'noOfFarmers',
+    DEMO_AMOUNT_SANCTIONED: 'demoAmountSanctioned',
+    DEMO_AMOUNT_UTILISED: 'demoAmountUtilised',
+    PILOT_NAME: 'pilotName',
+    PILOT_CONTACT: 'pilotContact',
+    TARGET_AREA_HA: 'targetAreaHa',
+    OPERATION_TYPE: 'operationType',
+    ADVANTAGES_OBSERVED: 'advantagesObserved',
 
     // Other Programmes Fields
     NAME_OF_THE_PROGRAMME: 'nameOfTheProgramme',
     DATE_OF_THE_PROGRAMME: 'dateOfTheProgramme',
-    PURPOSE: 'purpose',
 
     // Performance Indicator Fields
     NAME_OF_SPECIFIC_AREA: 'nameOfSpecificArea',
@@ -489,7 +496,6 @@ export const FIELD_NAMES = {
     WHETHER_STAFF_QUARTERS_COMPLETED: 'isCompleted',
     OCCUPANCY_DETAILS: 'occupancyDetails',
     QTY_KG: 'quantityKg',
-    AREA_SQ_MT: 'areaSqMt',
     QTY_Q: 'quantityQ',
     SALARY_ALLOCATION: 'salaryAllocation',
     SALARY_EXPENDITURE: 'salaryExpenditure',
@@ -503,12 +509,6 @@ export const FIELD_NAMES = {
     BUDGET_ALLOCATED: 'budgetAllocated',
     BUDGET_RELEASED: 'budgetReleased',
     UNSPENT_BALANCE: 'unspentBalance',
-    SALARY_ALLOCATION: 'salaryAllocation',
-    SALARY_EXPENDITURE: 'salaryExpenditure',
-    GENERAL_MAIN_GRANT_ALLOCATION: 'generalMainGrantAllocation',
-    GENERAL_MAIN_GRANT_EXPENDITURE: 'generalMainGrantExpenditure',
-    CAPITAL_MAIN_GRANT_ALLOCATION: 'capitalMainGrantAllocation',
-    CAPITAL_MAIN_GRANT_EXPENDITURE: 'capitalMainGrantExpenditure',
     OPENING_BALANCE: 'openingBalance',
     INCOME_DURING_THE_YEAR: 'incomeDuringTheYear',
     EXPENDITURE_DURING_THE_YEAR: 'expenditureDuringTheYear',
@@ -1076,6 +1076,29 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.BUDGET_SANCTION,
         FIELD_NAMES.BUDGET_EXPENDITURE,
         FIELD_NAMES.TOTAL_BUDGET_EXPENDITURE,
+    ] as const,
+
+    // Projects Routes - Agri-Drone
+    AGRI_DRONE_INTRODUCTION: [
+        FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.YEAR,
+        FIELD_NAMES.PROJECT_IMPLEMENTING_CENTRE_NAME,
+        FIELD_NAMES.COMPANY_OF_DRONE,
+        FIELD_NAMES.MODEL_OF_DRONE,
+        FIELD_NAMES.NO_OF_AGRI_DRONES_SANCTIONED,
+        FIELD_NAMES.NO_OF_AGRI_DRONES_PURCHASED,
+        FIELD_NAMES.COST_SANCTIONED,
+    ] as const,
+    AGRI_DRONE_DEMONSTRATION: [
+        FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.YEAR,
+        FIELD_NAMES.PILOT_NAME,
+        FIELD_NAMES.PILOT_CONTACT,
+        FIELD_NAMES.TARGET_AREA_HA,
+        FIELD_NAMES.DEMO_AMOUNT_SANCTIONED,
+        FIELD_NAMES.DEMO_AMOUNT_UTILISED,
+        FIELD_NAMES.OPERATION_TYPE,
+        FIELD_NAMES.ADVANTAGES_OBSERVED,
     ] as const,
 
     // Projects Routes - Agri-Drone

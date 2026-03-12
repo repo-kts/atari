@@ -37,7 +37,7 @@ const csisaRepository = {
                 sowingDate: data.sowingDate ? new Date(data.sowingDate) : new Date(),
                 harvestingDate: data.harvestingDate ? new Date(data.harvestingDate) : new Date(),
                 daysOfMaturity: parseInt(data.daysOfMaturity) || 0,
-                grainYieldQPerHa: parseFloat(data.grainYield) || 0,
+                grainYieldQPerHa: parseFloat(data.grainYieldQPerHa || data.grainYield) || 0,
                 costOfCultivation: parseFloat(data.costOfCultivation) || 0,
                 grossReturn: parseFloat(data.grossReturn) || 0,
                 netReturn: parseFloat(data.netReturn) || 0,
@@ -160,17 +160,17 @@ const csisaRepository = {
             updateData.reportingYearId = parseInt(data.reportingYear);
         }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
-        if (data.villageCovered !== undefined || data.villagesCovered !== undefined)
-            updateData.villagesCovered = parseInt(data.villageCovered ?? data.villagesCovered);
-        if (data.blockCovered !== undefined || data.blocksCovered !== undefined)
-            updateData.blocksCovered = parseInt(data.blockCovered ?? data.blocksCovered);
-        if (data.districtCovered !== undefined || data.districtsCovered !== undefined)
-            updateData.districtsCovered = parseInt(data.districtCovered ?? data.districtsCovered);
-        if (data.respondent !== undefined || data.respondents !== undefined)
-            updateData.respondents = parseInt(data.respondent ?? data.respondents);
+        if (data.villagesCovered !== undefined || data.villageCovered !== undefined || data.villagesCoveredNo !== undefined)
+            updateData.villagesCovered = parseInt(data.villagesCovered ?? data.villageCovered ?? data.villagesCoveredNo);
+        if (data.blocksCovered !== undefined || data.blockCovered !== undefined || data.blocksCoveredNo !== undefined)
+            updateData.blocksCovered = parseInt(data.blocksCovered ?? data.blockCovered ?? data.blocksCoveredNo);
+        if (data.districtsCovered !== undefined || data.districtCovered !== undefined || data.districtsCoveredNo !== undefined)
+            updateData.districtsCovered = parseInt(data.districtsCovered ?? data.districtCovered ?? data.districtsCoveredNo);
+        if (data.respondents !== undefined || data.respondent !== undefined)
+            updateData.respondents = parseInt(data.respondents ?? data.respondent);
         if (data.trialName !== undefined) updateData.trialName = data.trialName;
-        if (data.areaCovered !== undefined || data.areaCoveredHa !== undefined || data.area !== undefined)
-            updateData.areaCoveredHa = parseFloat(data.areaCovered ?? data.areaCoveredHa ?? data.area);
+        if (data.areaCoveredHa !== undefined || data.areaCovered !== undefined || data.area !== undefined)
+            updateData.areaCoveredHa = parseFloat(data.areaCoveredHa ?? data.areaCovered ?? data.area);
 
         // Handle crop details update
         let cropDetailsToCreate = null;
@@ -198,7 +198,7 @@ const csisaRepository = {
                 sowingDate: data.sowingDate ? new Date(data.sowingDate) : new Date(),
                 harvestingDate: data.harvestingDate ? new Date(data.harvestingDate) : new Date(),
                 daysOfMaturity: parseInt(data.daysOfMaturity) || 0,
-                grainYieldQPerHa: parseFloat(data.grainYield) || 0,
+                grainYieldQPerHa: parseFloat(data.grainYieldQPerHa || data.grainYield) || 0,
                 costOfCultivation: parseFloat(data.costOfCultivation) || 0,
                 grossReturn: parseFloat(data.grossReturn) || 0,
                 netReturn: parseFloat(data.netReturn) || 0,

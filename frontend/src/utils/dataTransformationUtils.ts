@@ -124,6 +124,10 @@ const COMMON_NESTED_OBJECTS = [
     // Production/Projects nested objects
     'productCategory',
     'productType',
+    // ARYA / CSISA nested relation objects
+    'enterprise',
+    'reportingYear',
+    'cropDetails',
 ] as const;
 
 // ============================================

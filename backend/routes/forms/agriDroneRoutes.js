@@ -10,6 +10,7 @@ const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'dist
 router.post('/', requireRole([...kvkRoles, 'super_admin']), agriDroneController.create);
 router.get('/', requireRole(allRoles), agriDroneController.getAll);
 router.get('/:id', requireRole(allRoles), agriDroneController.getById);
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), agriDroneController.update);
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), agriDroneController.update);
 router.delete('/:id', requireRole([...kvkRoles, 'super_admin']), agriDroneController.delete);
 
