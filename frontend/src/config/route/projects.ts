@@ -482,4 +482,34 @@ export const projectsRoutes: RouteConfig[] = [
         moduleCode: 'achievements_projects',
         fields: FIELD_GROUPS.OTHER_PROGRAM,
     },
+
+    // DRMR
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS,
+        title: 'DRMR Details',
+        description: 'DRMR Implementation Details',
+        category: 'Projects',
+        subcategory: 'DRMR',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
+        moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.DRMR_DETAILS,
+        siblings: [
+            ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS,
+            ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY,
+        ],
+    },
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY,
+        title: 'DRMR Activity',
+        description: 'DRMR Activity Details',
+        category: 'Projects',
+        subcategory: 'DRMR',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
+        moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.DRMR_ACTIVITY,
+        siblings: [
+            ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS,
+            ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY,
+        ],
+    },
 ]

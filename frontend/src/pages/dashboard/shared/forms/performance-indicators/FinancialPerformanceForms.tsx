@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormTextArea, FormSection } from '../shared/FormComponents'
+import { FormInput } from '../shared/FormComponents'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -11,9 +11,6 @@ interface FinancialPerformanceFormsProps {
     formData: any
     setFormData: (data: any) => void
 }
-
-// Financial Year Note
-const FINANCIAL_YEAR_NOTE = 'Please select Financial Year Wise Date Range i.e Date Range would be from 01st of April - 31st of March'
 
 export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps> = ({
     entityType,
@@ -28,18 +25,10 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
         [years]
     )
 
-    // Optimized onChange handlers using useCallback
+    // Optimized onChange handlers
     const handleFieldChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-            const value = e.target.value
-            setFormData({ ...formData, [field]: value })
-        },
-        [formData, setFormData]
-    )
-
-    const handleNumberChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value === '' ? '' : parseFloat(e.target.value)
+        (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+            const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value
             setFormData({ ...formData, [field]: value })
         },
         [formData, setFormData]
@@ -47,463 +36,341 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
-        },
-        [formData, setFormData]
-    )
-
-    const handleDateChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            setFormData({ ...formData, reportingYearId: value })
         },
         [formData, setFormData]
     )
 
     if (!entityType) return null
 
+    const financialYearNote = (
+        <p className="text-xs text-olive-600 mb-2 italic">
+            Note : Please select Financial Year Wise Date Range i.e Date Range would be from 01st of April - 31st of March
+        </p>
+    )
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             {/* 1. Budget Details */}
             {entityType === ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS && (
-                <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-blue-700 font-medium">{FINANCIAL_YEAR_NOTE}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-6">
+                    {financialYearNote}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
+                            type="date"
                             label="Start Date"
-                            type="date"
-                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('startDate')}
+                            required
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('startDate')}
                         />
-
                         <FormInput
-                            label="End Date"
                             type="date"
-                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('endDate')}
+                            label="End Date"
+                            required
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('endDate')}
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b pb-4">
                         <FormInput
+                            type="number"
                             label="Salary Allocation"
                             required
-                            type="number"
-                            step="0.01"
                             value={formData.salaryAllocation || ''}
-                            onChange={handleNumberChange('salaryAllocation')}
-                            placeholder="Enter amount"
+                            onChange={handleFieldChange('salaryAllocation')}
+                            placeholder="0.00"
                         />
-
                         <FormInput
+                            type="number"
                             label="Salary Expenditure"
                             required
-                            type="number"
-                            step="0.01"
                             value={formData.salaryExpenditure || ''}
-                            onChange={handleNumberChange('salaryExpenditure')}
-                            placeholder="Enter amount"
+                            onChange={handleFieldChange('salaryExpenditure')}
+                            placeholder="0.00"
                         />
                     </div>
 
-                    <FormSection title="General">
-                        <FormInput
-                            label="Main Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalMainGrantAllocation || ''}
-                            onChange={handleNumberChange('generalMainGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Main Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalMainGrantExpenditure || ''}
-                            onChange={handleNumberChange('generalMainGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="TSP Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalTspGrantAllocation || ''}
-                            onChange={handleNumberChange('generalTspGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="TSP Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalTspGrantExpenditure || ''}
-                            onChange={handleNumberChange('generalTspGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="SCSP Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalScspGrantAllocation || ''}
-                            onChange={handleNumberChange('generalScspGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="SCSP Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.generalScspGrantExpenditure || ''}
-                            onChange={handleNumberChange('generalScspGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-                    </FormSection>
-
-                    <FormSection title="Capital">
-                        <FormInput
-                            label="Main Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalMainGrantAllocation || ''}
-                            onChange={handleNumberChange('capitalMainGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Main Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalMainGrantExpenditure || ''}
-                            onChange={handleNumberChange('capitalMainGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="TSP Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalTspGrantAllocation || ''}
-                            onChange={handleNumberChange('capitalTspGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="TSP Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalTspGrantExpenditure || ''}
-                            onChange={handleNumberChange('capitalTspGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="SCSP Grant Allocation"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalScspGrantAllocation || ''}
-                            onChange={handleNumberChange('capitalScspGrantAllocation')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="SCSP Grant Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.capitalScspGrantExpenditure || ''}
-                            onChange={handleNumberChange('capitalScspGrantExpenditure')}
-                            placeholder="Enter amount"
-                        />
-                    </FormSection>
-                </div>
-            )}
-
-            {/* 2. Project-wise Budget Details */}
-            {entityType === ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET && (
-                <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-blue-700 font-medium">{FINANCIAL_YEAR_NOTE}</p>
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg text-olive-800">General</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="Main Grant Allocation"
+                                required
+                                value={formData.generalMainGrantAllocation || ''}
+                                onChange={handleFieldChange('generalMainGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="Main Grant Expenditure"
+                                required
+                                value={formData.generalMainGrantExpenditure || ''}
+                                onChange={handleFieldChange('generalMainGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="TSP Grant Allocation"
+                                required
+                                value={formData.generalTspGrantAllocation || ''}
+                                onChange={handleFieldChange('generalTspGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="TSP Grant Expenditure"
+                                required
+                                value={formData.generalTspGrantExpenditure || ''}
+                                onChange={handleFieldChange('generalTspGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="SCSP Grant Allocation"
+                                required
+                                value={formData.generalScspGrantAllocation || ''}
+                                onChange={handleFieldChange('generalScspGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="SCSP Grant Expenditure"
+                                required
+                                value={formData.generalScspGrantExpenditure || ''}
+                                onChange={handleFieldChange('generalScspGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput
-                            label="Start Date"
-                            type="date"
-                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('startDate')}
-                        />
-
-                        <FormInput
-                            label="End Date"
-                            type="date"
-                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('endDate')}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput
-                            label="Name of Project"
-                            required
-                            value={formData.projectName || ''}
-                            onChange={handleFieldChange('projectName')}
-                            placeholder="Enter project name"
-                        />
-
-                        <FormInput
-                            label="Account Number"
-                            required
-                            value={formData.accountNumber || ''}
-                            onChange={handleFieldChange('accountNumber')}
-                            placeholder="Enter account number"
-                        />
-                    </div>
-
-                    <MasterDataDropdown
-                        label="Name of Funding Agency"
-                        required
-                        options={[]} // TODO: Replace with funding agency master options if available
-                        value={formData.fundingAgency || ''}
-                        onChange={value => setFormData({ ...formData, fundingAgency: value })}
-                        placeholder="Enter funding agency name"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <FormInput
-                            label="Budget Estimate"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.budgetEstimate || ''}
-                            onChange={handleNumberChange('budgetEstimate')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Budget Allocated"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.budgetAllocated || ''}
-                            onChange={handleNumberChange('budgetAllocated')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Budget Released"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.budgetReleased || ''}
-                            onChange={handleNumberChange('budgetReleased')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Expenditure"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.expenditure || ''}
-                            onChange={handleNumberChange('expenditure')}
-                            placeholder="Enter amount"
-                        />
+                    <div className="space-y-4 pt-4">
+                        <h3 className="font-semibold text-lg text-olive-800">Capital</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="Main Grant Allocation"
+                                required
+                                value={formData.capitalMainGrantAllocation || ''}
+                                onChange={handleFieldChange('capitalMainGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="Main Grant Expenditure"
+                                required
+                                value={formData.capitalMainGrantExpenditure || ''}
+                                onChange={handleFieldChange('capitalMainGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="TSP Grant Allocation"
+                                required
+                                value={formData.capitalTspGrantAllocation || ''}
+                                onChange={handleFieldChange('capitalTspGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="TSP Grant Expenditure"
+                                required
+                                value={formData.capitalTspGrantExpenditure || ''}
+                                onChange={handleFieldChange('capitalTspGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormInput
+                                type="number"
+                                label="SCSP Grant Allocation"
+                                required
+                                value={formData.capitalScspGrantAllocation || ''}
+                                onChange={handleFieldChange('capitalScspGrantAllocation')}
+                                placeholder="0.00"
+                            />
+                            <FormInput
+                                type="number"
+                                label="SCSP Grant Expenditure"
+                                required
+                                value={formData.capitalScspGrantExpenditure || ''}
+                                onChange={handleFieldChange('capitalScspGrantExpenditure')}
+                                placeholder="0.00"
+                            />
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* 3. Revolving Fund Status */}
+            {/* 2. Revolving Fund Status */}
             {entityType === ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND && (
-                <div className="space-y-3">
-                    <MasterDataDropdown
-                        label="Reporting Year"
-                        required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={handleYearChange}
-                        options={yearOptions}
-                        isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
-                    />
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        <FormInput
-                            label="Opening Balance as on 1st April"
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <MasterDataDropdown
+                            label="Reporting Year"
                             required
+                            value={formData.reportingYearId || ''}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            isLoading={isLoadingYears}
+                            emptyMessage="No reporting years available"
+                        />
+                        <FormInput
                             type="number"
-                            step="0.01"
+                            label="Opening balance as on 1st April"
+                            required
                             value={formData.openingBalance || ''}
-                            onChange={handleNumberChange('openingBalance')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Income During the Year"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.incomeDuringYear || ''}
-                            onChange={handleNumberChange('incomeDuringYear')}
-                            placeholder="Enter amount"
-                        />
-
-                        <FormInput
-                            label="Expenditure During the Year"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.expenditureDuringYear || ''}
-                            onChange={handleNumberChange('expenditureDuringYear')}
-                            placeholder="Enter amount"
+                            onChange={handleFieldChange('openingBalance')}
+                            placeholder="0.00"
                         />
                     </div>
-
-                    <FormInput
-                        label="Kind"
-                        value={formData.kind || ''}
-                        onChange={handleFieldChange('kind')}
-                        placeholder="Enter kind"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            type="number"
+                            label="Income during the year"
+                            required
+                            value={formData.incomeDuringYear || ''}
+                            onChange={handleFieldChange('incomeDuringYear')}
+                            placeholder="0.00"
+                        />
+                        <FormInput
+                            type="number"
+                            label="Expenditure during the year"
+                            required
+                            value={formData.expenditureDuringYear || ''}
+                            onChange={handleFieldChange('expenditureDuringYear')}
+                            placeholder="0.00"
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Kind"
+                            value={formData.kind || ''}
+                            onChange={handleFieldChange('kind')}
+                            placeholder="Enter details..."
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* 4. Revenue Generation */}
+            {/* 3. Revenue Generation */}
             {entityType === ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION && (
-                <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-blue-700 font-medium">{FINANCIAL_YEAR_NOTE}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-4">
+                    {financialYearNote}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
+                            type="date"
                             label="Start Date"
-                            type="date"
-                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('startDate')}
+                            required
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('startDate')}
                         />
-
                         <FormInput
-                            label="End Date"
                             type="date"
-                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('endDate')}
+                            label="End Date"
+                            required
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('endDate')}
                         />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
                             label="Name of Head"
                             required
                             value={formData.headName || ''}
                             onChange={handleFieldChange('headName')}
-                            placeholder="Enter head name"
+                            placeholder="Enter head name..."
                         />
-
                         <FormInput
+                            type="number"
                             label="Income (Rs.)"
                             required
-                            type="number"
-                            step="0.01"
                             value={formData.income || ''}
-                            onChange={handleNumberChange('income')}
-                            placeholder="Enter amount"
+                            onChange={handleFieldChange('income')}
+                            placeholder="0.00"
                         />
                     </div>
-
-                    <FormInput
-                        label="Sponsoring Agency"
-                        required
-                        value={formData.sponsoringAgency || ''}
-                        onChange={handleFieldChange('sponsoringAgency')}
-                        placeholder="Enter sponsoring agency"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Sponsoring agency"
+                            required
+                            value={formData.sponsoringAgency || ''}
+                            onChange={handleFieldChange('sponsoringAgency')}
+                            placeholder="Enter sponsoring agency..."
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* 5. Resource Generation */}
+            {/* 4. Resource Generation */}
             {entityType === ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION && (
-                <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-xs text-blue-700 font-medium">{FINANCIAL_YEAR_NOTE}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-4">
+                    {financialYearNote}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
+                            type="date"
                             label="Start Date"
-                            type="date"
-                            value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('startDate')}
+                            required
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('startDate')}
                         />
-
                         <FormInput
-                            label="End Date"
                             type="date"
-                            value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('endDate')}
+                            label="End Date"
+                            required
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('endDate')}
                         />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
-                            label="Name of the Programme"
+                            label="Name of the programme"
                             required
                             value={formData.programmeName || ''}
                             onChange={handleFieldChange('programmeName')}
-                            placeholder="Enter programme name"
+                            placeholder="Enter programme name..."
                         />
-
                         <FormInput
-                            label="Purpose of the Programme"
+                            label="Purpose of the programme"
                             required
                             value={formData.programmePurpose || ''}
                             onChange={handleFieldChange('programmePurpose')}
-                            placeholder="Enter purpose"
+                            placeholder="Enter purpose..."
                         />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
-                            label="Sources of Fund"
+                            label="Sources of fund"
                             required
                             value={formData.sourcesOfFund || ''}
                             onChange={handleFieldChange('sourcesOfFund')}
-                            placeholder="Enter sources of fund"
+                            placeholder="Enter sources of fund..."
                         />
-
                         <FormInput
+                            type="number"
                             label="Amount (Rs. lakhs)"
                             required
-                            type="number"
-                            step="0.01"
                             value={formData.amount || ''}
-                            onChange={handleNumberChange('amount')}
-                            placeholder="Enter amount"
+                            onChange={handleFieldChange('amount')}
+                            placeholder="0.00"
                         />
                     </div>
-
-                    <FormTextArea
-                        label="Infrastructure Created"
-                        required
-                        value={formData.infrastructureCreated || ''}
-                        onChange={handleFieldChange('infrastructureCreated')}
-                        rows={3}
-                        placeholder="Enter infrastructure created"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Infrastructure created"
+                            required
+                            value={formData.infrastructureCreated || ''}
+                            onChange={handleFieldChange('infrastructureCreated')}
+                            placeholder="Enter infrastructure details..."
+                        />
+                    </div>
                 </div>
             )}
         </div>

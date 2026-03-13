@@ -53,12 +53,12 @@ model Kvkoft {
   createdAt                DateTime           @default(now()) @map("created_at")
   updatedAt                DateTime           @updatedAt @map("updated_at")
   reportingYearId          Int?               @map("reporting_year_id")
-  discipline               Discipline?        @relation(fields: [disciplineId], references: [disciplineId], onDelete: SetNull)
+  discipline               Discipline?        @relation(fields: [disciplineId], references: [disciplineId])
   kvk                      Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   oftSubject               OftSubject?        @relation(fields: [oftSubjectId], references: [oftSubjectId])
   oftThematicArea          OftThematicArea?   @relation(fields: [oftThematicAreaId], references: [oftThematicAreaId])
-  reportingYear            YearMaster?        @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-  season                   Season?            @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  reportingYear            YearMaster?        @relation(fields: [reportingYearId], references: [yearId])
+  season                   Season?            @relation(fields: [seasonId], references: [seasonId])
   staff                    KvkStaff           @relation(fields: [staffId], references: [kvkStaffId])
   technologies             KvkoftTechnology[]
 

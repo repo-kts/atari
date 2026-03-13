@@ -101,6 +101,14 @@ const _mapResponse = (r) => {
         authorName: r.authorName,
         journalName: r.journalName,
         // Frontend format (for compatibility)
+        kvkName: r.kvk?.kvkName,
+        reportingYear: reportingYear,
+        publicationItem: r.publication?.publicationName,
+        title: r.title,
+        authorName: r.authorName,
+        journalName: r.journalName,
+        // Backend format compatibility
+        publicationId: r.publicationId,
         year: reportingYear,
         yearId: r.reportingYearId,
         publication: r.publication?.publicationName || r.publicationId,
@@ -117,7 +125,7 @@ const publicationDetailsRepository = {
 
             // Resolve kvkId: prioritized from user session, then from data
             let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
-                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
+                (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
             if (!kvkId) {
                 throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);

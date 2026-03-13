@@ -186,6 +186,31 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    // NARI Masters
+    'nari-crop-category': {
+        model: 'cropCategory',
+        idField: 'cropCategoryId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    nariBioFortifiedCrops: true,
+                },
+            },
+        },
+    },
+    'nari-nutrition-garden-type': {
+        model: 'nutritionGardenType',
+        idField: 'nutritionGardenTypeId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    nariNutritionalGardens: true,
+                },
+            },
+        },
+    },
 };
 
 /**

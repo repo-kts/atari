@@ -21,7 +21,7 @@ model KkvSoilWaterAnalysis {
   reportingYearId        Int?              @map("reporting_year_id")
   soilWaterAnalysis      SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
   kvk                    Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear          YearMaster?       @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear          YearMaster?       @relation(fields: [reportingYearId], references: [yearId])
 
   @@index([kvkId])
   @@index([analysisId])

@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import type { ExtendedEntityType } from '../utils/masterUtils';
 import { getIdField } from '../utils/masterUtils';
-import { transformDataForCreate, transformDataForUpdate } from '../utils/dataTransformationUtils';
+import { transformDataForCreate, transformDataForUpdate, processFiles } from '../utils/dataTransformationUtils';
 
 interface UseDataSaveOptions {
     entityType: ExtendedEntityType | null;
@@ -57,10 +57,13 @@ export function useDataSave({
         setError(null);
 
         try {
+            // Pre-process files (recursive Base64 conversion)
+            const processedFormData = await processFiles(formData);
+
             if (editingItem) {
                 // Update operation
                 const idField = getIdField(entityType);
-                const updateData = transformDataForUpdate(entityType, idField, formData);
+                const updateData = transformDataForUpdate(entityType, idField, processedFormData);
 
                 if (isBasicMasterEntity) {
                     await activeHook.update(editingItem[idField], updateData);
@@ -69,7 +72,7 @@ export function useDataSave({
                 }
             } else {
                 // Create operation
-                const createData = transformDataForCreate(entityType, formData);
+                const createData = transformDataForCreate(entityType, processedFormData);
                 await activeHook.create(createData);
             }
 

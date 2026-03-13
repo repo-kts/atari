@@ -38,7 +38,7 @@ model AryaCurrentYear {
   reportingYearId            Int?        @map("reporting_year_id")
   enterprise                 Enterprise  @relation(fields: [enterpriseId], references: [enterpriseId])
   kvk                        Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear              YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear              YearMaster? @relation(fields: [reportingYearId], references: [yearId])
 
   @@index([kvkId])
   @@index([enterpriseId])

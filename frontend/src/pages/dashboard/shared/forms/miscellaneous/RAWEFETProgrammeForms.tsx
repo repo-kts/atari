@@ -32,14 +32,30 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
 
     const handleDateChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            const value = e.target.value;
+            setFormData({ ...formData, [field]: value ? new Date(value).toISOString() : null })
         },
         [formData, setFormData]
     )
 
     const handleFileChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: e.target.files })
+            const file = e.target.files?.[0]
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    // Set both the original file and the Base64 version
+                    // backend expects attachmentPath for this entity
+                    setFormData({
+                        ...formData,
+                        [field]: file,
+                        attachmentPath: reader.result as string
+                    })
+                };
+                reader.readAsDataURL(file);
+            } else {
+                setFormData({ ...formData, [field]: null, attachmentPath: null })
+            }
         },
         [formData, setFormData]
     )
@@ -78,10 +94,12 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
 
                     <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                            Attachment Upload
+                            Attachment Upload <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="file"
+                            required
+                            accept="image/*"
                             onChange={handleFileChange('attachment')}
                             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
                         />
@@ -92,18 +110,18 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             label="No. of Male"
                             required
                             type="number"
-                            value={formData.maleCount || ''}
-                            onChange={handleNumberChange('maleCount')}
-                            placeholder="Enter number"
+                            value={formData.maleStudents || ''}
+                            onChange={handleNumberChange('maleStudents')}
+                            placeholder="0"
                         />
 
                         <FormInput
                             label="No. of Female"
                             required
                             type="number"
-                            value={formData.femaleCount || ''}
-                            onChange={handleNumberChange('femaleCount')}
-                            placeholder="Enter number"
+                            value={formData.femaleStudents || ''}
+                            onChange={handleNumberChange('femaleStudents')}
+                            placeholder="0"
                         />
                     </FormSection>
                 </div>

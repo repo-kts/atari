@@ -7,10 +7,10 @@ model FldTechnicalFeedback {
   createdAt       DateTime           @default(now()) @map("created_at")
   updatedAt       DateTime           @updatedAt @map("updated_at")
   reportingYearId Int?               @map("reporting_year_id")
-  crop            FldCrop?           @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
+  crop            FldCrop?           @relation(fields: [cropId], references: [cropId])
   fld             KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
   kvk             Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear   YearMaster?        @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear   YearMaster?        @relation(fields: [reportingYearId], references: [yearId])
 
   @@index([kvkId])
   @@index([fldId])

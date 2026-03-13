@@ -14,10 +14,10 @@ interface LinkageFormsProps {
 
 // Dummy programme type options (can be wired to a master later)
 const PROGRAMME_TYPE_OPTIONS = [
-    { value: 'CENTRAL_GOVT', label: 'Central Government' },
-    { value: 'STATE_GOVT', label: 'State Government' },
-    { value: 'NGO', label: 'NGO' },
-    { value: 'PRIVATE', label: 'Private' },
+    { value: 'INFRASTRUCTURE', label: 'Infrastructure Development' },
+    { value: 'TRAINING', label: 'Training and Capacity Building' },
+    { value: 'DEMONSTRATION', label: 'Demonstration' },
+    { value: 'OTHERS', label: 'Others' },
 ]
 
 export const LinkageForms: React.FC<LinkageFormsProps> = ({
@@ -150,12 +150,20 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                             required
                             type="date"
                             value={formData.initiationDate ? new Date(formData.initiationDate).toISOString().split('T')[0] : ''}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    initiationDate: new Date(e.target.value).toISOString(),
-                                })
-                            }
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val) {
+                                    setFormData({
+                                        ...formData,
+                                        initiationDate: new Date(val).toISOString(),
+                                    });
+                                } else {
+                                    setFormData({
+                                        ...formData,
+                                        initiationDate: null,
+                                    });
+                                }
+                            }}
                         />
 
                         <FormInput

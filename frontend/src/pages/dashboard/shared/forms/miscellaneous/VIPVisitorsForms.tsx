@@ -9,12 +9,16 @@ interface VIPVisitorsFormsProps {
     setFormData: (data: any) => void
 }
 
-// Dummy dignitary type options
+// Dignitary type options as shown in the Type of Dignitaries dropdown
 const DIGNITARY_TYPE_OPTIONS = [
     { value: 'Minister', label: 'Minister' },
-    { value: 'Secretary', label: 'Secretary' },
-    { value: 'Director', label: 'Director' },
-    { value: 'Other', label: 'Other' },
+    { value: 'MP', label: 'MP' },
+    { value: 'MLA', label: 'MLA' },
+    { value: 'DM', label: 'DM' },
+    { value: 'VC', label: 'VC' },
+    { value: 'Zila Sabhadipati', label: 'Zila Sabhadipati' },
+    { value: 'Other Head of Organization', label: 'Other Head of Organization' },
+    { value: 'Foreigners', label: 'Foreigners' },
 ]
 
 export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
@@ -32,12 +36,30 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
 
     const handleDateChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            setFormData({ ...formData, [field]: e.target.value ? new Date(e.target.value).toISOString() : null })
         },
         [formData, setFormData]
     )
 
     if (!entityType) return null
+
+    // Resolve dignitary type: API returns { name: '...' } object on edit, plain string on create
+    const dignitaryTypeValue = (() => {
+        const dt = formData.dignitaryType
+        if (dt && typeof dt === 'object' && dt.name) return dt.name
+        if (typeof dt === 'string') return dt
+        return ''
+    })()
+
+    // Resolve date: API returns dateOfVisit ISO string; form uses visitDate key during create
+    const dateOfVisitValue = (() => {
+        const d = formData.visitDate || formData.dateOfVisit
+        if (!d) return ''
+        try { return new Date(d).toISOString().split('T')[0] } catch { return '' }
+    })()
+
+    // Resolve observations/salientPoints: API returns salientPoints on edit
+    const observationsValue = formData.observations || formData.salientPoints || ''
 
     return (
         <div className="space-y-4">
@@ -48,17 +70,17 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
                             label="Date of Visit"
                             required
                             type="date"
-                            value={formData.visitDate ? new Date(formData.visitDate).toISOString().split('T')[0] : ''}
+                            value={dateOfVisitValue}
                             onChange={handleDateChange('visitDate')}
                         />
 
                         <FormSelect
                             label="Type of Dignitaries"
                             required
-                            value={formData.dignitaryType || ''}
+                            value={dignitaryTypeValue}
                             onChange={handleFieldChange('dignitaryType')}
                             options={DIGNITARY_TYPE_OPTIONS}
-                            placeholder="Select type"
+                            placeholder="Select"
                         />
                     </div>
 
@@ -71,12 +93,12 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
                     />
 
                     <FormTextArea
-                        label="Salient Points in his/her Observation"
+                        label="Salient points in his/ her observation"
                         required
-                        value={formData.observations || ''}
+                        value={observationsValue}
                         onChange={handleFieldChange('observations')}
                         rows={4}
-                        placeholder="Enter observations"
+                        placeholder="Enter salient points"
                     />
                 </div>
             )}

@@ -70,7 +70,9 @@ const soilWaterRepository = {
                 analysisName: r.analysis_name,
                 equipmentName: r.equipment_name,
                 soilWaterAnalysisId: r.soilWaterAnalysisId,
-                quantity: r.quantity
+                quantity: r.quantity,
+                // Frontend FIELD_NAMES alignment
+                analysis: r.analysis_name
             };
         });
     },
@@ -93,7 +95,9 @@ const soilWaterRepository = {
             reportingYear: yLabel,
             equipmentName: r.equipment_name,
             soilWaterAnalysisId: r.soilWaterAnalysisId,
-            quantity: r.quantity
+            quantity: r.quantity,
+            // Frontend FIELD_NAMES alignment
+            analysis: r.analysis_name
         };
     },
 
@@ -211,11 +215,15 @@ const soilWaterRepository = {
                 ...r,
                 id: r.soil_water_analysis_id,
                 kvkName: r.kvk_name,
-                analysisName: r.analysis_name,
+                analysis: r.analysis_name,
                 startDate: r.start_date,
                 endDate: r.end_date,
-                analysisId: r.analysis_id,
-                samplesAnalysedThrough: r.samples_analysed_through,
+                noOfSamplesAnalyzed: r.samples_analysed,
+                noOfVillagesCovered: r.villages_number,
+                amountReleased: r.amount_realized,
+                reportingYear: yLabel,
+                year: yLabel,
+                // Legacy fields
                 samplesAnalysed: r.samples_analysed,
                 villagesNumber: r.villages_number,
                 amountRealized: r.amount_realized,
@@ -227,8 +235,6 @@ const soilWaterRepository = {
                 scF: r.sc_f,
                 stM: r.st_m,
                 stF: r.st_f,
-                reportingYear: yLabel,
-                year: yLabel
             };
         });
     },
@@ -252,9 +258,9 @@ const soilWaterRepository = {
             endDate: r.end_date,
             analysisId: r.analysis_id,
             samplesAnalysedThrough: r.samples_analysed_through,
-            samplesAnalysed: r.samples_analysed,
-            villagesNumber: r.villages_number,
-            amountRealized: r.amount_realized,
+            noOfSamplesAnalyzed: r.samples_analysed, // Changed from samplesAnalysed
+            noOfVillagesCovered: r.villages_number, // Changed from villagesNumber
+            amountReleased: r.amount_realized, // Changed from amountRealized
             generalM: r.general_m,
             generalF: r.general_f,
             obcM: r.obc_m,
@@ -264,7 +270,11 @@ const soilWaterRepository = {
             stM: r.st_m,
             stF: r.st_f,
             reportingYear: yLabel,
-            year: yLabel
+            year: yLabel,
+            // Legacy fields
+            samplesAnalysed: r.samples_analysed,
+            villagesNumber: r.villages_number,
+            amountRealized: r.amount_realized,
         };
     },
 
@@ -394,10 +404,11 @@ const soilWaterRepository = {
                 ...r,
                 id: r.world_soil_celebration_id,
                 kvkName: r.kvk_name,
-                activitiesConducted: r.activities_conducted,
-                soilHealthCardDistributed: r.soil_health_card_distributed,
+                noOfActivitiesConducted: r.activities_conducted,
+                soilHealthCardsDistributed: r.soil_health_card_distributed,
+                noOfVips: r.no_of_vips, // Assuming 'no_of_vips' exists in the DB or is a new field to be added
                 vipNames: r.vip_names,
-                participants: r.participants,
+                totalParticipantsAttended: r.participants,
                 generalM: r.general_m,
                 generalF: r.general_f,
                 obcM: r.obc_m,
@@ -407,7 +418,11 @@ const soilWaterRepository = {
                 stM: r.st_m,
                 stF: r.st_f,
                 reportingYear: yLabel,
-                year: yLabel
+                year: yLabel,
+                // Legacy fields
+                activitiesConducted: r.activities_conducted,
+                soilHealthCardDistributed: r.soil_health_card_distributed,
+                participants: r.participants,
             };
         });
     },
@@ -427,10 +442,11 @@ const soilWaterRepository = {
             ...r,
             id: r.world_soil_celebration_id,
             kvkId: r.kvkId,
-            activitiesConducted: r.activities_conducted,
-            soilHealthCardDistributed: r.soil_health_card_distributed,
+            noOfActivitiesConducted: r.activities_conducted,
+            soilHealthCardsDistributed: r.soil_health_card_distributed,
+            noOfVips: r.no_of_vips, // Assuming 'no_of_vips' exists in the DB or is a new field to be added
             vipNames: r.vip_names,
-            participants: r.participants,
+            totalParticipantsAttended: r.participants,
             generalM: r.general_m,
             generalF: r.general_f,
             obcM: r.obc_m,
@@ -440,7 +456,11 @@ const soilWaterRepository = {
             stM: r.st_m,
             stF: r.st_f,
             reportingYear: yLabel,
-            year: yLabel
+            year: yLabel,
+            // Legacy fields
+            activitiesConducted: r.activities_conducted,
+            soilHealthCardDistributed: r.soil_health_card_distributed,
+            participants: r.participants,
         };
     },
 

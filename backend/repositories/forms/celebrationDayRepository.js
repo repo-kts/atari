@@ -219,13 +219,12 @@ const celebrationDayRepository = {
             ext_sc_f: a.officialsScF,
             ext_st_m: a.officialsStM,
             ext_st_f: a.officialsStF,
-            reportingYear,
-            'Reporting Year': reportingYear,
-            'KVK Name': a.kvk?.kvkName,
-            'Important Days': a.importantDay?.dayName,
-            'Event Date': a.eventDate.toISOString().split('T')[0],
-            'No. of Activities': a.numberOfActivities,
-            'No. of Participants': participants
+            reportingYear: reportingYear,
+            kvkName: a.kvk?.kvkName,
+            importantDays: a.importantDay?.dayName,
+            eventDate: a.eventDate.toISOString().split('T')[0],
+            noOfActivities: a.numberOfActivities,
+            noOfParticipants: participants
         };
     }
 };

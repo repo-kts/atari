@@ -107,16 +107,17 @@ const _mapResponse = (r) => {
         ...r,
         id: r.productionSupplyId,
         reportingYear,
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk?.kvkName,
-        'Product Category': r.productCategory?.productCategoryName,
-        'Product Type': r.productType?.productCategoryType,
-        'Product': r.product?.productName,
-        'Species / Breed / Variety': r.speciesName,
-        'Unit': r.unit,
-        'Quantity': r.quantity,
-        'Value(Rs)': r.value,
-        'No. of Participants': totalParticipants,
+        kvkName: r.kvk?.kvkName,
+        category: r.productCategory?.productCategoryName,
+        variety: r.speciesName,
+        productCategory: r.productCategory?.productCategoryName,
+        productType: r.productType?.productCategoryType,
+        product: r.product?.productName,
+        speciesBreedVariety: r.speciesName,
+        unit: r.unit,
+        quantity: r.quantity,
+        valueRs: r.value,
+        noOfParticipants: totalParticipants,
         // Participant fields (frontend format)
         gen_m: r.farmersGeneralM,
         gen_f: r.farmersGeneralF,
@@ -147,8 +148,8 @@ const productionSupplyRepository = {
             }
 
             // Resolve kvkId: prioritized from user session, then from data
-            let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) : 
-                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
+            let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
+                (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
             if (!kvkId) {
                 throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);
@@ -237,7 +238,7 @@ const productionSupplyRepository = {
     findAll: async (filters = {}, user) => {
         try {
             const where = {};
-            
+
             // Strict isolation for KVK-scoped users
             if (user && user.kvkId) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
@@ -287,7 +288,7 @@ const productionSupplyRepository = {
 
             const productionSupplyId = validateUUID(id, 'id', false);
             const where = { productionSupplyId };
-            
+
             if (user && user.kvkId) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
@@ -501,4 +502,3 @@ const productionSupplyRepository = {
 };
 
 module.exports = productionSupplyRepository;
- 

@@ -20,7 +20,11 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => {
+            // For Plant Varieties, we might want the year name/value if the backend expects an Int (parseInt will handle "2023-24" as 2023)
+            // But usually IDs are preferred if relations exist. Since no relation here, let's keep IDs but be mindful.
+            return createMasterDataOptions(years, 'yearId', 'yearName')
+        },
         [years]
     )
 
@@ -42,17 +46,12 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
 
     const handleDateChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            const value = e.target.value;
+            setFormData({ ...formData, [field]: value ? new Date(value).toISOString() : null })
         },
         [formData, setFormData]
     )
 
-    const handleYearChange = useCallback(
-        (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
-        },
-        [formData, setFormData]
-    )
 
     const handleFileChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,17 +72,23 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             label="Date of Training/Awareness Programme"
                             required
                             type="date"
-                            value={formData.trainingDate ? new Date(formData.trainingDate).toISOString().split('T')[0] : ''}
-                            onChange={handleDateChange('trainingDate')}
+                            value={formData.programmeDate ? new Date(formData.programmeDate).toISOString().split('T')[0] : ''}
+                            onChange={handleDateChange('programmeDate')}
                         />
 
-                        <FormInput
-                            label="Type"
-                            required
-                            value={formData.type || ''}
-                            onChange={handleFieldChange('type')}
-                            placeholder="Enter type"
-                        />
+                        <div className="space-y-1.5">
+                            <label className="block text-sm font-semibold text-gray-700">Type <span className="text-red-500">*</span></label>
+                            <select
+                                className="w-full px-4 py-2 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white"
+                                value={formData.type || ''}
+                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Type</option>
+                                <option value="TRAINING">TRAINING</option>
+                                <option value="AWARENESS">AWARENESS</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -119,7 +124,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.generalM || ''}
                             onChange={handleNumberChange('generalM')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -128,7 +133,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.generalF || ''}
                             onChange={handleNumberChange('generalF')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -137,7 +142,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.obcM || ''}
                             onChange={handleNumberChange('obcM')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -146,7 +151,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.obcF || ''}
                             onChange={handleNumberChange('obcF')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -155,7 +160,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.scM || ''}
                             onChange={handleNumberChange('scM')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -164,7 +169,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.scF || ''}
                             onChange={handleNumberChange('scF')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -173,7 +178,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.stM || ''}
                             onChange={handleNumberChange('stM')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
 
                         <FormInput
@@ -182,7 +187,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             type="number"
                             value={formData.stF || ''}
                             onChange={handleNumberChange('stF')}
-                            placeholder="Enter number"
+                            placeholder="0"
                         />
                     </FormSection>
                 </div>
@@ -195,7 +200,15 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         label="Reporting Year"
                         required
                         value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={handleYearChange}
+                        onChange={(val) => {
+                            const selectedYear = years.find(y => y.yearId === val || y.yearName === val);
+                            setFormData({
+                                ...formData,
+                                reportingYearId: val,
+                                yearId: val,
+                                reportingYear: selectedYear ? (parseInt(selectedYear.yearName) || val) : val
+                            });
+                        }}
                         options={yearOptions}
                         isLoading={isLoadingYears}
                         emptyMessage="No reporting years available"
@@ -223,8 +236,8 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Mobile No."
                             required
-                            value={formData.mobileNo || ''}
-                            onChange={handleFieldChange('mobileNo')}
+                            value={formData.mobile || ''}
+                            onChange={handleFieldChange('mobile')}
                             placeholder="Enter mobile number"
                         />
 

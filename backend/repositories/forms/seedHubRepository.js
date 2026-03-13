@@ -1,14 +1,20 @@
 const prisma = require('../../config/prisma.js');
 
 const seedHubRepository = {
-    findAll: async (filters = {}) => {
-        const { kvkId, year } = filters;
+    findAll: async (filters = {}, user) => {
+        const { kvkId, year, reportingYearId } = filters;
         const where = {};
-        if (kvkId) where.kvkId = parseInt(kvkId);
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+
+        // Role-based filtering
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
+        } else if (kvkId) {
+            where.kvkId = parseInt(kvkId);
+        }
+
+        if (reportingYearId) {
+            where.reportingYearId = parseInt(reportingYearId);
         } else if (year) {
-            // Backward compatibility: if year is provided, try to find yearId
             where.reportingYearId = parseInt(year);
         }
 
@@ -59,21 +65,21 @@ const seedHubRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        // Accept reportingYearId (yearId from YearMaster) from frontend
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        // Field mappings from frontend
+        const reportingYearId = parseInt(data.reportingYearId || data.yearId) || null;
         const seasonId = parseInt(data.seasonId) || 1;
         const cropName = data.cropName || '';
         const varietyName = data.varietyName || data.variety || '';
-        const areaCoveredHa = parseFloat(data.areaCovered ?? data.areaCoveredHa ?? data.area) || 0;
-        const yieldQPerHa = parseFloat(data.yield ?? data.yieldQPerHa) || 0;
-        const quantityProducedQ = parseFloat(data.quantityProduced ?? data.quantityProducedQ) || 0;
-        const quantitySaleOutQ = parseFloat(data.quantitySold ?? data.quantitySaleOutQ) || 0;
-        const farmersPurchased = parseInt(data.farmersCount ?? data.farmersPurchased) || 0;
-        const quantitySaleToFarmersQ = parseFloat(data.quantitySoldFarmers ?? data.quantitySaleToFarmersQ) || 0;
-        const villagesCovered = parseInt(data.villagesCovered) || 0;
-        const quantitySaleToOtherOrgQ = parseFloat(data.quantitySoldOrg ?? data.quantitySaleToOtherOrgQ) || 0;
-        const amountGeneratedLakh = parseFloat(data.amountGenerated ?? data.amountGeneratedLakh) || 0;
-        const totalAmountPresentLakh = parseFloat(data.totalAmountPresently ?? data.totalAmountPresentLakh) || 0;
+        const areaCoveredHa = parseFloat(data.areaCovered || data.areaCoveredHa || data.area || 0);
+        const yieldQPerHa = parseFloat(data.yield || data.yieldQPerHa || 0);
+        const quantityProducedQ = parseFloat(data.quantityProduced || data.quantityProducedQ || 0);
+        const quantitySaleOutQ = parseFloat(data.quantitySold || data.quantitySaleOutQ || 0);
+        const farmersPurchased = parseInt(data.farmersCount || data.farmersPurchased || 0);
+        const quantitySaleToFarmersQ = parseFloat(data.quantitySoldFarmers || data.quantitySaleToFarmersQ || 0);
+        const villagesCovered = parseInt(data.villagesCovered || 0);
+        const quantitySaleToOtherOrgQ = parseFloat(data.quantitySoldOrg || data.quantitySaleToOtherOrgQ || 0);
+        const amountGeneratedLakh = parseFloat(data.amountGenerated || data.amountGeneratedLakh || 0);
+        const totalAmountPresentLakh = parseFloat(data.totalAmountPresently || data.totalAmountPresentLakh || 0);
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO kvk_seed_hub_program (
@@ -102,7 +108,7 @@ const seedHubRepository = {
             },
             orderBy: { seedHubId: 'desc' }
         });
-        return _mapResponse(result);
+        return result ? _mapResponse(result) : null;
     },
 
     update: async (id, data, user) => {
@@ -111,50 +117,24 @@ const seedHubRepository = {
             where.kvkId = parseInt(user.kvkId);
         }
 
-        // Verify existence and ownership
         const existing = await prisma.kvkSeedHubProgram.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        const updateData = {};
-        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
-        } else if (data.reportingYear !== undefined) {
-            // Backward compatibility
-            updateData.reportingYearId = parseInt(data.reportingYear);
-        }
-        if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
-        if (data.cropName !== undefined) updateData.cropName = data.cropName || '';
-        if (data.varietyName !== undefined || data.variety !== undefined) updateData.varietyName = data.varietyName ?? data.variety ?? '';
-
-        if (data.areaCovered !== undefined || data.areaCoveredHa !== undefined || data.area !== undefined)
-            updateData.areaCoveredHa = parseFloat(data.areaCovered ?? data.areaCoveredHa ?? data.area);
-
-        if (data.yield !== undefined || data.yieldQPerHa !== undefined)
-            updateData.yieldQPerHa = parseFloat(data.yield ?? data.yieldQPerHa);
-
-        if (data.quantityProduced !== undefined || data.quantityProducedQ !== undefined)
-            updateData.quantityProducedQ = parseFloat(data.quantityProduced ?? data.quantityProducedQ);
-
-        if (data.quantitySold !== undefined || data.quantitySaleOutQ !== undefined)
-            updateData.quantitySaleOutQ = parseFloat(data.quantitySold ?? data.quantitySaleOutQ);
-
-        if (data.farmersCount !== undefined || data.farmersPurchased !== undefined)
-            updateData.farmersPurchased = parseInt(data.farmersCount ?? data.farmersPurchased);
-
-        if (data.quantitySoldFarmers !== undefined || data.quantitySaleToFarmersQ !== undefined)
-            updateData.quantitySaleToFarmersQ = parseFloat(data.quantitySoldFarmers ?? data.quantitySaleToFarmersQ);
-
-        if (data.villagesCovered !== undefined)
-            updateData.villagesCovered = parseInt(data.villagesCovered);
-
-        if (data.quantitySoldOrg !== undefined || data.quantitySaleToOtherOrgQ !== undefined)
-            updateData.quantitySaleToOtherOrgQ = parseFloat(data.quantitySoldOrg ?? data.quantitySaleToOtherOrgQ);
-
-        if (data.amountGenerated !== undefined || data.amountGeneratedLakh !== undefined)
-            updateData.amountGeneratedLakh = parseFloat(data.amountGenerated ?? data.amountGeneratedLakh);
-
-        if (data.totalAmountPresently !== undefined || data.totalAmountPresentLakh !== undefined)
-            updateData.totalAmountPresentLakh = parseFloat(data.totalAmountPresently ?? data.totalAmountPresentLakh);
+        // Extract fields with logical fallbacks to existing values
+        const reportingYearId = parseInt(data.reportingYearId || data.yearId || existing.reportingYearId);
+        const seasonId = parseInt(data.seasonId || existing.seasonId);
+        const cropName = data.cropName || existing.cropName;
+        const varietyName = data.varietyName || data.variety || existing.varietyName;
+        const areaCoveredHa = parseFloat(data.areaCovered || data.areaCoveredHa || data.area || existing.areaCoveredHa);
+        const yieldQPerHa = parseFloat(data.yield || data.yieldQPerHa || existing.yieldQPerHa);
+        const quantityProducedQ = parseFloat(data.quantityProduced || data.quantityProducedQ || existing.quantityProducedQ);
+        const quantitySaleOutQ = parseFloat(data.quantitySold || data.quantitySaleOutQ || existing.quantitySaleOutQ);
+        const farmersPurchased = parseInt(data.farmersCount || data.farmersPurchased || existing.farmersPurchased);
+        const quantitySaleToFarmersQ = parseFloat(data.quantitySoldFarmers || data.quantitySaleToFarmersQ || existing.quantitySaleToFarmersQ);
+        const villagesCovered = parseInt(data.villagesCovered || existing.villagesCovered);
+        const quantitySaleToOtherOrgQ = parseFloat(data.quantitySoldOrg || data.quantitySaleToOtherOrgQ || existing.quantitySaleToOtherOrgQ);
+        const amountGeneratedLakh = parseFloat(data.amountGenerated || data.amountGeneratedLakh || existing.amountGeneratedLakh);
+        const totalAmountPresentLakh = parseFloat(data.totalAmountPresently || data.totalAmountPresentLakh || existing.totalAmountPresentLakh);
 
         await prisma.$executeRawUnsafe(`
             UPDATE kvk_seed_hub_program 
@@ -167,24 +147,24 @@ const seedHubRepository = {
                 total_amount_present_lakh = $14, updated_at = CURRENT_TIMESTAMP
             WHERE seed_hub_id = $15
         `,
-            updateData.reportingYearId ?? existing.reportingYearId,
-            updateData.seasonId ?? existing.seasonId,
-            updateData.cropName ?? existing.cropName,
-            updateData.varietyName ?? existing.varietyName,
-            updateData.areaCoveredHa ?? existing.areaCoveredHa,
-            updateData.yieldQPerHa ?? existing.yieldQPerHa,
-            updateData.quantityProducedQ ?? existing.quantityProducedQ,
-            updateData.quantitySaleOutQ ?? existing.quantitySaleOutQ,
-            updateData.farmersPurchased ?? existing.farmersPurchased,
-            updateData.quantitySaleToFarmersQ ?? existing.quantitySaleToFarmersQ,
-            updateData.villagesCovered ?? existing.villagesCovered,
-            updateData.quantitySaleToOtherOrgQ ?? existing.quantitySaleToOtherOrgQ,
-            updateData.amountGeneratedLakh ?? existing.amountGeneratedLakh,
-            updateData.totalAmountPresentLakh ?? existing.totalAmountPresentLakh,
+            reportingYearId,
+            seasonId,
+            cropName,
+            varietyName,
+            areaCoveredHa,
+            yieldQPerHa,
+            quantityProducedQ,
+            quantitySaleOutQ,
+            farmersPurchased,
+            quantitySaleToFarmersQ,
+            villagesCovered,
+            quantitySaleToOtherOrgQ,
+            amountGeneratedLakh,
+            totalAmountPresentLakh,
             parseInt(id)
         );
 
-        return await prisma.kvkSeedHubProgram.findUnique({
+        const updated = await prisma.kvkSeedHubProgram.findUnique({
             where: { seedHubId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
@@ -192,6 +172,7 @@ const seedHubRepository = {
                 reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
+        return updated ? _mapResponse(updated) : null;
     },
 
     delete: async (id, user) => {
@@ -211,6 +192,7 @@ const seedHubRepository = {
 };
 
 function _mapResponse(r) {
+    if (!r) return null;
     return {
         id: r.seedHubId,
         kvkId: r.kvkId,

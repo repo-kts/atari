@@ -2,11 +2,7 @@ const seedHubRepository = require('../../repositories/forms/seedHubRepository');
 
 const seedHubService = {
     getAll: async (filters, user) => {
-        // If user is KVK, always filter by their kvkId
-        if (user && user.role === 'KVK') {
-            filters.kvkId = user.kvkId;
-        }
-        return await seedHubRepository.findAll(filters);
+        return await seedHubRepository.findAll(filters, user);
     },
 
     getById: async (id, user) => {

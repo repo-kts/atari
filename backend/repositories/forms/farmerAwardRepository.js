@@ -42,9 +42,9 @@ const _normalizeString = (value, fieldName, allowNull = true) => {
  * @throws {RepositoryError} If value is invalid
  */
 const _parseInteger = (value, fieldName, allowNull = true) => {
-    if (value === null || value === undefined) {
+    if (value === null || value === undefined || value === '') {
         if (allowNull) return null;
-        throw new RepositoryError(`${fieldName} is required`, 'VALIDATION_ERROR', 400);
+        return 0; // Default to 0 for required fields if empty string provided
     }
     const parsed = parseInt(value);
     if (isNaN(parsed) || parsed < 0) {
@@ -106,22 +106,24 @@ const _mapResponse = (r) => {
         ...r,
         id: r.farmerAwardId,
         reportingYear,
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk?.kvkName,
-        'Farmer Name': r.farmerName,
-        'Contact Number': r.contactNumber,
-        'Address': r.address,
-        'Award Name': r.awardName,
-        'Amount': r.amount,
-        'Achievement': r.achievement,
-        'Conferring Authority': r.conferringAuthority,
-        'Image': r.image,
+        achievement: r.achievement,
+        conferringAuthority: r.conferringAuthority,
+        image: r.image,
+        // Frontend FIELD_NAMES alignment
+        kvkName: r.kvk?.kvkName,
+        reportingYear: reportingYear,
+        farmerName: r.farmerName,
+        contactNumber: r.contactNumber,
+        address: r.address,
+        award: r.awardName,
+        amount: r.amount,
+        achievement: r.achievement,
+        conferringAuthority: r.conferringAuthority,
         // Backend format
         farmerAwardId: r.farmerAwardId,
         farmerAwardID: r.farmerAwardId, // Legacy compatibility
         kvkId: r.kvkId,
         reportingYearId: r.reportingYearId,
-        farmerName: r.farmerName,
         contactNumber: r.contactNumber,
         contactNo: r.contactNumber, // Frontend compatibility
         address: r.address,
@@ -146,7 +148,7 @@ const farmerAwardRepository = {
 
             // Resolve kvkId: prioritized from user session, then from data
             let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
-                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
+                (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
             if (!kvkId) {
                 throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);
@@ -330,7 +332,7 @@ const farmerAwardRepository = {
             if (data.farmerName !== undefined) {
                 updateData.farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
             }
-        if (data.contactNumber !== undefined || data.contactNo !== undefined) {
+            if (data.contactNumber !== undefined || data.contactNo !== undefined) {
                 updateData.contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
             }
             if (data.address !== undefined) {
