@@ -305,17 +305,6 @@ function _mapResponse(r) {
         areaCoveredHa: r.areaCoveredHa,
         areaCovered: r.areaCoveredHa,
         cropDetails: r.cropDetails || [],
-
-        // Frontend friendly table labels (matching routeConfig.ts and the image)
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Year': r.reportingYear ? r.reportingYear.yearName : r.reportingYearId,
-        'Season': r.season ? r.season.seasonName : undefined,
-        'Trial Name': r.trialName,
-        'Crop': r.cropDetails?.[0]?.cropName || '-',
-        'Variety': r.cropDetails?.[0]?.varietyName || '-',
-        'Village Covered(no.)': r.villagesCovered,
-        'Block Covered(no.)': r.blocksCovered,
-        'District Covered(no.)': r.districtsCovered
     };
 
     // Add flattened crop fields for editing

@@ -182,15 +182,6 @@ function _mapResponse(r) {
         financialPositionLakh: r.financialPositionLakh,
         financialPosition: r.financialPositionLakh, // Frontend alias
         successIndicator: r.successIndicator,
-
-        // Dashboard table labels from routeConfig.ts
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Registration No': r.registrationNumber,
-        'Date of Registration': r.registrationDate ? new Date(r.registrationDate).toLocaleDateString('en-GB') : undefined,
-        'Name of the FPO': r.fpoName,
-        'Address of FPO': r.address,
-        'Total Number of BOM Members': r.totalBomMembers,
-        'Financial Position': r.financialPositionLakh,
     };
 }
 

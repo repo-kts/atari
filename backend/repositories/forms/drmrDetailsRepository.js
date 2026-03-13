@@ -209,14 +209,6 @@ function _mapResponse(r) {
         varietiesUsedInFp: r.varietyFarmerPractice,
         netReturnImprovedPractice: r.netReturnImprovedPerHa,
         netReturnFarmerPractice: r.netReturnFarmerPerHa,
-
-        // Frontend aliases for backward compatibility or direct access
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Varieties used in IP': r.varietyImprovedPractice,
-        'Situations (Irrigated/ Rainfed)': r.situation,
-        'Varieties used in FP': r.varietyFarmerPractice,
-        'Net Return Improved Practice(Rs./ha)': r.netReturnImprovedPerHa,
-        'Net Return Farmer Practice(Rs./ha)': r.netReturnFarmerPerHa,
     };
 }
 

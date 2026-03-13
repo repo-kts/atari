@@ -40,7 +40,7 @@ export const ROUTE_PATHS = {
         TECHNOLOGY_WEEK: '/forms/achievements/technology-week',
         CELEBRATION_DAYS: '/forms/achievements/celebration-days',
         PRODUCTION_SUPPLY: '/forms/achievements/production-supply',
-        PUBLICATIONS: '/forms/achievements/publications',
+        PUBLICATIONS: '/forms/achievements/publication-details',
         SOIL_EQUIPMENT: '/forms/achievements/soil-equipment',
         SOIL_ANALYSIS: '/forms/achievements/soil-analysis',
         WORLD_SOIL_DAY: '/forms/achievements/world-soil-day',

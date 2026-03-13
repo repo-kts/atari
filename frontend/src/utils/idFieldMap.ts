@@ -65,7 +65,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PRODUCTS]: 'productId',
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: 'craCropingSystemId',
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: 'craFarmingSystemId',
-    [ENTITY_TYPES.ARYA_ENTERPRISES]: 'aryaEnterpriseId',
+    [ENTITY_TYPES.ARYA_ENTERPRISES]: 'enterpriseId',
 
     // Publications
     [ENTITY_TYPES.PUBLICATION_ITEMS]: 'publicationId',

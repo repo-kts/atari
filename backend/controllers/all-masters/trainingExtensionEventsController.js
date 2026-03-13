@@ -1,4 +1,5 @@
 const trainingExtensionEventsService = require('../../services/all-masters/trainingExtensionEventsService.js');
+const { asyncHandler } = require('../../utils/errorHandler');
 
 /**
  * Training, Extension & Events Master Data Controller
@@ -8,121 +9,77 @@ const trainingExtensionEventsService = require('../../services/all-masters/train
 /**
  * Generic handler to get all entities
  */
-const getAll = (entityName) => async (req, res) => {
-    try {
-        const options = {
-            page: parseInt(req.query.page) || 1,
-            limit: parseInt(req.query.limit) || 100,
-            search: req.query.search || '',
-            sortBy: req.query.sortBy,
-            sortOrder: req.query.sortOrder || 'asc',
-            filters: req.query.filters ? JSON.parse(req.query.filters) : {},
-        };
+const getAll = (entityName) => asyncHandler(async (req, res) => {
+    const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 100,
+        search: req.query.search || '',
+        sortBy: req.query.sortBy,
+        sortOrder: req.query.sortOrder || 'asc',
+        filters: req.query.filters ? JSON.parse(req.query.filters) : {},
+    };
 
-        const result = await trainingExtensionEventsService.getAll(entityName, options);
-        res.json({
-            success: true,
-            data: result.data,
-            pagination: {
-                total: result.total,
-                page: result.page,
-                limit: result.limit,
-                totalPages: Math.ceil(result.total / result.limit),
-            },
-        });
-    } catch (error) {
-        console.error(`Error fetching ${entityName}:`, error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+    const result = await trainingExtensionEventsService.getAll(entityName, options);
+    res.json({
+        success: true,
+        data: result.data,
+        pagination: {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: Math.ceil(result.total / result.limit),
+        },
+    });
+});
 
 /**
  * Generic handler to get entity by ID
  */
-const getById = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await trainingExtensionEventsService.getById(entityName, id);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error(`Error fetching ${entityName} by ID:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const getById = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const data = await trainingExtensionEventsService.getById(entityName, id);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
 /**
  * Generic handler to create entity
  */
-const create = (entityName) => async (req, res) => {
-    try {
-        const data = await trainingExtensionEventsService.create(entityName, req.body);
-        res.status(201).json({
-            success: true,
-            data,
-            message: `${entityName} created successfully`,
-        });
-    } catch (error) {
-        console.error(`Error creating ${entityName}:`, error);
-        const statusCode = error.message.includes('already exists') ? 409 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const create = (entityName) => asyncHandler(async (req, res) => {
+    const data = await trainingExtensionEventsService.create(entityName, req.body);
+    res.status(201).json({
+        success: true,
+        data,
+        message: `${entityName} created successfully`,
+    });
+});
 
 /**
  * Generic handler to update entity
  */
-const update = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await trainingExtensionEventsService.update(entityName, id, req.body);
-        res.json({
-            success: true,
-            data,
-            message: `${entityName} updated successfully`,
-        });
-    } catch (error) {
-        console.error(`Error updating ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const update = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const data = await trainingExtensionEventsService.update(entityName, id, req.body);
+    res.json({
+        success: true,
+        data,
+        message: `${entityName} updated successfully`,
+    });
+});
 
 /**
  * Generic handler to delete entity
  */
-const deleteEntity = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        await trainingExtensionEventsService.delete(entityName, id);
-        res.json({
-            success: true,
-            message: `${entityName} deleted successfully`,
-        });
-    } catch (error) {
-        console.error(`Error deleting ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const deleteEntity = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await trainingExtensionEventsService.delete(entityName, id);
+    res.json({
+        success: true,
+        message: `${entityName} deleted successfully`,
+    });
+});
 
 // Training Type Controllers
 exports.getAllTrainingTypes = getAll('training-types');
@@ -167,53 +124,29 @@ exports.updateEvent = update('events');
 exports.deleteEvent = deleteEntity('events');
 
 // Hierarchical filtering endpoints
-exports.getTrainingAreasByType = async (req, res) => {
-    try {
-        const { trainingTypeId } = req.params;
-        const data = await trainingExtensionEventsService.getTrainingAreasByType(trainingTypeId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching training areas by type:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getTrainingAreasByType = asyncHandler(async (req, res) => {
+    const { trainingTypeId } = req.params;
+    const data = await trainingExtensionEventsService.getTrainingAreasByType(trainingTypeId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getTrainingThematicAreasByArea = async (req, res) => {
-    try {
-        const { trainingAreaId } = req.params;
-        const data = await trainingExtensionEventsService.getTrainingThematicAreasByArea(trainingAreaId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching training thematic areas by area:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getTrainingThematicAreasByArea = asyncHandler(async (req, res) => {
+    const { trainingAreaId } = req.params;
+    const data = await trainingExtensionEventsService.getTrainingThematicAreasByArea(trainingAreaId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
 // Statistics endpoint
-exports.getStats = async (req, res) => {
-    try {
-        const stats = await trainingExtensionEventsService.getStats();
-        res.json({
-            success: true,
-            data: stats,
-        });
-    } catch (error) {
-        console.error('Error fetching Training/Extension/Events stats:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getStats = asyncHandler(async (req, res) => {
+    const stats = await trainingExtensionEventsService.getStats();
+    res.json({
+        success: true,
+        data: stats,
+    });
+});

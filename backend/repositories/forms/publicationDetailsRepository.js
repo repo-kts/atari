@@ -86,13 +86,6 @@ const _mapResponse = (r) => {
         ...r,
         id: r.publicationDetailsId,
         reportingYear,
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk?.kvkName,
-        'Publication': r.publication?.publicationName,
-        'Title': r.title,
-        'Author Name': r.authorName,
-        'Journal Name': r.journalName,
-        // Backend format
         publicationDetailsId: r.publicationDetailsId,
         kvkId: r.kvkId,
         reportingYearId: r.reportingYearId,
@@ -100,14 +93,12 @@ const _mapResponse = (r) => {
         title: r.title,
         authorName: r.authorName,
         journalName: r.journalName,
-        // Frontend format (for compatibility)
         kvkName: r.kvk?.kvkName,
         reportingYear: reportingYear,
         publicationItem: r.publication?.publicationName,
         title: r.title,
         authorName: r.authorName,
         journalName: r.journalName,
-        // Backend format compatibility
         publicationId: r.publicationId,
         year: reportingYear,
         yearId: r.reportingYearId,

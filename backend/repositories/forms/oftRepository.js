@@ -343,15 +343,7 @@ function _mapResponse(r) {
         obc_m: r.farmersObcM, obc_f: r.farmersObcF,
         sc_m: r.farmersScM, sc_f: r.farmersScF,
         st_m: r.farmersStM, st_f: r.farmersStF,
-
-        // Frontend friendly table labels (matching routeConfig.ts exactly, including typos)
-        'Reporting Year': r.reportingYear ? r.reportingYear.yearName : undefined,
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Staff': r.staff ? r.staff.staffName : undefined,
-        'Trail on form': r.title, // Frontend has typo 'Trail'
-        'Problem Diagnoised': r.problemDiagnosed, // Frontend has typo 'Diagnoised'
-        'Ongoing/Completed': r.oftStartDate < new Date() ? 'Completed' : 'Ongoing'
-    };
+   };
 
     // Add technologies
     if (r.technologies) {

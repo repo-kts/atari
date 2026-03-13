@@ -14,18 +14,24 @@ const allRoles = [...kvkRoles, ...adminRoles];
 // Equipment routes
 router.get('/equipments', requireRole(allRoles), soilWaterController.getAllEquipment);
 router.post('/equipments', requireRole([...kvkRoles, 'super_admin']), soilWaterController.createEquipment);
+router.get('/equipments/:id', requireRole(allRoles), soilWaterController.getEquipmentById);
+router.put('/equipments/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateEquipment);
 router.patch('/equipments/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateEquipment);
 router.delete('/equipments/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.deleteEquipment);
 
 // Analysis routes
 router.get('/analysis', requireRole(allRoles), soilWaterController.getAllAnalysis);
 router.post('/analysis', requireRole([...kvkRoles, 'super_admin']), soilWaterController.createAnalysis);
+router.get('/analysis/:id', requireRole(allRoles), soilWaterController.getAnalysisById);
+router.put('/analysis/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateAnalysis);
 router.patch('/analysis/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateAnalysis);
 router.delete('/analysis/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.deleteAnalysis);
 
 // World Soil Day routes
 router.get('/world-soil-day', requireRole(allRoles), soilWaterController.getAllWorldSoilDay);
 router.post('/world-soil-day', requireRole([...kvkRoles, 'super_admin']), soilWaterController.createWorldSoilDay);
+router.get('/world-soil-day/:id', requireRole(allRoles), soilWaterController.getWorldSoilDayById);
+router.put('/world-soil-day/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateWorldSoilDay);
 router.patch('/world-soil-day/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.updateWorldSoilDay);
 router.delete('/world-soil-day/:id', requireRole([...kvkRoles, 'super_admin']), soilWaterController.deleteWorldSoilDay);
 

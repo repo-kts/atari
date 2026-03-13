@@ -81,7 +81,7 @@ const otherExtensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activityType: { select: { activityName: true } },
+                    otherExtensionActivity: { select: { otherExtensionName: true } },
                 }
             });
 
@@ -120,7 +120,7 @@ const otherExtensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activityType: { select: { activityName: true } },
+                    otherExtensionActivity: { select: { otherExtensionName: true } },
                 },
                 orderBy: { otherExtensionActivityId: 'desc' },
             });
@@ -152,7 +152,7 @@ const otherExtensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activityType: { select: { activityName: true } },
+                    otherExtensionActivity: { select: { otherExtensionName: true } },
                 },
             });
 
@@ -262,7 +262,7 @@ const otherExtensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activityType: { select: { activityName: true } },
+                    otherExtensionActivity: { select: { otherExtensionName: true } },
                 },
             }));
         } catch (error) {
@@ -339,7 +339,7 @@ function _mapResponse(r) {
         reportingYear = String(startYear);
     }
 
-    const activityName = r.activityType ? r.activityType.activityName : undefined;
+    const activityName = r.otherExtensionActivity ? r.otherExtensionActivity.otherExtensionName : undefined;
 
     return {
         ...r,
@@ -354,13 +354,12 @@ function _mapResponse(r) {
         activityTypeId: r.activityTypeId,
         activityId: r.activityTypeId, // For compatibility with frontend
         extensionActivityType: activityName,
-        activity: r.activityType ? { activityName } : undefined,
+        activity: r.otherExtensionActivity ? { activityName } : undefined,
         numberOfActivities: r.numberOfActivities,
         activityCount: r.numberOfActivities, // For compatibility
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : '',
         reportingYear,
-
         reportingYear: reportingYear,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : '',

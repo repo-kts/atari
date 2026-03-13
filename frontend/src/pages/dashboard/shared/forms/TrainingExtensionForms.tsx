@@ -14,10 +14,12 @@ import { useKvkStaffForDropdown } from '@/hooks/forms/useAboutKvkData'
 import {
     useTrainingClientele,
     useFundingSources,
-    useExtensionActivityTypes,
-    useOtherExtensionActivityTypes,
     useImportantDays,
 } from '@/hooks/useOtherMastersData'
+import {
+    useExtensionActivities,
+    useOtherExtensionActivities,
+} from '@/hooks/useTrainingExtensionEventsData'
 import { trainingExtensionEventsApi } from '@/services/trainingExtensionEventsApi'
 import {
     createStaffOptions,
@@ -80,8 +82,8 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     const { data: trainingAreas = [] } = useTrainingAreas()
     const { data: trainingClientele = [] } = useTrainingClientele()
     const { data: fundingSources = [] } = useFundingSources()
-    const { data: extensionActivityTypes = [] } = useExtensionActivityTypes()
-    const { data: otherExtensionActivityTypes = [] } = useOtherExtensionActivityTypes()
+    const { data: extensionActivities = [] } = useExtensionActivities()
+    const { data: otherExtensionActivities = [] } = useOtherExtensionActivities()
     const { data: importantDays = [] } = useImportantDays()
 
     // KVK Staff dropdown - depends on kvkId
@@ -112,6 +114,41 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
             }
         }
     }, [formData.coordinatorId, formData.coordinator, formData.staffId, entityType, kvkStaffData, setFormData])
+
+    // Sync field name variations for participant counts (handle field name mismatches)
+    useEffect(() => {
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_TRAINING ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_EXTENSION ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS) {
+            setFormData((prev: any) => {
+                const updates: any = {};
+                // Sync st_F (capital F) to st_f (lowercase) if present
+                if (prev.st_F !== undefined && prev.st_f === undefined) {
+                    updates.st_f = prev.st_F;
+                }
+                if (prev.stF !== undefined && prev.st_f === undefined) {
+                    updates.st_f = prev.stF;
+                }
+                // Sync obc_F (capital F) to obc_f (lowercase) if present
+                if (prev.obc_F !== undefined && prev.obc_f === undefined) {
+                    updates.obc_f = prev.obc_F;
+                }
+                if (prev.obcF !== undefined && prev.obc_f === undefined) {
+                    updates.obc_f = prev.obcF;
+                }
+                // Sync sc_F (capital F) to sc_f (lowercase) if present
+                if (prev.sc_F !== undefined && prev.sc_f === undefined) {
+                    updates.sc_f = prev.sc_F;
+                }
+                if (prev.scF !== undefined && prev.sc_f === undefined) {
+                    updates.sc_f = prev.scF;
+                }
+                if (Object.keys(updates).length === 0) return prev;
+                return { ...prev, ...updates };
+            });
+        }
+    }, [formData.st_F, formData.stF, formData.st_f, formData.obc_F, formData.obcF, formData.obc_f, formData.sc_F, formData.scF, formData.sc_f, entityType, setFormData])
 
     // Training Thematic Areas - depends on trainingAreaId
     const { data: trainingThematicAreasData = [], isLoading: isLoadingTrainingThematicAreas } = useTrainingThematicAreasByArea(
@@ -181,22 +218,22 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
     }, [fundingSources, setFormData]);
 
     const handleExtensionActivityTypeChange = useCallback((value: string | number) => {
-        const selectedActivity = extensionActivityTypes.find((a: any) => a.activityId === value);
+        const selectedActivity = extensionActivities.find((a: any) => a.extensionActivityId === value);
         setFormData((prev: any) => ({
             ...prev,
             extensionActivityTypeId: value as number,
-            extensionActivityType: selectedActivity?.activityName || '',
+            extensionActivityType: selectedActivity?.extensionName || '',
         }));
-    }, [extensionActivityTypes, setFormData]);
+    }, [extensionActivities, setFormData]);
 
     const handleOtherExtensionActivityTypeChange = useCallback((value: string | number) => {
-        const selectedActivity = otherExtensionActivityTypes.find((a: any) => a.activityTypeId === value);
+        const selectedActivity = otherExtensionActivities.find((a: any) => a.otherExtensionActivityId === value);
         setFormData((prev: any) => ({
             ...prev,
             otherExtensionActivityTypeId: value as number,
-            extensionActivityType: selectedActivity?.activityName || '',
+            extensionActivityType: selectedActivity?.otherExtensionName || '',
         }));
-    }, [otherExtensionActivityTypes, setFormData]);
+    }, [otherExtensionActivities, setFormData]);
 
     const handleImportantDayChange = useCallback((value: string | number) => {
         const selectedDay = importantDays.find((d: any) => d.importantDayId === value);
@@ -487,14 +524,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             isLoading={isLoadingKvkStaff}
                         />
 
-                        {/* Nature of Extension Activity - From Extension Activity Type Master */}
+                        {/* Nature of Extension Activity - From Extension Activity Master */}
                         <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
                             value={formData.extensionActivityTypeId || formData.activityId || formData.extensionActivityType || ''}
                             onChange={handleExtensionActivityTypeChange}
-                            options={createMasterDataOptions(extensionActivityTypes, 'activityId', 'activityName')}
-                            emptyMessage="No extension activity types available"
+                            options={createMasterDataOptions(extensionActivities, 'extensionActivityId', 'extensionName')}
+                            emptyMessage="No extension activities available"
                         />
 
                         <FormInput
@@ -572,14 +609,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             isLoading={isLoadingKvkStaff}
                         />
 
-                        {/* Nature of Extension Activity - From Other Extension Activity Type Master */}
+                        {/* Nature of Extension Activity - From Other Extension Activity Master */}
                         <MasterDataDropdown
                             label="Nature of Extension Activity"
                             required
                             value={formData.otherExtensionActivityTypeId || formData.activityTypeId || formData.extensionActivityType || ''}
                             onChange={handleOtherExtensionActivityTypeChange}
-                            options={createMasterDataOptions(otherExtensionActivityTypes, 'activityTypeId', 'activityName')}
-                            emptyMessage="No other extension activity types available"
+                            options={createMasterDataOptions(otherExtensionActivities, 'otherExtensionActivityId', 'otherExtensionName')}
+                            emptyMessage="No other extension activities available"
                         />
 
                         <FormInput

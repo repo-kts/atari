@@ -241,16 +241,6 @@ function _mapResponse(r) {
         perUnitCost: r.perUnitCostOfProduction,
         saleValue: r.saleValueOfProduce,
         employmentGenerated: r.employmentGeneratedMandays,
-
-        // Frontend friendly table labels (matching routeConfig.ts)
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Enterprise': r.enterprise ? r.enterprise.enterpriseName : undefined,
-        'Viable Units': r.viableUnits,
-        'Closed Units': r.closedUnits,
-        'Start Date': r.startDate ? r.startDate.toISOString().split('T')[0] : '',
-        'End Date': r.endDate ? r.endDate.toISOString().split('T')[0] : '',
-        'No. of Groups Formed': r.groupsFormed,
-        'No. of Groups Active': r.groupsActive
     };
 }
 

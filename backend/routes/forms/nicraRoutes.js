@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const nicraService = require('../../services/forms/nicraService');
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateToken, requireRole } = require('../../middleware/auth');
 
 // All routes require authentication
 router.use(authenticateToken);
 
+// Role groups
+const kvkRoles = ['kvk_admin', 'kvk_user'];
+const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+
 // Masters
-router.get('/masters/categories', async (req, res) => {
+router.get('/masters/categories', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getCategories();
         res.json(data);
@@ -16,7 +20,7 @@ router.get('/masters/categories', async (req, res) => {
     }
 });
 
-router.get('/masters/subcategories', async (req, res) => {
+router.get('/masters/subcategories', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getSubCategories(req.query.categoryId);
         res.json(data);
@@ -26,7 +30,7 @@ router.get('/masters/subcategories', async (req, res) => {
 });
 
 // Basic Info
-router.get('/basic', async (req, res) => {
+router.get('/basic', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllBasicInfo(req.query, req.user);
         res.json(data);
@@ -35,7 +39,7 @@ router.get('/basic', async (req, res) => {
     }
 });
 
-router.post('/basic', async (req, res) => {
+router.post('/basic', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createBasicInfo(req.body, req.user);
         res.status(201).json(data);
@@ -52,10 +56,10 @@ const updateBasicInfo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/basic/:id', updateBasicInfo);
-router.patch('/basic/:id', updateBasicInfo);
+router.put('/basic/:id', requireRole([...kvkRoles, 'super_admin']), updateBasicInfo);
+router.patch('/basic/:id', requireRole([...kvkRoles, 'super_admin']), updateBasicInfo);
 
-router.delete('/basic/:id', async (req, res) => {
+router.delete('/basic/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteBasicInfo(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -65,7 +69,7 @@ router.delete('/basic/:id', async (req, res) => {
 });
 
 // Training
-router.get('/training', async (req, res) => {
+router.get('/training', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllTraining(req.query, req.user);
         res.json(data);
@@ -74,7 +78,7 @@ router.get('/training', async (req, res) => {
     }
 });
 
-router.post('/training', async (req, res) => {
+router.post('/training', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createTraining(req.body, req.user);
         res.status(201).json(data);
@@ -91,10 +95,10 @@ const updateTraining = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/training/:id', updateTraining);
-router.patch('/training/:id', updateTraining);
+router.put('/training/:id', requireRole([...kvkRoles, 'super_admin']), updateTraining);
+router.patch('/training/:id', requireRole([...kvkRoles, 'super_admin']), updateTraining);
 
-router.delete('/training/:id', async (req, res) => {
+router.delete('/training/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteTraining(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -104,7 +108,7 @@ router.delete('/training/:id', async (req, res) => {
 });
 
 // Extension Activity
-router.get('/extension', async (req, res) => {
+router.get('/extension', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllExtensionActivity(req.query, req.user);
         res.json(data);
@@ -113,7 +117,7 @@ router.get('/extension', async (req, res) => {
     }
 });
 
-router.post('/extension', async (req, res) => {
+router.post('/extension', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createExtensionActivity(req.body, req.user);
         res.status(201).json(data);
@@ -130,10 +134,10 @@ const updateExtension = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/extension/:id', updateExtension);
-router.patch('/extension/:id', updateExtension);
+router.put('/extension/:id', requireRole([...kvkRoles, 'super_admin']), updateExtension);
+router.patch('/extension/:id', requireRole([...kvkRoles, 'super_admin']), updateExtension);
 
-router.delete('/extension/:id', async (req, res) => {
+router.delete('/extension/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteExtensionActivity(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -143,7 +147,7 @@ router.delete('/extension/:id', async (req, res) => {
 });
 
 // Details
-router.get('/details', async (req, res) => {
+router.get('/details', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllDetails(req.query, req.user);
         res.json(data);
@@ -152,7 +156,7 @@ router.get('/details', async (req, res) => {
     }
 });
 
-router.post('/details', async (req, res) => {
+router.post('/details', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createDetails(req.body, req.user);
         res.status(201).json(data);
@@ -169,10 +173,10 @@ const updateDetails = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/details/:id', updateDetails);
-router.patch('/details/:id', updateDetails);
+router.put('/details/:id', requireRole([...kvkRoles, 'super_admin']), updateDetails);
+router.patch('/details/:id', requireRole([...kvkRoles, 'super_admin']), updateDetails);
 
-router.delete('/details/:id', async (req, res) => {
+router.delete('/details/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteDetails(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -182,7 +186,7 @@ router.delete('/details/:id', async (req, res) => {
 });
 
 // Intervention
-router.get('/intervention', async (req, res) => {
+router.get('/intervention', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllIntervention(req.query, req.user);
         res.json(data);
@@ -191,7 +195,7 @@ router.get('/intervention', async (req, res) => {
     }
 });
 
-router.post('/intervention', async (req, res) => {
+router.post('/intervention', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createIntervention(req.body, req.user);
         res.status(201).json(data);
@@ -208,10 +212,10 @@ const updateIntervention = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/intervention/:id', updateIntervention);
-router.patch('/intervention/:id', updateIntervention);
+router.put('/intervention/:id', requireRole([...kvkRoles, 'super_admin']), updateIntervention);
+router.patch('/intervention/:id', requireRole([...kvkRoles, 'super_admin']), updateIntervention);
 
-router.delete('/intervention/:id', async (req, res) => {
+router.delete('/intervention/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteIntervention(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -221,7 +225,7 @@ router.delete('/intervention/:id', async (req, res) => {
 });
 
 // Revenue
-router.get('/revenue', async (req, res) => {
+router.get('/revenue', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllRevenue(req.query, req.user);
         res.json(data);
@@ -230,7 +234,7 @@ router.get('/revenue', async (req, res) => {
     }
 });
 
-router.post('/revenue', async (req, res) => {
+router.post('/revenue', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createRevenue(req.body, req.user);
         res.status(201).json(data);
@@ -247,10 +251,10 @@ const updateRevenue = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/revenue/:id', updateRevenue);
-router.patch('/revenue/:id', updateRevenue);
+router.put('/revenue/:id', requireRole([...kvkRoles, 'super_admin']), updateRevenue);
+router.patch('/revenue/:id', requireRole([...kvkRoles, 'super_admin']), updateRevenue);
 
-router.delete('/revenue/:id', async (req, res) => {
+router.delete('/revenue/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteRevenue(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -260,7 +264,7 @@ router.delete('/revenue/:id', async (req, res) => {
 });
 
 // Farm Implement (Custom Hiring)
-router.get('/farm-implement', async (req, res) => {
+router.get('/farm-implement', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllFarmImplement(req.query, req.user);
         res.json(data);
@@ -269,7 +273,7 @@ router.get('/farm-implement', async (req, res) => {
     }
 });
 
-router.post('/farm-implement', async (req, res) => {
+router.post('/farm-implement', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createFarmImplement(req.body, req.user);
         res.status(201).json(data);
@@ -286,10 +290,10 @@ const updateFarmImplement = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/farm-implement/:id', updateFarmImplement);
-router.patch('/farm-implement/:id', updateFarmImplement);
+router.put('/farm-implement/:id', requireRole([...kvkRoles, 'super_admin']), updateFarmImplement);
+router.patch('/farm-implement/:id', requireRole([...kvkRoles, 'super_admin']), updateFarmImplement);
 
-router.delete('/farm-implement/:id', async (req, res) => {
+router.delete('/farm-implement/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteFarmImplement(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -299,7 +303,7 @@ router.delete('/farm-implement/:id', async (req, res) => {
 });
 
 // VCRMC
-router.get('/vcrmc', async (req, res) => {
+router.get('/vcrmc', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllVcrmc(req.query, req.user);
         res.json(data);
@@ -308,7 +312,7 @@ router.get('/vcrmc', async (req, res) => {
     }
 });
 
-router.post('/vcrmc', async (req, res) => {
+router.post('/vcrmc', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createVcrmc(req.body, req.user);
         res.status(201).json(data);
@@ -325,10 +329,10 @@ const updateVcrmc = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/vcrmc/:id', updateVcrmc);
-router.patch('/vcrmc/:id', updateVcrmc);
+router.put('/vcrmc/:id', requireRole([...kvkRoles, 'super_admin']), updateVcrmc);
+router.patch('/vcrmc/:id', requireRole([...kvkRoles, 'super_admin']), updateVcrmc);
 
-router.delete('/vcrmc/:id', async (req, res) => {
+router.delete('/vcrmc/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteVcrmc(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -338,7 +342,7 @@ router.delete('/vcrmc/:id', async (req, res) => {
 });
 
 // Soil Health
-router.get('/soil-health', async (req, res) => {
+router.get('/soil-health', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllSoilHealth(req.query, req.user);
         res.json(data);
@@ -347,7 +351,7 @@ router.get('/soil-health', async (req, res) => {
     }
 });
 
-router.post('/soil-health', async (req, res) => {
+router.post('/soil-health', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createSoilHealth(req.body, req.user);
         res.status(201).json(data);
@@ -364,10 +368,10 @@ const updateSoilHealth = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/soil-health/:id', updateSoilHealth);
-router.patch('/soil-health/:id', updateSoilHealth);
+router.put('/soil-health/:id', requireRole([...kvkRoles, 'super_admin']), updateSoilHealth);
+router.patch('/soil-health/:id', requireRole([...kvkRoles, 'super_admin']), updateSoilHealth);
 
-router.delete('/soil-health/:id', async (req, res) => {
+router.delete('/soil-health/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteSoilHealth(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -377,7 +381,7 @@ router.delete('/soil-health/:id', async (req, res) => {
 });
 
 // Convergence
-router.get('/convergence', async (req, res) => {
+router.get('/convergence', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllConvergence(req.query, req.user);
         res.json(data);
@@ -386,7 +390,7 @@ router.get('/convergence', async (req, res) => {
     }
 });
 
-router.post('/convergence', async (req, res) => {
+router.post('/convergence', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createConvergence(req.body, req.user);
         res.status(201).json(data);
@@ -403,10 +407,10 @@ const updateConvergence = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/convergence/:id', updateConvergence);
-router.patch('/convergence/:id', updateConvergence);
+router.put('/convergence/:id', requireRole([...kvkRoles, 'super_admin']), updateConvergence);
+router.patch('/convergence/:id', requireRole([...kvkRoles, 'super_admin']), updateConvergence);
 
-router.delete('/convergence/:id', async (req, res) => {
+router.delete('/convergence/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteConvergence(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -416,7 +420,7 @@ router.delete('/convergence/:id', async (req, res) => {
 });
 
 // Dignitaries
-router.get('/dignitaries', async (req, res) => {
+router.get('/dignitaries', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllDignitaries(req.query, req.user);
         res.json(data);
@@ -425,7 +429,7 @@ router.get('/dignitaries', async (req, res) => {
     }
 });
 
-router.post('/dignitaries', async (req, res) => {
+router.post('/dignitaries', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createDignitaries(req.body, req.user);
         res.status(201).json(data);
@@ -442,10 +446,10 @@ const updateDignitaries = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/dignitaries/:id', updateDignitaries);
-router.patch('/dignitaries/:id', updateDignitaries);
+router.put('/dignitaries/:id', requireRole([...kvkRoles, 'super_admin']), updateDignitaries);
+router.patch('/dignitaries/:id', requireRole([...kvkRoles, 'super_admin']), updateDignitaries);
 
-router.delete('/dignitaries/:id', async (req, res) => {
+router.delete('/dignitaries/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deleteDignitaries(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -455,7 +459,7 @@ router.delete('/dignitaries/:id', async (req, res) => {
 });
 
 // PI CO-PI
-router.get('/pi-copi', async (req, res) => {
+router.get('/pi-copi', requireRole(allRoles), async (req, res) => {
     try {
         const data = await nicraService.getAllPiCopi(req.query, req.user);
         res.json(data);
@@ -464,7 +468,7 @@ router.get('/pi-copi', async (req, res) => {
     }
 });
 
-router.post('/pi-copi', async (req, res) => {
+router.post('/pi-copi', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await nicraService.createPiCopi(req.body, req.user);
         res.status(201).json(data);
@@ -481,10 +485,10 @@ const updatePiCopi = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/pi-copi/:id', updatePiCopi);
-router.patch('/pi-copi/:id', updatePiCopi);
+router.put('/pi-copi/:id', requireRole([...kvkRoles, 'super_admin']), updatePiCopi);
+router.patch('/pi-copi/:id', requireRole([...kvkRoles, 'super_admin']), updatePiCopi);
 
-router.delete('/pi-copi/:id', async (req, res) => {
+router.delete('/pi-copi/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await nicraService.deletePiCopi(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });

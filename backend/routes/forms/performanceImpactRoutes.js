@@ -3,13 +3,17 @@ const router = express.Router();
 const kvkImpactActivityRepository = require('../../repositories/forms/kvkImpactActivityRepository');
 const entrepreneurshipRepository = require('../../repositories/forms/entrepreneurshipRepository');
 const successStoryRepository = require('../../repositories/forms/successStoryRepository');
-const { authenticateToken } = require('../../middleware/auth');
+const { authenticateToken, requireRole } = require('../../middleware/auth');
 
 // All routes require authentication
 router.use(authenticateToken);
 
+// Role groups
+const kvkRoles = ['kvk_admin', 'kvk_user'];
+const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'district_admin', 'org_admin'];
+
 // 1. Impact of KVK Activities
-router.get('/kvk-activities', async (req, res) => {
+router.get('/kvk-activities', requireRole(allRoles), async (req, res) => {
     try {
         const data = await kvkImpactActivityRepository.findAll(req.query, req.user);
         res.json(data);
@@ -18,7 +22,7 @@ router.get('/kvk-activities', async (req, res) => {
     }
 });
 
-router.post('/kvk-activities', async (req, res) => {
+router.post('/kvk-activities', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await kvkImpactActivityRepository.create(req.body, req.user);
         res.status(201).json(data);
@@ -35,10 +39,10 @@ const updateKvkActivities = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/kvk-activities/:id', updateKvkActivities);
-router.patch('/kvk-activities/:id', updateKvkActivities);
+router.put('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), updateKvkActivities);
+router.patch('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), updateKvkActivities);
 
-router.delete('/kvk-activities/:id', async (req, res) => {
+router.delete('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await kvkImpactActivityRepository.delete(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -48,7 +52,7 @@ router.delete('/kvk-activities/:id', async (req, res) => {
 });
 
 // 2. Entrepreneurship
-router.get('/entrepreneurship', async (req, res) => {
+router.get('/entrepreneurship', requireRole(allRoles), async (req, res) => {
     try {
         const data = await entrepreneurshipRepository.findAll(req.query, req.user);
         res.json(data);
@@ -57,7 +61,7 @@ router.get('/entrepreneurship', async (req, res) => {
     }
 });
 
-router.post('/entrepreneurship', async (req, res) => {
+router.post('/entrepreneurship', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await entrepreneurshipRepository.create(req.body, req.user);
         res.status(201).json(data);
@@ -74,10 +78,10 @@ const updateEntrepreneurship = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/entrepreneurship/:id', updateEntrepreneurship);
-router.patch('/entrepreneurship/:id', updateEntrepreneurship);
+router.put('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), updateEntrepreneurship);
+router.patch('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), updateEntrepreneurship);
 
-router.delete('/entrepreneurship/:id', async (req, res) => {
+router.delete('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await entrepreneurshipRepository.delete(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });
@@ -87,7 +91,7 @@ router.delete('/entrepreneurship/:id', async (req, res) => {
 });
 
 // 3. Success Stories
-router.get('/success-stories', async (req, res) => {
+router.get('/success-stories', requireRole(allRoles), async (req, res) => {
     try {
         const data = await successStoryRepository.findAll(req.query, req.user);
         res.json(data);
@@ -96,7 +100,7 @@ router.get('/success-stories', async (req, res) => {
     }
 });
 
-router.post('/success-stories', async (req, res) => {
+router.post('/success-stories', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         const data = await successStoryRepository.create(req.body, req.user);
         res.status(201).json(data);
@@ -113,10 +117,10 @@ const updateSuccessStories = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-router.put('/success-stories/:id', updateSuccessStories);
-router.patch('/success-stories/:id', updateSuccessStories);
+router.put('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), updateSuccessStories);
+router.patch('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), updateSuccessStories);
 
-router.delete('/success-stories/:id', async (req, res) => {
+router.delete('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
     try {
         await successStoryRepository.delete(req.params.id, req.user);
         res.json({ message: 'Deleted successfully' });

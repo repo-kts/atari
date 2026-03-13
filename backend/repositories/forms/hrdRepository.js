@@ -86,7 +86,6 @@ const _mapResponse = (r) => {
         startDate: r.startDate,
         endDate: r.endDate,
         organizerVenue: r.organizerVenue,
-        // Display fields
         kvkName: r.kvk?.kvkName,
         staff: r.staff?.staffName,
         staffName: r.staff?.staffName,
@@ -96,13 +95,6 @@ const _mapResponse = (r) => {
         endDate: r.endDate,
         organizer: r.organizerVenue,
         organizerVenue: r.organizerVenue,
-        // Backend compatibility
-        'KVK Name': r.kvk?.kvkName,
-        'Staff': r.staff?.staffName,
-        'Course': r.courseName,
-        'Start Date': r.startDate,
-        'End Date': r.endDate,
-        'Organizer': r.organizerVenue,
     };
 };
 

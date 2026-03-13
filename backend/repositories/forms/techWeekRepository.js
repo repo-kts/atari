@@ -183,7 +183,7 @@ const techWeekRepository = {
             sc_m: farmersScM,
             sc_f: farmersScF,
             st_m: farmersStM,
-            stF: farmersStF,
+            st_f: farmersStF,
             reportingYear: reportingYear,
             kvkName: a.kvk?.kvkName,
             startDate: a.startDate ? new Date(a.startDate).toISOString().split('T')[0] : '',

@@ -9,7 +9,7 @@ model KvkOtherExtensionActivity {
   endDate                  DateTime                    @map("end_date")
   createdAt                DateTime                    @default(now()) @map("created_at")
   updatedAt                DateTime                    @updatedAt @map("updated_at")
-  activityType             OtherExtensionActivityType? @relation(fields: [activityTypeId], references: [activityTypeId])
+  otherExtensionActivity   OtherExtensionActivity?     @relation(fields: [activityTypeId], references: [otherExtensionActivityId])
   fld                      KvkFldIntroduction?         @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
   kvk                      Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   staff                    KvkStaff?                   @relation(fields: [staffId], references: [kvkStaffId])

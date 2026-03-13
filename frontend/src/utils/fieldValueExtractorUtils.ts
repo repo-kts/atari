@@ -324,6 +324,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.publication) return item.publication;
             if (item.publicationItem) return item.publicationItem;
+            if (item.publicationName) return item.publicationName;
             if (item.publication?.publicationName) return item.publication.publicationName;
             return null;
         },
@@ -362,15 +363,15 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.TRAINING_AREA_NAME]: {
         extractor: (item: any) => {
-            // Handle nested object first (for master tables)
+            // Handle direct field first (for Training Area entities themselves)
+            if (item.trainingAreaName) return item.trainingAreaName;
+            // Handle nested object (for when Training Area is nested in other entities)
             if (item.trainingArea && typeof item.trainingArea === 'object') {
-                if (item.trainingArea.name) return item.trainingArea.name;
                 if (item.trainingArea.trainingAreaName) return item.trainingArea.trainingAreaName;
+                if (item.trainingArea.name) return item.trainingArea.name;
             }
             // Handle direct string value (for achievement tables)
             if (typeof item.trainingArea === 'string') return item.trainingArea;
-            // Handle direct field
-            if (item.trainingAreaName) return item.trainingAreaName;
             return null;
         },
         priority: 5,
@@ -467,8 +468,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             if (item.trialOnForm) return item.trialOnForm;
             if (item.title) return item.title; // OFT uses 'title' field
-            if (item['Trail on form']) return item['Trail on form']; // Note: typo in backend
-            if (item['Trial On Form']) return item['Trial On Form'];
             return null;
         },
         priority: 5,
@@ -647,12 +646,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.CATEGORY]: {
         extractor: (item: any) => {
-            if (item.productCategory) return item.productCategory.productCategoryName;
-            if (item.staffCategory?.categoryName) return item.staffCategory.categoryName;
-            // Fallback: Check direct field (if backend includes it separately)
-            if (item.categoryName) return item.categoryName;
-            // Legacy: Check old field name
+            // Production Supply: backend returns category directly
             if (item.category) return item.category;
+            // Product Category relation
+            if (item.productCategory?.productCategoryName) return item.productCategory.productCategoryName;
+            // Staff Category relation
+            if (item.staffCategory?.categoryName) return item.staffCategory.categoryName;
+            // Fallback: Check direct field name
+            if (item.categoryName) return item.categoryName;
             return null;
         },
         priority: 7,
@@ -714,6 +715,62 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
+    [FIELD_NAMES.NOT_YET_STARTED]: {
+        extractor: (item: any) => {
+            if (item.notYetStarted === true || item.notYetStarted === false) {
+                return item.notYetStarted ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.COMPLETED_PLINTH_LEVEL]: {
+        extractor: (item: any) => {
+            if (item.completedPlinthLevel === true || item.completedPlinthLevel === false) {
+                return item.completedPlinthLevel ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.COMPLETED_LINTEL_LEVEL]: {
+        extractor: (item: any) => {
+            if (item.completedLintelLevel === true || item.completedLintelLevel === false) {
+                return item.completedLintelLevel ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.COMPLETED_ROOF_LEVEL]: {
+        extractor: (item: any) => {
+            if (item.completedRoofLevel === true || item.completedRoofLevel === false) {
+                return item.completedRoofLevel ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.TOTALLY_COMPLETED]: {
+        extractor: (item: any) => {
+            if (item.totallyCompleted === true || item.totallyCompleted === false) {
+                return item.totallyCompleted ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.PLINTH_AREA_SQ_M]: {
+        extractor: (item: any) => {
+            if (item.plinthAreaSqM !== null && item.plinthAreaSqM !== undefined) {
+                return String(item.plinthAreaSqM);
+            }
+            return null;
+        },
+    },
+    [FIELD_NAMES.UNDER_USE]: {
+        extractor: (item: any) => {
+            if (item.underUse === true || item.underUse === false) {
+                return item.underUse ? 'Yes' : 'No';
+            }
+            return null;
+        },
+    },
     [FIELD_NAMES.SOURCE_OF_FUNDING]: {
         extractor: (item: any) => {
             if (item.sourceOfFunding) return item.sourceOfFunding;
@@ -753,10 +810,17 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     // Note: 'Crop' extractor is defined below using FIELD_NAMES.CROP constant
     [FIELD_NAMES.VARIETY]: {
         extractor: (item: any) => {
-            if (item.varietyName) return item.variety;
+            // Production Supply: backend returns variety directly
+            if (item.variety) return item.variety;
+            // Species/Breed/Variety field
             if (item.speciesName) return item.speciesName;
-            return null
-        }
+            // Species Breed Variety field
+            if (item.speciesBreedVariety) return item.speciesBreedVariety;
+            // Variety name field
+            if (item.varietyName) return item.varietyName;
+            return null;
+        },
+        priority: 7,
     },
     'Name of Variety': {
         extractor: (item: any) => item.varietyName || null,
@@ -849,8 +913,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             if (item.nameOfTechnologyDemonstrated) return item.nameOfTechnologyDemonstrated;
             if (item.fldName) return item.fldName;
             if (item.technologyName) return item.technologyName;
-            if (item['Name of Technnology Demonstrated']) return item['Name of Technnology Demonstrated']; // Note: typo in backend
-            if (item['Name Of Technology Demonstrated']) return item['Name Of Technology Demonstrated'];
             return null;
         },
         priority: 5,
@@ -974,15 +1036,15 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.REMARK]: {
         extractor: (item: any) => item.remark || item.remarks || item['Remark'] || null,
     },
-    // FLD Technical Feedback Fields - using FIELD_NAMES constants (camelCase first, then fallback)
+    // FLD Technical Feedback Fields - using FIELD_NAMES constants (camelCase only - table labels removed from backend)
     [FIELD_NAMES.FLD]: {
-        extractor: (item: any) => item.fldName || (item.fld?.fldName) || item.fld || item['FLD'] || null,
+        extractor: (item: any) => item.fldName || (item.fld?.fldName) || item.fld || null,
     },
     [FIELD_NAMES.CROP]: {
-        extractor: (item: any) => item.cropName || (item.crop?.cropName) || item.crop || item['Crop'] || null,
+        extractor: (item: any) => item.cropName || (item.crop?.cropName) || item.crop || null,
     },
     [FIELD_NAMES.FEEDBACK]: {
-        extractor: (item: any) => item.feedback || item.feedBack || item['Feedback'] || null,
+        extractor: (item: any) => item.feedback || item.feedBack || null,
     },
     // NARI fields - using camelCase
     [FIELD_NAMES.GARDENS]: {
@@ -1020,7 +1082,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     Courses: {
         extractor: (item: any) => item.noOfCourses !== undefined ? String(item.noOfCourses) : null,
     },
-    // Soil and Water Testing - display name fallbacks (for backward compatibility)
+    // KVK Name extractors (using camelCase fields only - table labels removed from backend)
     'KVK NAME': {
         extractor: (item: any) => item.kvkName || item.kvk?.kvkName || null,
         priority: 7,
@@ -1911,30 +1973,30 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
 
-    // Agri-Drone Fields
+    // Agri-Drone Fields (using camelCase only - table labels removed from backend)
     [FIELD_NAMES.PROJECT_IMPLEMENTING_CENTRE_NAME]: {
-        extractor: (item: any) => item.projectImplementingCentre || item['Project Implementing centre name'] || null,
+        extractor: (item: any) => item.projectImplementingCentre || null,
         priority: 5,
     },
     [FIELD_NAMES.COMPANY_OF_DRONE]: {
-        extractor: (item: any) => item.droneCompany || item['Company of Drone'] || null,
+        extractor: (item: any) => item.droneCompany || null,
         priority: 5,
     },
     [FIELD_NAMES.MODEL_OF_DRONE]: {
-        extractor: (item: any) => item.droneModel || item['Model of Drone'] || null,
+        extractor: (item: any) => item.droneModel || null,
         priority: 5,
     },
     [FIELD_NAMES.NO_OF_AGRI_DRONES_SANCTIONED]: {
-        extractor: (item: any) => item.dronesSanctioned !== undefined ? String(item.dronesSanctioned) : (item['No. of Agri Drones Sanctioned'] !== undefined ? String(item['No. of Agri Drones Sanctioned']) : null),
+        extractor: (item: any) => item.dronesSanctioned !== undefined ? String(item.dronesSanctioned) : null,
         priority: 5,
     },
     [FIELD_NAMES.NO_OF_AGRI_DRONES_PURCHASED]: {
-        extractor: (item: any) => item.dronesPurchased !== undefined ? String(item.dronesPurchased) : (item['No. of Agri Drones Purchased'] !== undefined ? String(item['No. of Agri Drones Purchased']) : null),
+        extractor: (item: any) => item.dronesPurchased !== undefined ? String(item.dronesPurchased) : null,
         priority: 5,
     },
     [FIELD_NAMES.COST_SANCTIONED]: {
         extractor: (item: any) => {
-            const val = item.amountSanctioned || item['Cost Sanctioned'];
+            const val = item.amountSanctioned;
             return val !== undefined && val !== null ? `₹${val.toLocaleString('en-IN')}` : null;
         },
         priority: 5,

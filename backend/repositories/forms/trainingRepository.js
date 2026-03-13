@@ -231,15 +231,6 @@ const _mapResponse = async (r) => {
         trainingDiscipline: r.trainingArea ? r.trainingArea.name : undefined,
         thematicArea: r.thematicArea ? r.thematicArea.name : undefined,
         noOfParticipants: totalParticipants,
-
-        // Frontend-friendly aliases (Legacy)
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
-        'End Date': r.endDate ? new Date(r.endDate).toLocaleDateString('en-GB') : undefined,
-        'Title of Training': r.titleOfTraining,
-        'Venue': r.venue,
-        'No. of Participants': totalParticipants,
     };
 };
 

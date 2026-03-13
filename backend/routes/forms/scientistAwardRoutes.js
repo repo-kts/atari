@@ -32,6 +32,13 @@ router.get('/', requireRole(allRoles), scientistAwardController.getAllScientistA
 router.get('/:id', requireRole(allRoles), scientistAwardController.getScientistAwardById);
 
 /**
+ * @route   PUT /api/forms/achievements/scientist-awards/:id
+ * @desc    Update Scientist Award
+ * @access  Owner (KVK) or Admin
+ */
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), scientistAwardController.updateScientistAward);
+
+/**
  * @route   PATCH /api/forms/achievements/scientist-awards/:id
  * @desc    Update Scientist Award
  * @access  Owner (KVK) or Admin

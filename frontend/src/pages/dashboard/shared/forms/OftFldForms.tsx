@@ -76,7 +76,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // FldActivity list for extension training - using the proper hook
     const { data: activityList = [] } = useFldActivities()
-
+ 
     // OFT Thematic Areas - depends on subjectId
     const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
         formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
@@ -562,15 +562,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
+                            <FormInput label="General_F" type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
+                            <FormInput label="OBC_M" type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
+                            <FormInput label="OBC_F" type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
 
-                            <FormInput label="SC_M" type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
+                            <FormInput label="SC_F" type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
+                            <FormInput label="ST_M" type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
+                            <FormInput label="ST_F" type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
                         </div>
                     </FormSection>
 
@@ -592,6 +592,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                         value={formData[`tech_${tech}`] || ''}
                                         onChange={(e) => setFormData({ ...formData, [`tech_${tech}`]: e.target.value })}
                                         className="mt-0"
+                                        required
                                     />
                                 </React.Fragment>
                             ))}

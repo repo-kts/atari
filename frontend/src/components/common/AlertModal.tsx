@@ -63,17 +63,21 @@ export const AlertModal: React.FC<AlertModalProps> = ({
     const config = variantConfig[variant]
     const Icon = config.icon
 
+    // Determine modal size based on message length
+    const messageLength = message?.length || 0
+    const modalSize = messageLength > 200 ? 'lg' : messageLength > 100 ? 'md' : 'sm'
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size="sm">
+        <Modal isOpen={isOpen} onClose={onClose} size={modalSize}>
             <div className="space-y-4">
                 {/* Icon and Content */}
                 <div className={`flex items-start gap-4 p-4 rounded-xl ${config.bgColor} border ${config.borderColor}`}>
                     <Icon className={`w-6 h-6 ${config.iconColor} shrink-0 mt-0.5`} />
-                    <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-[#212121] mb-1">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-[#212121] mb-1 break-words">
                             {title}
                         </h3>
-                        <p className="text-sm text-[#757575] whitespace-pre-line">
+                        <p className="text-sm text-[#757575] whitespace-pre-line break-words overflow-wrap-anywhere">
                             {message}
                         </p>
                     </div>

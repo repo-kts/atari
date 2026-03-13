@@ -164,18 +164,15 @@ const agriDroneRepository = {
         return {
             ...r,
             id: r.agriDroneId,
-            'KVK Name': r.kvk?.kvkName,
-            'Year': r.reportingYear ? r.reportingYear.yearName : r.reportingYearId,
             reportingYearId: r.reportingYearId,
             yearId: r.reportingYearId, // Frontend alias
             reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
-            'Project Implementing centre name': r.projectImplementingCentre,
-            'Company of Drone': r.droneCompany,
-            'Model of Drone': r.droneModel,
-            'No. of Agri Drones Sanctioned': r.dronesSanctioned,
-            'No. of Agri Drones Purchased': r.dronesPurchased,
-            'Cost Sanctioned': r.amountSanctioned,
-            // Demonstration Fields
+            projectImplementingCentre: r.projectImplementingCentre,
+            droneCompany: r.droneCompany,
+            droneModel: r.droneModel,
+            dronesSanctioned: r.dronesSanctioned,
+            dronesPurchased: r.dronesPurchased,
+            amountSanctioned: r.amountSanctioned,
             pilotName: r.pilotName,
             pilotContact: r.pilotContact,
             targetAreaHa: r.targetAreaHa,

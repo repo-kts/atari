@@ -15,6 +15,7 @@ const allRoles = [...kvkRoles, ...adminRoles];
 router.get('/', requireRole(allRoles), kvkAwardController.getAllKvkAwards);
 router.get('/:id', requireRole(allRoles), kvkAwardController.getKvkAwardById);
 router.post('/', requireRole([...kvkRoles, 'super_admin']), kvkAwardController.createKvkAward);
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), kvkAwardController.updateKvkAward);
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), kvkAwardController.updateKvkAward);
 router.delete('/:id', requireRole([...kvkRoles, 'super_admin']), kvkAwardController.deleteKvkAward);
 

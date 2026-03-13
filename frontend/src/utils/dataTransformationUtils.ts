@@ -50,10 +50,10 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
         },
     },
     [ENTITY_TYPES.TRAINING_AREAS]: {
-        excludeFields: ['trainingType'],
+        excludeFields: ['trainingType', 'trainingAreaId', 'trainingThematicAreaId', 'kvkId'],
     },
     [ENTITY_TYPES.TRAINING_THEMATIC_AREAS]: {
-        excludeFields: ['trainingArea'],
+        excludeFields: ['trainingArea', 'kvkId'],
     },
     [ENTITY_TYPES.PRODUCT_TYPES]: {
         excludeFields: ['productCategory'],
@@ -205,6 +205,24 @@ export function applyEntityTransformation(
 }
 
 /**
+ * Removes empty string ID fields from data
+ * Empty strings for ID fields should not be sent to the backend
+ */
+export function removeEmptyIdFields(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const cleaned = { ...data };
+    Object.keys(cleaned).forEach((key) => {
+        // Remove fields that end with 'Id' and have empty string values
+        if (key.endsWith('Id') && cleaned[key] === '') {
+            delete cleaned[key];
+        }
+    });
+
+    return cleaned;
+}
+
+/**
  * Sanitizes optional enum fields (converts empty strings to null)
  * Prisma requires null for optional enum fields, not empty strings
  */
@@ -316,6 +334,7 @@ export function transformDataForCreate(
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }
 
@@ -332,5 +351,6 @@ export function transformDataForUpdate(
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }

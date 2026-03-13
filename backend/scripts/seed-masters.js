@@ -219,12 +219,36 @@ async function seedExtensionMasters() {
     });
   }
 
+  // Seed ExtensionActivity master (used by KvkExtensionActivity)
+  for (const extensionName of EXTENSION_ACTIVITY_TYPES) {
+    const existing = await prisma.extensionActivity.findFirst({
+      where: { extensionName },
+    });
+    if (!existing) {
+      await prisma.extensionActivity.create({
+        data: { extensionName },
+      });
+    }
+  }
+
   for (const activityName of OTHER_EXTENSION_ACTIVITY_TYPES) {
     await prisma.otherExtensionActivityType.upsert({
       where: { activityName },
       update: {},
       create: { activityName },
     });
+  }
+
+  // Seed OtherExtensionActivity master (used by KvkOtherExtensionActivity)
+  for (const otherExtensionName of OTHER_EXTENSION_ACTIVITY_TYPES) {
+    const existing = await prisma.otherExtensionActivity.findFirst({
+      where: { otherExtensionName },
+    });
+    if (!existing) {
+      await prisma.otherExtensionActivity.create({
+        data: { otherExtensionName },
+      });
+    }
   }
 
   for (const dayName of IMPORTANT_DAYS) {

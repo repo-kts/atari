@@ -186,14 +186,6 @@ function _mapResponse(r) {
         extensionActivitiesOrganized: r.extensionActivity ? r.extensionActivity.extensionName : undefined,
         activityDate: r.activityDate ? new Date(r.activityDate).toISOString().split('T')[0] : undefined,
         noOfFarmersAttended: totalFarmers,
-
-        // Frontend friendly aliases (Legacy)
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Season': r.season ? r.season.seasonName : undefined,
-        'Extension Activities Organized': r.extensionActivity ? r.extensionActivity.extensionName : undefined,
-        'Date': r.activityDate ? new Date(r.activityDate).toLocaleDateString('en-GB') : undefined,
-        'Place of Activity': r.placeOfActivity,
-        'No. of Farmers attended': totalFarmers
     };
 }
 

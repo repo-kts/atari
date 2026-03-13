@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
+const { mapCommonRelations } = require('../../utils/responseMapper.js');
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
@@ -244,18 +245,20 @@ function _mapResponse(r) {
         return item || { budgetReceived: 0, budgetUtilized: 0 };
     };
 
+    // Map common relations using utility function
+    const relations = mapCommonRelations(r, {
+        includeKvk: true,
+        includeCrop: true,
+        includeSeason: true,
+    });
+
     return {
         id: r.budgetId,
         budgetId: r.budgetId,
         kvkId: r.kvkId,
-        kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        ...relations,
         year: r.year,
         yearId: r.year,
-        seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
-        cropId: r.cropId,
-        crop: r.crop ? r.crop.cropName : undefined,
-        cropName: r.crop ? r.crop.cropName : undefined,
         overallFundAllocation: r.overallFundAllocation,
         areaAllotted: r.areaAllotted,
         areaAchieved: r.areaAchieved,
@@ -268,11 +271,6 @@ function _mapResponse(r) {
         extensionActivitiesUtilized: findItem('Extension Activities').budgetUtilized,
         publicationReceived: findItem('Publication').budgetReceived,
         publicationUtilized: findItem('Publication').budgetUtilized,
-
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Crop': r.crop ? r.crop.cropName : undefined,
-        'Season': r.season ? r.season.seasonName : undefined,
-        'Overall Fund Allocation': r.overallFundAllocation
     };
 }
 

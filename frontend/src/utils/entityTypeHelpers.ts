@@ -28,6 +28,8 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.TRAINING_TYPES,
         ENTITY_TYPES.TRAINING_AREAS,
         ENTITY_TYPES.TRAINING_THEMATIC_AREAS,
+        ENTITY_TYPES.TRAINING_CLIENTELE,
+        ENTITY_TYPES.FUNDING_SOURCE,
         ENTITY_TYPES.EXTENSION_ACTIVITIES,
         ENTITY_TYPES.OTHER_EXTENSION_ACTIVITIES,
         ENTITY_TYPES.EVENTS,
@@ -266,6 +268,7 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/achievements/celebration-days': ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS,
         '/forms/achievements/production-supply': ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
         '/forms/achievements/publication-details': ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
+        '/forms/achievements/publications': ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
         '/forms/achievements/soil-equipment': ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT,
         '/forms/achievements/soil-analysis': ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS,
         '/forms/achievements/world-soil-day': ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY,
@@ -415,14 +418,19 @@ export const getEntityTypeChecks = (entityType: ExtendedEntityType | null) => {
     }
 
     const isBasic = ENTITY_CATEGORIES.BASIC.includes(entityType);
-    const isProductionProjects = ENTITY_CATEGORIES.PRODUCTION_PROJECTS.includes(entityType);
+    const isProductionProjects = ENTITY_CATEGORIES.PRODUCTION_PROJECTS.includes(entityType) ||
+        entityType === ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY;
     const isOtherMasters = ENTITY_CATEGORIES.OTHER_MASTERS.includes(entityType);
     const isProjects = ENTITY_CATEGORIES.PROJECTS.includes(entityType);
 
     return {
         isBasic,
         isBasicMaster: isBasic, // Alias
-        isOftFld: ENTITY_CATEGORIES.OFT_FLD.includes(entityType),
+        isOftFld: ENTITY_CATEGORIES.OFT_FLD.includes(entityType) ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_OFT ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_FLD ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING ||
+            entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK,
         isTrainingExtension: ENTITY_CATEGORIES.TRAINING_EXTENSION.includes(entityType),
         isProductionProjects,
         isProductionProject: isProductionProjects, // Alias

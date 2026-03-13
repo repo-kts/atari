@@ -20,6 +20,16 @@ const soilWaterController = {
             res.status(500).json({ success: false, message: error.message });
         }
     },
+    getEquipmentById: async (req, res) => {
+        try {
+            const result = await soilWaterService.getEquipmentById(req.params.id, req.user);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('Error fetching soil equipment:', error);
+            const status = error.message === 'Equipment not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
+            res.status(status).json({ success: false, message: error.message });
+        }
+    },
     updateEquipment: async (req, res) => {
         try {
             const result = await soilWaterService.updateEquipment(req.params.id, req.body, req.user);
@@ -58,6 +68,16 @@ const soilWaterController = {
             res.status(500).json({ success: false, message: error.message });
         }
     },
+    getAnalysisById: async (req, res) => {
+        try {
+            const result = await soilWaterService.getAnalysisById(req.params.id, req.user);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('Error fetching soil analysis:', error);
+            const status = error.message === 'Analysis not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
+            res.status(status).json({ success: false, message: error.message });
+        }
+    },
     updateAnalysis: async (req, res) => {
         try {
             const result = await soilWaterService.updateAnalysis(req.params.id, req.body, req.user);
@@ -94,6 +114,16 @@ const soilWaterController = {
         } catch (error) {
             console.error('Error fetching world soil day:', error);
             res.status(500).json({ success: false, message: error.message });
+        }
+    },
+    getWorldSoilDayById: async (req, res) => {
+        try {
+            const result = await soilWaterService.getWorldSoilDayById(req.params.id, req.user);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            console.error('Error fetching world soil day:', error);
+            const status = error.message === 'Record not found' ? 404 : error.message === 'Unauthorized' ? 403 : 500;
+            res.status(status).json({ success: false, message: error.message });
         }
     },
     updateWorldSoilDay: async (req, res) => {

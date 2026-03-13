@@ -10,6 +10,7 @@ const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'dist
 router.post('/', requireRole([...kvkRoles, 'super_admin']), techWeekController.create);
 router.get('/', requireRole(allRoles), techWeekController.getAll);
 router.get('/:id', requireRole(allRoles), techWeekController.getById);
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), techWeekController.update);
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), techWeekController.update);
 router.delete('/:id', requireRole([...kvkRoles, 'super_admin']), techWeekController.delete);
 

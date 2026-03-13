@@ -1,8 +1,9 @@
 model OtherExtensionActivity {
-  otherExtensionActivityId Int      @id @default(autoincrement()) @map("other_extension_activity_id")
-  otherExtensionName       String   @map("other_extension_name")
-  createdAt                DateTime @default(now()) @map("created_at")
-  updatedAt                DateTime @updatedAt @map("updated_at")
+  otherExtensionActivityId Int                        @id @default(autoincrement()) @map("other_extension_activity_id")
+  otherExtensionName       String                     @map("other_extension_name")
+  createdAt                DateTime                   @default(now()) @map("created_at")
+  updatedAt                DateTime                   @updatedAt @map("updated_at")
+  kvkOtherExtensionActivities KvkOtherExtensionActivity[]
 
   @@index([otherExtensionActivityId])
   @@index([otherExtensionName])

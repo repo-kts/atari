@@ -8,6 +8,14 @@ const soilWaterService = {
     getAllEquipment: async (user) => {
         return await soilWaterRepository.findAllEquipment(user);
     },
+    getEquipmentById: async (id, user) => {
+        const equipment = await soilWaterRepository.findEquipmentById(id);
+        if (!equipment) throw new Error('Equipment not found');
+        if (user.kvkId && equipment.kvkId !== user.kvkId) {
+            throw new Error('Unauthorized');
+        }
+        return equipment;
+    },
     updateEquipment: async (id, data, user) => {
         const existing = await soilWaterRepository.findEquipmentById(id);
         if (!existing) throw new Error('Equipment not found');
@@ -32,6 +40,14 @@ const soilWaterService = {
     getAllAnalysis: async (user) => {
         return await soilWaterRepository.findAllAnalysis(user);
     },
+    getAnalysisById: async (id, user) => {
+        const analysis = await soilWaterRepository.findAnalysisById(id);
+        if (!analysis) throw new Error('Analysis not found');
+        if (user.kvkId && analysis.kvkId !== user.kvkId) {
+            throw new Error('Unauthorized');
+        }
+        return analysis;
+    },
     updateAnalysis: async (id, data, user) => {
         const existing = await soilWaterRepository.findAnalysisById(id);
         if (!existing) throw new Error('Analysis not found');
@@ -55,6 +71,14 @@ const soilWaterService = {
     },
     getAllWorldSoilDay: async (user) => {
         return await soilWaterRepository.findAllWorldSoilDay(user);
+    },
+    getWorldSoilDayById: async (id, user) => {
+        const record = await soilWaterRepository.findWorldSoilDayById(id);
+        if (!record) throw new Error('Record not found');
+        if (user.kvkId && record.kvkId !== user.kvkId) {
+            throw new Error('Unauthorized');
+        }
+        return record;
     },
     updateWorldSoilDay: async (id, data, user) => {
         const existing = await soilWaterRepository.findWorldSoilDayById(id);

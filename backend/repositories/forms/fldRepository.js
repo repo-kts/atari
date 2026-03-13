@@ -518,14 +518,6 @@ function _mapResponse(r) {
         stM: r.stM,
         st_f: r.stF,
         stF: r.stF,
-        // Frontend-friendly table labels
-        'Reporting Year': undefined,
-        'Start Date': r.startDate ? r.startDate.toISOString().split('T')[0] : undefined,
-        'KVK Name': r.kvk?.kvkName,
-        'Category': r.category?.categoryName,
-        'Sub-Category': r.subCategory?.subCategoryName,
-        'Name of Technnology Demonstrated': r.fldName,
-        'Ongoing/Completed': r.startDate && new Date(r.startDate) < new Date() ? 'Completed' : 'Ongoing',
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

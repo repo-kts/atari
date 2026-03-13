@@ -25,7 +25,8 @@ const FLD_EXTENSION_CONFIG = {
     includes: {
         kvk: { select: { kvkId: true, kvkName: true } },
         fld: { select: { kvkFldId: true, fldName: true } },
-        activity: { select: { activityId: true, activityName: true } },
+        // Note: activity is not included because FldExtension has no Prisma relation to FldActivity
+        // We'll fetch it manually in _mapResponse when needed
         reportingYear: { select: { yearId: true, yearName: true } },
     },
     filterableFields: ['kvkId', 'fldId', 'activityId', 'reportingYearId'],
@@ -208,7 +209,13 @@ const fldExtensionRepository = {
                 include: FLD_EXTENSION_CONFIG.includes,
             });
 
-            return _mapResponse(result);
+            // Fetch activity manually since there's no Prisma relation
+            const activity = await prisma.fldActivity.findFirst({
+                where: { activityId: result.activityId },
+                select: { activityId: true, activityName: true },
+            });
+
+            return _mapResponse(result, activity);
         } catch (error) {
             if (error.code === 'P2003') {
                 const fieldName = error.meta?.field_name || 'field';
@@ -229,7 +236,7 @@ const fldExtensionRepository = {
         if (where === null) {
             return [];
         }
-        
+
         // Apply filters to the where clause
         applyFilters(where, filters, FLD_EXTENSION_CONFIG.filterableFields);
 
@@ -239,7 +246,17 @@ const fldExtensionRepository = {
             orderBy: FLD_EXTENSION_CONFIG.orderBy,
         });
 
-        return results.map(_mapResponse);
+        // Fetch activities in batch for all results
+        const activityIds = [...new Set(results.map(r => r.activityId).filter(Boolean))];
+        const activities = activityIds.length > 0
+            ? await prisma.fldActivity.findMany({
+                where: { activityId: { in: activityIds } },
+                select: { activityId: true, activityName: true },
+            })
+            : [];
+        const activityMap = new Map(activities.map(a => [a.activityId, a]));
+
+        return results.map(r => _mapResponse(r, activityMap.get(r.activityId)));
     },
 
     /**
@@ -259,7 +276,17 @@ const fldExtensionRepository = {
             include: FLD_EXTENSION_CONFIG.includes,
         });
 
-        return result ? _mapResponse(result) : null;
+        if (!result) return null;
+
+        // Fetch activity manually since there's no Prisma relation
+        const activity = result.activityId
+            ? await prisma.fldActivity.findFirst({
+                where: { activityId: result.activityId },
+                select: { activityId: true, activityName: true },
+            })
+            : null;
+
+        return _mapResponse(result, activity);
     },
 
     /**
@@ -335,7 +362,17 @@ const fldExtensionRepository = {
 
         if (Object.keys(finalUpdateData).length === 0) {
             const existing = await prisma[FLD_EXTENSION_CONFIG.model].findFirst({ where, include: FLD_EXTENSION_CONFIG.includes });
-            return _mapResponse(existing);
+            if (!existing) return null;
+
+            // Fetch activity manually since there's no Prisma relation
+            const activity = existing.activityId
+                ? await prisma.fldActivity.findFirst({
+                    where: { activityId: existing.activityId },
+                    select: { activityId: true, activityName: true },
+                })
+                : null;
+
+            return _mapResponse(existing, activity);
         }
 
         try {
@@ -345,7 +382,15 @@ const fldExtensionRepository = {
                 include: FLD_EXTENSION_CONFIG.includes,
             });
 
-            return _mapResponse(result);
+            // Fetch activity manually since there's no Prisma relation
+            const activity = result.activityId
+                ? await prisma.fldActivity.findFirst({
+                    where: { activityId: result.activityId },
+                    select: { activityId: true, activityName: true },
+                })
+                : null;
+
+            return _mapResponse(result, activity);
         } catch (error) {
             if (error.code === 'P2003') {
                 const fieldName = error.meta?.field_name || 'field';
@@ -383,15 +428,17 @@ const fldExtensionRepository = {
 
 /**
  * Map database response to frontend-friendly format
+ * @param {object} r - Database record
+ * @param {object} activity - Activity object (fetched manually since no Prisma relation exists)
  */
-function _mapResponse(r) {
+function _mapResponse(r, activity = null) {
     if (!r) return null;
 
     // Calculate total participants
-    const totalParticipants = (r.generalM || 0) + (r.generalF || 0) + 
-                              (r.obcM || 0) + (r.obcF || 0) + 
-                              (r.scM || 0) + (r.scF || 0) + 
-                              (r.stM || 0) + (r.stF || 0);
+    const totalParticipants = (r.generalM || 0) + (r.generalF || 0) +
+        (r.obcM || 0) + (r.obcF || 0) +
+        (r.scM || 0) + (r.scF || 0) +
+        (r.stM || 0) + (r.stF || 0);
 
     return {
         id: r.extensionId,
@@ -401,8 +448,8 @@ function _mapResponse(r) {
         fldId: r.fldId,
         fldName: r.fld?.fldName,
         activityId: r.activityId,
-        activityName: r.activity?.activityName,
-        activity: r.activity?.activityName,
+        activityName: activity?.activityName,
+        activity: activity?.activityName,
         activityDate: r.activityDate ? r.activityDate.toISOString().split('T')[0] : undefined,
         date: r.activityDate ? r.activityDate.toISOString().split('T')[0] : undefined,
         numberOfActivities: r.numberOfActivities,
@@ -428,13 +475,6 @@ function _mapResponse(r) {
         stM: r.stM,
         st_f: r.stF,
         stF: r.stF,
-        // Frontend-friendly table labels
-        'FLD Name': r.fld?.fldName,
-        'Activity': r.activity?.activityName,
-        'Date': r.activityDate ? r.activityDate.toISOString().split('T')[0] : undefined,
-        'No. of Activity': r.numberOfActivities,
-        'No. of Participant': totalParticipants,
-        'Remark': r.remarks,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

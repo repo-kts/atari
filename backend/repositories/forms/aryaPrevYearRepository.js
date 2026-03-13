@@ -240,14 +240,6 @@ function _mapResponse(r) {
         employmentFamily: r.employmentFamilyMandays,
         employmentOther: r.employmentOtherMandays,
         personsVisited: r.personsVisitedUnit,
-
-        // Frontend friendly table labels (matching routeConfig.ts)
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Enterprise': r.enterprise ? r.enterprise.enterpriseName : undefined,
-        'Total Closed': r.nonFunctionalUnitsClosed,
-        'Closing Date': r.dateOfClosing ? r.dateOfClosing.toISOString().split('T')[0] : '',
-        'Total Restarted': r.nonFunctionalUnitsRestarted,
-        'Restarted Date': r.dateOfRestart ? r.dateOfRestart.toISOString().split('T')[0] : ''
     };
 }
 

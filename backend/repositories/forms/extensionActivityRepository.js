@@ -170,7 +170,7 @@ const _resolveStaffId = async (value, kvkId, required = false) => {
 };
 
 /**
- * Resolve activity ID from activity name or ID
+ * Resolve activity ID from Extension Activity Master (extension_activity table)
  * @param {string|number} value - Activity name or ID
  * @param {boolean} required - Whether activity is required
  * @returns {Promise<number|null>} Activity ID or null
@@ -179,61 +179,53 @@ const _resolveStaffId = async (value, kvkId, required = false) => {
 const _resolveActivityId = async (value, required = false) => {
     if (!value) {
         if (required) {
-            throw new RepositoryError('Activity ID or name is required', 'VALIDATION_ERROR', 400);
+            throw new RepositoryError('Extension Activity ID or name is required', 'VALIDATION_ERROR', 400);
         }
         return null;
     }
 
-    // If it's already a valid ID, validate it exists
+    // If it's already a valid ID, validate it exists in Extension Activity Master
     if (!isNaN(parseInt(value))) {
         const activityId = parseInt(value);
         try {
-            const activity = await prisma.fldActivity.findUnique({
-                where: { activityId }
+            const activity = await prisma.extensionActivity.findUnique({
+                where: { extensionActivityId: activityId }
             });
             if (!activity) {
                 if (required) {
-                    throw new RepositoryError(`Activity with ID ${activityId} does not exist`, 'NOT_FOUND', 404);
+                    throw new RepositoryError(`Extension Activity with ID ${activityId} does not exist`, 'NOT_FOUND', 404);
                 }
                 return null;
             }
             return activityId;
         } catch (error) {
             if (error instanceof RepositoryError) throw error;
-            throw new RepositoryError(`Error validating activity: ${error.message}`, 'DATABASE_ERROR', 500);
+            throw new RepositoryError(`Error validating extension activity: ${error.message}`, 'DATABASE_ERROR', 500);
         }
     }
 
-    // Value is a name, find or create activity
+    // Value is a name, find in Extension Activity Master (don't create - must exist in master)
     const activityName = normalizeActivityName(value);
     if (!activityName) {
         if (required) {
-            throw new RepositoryError('Activity name cannot be empty', 'VALIDATION_ERROR', 400);
+            throw new RepositoryError('Extension Activity name cannot be empty', 'VALIDATION_ERROR', 400);
         }
         return null;
     }
 
     try {
-        const activity = await prisma.$transaction(async (tx) => {
-            let a = await tx.fldActivity.findFirst({
-                where: { activityName: { equals: activityName, mode: 'insensitive' } }
-            });
-            if (!a) {
-                a = await tx.fldActivity.create({ data: { activityName } });
-            }
-            return a;
+        const activity = await prisma.extensionActivity.findFirst({
+            where: { extensionName: { equals: activityName, mode: 'insensitive' } }
         });
 
-        return activity ? activity.activityId : null;
-    } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-            if (error.code === 'P2002') {
-                throw new RepositoryError('Activity with this name already exists', 'DUPLICATE_ERROR', 409);
-            }
-            throw new RepositoryError(`Database error: ${error.message}`, 'DATABASE_ERROR', 500);
+        if (!activity && required) {
+            throw new RepositoryError(`Extension Activity with name "${activityName}" does not exist in master data`, 'NOT_FOUND', 404);
         }
+
+        return activity ? activity.extensionActivityId : null;
+    } catch (error) {
         if (error instanceof RepositoryError) throw error;
-        throw new RepositoryError(`Error resolving activity: ${error.message}`, 'DATABASE_ERROR', 500);
+        throw new RepositoryError(`Error resolving extension activity: ${error.message}`, 'DATABASE_ERROR', 500);
     }
 };
 
@@ -349,7 +341,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activity: { select: { activityName: true } },
+                    extensionActivity: { select: { extensionName: true } },
                 }
             });
 
@@ -388,7 +380,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activity: { select: { activityName: true } },
+                    extensionActivity: { select: { extensionName: true } },
                 },
                 orderBy: { extensionActivityId: 'desc' },
             });
@@ -420,7 +412,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activity: { select: { activityName: true } },
+                    extensionActivity: { select: { extensionName: true } },
                 },
             });
 
@@ -534,7 +526,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    activity: { select: { activityName: true } },
+                    extensionActivity: { select: { extensionName: true } },
                 },
             }));
         } catch (error) {
@@ -611,7 +603,7 @@ function _mapResponse(r) {
         reportingYear = String(startYear);
     }
 
-    const activityName = r.activity ? r.activity.activityName : undefined;
+    const activityName = r.extensionActivity ? r.extensionActivity.extensionName : undefined;
     const farmersSum = (r.farmersGeneralM || 0) + (r.farmersGeneralF || 0) + (r.farmersObcM || 0) + (r.farmersObcF || 0) + (r.farmersScM || 0) + (r.farmersScF || 0) + (r.farmersStM || 0) + (r.farmersStF || 0);
     const officialsSum = (r.officialsGeneralM || 0) + (r.officialsGeneralF || 0) + (r.officialsObcM || 0) + (r.officialsObcF || 0) + (r.officialsScM || 0) + (r.officialsScF || 0) + (r.officialsStM || 0) + (r.officialsStF || 0);
     const totalParticipants = farmersSum + officialsSum;
@@ -634,16 +626,6 @@ function _mapResponse(r) {
         nameOfExtensionActivities: activityName,
         noOfActivities: r.numberOfActivities,
         noOfParticipants: totalParticipants,
-
-        // Frontend friendly aliases
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Start Date': r.startDate ? new Date(r.startDate).toLocaleDateString('en-GB') : undefined,
-        'End Date': r.endDate ? new Date(r.endDate).toLocaleDateString('en-GB') : undefined,
-        'Name of Extension activities': activityName,
-        'No. of Activities': r.numberOfActivities,
-        'No. of Participants': totalParticipants,
-
         farmersGeneralM: r.farmersGeneralM,
         farmersGeneralF: r.farmersGeneralF,
         farmersObcM: r.farmersObcM,
