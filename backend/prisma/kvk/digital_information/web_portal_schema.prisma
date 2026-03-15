@@ -1,0 +1,14 @@
+model WebPortal {
+  webPortalId           Int         @id @default(autoincrement()) @map("web_portal_id")
+  kvkId                 Int         @map("kvk_id")
+  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  reportingYearId       Int?        @map("reporting_year_id")
+  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  noOfFarmersRegistered Int         @map("no_of_farmers_registered_on_the_portal")
+  noOfVisitors          Int         @map("no_of_visitors_visited_the_portal")
+
+  @@index([kvkId])
+  @@map("web_portal")
+}

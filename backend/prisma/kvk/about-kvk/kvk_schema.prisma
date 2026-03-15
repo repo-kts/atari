@@ -118,6 +118,11 @@ model Kvk {
   nicraVcrmcs                     NicraVcrmc[]
   craDetails                      CraDetails[]
   craExtensionActivities          CraExtensionActivity[]
+  kmas                            Kmas[]
+  mobileApps                      MobileApp[]
+  webPortals                      WebPortal[]
+  kisanSarathis                   KisanSarathi[]
+  msgDetails                      MsgDetails[]
 
   @@index([zoneId])
   @@index([stateId])

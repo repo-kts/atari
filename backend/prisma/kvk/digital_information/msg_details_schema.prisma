@@ -1,0 +1,51 @@
+model MsgDetails {
+  msgDetailsId       Int         @id @default(autoincrement()) @map("msg_details_id")
+  kvkId              Int         @map("kvk_id")
+  kvk                Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  reportingYearId    Int?        @map("reporting_year_id")
+  reportingYear      YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  // Text Messages
+  textNoOfFarmersCovered Int     @map("text_no_of_farmers_covered")
+  textNoOfAdvisoriesSent Int     @map("text_no_of_advisories_sent")
+  textCrop               String  @map("text_crop")
+  textLivestock          String  @map("text_livestock")
+  textWeather            String  @map("text_weather")
+  textMarketing          String  @map("text_marketing")
+  textAwareness          String  @map("text_awareness")
+  textOtherEnterprises   String  @map("text_other_enterprises")
+
+  // WhatsApp
+  whatsappNoOfFarmersCovered Int     @map("whatsapp_no_of_farmers_covered")
+  whatsappNoOfAdvisoriesSent Int     @map("whatsapp_no_of_advisories_sent")
+  whatsappCrop               String  @map("whatsapp_crop")
+  whatsappLivestock          String  @map("whatsapp_livestock")
+  whatsappWeather            String  @map("whatsapp_weather")
+  whatsappMarketing          String  @map("whatsapp_marketing")
+  whatsappAwareness          String  @map("whatsapp_awareness")
+  whatsappOtherEnterprises   String  @map("whatsapp_other_enterprises")
+
+  // Weather Advisory Bulletin
+  weatherNoOfFarmersCovered Int     @map("weather_no_of_farmers_covered")
+  weatherNoOfAdvisoriesSent Int     @map("weather_no_of_advisories_sent")
+  weatherCrop               String  @map("weather_crop")
+  weatherLivestock          String  @map("weather_livestock")
+  weatherWeather            String  @map("weather_weather")
+  weatherMarketing          String  @map("weather_marketing")
+  weatherAwareness          String  @map("weather_awareness")
+  weatherOtherEnterprises   String  @map("weather_other_enterprises")
+
+  // Social Media
+  socialNoOfFarmersCovered Int     @map("social_no_of_farmers_covered")
+  socialNoOfAdvisoriesSent Int     @map("social_no_of_advisories_sent")
+  socialCrop               String  @map("social_crop")
+  socialLivestock          String  @map("social_livestock")
+  socialWeather            String  @map("social_weather")
+  socialMarketing          String  @map("social_marketing")
+  socialAwareness          String  @map("social_awareness")
+  socialOtherEnterprises   String  @map("social_other_enterprises")
+
+  @@index([kvkId])
+  @@map("msg_details")
+}

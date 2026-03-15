@@ -1,0 +1,21 @@
+model KisanSarathi {
+  kisanSarathiId                   Int         @id @default(autoincrement()) @map("kisan_sarathi_id")
+  kvkId                            Int         @map("kvk_id")
+  kvk                              Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  reportingYearId                  Int?        @map("reporting_year_id")
+  reportingYear                    YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  noOfFarmersRegisteredOnKspPortal Int         @map("no_of_farmers_registered_on_ksp_portal")
+  phoneCallAddressed               Int         @map("phone_call_addressed")
+  phoneCallAnswered                Int         @map("phone_call_answered")
+  crop                             String      @map("crop")
+  weather                          String      @map("weather")
+  awareness                        String      @map("awareness")
+  livestock                        String      @map("livestocks")
+  marketing                        String      @map("marketing")
+  otherEnterprises                 String      @map("other_enterprises")
+
+  @@index([kvkId])
+  @@map("kisan_sarathi")
+}
