@@ -25,14 +25,14 @@ model KvkFldIntroduction {
   fldExtensions               FldExtension[]
   fldTechnicalFeedbacks       FldTechnicalFeedback[]
   kvkExtensionActivities      KvkExtensionActivity[]
-  category                    FldCategory?                @relation(fields: [categoryId], references: [categoryId])
-  crop                        FldCrop?                    @relation(fields: [cropId], references: [cropId])
+  category                    FldCategory?                @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
+  crop                        FldCrop?                    @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   kvkStaff                    KvkStaff                    @relation(fields: [kvkStaffId], references: [kvkStaffId])
-  season                      Season?                     @relation(fields: [seasonId], references: [seasonId])
-  sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId])
-  subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId])
-  thematicArea                FldThematicArea?            @relation(fields: [thematicAreaId], references: [thematicAreaId])
+  season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId], onDelete: SetNull)
+  subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: SetNull)
+  thematicArea                FldThematicArea?            @relation(fields: [thematicAreaId], references: [thematicAreaId], onDelete: SetNull)
   kvkOtherExtensionActivities KvkOtherExtensionActivity[]
 
   @@index([kvkId])

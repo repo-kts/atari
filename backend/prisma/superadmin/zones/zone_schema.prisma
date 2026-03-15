@@ -41,6 +41,7 @@ model DistrictMaster {
   kvks         Kvk[]
   orgs         OrgMaster[]
   users        User[]
+  tspScsps     TspScsp[]
 
   @@index([districtId])
   @@index([stateId])

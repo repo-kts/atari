@@ -1,14 +1,14 @@
 model NicraIntervention {
-  nicraInterventionId   Int       @id @default(autoincrement()) @map("nicra_intervention_id")
-  kvkId                 Int       @map("kvk_id")
-  kvk                   Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  
-  startDate             DateTime  @map("start_date")
-  endDate               DateTime  @map("end_date")
-  seedBankFodderBank    SeedBankFodderBank @map("seed_bank_fodder_bank") 
-  crop                  String    @map("crop")
-  variety               String    @map("variety")
-  quantityQ             Float     @map("quantity_q")
+  nicraInterventionId Int @id @default(autoincrement()) @map("nicra_intervention_id")
+  kvkId               Int @map("kvk_id")
+  kvk                 Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  startDate          DateTime           @map("start_date")
+  endDate            DateTime           @map("end_date")
+  seedBankFodderBank SeedBankFodderBank @map("seed_bank_fodder_bank")
+  crop               String             @map("crop")
+  variety            String             @map("variety")
+  quantityQ          Float              @map("quantity_q")
 
   @@index([kvkId])
   @@map("nicra_intervention")

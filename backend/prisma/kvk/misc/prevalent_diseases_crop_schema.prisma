@@ -4,14 +4,13 @@ model PrevalentDiseasesInCrop {
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  diseaseName String @map("disease_name")
-  crop String
-  dateOfOutbreak DateTime @map("date_of_outbreak")
-  areaAffected Float @map("area_affected")
-  commodityLossPercent Float @map("commodity_loss_percent")
-  preventiveMeasuresArea Float @map("preventive_measures_area")
+  diseaseName            String   @map("disease_name")
+  crop                   String
+  dateOfOutbreak         DateTime @map("date_of_outbreak")
+  areaAffected           Float    @map("area_affected")
+  commodityLossPercent   Float    @map("commodity_loss_percent")
+  preventiveMeasuresArea Float    @map("preventive_measures_area")
 
   @@index([kvkId])
-
   @@map("prevalent_diseases_in_crop")
 }

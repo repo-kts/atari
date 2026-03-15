@@ -1,13 +1,13 @@
 model NicraDignitariesVisited {
-  nicraDignitariesVisitedId Int       @id @default(autoincrement()) @map("nicra_dignitaries_visited_id")
-  kvkId                     Int       @map("kvk_id")
-  kvk                       Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  
-  dateOfVisit               DateTime  @map("date_of_visit")
-  type                      String    @map("type")
-  name                      String    @map("name")
-  remark                    String    @map("remark")
-  photographs               String?   @map("photographs")
+  nicraDignitariesVisitedId Int @id @default(autoincrement()) @map("nicra_dignitaries_visited_id")
+  kvkId                     Int @map("kvk_id")
+  kvk                       Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  dateOfVisit DateTime @map("date_of_visit")
+  type        String   @map("type")
+  name        String   @map("name")
+  remark      String   @map("remark")
+  photographs String?  @map("photographs")
 
   @@index([kvkId])
   @@map("nicra_dignitaries_visited")

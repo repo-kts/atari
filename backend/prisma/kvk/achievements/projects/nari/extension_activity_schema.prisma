@@ -1,27 +1,27 @@
 model NariExtensionActivity {
-  nariExtensionActivityId     Int         @id @default(autoincrement()) @map("nari_extension_activity_id")
-  
-  kvkId                       Int
-  kvk                         Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  
-  reportingYearId             Int?        @map("reporting_year_id")
-  reportingYear               YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  nariExtensionActivityId Int @id @default(autoincrement()) @map("nari_extension_activity_id")
 
-  activityId                  Int         @map("activity_id")
-  activity                    FldActivity @relation(fields: [activityId], references: [activityId])
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
-  nameOfNutriSmartVillage     String      @map("name_of_nutri_smart_village")
-  nameOfActivity              String      @map("name_of_activity")
-  noOfActivities              Int         @map("no_of_activities")
-  
-  generalM                    Int         @default(0) @map("general_m")
-  generalF                    Int         @default(0) @map("general_f")
-  obcM                        Int         @default(0) @map("obc_m")
-  obcF                        Int         @default(0) @map("obc_f")
-  scM                         Int         @default(0) @map("sc_m")
-  scF                         Int         @default(0) @map("sc_f")
-  stM                         Int         @default(0) @map("st_m")
-  stF                         Int         @default(0) @map("st_f")
+  reportingYearId Int?        @map("reporting_year_id")
+  reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  activityId Int         @map("activity_id")
+  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+
+  nameOfNutriSmartVillage String @map("name_of_nutri_smart_village")
+  nameOfActivity          String @map("name_of_activity")
+  noOfActivities          Int    @map("no_of_activities")
+
+  generalM Int @default(0) @map("general_m")
+  generalF Int @default(0) @map("general_f")
+  obcM     Int @default(0) @map("obc_m")
+  obcF     Int @default(0) @map("obc_f")
+  scM      Int @default(0) @map("sc_m")
+  scF      Int @default(0) @map("sc_f")
+  stM      Int @default(0) @map("st_m")
+  stF      Int @default(0) @map("st_f")
 
   @@index([kvkId])
   @@index([activityId])

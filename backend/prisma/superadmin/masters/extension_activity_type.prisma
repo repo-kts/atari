@@ -1,14 +1,16 @@
 model FldActivity {
-  activityId             Int                    @id @default(autoincrement()) @map("activity_id")
-  activityName           String                 @unique @map("activity_name")
-  createdAt              DateTime               @default(now()) @map("created_at")
-  updatedAt              DateTime               @updatedAt @map("updated_at")
-  nariTrainingProgrammes   NariTrainingProgramme[]
-  nariValueAdditions       NariValueAddition[]
-  nariNutritionalGardens   NariNutritionalGarden[]
-  nariExtensionActivities  NariExtensionActivity[]
-  nariBioFortifiedCrops    NariBioFortifiedCrop[]
-  craExtensionActivities   CraExtensionActivity[]
+  activityId              Int                     @id @default(autoincrement()) @map("activity_id")
+  activityName            String                  @unique @map("activity_name")
+  createdAt               DateTime                @default(now()) @map("created_at")
+  updatedAt               DateTime                @updatedAt @map("updated_at")
+  extensions              FldExtension[]
+  kvkExtensionActivities  KvkExtensionActivity[]
+  nariTrainingProgrammes  NariTrainingProgramme[]
+  nariValueAdditions      NariValueAddition[]
+  nariNutritionalGardens  NariNutritionalGarden[]
+  nariExtensionActivities NariExtensionActivity[]
+  nariBioFortifiedCrops   NariBioFortifiedCrop[]
+  craExtensionActivities  CraExtensionActivity[]
 
   @@map("fld_activity") 
 }

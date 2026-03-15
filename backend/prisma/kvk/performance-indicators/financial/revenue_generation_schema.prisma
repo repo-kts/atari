@@ -1,14 +1,14 @@
 model RevenueGeneration {
-  revenueGenerationId   String      @id @default(uuid()) @map("revenue_generation_id")
-  kvkId                 Int
-  startDate             DateTime    @map("start_date")
-  endDate               DateTime    @map("end_date")
-  headName              String      @map("head_name")
-  income                Float       @map("income")
-  sponsoringAgency      String      @map("sponsoring_agency")
-  createdAt             DateTime    @default(now()) @map("created_at")
-  updatedAt             DateTime    @updatedAt @map("updated_at")
-  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  revenueGenerationId String   @id @default(uuid()) @map("revenue_generation_id")
+  kvkId               Int
+  startDate           DateTime @map("start_date")
+  endDate             DateTime @map("end_date")
+  headName            String   @map("head_name")
+  income              Float    @map("income")
+  sponsoringAgency    String   @map("sponsoring_agency")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  kvk                 Kvk      @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   @@index([kvkId])
   @@index([headName])
