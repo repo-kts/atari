@@ -1,30 +1,30 @@
 model NariNutritionalGarden {
-  nariNutritionalGardenId     Int         @id @default(autoincrement()) @map("nari_nutritional_garden_id")
+  nariNutritionalGardenId Int @id @default(autoincrement()) @map("nari_nutritional_garden_id")
 
-  kvkId                       Int
-  kvk                         Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  kvkId Int
+  kvk   Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
-  reportingYearId             Int?        @map("reporting_year_id")
-  reportingYear               YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYearId Int?        @map("reporting_year_id")
+  reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
-  activityId                  Int         @map("activity_id")
-  activity                    FldActivity @relation(fields: [activityId], references: [activityId])
+  activityId Int         @map("activity_id")
+  activity   FldActivity @relation(fields: [activityId], references: [activityId])
 
-  nameOfNutriSmartVillage     String      @map("name_of_nutri_smart_village")
-  typeOfNutritionalGardenId   Int         @map("type_of_nutritional_garden_id")
-  typeOfNutritionalGarden     NutritionGardenType @relation(fields: [typeOfNutritionalGardenId], references: [nutritionGardenTypeId])
+  nameOfNutriSmartVillage   String              @map("name_of_nutri_smart_village")
+  typeOfNutritionalGardenId Int                 @map("type_of_nutritional_garden_id")
+  typeOfNutritionalGarden   NutritionGardenType @relation(fields: [typeOfNutritionalGardenId], references: [nutritionGardenTypeId])
 
-  number                      Int         @map("number")
-  areaSqm                     Float       @map("area_sqm")
-  
-  generalM                    Int         @default(0) @map("general_m")
-  generalF                    Int         @default(0) @map("general_f")
-  obcM                        Int         @default(0) @map("obc_m")
-  obcF                        Int         @default(0) @map("obc_f")
-  scM                         Int         @default(0) @map("sc_m")
-  scF                         Int         @default(0) @map("sc_f")
-  stM                         Int         @default(0) @map("st_m")
-  stF                         Int         @default(0) @map("st_f")
+  number  Int   @map("number")
+  areaSqm Float @map("area_sqm")
+
+  generalM Int @default(0) @map("general_m")
+  generalF Int @default(0) @map("general_f")
+  obcM     Int @default(0) @map("obc_m")
+  obcF     Int @default(0) @map("obc_f")
+  scM      Int @default(0) @map("sc_m")
+  scF      Int @default(0) @map("sc_f")
+  stM      Int @default(0) @map("st_m")
+  stF      Int @default(0) @map("st_f")
 
   @@index([kvkId])
   @@index([activityId])
@@ -32,10 +32,10 @@ model NariNutritionalGarden {
 }
 
 model NutritionGardenType {
-  nutritionGardenTypeId     Int         @id @default(autoincrement()) @map("nutrition_garden_type_id")
-  name                      String      @unique @map("name")
-  
-  nariNutritionalGardens    NariNutritionalGarden[]
+  nutritionGardenTypeId Int    @id @default(autoincrement()) @map("nutrition_garden_type_id")
+  name                  String @unique @map("name")
+
+  nariNutritionalGardens NariNutritionalGarden[]
 
   @@map("nutrition_garden_type")
 }

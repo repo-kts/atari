@@ -33,7 +33,7 @@ model TrainingAchievement {
   stF                   Int                     @map("st_f")
   createdAt             DateTime                @default(now()) @map("created_at")
   updatedAt             DateTime                @updatedAt @map("updated_at")
-  clientele             ClienteleMaster?         @relation(fields: [clienteleId], references: [clienteleId], onDelete: SetNull)
+  clientele             ClienteleMaster?        @relation(fields: [clienteleId], references: [clienteleId], onDelete: SetNull)
   coordinator           CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
   fundingSource         FundingSourceMaster?    @relation(fields: [fundingSourceId], references: [fundingSourceId], onDelete: SetNull)
   kvk                   Kvk                     @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)

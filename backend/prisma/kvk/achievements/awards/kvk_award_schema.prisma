@@ -16,4 +16,3 @@ model KvkAward {
   @@index([createdAt])
   @@map("kvk_award")
 }
-

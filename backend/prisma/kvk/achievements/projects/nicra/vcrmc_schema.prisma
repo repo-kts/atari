@@ -1,24 +1,24 @@
 model NicraVcrmc {
-  nicraVcrmcId          Int       @id @default(autoincrement()) @map("nicra_vcrmc_id")
-  kvkId                 Int       @map("kvk_id")
-  kvk                   Kvk       @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  
-  reportingYearId       Int?      @map("reporting_year_id")
-  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  nicraVcrmcId Int @id @default(autoincrement()) @map("nicra_vcrmc_id")
+  kvkId        Int @map("kvk_id")
+  kvk          Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
-  villageName           String    @map("village_name")
-  constitutionDate      DateTime  @map("constitution_date")
-  meetingsOrganized     Int       @map("meetings_organized") // (no.)
-  meetingDate           DateTime  @map("meeting_date")
-  nameOfSecretary       String    @map("name_of_secretary")
-  nameOfPresident       String    @map("name_of_president")
-  majorDecisionTaken    String    @map("major_decision_taken")
+  reportingYearId Int?        @map("reporting_year_id")
+  reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  villageName        String   @map("village_name")
+  constitutionDate   DateTime @map("constitution_date")
+  meetingsOrganized  Int      @map("meetings_organized") // (no.)
+  meetingDate        DateTime @map("meeting_date")
+  nameOfSecretary    String   @map("name_of_secretary")
+  nameOfPresident    String   @map("name_of_president")
+  majorDecisionTaken String   @map("major_decision_taken")
 
   // VCRMC members (no.)
-  maleMembers           Int       @map("male_members")
-  femaleMembers         Int       @map("female_members")
+  maleMembers   Int @map("male_members")
+  femaleMembers Int @map("female_members")
 
-  photographs           String    @map("photographs")
+  photographs String @map("photographs")
 
   @@index([kvkId])
   @@map("nicra_vcrmc")

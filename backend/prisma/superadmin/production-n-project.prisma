@@ -1,8 +1,8 @@
 model ProductCategory {
-  productCategoryId   Int           @id @default(autoincrement()) @map("product_category_id")
-  productCategoryName String        @unique @map("product_category_name")
-  createdAt           DateTime      @default(now()) @map("created_at")
-  updatedAt           DateTime      @updatedAt @map("updated_at")
+  productCategoryId   Int                   @id @default(autoincrement()) @map("product_category_id")
+  productCategoryName String                @unique @map("product_category_name")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
   products            Product[]
   productTypes        ProductType[]
   productionSupplies  KvkProductionSupply[]
@@ -13,13 +13,13 @@ model ProductCategory {
 }
 
 model ProductType {
-  productTypeId       Int              @id @default(autoincrement()) @map("product_type_id")
-  productCategoryType String           @map("product_category_type")
-  productCategoryId   Int?             @map("product_category_id")
-  createdAt           DateTime         @default(now()) @map("created_at")
-  updatedAt           DateTime         @updatedAt @map("updated_at")
+  productTypeId       Int                   @id @default(autoincrement()) @map("product_type_id")
+  productCategoryType String                @map("product_category_type")
+  productCategoryId   Int?                  @map("product_category_id")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
   products            Product[]
-  productCategory     ProductCategory?        @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
+  productCategory     ProductCategory?      @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
   productionSupplies  KvkProductionSupply[]
 
   @@index([productTypeId])
@@ -29,14 +29,14 @@ model ProductType {
 }
 
 model Product {
-  productId         Int                    @id @default(autoincrement()) @map("product_id")
-  productName       String                 @map("product_name")
-  productCategoryId Int?                   @map("product_category_id")
-  productTypeId     Int?                   @map("product_type_id")
-  createdAt         DateTime                @default(now()) @map("created_at")
-  updatedAt         DateTime                @updatedAt @map("updated_at")
-  productCategory   ProductCategory?        @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
-  productType       ProductType?            @relation(fields: [productTypeId], references: [productTypeId], onDelete: Cascade)
+  productId          Int                   @id @default(autoincrement()) @map("product_id")
+  productName        String                @map("product_name")
+  productCategoryId  Int?                  @map("product_category_id")
+  productTypeId      Int?                  @map("product_type_id")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  productCategory    ProductCategory?      @relation(fields: [productCategoryId], references: [productCategoryId], onDelete: Cascade)
+  productType        ProductType?          @relation(fields: [productTypeId], references: [productTypeId], onDelete: Cascade)
   productionSupplies KvkProductionSupply[]
 
   @@index([productId])
