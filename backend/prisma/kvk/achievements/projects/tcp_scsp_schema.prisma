@@ -46,7 +46,7 @@ model TspScsp {
   achievementImplementsAvailability Float @map("achievement_implements_availability")
 
   districtId Int
-  district   TspScspDistrict @relation(fields: [districtId], references: [tspScspDistrictId])
+  district   DistrictMaster @relation(fields: [districtId], references: [districtId])
 
   subDistrict String @map("sub_district")
   numberOfVillagesCovered Int @map("number_of_villages_covered")
