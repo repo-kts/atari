@@ -1,0 +1,21 @@
+model Kmas {
+  kmasId             Int         @id @default(autoincrement()) @map("kmas_id")
+  kvkId              Int         @map("kvk_id")
+  kvk                Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  reportingYearId    Int?        @map("reporting_year_id")
+  reportingYear      YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  
+  noOfFarmersCovered Int         @map("no_of_farmers_covered")
+  noOfAdvisoriesSent Int         @map("no_of_advisories_sent")
+  crop               String      @map("crop")
+  livestock          String      @map("livestock")
+  weather            String      @map("weather")
+  marketing          String      @map("marketing")
+  awareness          String      @map("awareness")
+  otherEnterprises   String      @map("other_enterprises")
+  anyOther           String      @map("any_other")
+
+  @@index([kvkId])
+  @@map("kmas")
+}

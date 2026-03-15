@@ -1,0 +1,17 @@
+model MobileApp {
+  mobileAppId             Int         @id @default(autoincrement()) @map("mobile_app_id")
+  kvkId                   Int         @map("kvk_id")
+  kvk                     Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  reportingYearId         Int?        @map("reporting_year_id")
+  reportingYear           YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+
+  nameOfApp               String      @map("name_of_the_app")
+  meantFor                String      @map("meant_for")
+  numberOfAppsDeveloped   Int         @map("number_of_mobile_apps_developed_by_kvk")
+  languageOfApp           String      @map("language_of_the_app")
+  numberOfTimesDownloaded Int         @map("no_of_times_downloaded")
+
+  @@index([kvkId])
+  @@map("mobile_app")
+}

@@ -55,6 +55,11 @@ model YearMaster {
   nicraFarmImplementRecords       NicraFarmImplement[]
   nicraVcrmcRecords               NicraVcrmc[]
   craDetailRecords                CraDetails[]
+  kmasRecords                     Kmas[]
+  mobileAppRecords                MobileApp[]
+  webPortalRecords                WebPortal[]
+  kisanSarathiRecords             KisanSarathi[]
+  msgDetailsRecords               MsgDetails[]
 
   @@index([yearId])
   @@index([yearName])
