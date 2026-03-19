@@ -22,8 +22,8 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
 
     // Route to appropriate form based on entity type
     if (
-        entityType === ENTITY_TYPES.MISC_DISEASES_CROPS ||
-        entityType === ENTITY_TYPES.MISC_DISEASES_LIVESTOCK
+        entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS ||
+        entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK
     ) {
         return (
             <PrevalentDiseasesForms
@@ -34,7 +34,7 @@ export const MiscellaneousForms: React.FC<MiscellaneousFormsProps> = ({
         )
     }
 
-    if (entityType === ENTITY_TYPES.MISC_NEHRU_YUVA_KENDRA) {
+    if (entityType === ENTITY_TYPES.MISC_NYK_TRAINING) {
         return (
             <NehruYuvaKendraForms
                 entityType={entityType}

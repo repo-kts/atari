@@ -29,12 +29,29 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
         }
     }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
 
-    const yearOptions = useMemo(() => {
-        return years.map((y: any) => {
-            const label = String(y.yearName || y.year || y.name);
-            return { value: label, label: label };
-        });
-    }, [years]);
+    // Sync reportingYear to yearId when editing (backend returns reportingYear as string)
+    React.useEffect(() => {
+        if (formData.reportingYear && years.length > 0 && !formData.yearId && !formData.reportingYearId) {
+            const matchingYear = years.find((y: any) =>
+                y.yearName === formData.reportingYear ||
+                String(y.yearName) === String(formData.reportingYear) ||
+                String(y.yearId) === String(formData.reportingYear)
+            );
+            if (matchingYear) {
+                setFormData((prev: any) => ({
+                    ...prev,
+                    yearId: matchingYear.yearId,
+                    reportingYearId: matchingYear.yearId,
+                    reportingYear: matchingYear.yearName || prev.reportingYear,
+                }));
+            }
+        }
+    }, [formData.reportingYear, formData.yearId, formData.reportingYearId, years, setFormData])
+
+    const yearOptions = useMemo(() =>
+        createMasterDataOptions(years, 'yearId', 'yearName'),
+        [years]
+    );
 
     const analysisOptions = useMemo(() =>
         createMasterDataOptions(soilWaterAnalyses, 'soilWaterAnalysisId', 'analysisName'),
@@ -49,12 +66,23 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Soil and Water Testing - Equipment Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.reportingYearId ?? formData.yearId ?? ''}
+                            onChange={(value) => {
+                                const selectedYear = years.find((y: any) => y.yearId === value);
+                                if (selectedYear) {
+                                    setFormData({
+                                        ...formData,
+                                        reportingYear: selectedYear.yearName,
+                                        reportingYearId: selectedYear.yearId,
+                                        yearId: selectedYear.yearId,
+                                    });
+                                }
+                            }}
                             options={yearOptions}
+                            emptyMessage="No reporting years available. Add them from All Masters."
                         />
                         <MasterDataDropdown
                             label="Soil Water Analysis Type"
@@ -168,12 +196,23 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Details of World Soil Day Celebration</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.reportingYearId ?? formData.yearId ?? ''}
+                            onChange={(value) => {
+                                const selectedYear = years.find((y: any) => y.yearId === value);
+                                if (selectedYear) {
+                                    setFormData({
+                                        ...formData,
+                                        reportingYear: selectedYear.yearName,
+                                        reportingYearId: selectedYear.yearId,
+                                        yearId: selectedYear.yearId,
+                                    });
+                                }
+                            }}
                             options={yearOptions}
+                            emptyMessage="No reporting years available. Add them from All Masters."
                         />
                         <FormInput
                             label="No. of Activity conducted"

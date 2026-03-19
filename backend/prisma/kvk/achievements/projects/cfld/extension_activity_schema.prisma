@@ -17,7 +17,7 @@ model ExtensionActivityOrganized {
   updatedAt           DateTime          @updatedAt @map("updated_at")
   extensionActivity   ExtensionActivity @relation(fields: [extensionActivityId], references: [extensionActivityId])
   kvk                 Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season              Season?           @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season              Season?           @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@index([seasonId])

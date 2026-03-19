@@ -32,6 +32,13 @@ router.get('/', requireRole(allRoles), extensionActivityController.getAll);
 router.get('/:id', requireRole(allRoles), extensionActivityController.getById);
 
 /**
+ * @route   PUT /api/forms/achievements/extension-activities/:id
+ * @desc    Update Extension Activity
+ * @access  Owner (KVK) or Admin
+ */
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), extensionActivityController.update);
+
+/**
  * @route   PATCH /api/forms/achievements/extension-activities/:id
  * @desc    Update Extension Activity
  * @access  Owner (KVK) or Admin

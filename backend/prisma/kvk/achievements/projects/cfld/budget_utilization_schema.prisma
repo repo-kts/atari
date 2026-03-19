@@ -19,9 +19,9 @@ model KvkBudgetUtilization {
   areaAchieved          Float                      @map("area_ha_achieved")
   createdAt             DateTime                   @default(now()) @map("created_at")
   updatedAt             DateTime                   @updatedAt @map("updated_at")
-  crop                  FldCrop?                   @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
+  crop                  FldCrop?                   @relation(fields: [cropId], references: [cropId])
   kvk                   Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season                Season?                    @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season                Season?                    @relation(fields: [seasonId], references: [seasonId])
   items                 KvkBudgetUtilizationItem[]
 
   @@index([kvkId])

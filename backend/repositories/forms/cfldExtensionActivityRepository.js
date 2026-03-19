@@ -32,7 +32,7 @@ const cfldExtensionActivityRepository = {
         const stM = parseInt(data.stM || 0);
         const stF = parseInt(data.stF || 0);
 
-        await prisma.$executeRawUnsafe(`
+        const [insertResult] = await prisma.$queryRawUnsafe(`
             INSERT INTO extension_activity_organized (
                 "kvkId", "seasonId", "extensionActivityId", 
                 activity_date, place_of_activity, 
@@ -40,21 +40,18 @@ const cfldExtensionActivityRepository = {
                 sc_m, sc_f, st_m, st_f, 
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            RETURNING organized_id
         `, kvkId, seasonId, extensionActivityId, activityDate, placeOfActivity, generalM, generalF, obcM, obcF, scM, scF, stM, stF);
 
-        const result = await prisma.extensionActivityOrganized.findFirst({
-            where: {
-                kvkId,
-                seasonId,
-                extensionActivityId,
-                activityDate: activityDate
-            },
+        const newOrganizedId = insertResult.organized_id;
+
+        const result = await prisma.extensionActivityOrganized.findUnique({
+            where: { organizedId: newOrganizedId },
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
                 extensionActivity: { select: { extensionName: true } },
-            },
-            orderBy: { organizedId: 'desc' }
+            }
         });
         return _mapResponse(result);
     },
@@ -180,14 +177,15 @@ function _mapResponse(r) {
         scF: r.scF,
         stM: r.stM,
         stF: r.stF,
+        genM: r.generalM, // Added for frontend consistency
+        genF: r.generalF, // Added for frontend consistency
+        date: r.activityDate, // Added for frontend consistency
 
-        // Frontend friendly aliases
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Season': r.season ? r.season.seasonName : undefined,
-        'Extension Activities Organized': r.extensionActivity ? r.extensionActivity.extensionName : undefined,
-        'Date': r.activityDate ? new Date(r.activityDate).toLocaleDateString('en-GB') : undefined,
-        'Place of Activity': r.placeOfActivity,
-        'No. of Farmers attended': totalFarmers
+        // Frontend FIELD_NAMES alignment
+        season: r.season ? r.season.seasonName : undefined,
+        extensionActivitiesOrganized: r.extensionActivity ? r.extensionActivity.extensionName : undefined,
+        activityDate: r.activityDate ? new Date(r.activityDate).toISOString().split('T')[0] : undefined,
+        noOfFarmersAttended: totalFarmers,
     };
 }
 

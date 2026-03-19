@@ -28,20 +28,20 @@ const agriDroneRepository = {
         `,
             kvkId,
             reportingYearId,
-            data.picName ?? data.projectImplementingCentre,
+            data.picName ?? data.projectImplementingCentre ?? '',
             parseInt(data.dronesSanctioned || 0),
             parseInt(data.dronesPurchased || 0),
             parseFloat(data.amountSanctioned || 0),
             parseFloat(data.droneCost ?? data.costPerDrone ?? 0),
-            data.droneCompany,
-            data.droneModel,
-            data.pilotName,
-            data.pilotContact,
+            data.droneCompany ?? '',
+            data.droneModel ?? '',
+            data.pilotName ?? '',
+            data.pilotContact ?? '',
             parseFloat(data.targetArea ?? data.targetAreaHa ?? 0),
             parseFloat(data.demoAmountSanctioned || 0),
             parseFloat(data.demoAmountUtilised || 0),
-            data.operations ?? data.operationType,
-            data.advantages ?? data.advantagesObserved);
+            data.operations ?? data.operationType ?? '',
+            data.advantages ?? data.advantagesObserved ?? '');
 
         return await agriDroneRepository.findById(result[0].agri_drone_id, user);
     },
@@ -164,17 +164,22 @@ const agriDroneRepository = {
         return {
             ...r,
             id: r.agriDroneId,
-            'KVK Name': r.kvk?.kvkName,
-            'Year': r.reportingYear ? r.reportingYear.yearName : r.reportingYearId,
             reportingYearId: r.reportingYearId,
             yearId: r.reportingYearId, // Frontend alias
             reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
-            'Project Implementing centre name': r.projectImplementingCentre,
-            'Company of Drone': r.droneCompany,
-            'Model of Drone': r.droneModel,
-            'No. of Agri Drones Sanctioned': r.dronesSanctioned,
-            'No. of Agri Drones Purchased': r.dronesPurchased,
-            'Cost Sanctioned': r.amountSanctioned
+            projectImplementingCentre: r.projectImplementingCentre,
+            droneCompany: r.droneCompany,
+            droneModel: r.droneModel,
+            dronesSanctioned: r.dronesSanctioned,
+            dronesPurchased: r.dronesPurchased,
+            amountSanctioned: r.amountSanctioned,
+            pilotName: r.pilotName,
+            pilotContact: r.pilotContact,
+            targetAreaHa: r.targetAreaHa,
+            demoAmountSanctioned: r.demoAmountSanctioned,
+            demoAmountUtilised: r.demoAmountUtilised,
+            operationType: r.operationType,
+            advantagesObserved: r.advantagesObserved
         };
     }
 };

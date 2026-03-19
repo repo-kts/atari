@@ -236,3 +236,10 @@ exports.getSoilWaterAnalysisById = getById('soil-water-analysis');
 exports.createSoilWaterAnalysis = create('soil-water-analysis');
 exports.updateSoilWaterAnalysis = update('soil-water-analysis');
 exports.deleteSoilWaterAnalysis = deleteEntity('soil-water-analysis');
+
+// ============================================
+// NARI Masters Controllers
+// ============================================
+
+exports.getAllNariCropCategories = getAll('nari-crop-category');
+exports.getAllNariNutritionGardenTypes = getAll('nari-nutrition-garden-type');

@@ -32,6 +32,13 @@ router.get('/', requireRole(allRoles), farmerAwardController.getAllFarmerAwards)
 router.get('/:id', requireRole(allRoles), farmerAwardController.getFarmerAwardById);
 
 /**
+ * @route   PUT /api/forms/achievements/farmer-awards/:id
+ * @desc    Update Farmer Award
+ * @access  Owner (KVK) or Admin
+ */
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), farmerAwardController.updateFarmerAward);
+
+/**
  * @route   PATCH /api/forms/achievements/farmer-awards/:id
  * @desc    Update Farmer Award
  * @access  Owner (KVK) or Admin

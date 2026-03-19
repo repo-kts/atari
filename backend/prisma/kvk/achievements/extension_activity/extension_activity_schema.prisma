@@ -25,10 +25,11 @@ model KvkExtensionActivity {
   officialsStF        Int                 @map("officials_st_f")
   createdAt           DateTime            @default(now()) @map("created_at")
   updatedAt           DateTime            @updatedAt @map("updated_at")
-  activity            FldActivity?        @relation(fields: [activityId], references: [activityId])
+  extensionActivity   ExtensionActivity?  @relation(fields: [activityId], references: [extensionActivityId], map: "ext_act_relation_fkey")
   fld                 KvkFldIntroduction? @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
   kvk                 Kvk                 @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   staff               KvkStaff?           @relation(fields: [staffId], references: [kvkStaffId])
+  fldActivity         FldActivity?        @relation(fields: [activityId], references: [activityId], map: "fld_act_relation_fkey")
 
   @@index([kvkId])
   @@index([fldId])

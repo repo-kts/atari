@@ -45,29 +45,29 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                             label="Village Covered(no.)"
                             required
                             type="number"
-                            value={formData.villageCovered || ''}
-                            onChange={(e) => setFormData({ ...formData, villageCovered: e.target.value })}
+                            value={formData.villagesCovered || ''}
+                            onChange={(e) => setFormData({ ...formData, villagesCovered: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="Block Covered(no.)"
                             required
                             type="number"
-                            value={formData.blockCovered || ''}
-                            onChange={(e) => setFormData({ ...formData, blockCovered: e.target.value })}
+                            value={formData.blocksCovered || ''}
+                            onChange={(e) => setFormData({ ...formData, blocksCovered: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="District Covered(no.)"
                             required
                             type="number"
-                            value={formData.districtCovered || ''}
-                            onChange={(e) => setFormData({ ...formData, districtCovered: e.target.value })}
+                            value={formData.districtsCovered || ''}
+                            onChange={(e) => setFormData({ ...formData, districtsCovered: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="Respondent(no.)"
                             required
                             type="number"
-                            value={formData.respondent || ''}
-                            onChange={(e) => setFormData({ ...formData, respondent: e.target.value })}
+                            value={formData.respondents || ''}
+                            onChange={(e) => setFormData({ ...formData, respondents: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="Trall Name"
@@ -79,8 +79,8 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                             label="Area Covered(ha)"
                             required
                             type="number"
-                            value={formData.areaCovered || ''}
-                            onChange={(e) => setFormData({ ...formData, areaCovered: e.target.value })}
+                            value={formData.areaCoveredHa || ''}
+                            onChange={(e) => setFormData({ ...formData, areaCoveredHa: parseFloat(e.target.value) || 0 })}
                         />
                     </div>
 
@@ -98,8 +98,8 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                             <FormInput
                                 label="Technology Options"
                                 required
-                                value={formData.techOptions || ''}
-                                onChange={(e) => setFormData({ ...formData, techOptions: e.target.value })}
+                                value={formData.technologyOption || ''}
+                                onChange={(e) => setFormData({ ...formData, technologyOption: e.target.value })}
                             />
                             <FormInput
                                 label="Variety Name"
@@ -112,7 +112,7 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                                 required
                                 type="number"
                                 value={formData.durationDays || ''}
-                                onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, durationDays: parseInt(e.target.value) || 0 })}
                             />
                         </div>
 
@@ -136,14 +136,14 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                                 required
                                 type="number"
                                 value={formData.daysOfMaturity || ''}
-                                onChange={(e) => setFormData({ ...formData, daysOfMaturity: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, daysOfMaturity: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Grain Yield(q/ha)"
                                 required
                                 type="number"
-                                value={formData.grainYield || ''}
-                                onChange={(e) => setFormData({ ...formData, grainYield: e.target.value })}
+                                value={formData.grainYieldQPerHa || ''}
+                                onChange={(e) => setFormData({ ...formData, grainYieldQPerHa: parseFloat(e.target.value) || 0 })}
                             />
                         </div>
 
@@ -153,21 +153,21 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                                 required
                                 type="number"
                                 value={formData.costOfCultivation || ''}
-                                onChange={(e) => setFormData({ ...formData, costOfCultivation: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, costOfCultivation: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Gross Return(Rs/ha)"
                                 required
                                 type="number"
                                 value={formData.grossReturn || ''}
-                                onChange={(e) => setFormData({ ...formData, grossReturn: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, grossReturn: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Net Return(Rs/ha)"
                                 required
                                 type="number"
                                 value={formData.netReturn || ''}
-                                onChange={(e) => setFormData({ ...formData, netReturn: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, netReturn: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="BCR"
@@ -175,7 +175,7 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                                 type="number"
                                 step="0.01"
                                 value={formData.bcr || ''}
-                                onChange={(e) => setFormData({ ...formData, bcr: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, bcr: parseFloat(e.target.value) || 0 })}
                             />
                         </div>
                     </div>

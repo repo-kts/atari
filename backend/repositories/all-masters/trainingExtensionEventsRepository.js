@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
 
 /**
  * Training, Extension & Events Master Data Repository
@@ -14,6 +15,7 @@ const ENTITY_CONFIG = {
         nameField: 'trainingTypeName',
         tableName: 'training_type',
         idColumn: 'training_type_id',
+        requiredFields: ['trainingTypeName'],
         includes: {
             _count: {
                 select: {
@@ -28,6 +30,7 @@ const ENTITY_CONFIG = {
         nameField: 'trainingAreaName',
         tableName: 'training_area',
         idColumn: 'training_area_id',
+        requiredFields: ['trainingTypeId', 'trainingAreaName'],
         includes: {
             trainingType: {
                 select: {
@@ -48,6 +51,7 @@ const ENTITY_CONFIG = {
         nameField: 'trainingThematicAreaName',
         tableName: 'training_thematic_area',
         idColumn: 'training_thematic_area_id',
+        requiredFields: ['trainingAreaId', 'trainingThematicAreaName'],
         includes: {
             trainingArea: {
                 select: {
@@ -71,6 +75,7 @@ const ENTITY_CONFIG = {
         nameField: 'extensionName',
         tableName: 'extension_activity',
         idColumn: 'extension_activity_id',
+        requiredFields: ['extensionName'],
         includes: {},
     },
     'other-extension-activities': {
@@ -79,6 +84,7 @@ const ENTITY_CONFIG = {
         nameField: 'otherExtensionName',
         tableName: 'other_extension_activity',
         idColumn: 'other_extension_activity_id',
+        requiredFields: ['otherExtensionName'],
         includes: {},
     },
 
@@ -89,6 +95,7 @@ const ENTITY_CONFIG = {
         nameField: 'eventName',
         tableName: 'event',
         idColumn: 'event_id',
+        requiredFields: ['eventName'],
         includes: {},
     },
 };
@@ -97,11 +104,16 @@ const ENTITY_CONFIG = {
  * Get entity configuration
  * @param {string} entityName - Entity name
  * @returns {object} Entity configuration
+ * @throws {ValidationError} If entity name is invalid
  */
 function getEntityConfig(entityName) {
+    if (!entityName || typeof entityName !== 'string') {
+        throw new ValidationError('Entity name is required and must be a string');
+    }
+
     const config = ENTITY_CONFIG[entityName];
     if (!config) {
-        throw new Error(`Invalid entity name: ${entityName}`);
+        throw new ValidationError(`Invalid entity name: ${entityName}`);
     }
     return config;
 }
@@ -159,43 +171,102 @@ async function findAll(entityName, options = {}) {
  * Find entity by ID
  * @param {string} entityName - Entity name
  * @param {number} id - Entity ID
- * @returns {Promise<object|null>}
+ * @returns {Promise<object>}
+ * @throws {ValidationError} If ID is invalid
+ * @throws {NotFoundError} If entity not found
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
-        throw new Error(`Missing ID field: ${config.idField}`);
-    }
-    
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Invalid ID: ${id}. Expected a number.`);
+        throw new ValidationError(`Missing ID field: ${config.idField}`, config.idField);
     }
 
-    return await prisma[config.model].findUnique({
-        where: { [config.idField]: parsedId },
-        include: config.includes,
-    });
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Invalid ID: ${id}. Expected a positive number.`, config.idField);
+    }
+
+    try {
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: parsedId },
+            include: config.includes,
+        });
+
+        if (!entity) {
+            throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+        }
+
+        return entity;
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof ValidationError) {
+            throw error;
+        }
+        throw translatePrismaError(error, entityName, 'findById');
+    }
 }
 
 /**
  * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
  * Only keep scalar values Prisma can accept.
+ * Master data entities don't have kvkId, so exclude it.
+ * @param {object} config - Entity configuration
+ * @param {object} data - Data to sanitize
+ * @returns {object} Sanitized data
+ * @throws {ValidationError} If required fields are missing
  */
 function sanitizeData(config, data) {
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data must be a non-null object');
+    }
+
     const sanitized = {};
+    // Fields to exclude for master data entities
+    const excludeFields = ['kvkId', 'kvk_id'];
+
+    // Validate all required fields (including foreign keys and name field)
+    if (config.requiredFields && Array.isArray(config.requiredFields)) {
+        for (const field of config.requiredFields) {
+            if (data[field] === undefined || data[field] === null || data[field] === '') {
+                throw new ValidationError(`${field} is required`, field);
+            }
+        }
+    } else {
+        // Fallback: Validate required name field if requiredFields not specified
+        if (config.nameField && !data[config.nameField]) {
+            throw new ValidationError(`${config.nameField} is required`, config.nameField);
+        }
+    }
+
     for (const [key, value] of Object.entries(data)) {
-        // Skip ID field, _count, timestamps, and nested objects
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (excludeFields.includes(key)) continue; // Exclude kvkId for master data entities
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
-        // Parse FK fields as integers
-        if (key.endsWith('Id') && value !== null) {
+
+        // Skip empty strings for ID fields (they shouldn't be in the payload)
+        if (key.endsWith('Id') && (value === null || value === '' || value === undefined)) {
+            continue;
+        }
+
+        // Validate and sanitize name field
+        if (key === config.nameField) {
+            const trimmed = typeof value === 'string' ? value.trim() : String(value);
+            if (!trimmed || trimmed.length === 0) {
+                throw new ValidationError(`${config.nameField} cannot be empty`, config.nameField);
+            }
+            if (trimmed.length > 255) {
+                throw new ValidationError(`${config.nameField} must be less than 255 characters`, config.nameField);
+            }
+            sanitized[key] = trimmed;
+        } else if (key.endsWith('Id') && value !== null) {
             const parsed = parseInt(value, 10);
-            if (!isNaN(parsed)) sanitized[key] = parsed;
+            if (isNaN(parsed) || parsed <= 0) {
+                throw new ValidationError(`Invalid ${key}: must be a positive number`, key);
+            }
+            sanitized[key] = parsed;
         } else {
             sanitized[key] = typeof value === 'string' ? value.trim() : value;
         }
@@ -229,9 +300,16 @@ async function fixSequence(config) {
  * @param {string} entityName - Entity name
  * @param {object} data - Entity data
  * @returns {Promise<object>}
+ * @throws {ValidationError} If validation fails
+ * @throws {ConflictError} If duplicate exists
  */
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data is required and must be an object');
+    }
+
     const sanitized = sanitizeData(config, data);
 
     try {
@@ -240,18 +318,26 @@ async function create(entityName, data) {
             include: config.includes,
         });
     } catch (error) {
+        // Handle sequence issues
         if (error.code === 'P2011' || error.code === 'P2002' ||
             (error.message && error.message.includes('Null constraint violation'))) {
             console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
-            const fixed = await fixSequence(config);
-            if (fixed !== null) {
-                return await prisma[config.model].create({
-                    data: sanitized,
-                    include: config.includes,
-                });
+            try {
+                const fixed = await fixSequence(config);
+                if (fixed !== null) {
+                    return await prisma[config.model].create({
+                        data: sanitized,
+                        include: config.includes,
+                    });
+                }
+            } catch (retryError) {
+                // If retry fails, translate the original error
+                throw translatePrismaError(error, entityName, 'create');
             }
         }
-        throw error;
+
+        // Translate Prisma errors to user-friendly errors
+        throw translatePrismaError(error, entityName, 'create');
     }
 }
 
@@ -261,42 +347,79 @@ async function create(entityName, data) {
  * @param {number} id - Entity ID
  * @param {object} data - Updated data
  * @returns {Promise<object>}
+ * @throws {ValidationError} If validation fails
+ * @throws {NotFoundError} If entity not found
+ * @throws {ConflictError} If duplicate exists
  */
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
+
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new ValidationError(`Missing ID field: ${config.idField}`, config.idField);
+    }
+
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Invalid ID: ${id}. Expected a positive number.`, config.idField);
+    }
+
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data is required and must be an object');
+    }
+
+    // Check if entity exists before updating
+    const existing = await prisma[config.model].findUnique({
+        where: { [config.idField]: parsedId },
+    });
+
+    if (!existing) {
+        throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+    }
+
     const sanitized = sanitizeData(config, data);
 
-    return await prisma[config.model].update({
-        where: { [config.idField]: parseInt(id) },
-        data: sanitized,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].update({
+            where: { [config.idField]: parsedId },
+            data: sanitized,
+            include: config.includes,
+        });
+    } catch (error) {
+        throw translatePrismaError(error, entityName, 'update');
+    }
 }
 
 /**
  * Check for dependent records before deletion
  * @param {string} entityName - Entity name
- * @param {object} config - Entity configuration
  * @param {number} id - Entity ID
- * @returns {Promise<object|null>} Dependent records info or null
+ * @returns {Promise<object>} Dependent records info
  */
-async function checkDependentRecords(entityName, config, id) {
+async function checkDependents(entityName, id) {
+    const config = getEntityConfig(entityName);
+    const parsedId = parseInt(id);
+
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid ID for checking dependents', config.idField);
+    }
+
     // Check _count if available in includes
     if (config.includes && config.includes._count && config.includes._count.select) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
         const entity = await prisma[config.model].findUnique({
-            where: { [config.idField]: id },
-            select: { 
+            where: { [config.idField]: parsedId },
+            select: {
                 _count: {
                     select: config.includes._count.select
                 }
             },
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
-            
+
             if (dependentCounts.length > 0) {
                 return {
                     hasDependents: true,
@@ -305,7 +428,7 @@ async function checkDependentRecords(entityName, config, id) {
             }
         }
     }
-    
+
     return { hasDependents: false };
 }
 
@@ -314,36 +437,47 @@ async function checkDependentRecords(entityName, config, id) {
  * @param {string} entityName - Entity name
  * @param {number} id - Entity ID
  * @returns {Promise<object>}
+ * @throws {ValidationError} If ID is invalid
+ * @throws {NotFoundError} If entity not found
+ * @throws {ConflictError} If entity has dependent records
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
-        throw new Error(`Cannot delete ${entityName}: missing ID field`);
+        throw new ValidationError(`Cannot delete ${entityName}: missing ID field`, config.idField);
     }
-    
+
     const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Cannot delete ${entityName}: invalid ID: ${id}`, config.idField);
     }
-    
-    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
+
+    // Check if entity exists before deleting
+    const existing = await prisma[config.model].findUnique({
+        where: { [config.idField]: parsedId },
+    });
+
+    if (!existing) {
+        throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+    }
+
+    // Check for dependent records
+    const dependents = await checkDependents(entityName, parsedId);
+    if (dependents.hasDependents) {
+        const dependentTypes = Object.keys(dependents.counts).join(', ');
+        throw new ConflictError(
+            `Cannot delete ${entityName}: has dependent records (${dependentTypes}). Please remove dependent records first.`
+        );
+    }
+
     try {
         return await prisma[config.model].delete({
             where: { [config.idField]: parsedId },
         });
     } catch (error) {
-        // Handle foreign key constraint violations (if schema doesn't have SetNull)
-        if (error.code === 'P2003') {
-            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
-        }
-        // Handle record not found
-        if (error.code === 'P2025') {
-            throw new Error(`${entityName} not found`);
-        }
-        // Re-throw other errors
-        throw error;
+        throw translatePrismaError(error, entityName, 'delete');
     }
 }
 
@@ -351,26 +485,54 @@ async function deleteEntity(entityName, id) {
  * Find training areas by training type ID
  * @param {number} trainingTypeId - Training Type ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If trainingTypeId is invalid
  */
 async function findTrainingAreasByType(trainingTypeId) {
-    return await prisma.trainingArea.findMany({
-        where: { trainingTypeId: parseInt(trainingTypeId) },
-        include: ENTITY_CONFIG['training-areas'].includes,
-        orderBy: { trainingAreaName: 'asc' },
-    });
+    if (!trainingTypeId) {
+        throw new ValidationError('Training Type ID is required', 'trainingTypeId');
+    }
+
+    const parsedId = parseInt(trainingTypeId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid training type ID: must be a positive number', 'trainingTypeId');
+    }
+
+    try {
+        return await prisma.trainingArea.findMany({
+            where: { trainingTypeId: parsedId },
+            include: ENTITY_CONFIG['training-areas'].includes,
+            orderBy: { trainingAreaName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'Training Area', 'findByType');
+    }
 }
 
 /**
  * Find training thematic areas by training area ID
  * @param {number} trainingAreaId - Training Area ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If trainingAreaId is invalid
  */
 async function findTrainingThematicAreasByArea(trainingAreaId) {
-    return await prisma.trainingThematicArea.findMany({
-        where: { trainingAreaId: parseInt(trainingAreaId) },
-        include: ENTITY_CONFIG['training-thematic-areas'].includes,
-        orderBy: { trainingThematicAreaName: 'asc' },
-    });
+    if (!trainingAreaId) {
+        throw new ValidationError('Training Area ID is required', 'trainingAreaId');
+    }
+
+    const parsedId = parseInt(trainingAreaId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid training area ID: must be a positive number', 'trainingAreaId');
+    }
+
+    try {
+        return await prisma.trainingThematicArea.findMany({
+            where: { trainingAreaId: parsedId },
+            include: ENTITY_CONFIG['training-thematic-areas'].includes,
+            orderBy: { trainingThematicAreaName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'Training Thematic Area', 'findByArea');
+    }
 }
 
 /**
@@ -404,32 +566,56 @@ async function nameExists(entityName, name, excludeId = null, additionalFilters 
  * @param {string} entityName - Entity name
  * @param {object} data - Data to validate
  * @returns {Promise<boolean>}
+ * @throws {ValidationError} If reference is invalid
  */
 async function validateReferences(entityName, data) {
-    switch (entityName) {
-        case 'training-areas':
-            if (data.trainingTypeId) {
-                const trainingType = await prisma.trainingType.findUnique({
-                    where: { trainingTypeId: parseInt(data.trainingTypeId) },
-                });
-                return !!trainingType;
-            }
-            break;
-
-        case 'training-thematic-areas':
-            if (data.trainingAreaId) {
-                const trainingArea = await prisma.trainingArea.findUnique({
-                    where: { trainingAreaId: parseInt(data.trainingAreaId) },
-                });
-                return !!trainingArea;
-            }
-            break;
-
-        default:
-            return true;
+    if (!data || typeof data !== 'object') {
+        return true; // Empty data is valid, validation happens elsewhere
     }
 
-    return true;
+    try {
+        switch (entityName) {
+            case 'training-areas':
+                if (data.trainingTypeId) {
+                    const parsedId = parseInt(data.trainingTypeId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid training type ID', 'trainingTypeId');
+                    }
+                    const trainingType = await prisma.trainingType.findUnique({
+                        where: { trainingTypeId: parsedId },
+                    });
+                    if (!trainingType) {
+                        throw new ValidationError(`Training Type with ID ${parsedId} not found`, 'trainingTypeId');
+                    }
+                }
+                break;
+
+            case 'training-thematic-areas':
+                if (data.trainingAreaId) {
+                    const parsedId = parseInt(data.trainingAreaId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid training area ID', 'trainingAreaId');
+                    }
+                    const trainingArea = await prisma.trainingArea.findUnique({
+                        where: { trainingAreaId: parsedId },
+                    });
+                    if (!trainingArea) {
+                        throw new ValidationError(`Training Area with ID ${parsedId} not found`, 'trainingAreaId');
+                    }
+                }
+                break;
+
+            default:
+                return true;
+        }
+
+        return true;
+    } catch (error) {
+        if (error instanceof ValidationError) {
+            throw error;
+        }
+        throw translatePrismaError(error, entityName, 'validateReferences');
+    }
 }
 
 /**
@@ -480,4 +666,5 @@ module.exports = {
     nameExists,
     validateReferences,
     getStats,
+    getEntityConfig,
 };

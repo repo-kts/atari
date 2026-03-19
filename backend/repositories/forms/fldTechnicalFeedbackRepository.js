@@ -345,10 +345,6 @@ function _mapResponse(r) {
         feedBack: r.feedback,
         reportingYearId: r.reportingYearId,
         reportingYear: r.reportingYear?.yearName,
-        // Frontend-friendly table labels
-        'FLD': r.fld?.fldName,
-        'Crop': r.crop?.cropName,
-        'Feedback': r.feedback,
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

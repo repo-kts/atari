@@ -50,8 +50,8 @@ model NicraDetails {
   kvk                    Kvk              @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   category               NicraCategory    @relation(fields: [nicraCategoryId], references: [nicraCategoryId])
   subCategory            NicraSubCategory @relation(fields: [nicraSubCategoryId], references: [nicraSubCategoryId])
-  reportingYear          YearMaster?      @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-  season                 Season?          @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  reportingYear          YearMaster?      @relation(fields: [reportingYearId], references: [yearId])
+  season                 Season?          @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@index([nicraCategoryId])

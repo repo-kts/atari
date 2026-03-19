@@ -42,9 +42,9 @@ const _normalizeString = (value, fieldName, allowNull = true) => {
  * @throws {RepositoryError} If value is invalid
  */
 const _parseInteger = (value, fieldName, allowNull = true) => {
-    if (value === null || value === undefined) {
+    if (value === null || value === undefined || value === '') {
         if (allowNull) return null;
-        throw new RepositoryError(`${fieldName} is required`, 'VALIDATION_ERROR', 400);
+        return 0; // Default to 0 for required fields if empty string provided
     }
     const parsed = parseInt(value);
     if (isNaN(parsed) || parsed < 0) {
@@ -106,12 +106,12 @@ const _mapResponse = (r) => {
         ...r,
         id: r.kvkAwardId,
         reportingYear,
-        'Reporting Year': reportingYear,
-        'KVK Name': r.kvk?.kvkName,
-        'Award Name': r.awardName,
-        'Amount': r.amount,
-        'Achievement': r.achievement,
-        'Conferring Authority': r.conferringAuthority,
+        kvkName: r.kvk?.kvkName,
+        reportingYear: reportingYear,
+        award: r.awardName,
+        amount: r.amount,
+        achievement: r.achievement,
+        conferringAuthority: r.conferringAuthority,
         // Backend format
         kvkAwardId: r.kvkAwardId,
         kvkAwardID: r.kvkAwardId, // Legacy compatibility
@@ -137,7 +137,7 @@ const kvkAwardRepository = {
 
             // Resolve kvkId: prioritized from user session, then from data
             let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
-                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
+                (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
             if (!kvkId) {
                 throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);

@@ -184,15 +184,14 @@ const techWeekRepository = {
             sc_f: farmersScF,
             st_m: farmersStM,
             st_f: farmersStF,
-            reportingYear,
-            'Reporting Year': reportingYear,
-            'KVK Name': a.kvk?.kvkName,
-            'Start Date': a.startDate ? new Date(a.startDate).toISOString().split('T')[0] : '',
-            'End Date': a.endDate ? new Date(a.endDate).toISOString().split('T')[0] : '',
-            'Type Of Activities': a.typeOfActivities || a.type_of_activities,
-            'No. of activities': a.numberOfActivities || a.number_of_activities,
-            'Related Crop/Live Stock Technology': a.relatedTechnology || a.related_crop_livestock_technology,
-            numberOfParticipants: participants
+            reportingYear: reportingYear,
+            kvkName: a.kvk?.kvkName,
+            startDate: a.startDate ? new Date(a.startDate).toISOString().split('T')[0] : '',
+            endDate: a.endDate ? new Date(a.endDate).toISOString().split('T')[0] : '',
+            typeOfActivities: a.typeOfActivities || a.type_of_activities,
+            noOfActivities: a.numberOfActivities || a.number_of_activities,
+            relatedCropLivestockTechnology: a.relatedTechnology || a.related_crop_livestock_technology,
+            noOfParticipants: participants
         };
     }
 };

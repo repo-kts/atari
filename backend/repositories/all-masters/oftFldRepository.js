@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
 
 /**
  * OFT & FLD Master Data Repository
@@ -15,6 +16,7 @@ const ENTITY_CONFIG = {
         nameField: 'subjectName',
         tableName: 'oft_subject',
         idColumn: 'oft_subject_id',
+        requiredFields: ['subjectName'],
         includes: {
             _count: {
                 select: {
@@ -29,6 +31,7 @@ const ENTITY_CONFIG = {
         nameField: 'thematicAreaName',
         tableName: 'oft_thematic_area',
         idColumn: 'oft_thematic_area_id',
+        requiredFields: ['oftSubjectId', 'thematicAreaName'],
         includes: {
             subject: {
                 select: {
@@ -46,6 +49,7 @@ const ENTITY_CONFIG = {
         nameField: 'sectorName',
         tableName: 'sector',
         idColumn: 'sector_id',
+        requiredFields: ['sectorName'],
         includes: {
             _count: {
                 select: {
@@ -61,6 +65,7 @@ const ENTITY_CONFIG = {
         nameField: 'thematicAreaName',
         tableName: 'thematic_area',
         idColumn: 'thematic_area_id',
+        requiredFields: ['sectorId', 'thematicAreaName'],
         includes: {
             sector: {
                 select: {
@@ -76,6 +81,7 @@ const ENTITY_CONFIG = {
         nameField: 'categoryName',
         tableName: 'category',
         idColumn: 'category_id',
+        requiredFields: ['sectorId', 'categoryName'],
         includes: {
             sector: {
                 select: {
@@ -96,6 +102,7 @@ const ENTITY_CONFIG = {
         nameField: 'subCategoryName',
         tableName: 'sub_category',
         idColumn: 'sub_category_id',
+        requiredFields: ['categoryId', 'sectorId', 'subCategoryName'],
         includes: {
             category: {
                 select: {
@@ -122,6 +129,7 @@ const ENTITY_CONFIG = {
         nameField: 'cropName',
         tableName: 'crop',
         idColumn: 'crop_id',
+        requiredFields: ['subCategoryId', 'categoryId', 'cropName'],
         includes: {
             subCategory: {
                 select: {
@@ -143,14 +151,6 @@ const ENTITY_CONFIG = {
         nameField: 'activityName',
         tableName: 'fld_activity',
         idColumn: 'activity_id',
-        includes: {
-            _count: {
-                select: {
-                    extensions: true,
-                    kvkExtensionActivities: true,
-                },
-            },
-        },
     },
 
     // CFLD Entities
@@ -160,6 +160,7 @@ const ENTITY_CONFIG = {
         nameField: 'seasonName',
         tableName: 'season',
         idColumn: 'season_id',
+        requiredFields: ['seasonName'],
         includes: {
             _count: {
                 select: {
@@ -174,6 +175,7 @@ const ENTITY_CONFIG = {
         nameField: 'typeName',
         tableName: 'crop_type',
         idColumn: 'type_id',
+        requiredFields: ['typeName'],
         includes: {
             _count: {
                 select: {
@@ -188,6 +190,7 @@ const ENTITY_CONFIG = {
         nameField: 'CropName',
         tableName: 'fld_crop_master',
         idColumn: 'cfld_id',
+        requiredFields: ['seasonId', 'typeId', 'CropName'],
         includes: {
             season: {
                 select: {
@@ -209,11 +212,16 @@ const ENTITY_CONFIG = {
  * Get entity configuration
  * @param {string} entityName - Entity name
  * @returns {object} Entity configuration
+ * @throws {ValidationError} If entity name is invalid
  */
 function getEntityConfig(entityName) {
+    if (!entityName || typeof entityName !== 'string') {
+        throw new ValidationError('Entity name is required and must be a string');
+    }
+
     const config = ENTITY_CONFIG[entityName];
     if (!config) {
-        throw new Error(`Invalid entity name: ${entityName}`);
+        throw new ValidationError(`Invalid entity name: ${entityName}`);
     }
     return config;
 }
@@ -271,41 +279,102 @@ async function findAll(entityName, options = {}) {
  * Find entity by ID
  * @param {string} entityName - Entity name
  * @param {number} id - Entity ID
- * @returns {Promise<object|null>}
+ * @returns {Promise<object>}
+ * @throws {ValidationError} If ID is invalid
+ * @throws {NotFoundError} If entity not found
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
-        throw new Error(`Missing ID field: ${config.idField}`);
-    }
-    
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Invalid ID: ${id}. Expected a number.`);
+        throw new ValidationError(`Missing ID field: ${config.idField}`, config.idField);
     }
 
-    return await prisma[config.model].findUnique({
-        where: { [config.idField]: parsedId },
-        include: config.includes,
-    });
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Invalid ID: ${id}. Expected a positive number.`, config.idField);
+    }
+
+    try {
+        const entity = await prisma[config.model].findUnique({
+            where: { [config.idField]: parsedId },
+            include: config.includes,
+        });
+
+        if (!entity) {
+            throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+        }
+
+        return entity;
+    } catch (error) {
+        if (error instanceof NotFoundError || error instanceof ValidationError) {
+            throw error;
+        }
+        throw translatePrismaError(error, entityName, 'findById');
+    }
 }
 
 /**
  * Sanitize data: remove nested objects, _count, timestamps, and the ID field.
  * Only keep scalar values Prisma can accept.
+ * Master data entities don't have kvkId, so exclude it.
+ * @param {object} config - Entity configuration
+ * @param {object} data - Data to sanitize
+ * @returns {object} Sanitized data
+ * @throws {ValidationError} If required fields are missing
  */
 function sanitizeData(config, data) {
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data must be a non-null object');
+    }
+
     const sanitized = {};
+    // Fields to exclude for master data entities
+    const excludeFields = ['kvkId', 'kvk_id'];
+
+    // Validate all required fields (including foreign keys and name field)
+    if (config.requiredFields && Array.isArray(config.requiredFields)) {
+        for (const field of config.requiredFields) {
+            if (data[field] === undefined || data[field] === null || data[field] === '') {
+                throw new ValidationError(`${field} is required`, field);
+            }
+        }
+    } else {
+        // Fallback: Validate required name field if requiredFields not specified
+        if (config.nameField && !data[config.nameField]) {
+            throw new ValidationError(`${config.nameField} is required`, config.nameField);
+        }
+    }
+
     for (const [key, value] of Object.entries(data)) {
         if (key === config.idField || key === '_count' || key === 'id' || key === '_id') continue;
         if (key === 'createdAt' || key === 'updatedAt') continue;
+        if (excludeFields.includes(key)) continue; // Exclude kvkId for master data entities
         if (value !== null && typeof value === 'object') continue;
         if (value === undefined) continue;
-        if (key.endsWith('Id') && value !== null) {
+
+        // Skip empty strings for ID fields (they shouldn't be in the payload)
+        if (key.endsWith('Id') && (value === null || value === '' || value === undefined)) {
+            continue;
+        }
+
+        // Validate and sanitize name field
+        if (key === config.nameField) {
+            const trimmed = typeof value === 'string' ? value.trim() : String(value);
+            if (!trimmed || trimmed.length === 0) {
+                throw new ValidationError(`${config.nameField} cannot be empty`, config.nameField);
+            }
+            if (trimmed.length > 255) {
+                throw new ValidationError(`${config.nameField} must be less than 255 characters`, config.nameField);
+            }
+            sanitized[key] = trimmed;
+        } else if (key.endsWith('Id') && value !== null) {
             const parsed = parseInt(value, 10);
-            if (!isNaN(parsed)) sanitized[key] = parsed;
+            if (isNaN(parsed) || parsed <= 0) {
+                throw new ValidationError(`Invalid ${key}: must be a positive number`, key);
+            }
+            sanitized[key] = parsed;
         } else {
             sanitized[key] = typeof value === 'string' ? value.trim() : value;
         }
@@ -339,9 +408,16 @@ async function fixSequence(config) {
  * @param {string} entityName - Entity name
  * @param {object} data - Entity data
  * @returns {Promise<object>}
+ * @throws {ValidationError} If validation fails
+ * @throws {ConflictError} If duplicate exists
  */
 async function create(entityName, data) {
     const config = getEntityConfig(entityName);
+
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data is required and must be an object');
+    }
+
     const sanitized = sanitizeData(config, data);
 
     try {
@@ -350,18 +426,26 @@ async function create(entityName, data) {
             include: config.includes,
         });
     } catch (error) {
+        // Handle sequence issues
         if (error.code === 'P2011' || error.code === 'P2002' ||
             (error.message && error.message.includes('Null constraint violation'))) {
             console.log(`Attempting sequence fix for ${config.model} after error: ${error.message}`);
-            const fixed = await fixSequence(config);
-            if (fixed !== null) {
-                return await prisma[config.model].create({
-                    data: sanitized,
-                    include: config.includes,
-                });
+            try {
+                const fixed = await fixSequence(config);
+                if (fixed !== null) {
+                    return await prisma[config.model].create({
+                        data: sanitized,
+                        include: config.includes,
+                    });
+                }
+            } catch (retryError) {
+                // If retry fails, translate the original error
+                throw translatePrismaError(error, entityName, 'create');
             }
         }
-        throw error;
+
+        // Translate Prisma errors to user-friendly errors
+        throw translatePrismaError(error, entityName, 'create');
     }
 }
 
@@ -371,42 +455,80 @@ async function create(entityName, data) {
  * @param {number} id - Entity ID
  * @param {object} data - Updated data
  * @returns {Promise<object>}
+ * @throws {ValidationError} If validation fails
+ * @throws {NotFoundError} If entity not found
+ * @throws {ConflictError} If duplicate exists
  */
 async function update(entityName, id, data) {
     const config = getEntityConfig(entityName);
+
+    // Validate ID
+    if (id === undefined || id === null || id === '') {
+        throw new ValidationError(`Missing ID field: ${config.idField}`, config.idField);
+    }
+
+    const parsedId = parseInt(id);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Invalid ID: ${id}. Expected a positive number.`, config.idField);
+    }
+
+    if (!data || typeof data !== 'object') {
+        throw new ValidationError('Data is required and must be an object');
+    }
+
+    // Check if entity exists before updating
+    const existing = await prisma[config.model].findUnique({
+        where: { [config.idField]: parsedId },
+    });
+
+    if (!existing) {
+        throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+    }
+
     const sanitized = sanitizeData(config, data);
 
-    return await prisma[config.model].update({
-        where: { [config.idField]: parseInt(id) },
-        data: sanitized,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].update({
+            where: { [config.idField]: parsedId },
+            data: sanitized,
+            include: config.includes,
+        });
+    } catch (error) {
+        throw translatePrismaError(error, entityName, 'update');
+    }
 }
+
 
 /**
  * Check for dependent records before deletion
  * @param {string} entityName - Entity name
- * @param {object} config - Entity configuration
  * @param {number} id - Entity ID
- * @returns {Promise<object|null>} Dependent records info or null
+ * @returns {Promise<object>} Dependent records info
  */
-async function checkDependentRecords(entityName, config, id) {
+async function checkDependents(entityName, id) {
+    const config = getEntityConfig(entityName);
+    const parsedId = parseInt(id);
+
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid ID for checking dependents', config.idField);
+    }
+
     // Check _count if available in includes
     if (config.includes && config.includes._count && config.includes._count.select) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
         const entity = await prisma[config.model].findUnique({
-            where: { [config.idField]: id },
-            select: { 
+            where: { [config.idField]: parsedId },
+            select: {
                 _count: {
                     select: config.includes._count.select
                 }
             },
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
-            
+
             if (dependentCounts.length > 0) {
                 return {
                     hasDependents: true,
@@ -415,7 +537,7 @@ async function checkDependentRecords(entityName, config, id) {
             }
         }
     }
-    
+
     return { hasDependents: false };
 }
 
@@ -424,102 +546,184 @@ async function checkDependentRecords(entityName, config, id) {
  * @param {string} entityName - Entity name
  * @param {number} id - Entity ID
  * @returns {Promise<object>}
+ * @throws {ValidationError} If ID is invalid
+ * @throws {NotFoundError} If entity not found
+ * @throws {ConflictError} If entity has dependent records
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-    
+
     // Validate ID
     if (id === undefined || id === null || id === '') {
-        throw new Error(`Cannot delete ${entityName}: missing ID field`);
+        throw new ValidationError(`Cannot delete ${entityName}: missing ID field`, config.idField);
     }
-    
+
     const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError(`Cannot delete ${entityName}: invalid ID: ${id}`, config.idField);
     }
-    
-    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
+
+    // Check if entity exists before deleting
+    const existing = await prisma[config.model].findUnique({
+        where: { [config.idField]: parsedId },
+    });
+
+    if (!existing) {
+        throw new NotFoundError(`${entityName} with ID ${parsedId}`);
+    }
+
+    // Check for dependent records
+    const dependents = await checkDependents(entityName, parsedId);
+    if (dependents.hasDependents) {
+        const dependentTypes = Object.keys(dependents.counts).join(', ');
+        throw new ConflictError(
+            `Cannot delete ${entityName}: has dependent records (${dependentTypes}). Please remove dependent records first.`
+        );
+    }
+
     try {
         return await prisma[config.model].delete({
             where: { [config.idField]: parsedId },
         });
     } catch (error) {
-        // Handle foreign key constraint violations (if schema doesn't have SetNull)
-        if (error.code === 'P2003') {
-            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
-        }
-        // Handle record not found
-        if (error.code === 'P2025') {
-            throw new Error(`${entityName} not found`);
-        }
-        // Re-throw other errors
-        throw error;
+        throw translatePrismaError(error, entityName, 'delete');
     }
 }
+
 
 /**
  * Find OFT thematic areas by subject ID
  * @param {number} oftSubjectId - OFT Subject ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If subjectId is invalid
  */
 async function findOftThematicAreasBySubject(oftSubjectId) {
-    return await prisma.oftThematicArea.findMany({
-        where: { oftSubjectId: parseInt(oftSubjectId) },
-        include: ENTITY_CONFIG['oft-thematic-areas'].includes,
-        orderBy: { thematicAreaName: 'asc' },
-    });
+    if (!oftSubjectId) {
+        throw new ValidationError('Subject ID is required', 'oftSubjectId');
+    }
+
+    const parsedId = parseInt(oftSubjectId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid subject ID: must be a positive number', 'oftSubjectId');
+    }
+
+    try {
+        return await prisma.oftThematicArea.findMany({
+            where: { oftSubjectId: parsedId },
+            include: ENTITY_CONFIG['oft-thematic-areas'].includes,
+            orderBy: { thematicAreaName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'OFT Thematic Area', 'findBySubject');
+    }
 }
 
 /**
  * Find FLD thematic areas by sector ID
  * @param {number} sectorId - Sector ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If sectorId is invalid
  */
 async function findFldThematicAreasBySector(sectorId) {
-    return await prisma.fldThematicArea.findMany({
-        where: { sectorId: parseInt(sectorId) },
-        include: ENTITY_CONFIG['fld-thematic-areas'].includes,
-        orderBy: { thematicAreaName: 'asc' },
-    });
+    if (!sectorId) {
+        throw new ValidationError('Sector ID is required', 'sectorId');
+    }
+
+    const parsedId = parseInt(sectorId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid sector ID: must be a positive number', 'sectorId');
+    }
+
+    try {
+        return await prisma.fldThematicArea.findMany({
+            where: { sectorId: parsedId },
+            include: ENTITY_CONFIG['fld-thematic-areas'].includes,
+            orderBy: { thematicAreaName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'FLD Thematic Area', 'findBySector');
+    }
 }
 
 /**
  * Find FLD categories by sector ID
  * @param {number} sectorId - Sector ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If sectorId is invalid
  */
 async function findFldCategoriesBySector(sectorId) {
-    return await prisma.fldCategory.findMany({
-        where: { sectorId: parseInt(sectorId) },
-        include: ENTITY_CONFIG['fld-categories'].includes,
-        orderBy: { categoryName: 'asc' },
-    });
+    if (!sectorId) {
+        throw new ValidationError('Sector ID is required', 'sectorId');
+    }
+
+    const parsedId = parseInt(sectorId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid sector ID: must be a positive number', 'sectorId');
+    }
+
+    try {
+        return await prisma.fldCategory.findMany({
+            where: { sectorId: parsedId },
+            include: ENTITY_CONFIG['fld-categories'].includes,
+            orderBy: { categoryName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'FLD Category', 'findBySector');
+    }
 }
 
 /**
  * Find FLD subcategories by category ID
  * @param {number} categoryId - Category ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If categoryId is invalid
  */
 async function findFldSubcategoriesByCategory(categoryId) {
-    return await prisma.fldSubcategory.findMany({
-        where: { categoryId: parseInt(categoryId) },
-        include: ENTITY_CONFIG['fld-subcategories'].includes,
-        orderBy: { subCategoryName: 'asc' },
-    });
+    if (!categoryId) {
+        throw new ValidationError('Category ID is required', 'categoryId');
+    }
+
+    const parsedId = parseInt(categoryId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid category ID: must be a positive number', 'categoryId');
+    }
+
+    try {
+        return await prisma.fldSubcategory.findMany({
+            where: { categoryId: parsedId },
+            include: ENTITY_CONFIG['fld-subcategories'].includes,
+            orderBy: { subCategoryName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'FLD Subcategory', 'findByCategory');
+    }
 }
 
 /**
  * Find FLD crops by subcategory ID
  * @param {number} subCategoryId - Subcategory ID
  * @returns {Promise<Array>}
+ * @throws {ValidationError} If subCategoryId is invalid
  */
 async function findFldCropsBySubcategory(subCategoryId) {
-    return await prisma.fldCrop.findMany({
-        where: { subCategoryId: parseInt(subCategoryId) },
-        include: ENTITY_CONFIG['fld-crops'].includes,
-        orderBy: { cropName: 'asc' },
-    });
+    if (!subCategoryId) {
+        throw new ValidationError('Subcategory ID is required', 'subCategoryId');
+    }
+
+    const parsedId = parseInt(subCategoryId);
+    if (isNaN(parsedId) || parsedId <= 0) {
+        throw new ValidationError('Invalid subcategory ID: must be a positive number', 'subCategoryId');
+    }
+
+    try {
+        return await prisma.fldCrop.findMany({
+            where: { subCategoryId: parsedId },
+            include: ENTITY_CONFIG['fld-crops'].includes,
+            orderBy: { cropName: 'asc' },
+        });
+    } catch (error) {
+        throw translatePrismaError(error, 'FLD Crop', 'findBySubcategory');
+    }
 }
 
 /**
@@ -553,84 +757,149 @@ async function nameExists(entityName, name, excludeId = null, additionalFilters 
  * @param {string} entityName - Entity name
  * @param {object} data - Data to validate
  * @returns {Promise<boolean>}
+ * @throws {ValidationError} If reference is invalid
  */
 async function validateReferences(entityName, data) {
-    switch (entityName) {
-        case 'oft-thematic-areas':
-            if (data.oftSubjectId) {
-                const subject = await prisma.oftSubject.findUnique({
-                    where: { oftSubjectId: parseInt(data.oftSubjectId) },
-                });
-                return !!subject;
-            }
-            break;
-
-        case 'fld-thematic-areas':
-        case 'fld-categories':
-            if (data.sectorId) {
-                const sector = await prisma.sector.findUnique({
-                    where: { sectorId: parseInt(data.sectorId) },
-                });
-                return !!sector;
-            }
-            break;
-
-        case 'fld-subcategories':
-            if (data.categoryId) {
-                const category = await prisma.fldCategory.findUnique({
-                    where: { categoryId: parseInt(data.categoryId) },
-                });
-                if (!category) return false;
-            }
-            if (data.sectorId) {
-                const sector = await prisma.sector.findUnique({
-                    where: { sectorId: parseInt(data.sectorId) },
-                });
-                if (!sector) return false;
-            }
-            return true;
-
-        case 'fld-crops':
-            if (data.subCategoryId) {
-                const subcategory = await prisma.fldSubcategory.findUnique({
-                    where: { subCategoryId: parseInt(data.subCategoryId) },
-                });
-                if (!subcategory) return false;
-            }
-            if (data.categoryId) {
-                const category = await prisma.fldCategory.findUnique({
-                    where: { categoryId: parseInt(data.categoryId) },
-                });
-                if (!category) return false;
-            }
-            if (data.sectorId) {
-                const sector = await prisma.sector.findUnique({
-                    where: { sectorId: parseInt(data.sectorId) },
-                });
-                if (!sector) return false;
-            }
-            return true;
-
-        case 'cfld-crops':
-            if (data.seasonId) {
-                const season = await prisma.season.findUnique({
-                    where: { seasonId: parseInt(data.seasonId) },
-                });
-                if (!season) return false;
-            }
-            if (data.typeId) {
-                const cropType = await prisma.cropType.findUnique({
-                    where: { typeId: parseInt(data.typeId) },
-                });
-                if (!cropType) return false;
-            }
-            return true;
-
-        default:
-            return true;
+    if (!data || typeof data !== 'object') {
+        return true; // Empty data is valid, validation happens elsewhere
     }
+    try {
+        switch (entityName) {
+            case 'oft-thematic-areas':
+                if (data.oftSubjectId) {
+                    const parsedId = parseInt(data.oftSubjectId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid subject ID', 'oftSubjectId');
+                    }
+                    const subject = await prisma.oftSubject.findUnique({
+                        where: { oftSubjectId: parsedId },
+                    });
+                    if (!subject) {
+                        throw new ValidationError(`OFT Subject with ID ${parsedId} not found`, 'oftSubjectId');
+                    }
+                }
+                break;
 
-    return true;
+            case 'fld-thematic-areas':
+            case 'fld-categories':
+                if (data.sectorId) {
+                    const parsedId = parseInt(data.sectorId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid sector ID', 'sectorId');
+                    }
+                    const sector = await prisma.sector.findUnique({
+                        where: { sectorId: parsedId },
+                    });
+                    if (!sector) {
+                        throw new ValidationError(`Sector with ID ${parsedId} not found`, 'sectorId');
+                    }
+                }
+                break;
+
+            case 'fld-subcategories':
+                if (data.categoryId) {
+                    const parsedId = parseInt(data.categoryId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid category ID', 'categoryId');
+                    }
+                    const category = await prisma.fldCategory.findUnique({
+                        where: { categoryId: parsedId },
+                    });
+                    if (!category) {
+                        throw new ValidationError(`Category with ID ${parsedId} not found`, 'categoryId');
+                    }
+                }
+                if (data.sectorId) {
+                    const parsedId = parseInt(data.sectorId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid sector ID', 'sectorId');
+                    }
+                    const sector = await prisma.sector.findUnique({
+                        where: { sectorId: parsedId },
+                    });
+                    if (!sector) {
+                        throw new ValidationError(`Sector with ID ${parsedId} not found`, 'sectorId');
+                    }
+                }
+                break;
+
+            case 'fld-crops':
+                if (data.subCategoryId) {
+                    const parsedId = parseInt(data.subCategoryId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid subcategory ID', 'subCategoryId');
+                    }
+                    const subcategory = await prisma.fldSubcategory.findUnique({
+                        where: { subCategoryId: parsedId },
+                    });
+                    if (!subcategory) {
+                        throw new ValidationError(`Subcategory with ID ${parsedId} not found`, 'subCategoryId');
+                    }
+                }
+                if (data.categoryId) {
+                    const parsedId = parseInt(data.categoryId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid category ID', 'categoryId');
+                    }
+                    const category = await prisma.fldCategory.findUnique({
+                        where: { categoryId: parsedId },
+                    });
+                    if (!category) {
+                        throw new ValidationError(`Category with ID ${parsedId} not found`, 'categoryId');
+                    }
+                }
+                if (data.sectorId) {
+                    const parsedId = parseInt(data.sectorId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid sector ID', 'sectorId');
+                    }
+                    const sector = await prisma.sector.findUnique({
+                        where: { sectorId: parsedId },
+                    });
+                    if (!sector) {
+                        throw new ValidationError(`Sector with ID ${parsedId} not found`, 'sectorId');
+                    }
+                }
+                break;
+
+            case 'cfld-crops':
+                if (data.seasonId) {
+                    const parsedId = parseInt(data.seasonId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid season ID', 'seasonId');
+                    }
+                    const season = await prisma.season.findUnique({
+                        where: { seasonId: parsedId },
+                    });
+                    if (!season) {
+                        throw new ValidationError(`Season with ID ${parsedId} not found`, 'seasonId');
+                    }
+                }
+                if (data.typeId) {
+                    const parsedId = parseInt(data.typeId);
+                    if (isNaN(parsedId) || parsedId <= 0) {
+                        throw new ValidationError('Invalid crop type ID', 'typeId');
+                    }
+                    const cropType = await prisma.cropType.findUnique({
+                        where: { typeId: parsedId },
+                    });
+                    if (!cropType) {
+                        throw new ValidationError(`Crop Type with ID ${parsedId} not found`, 'typeId');
+                    }
+                }
+                break;
+
+            default:
+                return true;
+        }
+
+        return true;
+    } catch (error) {
+        if (error instanceof ValidationError) {
+            throw error;
+        }
+        throw translatePrismaError(error, entityName, 'validateReferences');
+    }
 }
 
 /**
@@ -690,4 +959,5 @@ module.exports = {
     nameExists,
     validateReferences,
     getStats,
+    getEntityConfig, // Export for service layer use
 };

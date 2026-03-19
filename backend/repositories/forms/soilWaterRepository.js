@@ -1,22 +1,132 @@
 const prisma = require('../../config/prisma.js');
 
-const soilWaterRepository = {
-    // Helper to resolve year_id from string like "2022-23" or "2022"
-    resolveYearId: async (yearValue) => {
-        if (!yearValue) return null;
-        let yearStr = String(yearValue).split('-')[0]; // Extract "2022" from "2022-23" or just "2022"
-        const yearInt = parseInt(yearStr);
-        if (isNaN(yearInt)) return null;
+// Mapping functions to avoid duplicate fields from spreading raw DB objects
+function _mapEquipmentResponse(r) {
+    if (!r) return null;
+    const yName = r.year_name;
+    const yLabel = yName ? String(yName) : null;
+    const analysisName = r.analysis_name;
+    const reportingYearId = r.reporting_year_id;
+    return {
+        id: r.soil_water_equipment_id,
+        soilWaterEquipmentId: r.soil_water_equipment_id,
+        kvkId: r.kvkId,
+        kvkName: r.kvk_name,
+        reportingYear: yLabel,
+        reportingYearId,
+        analysisName,
+        equipmentName: r.equipment_name,
+        soilWaterAnalysisId: r.soilWaterAnalysisId,
+        quantity: r.quantity,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+    };
+}
 
-        return await prisma.$transaction(async (tx) => {
-            const rows = await tx.$queryRawUnsafe(`SELECT year_id FROM year_master WHERE year_name = $1 LIMIT 1`, String(yearInt));
+function _mapAnalysisResponse(r) {
+    if (!r) return null;
+    const yName = r.year_name;
+    const yLabel = yName ? String(yName) : null;
+    const analysisName = r.analysis_name;
+    const reportingYearId = r.reporting_year_id;
+    return {
+        id: r.soil_water_analysis_id,
+        soilWaterAnalysisId: r.soil_water_analysis_id,
+        kvkId: r.kvkId,
+        kvkName: r.kvk_name,
+        analysisName,
+        analysisId: r.analysis_id,
+        startDate: r.start_date ? r.start_date.toISOString().split('T')[0] : null,
+        endDate: r.end_date ? r.end_date.toISOString().split('T')[0] : null,
+        samplesAnalysedThrough: r.samples_analysed_through,
+        samplesAnalysed: r.samples_analysed,
+        villagesNumber: r.villages_number,
+        amountRealized: r.amount_realized,
+        reportingYear: yLabel,
+        reportingYearId,
+        generalM: r.general_m,
+        generalF: r.general_f,
+        obcM: r.obc_m,
+        obcF: r.obc_f,
+        scM: r.sc_m,
+        scF: r.sc_f,
+        stM: r.st_m,
+        stF: r.st_f,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+    };
+}
+
+function _mapWorldSoilDayResponse(r) {
+    if (!r) return null;
+    const yName = r.year_name;
+    const yLabel = yName ? String(yName) : null;
+    const reportingYearId = r.reporting_year_id;
+    return {
+        id: r.world_soil_celebration_id,
+        worldSoilCelebrationId: r.world_soil_celebration_id,
+        kvkId: r.kvkId,
+        kvkName: r.kvk_name,
+        activitiesConducted: r.activities_conducted,
+        soilHealthCardDistributed: r.soil_health_card_distributed,
+        noOfVips: r.no_of_vips,
+        vipNames: r.vip_names,
+        participants: r.participants,
+        generalM: r.general_m,
+        generalF: r.general_f,
+        obcM: r.obc_m,
+        obcF: r.obc_f,
+        scM: r.sc_m,
+        scF: r.sc_f,
+        stM: r.st_m,
+        stF: r.st_f,
+        reportingYear: yLabel,
+        reportingYearId,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+    };
+}
+
+const soilWaterRepository = {
+    // Helper to resolve year_id from ID or string like "2022-23" or "2022"
+    // Prioritizes yearId/reportingYearId if provided, otherwise resolves from string
+    resolveYearId: async (data) => {
+        // If data is a number or string that looks like an ID, use it directly
+        if (typeof data === 'number' || (typeof data === 'string' && /^\d+$/.test(data))) {
+            const yearId = parseInt(data);
+            if (!isNaN(yearId) && yearId > 0) {
+                return yearId;
+            }
+        }
+        
+        // If data is an object, check for yearId or reportingYearId first
+        if (data && typeof data === 'object') {
+            const yearId = data.yearId || data.reportingYearId;
+            if (yearId) {
+                const parsed = parseInt(yearId);
+                if (!isNaN(parsed) && parsed > 0) {
+                    return parsed;
+                }
+            }
+            // Fall back to year string if ID not found
+            data = data.reportingYear || data.year || data.yearName;
+        }
+        
+        // If we have a year string, resolve it (but don't create new years - only find existing)
+        if (data && typeof data === 'string') {
+            let yearStr = String(data).split('-')[0]; // Extract "2022" from "2022-23" or just "2022"
+            const yearInt = parseInt(yearStr);
+            if (isNaN(yearInt)) return null;
+
+            const rows = await prisma.$queryRawUnsafe(`SELECT year_id FROM year_master WHERE year_name = $1 LIMIT 1`, String(yearInt));
             if (rows && rows.length > 0) {
                 return rows[0].year_id;
-            } else {
-                const inserted = await tx.$queryRawUnsafe(`INSERT INTO year_master (year_name, created_at, updated_at) VALUES ($1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING year_id`, String(yearInt));
-                return inserted[0].year_id;
             }
-        });
+            // Don't create new years - return null if not found
+            return null;
+        }
+        
+        return null;
     },
 
     // ============================================
@@ -27,7 +137,7 @@ const soilWaterRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) kvkId = 1; // Fallback to 1 if absolutely nothing found
 
-        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+        const rYearId = await soilWaterRepository.resolveYearId(data);
         const analysisId = parseInt(data.soilWaterAnalysisId);
         const qty = parseInt(data.quantity);
 
@@ -58,21 +168,7 @@ const soilWaterRepository = {
             ORDER BY e.soil_water_equipment_id DESC
         `, ...params);
 
-        return rows.map(r => {
-            const yName = r.year_name;
-            const yLabel = yName ? String(yName) : null;
-            return {
-                ...r,
-                id: r.soil_water_equipment_id,
-                kvkName: r.kvk_name,
-                reportingYear: yLabel,
-                reportingYearLabel: yLabel,
-                analysisName: r.analysis_name,
-                equipmentName: r.equipment_name,
-                soilWaterAnalysisId: r.soilWaterAnalysisId,
-                quantity: r.quantity
-            };
-        });
+        return rows.map(_mapEquipmentResponse);
     },
 
     findEquipmentById: async (id) => {
@@ -83,18 +179,7 @@ const soilWaterRepository = {
             WHERE e.soil_water_equipment_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
-        const r = rows[0];
-        const yName = r.year_name;
-        const yLabel = yName ? String(yName) : null;
-        return {
-            ...r,
-            id: r.soil_water_equipment_id,
-            kvkId: r.kvkId,
-            reportingYear: yLabel,
-            equipmentName: r.equipment_name,
-            soilWaterAnalysisId: r.soilWaterAnalysisId,
-            quantity: r.quantity
-        };
+        return _mapEquipmentResponse(rows[0]);
     },
 
     updateEquipment: async (id, data, user) => {
@@ -102,9 +187,9 @@ const soilWaterRepository = {
         const values = [];
         let index = 1;
 
-        if (data.reportingYear !== undefined || data.year !== undefined) {
+        if (data.reportingYearId !== undefined || data.yearId !== undefined || data.reportingYear !== undefined || data.year !== undefined) {
             updates.push(`reporting_year_id = $${index++}`);
-            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            const rYearId = await soilWaterRepository.resolveYearId(data);
             values.push(rYearId);
         }
         if (data.soilWaterAnalysisId !== undefined) {
@@ -157,7 +242,7 @@ const soilWaterRepository = {
         const sAnalysed = parseInt(data.samplesAnalysed || 0);
         const vNum = parseInt(data.villagesNumber || data.numberOfVillages || 0);
         const aRealized = parseInt(data.amountRealized || 0);
-        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+        const rYearId = await soilWaterRepository.resolveYearId(data);
 
         // All NOT NULL columns MUST have values.
         await prisma.$queryRawUnsafe(`
@@ -204,33 +289,7 @@ const soilWaterRepository = {
             ORDER BY a.soil_water_analysis_id DESC
         `, ...params);
 
-        return rows.map(r => {
-            const yName = r.year_name;
-            const yLabel = yName ? String(yName) : null;
-            return {
-                ...r,
-                id: r.soil_water_analysis_id,
-                kvkName: r.kvk_name,
-                analysisName: r.analysis_name,
-                startDate: r.start_date,
-                endDate: r.end_date,
-                analysisId: r.analysis_id,
-                samplesAnalysedThrough: r.samples_analysed_through,
-                samplesAnalysed: r.samples_analysed,
-                villagesNumber: r.villages_number,
-                amountRealized: r.amount_realized,
-                generalM: r.general_m,
-                generalF: r.general_f,
-                obcM: r.obc_m,
-                obcF: r.obc_f,
-                scM: r.sc_m,
-                scF: r.sc_f,
-                stM: r.st_m,
-                stF: r.st_f,
-                reportingYear: yLabel,
-                year: yLabel
-            };
-        });
+        return rows.map(_mapAnalysisResponse);
     },
 
     findAnalysisById: async (id) => {
@@ -241,31 +300,7 @@ const soilWaterRepository = {
             WHERE a.soil_water_analysis_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
-        const r = rows[0];
-        const yName = r.year_name;
-        const yLabel = yName ? String(yName) : null;
-        return {
-            ...r,
-            id: r.soil_water_analysis_id,
-            kvkId: r.kvkId,
-            startDate: r.start_date,
-            endDate: r.end_date,
-            analysisId: r.analysis_id,
-            samplesAnalysedThrough: r.samples_analysed_through,
-            samplesAnalysed: r.samples_analysed,
-            villagesNumber: r.villages_number,
-            amountRealized: r.amount_realized,
-            generalM: r.general_m,
-            generalF: r.general_f,
-            obcM: r.obc_m,
-            obcF: r.obc_f,
-            scM: r.sc_m,
-            scF: r.sc_f,
-            stM: r.st_m,
-            stF: r.st_f,
-            reportingYear: yLabel,
-            year: yLabel
-        };
+        return _mapAnalysisResponse(rows[0]);
     },
 
     updateAnalysis: async (id, data, user) => {
@@ -305,9 +340,9 @@ const soilWaterRepository = {
             }
         }
 
-        if (data.reportingYear !== undefined || data.year !== undefined) {
+        if (data.reportingYearId !== undefined || data.yearId !== undefined || data.reportingYear !== undefined || data.year !== undefined) {
             updates.push(`reporting_year_id = $${index++}`);
-            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            const rYearId = await soilWaterRepository.resolveYearId(data);
             values.push(rYearId);
         }
 
@@ -345,7 +380,7 @@ const soilWaterRepository = {
         const actCond = parseInt(data.activitiesConducted || 0);
         const shcDist = parseInt(data.soilHealthCardDistributed || 0);
         const part = parseInt(data.participants || 0);
-        const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+        const rYearId = await soilWaterRepository.resolveYearId(data);
 
         await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_world_soil_celebration 
@@ -387,29 +422,7 @@ const soilWaterRepository = {
             ORDER BY w.world_soil_celebration_id DESC
         `, ...params);
 
-        return rows.map(r => {
-            const yName = r.year_name;
-            const yLabel = yName ? String(yName) : null;
-            return {
-                ...r,
-                id: r.world_soil_celebration_id,
-                kvkName: r.kvk_name,
-                activitiesConducted: r.activities_conducted,
-                soilHealthCardDistributed: r.soil_health_card_distributed,
-                vipNames: r.vip_names,
-                participants: r.participants,
-                generalM: r.general_m,
-                generalF: r.general_f,
-                obcM: r.obc_m,
-                obcF: r.obc_f,
-                scM: r.sc_m,
-                scF: r.sc_f,
-                stM: r.st_m,
-                stF: r.st_f,
-                reportingYear: yLabel,
-                year: yLabel
-            };
-        });
+        return rows.map(_mapWorldSoilDayResponse);
     },
 
     findWorldSoilDayById: async (id) => {
@@ -420,28 +433,7 @@ const soilWaterRepository = {
             WHERE w.world_soil_celebration_id = $1
         `, parseInt(id));
         if (!rows[0]) return null;
-        const r = rows[0];
-        const yName = r.year_name;
-        const yLabel = yName ? String(yName) : null;
-        return {
-            ...r,
-            id: r.world_soil_celebration_id,
-            kvkId: r.kvkId,
-            activitiesConducted: r.activities_conducted,
-            soilHealthCardDistributed: r.soil_health_card_distributed,
-            vipNames: r.vip_names,
-            participants: r.participants,
-            generalM: r.general_m,
-            generalF: r.general_f,
-            obcM: r.obc_m,
-            obcF: r.obc_f,
-            scM: r.sc_m,
-            scF: r.sc_f,
-            stM: r.st_m,
-            stF: r.st_f,
-            reportingYear: yLabel,
-            year: yLabel
-        };
+        return _mapWorldSoilDayResponse(rows[0]);
     },
 
     updateWorldSoilDay: async (id, data, user) => {
@@ -476,9 +468,9 @@ const soilWaterRepository = {
             }
         }
 
-        if (data.reportingYear !== undefined || data.year !== undefined) {
+        if (data.reportingYearId !== undefined || data.yearId !== undefined || data.reportingYear !== undefined || data.year !== undefined) {
             updates.push(`reporting_year_id = $${index++}`);
-            const rYearId = await soilWaterRepository.resolveYearId(data.reportingYear || data.year);
+            const rYearId = await soilWaterRepository.resolveYearId(data);
             values.push(rYearId);
         }
 

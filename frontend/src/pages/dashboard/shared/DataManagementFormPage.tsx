@@ -31,7 +31,7 @@ import { LinkageForms } from './forms/performance-indicators/LinkageForms'
 import { MiscellaneousForms } from './forms/miscellaneous/MiscellaneousForms'
 import { DigitalInformationForms } from './forms/digital-information/DigitalInformationForms'
 import { SwachhtaBharatAbhiyaanForms } from './forms/swachhta-bharat-abhiyaan/SwachhtaBharatAbhiyaanForms'
-import { MettingForms } from './forms/meetings/MettingForms'
+import { MeetingForms } from './forms/meetings/MeetingForms'
 
 interface DataManagementFormPageProps {
     entityType: ExtendedEntityType | null
@@ -233,7 +233,7 @@ export function DataManagementFormPage({
                             />
                         )}
 
-                        {isMiscellaneous && (
+                        {isMiscellaneous && !isDigitalInformation && !isSwachhtaBharatAbhiyaan && !isMeetings && (
                             <MiscellaneousForms
                                 entityType={entityType}
                                 formData={formData}
@@ -258,7 +258,7 @@ export function DataManagementFormPage({
                         )}
 
                         {isMeetings && (
-                            <MettingForms
+                            <MeetingForms
                                 entityType={entityType}
                                 formData={formData}
                                 setFormData={setFormData}

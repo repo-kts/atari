@@ -10,6 +10,7 @@ const allRoles = [...kvkRoles, 'super_admin', 'zone_admin', 'state_admin', 'dist
 router.post('/', requireRole([...kvkRoles, 'super_admin']), celebrationDayController.create);
 router.get('/', requireRole(allRoles), celebrationDayController.getAll);
 router.get('/:id', requireRole(allRoles), celebrationDayController.getById);
+router.put('/:id', requireRole([...kvkRoles, 'super_admin']), celebrationDayController.update);
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), celebrationDayController.update);
 router.delete('/:id', requireRole([...kvkRoles, 'super_admin']), celebrationDayController.delete);
 

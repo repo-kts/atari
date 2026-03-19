@@ -459,8 +459,8 @@ async function seedTrainings(kvkIds) {
 async function seedExtensionActivities(kvkIds) {
   console.log('🌱 Seeding extension activities...');
 
-  // Get required masters
-  const activities = await prisma.fldActivity.findMany({ take: 5 });
+  // Get required masters - use ExtensionActivity (not FldActivity)
+  const activities = await prisma.extensionActivity.findMany({ take: 5 });
   const staff = await prisma.kvkStaff.findMany({
     where: { kvkId: { in: kvkIds } },
     take: 10,
@@ -488,7 +488,7 @@ async function seedExtensionActivities(kvkIds) {
 
       const activityData = {
         kvkId,
-        activityId: activities[i % activities.length].activityId,
+        activityId: activities[i % activities.length].extensionActivityId,
         staffId: kvkStaff.length > 0 ? kvkStaff[i % kvkStaff.length].kvkStaffId : null,
         numberOfActivities: Math.floor(Math.random() * 5) + 1,
         startDate,
@@ -535,7 +535,8 @@ async function seedExtensionActivities(kvkIds) {
 async function seedOtherExtensionActivities(kvkIds) {
   console.log('🌱 Seeding other extension activities...');
 
-  const activityTypes = await prisma.otherExtensionActivityType.findMany({ take: 5 });
+  // Get required masters - use OtherExtensionActivity (not OtherExtensionActivityType)
+  const activityTypes = await prisma.otherExtensionActivity.findMany({ take: 5 });
   const staff = await prisma.kvkStaff.findMany({
     where: { kvkId: { in: kvkIds } },
     take: 10,
@@ -560,7 +561,7 @@ async function seedOtherExtensionActivities(kvkIds) {
 
       const activityData = {
         kvkId,
-        activityTypeId: activityTypes[i % activityTypes.length].activityTypeId,
+        activityTypeId: activityTypes[i % activityTypes.length].otherExtensionActivityId,
         staffId: kvkStaff.length > 0 ? kvkStaff[i % kvkStaff.length].kvkStaffId : null,
         numberOfActivities: Math.floor(Math.random() * 10) + 1,
         startDate,

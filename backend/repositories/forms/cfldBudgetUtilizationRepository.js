@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
+const { mapCommonRelations } = require('../../utils/responseMapper.js');
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
@@ -11,32 +12,32 @@ const cfldBudgetUtilizationRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        // Resolve cropId using prisma.fldCrop (maps to 'crop' table)
+        // Resolve cropId
         let cropId = data.cropId ? parseInt(data.cropId) : null;
         if (data.crop) {
             let crop = await prisma.fldCrop.findFirst({
                 where: { cropName: { equals: data.crop, mode: 'insensitive' } }
             });
             if (!crop) {
-                // Find or create CFLD category (maps to 'category' table, sectorId optional via raw)
+                // CFLD category/subcategory creation logic...
                 let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
                 if (!category) {
                     const sectors = await prisma.$queryRawUnsafe("SELECT sector_id FROM sector ORDER BY sector_id LIMIT 1");
                     const sId = sectors.length > 0 ? sectors[0].sector_id : 1;
-                    const catRows = await prisma.$queryRaw`
+                    const catRows = await prisma.$queryRawUnsafe(`
                         INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        VALUES ('CFLD', $1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
                         RETURNING category_id
-                    `;
+                    `, sId);
                     category = { categoryId: catRows[0].category_id, sectorId: sId };
                 }
                 let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
                 if (!subcategory) {
-                    const subRows = await prisma.$queryRaw`
+                    const subRows = await prisma.$queryRawUnsafe(`
                         INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        VALUES ('CFLD', $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
                         RETURNING sub_category_id
-                    `;
+                    `, category.categoryId, category.sectorId || 1);
                     subcategory = { subCategoryId: subRows[0].sub_category_id };
                 }
                 const cropRows = await prisma.$queryRawUnsafe(
@@ -50,25 +51,27 @@ const cfldBudgetUtilizationRepository = {
         }
         if (!cropId) throw new Error('Crop is required');
 
-        // Fetch actual budget_item IDs from DB (in insertion order)
-        const budgetItemRows = await prisma.$queryRawUnsafe("SELECT budget_item_id FROM budget_item ORDER BY budget_item_id");
-        const itemIds = budgetItemRows.map(r => r.budget_item_id);
-        const budgetItems = [
-            { id: itemIds[0], r: data.criticalInputReceived, u: data.criticalInputUtilized },
-            { id: itemIds[1], r: data.taDaReceived, u: data.taDaUtilized },
-            { id: itemIds[2], r: data.extensionActivitiesReceived, u: data.extensionActivitiesUtilized },
-            { id: itemIds[3], r: data.publicationReceived, u: data.publicationUtilized }
-        ].filter(item => item.id && (item.r !== undefined || item.u !== undefined));
+        // Fetch budget items to map by name
+        const budgetItemsMaster = await prisma.budgetItem.findMany();
+        const getItemIdByPattern = (pattern) => {
+            const item = budgetItemsMaster.find(i => i.itemName.toLowerCase().includes(pattern.toLowerCase()));
+            return item ? item.budgetItemId : null;
+        };
 
-        // yearId from frontend may be the string year value (e.g. "2024-25" or "2024") or a numeric year
+        const budgetItemsToInsert = [
+            { id: getItemIdByPattern('Critical Input'), r: data.criticalInputReceived, u: data.criticalInputUtilized },
+            { id: getItemIdByPattern('TA/DA'), r: data.taDaReceived, u: data.taDaUtilized },
+            { id: getItemIdByPattern('Extension Activities'), r: data.extensionActivitiesReceived, u: data.extensionActivitiesUtilized },
+            { id: getItemIdByPattern('Publication'), r: data.publicationReceived, u: data.publicationUtilized }
+        ].filter(item => item.id !== null);
+
         const rawYear = data.yearId || data.year;
         let numericYear = new Date().getFullYear();
         if (rawYear) {
-            const parsed = parseInt(String(rawYear));
+            const parsed = parseInt(String(rawYear).split('-')[0]);
             numericYear = isNaN(parsed) ? new Date().getFullYear() : parsed;
         }
 
-        // Use raw SQL to include created_at/updated_at (not in Prisma model but NOT NULL in DB)
         const insertResult = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_budget_utilization (
                 "kvkId", year, "seasonId", "cropId",
@@ -77,19 +80,14 @@ const cfldBudgetUtilizationRepository = {
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING budget_id
-        `,
-            kvkId,
-            numericYear,
-            parseInt(data.seasonId || 1),
-            cropId,
+        `, kvkId, numericYear, parseInt(data.seasonId || 1), cropId,
             parseFloat(data.overallFundAllocation || 0),
             parseFloat(data.areaAllotted || 0),
             parseFloat(data.areaAchieved || 0)
         );
         const newBudgetId = insertResult[0].budget_id;
 
-        // Insert budget items
-        for (const item of budgetItems) {
+        for (const item of budgetItemsToInsert) {
             await prisma.$executeRawUnsafe(`
                 INSERT INTO kvk_budget_utilization_item (
                     "budgetId", "budgetItemId", budget_received, budget_utilization
@@ -97,20 +95,7 @@ const cfldBudgetUtilizationRepository = {
             `, newBudgetId, item.id, parseFloat(item.r || 0), parseFloat(item.u || 0));
         }
 
-        const result = await prisma.kvkBudgetUtilization.findUnique({
-            where: { budgetId: newBudgetId },
-            include: {
-                kvk: { select: { kvkName: true } },
-                season: { select: { seasonName: true } },
-                crop: { select: { cropName: true } },
-                items: {
-                    include: {
-                        budgetItem: { select: { itemName: true } }
-                    }
-                }
-            }
-        });
-        return _mapResponse(result);
+        return cfldBudgetUtilizationRepository.findById(newBudgetId);
     },
 
     findAll: async (filters = {}, user) => {
@@ -156,10 +141,9 @@ const cfldBudgetUtilizationRepository = {
     },
 
     update: async (id, data, user) => {
-        // Verify ownership for kvk scoped users
         const existing = await prisma.kvkBudgetUtilization.findUnique({
             where: { budgetId: parseInt(id) },
-            select: { budgetId: true, kvkId: true }
+            include: { items: true }
         });
         if (!existing) throw new Error('Record not found');
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
@@ -167,69 +151,65 @@ const cfldBudgetUtilizationRepository = {
         }
 
         const updateData = {};
-        // Parse year from frontend yearId (may be string like "2024-25")
         const rawYear = data.yearId || data.year;
         if (rawYear !== undefined) {
-            const parsed = parseInt(String(rawYear));
+            const parsed = parseInt(String(rawYear).split('-')[0]);
             if (!isNaN(parsed)) updateData.year = parsed;
         }
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
 
         if (data.crop) {
+            // ... crop resolution logic ...
             let crop = await prisma.fldCrop.findFirst({
                 where: { cropName: { equals: data.crop, mode: 'insensitive' } }
             });
             if (!crop) {
                 let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
                 if (!category) {
-                    const sectors = await prisma.$queryRawUnsafe("SELECT sector_id FROM sector ORDER BY sector_id LIMIT 1");
-                    const sId = sectors.length > 0 ? sectors[0].sector_id : 1;
-                    const catRows = await prisma.$queryRaw`
+                    const catRows = await prisma.$queryRawUnsafe(`
                         INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', ${sId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                        VALUES ('CFLD', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
                         RETURNING category_id
-                    `;
-                    category = { categoryId: catRows[0].category_id, sectorId: sId };
+                    `);
+                    category = { categoryId: catRows[0].category_id };
                 }
-                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
-                if (!subcategory) {
-                    const subRows = await prisma.$queryRaw`
-                        INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', ${category.categoryId}, ${category.sectorId || 1}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-                        RETURNING sub_category_id
-                    `;
-                    subcategory = { subCategoryId: subRows[0].sub_category_id };
-                }
+                const subRows = await prisma.$queryRawUnsafe(`
+                    INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
+                    VALUES ('CFLD', $1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+                    RETURNING sub_category_id
+                `, category.categoryId);
                 const cropRows = await prisma.$queryRawUnsafe(
                     "INSERT INTO crop (crop_name, \"categoryId\", \"subCategoryId\", created_at, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING crop_id",
-                    data.crop, category.categoryId, subcategory.subCategoryId
+                    data.crop, category.categoryId, subRows[0].sub_category_id
                 );
                 updateData.cropId = cropRows[0].crop_id;
             } else {
                 updateData.cropId = crop.cropId;
             }
-        } else if (data.cropId) {
-            updateData.cropId = parseInt(data.cropId);
         }
 
         if (data.overallFundAllocation !== undefined) updateData.overallFundAllocation = parseFloat(data.overallFundAllocation);
         if (data.areaAllotted !== undefined) updateData.areaAllotted = parseFloat(data.areaAllotted);
         if (data.areaAchieved !== undefined) updateData.areaAchieved = parseFloat(data.areaAchieved);
 
-        // Fetch actual budget_item IDs from DB
-        const budgetItemRows = await prisma.$queryRawUnsafe("SELECT budget_item_id FROM budget_item ORDER BY budget_item_id");
-        const itemIds = budgetItemRows.map(r => r.budget_item_id);
-        const budgetItems = [
-            { id: itemIds[0], r: data.criticalInputReceived, u: data.criticalInputUtilized },
-            { id: itemIds[1], r: data.taDaReceived, u: data.taDaUtilized },
-            { id: itemIds[2], r: data.extensionActivitiesReceived, u: data.extensionActivitiesUtilized },
-            { id: itemIds[3], r: data.publicationReceived, u: data.publicationUtilized }
-        ].filter(item => item.id && (item.r !== undefined || item.u !== undefined));
+        // Budget items update
+        const budgetItemsMaster = await prisma.budgetItem.findMany();
+        const getItemIdByPattern = (pattern) => {
+            const item = budgetItemsMaster.find(i => i.itemName.toLowerCase().includes(pattern.toLowerCase()));
+            return item ? item.budgetItemId : null;
+        };
 
-        if (budgetItems.length > 0) {
+        const budgetItemsInRequest = [
+            { id: getItemIdByPattern('Critical Input'), r: data.criticalInputReceived, u: data.criticalInputUtilized },
+            { id: getItemIdByPattern('TA/DA'), r: data.taDaReceived, u: data.taDaUtilized },
+            { id: getItemIdByPattern('Extension Activities'), r: data.extensionActivitiesReceived, u: data.extensionActivitiesUtilized },
+            { id: getItemIdByPattern('Publication'), r: data.publicationReceived, u: data.publicationUtilized }
+        ].filter(item => item.id !== null && (item.r !== undefined || item.u !== undefined));
+
+        if (budgetItemsInRequest.length > 0) {
             updateData.items = {
                 deleteMany: {},
-                create: budgetItems.map(item => ({
+                create: budgetItemsInRequest.map(item => ({
                     budgetItemId: item.id,
                     budgetReceived: parseFloat(item.r || 0),
                     budgetUtilized: parseFloat(item.u || 0),
@@ -237,72 +217,60 @@ const cfldBudgetUtilizationRepository = {
             };
         }
 
-        // CRITICAL: Remove ID fields from updateData - Prisma doesn't accept them in data object
-        const finalUpdateData = removeIdFieldsForUpdate(updateData, ['budgetId', 'id']);
-
+        const finalUpdate = removeIdFieldsForUpdate(updateData, ['budgetId', 'id']);
         const result = await prisma.kvkBudgetUtilization.update({
             where: { budgetId: parseInt(id) },
-            data: finalUpdateData,
+            data: finalUpdate,
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
                 crop: { select: { cropName: true } },
-                items: {
-                    include: {
-                        budgetItem: { select: { itemName: true } }
-                    }
-                }
+                items: { include: { budgetItem: { select: { itemName: true } } } }
             }
         });
         return _mapResponse(result);
     },
 
     delete: async (id) => {
-        await prisma.kvkBudgetUtilizationItem.deleteMany({
-            where: { budgetId: parseInt(id) }
-        });
-        return await prisma.kvkBudgetUtilization.delete({
-            where: { budgetId: parseInt(id) }
-        });
+        await prisma.kvkBudgetUtilizationItem.deleteMany({ where: { budgetId: parseInt(id) } });
+        return await prisma.kvkBudgetUtilization.delete({ where: { budgetId: parseInt(id) } });
     }
 };
 
 function _mapResponse(r) {
     if (!r) return null;
 
-    // Reverse mapping for frontend
-    const items = r.items || [];
-    const getItem = (id) => items.find(i => i.budgetItemId === id) || {};
+    const findItem = (pattern) => {
+        const item = (r.items || []).find(i => i.budgetItem?.itemName.toLowerCase().includes(pattern.toLowerCase()));
+        return item || { budgetReceived: 0, budgetUtilized: 0 };
+    };
+
+    // Map common relations using utility function
+    const relations = mapCommonRelations(r, {
+        includeKvk: true,
+        includeCrop: true,
+        includeSeason: true,
+    });
 
     return {
         id: r.budgetId,
         budgetId: r.budgetId,
         kvkId: r.kvkId,
-        kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        ...relations,
         year: r.year,
         yearId: r.year,
-        seasonId: r.seasonId,
-        seasonName: r.season ? r.season.seasonName : undefined,
-        cropId: r.cropId,
-        crop: r.crop ? r.crop.cropName : undefined,
         overallFundAllocation: r.overallFundAllocation,
         areaAllotted: r.areaAllotted,
         areaAchieved: r.areaAchieved,
 
-        criticalInputReceived: getItem(1).budgetReceived,
-        criticalInputUtilized: getItem(1).budgetUtilized,
-        taDaReceived: getItem(2).budgetReceived,
-        taDaUtilized: getItem(2).budgetUtilized,
-        extensionActivitiesReceived: getItem(3).budgetReceived,
-        extensionActivitiesUtilized: getItem(3).budgetUtilized,
-        publicationReceived: getItem(4).budgetReceived,
-        publicationUtilized: getItem(4).budgetUtilized,
-
-        // Frontend friendly aliases
-        'KVK Name': r.kvk ? r.kvk.kvkName : undefined,
-        'Crop': r.crop ? r.crop.cropName : undefined,
-        'Season': r.season ? r.season.seasonName : undefined,
-        'Overall Fund Allocation': r.overallFundAllocation
+        criticalInputReceived: findItem('Critical Input').budgetReceived,
+        criticalInputUtilized: findItem('Critical Input').budgetUtilized,
+        taDaReceived: findItem('TA/DA').budgetReceived,
+        taDaUtilized: findItem('TA/DA').budgetUtilized,
+        extensionActivitiesReceived: findItem('Extension Activities').budgetReceived,
+        extensionActivitiesUtilized: findItem('Extension Activities').budgetUtilized,
+        publicationReceived: findItem('Publication').budgetReceived,
+        publicationUtilized: findItem('Publication').budgetUtilized,
     };
 }
 

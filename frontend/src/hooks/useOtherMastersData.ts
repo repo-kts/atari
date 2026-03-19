@@ -28,10 +28,7 @@ export function useSeasons(options?: { enabled?: boolean }) {
     const queryClient = useQueryClient();
     const { hasPermission } = useAuth();
 
-    const enabled =
-        options?.enabled !== undefined
-            ? options.enabled
-            : hasPermission('VIEW', 'all_masters_season_master');
+    const enabled = options?.enabled !== undefined ? options.enabled : true;
 
     const query = useQuery({
         queryKey: ['seasons'],
@@ -691,5 +688,35 @@ export function useSoilWaterAnalyses() {
         isCreating: createMutation.isPending,
         isUpdating: updateMutation.isPending,
         isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// NARI Masters Hooks
+// ============================================
+
+export function useNariCropCategories() {
+    const query = useQuery({
+        queryKey: ['nari-crop-categories'],
+        queryFn: () => otherMastersApi.getNariCropCategories().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+    };
+}
+
+export function useNariNutritionGardenTypes() {
+    const query = useQuery({
+        queryKey: ['nari-nutrition-garden-types'],
+        queryFn: () => otherMastersApi.getNariNutritionGardenTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
     };
 }

@@ -35,11 +35,11 @@ model TrainingAchievement {
   updatedAt             DateTime                @updatedAt @map("updated_at")
   clientele             ClienteleMaster?        @relation(fields: [clienteleId], references: [clienteleId], onDelete: SetNull)
   coordinator           CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
-  fundingSource         FundingSourceMaster?    @relation(fields: [fundingSourceId], references: [fundingSourceId], onDelete: SetNull)
+  fundingSource         FundingSourceMaster?    @relation(fields: [fundingSourceId], references: [fundingSourceId])
   kvk                   Kvk                     @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   thematicArea          ThematicAreaMaster      @relation(fields: [thematicAreaId], references: [thematicAreaId])
-  trainingArea          TrainingAreaMaster?     @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: SetNull)
-  trainingType          TrainingTypeMaster?     @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
+  trainingArea          TrainingAreaMaster?     @relation(fields: [trainingAreaId], references: [trainingAreaId])
+  trainingType          TrainingTypeMaster?     @relation(fields: [trainingTypeId], references: [trainingTypeId])
 
   @@map("training_achievement")
 }

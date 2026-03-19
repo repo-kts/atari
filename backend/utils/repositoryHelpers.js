@@ -247,52 +247,50 @@ const resolveActivityId = async (value, required = false) => {
 const resolveOtherExtensionActivityTypeId = async (value, required = false) => {
     if (!value) {
         if (required) {
-            throw new RepositoryError('Activity type ID or name is required', 'VALIDATION_ERROR', 400);
+            throw new RepositoryError('Other Extension Activity ID or name is required', 'VALIDATION_ERROR', 400);
         }
         return null;
     }
 
-    // If it's already a valid ID, validate it exists
+    // If it's already a valid ID, validate it exists in Other Extension Activity Master
     if (!isNaN(parseInt(value))) {
-        const activityTypeId = parseInt(value);
+        const activityId = parseInt(value);
         try {
-            const activityType = await prisma.otherExtensionActivityType.findUnique({
-                where: { activityTypeId }
+            const activity = await prisma.otherExtensionActivity.findUnique({
+                where: { otherExtensionActivityId: activityId }
             });
-            if (!activityType) {
+            if (!activity) {
                 if (required) {
-                    throw new RepositoryError(`Activity type with ID ${activityTypeId} does not exist`, 'NOT_FOUND', 404);
+                    throw new RepositoryError(`Other Extension Activity with ID ${activityId} does not exist`, 'NOT_FOUND', 404);
                 }
                 return null;
             }
-            return activityTypeId;
+            return activityId;
         } catch (error) {
             if (error instanceof RepositoryError) throw error;
-            throw new RepositoryError(`Error validating activity type: ${error.message}`, 'DATABASE_ERROR', 500);
+            throw new RepositoryError(`Error validating other extension activity: ${error.message}`, 'DATABASE_ERROR', 500);
         }
     }
 
-    // Value is a name, find or create activity type
+    // Value is a name, find in Other Extension Activity Master (don't create - must exist in master)
     const activityName = normalizeString(value);
     if (!activityName) {
         if (required) {
-            throw new RepositoryError('Activity type name cannot be empty', 'VALIDATION_ERROR', 400);
+            throw new RepositoryError('Other Extension Activity name cannot be empty', 'VALIDATION_ERROR', 400);
         }
         return null;
     }
 
     try {
-        const activityType = await prisma.$transaction(async (tx) => {
-            let a = await tx.otherExtensionActivityType.findFirst({
-                where: { activityName: { equals: activityName, mode: 'insensitive' } }
-            });
-            if (!a) {
-                a = await tx.otherExtensionActivityType.create({ data: { activityName } });
-            }
-            return a;
+        const activity = await prisma.otherExtensionActivity.findFirst({
+            where: { otherExtensionName: { equals: activityName, mode: 'insensitive' } }
         });
 
-        return activityType ? activityType.activityTypeId : null;
+        if (!activity && required) {
+            throw new RepositoryError(`Other Extension Activity with name "${activityName}" does not exist in master data`, 'NOT_FOUND', 404);
+        }
+
+        return activity ? activity.otherExtensionActivityId : null;
     } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
             if (error.code === 'P2002') {

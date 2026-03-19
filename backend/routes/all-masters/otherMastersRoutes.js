@@ -146,4 +146,11 @@ router.post('/soil-water-analysis',    requirePermission('all_masters_soil_water
 router.put('/soil-water-analysis/:id', requirePermission('all_masters_soil_water_analysis_master', 'EDIT'), otherMastersController.updateSoilWaterAnalysis);
 router.delete('/soil-water-analysis/:id', requirePermission('all_masters_soil_water_analysis_master', 'DELETE'), otherMastersController.deleteSoilWaterAnalysis);
 
+// ============================================
+// NARI Masters Routes
+// ============================================
+
+router.get('/nari-crop-category', otherMastersController.getAllNariCropCategories);
+router.get('/nari-nutrition-garden-type', otherMastersController.getAllNariNutritionGardenTypes);
+
 module.exports = router;

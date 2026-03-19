@@ -148,7 +148,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormTextArea
-                            label="Impact in Subjective Terms (Qualitative)"
+                            label="Impact of the Technology in Subjective Terms (Qualitative)"
                             required
                             value={formData.qualitativeImpact || ''}
                             onChange={handleFieldChange('qualitativeImpact')}
@@ -157,7 +157,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
 
                         <FormTextArea
-                            label="Impact in Objective Terms (Quantitative)"
+                            label="Impact of the Technology in Objective Terms (Quantitative)"
                             required
                             value={formData.quantitativeImpact || ''}
                             onChange={handleFieldChange('quantitativeImpact')}
@@ -207,7 +207,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
 
                         <FormInput
-                            label="Name of Entrepreneur/Enterprise/Firm"
+                            label="Name of the Entrepreneur/Name of the Enterprise/Firm"
                             required
                             value={formData.entrepreneurName || ''}
                             onChange={handleFieldChange('entrepreneurName')}
@@ -216,7 +216,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     </div>
 
                     <FormTextArea
-                        label="Registered Address"
+                        label="Registered address of the entrepreneur/firm"
                         required
                         value={formData.registeredAddress || ''}
                         onChange={handleFieldChange('registeredAddress')}
@@ -226,7 +226,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <FormInput
-                            label="Year of Establishment"
+                            label="Year of establishment"
                             required
                             type="number"
                             value={formData.yearOfEstablishment || ''}
@@ -253,7 +253,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     </div>
 
                     <FormInput
-                        label="Registration Details"
+                        label="Registration details"
                         required
                         value={formData.registrationDetails || ''}
                         onChange={handleFieldChange('registrationDetails')}
@@ -262,7 +262,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormTextArea
-                            label="Technical Components (with commodity)"
+                            label="Technical Components of the Enterprise (with commodity)"
                             required
                             value={formData.technicalComponents || ''}
                             onChange={handleFieldChange('technicalComponents')}
@@ -271,7 +271,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
 
                         <FormTextArea
-                            label="Role of KVK/Technology Backstopping"
+                            label="Role of KVK/Technology Backstopping (Quantitative Data Support)"
                             required
                             value={formData.kvkRole || ''}
                             onChange={handleFieldChange('kvkRole')}
@@ -282,7 +282,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <FormInput
-                            label="Annual Income/Revenue (Rs.)"
+                            label="Annual Income/Revenue of the Enterprise"
                             required
                             type="number"
                             step="0.01"
@@ -292,7 +292,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
 
                         <FormInput
-                            label="Development Timeline"
+                            label="Period/Timeline of the Entrepreneurship Development"
                             required
                             value={formData.developmentTimeline || ''}
                             onChange={handleFieldChange('developmentTimeline')}
@@ -301,7 +301,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     </div>
 
                     <FormTextArea
-                        label="Economic & Social Status (Before & After)"
+                        label="Economic and Social Status of Entrepreneur Before and After the Enterprise"
                         required
                         value={formData.statusBeforeAfter || ''}
                         onChange={handleFieldChange('statusBeforeAfter')}
@@ -310,12 +310,12 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     />
 
                     <FormInput
-                        label="Present Working Condition"
+                        label="Present Working Condition of Enterprise"
                         required
                         value={formData.presentWorkingCondition || ''}
                         onChange={handleFieldChange('presentWorkingCondition')}
                         placeholder="Enter working condition"
-                        helperText="In Terms of Raw Materials Availability, Labour Availability, Consumer Preference, Marketing the Product etc. (Economic Viability of the Enterprise)"
+                        helperText="In Terms of Raw Materials Availability, Labour Availability, Consumer Preference, Marketing the Product etc.(Economic Viability of the Enterprise)"
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -329,7 +329,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
 
                         <FormTextArea
-                            label="Major Constraints"
+                            label="Major constrains"
                             required
                             value={formData.majorConstraints || ''}
                             onChange={handleFieldChange('majorConstraints')}
@@ -356,7 +356,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormInput
-                                label="Name of Farmer/Entrepreneur"
+                                label="Name of the Farmer/Entrepreneur"
                                 required
                                 value={formData.farmerName || ''}
                                 onChange={handleFieldChange('farmerName')}
@@ -382,7 +382,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormInput
-                                label="Experience"
+                                label="Farming Experience/Experience in Enterprise"
                                 required
                                 value={formData.experience || ''}
                                 onChange={handleFieldChange('experience')}
@@ -439,13 +439,13 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormSection title="Professional Information">
 
                         <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
-                        <FormInput
-                            label="Title of Success Story/Case Study"
-                            required
-                            value={formData.storyTitle || ''}
-                            onChange={handleFieldChange('storyTitle')}
-                            placeholder="Enter title"
-                        />
+                            <FormInput
+                                label="Title of Success Story/Case Study"
+                                required
+                                value={formData.storyTitle || ''}
+                                onChange={handleFieldChange('storyTitle')}
+                                placeholder="Enter title"
+                            />
                             <FormTextArea
                                 label="Situation Analysis/Problem Statement"
                                 required
@@ -467,7 +467,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <FormTextArea
-                                label="Practices Followed by Farmer"
+                                label="Details of Practices followed by the farmer"
                                 required
                                 value={formData.practicesFollowed || ''}
                                 onChange={handleFieldChange('practicesFollowed')}
@@ -476,7 +476,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormTextArea
-                                label="Results/Output (Economical/Social)"
+                                label="Results/Output (Economical/Social Data)"
                                 required
                                 value={formData.results || ''}
                                 onChange={handleFieldChange('results')}
@@ -503,7 +503,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                         <div className="space-y-2">
                             <label className="block text-sm font-semibold text-gray-700">
-                                Supporting Images
+                                Supporting images
                             </label>
                             <p className="text-xs text-gray-500 mb-2">
                                 File size must be less than 2MB

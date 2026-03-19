@@ -55,29 +55,29 @@ export const OtherProjectForms: React.FC<OtherProjectFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
+                                value={formData.farmersGeneralM || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersGeneralM: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
+                                value={formData.farmersGeneralF || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersGeneralF: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
+                                value={formData.farmersObcM || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersObcM: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
+                                value={formData.farmersObcF || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersObcF: e.target.value })}
                             />
                         </div>
 
@@ -86,29 +86,29 @@ export const OtherProjectForms: React.FC<OtherProjectFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
+                                value={formData.farmersScM || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersScM: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
+                                value={formData.farmersScF || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersScF: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
+                                value={formData.farmersStM || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersStM: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
+                                value={formData.farmersStF || ''}
+                                onChange={(e) => setFormData({ ...formData, farmersStF: e.target.value })}
                             />
                         </div>
                     </div>

@@ -34,7 +34,7 @@ model CfldTechnicalParameter {
   updatedAt                  DateTime      @updatedAt @map("updated_at")
   crop                       FLDCropMaster @relation(fields: [cropId], references: [cfldId])
   kvk                        Kvk           @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season                     Season?       @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  season                     Season?       @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@index([cropId])

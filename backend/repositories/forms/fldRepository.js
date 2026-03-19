@@ -118,6 +118,13 @@ const CREATE_FIELD_DEFINITIONS = {
         type: 'number',
         options: { allowNegative: false },
     },
+    status: {
+        fieldNames: ['status', 'ongoingCompleted'],
+        errorMessage: 'Status is required',
+        errorField: 'status',
+        type: 'string',
+        optional: true,
+    },
 };
 
 /**
@@ -210,6 +217,12 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorField: 'area',
         options: { allowNegative: false },
     },
+    {
+        fieldNames: ['status', 'ongoingCompleted'],
+        type: 'string',
+        backendField: 'status',
+        options: { required: false },
+    },
 ];
 
 /**
@@ -301,6 +314,13 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.areaHa.errorMessage,
                 CREATE_FIELD_DEFINITIONS.areaHa.errorField,
                 { allowNegative: false }
+            ),
+            status: validateRequiredString(
+                data,
+                CREATE_FIELD_DEFINITIONS.status.fieldNames,
+                CREATE_FIELD_DEFINITIONS.status.errorMessage,
+                CREATE_FIELD_DEFINITIONS.status.errorField,
+                { required: false, defaultValue: 'Ongoing' }
             ),
             ...validateFarmerCounts(data, FLD_CONFIG.farmerCountMapping, { validateNonNegative: true }),
         };
@@ -518,14 +538,7 @@ function _mapResponse(r) {
         stM: r.stM,
         st_f: r.stF,
         stF: r.stF,
-        // Frontend-friendly table labels
-        'Reporting Year': undefined,
-        'Start Date': r.startDate ? r.startDate.toISOString().split('T')[0] : undefined,
-        'KVK Name': r.kvk?.kvkName,
-        'Category': r.category?.categoryName,
-        'Sub-Category': r.subCategory?.subCategoryName,
-        'Name of Technnology Demonstrated': r.fldName,
-        'Ongoing/Completed': r.startDate && new Date(r.startDate) < new Date() ? 'Completed' : 'Ongoing',
+        ongoingCompleted: r.status || 'Ongoing',
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

@@ -9,6 +9,7 @@ router.use(authenticateToken);
 router.post('/', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), hrdController.create);
 router.get('/', hrdController.findAll);
 router.get('/:id', hrdController.findById);
+router.put('/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), hrdController.update);
 router.patch('/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), hrdController.update);
 router.delete('/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), hrdController.delete);
 

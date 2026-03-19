@@ -19,7 +19,7 @@ model KkvSoilWaterEquipment {
   updatedAt            DateTime          @updatedAt @map("updated_at")
   reportingYearId      Int?              @map("reporting_year_id")
   kvk                  Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear        YearMaster?       @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear        YearMaster?       @relation(fields: [reportingYearId], references: [yearId])
   soilWaterAnalysis    SoilWaterAnalysis @relation(fields: [soilWaterAnalysisId], references: [soilWaterAnalysisId])
 
   @@index([kvkId])

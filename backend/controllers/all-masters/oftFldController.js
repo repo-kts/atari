@@ -1,4 +1,5 @@
 const oftFldService = require('../../services/all-masters/oftFldService.js');
+const { asyncHandler } = require('../../utils/errorHandler');
 
 /**
  * OFT & FLD Master Data Controller
@@ -8,121 +9,77 @@ const oftFldService = require('../../services/all-masters/oftFldService.js');
 /**
  * Generic handler to get all entities
  */
-const getAll = (entityName) => async (req, res) => {
-    try {
-        const options = {
-            page: parseInt(req.query.page) || 1,
-            limit: parseInt(req.query.limit) || 100,
-            search: req.query.search || '',
-            sortBy: req.query.sortBy,
-            sortOrder: req.query.sortOrder || 'asc',
-            filters: req.query.filters ? JSON.parse(req.query.filters) : {},
-        };
+const getAll = (entityName) => asyncHandler(async (req, res) => {
+    const options = {
+        page: parseInt(req.query.page) || 1,
+        limit: parseInt(req.query.limit) || 100,
+        search: req.query.search || '',
+        sortBy: req.query.sortBy,
+        sortOrder: req.query.sortOrder || 'asc',
+        filters: req.query.filters ? JSON.parse(req.query.filters) : {},
+    };
 
-        const result = await oftFldService.getAll(entityName, options);
-        res.json({
-            success: true,
-            data: result.data,
-            pagination: {
-                total: result.total,
-                page: result.page,
-                limit: result.limit,
-                totalPages: Math.ceil(result.total / result.limit),
-            },
-        });
-    } catch (error) {
-        console.error(`Error fetching ${entityName}:`, error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+    const result = await oftFldService.getAll(entityName, options);
+    res.json({
+        success: true,
+        data: result.data,
+        pagination: {
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: Math.ceil(result.total / result.limit),
+        },
+    });
+});
 
 /**
  * Generic handler to get entity by ID
  */
-const getById = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await oftFldService.getById(entityName, id);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error(`Error fetching ${entityName} by ID:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const getById = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const data = await oftFldService.getById(entityName, id);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
 /**
  * Generic handler to create entity
  */
-const create = (entityName) => async (req, res) => {
-    try {
-        const data = await oftFldService.create(entityName, req.body);
-        res.status(201).json({
-            success: true,
-            data,
-            message: `${entityName} created successfully`,
-        });
-    } catch (error) {
-        console.error(`Error creating ${entityName}:`, error);
-        const statusCode = error.message.includes('already exists') ? 409 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const create = (entityName) => asyncHandler(async (req, res) => {
+    const data = await oftFldService.create(entityName, req.body);
+    res.status(201).json({
+        success: true,
+        data,
+        message: `${entityName} created successfully`,
+    });
+});
 
 /**
  * Generic handler to update entity
  */
-const update = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await oftFldService.update(entityName, id, req.body);
-        res.json({
-            success: true,
-            data,
-            message: `${entityName} updated successfully`,
-        });
-    } catch (error) {
-        console.error(`Error updating ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 400;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const update = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const data = await oftFldService.update(entityName, id, req.body);
+    res.json({
+        success: true,
+        data,
+        message: `${entityName} updated successfully`,
+    });
+});
 
 /**
  * Generic handler to delete entity
  */
-const deleteEntity = (entityName) => async (req, res) => {
-    try {
-        const { id } = req.params;
-        await oftFldService.delete(entityName, id);
-        res.json({
-            success: true,
-            message: `${entityName} deleted successfully`,
-        });
-    } catch (error) {
-        console.error(`Error deleting ${entityName}:`, error);
-        const statusCode = error.message.includes('not found') ? 404 : 500;
-        res.status(statusCode).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+const deleteEntity = (entityName) => asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    await oftFldService.delete(entityName, id);
+    res.json({
+        success: true,
+        message: `${entityName} deleted successfully`,
+    });
+});
 
 // OFT Controllers
 exports.getAllOftSubjects = getAll('oft-subjects');
@@ -183,107 +140,59 @@ exports.updateCfldCrop = update('cfld-crops');
 exports.deleteCfldCrop = deleteEntity('cfld-crops');
 
 // Hierarchical filtering endpoints
-exports.getOftThematicAreasBySubject = async (req, res) => {
-    try {
-        const { subjectId } = req.params;
-        const data = await oftFldService.getOftThematicAreasBySubject(subjectId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching OFT thematic areas by subject:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getOftThematicAreasBySubject = asyncHandler(async (req, res) => {
+    const { subjectId } = req.params;
+    const data = await oftFldService.getOftThematicAreasBySubject(subjectId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getFldThematicAreasBySector = async (req, res) => {
-    try {
-        const { sectorId } = req.params;
-        const data = await oftFldService.getFldThematicAreasBySector(sectorId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching FLD thematic areas by sector:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getFldThematicAreasBySector = asyncHandler(async (req, res) => {
+    const { sectorId } = req.params;
+    const data = await oftFldService.getFldThematicAreasBySector(sectorId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getFldCategoriesBySector = async (req, res) => {
-    try {
-        const { sectorId } = req.params;
-        const data = await oftFldService.getFldCategoriesBySector(sectorId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching FLD categories by sector:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getFldCategoriesBySector = asyncHandler(async (req, res) => {
+    const { sectorId } = req.params;
+    const data = await oftFldService.getFldCategoriesBySector(sectorId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getFldSubcategoriesByCategory = async (req, res) => {
-    try {
-        const { categoryId } = req.params;
-        const data = await oftFldService.getFldSubcategoriesByCategory(categoryId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching FLD subcategories by category:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getFldSubcategoriesByCategory = asyncHandler(async (req, res) => {
+    const { categoryId } = req.params;
+    const data = await oftFldService.getFldSubcategoriesByCategory(categoryId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getFldCropsBySubcategory = async (req, res) => {
-    try {
-        const { subCategoryId } = req.params;
-        const data = await oftFldService.getFldCropsBySubcategory(subCategoryId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching FLD crops by subcategory:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getFldCropsBySubcategory = asyncHandler(async (req, res) => {
+    const { subCategoryId } = req.params;
+    const data = await oftFldService.getFldCropsBySubcategory(subCategoryId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
-exports.getCfldCropsBySeasonAndType = async (req, res) => {
-    try {
-        const { seasonId, typeId } = req.params;
-        const data = await oftFldService.getCfldCropsBySeasonAndType(seasonId, typeId);
-        res.json({
-            success: true,
-            data,
-        });
-    } catch (error) {
-        console.error('Error fetching CFLD crops by season and type:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getCfldCropsBySeasonAndType = asyncHandler(async (req, res) => {
+    const { seasonId, typeId } = req.params;
+    const data = await oftFldService.getCfldCropsBySeasonAndType(seasonId, typeId);
+    res.json({
+        success: true,
+        data,
+    });
+});
 
 // Season Controllers
 exports.getAllSeasons = getAll('seasons');
@@ -300,18 +209,10 @@ exports.updateCropType = update('crop-types');
 exports.deleteCropType = deleteEntity('crop-types');
 
 // Statistics endpoint
-exports.getStats = async (req, res) => {
-    try {
-        const stats = await oftFldService.getStats();
-        res.json({
-            success: true,
-            data: stats,
-        });
-    } catch (error) {
-        console.error('Error fetching OFT/FLD stats:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
-    }
-};
+exports.getStats = asyncHandler(async (req, res) => {
+    const stats = await oftFldService.getStats();
+    res.json({
+        success: true,
+        data: stats,
+    });
+});

@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { Prisma } = require('@prisma/client');
+const crypto = require('crypto');
 const {
     RepositoryError,
     parseInteger,
@@ -85,13 +86,15 @@ const _mapResponse = (r) => {
         startDate: r.startDate,
         endDate: r.endDate,
         organizerVenue: r.organizerVenue,
-        // Display fields
-        'KVK Name': r.kvk?.kvkName,
-        'Staff Name': r.staff?.staffName,
-        'Course Name': r.courseName,
-        'Start Date': r.startDate,
-        'End Date': r.endDate,
-        'Organizer/Venue': r.organizerVenue,
+        kvkName: r.kvk?.kvkName,
+        staff: r.staff?.staffName,
+        staffName: r.staff?.staffName,
+        course: r.courseName,
+        courseName: r.courseName,
+        startDate: r.startDate,
+        endDate: r.endDate,
+        organizer: r.organizerVenue,
+        organizerVenue: r.organizerVenue,
     };
 };
 
@@ -105,7 +108,7 @@ const hrdRepository = {
 
             // Resolve kvkId: prioritized from user session, then from data
             let kvkId = (user && user.kvkId) ? parseInteger(user.kvkId, 'user.kvkId', false) :
-                       (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
+                (data.kvkId ? parseInteger(data.kvkId, 'kvkId', false) : null);
 
             if (!kvkId) {
                 throw new RepositoryError('Valid kvkId is required', 'VALIDATION_ERROR', 400);
@@ -131,8 +134,8 @@ const hrdRepository = {
             // Validate date range
             _validateDateRange(startDate, endDate);
 
-            // Prepare create data
             const createData = {
+                hrdProgramId: crypto.randomUUID(),
                 kvkId,
                 kvkStaffId,
                 courseName,

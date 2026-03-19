@@ -50,10 +50,10 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
         },
     },
     [ENTITY_TYPES.TRAINING_AREAS]: {
-        excludeFields: ['trainingType'],
+        excludeFields: ['trainingType', 'trainingAreaId', 'trainingThematicAreaId', 'kvkId'],
     },
     [ENTITY_TYPES.TRAINING_THEMATIC_AREAS]: {
-        excludeFields: ['trainingArea'],
+        excludeFields: ['trainingArea', 'kvkId'],
     },
     [ENTITY_TYPES.PRODUCT_TYPES]: {
         excludeFields: ['productCategory'],
@@ -75,6 +75,16 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             if (data.date) {
                 data.activityDate = data.date;
                 delete data.date;
+            }
+            return data;
+        },
+    },
+    [ENTITY_TYPES.MISC_VIP_VISITORS]: {
+        transform: (data: any) => {
+            // dignitaryType can come back as an object { dignitaryTypeId, name } from the API
+            // Convert it to just the name string for the backend to look up
+            if (data.dignitaryType && typeof data.dignitaryType === 'object' && data.dignitaryType.name) {
+                data.dignitaryType = data.dignitaryType.name;
             }
             return data;
         },
@@ -114,6 +124,10 @@ const COMMON_NESTED_OBJECTS = [
     // Production/Projects nested objects
     'productCategory',
     'productType',
+    // ARYA / CSISA nested relation objects
+    'enterprise',
+    'reportingYear',
+    'cropDetails',
 ] as const;
 
 // ============================================
@@ -136,12 +150,15 @@ export function removeNestedObjects(
         ...restData
     } = data;
 
-    // Remove all common nested objects
+    // Remove all common nested objects Only if they are actually objects
+    // This preserves string fields that share names with nested objects (like 'district')
     const nestedObjectsToRemove = [...COMMON_NESTED_OBJECTS, ...additionalExclusions];
     const cleaned: any = { ...restData };
 
     nestedObjectsToRemove.forEach((key) => {
-        delete cleaned[key];
+        if (cleaned[key] && typeof cleaned[key] === 'object') {
+            delete cleaned[key];
+        }
     });
 
     return cleaned;
@@ -185,6 +202,24 @@ export function applyEntityTransformation(
     }
 
     return transformed;
+}
+
+/**
+ * Removes empty string ID fields from data
+ * Empty strings for ID fields should not be sent to the backend
+ */
+export function removeEmptyIdFields(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const cleaned = { ...data };
+    Object.keys(cleaned).forEach((key) => {
+        // Remove fields that end with 'Id' and have empty string values
+        if (key.endsWith('Id') && cleaned[key] === '') {
+            delete cleaned[key];
+        }
+    });
+
+    return cleaned;
 }
 
 /**
@@ -252,6 +287,43 @@ export function removeIdField(
 // ============================================
 
 /**
+ * Recursively finds and converts File/FileList objects to Base64 strings
+ * This is used to ensure file data is preserved when sending as JSON
+ */
+export async function processFiles(data: any): Promise<any> {
+    if (!data || typeof data !== 'object') return data;
+
+    // Handle File objects
+    if (data instanceof File) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(data);
+        });
+    }
+
+    // Handle FileList objects
+    if (data instanceof FileList) {
+        const files = Array.from(data);
+        return Promise.all(files.map(file => processFiles(file)));
+    }
+
+    // Handle Arrays
+    if (Array.isArray(data)) {
+        return Promise.all(data.map(item => processFiles(item)));
+    }
+
+    // Handle Objects
+    const processed: any = {};
+    for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+            processed[key] = await processFiles(data[key]);
+        }
+    }
+    return processed;
+}
+
+/**
  * Complete data transformation pipeline for create operations
  */
 export function transformDataForCreate(
@@ -262,6 +334,7 @@ export function transformDataForCreate(
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }
 
@@ -278,5 +351,6 @@ export function transformDataForUpdate(
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }

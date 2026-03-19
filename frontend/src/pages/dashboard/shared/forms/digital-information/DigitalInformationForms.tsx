@@ -50,10 +50,10 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
     if (!entityType) return null
 
     return (
-        <div className="space-y-4">
-            {/* 1. Create Details of Mobile App */}
+        <div className="space-y-6">
+            {/* 1. Mobile App Form */}
             {entityType === ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP && (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
@@ -61,60 +61,56 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
+                        placeholder="Select"
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput
-                            label="Number of Mobile Apps Developed by KVK"
-                            required
-                            type="number"
-                            value={formData.appsDeveloped || ''}
-                            onChange={handleNumberChange('appsDeveloped')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Name of the Apps"
-                            required
-                            value={formData.appName || ''}
-                            onChange={handleFieldChange('appName')}
-                            placeholder="Enter app name"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput
-                            label="Language of the Apps"
-                            required
-                            value={formData.appLanguage || ''}
-                            onChange={handleFieldChange('appLanguage')}
-                            placeholder="Enter language"
-                        />
-
-                        <FormInput
-                            label="Meant for Crop/Livestock/Fishery/Others"
-                            required
-                            value={formData.appCategory || ''}
-                            onChange={handleFieldChange('appCategory')}
-                            placeholder="Enter category"
-                        />
-                    </div>
-
                     <FormInput
-                        label="No. of Times Downloaded"
+                        label="Number of Mobile Apps developed by KVK"
                         required
                         type="number"
-                        value={formData.downloadCount || ''}
-                        onChange={handleNumberChange('downloadCount')}
+                        value={formData.numberOfAppsDeveloped || ''}
+                        onChange={handleNumberChange('numberOfAppsDeveloped')}
+                        placeholder="Enter number"
+                    />
+
+                    <FormInput
+                        label="Name of the Apps"
+                        required
+                        value={formData.nameOfApp || ''}
+                        onChange={handleFieldChange('nameOfApp')}
+                        placeholder="Enter app name"
+                    />
+
+                    <FormInput
+                        label="Language of the Apps"
+                        required
+                        value={formData.languageOfApp || ''}
+                        onChange={handleFieldChange('languageOfApp')}
+                        placeholder="Enter language"
+                    />
+
+                    <FormInput
+                        label="Meant for crop/livestock/fishery/others"
+                        required
+                        value={formData.meantFor || ''}
+                        onChange={handleFieldChange('meantFor')}
+                        placeholder="Enter category"
+                    />
+
+                    <FormInput
+                        label="No. of times downloaded"
+                        required
+                        type="number"
+                        value={formData.numberOfTimesDownloaded || ''}
+                        onChange={handleNumberChange('numberOfTimesDownloaded')}
                         placeholder="Enter number"
                     />
                 </div>
             )}
 
-            {/* 2. Create Details of KVK Portal */}
+            {/* 2. Web Portal Form */}
             {entityType === ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL && (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
@@ -122,234 +118,225 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
+                        placeholder="Select"
                     />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput
-                            label="No. of Visitors Visited the Portal"
-                            required
-                            type="number"
-                            value={formData.visitorsCount || ''}
-                            onChange={handleNumberChange('visitorsCount')}
-                            placeholder="Enter number"
-                        />
+                    <FormInput
+                        label="No. of visitors visited the portal"
+                        required
+                        type="number"
+                        value={formData.noOfVisitors || ''}
+                        onChange={handleNumberChange('noOfVisitors')}
+                        placeholder="Enter number"
+                    />
 
-                        <FormInput
-                            label="No. of Farmers Registered on the Portal"
-                            required
-                            type="number"
-                            value={formData.farmersRegistered || ''}
-                            onChange={handleNumberChange('farmersRegistered')}
-                            placeholder="Enter number"
-                        />
-                    </div>
+                    <FormInput
+                        label="No. of farmers registered on the portal"
+                        required
+                        type="number"
+                        value={formData.noOfFarmersRegistered || ''}
+                        onChange={handleNumberChange('noOfFarmersRegistered')}
+                        placeholder="Enter number"
+                    />
                 </div>
             )}
 
-            {/* 3. Create Details of Kisan Sarathi */}
+            {/* 3. Kisan Sarathi Form */}
             {entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI && (
-                <div className="space-y-3">
-                    <MasterDataDropdown
-                        label="Reporting Year"
-                        required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={handleYearChange}
-                        options={yearOptions}
-                        isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
-                    />
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            isLoading={isLoadingYears}
+                            placeholder="Select"
+                        />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
-                            label="No. of Farmers Registered on KSP Portal"
+                            label="No. of farmers registered on KSP portal"
                             required
                             type="number"
-                            value={formData.farmersRegistered || ''}
-                            onChange={handleNumberChange('farmersRegistered')}
+                            value={formData.noOfFarmersRegisteredOnKspPortal || ''}
+                            onChange={handleNumberChange('noOfFarmersRegisteredOnKspPortal')}
                             placeholder="Enter number"
                         />
 
                         <FormInput
-                            label="Phone Call Addressed"
+                            label="Phone call addressed"
                             required
                             type="number"
                             value={formData.phoneCallAddressed || ''}
                             onChange={handleNumberChange('phoneCallAddressed')}
                             placeholder="Enter number"
                         />
+
+                        <FormInput
+                            label="Phone call Answered"
+                            required
+                            type="number"
+                            value={formData.phoneCallAnswered || ''}
+                            onChange={handleNumberChange('phoneCallAnswered')}
+                            placeholder="Enter number"
+                        />
                     </div>
 
-                    <FormInput
-                        label="Phone Call Answered"
-                        required
-                        type="number"
-                        value={formData.phoneCallAnswered || ''}
-                        onChange={handleNumberChange('phoneCallAnswered')}
-                        placeholder="Enter number"
-                    />
+                    <div className="border border-[#E0E0E0] rounded-xl p-4 space-y-4">
+                        <h3 className="text-lg font-bold text-[#487749]">Type of Messages</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <FormInput
+                                label="Crop"
+                                required
+                                value={formData.crop || ''}
+                                onChange={handleFieldChange('crop')}
+                                placeholder="Enter details"
+                            />
 
-                    <FormSection title="">
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.messageCrop || ''}
-                            onChange={handleNumberChange('messageCrop')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Livestocks"
+                                required
+                                value={formData.livestock || ''}
+                                onChange={handleFieldChange('livestock')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.messageLivestock || ''}
-                            onChange={handleNumberChange('messageLivestock')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Weather"
+                                required
+                                value={formData.weather || ''}
+                                onChange={handleFieldChange('weather')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.messageWeather || ''}
-                            onChange={handleNumberChange('messageWeather')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Marketing"
+                                required
+                                value={formData.marketing || ''}
+                                onChange={handleFieldChange('marketing')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.messageMarketing || ''}
-                            onChange={handleNumberChange('messageMarketing')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Awareness"
+                                required
+                                value={formData.awareness || ''}
+                                onChange={handleFieldChange('awareness')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.messageAwareness || ''}
-                            onChange={handleNumberChange('messageAwareness')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.messageOtherEnterprises || ''}
-                            onChange={handleNumberChange('messageOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
+                            <FormInput
+                                label="Other Enterprises"
+                                required
+                                value={formData.otherEnterprises || ''}
+                                onChange={handleFieldChange('otherEnterprises')}
+                                placeholder="Enter details"
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* 4. Create Kisan Mobile Advisory Services/KMAS */}
+            {/* 4. Kisan Mobile Advisory (KMAS) Form */}
             {entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY && (
-                <div className="space-y-3">
-                    <MasterDataDropdown
-                        label="Reporting Year"
-                        required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={handleYearChange}
-                        options={yearOptions}
-                        isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
-                    />
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            onChange={handleYearChange}
+                            options={yearOptions}
+                            isLoading={isLoadingYears}
+                            placeholder="Select"
+                        />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
-                            label="No. of Farmers Covered"
+                            label="No. of farmers covered"
                             required
                             type="number"
-                            value={formData.farmersCovered || ''}
-                            onChange={handleNumberChange('farmersCovered')}
+                            value={formData.noOfFarmersCovered || ''}
+                            onChange={handleNumberChange('noOfFarmersCovered')}
                             placeholder="Enter number"
                         />
 
                         <FormInput
-                            label="No of Advisories Sent"
+                            label="No of advisories sent"
                             required
                             type="number"
-                            value={formData.advisoriesSent || ''}
-                            onChange={handleNumberChange('advisoriesSent')}
+                            value={formData.noOfAdvisoriesSent || ''}
+                            onChange={handleNumberChange('noOfAdvisoriesSent')}
                             placeholder="Enter number"
                         />
                     </div>
 
-                    <FormSection title="Type of Messages">
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.messageCrop || ''}
-                            onChange={handleNumberChange('messageCrop')}
-                            placeholder="Enter number"
-                        />
+                    <div className="border border-[#E0E0E0] rounded-xl p-4 space-y-4">
+                        <h3 className="text-lg font-bold text-[#487749]">Type of Messages</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <FormInput
+                                label="Crop"
+                                required
+                                value={formData.crop || ''}
+                                onChange={handleFieldChange('crop')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.messageLivestock || ''}
-                            onChange={handleNumberChange('messageLivestock')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Livestock"
+                                required
+                                value={formData.livestock || ''}
+                                onChange={handleFieldChange('livestock')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.messageWeather || ''}
-                            onChange={handleNumberChange('messageWeather')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Weather"
+                                required
+                                value={formData.weather || ''}
+                                onChange={handleFieldChange('weather')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.messageMarketing || ''}
-                            onChange={handleNumberChange('messageMarketing')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Marketing"
+                                required
+                                value={formData.marketing || ''}
+                                onChange={handleFieldChange('marketing')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.messageAwareness || ''}
-                            onChange={handleNumberChange('messageAwareness')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Awareness"
+                                required
+                                value={formData.awareness || ''}
+                                onChange={handleFieldChange('awareness')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.messageOtherEnterprises || ''}
-                            onChange={handleNumberChange('messageOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="Other Enterprises"
+                                required
+                                value={formData.otherEnterprises || ''}
+                                onChange={handleFieldChange('otherEnterprises')}
+                                placeholder="Enter details"
+                            />
 
-                        <FormInput
-                            label="Any Other"
-                            required
-                            type="number"
-                            value={formData.messageAnyOther || ''}
-                            onChange={handleNumberChange('messageAnyOther')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
+                            <FormInput
+                                label="Any Other"
+                                required
+                                value={formData.anyOther || ''}
+                                onChange={handleFieldChange('anyOther')}
+                                placeholder="Enter details"
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* 5. Create Details of Messages Send Through Other Channels */}
+            {/* 5. Other Channels Form */}
             {entityType === ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS && (
-                <div className="space-y-3">
+                <div className="space-y-6">
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
@@ -357,308 +344,81 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
-                        emptyMessage="No reporting years available"
+                        placeholder="Select"
                     />
 
-                    {/* Advisories through Text messages */}
-                    <FormSection title="Advisories through Text Messages">
-                        <FormInput
-                            label="No. of Farmers Covered"
-                            required
-                            type="number"
-                            value={formData.textFarmersCovered || ''}
-                            onChange={handleNumberChange('textFarmersCovered')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="No of Advisories Sent"
-                            required
-                            type="number"
-                            value={formData.textAdvisoriesSent || ''}
-                            onChange={handleNumberChange('textAdvisoriesSent')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.textCrop || ''}
-                            onChange={handleNumberChange('textCrop')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.textLivestock || ''}
-                            onChange={handleNumberChange('textLivestock')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.textWeather || ''}
-                            onChange={handleNumberChange('textWeather')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.textMarketing || ''}
-                            onChange={handleNumberChange('textMarketing')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.textAwareness || ''}
-                            onChange={handleNumberChange('textAwareness')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.textOtherEnterprises || ''}
-                            onChange={handleNumberChange('textOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
-
-                    {/* Advisories through WhatsApp */}
-                    <FormSection title="Advisories through WhatsApp">
-                        <FormInput
-                            label="No. of Farmers Covered"
-                            required
-                            type="number"
-                            value={formData.whatsappFarmersCovered || ''}
-                            onChange={handleNumberChange('whatsappFarmersCovered')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="No of Advisories Sent"
-                            required
-                            type="number"
-                            value={formData.whatsappAdvisoriesSent || ''}
-                            onChange={handleNumberChange('whatsappAdvisoriesSent')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.whatsappCrop || ''}
-                            onChange={handleNumberChange('whatsappCrop')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.whatsappLivestock || ''}
-                            onChange={handleNumberChange('whatsappLivestock')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.whatsappWeather || ''}
-                            onChange={handleNumberChange('whatsappWeather')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.whatsappMarketing || ''}
-                            onChange={handleNumberChange('whatsappMarketing')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.whatsappAwareness || ''}
-                            onChange={handleNumberChange('whatsappAwareness')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.whatsappOtherEnterprises || ''}
-                            onChange={handleNumberChange('whatsappOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
-
-                    {/* Advisories through Weather Advisory Bulletin */}
-                    <FormSection title="Advisories through Weather Advisory Bulletin">
-                        <FormInput
-                            label="No. of Farmers Covered"
-                            required
-                            type="number"
-                            value={formData.bulletinFarmersCovered || ''}
-                            onChange={handleNumberChange('bulletinFarmersCovered')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="No of Advisories Sent"
-                            required
-                            type="number"
-                            value={formData.bulletinAdvisoriesSent || ''}
-                            onChange={handleNumberChange('bulletinAdvisoriesSent')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.bulletinCrop || ''}
-                            onChange={handleNumberChange('bulletinCrop')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.bulletinLivestock || ''}
-                            onChange={handleNumberChange('bulletinLivestock')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.bulletinWeather || ''}
-                            onChange={handleNumberChange('bulletinWeather')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.bulletinMarketing || ''}
-                            onChange={handleNumberChange('bulletinMarketing')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.bulletinAwareness || ''}
-                            onChange={handleNumberChange('bulletinAwareness')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.bulletinOtherEnterprises || ''}
-                            onChange={handleNumberChange('bulletinOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
-
-                    {/* Advisories through Social Media */}
-                    <FormSection title="Advisories through Social Media/FB/Twitter/Instagram/Other">
-                        <FormInput
-                            label="No. of Farmers Covered"
-                            required
-                            type="number"
-                            value={formData.socialFarmersCovered || ''}
-                            onChange={handleNumberChange('socialFarmersCovered')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="No of Advisories Sent"
-                            required
-                            type="number"
-                            value={formData.socialAdvisoriesSent || ''}
-                            onChange={handleNumberChange('socialAdvisoriesSent')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Crop"
-                            required
-                            type="number"
-                            value={formData.socialCrop || ''}
-                            onChange={handleNumberChange('socialCrop')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Livestock"
-                            required
-                            type="number"
-                            value={formData.socialLivestock || ''}
-                            onChange={handleNumberChange('socialLivestock')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Weather"
-                            required
-                            type="number"
-                            value={formData.socialWeather || ''}
-                            onChange={handleNumberChange('socialWeather')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Marketing"
-                            required
-                            type="number"
-                            value={formData.socialMarketing || ''}
-                            onChange={handleNumberChange('socialMarketing')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Awareness"
-                            required
-                            type="number"
-                            value={formData.socialAwareness || ''}
-                            onChange={handleNumberChange('socialAwareness')}
-                            placeholder="Enter number"
-                        />
-
-                        <FormInput
-                            label="Other Enterprises"
-                            required
-                            type="number"
-                            value={formData.socialOtherEnterprises || ''}
-                            onChange={handleNumberChange('socialOtherEnterprises')}
-                            placeholder="Enter number"
-                        />
-                    </FormSection>
+                    {[
+                        { title: 'Advisories through Text messages', prefix: 'text' },
+                        { title: 'Advisories through Whatsapp', prefix: 'whatsapp' },
+                        { title: 'Advisories through weather advisory bulletin', prefix: 'weather' },
+                        { title: 'Advisories through social media/FB/Twitter/Instagram/Other', prefix: 'social' }
+                    ].map((section) => (
+                        <div key={section.prefix} className="border border-[#E0E0E0] rounded-xl p-4 space-y-4">
+                            <h3 className="text-lg font-bold text-[#487749]">{section.title}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2 border-b border-gray-100">
+                                <FormInput
+                                    label="No. of farmers covered"
+                                    required
+                                    type="number"
+                                    value={formData[`${section.prefix}NoOfFarmersCovered`] || ''}
+                                    onChange={handleNumberChange(`${section.prefix}NoOfFarmersCovered`)}
+                                    placeholder="Enter number"
+                                />
+                                <FormInput
+                                    label="No of advisories sent"
+                                    required
+                                    type="number"
+                                    value={formData[`${section.prefix}NoOfAdvisoriesSent`] || ''}
+                                    onChange={handleNumberChange(`${section.prefix}NoOfAdvisoriesSent`)}
+                                    placeholder="Enter number"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <FormInput
+                                    label="Crop"
+                                    required
+                                    value={formData[`${section.prefix}Crop`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}Crop`)}
+                                    placeholder="Enter details"
+                                />
+                                <FormInput
+                                    label="Livestock"
+                                    required
+                                    value={formData[`${section.prefix}Livestock`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}Livestock`)}
+                                    placeholder="Enter details"
+                                />
+                                <FormInput
+                                    label="Weather"
+                                    required
+                                    value={formData[`${section.prefix}Weather`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}Weather`)}
+                                    placeholder="Enter details"
+                                />
+                                <FormInput
+                                    label="Marketing"
+                                    required
+                                    value={formData[`${section.prefix}Marketing`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}Marketing`)}
+                                    placeholder="Enter details"
+                                />
+                                <FormInput
+                                    label="Awareness"
+                                    required
+                                    value={formData[`${section.prefix}Awareness`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}Awareness`)}
+                                    placeholder="Enter details"
+                                />
+                                <FormInput
+                                    label="Other Enterprises"
+                                    required
+                                    value={formData[`${section.prefix}OtherEnterprises`] || ''}
+                                    onChange={handleFieldChange(`${section.prefix}OtherEnterprises`)}
+                                    placeholder="Enter details"
+                                />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>

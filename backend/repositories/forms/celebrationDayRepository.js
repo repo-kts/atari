@@ -40,9 +40,9 @@ const celebrationDayRepository = {
         `, kvkId, new Date(data.eventDate).toISOString(), parseInt(importantDayId ?? 1),
             parseInt(data.activityCount ?? data.numberOfActivities ?? 0),
             parseInt(data.gen_m ?? data.farmersGeneralM ?? 0), parseInt(data.gen_f ?? data.farmersGeneralF ?? 0),
-            parseInt(data.obc_m ?? data.farmersObcM ?? 0), parseInt(data.obcF ?? data.farmersObcF ?? 0),
-            parseInt(data.sc_m ?? data.farmersScM ?? 0), parseInt(data.sc_f ?? data.farmersScF ?? 0),
-            parseInt(data.st_m ?? data.farmersStM ?? 0), parseInt(data.st_f ?? data.farmersStF ?? 0),
+            parseInt(data.obc_m ?? data.farmersObcM ?? 0), parseInt(data.obc_f ?? data.obcF ?? data.farmersObcF ?? 0),
+            parseInt(data.sc_m ?? data.farmersScM ?? 0), parseInt(data.sc_f ?? data.scF ?? data.farmersScF ?? 0),
+            parseInt(data.st_m ?? data.farmersStM ?? 0), parseInt(data.st_f ?? data.stF ?? data.farmersStF ?? 0),
             parseInt(data.ext_gen_m ?? data.officialsGeneralM ?? 0), parseInt(data.ext_gen_f ?? data.officialsGeneralF ?? 0),
             parseInt(data.ext_obc_m ?? data.officialsObcM ?? 0), parseInt(data.ext_obc_f ?? data.officialsObcF ?? 0),
             parseInt(data.ext_sc_m ?? data.officialsScM ?? 0), parseInt(data.ext_sc_f ?? data.officialsScF ?? 0),
@@ -192,10 +192,28 @@ const celebrationDayRepository = {
         const startYear = month >= 4 ? eventDate.getFullYear() : eventDate.getFullYear() - 1;
         const reportingYear = String(startYear);
 
-        const participants = a.farmersGeneralM + a.farmersGeneralF + a.farmersObcM + a.farmersObcF +
-            a.farmersScM + a.farmersScF + a.farmersStM + a.farmersStF +
-            a.officialsGeneralM + a.officialsGeneralF + a.officialsObcM + a.officialsObcF +
-            a.officialsScM + a.officialsScF + a.officialsStM + a.officialsStF;
+        // Handle both camelCase and snake_case field names from Prisma
+        const farmersGeneralM = a.farmersGeneralM ?? a.farmers_general_m ?? 0;
+        const farmersGeneralF = a.farmersGeneralF ?? a.farmers_general_f ?? 0;
+        const farmersObcM = a.farmersObcM ?? a.farmers_obc_m ?? 0;
+        const farmersObcF = a.farmersObcF ?? a.farmers_obc_f ?? 0;
+        const farmersScM = a.farmersScM ?? a.farmers_sc_m ?? 0;
+        const farmersScF = a.farmersScF ?? a.farmers_sc_f ?? 0;
+        const farmersStM = a.farmersStM ?? a.farmers_st_m ?? 0;
+        const farmersStF = a.farmersStF ?? a.farmers_st_f ?? 0;
+        const officialsGeneralM = a.officialsGeneralM ?? a.officials_general_m ?? 0;
+        const officialsGeneralF = a.officialsGeneralF ?? a.officials_general_f ?? 0;
+        const officialsObcM = a.officialsObcM ?? a.officials_obc_m ?? 0;
+        const officialsObcF = a.officialsObcF ?? a.officials_obc_f ?? 0;
+        const officialsScM = a.officialsScM ?? a.officials_sc_m ?? 0;
+        const officialsScF = a.officialsScF ?? a.officials_sc_f ?? 0;
+        const officialsStM = a.officialsStM ?? a.officials_st_m ?? 0;
+        const officialsStF = a.officialsStF ?? a.officials_st_f ?? 0;
+
+        const participants = farmersGeneralM + farmersGeneralF + farmersObcM + farmersObcF +
+            farmersScM + farmersScF + farmersStM + farmersStF +
+            officialsGeneralM + officialsGeneralF + officialsObcM + officialsObcF +
+            officialsScM + officialsScF + officialsStM + officialsStF;
 
         return {
             ...a,
@@ -203,29 +221,28 @@ const celebrationDayRepository = {
             eventDate: a.eventDate ? new Date(a.eventDate).toISOString().split('T')[0] : '',
             importantDay: a.importantDay?.dayName,
             activityCount: a.numberOfActivities,
-            gen_m: a.farmersGeneralM,
-            gen_f: a.farmersGeneralF,
-            obc_m: a.farmersObcM,
-            obc_f: a.farmersObcF,
-            sc_m: a.farmersScM,
-            sc_f: a.farmersScF,
-            st_m: a.farmersStM,
-            st_f: a.farmersStF,
-            ext_gen_m: a.officialsGeneralM,
-            ext_gen_f: a.officialsGeneralF,
-            ext_obc_m: a.officialsObcM,
-            ext_obc_f: a.officialsObcF,
-            ext_sc_m: a.officialsScM,
-            ext_sc_f: a.officialsScF,
-            ext_st_m: a.officialsStM,
-            ext_st_f: a.officialsStF,
-            reportingYear,
-            'Reporting Year': reportingYear,
-            'KVK Name': a.kvk?.kvkName,
-            'Important Days': a.importantDay?.dayName,
-            'Event Date': a.eventDate.toISOString().split('T')[0],
-            'No. of Activities': a.numberOfActivities,
-            'No. of Participants': participants
+            gen_m: farmersGeneralM,
+            gen_f: farmersGeneralF,
+            obc_m: farmersObcM,
+            obc_f: farmersObcF,
+            sc_m: farmersScM,
+            sc_f: farmersScF,
+            st_m: farmersStM,
+            st_f: farmersStF,
+            ext_gen_m: officialsGeneralM,
+            ext_gen_f: officialsGeneralF,
+            ext_obc_m: officialsObcM,
+            ext_obc_f: officialsObcF,
+            ext_sc_m: officialsScM,
+            ext_sc_f: officialsScF,
+            ext_st_m: officialsStM,
+            ext_st_f: officialsStF,
+            reportingYear: reportingYear,
+            kvkName: a.kvk?.kvkName,
+            importantDays: a.importantDay?.dayName,
+            eventDate: a.eventDate.toISOString().split('T')[0],
+            noOfActivities: a.numberOfActivities,
+            noOfParticipants: participants
         };
     }
 };

@@ -13,20 +13,20 @@ const fpoCbboDetailsRepository = {
 
         try {
             const createData = {
-                    kvkId,
-                    reportingYearId: sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId') || safeGet(data, 'reportingYear')),
-                    blocksAllocated: sanitizeInteger(safeGet(data, 'blocksAllocated'), { defaultValue: 0 }),
-                    fposRegisteredAsCbbo: sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'), { defaultValue: 0 }),
-                    avgMembersPerFpo: sanitizeInteger(safeGet(data, 'avgMembersPerFpo'), { defaultValue: 0 }),
-                    fposReceivedManagementCost: sanitizeInteger(safeGet(data, 'fposReceivedMgmtCost') || safeGet(data, 'fposReceivedManagementCost'), { defaultValue: 0 }),
-                    fposReceivedEquityGrant: sanitizeInteger(safeGet(data, 'fposReceivedEquityGrant'), { defaultValue: 0 }),
-                    techBackstoppingProvided: sanitizeInteger(safeGet(data, 'techBackstoppingFpos') || safeGet(data, 'techBackstoppingProvided'), { defaultValue: 0 }),
-                    trainingProgrammeOrganized: sanitizeInteger(safeGet(data, 'trainingProgsOrganized') || safeGet(data, 'trainingProgrammeOrganized'), { defaultValue: 0 }),
-                    trainingReceivedByMembers: sanitizeBoolean(safeGet(data, 'trainingReceivedByMembers'), false),
-                    assistanceInEconomicActivities: sanitizeInteger(safeGet(data, 'assistanceEconomicActivities') || safeGet(data, 'assistanceInEconomicActivities'), { defaultValue: 0 }),
-                    businessPlanPreparedWithCbbo: sanitizeBoolean(safeGet(data, 'businessPlanCbbo') || safeGet(data, 'businessPlanPreparedWithCbbo'), false),
-                    businessPlanPreparedWithoutCbbo: sanitizeBoolean(safeGet(data, 'businessPlanWithoutCbbo') || safeGet(data, 'businessPlanPreparedWithoutCbbo'), false),
-                    fposDoingBusiness: sanitizeInteger(safeGet(data, 'fposDoingBusiness'), { defaultValue: 0 }),
+                kvkId,
+                reportingYearId: sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId') || safeGet(data, 'reportingYear')),
+                blocksAllocated: sanitizeInteger(safeGet(data, 'blocksAllocated'), { defaultValue: 0 }),
+                fposRegisteredAsCbbo: sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'), { defaultValue: 0 }),
+                avgMembersPerFpo: sanitizeInteger(safeGet(data, 'avgMembersPerFpo'), { defaultValue: 0 }),
+                fposReceivedManagementCost: sanitizeInteger(safeGet(data, 'fposReceivedMgmtCost') || safeGet(data, 'fposReceivedManagementCost'), { defaultValue: 0 }),
+                fposReceivedEquityGrant: sanitizeInteger(safeGet(data, 'fposReceivedEquityGrant'), { defaultValue: 0 }),
+                techBackstoppingProvided: sanitizeInteger(safeGet(data, 'techBackstoppingFpos') || safeGet(data, 'techBackstoppingProvided'), { defaultValue: 0 }),
+                trainingProgrammeOrganized: sanitizeInteger(safeGet(data, 'trainingProgsOrganized') || safeGet(data, 'trainingProgrammeOrganized'), { defaultValue: 0 }),
+                trainingReceivedByMembers: sanitizeBoolean(safeGet(data, 'trainingReceivedByMembers'), false),
+                assistanceInEconomicActivities: sanitizeInteger(safeGet(data, 'assistanceEconomicActivities') || safeGet(data, 'assistanceInEconomicActivities'), { defaultValue: 0 }),
+                businessPlanPreparedWithCbbo: sanitizeBoolean(safeGet(data, 'businessPlanCbbo') || safeGet(data, 'businessPlanPreparedWithCbbo'), false),
+                businessPlanPreparedWithoutCbbo: sanitizeBoolean(safeGet(data, 'businessPlanWithoutCbbo') || safeGet(data, 'businessPlanPreparedWithoutCbbo'), false),
+                fposDoingBusiness: sanitizeInteger(safeGet(data, 'fposDoingBusiness'), { defaultValue: 0 }),
             };
 
             // CRITICAL: Remove ID fields from createData - Prisma doesn't accept them in data object
@@ -197,6 +197,12 @@ function _mapResponse(r) {
         businessPlanPreparedWithoutCbbo: r.businessPlanPreparedWithoutCbbo,
         businessPlanWithoutCbbo: r.businessPlanPreparedWithoutCbbo ? 'Yes' : 'No', // Frontend alias
         fposDoingBusiness: r.fposDoingBusiness,
+
+        // Dashboard table labels from routeConfig.ts
+        'Reporting Year': r.reportingYear ? r.reportingYear.yearName : undefined,
+        'No. of blocks allocated': r.blocksAllocated,
+        'No. of FPOs registered as CBBO': r.fposRegisteredAsCbbo,
+        'Average members per FPO': r.avgMembersPerFpo,
     };
 }
 

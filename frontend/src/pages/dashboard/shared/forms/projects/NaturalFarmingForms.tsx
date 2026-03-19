@@ -307,7 +307,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             value={formData.seasonId || ''}
                             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-                            options={seasons.map((s: any) => ({ value: s.id, label: s.seasonName }))}
+                            options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
                             placeholder="Select"
                         />
                     </div>
@@ -415,7 +415,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             value={formData.stateId || ''}
                             onChange={(e) => setFormData({ ...formData, stateId: e.target.value })}
-                            options={states.map((s: any) => ({ value: s.id, label: s.stateName }))}
+                            options={states.map((s: any) => ({ value: s.stateId || s.id, label: s.stateName }))}
                             placeholder="Select"
                         />
                         <FormInput
@@ -647,9 +647,10 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             value={formData.soilParameter || ''}
                             onChange={(e) => setFormData({ ...formData, soilParameter: e.target.value })}
                             options={[
-                                { value: 'Chemical', label: 'Chemical' },
-                                { value: 'Biological', label: 'Biological' },
-                                { value: 'Physical', label: 'Physical' }
+                                { value: 'DEMO_PLOT_KVK', label: 'Demo Plot KVK' },
+                                { value: 'NON_DEMO_PLOT_KVK', label: 'Non-Demo Plot KVK' },
+                                { value: 'DEMO_PLOT_FARMERS_FIELD', label: 'Demo Plot Farmer\'s Field' },
+                                { value: 'NON_DEMO_PLOT_FARMERS_FIELD', label: 'Non-Demo Plot Farmer\'s Field' }
                             ]}
                             placeholder="Select"
                         />
@@ -658,7 +659,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             value={formData.seasonId || ''}
                             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-                            options={seasons.map((s: any) => ({ value: s.id, label: s.seasonName }))}
+                            options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
                             placeholder="Select"
                         />
                     </div>
@@ -784,10 +785,10 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             value={formData.activityName || ''}
                             onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                             options={[
-                                { value: 'Training', label: 'Training' },
-                                { value: 'Demonstration', label: 'Demonstration' },
-                                { value: 'Awareness', label: 'Awareness' },
-                                { value: 'Workshop', label: 'Workshop' }
+                                { value: 'TRAINING', label: 'Training' },
+                                { value: 'DEMONSTRATION', label: 'Demonstration' },
+                                { value: 'FIELD_VISIT', label: 'Field Visit' },
+                                { value: 'AWARENESS_PROGRAM', label: 'Awareness Program' }
                             ]}
                             placeholder="Select"
                         />

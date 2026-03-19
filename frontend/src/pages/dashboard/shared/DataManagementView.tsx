@@ -130,7 +130,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } = getEntityTypeChecks(entityType)
+
+        if (isAboutKvkEntity || isMiscellaneous || isSwachhtaBharatAbhiyaan || isMeetings) {
             if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can edit all records
@@ -147,7 +149,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
-        if (isAboutKvkEntity) {
+        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } = getEntityTypeChecks(entityType)
+
+        if (isAboutKvkEntity || isMiscellaneous || isSwachhtaBharatAbhiyaan || isMeetings) {
             if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can delete all records

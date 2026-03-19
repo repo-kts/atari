@@ -232,7 +232,7 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.titleOfTraining) formData.title = item.titleOfTraining;
         if (item.title) formData.title = item.title;
         if (item.venue) formData.venue = item.venue;
-        if (item.fundingAgencyName) formData.fundingAgency = item.fundingAgencyName;
+        if (item.fundingAgencyName) formData.fundingAgency = item.fundingAgency;
         if (item.fundingAgency) formData.fundingAgency = item.fundingAgency;
         if (item.clienteleId) formData.clienteleId = item.clienteleId;
         if (item.fundingSourceId) formData.fundingSourceId = item.fundingSourceId;
@@ -246,6 +246,123 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.scF !== undefined) formData.sc_f = String(item.scF);
         if (item.stM !== undefined) formData.st_m = String(item.stM);
         if (item.stF !== undefined) formData.st_f = String(item.stF);
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_BASIC]: (item: any, formData: any) => {
+        if (item.reportingDate) {
+            formData.monthYear = new Date(item.reportingDate).toISOString().substring(0, 7); // YYYY-MM
+        }
+        if (item.drySpell10Days !== undefined) formData.dry10 = item.drySpell10Days;
+        if (item.drySpell15Days !== undefined) formData.dry15 = item.drySpell15Days;
+        if (item.drySpell20Days !== undefined) formData.dry20 = item.drySpell20Days;
+        if (item.intensiveRainAbove60mm !== undefined) formData.intensiveRain = item.intensiveRainAbove60mm;
+        if (item.waterDepthCm !== undefined) formData.waterDepth = item.waterDepthCm;
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: (item: any, formData: any) => {
+        if (item.titleOfTraining) formData.trainingTitle = item.titleOfTraining;
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        if (item.generalM !== undefined) formData.genMale = item.generalM;
+        if (item.generalF !== undefined) formData.genFemale = item.generalF;
+        if (item.obcM !== undefined) formData.obcMale = item.obcM;
+        if (item.obcF !== undefined) formData.obcFemale = item.obcF;
+        if (item.scM !== undefined) formData.scMale = item.scM;
+        if (item.scF !== undefined) formData.scFemale = item.scF;
+        if (item.stM !== undefined) formData.stMale = item.stM;
+        if (item.stF !== undefined) formData.stFemale = item.stF;
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_EXTENSION]: (item: any, formData: any) => {
+        if (item.activityName) formData.activityName = item.activityName;
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        if (item.generalM !== undefined) formData.genMale = item.generalM;
+        if (item.generalF !== undefined) formData.genFemale = item.generalF;
+        if (item.obcM !== undefined) formData.obcMale = item.obcM;
+        if (item.obcF !== undefined) formData.obcFemale = item.obcF;
+        if (item.scM !== undefined) formData.scMale = item.scM;
+        if (item.scF !== undefined) formData.scFemale = item.scF;
+        if (item.stM !== undefined) formData.stMale = item.stM;
+        if (item.stF !== undefined) formData.stFemale = item.stF;
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: (item: any, formData: any) => {
+        if (item.generalM !== undefined) formData.genMale = item.generalM;
+        if (item.generalF !== undefined) formData.genFemale = item.generalF;
+        if (item.obcM !== undefined) formData.obcMale = item.obcM;
+        if (item.obcF !== undefined) formData.obcFemale = item.obcF;
+        if (item.scM !== undefined) formData.scMale = item.scM;
+        if (item.scF !== undefined) formData.scFemale = item.scF;
+        if (item.stM !== undefined) formData.stMale = item.stM;
+        if (item.stF !== undefined) formData.stFemale = item.stF;
+        // Season extraction handled by COMMON_EXTRACTORS/default behavior mostly, 
+        // but let's ensure category/subCategory IDs are mapped if they are nested
+        if (item.category?.nicraCategoryId) formData.nicraCategoryId = item.category.nicraCategoryId;
+        if (item.subCategory?.nicraSubCategoryId) formData.nicraSubCategoryId = item.subCategory.nicraSubCategoryId;
+    },
+
+    // Natural Farming
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: (item: any, formData: any) => {
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        if (item.reportingYear?.yearId) formData.reportingYearId = item.reportingYear.yearId;
+        else if (item.reportingYearId) formData.reportingYearId = item.reportingYearId;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: (item: any, formData: any) => {
+        if (item.trainingDate) formData.trainingDate = new Date(item.trainingDate).toISOString().split('T')[0];
+        if (item.generalM !== undefined) formData.genMale = item.generalM;
+        if (item.generalF !== undefined) formData.genFemale = item.generalF;
+        if (item.obcM !== undefined) formData.obcMale = item.obcM;
+        if (item.obcF !== undefined) formData.obcFemale = item.obcF;
+        if (item.scM !== undefined) formData.scMale = item.scM;
+        if (item.scF !== undefined) formData.scFemale = item.scF;
+        if (item.stM !== undefined) formData.stMale = item.stM;
+        if (item.stF !== undefined) formData.stFemale = item.stF;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: (item: any, formData: any) => {
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
+        if (item.croppingPattern) formData.croppingSystem = item.croppingPattern;
+        if (item.areaInHa !== undefined) formData.area = item.areaInHa;
+        if (item.farmerPracticeDetails) formData.motivationFactors = item.farmerPracticeDetails;
+        if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]: (item: any, formData: any) => {
+        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
+        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
+        if (item.croppingPattern) formData.croppingSystem = item.croppingPattern;
+        if (item.areaInHa !== undefined) formData.area = item.areaInHa;
+        if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]: (item: any, formData: any) => {
+        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.blocksCovered !== undefined) formData.noOfBlocks = item.blocksCovered;
+        if (item.villagesCovered !== undefined) formData.noOfVillages = item.villagesCovered;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL]: (item: any, formData: any) => {
+        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
+        else if (item.seasonId) formData.seasonId = item.seasonId;
+        if (item.phBefore !== undefined) formData.beforePh = item.phBefore;
+        if (item.ecBefore !== undefined) formData.beforeEc = item.ecBefore;
+        if (item.ocBefore !== undefined) formData.beforeOc = item.ocBefore;
+        if (item.nBefore !== undefined) formData.beforeN = item.nBefore;
+        if (item.pBefore !== undefined) formData.beforeP = item.pBefore;
+        if (item.kBefore !== undefined) formData.beforeK = item.kBefore;
+        if (item.soilMicrobesBefore !== undefined) formData.beforeMicrobes = item.soilMicrobesBefore;
+        if (item.phAfter !== undefined) formData.afterPh = item.phAfter;
+        if (item.ecAfter !== undefined) formData.afterEc = item.ecAfter;
+        if (item.ocAfter !== undefined) formData.afterOc = item.ocAfter;
+        if (item.nAfter !== undefined) formData.afterN = item.nAfter;
+        if (item.pAfter !== undefined) formData.afterP = item.pAfter;
+        if (item.kAfter !== undefined) formData.afterK = item.kAfter;
+        if (item.soilMicrobesAfter !== undefined) formData.afterMicrobes = item.soilMicrobesAfter;
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET]: (item: any, formData: any) => {
+        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.activity) formData.activityName = item.activity;
+        if (item.numberOfActivities !== undefined) formData.noOfActivities = item.numberOfActivities;
     },
 };
 

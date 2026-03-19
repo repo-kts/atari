@@ -199,6 +199,17 @@ export interface SoilWaterAnalysisFormData {
     analysisName: string;
 }
 
+// NARI Masters
+export interface NariCropCategory {
+    cropCategoryId: number;
+    name: string;
+}
+
+export interface NariNutritionGardenType {
+    nutritionGardenTypeId: number;
+    name: string;
+}
+
 // ============================================
 // Season APIs
 // ============================================
@@ -377,4 +388,10 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis/${id}`, data),
     deleteSoilWaterAnalysis: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/soil-water-analysis/${id}`),
+
+    // NARI Masters
+    getNariCropCategories: () =>
+        apiClient.get<PaginatedResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category`),
+    getNariNutritionGardenTypes: () =>
+        apiClient.get<PaginatedResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type`),
 };

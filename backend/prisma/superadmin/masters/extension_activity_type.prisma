@@ -4,6 +4,7 @@ model FldActivity {
   createdAt               DateTime                @default(now()) @map("created_at")
   updatedAt               DateTime                @updatedAt @map("updated_at")
   extensions              FldExtension[]
+  
   kvkExtensionActivities  KvkExtensionActivity[]
   nariTrainingProgrammes  NariTrainingProgramme[]
   nariValueAdditions      NariValueAddition[]
@@ -12,5 +13,5 @@ model FldActivity {
   nariBioFortifiedCrops   NariBioFortifiedCrop[]
   craExtensionActivities  CraExtensionActivity[]
 
-  @@map("fld_activity")
+  @@map("fld_activity") 
 }
