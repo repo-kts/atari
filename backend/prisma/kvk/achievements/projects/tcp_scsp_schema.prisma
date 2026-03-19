@@ -4,9 +4,9 @@ enum TspScspType {
 }
 
 model TspScspActivities {
-  tspScspActivityId Int @id @default(autoincrement()) @map("tsp_scsp_activity_id")
+  tspScspActivityId Int @id @default(autoincrement()) @map("tsp_scsp_district_id")
 
-  activityName   String    @unique @map("activity_name")
+  activityName   String    @unique @map("name")
   tspScspRecords TspScsp[]
 
   @@map("tsp_scsp_district")

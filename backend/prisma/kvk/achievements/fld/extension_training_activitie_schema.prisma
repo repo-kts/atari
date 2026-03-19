@@ -17,6 +17,7 @@ model FldExtension {
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
   reportingYearId    Int?               @map("reporting_year_id")
+  fldActivity        FldActivity        @relation(fields: [activityId], references: [activityId])
   fld                KvkFldIntroduction @relation(fields: [fldId], references: [kvkFldId], onDelete: Cascade)
   kvk                Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   reportingYear      YearMaster?        @relation(fields: [reportingYearId], references: [yearId])

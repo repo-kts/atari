@@ -68,32 +68,32 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="Number of Mobile Apps developed by KVK"
                         required
                         type="number"
-                        value={formData.appsDeveloped || ''}
-                        onChange={handleNumberChange('appsDeveloped')}
+                        value={formData.numberOfAppsDeveloped || ''}
+                        onChange={handleNumberChange('numberOfAppsDeveloped')}
                         placeholder="Enter number"
                     />
 
                     <FormInput
                         label="Name of the Apps"
                         required
-                        value={formData.appName || ''}
-                        onChange={handleFieldChange('appName')}
+                        value={formData.nameOfApp || ''}
+                        onChange={handleFieldChange('nameOfApp')}
                         placeholder="Enter app name"
                     />
 
                     <FormInput
                         label="Language of the Apps"
                         required
-                        value={formData.appLanguage || ''}
-                        onChange={handleFieldChange('appLanguage')}
+                        value={formData.languageOfApp || ''}
+                        onChange={handleFieldChange('languageOfApp')}
                         placeholder="Enter language"
                     />
 
                     <FormInput
                         label="Meant for crop/livestock/fishery/others"
                         required
-                        value={formData.appCategory || ''}
-                        onChange={handleFieldChange('appCategory')}
+                        value={formData.meantFor || ''}
+                        onChange={handleFieldChange('meantFor')}
                         placeholder="Enter category"
                     />
 
@@ -101,8 +101,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of times downloaded"
                         required
                         type="number"
-                        value={formData.downloadCount || ''}
-                        onChange={handleNumberChange('downloadCount')}
+                        value={formData.numberOfTimesDownloaded || ''}
+                        onChange={handleNumberChange('numberOfTimesDownloaded')}
                         placeholder="Enter number"
                     />
                 </div>
@@ -125,8 +125,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of visitors visited the portal"
                         required
                         type="number"
-                        value={formData.visitorsCount || ''}
-                        onChange={handleNumberChange('visitorsCount')}
+                        value={formData.noOfVisitors || ''}
+                        onChange={handleNumberChange('noOfVisitors')}
                         placeholder="Enter number"
                     />
 
@@ -134,8 +134,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of farmers registered on the portal"
                         required
                         type="number"
-                        value={formData.farmersRegistered || ''}
-                        onChange={handleNumberChange('farmersRegistered')}
+                        value={formData.noOfFarmersRegistered || ''}
+                        onChange={handleNumberChange('noOfFarmersRegistered')}
                         placeholder="Enter number"
                     />
                 </div>
@@ -159,8 +159,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No. of farmers registered on KSP portal"
                             required
                             type="number"
-                            value={formData.farmersRegistered || ''}
-                            onChange={handleNumberChange('farmersRegistered')}
+                            value={formData.noOfFarmersRegisteredOnKspPortal || ''}
+                            onChange={handleNumberChange('noOfFarmersRegisteredOnKspPortal')}
                             placeholder="Enter number"
                         />
 
@@ -189,55 +189,49 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Crop"
                                 required
-                                type="number"
-                                value={formData.messageCrop || ''}
-                                onChange={handleNumberChange('messageCrop')}
-                                placeholder="0"
+                                value={formData.crop || ''}
+                                onChange={handleFieldChange('crop')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Livestocks"
                                 required
-                                type="number"
-                                value={formData.messageLivestock || ''}
-                                onChange={handleNumberChange('messageLivestock')}
-                                placeholder="0"
+                                value={formData.livestock || ''}
+                                onChange={handleFieldChange('livestock')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Weather"
                                 required
-                                type="number"
-                                value={formData.messageWeather || ''}
-                                onChange={handleNumberChange('messageWeather')}
-                                placeholder="0"
+                                value={formData.weather || ''}
+                                onChange={handleFieldChange('weather')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Marketing"
                                 required
-                                type="number"
-                                value={formData.messageMarketing || ''}
-                                onChange={handleNumberChange('messageMarketing')}
-                                placeholder="0"
+                                value={formData.marketing || ''}
+                                onChange={handleFieldChange('marketing')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Awareness"
                                 required
-                                type="number"
-                                value={formData.messageAwareness || ''}
-                                onChange={handleNumberChange('messageAwareness')}
-                                placeholder="0"
+                                value={formData.awareness || ''}
+                                onChange={handleFieldChange('awareness')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Other Enterprises"
                                 required
-                                type="number"
-                                value={formData.messageOtherEnterprises || ''}
-                                onChange={handleNumberChange('messageOtherEnterprises')}
-                                placeholder="0"
+                                value={formData.otherEnterprises || ''}
+                                onChange={handleFieldChange('otherEnterprises')}
+                                placeholder="Enter details"
                             />
                         </div>
                     </div>
@@ -262,8 +256,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No. of farmers covered"
                             required
                             type="number"
-                            value={formData.farmersCovered || ''}
-                            onChange={handleNumberChange('farmersCovered')}
+                            value={formData.noOfFarmersCovered || ''}
+                            onChange={handleNumberChange('noOfFarmersCovered')}
                             placeholder="Enter number"
                         />
 
@@ -271,8 +265,8 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No of advisories sent"
                             required
                             type="number"
-                            value={formData.advisoriesSent || ''}
-                            onChange={handleNumberChange('advisoriesSent')}
+                            value={formData.noOfAdvisoriesSent || ''}
+                            onChange={handleNumberChange('noOfAdvisoriesSent')}
                             placeholder="Enter number"
                         />
                     </div>
@@ -283,64 +277,57 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Crop"
                                 required
-                                type="number"
-                                value={formData.messageCrop || ''}
-                                onChange={handleNumberChange('messageCrop')}
-                                placeholder="0"
+                                value={formData.crop || ''}
+                                onChange={handleFieldChange('crop')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Livestock"
                                 required
-                                type="number"
-                                value={formData.messageLivestock || ''}
-                                onChange={handleNumberChange('messageLivestock')}
-                                placeholder="0"
+                                value={formData.livestock || ''}
+                                onChange={handleFieldChange('livestock')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Weather"
                                 required
-                                type="number"
-                                value={formData.messageWeather || ''}
-                                onChange={handleNumberChange('messageWeather')}
-                                placeholder="0"
+                                value={formData.weather || ''}
+                                onChange={handleFieldChange('weather')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Marketing"
                                 required
-                                type="number"
-                                value={formData.messageMarketing || ''}
-                                onChange={handleNumberChange('messageMarketing')}
-                                placeholder="0"
+                                value={formData.marketing || ''}
+                                onChange={handleFieldChange('marketing')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Awareness"
                                 required
-                                type="number"
-                                value={formData.messageAwareness || ''}
-                                onChange={handleNumberChange('messageAwareness')}
-                                placeholder="0"
+                                value={formData.awareness || ''}
+                                onChange={handleFieldChange('awareness')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Other Enterprises"
                                 required
-                                type="number"
-                                value={formData.messageOtherEnterprises || ''}
-                                onChange={handleNumberChange('messageOtherEnterprises')}
-                                placeholder="0"
+                                value={formData.otherEnterprises || ''}
+                                onChange={handleFieldChange('otherEnterprises')}
+                                placeholder="Enter details"
                             />
 
                             <FormInput
                                 label="Any Other"
                                 required
-                                type="number"
-                                value={formData.messageAnyOther || ''}
-                                onChange={handleNumberChange('messageAnyOther')}
-                                placeholder="0"
+                                value={formData.anyOther || ''}
+                                onChange={handleFieldChange('anyOther')}
+                                placeholder="Enter details"
                             />
                         </div>
                     </div>
@@ -363,7 +350,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     {[
                         { title: 'Advisories through Text messages', prefix: 'text' },
                         { title: 'Advisories through Whatsapp', prefix: 'whatsapp' },
-                        { title: 'Advisories through weather advisory bulletin', prefix: 'bulletin' },
+                        { title: 'Advisories through weather advisory bulletin', prefix: 'weather' },
                         { title: 'Advisories through social media/FB/Twitter/Instagram/Other', prefix: 'social' }
                     ].map((section) => (
                         <div key={section.prefix} className="border border-[#E0E0E0] rounded-xl p-4 space-y-4">
@@ -373,16 +360,16 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                                     label="No. of farmers covered"
                                     required
                                     type="number"
-                                    value={formData[`${section.prefix}FarmersCovered`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}FarmersCovered`)}
+                                    value={formData[`${section.prefix}NoOfFarmersCovered`] || ''}
+                                    onChange={handleNumberChange(`${section.prefix}NoOfFarmersCovered`)}
                                     placeholder="Enter number"
                                 />
                                 <FormInput
                                     label="No of advisories sent"
                                     required
                                     type="number"
-                                    value={formData[`${section.prefix}AdvisoriesSent`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}AdvisoriesSent`)}
+                                    value={formData[`${section.prefix}NoOfAdvisoriesSent`] || ''}
+                                    onChange={handleNumberChange(`${section.prefix}NoOfAdvisoriesSent`)}
                                     placeholder="Enter number"
                                 />
                             </div>
@@ -390,50 +377,44 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                                 <FormInput
                                     label="Crop"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}Crop`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}Crop`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}Crop`)}
+                                    placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Livestock"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}Livestock`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}Livestock`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}Livestock`)}
+                                    placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Weather"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}Weather`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}Weather`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}Weather`)}
+                                    placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Marketing"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}Marketing`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}Marketing`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}Marketing`)}
+                                    placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Awareness"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}Awareness`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}Awareness`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}Awareness`)}
+                                    placeholder="Enter details"
                                 />
                                 <FormInput
                                     label="Other Enterprises"
                                     required
-                                    type="number"
                                     value={formData[`${section.prefix}OtherEnterprises`] || ''}
-                                    onChange={handleNumberChange(`${section.prefix}OtherEnterprises`)}
-                                    placeholder="0"
+                                    onChange={handleFieldChange(`${section.prefix}OtherEnterprises`)}
+                                    placeholder="Enter details"
                                 />
                             </div>
                         </div>

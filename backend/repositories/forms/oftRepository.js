@@ -85,6 +85,7 @@ const oftRepository = {
             farmersScF: sanitizeInteger(safeGet(data, 'farmersScF') || safeGet(data, 'sc_f'), { defaultValue: 0 }),
             farmersStM: sanitizeInteger(safeGet(data, 'farmersStM') || safeGet(data, 'st_m'), { defaultValue: 0 }),
             farmersStF: sanitizeInteger(safeGet(data, 'farmersStF') || safeGet(data, 'st_f'), { defaultValue: 0 }),
+            status: sanitizeString(safeGet(data, 'ongoingCompleted') || safeGet(data, 'status'), { allowEmpty: true }) || 'Ongoing',
         };
 
         // Add technologies if any
@@ -211,6 +212,7 @@ const oftRepository = {
         if (data.oftStartDate !== undefined || data.duration !== undefined) updateData.oftStartDate = new Date(data.oftStartDate || data.duration);
         if (data.criticalInput !== undefined) updateData.criticalInput = data.criticalInput;
         if (data.costOfOft !== undefined || data.cost !== undefined) updateData.costOfOft = parseFloat(data.costOfOft ?? data.cost);
+        if (data.status !== undefined || data.ongoingCompleted !== undefined) updateData.status = sanitizeString(data.status ?? data.ongoingCompleted, { allowEmpty: true });
 
         // Farmers mapping
         const farmersMapping = {
@@ -343,6 +345,7 @@ function _mapResponse(r) {
         obc_m: r.farmersObcM, obc_f: r.farmersObcF,
         sc_m: r.farmersScM, sc_f: r.farmersScF,
         st_m: r.farmersStM, st_f: r.farmersStF,
+        ongoingCompleted: r.status || 'Ongoing',
    };
 
     // Add technologies

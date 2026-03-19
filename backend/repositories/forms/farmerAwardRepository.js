@@ -171,7 +171,7 @@ const farmerAwardRepository = {
             const amount = _parseInteger(data.amount, 'Amount', false);
             const achievement = _normalizeString(data.achievement, 'Achievement', false);
             const conferringAuthority = _normalizeString(data.conferringAuthority, 'Conferring Authority', false);
-            const image = data.image ? _normalizeString(data.image, 'Image', true) : null;
+            const image = _normalizeString(data.image, 'Image', false);
 
             // Prepare create data
             const createData = {
@@ -351,12 +351,12 @@ const farmerAwardRepository = {
                 updateData.conferringAuthority = _normalizeString(data.conferringAuthority, 'Conferring Authority', false);
             }
             if (data.image !== undefined) {
-                // Handle images defensively - only update if it's a valid string (URL/Path)
-                if (typeof data.image === 'string' && data.image.trim() !== '') {
-                    updateData.image = _normalizeString(data.image, 'Image', true);
-                } else {
+                if (data.image === null || (typeof data.image === 'string' && data.image.trim() === '')) {
                     updateData.image = null;
+                } else if (typeof data.image === 'string') {
+                    updateData.image = data.image.trim();
                 }
+                // If data.image is something else (like an object or non-empty string already handled), we don't set it to null
             }
 
             // Update the record

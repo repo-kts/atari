@@ -544,6 +544,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.duration || ''}
                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         />
+                        <FormSelect
+                            label="Status"
+                            required
+                            value={formData.ongoingCompleted || 'Ongoing'}
+                            onChange={(e) => setFormData({ ...formData, ongoingCompleted: e.target.value })}
+                            options={[
+                                { value: 'Ongoing', label: 'Ongoing' },
+                                { value: 'Completed', label: 'Completed' }
+                            ]}
+                        />
                         <FormInput
                             label="Critical Input"
                             required
@@ -803,6 +813,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             type="date"
                             value={formData.startDate || ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        />
+                        <FormSelect
+                            label="Status"
+                            required
+                            value={formData.ongoingCompleted || 'Ongoing'}
+                            onChange={(e) => setFormData({ ...formData, ongoingCompleted: e.target.value })}
+                            options={[
+                                { value: 'Ongoing', label: 'Ongoing' },
+                                { value: 'Completed', label: 'Completed' }
+                            ]}
                         />
                         <FormInput
                             label="Area(ha)"

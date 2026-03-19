@@ -102,6 +102,12 @@ export function useProjectData(entityType: string) {
         'performance-revolving-fund': '/forms/performance/financial/revolving-fund',
         'performance-revenue-generation': '/forms/performance/financial/revenue-generation',
         'performance-resource-generation': '/forms/performance/financial/resource-generation',
+        // Digital Information
+        'misc-digital-mobile-app': '/forms/achievements/digital-information/mobile-app',
+        'misc-digital-web-portal': '/forms/achievements/digital-information/web-portal',
+        'misc-digital-kisan-sarathi': '/forms/achievements/digital-information/kisan-sarathi',
+        'misc-digital-kisan-mobile-advisory': '/forms/achievements/digital-information/kmas',
+        'misc-digital-other-channels': '/forms/achievements/digital-information/msg-details',
     };
 
     const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;

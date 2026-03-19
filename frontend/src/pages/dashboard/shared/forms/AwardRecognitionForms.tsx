@@ -162,7 +162,14 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
 
     const handleImageChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData((prev: any) => ({ ...prev, image: e.target.files?.[0] }))
+            const file = e.target.files?.[0]
+            if (file) {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                    setFormData((prev: any) => ({ ...prev, image: reader.result as string }))
+                }
+                reader.readAsDataURL(file)
+            }
         },
         [setFormData]
     )
@@ -326,11 +333,31 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             value={formData.conferringAuthority || ''}
                             onChange={handleConferringAuthorityChange}
                         />
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 space-y-4">
+                            {/* Display existing image if available */}
+                            {formData.image && typeof formData.image === 'string' && (
+                                <div className="p-4 border border-[#E0E0E0] rounded-xl bg-gray-50">
+                                    <p className="text-sm font-semibold text-gray-700 mb-2">Current Image:</p>
+                                    <div className="relative w-full max-w-xs h-40 overflow-hidden rounded-lg border border-gray-200">
+                                        <img 
+                                            src={formData.image} 
+                                            alt="Achievement" 
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
+                                            }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-2 italic">Uploading a new file will replace this image.</p>
+                                </div>
+                            )}
+                            
                             <FormInput
                                 label="Image"
                                 type="file"
+                                required={!formData.image} // Required only if no image exists (new record or no image set)
                                 onChange={handleImageChange}
+                                accept="image/*"
                                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20"
                             />
                         </div>

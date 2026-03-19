@@ -50,6 +50,7 @@ model Kvkoft {
   farmersScF               Int                @map("farmers_sc_f")
   farmersStM               Int                @map("farmers_st_m")
   farmersStF               Int                @map("farmers_st_f")
+  status                   String?            @map("ongoing_completed")
   createdAt                DateTime           @default(now()) @map("created_at")
   updatedAt                DateTime           @updatedAt @map("updated_at")
   reportingYearId          Int?               @map("reporting_year_id")

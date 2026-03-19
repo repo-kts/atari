@@ -20,6 +20,7 @@ model KvkFldIntroduction {
   scF                         Int                         @map("sc_f")
   stM                         Int                         @map("st_m")
   stF                         Int                         @map("st_f")
+  ongoingCompleted            String?                     @map("ongoing_completed")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
   fldExtensions               FldExtension[]
