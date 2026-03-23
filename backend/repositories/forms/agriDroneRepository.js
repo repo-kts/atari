@@ -11,7 +11,7 @@ const agriDroneRepository = {
         }
 
         const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
-        
+
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_agri_drone (
                 "kvkId", reporting_year_id, project_implementing_centre, 

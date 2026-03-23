@@ -329,12 +329,53 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput
-                            label="Photographs"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                        />
+                        <div className="space-y-4">
+                            <FormInput
+                                label="Photographs"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
+                                helperText="Only images allowed. Uploading new files will replace existing ones."
+                            />
+                            {formData.photographs && (
+                                <div className="mt-2 text-sm">
+                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
+                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
+                                            .map((item: any, idx: number) => {
+                                                let src = '';
+                                                if (typeof item === 'string') {
+                                                    if (item.startsWith('data:') || item.startsWith('http')) {
+                                                        src = item;
+                                                    } else {
+                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
+                                                    }
+                                                } else if (item instanceof File) {
+                                                    src = URL.createObjectURL(item);
+                                                }
+
+                                                if (!src || src === 'undefined') return null;
+
+                                                return (
+                                                    <div key={idx} className="relative group">
+                                                        <img
+                                                            src={src}
+                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
+                                                            alt={`Photo ${idx + 1}`}
+                                                            onError={(e) => {
+                                                                const img = e.target as HTMLImageElement;
+                                                                img.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <FormInput
                             label="Upload File"
                             type="file"
@@ -744,12 +785,53 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput
-                            label="Photographs"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                        />
+                        <div className="space-y-4">
+                            <FormInput
+                                label="Photographs"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
+                                helperText="Only images allowed. Uploading new files will replace existing ones."
+                            />
+                            {formData.photographs && (
+                                <div className="mt-2 text-sm">
+                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
+                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
+                                            .map((item: any, idx: number) => {
+                                                let src = '';
+                                                if (typeof item === 'string') {
+                                                    if (item.startsWith('data:') || item.startsWith('http')) {
+                                                        src = item;
+                                                    } else {
+                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
+                                                    }
+                                                } else if (item instanceof File) {
+                                                    src = URL.createObjectURL(item);
+                                                }
+
+                                                if (!src || src === 'undefined') return null;
+
+                                                return (
+                                                    <div key={idx} className="relative group">
+                                                        <img
+                                                            src={src}
+                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
+                                                            alt={`Photo ${idx + 1}`}
+                                                            onError={(e) => {
+                                                                const img = e.target as HTMLImageElement;
+                                                                img.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -833,12 +915,53 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput
-                            label="Photographs"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                        />
+                        <div className="space-y-4">
+                            <FormInput
+                                label="Photographs"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
+                                helperText="Only images allowed. Uploading new files will replace existing ones."
+                            />
+                            {formData.photographs && (
+                                <div className="mt-2 text-sm">
+                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
+                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
+                                            .map((item: any, idx: number) => {
+                                                let src = '';
+                                                if (typeof item === 'string') {
+                                                    if (item.startsWith('data:') || item.startsWith('http')) {
+                                                        src = item;
+                                                    } else {
+                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
+                                                    }
+                                                } else if (item instanceof File) {
+                                                    src = URL.createObjectURL(item);
+                                                }
+
+                                                if (!src || src === 'undefined') return null;
+
+                                                return (
+                                                    <div key={idx} className="relative group">
+                                                        <img
+                                                            src={src}
+                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
+                                                            alt={`Photo ${idx + 1}`}
+                                                            onError={(e) => {
+                                                                const img = e.target as HTMLImageElement;
+                                                                img.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -983,12 +1106,53 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.amountRs || ''}
                             onChange={(e) => setFormData({ ...formData, amountRs: e.target.value })}
                         />
-                        <FormInput
-                            label="Photographs"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                        />
+                        <div className="space-y-4">
+                            <FormInput
+                                label="Photographs"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
+                                helperText="Only images allowed. Uploading new files will replace existing ones."
+                            />
+                            {formData.photographs && (
+                                <div className="mt-2 text-sm">
+                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
+                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
+                                            .map((item: any, idx: number) => {
+                                                let src = '';
+                                                if (typeof item === 'string') {
+                                                    if (item.startsWith('data:') || item.startsWith('http')) {
+                                                        src = item;
+                                                    } else {
+                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
+                                                    }
+                                                } else if (item instanceof File) {
+                                                    src = URL.createObjectURL(item);
+                                                }
+
+                                                if (!src || src === 'undefined') return null;
+
+                                                return (
+                                                    <div key={idx} className="relative group">
+                                                        <img
+                                                            src={src}
+                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
+                                                            alt={`Photo ${idx + 1}`}
+                                                            onError={(e) => {
+                                                                const img = e.target as HTMLImageElement;
+                                                                img.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -1011,9 +1175,6 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             options={[
                                 { value: 'VIP', label: 'VIP' },
                                 { value: 'Expert', label: 'Expert' }
-                                // { value: 'SAU', label: 'SAU' },
-                                // { value: 'StateDept', label: 'State Department' },
-                                // { value: 'Others', label: 'Others' }
                             ]}
                             placeholder="Select"
                         />
@@ -1029,12 +1190,53 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.remark || ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
-                        <FormInput
-                            label="Photographs"
-                            type="file"
-                            multiple
-                            onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                        />
+                        <div className="space-y-4">
+                            <FormInput
+                                label="Photographs"
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
+                                helperText="Only images allowed. Uploading new files will replace existing ones."
+                            />
+                            {formData.photographs && (
+                                <div className="mt-2 text-sm">
+                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
+                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
+                                            .map((item: any, idx: number) => {
+                                                let src = '';
+                                                if (typeof item === 'string') {
+                                                    if (item.startsWith('data:') || item.startsWith('http')) {
+                                                        src = item;
+                                                    } else {
+                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
+                                                    }
+                                                } else if (item instanceof File) {
+                                                    src = URL.createObjectURL(item);
+                                                }
+
+                                                if (!src || src === 'undefined') return null;
+
+                                                return (
+                                                    <div key={idx} className="relative group">
+                                                        <img
+                                                            src={src}
+                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
+                                                            alt={`Photo ${idx + 1}`}
+                                                            onError={(e) => {
+                                                                const img = e.target as HTMLImageElement;
+                                                                img.style.display = 'none';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

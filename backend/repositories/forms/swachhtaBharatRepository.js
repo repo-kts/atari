@@ -15,11 +15,11 @@ const swachhtaBharatRepository = {
             return await prisma.swachhtaHiSewa.create({
                 data: {
                     kvkId,
-                    observationDate: parseDateOrNow(data.observationDate),
-                    totalActivities: parseInt(data.totalActivities) || 0,
-                    staffCount: parseInt(data.staffCount || data.participantsStaff) || 0,
-                    farmerCount: parseInt(data.farmerCount || data.participantsFarmers) || 0,
-                    othersCount: parseInt(data.othersCount || data.participantsOthers) || 0,
+                    observationDate: parseDateOrNow(data.dateDurationOfObservation ?? data.observationDate),
+                    totalActivities: parseInt(data.totalNoOfActivitiesUndertaken ?? data.totalActivities) || 0,
+                    staffCount: parseInt(data.participantsStaff ?? data.noOfStaffs ?? data.staffCount) || 0,
+                    farmerCount: parseInt(data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount) || 0,
+                    othersCount: parseInt(data.participantsOthers ?? data.noOfOthers ?? data.othersCount) || 0,
                 }
             });
         },
@@ -75,11 +75,21 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            if (data.observationDate !== undefined) updateData.observationDate = parseDateOrNow(data.observationDate);
-            if (data.totalActivities !== undefined) updateData.totalActivities = parseInt(data.totalActivities);
-            if (data.staffCount !== undefined || data.participantsStaff !== undefined) updateData.staffCount = parseInt(data.staffCount || data.participantsStaff);
-            if (data.farmerCount !== undefined || data.participantsFarmers !== undefined) updateData.farmerCount = parseInt(data.farmerCount || data.participantsFarmers);
-            if (data.othersCount !== undefined || data.participantsOthers !== undefined) updateData.othersCount = parseInt(data.othersCount || data.participantsOthers);
+            
+            const observationDate = data.dateDurationOfObservation ?? data.observationDate;
+            if (observationDate !== undefined) updateData.observationDate = parseDateOrNow(observationDate);
+            
+            const totalActivities = data.totalNoOfActivitiesUndertaken ?? data.totalActivities;
+            if (totalActivities !== undefined) updateData.totalActivities = parseInt(totalActivities) || 0;
+            
+            const staffCount = data.participantsStaff ?? data.noOfStaffs ?? data.staffCount;
+            if (staffCount !== undefined) updateData.staffCount = parseInt(staffCount) || 0;
+            
+            const farmerCount = data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount;
+            if (farmerCount !== undefined) updateData.farmerCount = parseInt(farmerCount) || 0;
+            
+            const othersCount = data.participantsOthers ?? data.noOfOthers ?? data.othersCount;
+            if (othersCount !== undefined) updateData.othersCount = parseInt(othersCount) || 0;
 
             return await prisma.swachhtaHiSewa.update({
                 where: { swachhtaHiSewaId: parseInt(id) },
@@ -104,11 +114,11 @@ const swachhtaBharatRepository = {
             return await prisma.swachhtaPakhwada.create({
                 data: {
                     kvkId,
-                    observationDate: parseDateOrNow(data.observationDate),
-                    totalActivities: parseInt(data.totalActivities) || 0,
-                    staffCount: parseInt(data.staffCount || data.participantsStaff) || 0,
-                    farmerCount: parseInt(data.farmerCount || data.participantsFarmers) || 0,
-                    othersCount: parseInt(data.othersCount || data.participantsOthers) || 0,
+                    observationDate: parseDateOrNow(data.dateDurationOfObservation ?? data.observationDate),
+                    totalActivities: parseInt(data.totalNoOfActivitiesUndertaken ?? data.totalActivities) || 0,
+                    staffCount: parseInt(data.participantsStaff ?? data.noOfStaffs ?? data.staffCount) || 0,
+                    farmerCount: parseInt(data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount) || 0,
+                    othersCount: parseInt(data.participantsOthers ?? data.noOfOthers ?? data.othersCount) || 0,
                 }
             });
         },
@@ -164,11 +174,21 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            if (data.observationDate !== undefined) updateData.observationDate = parseDateOrNow(data.observationDate);
-            if (data.totalActivities !== undefined) updateData.totalActivities = parseInt(data.totalActivities);
-            if (data.staffCount !== undefined || data.participantsStaff !== undefined) updateData.staffCount = parseInt(data.staffCount || data.participantsStaff);
-            if (data.farmerCount !== undefined || data.participantsFarmers !== undefined) updateData.farmerCount = parseInt(data.farmerCount || data.participantsFarmers);
-            if (data.othersCount !== undefined || data.participantsOthers !== undefined) updateData.othersCount = parseInt(data.othersCount || data.participantsOthers);
+            
+            const observationDate = data.dateDurationOfObservation ?? data.observationDate;
+            if (observationDate !== undefined) updateData.observationDate = parseDateOrNow(observationDate);
+            
+            const totalActivities = data.totalNoOfActivitiesUndertaken ?? data.totalActivities;
+            if (totalActivities !== undefined) updateData.totalActivities = parseInt(totalActivities) || 0;
+            
+            const staffCount = data.participantsStaff ?? data.noOfStaffs ?? data.staffCount;
+            if (staffCount !== undefined) updateData.staffCount = parseInt(staffCount) || 0;
+            
+            const farmerCount = data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount;
+            if (farmerCount !== undefined) updateData.farmerCount = parseInt(farmerCount) || 0;
+            
+            const othersCount = data.participantsOthers ?? data.noOfOthers ?? data.othersCount;
+            if (othersCount !== undefined) updateData.othersCount = parseInt(othersCount) || 0;
 
             return await prisma.swachhtaPakhwada.update({
                 where: { swachhtaPakhwadaId: parseInt(id) },
@@ -193,11 +213,11 @@ const swachhtaBharatRepository = {
             return await prisma.swachhQuarterlyExpenditure.create({
                 data: {
                     kvkId,
-                    reportingYearId: (data.reportingYearId || data.yearId || data.reportingYear) ? parseInt(data.reportingYearId || data.yearId || data.reportingYear) : null,
-                    vermiVillageCovered: parseInt(data.vermicompostingNoOfVillageCovered || data.vermiVillageCovered || data.vermicompostingVillages) || 0,
-                    vermiTotalExpenditure: parseFloat(data.vermicompostingTotalExpenditure || data.vermiTotalExpenditure || data.vermicompostingExpenditure) || 0,
-                    otherVillageCovered: parseInt(data.otherNoOfVillageCovered || data.otherVillageCovered || data.otherVillages) || 0,
-                    otherTotalExpenditure: parseFloat(data.otherTotalExpenditure || data.otherTotalExpenditure || data.otherExpenditure) || 0,
+                    reportingYearId: parseInt(data.reportingYearId ?? data.yearId ?? data.reportingYear) || null,
+                    vermiVillageCovered: parseInt(data.vermicompostingVillages ?? data.vermiVillageCovered ?? data.vermicompostingNoOfVillageCovered) || 0,
+                    vermiTotalExpenditure: parseFloat(data.vermicompostingExpenditure ?? data.vermiTotalExpenditure ?? data.vermicompostingTotalExpenditure) || 0,
+                    otherVillageCovered: parseInt(data.otherVillages ?? data.otherVillageCovered ?? data.otherNoOfVillageCovered) || 0,
+                    otherTotalExpenditure: parseFloat(data.otherExpenditure ?? data.otherTotalExpenditure) || 0,
                 }
             });
         },
@@ -255,16 +275,21 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            if (data.reportingYearId !== undefined || data.yearId !== undefined || data.reportingYear !== undefined)
-                updateData.reportingYearId = (data.reportingYearId || data.yearId || data.reportingYear) ? parseInt(data.reportingYearId || data.yearId || data.reportingYear) : null;
-            if (data.vermiVillageCovered !== undefined || data.vermicompostingNoOfVillageCovered !== undefined || data.vermicompostingVillages !== undefined)
-                updateData.vermiVillageCovered = parseInt(data.vermicompostingNoOfVillageCovered || data.vermiVillageCovered || data.vermicompostingVillages);
-            if (data.vermiTotalExpenditure !== undefined || data.vermicompostingTotalExpenditure !== undefined || data.vermicompostingExpenditure !== undefined)
-                updateData.vermiTotalExpenditure = parseFloat(data.vermicompostingTotalExpenditure || data.vermiTotalExpenditure || data.vermicompostingExpenditure);
-            if (data.otherVillageCovered !== undefined || data.otherNoOfVillageCovered !== undefined || data.otherVillages !== undefined)
-                updateData.otherVillageCovered = parseInt(data.otherNoOfVillageCovered || data.otherVillageCovered || data.otherVillages);
-            if (data.otherTotalExpenditure !== undefined || data.otherTotalExpenditure !== undefined || data.otherExpenditure !== undefined)
-                updateData.otherTotalExpenditure = parseFloat(data.otherTotalExpenditure || data.otherTotalExpenditure || data.otherExpenditure);
+            
+            const reportingYearId = data.reportingYearId ?? data.yearId ?? data.reportingYear;
+            if (reportingYearId !== undefined) updateData.reportingYearId = parseInt(reportingYearId) || null;
+            
+            const vermiVillageCovered = data.vermicompostingVillages ?? data.vermiVillageCovered ?? data.vermicompostingNoOfVillageCovered;
+            if (vermiVillageCovered !== undefined) updateData.vermiVillageCovered = parseInt(vermiVillageCovered) || 0;
+            
+            const vermiTotalExpenditure = data.vermicompostingExpenditure ?? data.vermiTotalExpenditure ?? data.vermicompostingTotalExpenditure;
+            if (vermiTotalExpenditure !== undefined) updateData.vermiTotalExpenditure = parseFloat(vermiTotalExpenditure) || 0;
+            
+            const otherVillageCovered = data.otherVillages ?? data.otherVillageCovered ?? data.otherNoOfVillageCovered;
+            if (otherVillageCovered !== undefined) updateData.otherVillageCovered = parseInt(otherVillageCovered) || 0;
+            
+            const otherTotalExpenditure = data.otherExpenditure ?? data.otherTotalExpenditure;
+            if (otherTotalExpenditure !== undefined) updateData.otherTotalExpenditure = parseFloat(otherTotalExpenditure) || 0;
 
             return await prisma.swachhQuarterlyExpenditure.update({
                 where: { swachhQuarterlyExpenditureId: parseInt(id) },

@@ -58,14 +58,22 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
 interface FormSectionProps {
     title: string
     children: React.ReactNode
+    noGrid?: boolean
+    className?: string
 }
 
-export const FormSection: React.FC<FormSectionProps> = ({ title, children }) => (
-    <div className="space-y-3">
-        <h3 className="text-lg font-bold text-[#487749]">{title}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {children}
-        </div>
+export const FormSection: React.FC<FormSectionProps> = ({ title, children, noGrid = false, className = '' }) => (
+    <div className={`space-y-4 mb-6 ${className}`}>
+        <h3 className="text-lg font-bold text-[#487749] border-b border-[#487749]/10 pb-1">{title}</h3>
+        {noGrid ? (
+            <div className="space-y-4">
+                {children}
+            </div>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                {children}
+            </div>
+        )}
     </div>
 )
 
