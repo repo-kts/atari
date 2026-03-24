@@ -63,7 +63,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                                 </th>
                             ))}
                             <th className="px-6 py-4 text-right text-xs font-semibold text-[#212121] uppercase tracking-wider bg-[#F5F5F5] whitespace-nowrap sticky right-0 z-30 border-b border-[#E0E0E0]">
-                                Actions
+                                Action
                             </th>
                         </tr>
                     </thead>

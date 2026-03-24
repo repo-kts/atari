@@ -89,6 +89,9 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return data;
         },
     },
+    [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
+        excludeFields: ['id', 'kvkName'],
+    },
 };
 
 // ============================================

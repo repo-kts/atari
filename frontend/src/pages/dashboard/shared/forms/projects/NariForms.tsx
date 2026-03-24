@@ -403,45 +403,42 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <FormInput
                             label="Name of Nutri-Smart Village"
                             required
-                            value={formData.villageName || ''}
-                            onChange={(e) => setFormData({ ...formData, villageName: e.target.value })}
+                            value={formData.villageName || formData.nameOfNutriSmartVillage || ''}
+                            onChange={(e) => setFormData({ ...formData, villageName: e.target.value, nameOfNutriSmartVillage: e.target.value })}
                         />
                         <FormInput
                             label="Area of Training"
                             required
-                            value={formData.trainingArea || ''}
-                            onChange={(e) => setFormData({ ...formData, trainingArea: e.target.value })}
+                            value={formData.areaOfTraining || formData.trainingArea || ''}
+                            onChange={(e) => setFormData({ ...formData, areaOfTraining: e.target.value, trainingArea: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activity || ''}
-                            onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
-                            options={[
-                                { value: 'Demonstration', label: 'Demonstration' },
-                                { value: 'Training', label: 'Training' }
-                            ]}
-                            placeholder="Select Option"
+                            value={formData.activityId || ''}
+                            onChange={(value) => setFormData({ ...formData, activityId: value })}
+                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            placeholder="Select Activity"
                         />
                         <FormInput
                             label="Title of training"
                             required
-                            value={formData.trainingTitle || ''}
-                            onChange={(e) => setFormData({ ...formData, trainingTitle: e.target.value })}
+                            value={formData.titleOfTraining || formData.trainingTitle || ''}
+                            onChange={(e) => setFormData({ ...formData, titleOfTraining: e.target.value, trainingTitle: e.target.value })}
                         />
                         <FormInput
                             label="No of days"
                             required
                             type="number"
                             value={formData.noOfDays || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfDays: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, noOfDays: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="No of courses"
                             required
                             type="number"
                             value={formData.noOfCourses || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfCourses: e.target.value })}
+                            onChange={(e) => setFormData({ ...formData, noOfCourses: parseInt(e.target.value) || 0 })}
                         />
                         <FormSelect
                             label="On Campus/Off Campus"
@@ -449,8 +446,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             value={formData.campusType || ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
-                                { value: 'On Campus', label: 'On Campus' },
-                                { value: 'Off Campus', label: 'Off Campus' }
+                                { value: 'ON_CAMPUS', label: 'On Campus' },
+                                { value: 'OFF_CAMPUS', label: 'Off Campus' }
                             ]}
                             placeholder="Please Select"
                         />
@@ -472,28 +469,28 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 value={formData.genMale || ''}
-                                onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
                                 value={formData.genFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
                                 value={formData.obcMale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
                                 value={formData.obcFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
 
@@ -503,28 +500,28 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 required
                                 type="number"
                                 value={formData.scMale || ''}
-                                onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
                                 value={formData.scFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
                                 value={formData.stMale || ''}
-                                onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 value={formData.stFemale || ''}
-                                onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
                     </div>

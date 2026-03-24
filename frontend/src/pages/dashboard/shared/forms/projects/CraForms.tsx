@@ -56,13 +56,18 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             value={formData.croppingSystem || ''}
                             onChange={(e) => setFormData({ ...formData, croppingSystem: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Farming System crop under demonstration"
                             required
                             value={formData.farmingSystemId || ''}
-                            onChange={(e) => setFormData({ ...formData, farmingSystemId: parseInt(e.target.value) })}
-                            options={farmingSystems.map((fs: any) => ({ value: fs.id || fs.farmingSystemId, label: fs.farmingSystemName }))}
-                            placeholder={farmingSystems.length === 0 ? "No record found" : "Select Farming System crop under demonstration"}
+                            onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
+                            options={createMasterDataOptions(
+                                farmingSystems.filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId)),
+                                'craFarmingSystemId',
+                                'farmingSystemName'
+                            )}
+                            placeholder="Select Farming System crop under demonstration"
+                            emptyMessage={formData.seasonId ? "No systems found for this season" : "Please select a season first"}
                         />
                         <FormInput
                             label="Area under Demonstration (in acre)"

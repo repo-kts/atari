@@ -8,22 +8,22 @@ const craExtensionActivityRepository = {
         return await prisma.craExtensionActivity.create({
             data: {
                 kvkId,
-                extensionActivityId: parseInt(data.extensionActivityId),
+                activityId: parseInt(data.activityId || data.extensionActivityId),
                 startDate: data.startDate ? new Date(data.startDate) : new Date(),
                 endDate: data.endDate ? new Date(data.endDate) : new Date(),
-                genM: parseInt(data.genM || 0),
-                genF: parseInt(data.genF || 0),
+                generalM: parseInt(data.generalM || data.genM || 0),
+                generalF: parseInt(data.generalF || data.genF || 0),
                 obcM: parseInt(data.obcM || 0),
-                obcF: parseInt(data.obcFemale || data.obcF || 0),
+                obcF: parseInt(data.obcF || 0),
                 scM: parseInt(data.scM || 0),
                 scF: parseInt(data.scF || 0),
                 stM: parseInt(data.stM || 0),
                 stF: parseInt(data.stF || 0),
-                exposureVisit: parseInt(data.exposureVisit || 0)
+                exposureVisitNo: parseInt(data.exposureVisitNo || data.exposureVisit || 0)
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                extensionActivity: { select: { activityName: true } }
+                activity: { select: { activityName: true } }
             }
         });
     },
@@ -40,7 +40,7 @@ const craExtensionActivityRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                extensionActivity: { select: { activityName: true } }
+                activity: { select: { activityName: true } }
             },
             orderBy: { craExtensionActivityId: 'desc' }
         });
@@ -57,7 +57,7 @@ const craExtensionActivityRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                extensionActivity: { select: { activityName: true } }
+                activity: { select: { activityName: true } }
             }
         });
         return result ? _mapResponse(result) : null;
@@ -75,22 +75,22 @@ const craExtensionActivityRepository = {
         const result = await prisma.craExtensionActivity.update({
             where: { craExtensionActivityId: parseInt(id) },
             data: {
-                extensionActivityId: data.extensionActivityId ? parseInt(data.extensionActivityId) : existing.extensionActivityId,
-                startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
-                endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
-                genM: data.genM !== undefined ? parseInt(data.genM || 0) : existing.genM,
-                genF: data.genF !== undefined ? parseInt(data.genF || 0) : existing.genF,
-                obcM: data.obcM !== undefined ? parseInt(data.obcM || 0) : existing.obcM,
-                obcF: data.obcF !== undefined ? parseInt(data.obcF || 0) : existing.obcF,
-                scM: data.scM !== undefined ? parseInt(data.scM || 0) : existing.scM,
-                scF: data.scF !== undefined ? parseInt(data.scF || 0) : existing.scF,
-                stM: data.stM !== undefined ? parseInt(data.stM || 0) : existing.stM,
-                stF: data.stF !== undefined ? parseInt(data.stF || 0) : existing.stF,
-                exposureVisit: data.exposureVisit !== undefined ? parseInt(data.exposureVisit || 0) : existing.exposureVisit
+                activityId: (data.extensionActivityId !== undefined || data.activityId !== undefined) ? parseInt(data.extensionActivityId ?? data.activityId) : undefined,
+                startDate: data.startDate ? new Date(data.startDate) : undefined,
+                endDate: data.endDate ? new Date(data.endDate) : undefined,
+                generalM: (data.genM !== undefined || data.generalM !== undefined) ? parseInt(data.genM ?? data.generalM) : undefined,
+                generalF: (data.genF !== undefined || data.generalF !== undefined) ? parseInt(data.genF ?? data.generalF) : undefined,
+                obcM: data.obcM !== undefined ? parseInt(data.obcM) : undefined,
+                obcF: data.obcF !== undefined ? parseInt(data.obcF) : undefined,
+                scM: data.scM !== undefined ? parseInt(data.scM) : undefined,
+                scF: data.scF !== undefined ? parseInt(data.scF) : undefined,
+                stM: data.stM !== undefined ? parseInt(data.stM) : undefined,
+                stF: data.stF !== undefined ? parseInt(data.stF) : undefined,
+                exposureVisitNo: (data.exposureVisit !== undefined || data.exposureVisitNo !== undefined) ? parseInt(data.exposureVisit ?? data.exposureVisitNo) : undefined
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                extensionActivity: { select: { activityName: true } }
+                activity: { select: { activityName: true } }
             }
         });
         return _mapResponse(result);
@@ -114,12 +114,25 @@ const craExtensionActivityRepository = {
 function _mapResponse(r) {
     if (!r) return null;
     return {
-        ...r,
         id: r.craExtensionActivityId,
-        activityName: r.extensionActivity ? r.extensionActivity.activityName : '',
+        activityId: r.activityId,
+        extensionActivityId: r.activityId,
+        activityName: r.activity ? r.activity.activityName : '',
+        nameOfExtensionActivities: r.activity ? r.activity.activityName : '', // For table display
         kvkName: r.kvk ? r.kvk.kvkName : '',
         startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : '',
-        endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : ''
+        endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : '',
+        // Map back to frontend names
+        genM: r.generalM,
+        genF: r.generalF,
+        obcM: r.obcM,
+        obcF: r.obcF,
+        scM: r.scM,
+        scF: r.scF,
+        stM: r.stM,
+        stF: r.stF,
+        exposureVisit: r.exposureVisitNo,
+        numberOfFarmersUnderExposure: (r.generalM || 0) + (r.generalF || 0) + (r.obcM || 0) + (r.obcF || 0) + (r.scM || 0) + (r.scF || 0) + (r.stM || 0) + (r.stF || 0)
     };
 }
 

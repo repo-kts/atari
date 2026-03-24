@@ -300,10 +300,10 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/achievements/projects/nari/training-programm': ENTITY_TYPES.PROJECT_NARI_TRAINING,
         '/forms/achievements/projects/nari/extension-activities': ENTITY_TYPES.PROJECT_NARI_EXTENSION,
         // NICRA
-        '/forms/achievements/projects/nicra/basic': ENTITY_TYPES.PROJECT_NICRA_BASIC,
+        '/forms/achievements/projects/nicra/basic-information': ENTITY_TYPES.PROJECT_NICRA_BASIC,
         '/forms/achievements/projects/nicra/details': ENTITY_TYPES.PROJECT_NICRA_DETAILS,
         '/forms/achievements/projects/nicra/training': ENTITY_TYPES.PROJECT_NICRA_TRAINING,
-        '/forms/achievements/projects/nicra/extension': ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
+        '/forms/achievements/projects/nicra/extension-activity': ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
         '/forms/achievements/projects/nicra/others/intervention': ENTITY_TYPES.PROJECT_NICRA_INTERVENTION,
         '/forms/achievements/projects/nicra/others/revenue-generated': ENTITY_TYPES.PROJECT_NICRA_REVENUE,
         '/forms/achievements/projects/nicra/others/custom-hiring': ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING,

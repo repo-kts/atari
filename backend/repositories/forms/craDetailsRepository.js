@@ -5,27 +5,36 @@ const craDetailsRepository = {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
+        // Look up the farming system name if an ID was provided
+        let farmingSystemCrop = data.farmingSystemCrop || data.farmingSystemName || '';
+        if (data.farmingSystemId) {
+            const fs = await prisma.craFarmingSystem.findUnique({
+                where: { craFarmingSystemId: parseInt(data.farmingSystemId) }
+            });
+            if (fs) farmingSystemCrop = fs.farmingSystemName;
+        }
+
         return await prisma.craDetails.create({
             data: {
                 kvkId,
-                reportingYearId: parseInt(data.reportingYearId || data.yearId),
-                seasonId: parseInt(data.seasonId),
-                interventions: data.interventions || '',
-                croppingSystem: data.croppingSystem || '',
-                farmingSystemId: parseInt(data.farmingSystemId),
-                areaInAcre: parseFloat(data.areaInAcre || 0),
-                genM: parseInt(data.genM || 0),
-                genF: parseInt(data.genF || 0),
+                reportingYearId: (data.reportingYearId || data.yearId) ? parseInt(data.reportingYearId || data.yearId) : null,
+                seasonId: data.seasonId ? parseInt(data.seasonId) : null,
+                technologyDemonstrated: data.technologyDemonstrated || data.interventions || '',
+                cropingSystem: data.cropingSystem || data.croppingSystem || '',
+                farmingSystemCrop: farmingSystemCrop,
+                areaUnderDemonstrationAcre: parseFloat(data.areaUnderDemonstrationAcre || data.areaInAcre || 0),
+                generalM: parseInt(data.generalM || data.genM || 0),
+                generalF: parseInt(data.generalF || data.genF || 0),
                 obcM: parseInt(data.obcM || 0),
                 obcF: parseInt(data.obcF || 0),
                 scM: parseInt(data.scM || 0),
                 scF: parseInt(data.scF || 0),
                 stM: parseInt(data.stM || 0),
                 stF: parseInt(data.stF || 0),
-                cropYield: parseFloat(data.cropYield || 0),
-                systemProductivity: parseFloat(data.systemProductivity || 0),
-                totalReturn: parseFloat(data.totalReturn || 0),
-                farmerPracticeYield: parseFloat(data.farmerPracticeYield || 0)
+                cropYieldQha: parseFloat(data.cropYieldQha || data.cropYield || 0),
+                systemProductivityQha: parseFloat(data.systemProductivityQha || data.systemProductivity || 0),
+                totalReturnRsHa: parseFloat(data.totalReturnRsHa || data.totalReturn || 0),
+                yieldObtainedUnderFarmerPracticesQha: parseFloat(data.yieldObtainedUnderFarmerPracticesQha || data.farmerPracticeYield || 0)
             },
             include: {
                 kvk: { select: { kvkName: true } }
@@ -44,7 +53,9 @@ const craDetailsRepository = {
         const results = await prisma.craDetails.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
+                reportingYear: { select: { yearName: true } }
             },
             orderBy: { craDetailsId: 'desc' }
         });
@@ -60,7 +71,9 @@ const craDetailsRepository = {
         const result = await prisma.craDetails.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
+                reportingYear: { select: { yearName: true } }
             }
         });
         return result ? _mapResponse(result) : null;
@@ -75,30 +88,40 @@ const craDetailsRepository = {
         const existing = await prisma.craDetails.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
+        let farmingSystemCrop = data.farmingSystemCrop || data.farmingSystemName;
+        if (data.farmingSystemId) {
+            const fs = await prisma.craFarmingSystem.findUnique({
+                where: { craFarmingSystemId: parseInt(data.farmingSystemId) }
+            });
+            if (fs) farmingSystemCrop = fs.farmingSystemName;
+        }
+
         const result = await prisma.craDetails.update({
             where: { craDetailsId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : (data.yearId ? parseInt(data.yearId) : existing.reportingYearId),
-                seasonId: data.seasonId ? parseInt(data.seasonId) : existing.seasonId,
-                interventions: data.interventions !== undefined ? data.interventions : existing.interventions,
-                croppingSystem: data.croppingSystem !== undefined ? data.croppingSystem : existing.croppingSystem,
-                farmingSystemId: data.farmingSystemId ? parseInt(data.farmingSystemId) : existing.farmingSystemId,
-                areaInAcre: data.areaInAcre !== undefined ? parseFloat(data.areaInAcre) : existing.areaInAcre,
-                genM: data.genM !== undefined ? parseInt(data.genM || 0) : existing.genM,
-                genF: data.genF !== undefined ? parseInt(data.genF || 0) : existing.genF,
-                obcM: data.obcM !== undefined ? parseInt(data.obcM || 0) : existing.obcM,
-                obcF: data.obcF !== undefined ? parseInt(data.obcF || 0) : existing.obcF,
-                scM: data.scM !== undefined ? parseInt(data.scM || 0) : existing.scM,
-                scF: data.scF !== undefined ? parseInt(data.scF || 0) : existing.scF,
-                stM: data.stM !== undefined ? parseInt(data.stM || 0) : existing.stM,
-                stF: data.stF !== undefined ? parseInt(data.stF || 0) : existing.stF,
-                cropYield: data.cropYield !== undefined ? parseFloat(data.cropYield) : existing.cropYield,
-                systemProductivity: data.systemProductivity !== undefined ? parseFloat(data.systemProductivity) : existing.systemProductivity,
-                totalReturn: data.totalReturn !== undefined ? parseFloat(data.totalReturn) : existing.totalReturn,
-                farmerPracticeYield: data.farmerPracticeYield !== undefined ? parseFloat(data.farmerPracticeYield) : existing.farmerPracticeYield
+                reportingYearId: (data.reportingYearId || data.yearId) ? parseInt(data.reportingYearId || data.yearId) : undefined,
+                seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
+                technologyDemonstrated: data.interventions !== undefined ? data.interventions : (data.technologyDemonstrated !== undefined ? data.technologyDemonstrated : undefined),
+                cropingSystem: data.croppingSystem !== undefined ? data.croppingSystem : (data.cropingSystem !== undefined ? data.cropingSystem : undefined),
+                farmingSystemCrop: farmingSystemCrop !== undefined ? farmingSystemCrop : undefined,
+                areaUnderDemonstrationAcre: (data.areaInAcre !== undefined || data.areaUnderDemonstrationAcre !== undefined) ? parseFloat(data.areaInAcre ?? data.areaUnderDemonstrationAcre) : undefined,
+                generalM: (data.genM !== undefined || data.generalM !== undefined) ? parseInt(data.genM ?? data.generalM) : undefined,
+                generalF: (data.genF !== undefined || data.generalF !== undefined) ? parseInt(data.genF ?? data.generalF) : undefined,
+                obcM: data.obcM !== undefined ? parseInt(data.obcM) : undefined,
+                obcF: data.obcF !== undefined ? parseInt(data.obcF) : undefined,
+                scM: data.scM !== undefined ? parseInt(data.scM) : undefined,
+                scF: data.scF !== undefined ? parseInt(data.scF) : undefined,
+                stM: data.stM !== undefined ? parseInt(data.stM) : undefined,
+                stF: data.stF !== undefined ? parseInt(data.stF) : undefined,
+                cropYieldQha: (data.cropYield !== undefined || data.cropYieldQha !== undefined) ? parseFloat(data.cropYield ?? data.cropYieldQha) : undefined,
+                systemProductivityQha: (data.systemProductivity !== undefined || data.systemProductivityQha !== undefined) ? parseFloat(data.systemProductivity ?? data.systemProductivityQha) : undefined,
+                totalReturnRsHa: (data.totalReturn !== undefined || data.totalReturnRsHa !== undefined) ? parseFloat(data.totalReturn ?? data.totalReturnRsHa) : undefined,
+                yieldObtainedUnderFarmerPracticesQha: (data.farmerPracticeYield !== undefined || data.yieldObtainedUnderFarmerPracticesQha !== undefined) ? parseFloat(data.farmerPracticeYield ?? data.yieldObtainedUnderFarmerPracticesQha) : undefined
             },
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
+                reportingYear: { select: { yearName: true } }
             }
         });
         return _mapResponse(result);
@@ -122,11 +145,33 @@ const craDetailsRepository = {
 function _mapResponse(r) {
     if (!r) return null;
     return {
-        ...r,
         id: r.craDetailsId,
         kvkName: r.kvk ? r.kvk.kvkName : '',
+        reportingYearId: r.reportingYearId,
         yearId: r.reportingYearId,
-        reportingYearId: r.reportingYearId
+        reportingYear: r.reportingYear ? r.reportingYear.yearName : '',
+        seasonId: r.seasonId,
+        season: r.season ? r.season.seasonName : '',
+        // Map back to frontend names
+        technologyDemonstrated: r.technologyDemonstrated,
+        interventions: r.technologyDemonstrated,
+        croppingSystem: r.cropingSystem,
+        farmingSystemName: r.farmingSystemCrop, 
+        areaInAcre: r.areaUnderDemonstrationAcre,
+        areaHa: r.areaUnderDemonstrationAcre, // For table display
+        numberOfFarmers: (r.generalM || 0) + (r.generalF || 0) + (r.obcM || 0) + (r.obcF || 0) + (r.scM || 0) + (r.scF || 0) + (r.stM || 0) + (r.stF || 0),
+        genM: r.generalM,
+        genF: r.generalF,
+        obcM: r.obcM,
+        obcF: r.obcF,
+        scM: r.scM,
+        scF: r.scF,
+        stM: r.stM,
+        stF: r.stF,
+        cropYield: r.cropYieldQha,
+        systemProductivity: r.systemProductivityQha,
+        totalReturn: r.totalReturnRsHa,
+        farmerPracticeYield: r.yieldObtainedUnderFarmerPracticesQha
     };
 }
 

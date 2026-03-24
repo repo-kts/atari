@@ -406,6 +406,13 @@ export const FIELD_NAMES = {
     MEETING_DATE: 'meetingDate',
     AMOUNT_RS: 'amountRs',
     QUANTITY_Q: 'quantityQ',
+    REPORTING_DATE: 'reportingDate',
+    MONTH_YEAR: 'monthYear',
+    DRY_SPELL_10_DAYS: 'dry10',
+    DRY_SPELL_15_DAYS: 'dry15',
+    DRY_SPELL_20_DAYS: 'dry20',
+    INTENSIVE_RAIN_60MM: 'intensiveRain',
+    WATER_DEPTH: 'waterDepth',
 
     // Natural Farming Fields
     AGRO_CLIMATIC_ZONE: 'agroClimaticZone',

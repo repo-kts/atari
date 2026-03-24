@@ -55,6 +55,7 @@ export function useProjectData(entityType: string) {
         'project-nari-nutri-garden': '/forms/achievements/projects/nari/nutritional-garden',
         'project-nari-bio-fortified': '/forms/achievements/projects/nari/bio-fortified-crop',
         'project-nari-value-addition': '/forms/achievements/projects/nari/value-addition',
+        'project-nari-training': '/forms/achievements/projects/nari/training-programme',
         'project-nari-extension': '/forms/achievements/projects/nari/extension-activity',
         // Natural Farming
         'project-natural-farming-geo': '/forms/achievements/projects/natural-farming/geographical',
