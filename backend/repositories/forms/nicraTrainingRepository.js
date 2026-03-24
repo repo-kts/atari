@@ -25,6 +25,25 @@ const nicraTrainingRepository = {
         });
     },
 
+    _mapResponse: (r) => {
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.nicraTrainingId,
+            trainingTitle: r.titleOfTraining,
+            startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
+            endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || ''),
+            genMale: r.generalM,
+            genFemale: r.generalF,
+            obcMale: r.obcM,
+            obcFemale: r.obcF,
+            scMale: r.scM,
+            scFemale: r.scF,
+            stMale: r.stM,
+            stFemale: r.stF,
+        };
+    },
+
     findAll: async (filters = {}, user) => {
         const where = {};
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {

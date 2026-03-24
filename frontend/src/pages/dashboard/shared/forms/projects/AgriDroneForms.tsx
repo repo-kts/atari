@@ -33,8 +33,8 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormInput
                             label="Name of the project implementing centre (PIC)"
                             required
-                            value={formData.picName || ''}
-                            onChange={(e) => setFormData({ ...formData, picName: e.target.value })}
+                            value={formData.projectImplementingCentre || ''}
+                            onChange={(e) => setFormData({ ...formData, projectImplementingCentre: e.target.value })}
                         />
                         <FormInput
                             label="No. of Agri Drones Sanctioned"
@@ -61,8 +61,8 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Purchased cost of each Drone (Rs.)"
                             required
                             type="number"
-                            value={formData.droneCost || ''}
-                            onChange={(e) => setFormData({ ...formData, droneCost: e.target.value })}
+                            value={formData.costPerDrone || ''}
+                            onChange={(e) => setFormData({ ...formData, costPerDrone: e.target.value })}
                         />
                         <FormInput
                             label="Company of Drone"
@@ -96,8 +96,8 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Target Area for Agri Drone Demonstration (ha) (1 demo = 1 ha area)"
                             required
                             type="number"
-                            value={formData.targetArea || ''}
-                            onChange={(e) => setFormData({ ...formData, targetArea: e.target.value })}
+                            value={formData.targetAreaHa || ''}
+                            onChange={(e) => setFormData({ ...formData, targetAreaHa: e.target.value })}
                         />
                     </div>
 
@@ -122,15 +122,15 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormTextArea
                             label="Operation carried out (Pesticide/Weedicide/Nutrient application) in demonstration organised"
                             required
-                            value={formData.operations || ''}
-                            onChange={(e) => setFormData({ ...formData, operations: e.target.value })}
+                            value={formData.operationType || ''}
+                            onChange={(e) => setFormData({ ...formData, operationType: e.target.value })}
                             rows={3}
                         />
                         <FormTextArea
                             label="Advantages of using Agri Drones as observed during the demonstrations"
                             required
-                            value={formData.advantages || ''}
-                            onChange={(e) => setFormData({ ...formData, advantages: e.target.value })}
+                            value={formData.advantagesObserved || ''}
+                            onChange={(e) => setFormData({ ...formData, advantagesObserved: e.target.value })}
                             rows={3}
                         />
                     </div>

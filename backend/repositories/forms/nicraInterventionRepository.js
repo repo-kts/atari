@@ -5,7 +5,7 @@ const nicraInterventionRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.nicraIntervention.create({
+        const result = await prisma.nicraIntervention.create({
             data: {
                 kvkId,
                 startDate: new Date(data.startDate),
@@ -16,48 +16,61 @@ const nicraInterventionRepository = {
                 quantityQ: parseFloat(data.quantityQ || 0),
             }
         });
+        return nicraInterventionRepository._mapResponse(result);
+    },
+
+    _mapResponse: (r) => {
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.nicraInterventionId,
+            startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
+            endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || '')
+        };
     },
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.nicraIntervention.findMany({
+        const results = await prisma.nicraIntervention.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } }
             },
             orderBy: { nicraInterventionId: 'desc' }
         });
+        return results.map(r => nicraInterventionRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
         const where = { nicraInterventionId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraIntervention.findFirst({
+        const result = await prisma.nicraIntervention.findFirst({
             where,
             include: {
                 kvk: { select: { kvkName: true } }
             }
         });
+        return nicraInterventionRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
         const where = { nicraInterventionId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
         const existing = await prisma.nicraIntervention.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.nicraIntervention.update({
+        const updated = await prisma.nicraIntervention.update({
             where: { nicraInterventionId: parseInt(id) },
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
@@ -68,6 +81,7 @@ const nicraInterventionRepository = {
                 quantityQ: data.quantityQ !== undefined ? parseFloat(data.quantityQ) : existing.quantityQ,
             }
         });
+        return nicraInterventionRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

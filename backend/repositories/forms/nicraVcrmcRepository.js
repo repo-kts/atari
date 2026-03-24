@@ -23,9 +23,29 @@ const nicraVcrmcRepository = {
         });
     },
 
+    _mapResponse: (r) => {
+        if (!r) return null;
+        let photos = [];
+        try {
+            if (r.photographs) {
+                photos = typeof r.photographs === 'string' ? JSON.parse(r.photographs) : r.photographs;
+                if (!Array.isArray(photos)) photos = [photos];
+            }
+        } catch (e) {
+            photos = r.photographs ? r.photographs.split(',').filter(Boolean) : [];
+        }
+        return {
+            ...r,
+            id: r.nicraVcrmcId,
+            constitutionDate: r.constitutionDate && r.constitutionDate instanceof Date ? r.constitutionDate.toISOString().split('T')[0] : (r.constitutionDate || ''),
+            meetingDate: r.meetingDate && r.meetingDate instanceof Date ? r.meetingDate.toISOString().split('T')[0] : (r.meetingDate || ''),
+            photographs: photos
+        };
+    },
+
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -35,7 +55,7 @@ const nicraVcrmcRepository = {
             where.reportingYearId = parseInt(filters.reportingYearId);
         }
 
-        return await prisma.nicraVcrmc.findMany({
+        const results = await prisma.nicraVcrmc.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
@@ -43,32 +63,34 @@ const nicraVcrmcRepository = {
             },
             orderBy: { nicraVcrmcId: 'desc' }
         });
+        return results.map(r => nicraVcrmcRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
         const where = { nicraVcrmcId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraVcrmc.findFirst({
+        const result = await prisma.nicraVcrmc.findFirst({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
                 reportingYear: true
             }
         });
+        return nicraVcrmcRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
         const where = { nicraVcrmcId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
         const existing = await prisma.nicraVcrmc.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.nicraVcrmc.update({
+        const updated = await prisma.nicraVcrmc.update({
             where: { nicraVcrmcId: parseInt(id) },
             data: {
                 reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
@@ -84,6 +106,7 @@ const nicraVcrmcRepository = {
                 photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : (existing.photographs || ''),
             }
         });
+        return nicraVcrmcRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

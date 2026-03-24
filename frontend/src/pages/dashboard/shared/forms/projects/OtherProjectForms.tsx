@@ -29,7 +29,7 @@ export const OtherProjectForms: React.FC<OtherProjectFormsProps> = ({
                             label="Date of the programme"
                             required
                             type="date"
-                            value={formData.programmeDate || ''}
+                            value={formData.programmeDate ? new Date(formData.programmeDate).toISOString().split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, programmeDate: e.target.value })}
                         />
                         <FormInput
