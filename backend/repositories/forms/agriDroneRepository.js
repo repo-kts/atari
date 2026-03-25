@@ -2,7 +2,7 @@ const prisma = require('../../config/prisma.js');
 
 const agriDroneRepository = {
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
         const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
 
@@ -48,7 +48,7 @@ const agriDroneRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -68,7 +68,7 @@ const agriDroneRepository = {
 
     findById: async (id, user) => {
         const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -84,7 +84,7 @@ const agriDroneRepository = {
 
     update: async (id, data, user) => {
         const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -132,7 +132,7 @@ const agriDroneRepository = {
             let sql = `UPDATE kvk_agri_drone SET ${updates.join(', ')} WHERE agri_drone_id = $${index++}`;
             const params = [...values, parseInt(id)];
 
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
                 sql += ` AND "kvkId" = $${index++}`;
                 params.push(parseInt(user.kvkId));
             }
@@ -146,7 +146,7 @@ const agriDroneRepository = {
 
     delete: async (id, user) => {
         const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

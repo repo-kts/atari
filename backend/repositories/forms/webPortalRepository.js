@@ -37,7 +37,7 @@ const webPortalRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         } else if (filters.kvkId) {
             where.kvkId = parseInteger(filters.kvkId, 'kvkId', false);
@@ -54,7 +54,7 @@ const webPortalRepository = {
     findById: async (id, user) => {
         const webPortalId = parseInteger(id, 'id', false);
         const where = { webPortalId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -69,7 +69,7 @@ const webPortalRepository = {
     update: async (id, data, user) => {
         const webPortalId = parseInteger(id, 'id', false);
         const where = { webPortalId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -91,7 +91,7 @@ const webPortalRepository = {
     delete: async (id, user) => {
         const webPortalId = parseInteger(id, 'id', false);
         const where = { webPortalId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
         const existing = await prisma.webPortal.findFirst({ where });

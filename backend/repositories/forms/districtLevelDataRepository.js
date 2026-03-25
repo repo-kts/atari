@@ -17,7 +17,7 @@ const districtLevelDataRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -35,7 +35,7 @@ const districtLevelDataRepository = {
 
     findById: async (id, user) => {
         const where = { districtLevelDataId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.districtLevelData.findFirst({
@@ -49,7 +49,7 @@ const districtLevelDataRepository = {
 
     update: async (id, data, user) => {
         const where = { districtLevelDataId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -68,7 +68,7 @@ const districtLevelDataRepository = {
 
     delete: async (id, user) => {
         const where = { districtLevelDataId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.districtLevelData.findFirst({ where });

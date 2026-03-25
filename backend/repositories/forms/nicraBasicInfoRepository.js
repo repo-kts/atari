@@ -48,7 +48,7 @@ const nicraBasicInfoRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -64,7 +64,7 @@ const nicraBasicInfoRepository = {
 
     findById: async (id, user) => {
         const where = { nicraBasicInfoId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const item = await prisma.nicraBasicInfo.findFirst({
@@ -76,7 +76,7 @@ const nicraBasicInfoRepository = {
 
     update: async (id, data, user) => {
         const where = { nicraBasicInfoId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -105,7 +105,7 @@ const nicraBasicInfoRepository = {
 
     delete: async (id, user) => {
         const where = { nicraBasicInfoId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.nicraBasicInfo.findFirst({ where });

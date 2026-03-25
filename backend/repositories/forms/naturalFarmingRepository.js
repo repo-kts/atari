@@ -1,6 +1,6 @@
 const prisma = require('../../config/prisma.js');
 
-const KVK_ROLES = ['kvk_admin', 'kvk_user'];
+const KVK_ROLES = ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'];
 const isKvkUser = (user) => user && (KVK_ROLES.includes(user.roleName) || user.kvkId);
 
 // ─── Helper ─────────────────────────────────────────────────────────────────

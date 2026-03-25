@@ -44,7 +44,7 @@ const kmasRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         } else if (filters.kvkId) {
             where.kvkId = parseInteger(filters.kvkId, 'kvkId', false);
@@ -61,7 +61,7 @@ const kmasRepository = {
     findById: async (id, user) => {
         const kmasId = parseInteger(id, 'id', false);
         const where = { kmasId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -76,7 +76,7 @@ const kmasRepository = {
     update: async (id, data, user) => {
         const kmasId = parseInteger(id, 'id', false);
         const where = { kmasId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -105,7 +105,7 @@ const kmasRepository = {
     delete: async (id, user) => {
         const kmasId = parseInteger(id, 'id', false);
         const where = { kmasId };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
         const existing = await prisma.kmas.findFirst({ where });

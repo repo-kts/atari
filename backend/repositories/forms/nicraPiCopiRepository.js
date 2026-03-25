@@ -18,7 +18,7 @@ const nicraPiCopiRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -35,7 +35,7 @@ const nicraPiCopiRepository = {
 
     findById: async (id, user) => {
         const where = { nicraPiCopiId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.nicraPiCopi.findFirst({
@@ -48,7 +48,7 @@ const nicraPiCopiRepository = {
 
     update: async (id, data, user) => {
         const where = { nicraPiCopiId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -68,7 +68,7 @@ const nicraPiCopiRepository = {
 
     delete: async (id, user) => {
         const where = { nicraPiCopiId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.nicraPiCopi.findFirst({ where });

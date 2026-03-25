@@ -20,7 +20,7 @@ const productionUnitRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -38,7 +38,7 @@ const productionUnitRepository = {
 
     findById: async (id, user) => {
         const where = { productionUnitId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.productionUnit.findFirst({
@@ -52,7 +52,7 @@ const productionUnitRepository = {
 
     update: async (id, data, user) => {
         const where = { productionUnitId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -74,7 +74,7 @@ const productionUnitRepository = {
 
     delete: async (id, user) => {
         const where = { productionUnitId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.productionUnit.findFirst({ where });

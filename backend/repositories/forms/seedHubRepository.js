@@ -6,7 +6,7 @@ const seedHubRepository = {
         const where = {};
 
         // Role-based filtering
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (kvkId) {
             where.kvkId = parseInt(kvkId);
@@ -37,7 +37,7 @@ const seedHubRepository = {
 
     findById: async (id, user) => {
         const where = { seedHubId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -57,7 +57,7 @@ const seedHubRepository = {
     },
 
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
         const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
 
@@ -113,7 +113,7 @@ const seedHubRepository = {
 
     update: async (id, data, user) => {
         const where = { seedHubId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -177,7 +177,7 @@ const seedHubRepository = {
 
     delete: async (id, user) => {
         const where = { seedHubId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

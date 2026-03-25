@@ -30,7 +30,7 @@ const budgetDetailRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -47,7 +47,7 @@ const budgetDetailRepository = {
 
     findById: async (id, user) => {
         const where = { budgetDetailId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.budgetDetail.findFirst({
@@ -60,7 +60,7 @@ const budgetDetailRepository = {
 
     update: async (id, data, user) => {
         const where = { budgetDetailId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -92,7 +92,7 @@ const budgetDetailRepository = {
 
     delete: async (id, user) => {
         const where = { budgetDetailId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.budgetDetail.findFirst({ where });

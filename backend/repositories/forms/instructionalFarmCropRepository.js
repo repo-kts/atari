@@ -24,7 +24,7 @@ const instructionalFarmCropRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -43,7 +43,7 @@ const instructionalFarmCropRepository = {
 
     findById: async (id, user) => {
         const where = { instructionalFarmCropId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.instructionalFarmCrop.findFirst({
@@ -58,7 +58,7 @@ const instructionalFarmCropRepository = {
 
     update: async (id, data, user) => {
         const where = { instructionalFarmCropId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -84,7 +84,7 @@ const instructionalFarmCropRepository = {
 
     delete: async (id, user) => {
         const where = { instructionalFarmCropId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.instructionalFarmCrop.findFirst({ where });

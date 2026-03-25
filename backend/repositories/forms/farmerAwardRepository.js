@@ -219,7 +219,7 @@ const farmerAwardRepository = {
             const where = {};
 
             // Strict isolation for KVK-scoped users
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             } else if (filters.kvkId) {
@@ -260,7 +260,7 @@ const farmerAwardRepository = {
             const where = { farmerAwardId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }
@@ -300,7 +300,7 @@ const farmerAwardRepository = {
             const where = { farmerAwardId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }
@@ -397,7 +397,7 @@ const farmerAwardRepository = {
             const where = { farmerAwardId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }

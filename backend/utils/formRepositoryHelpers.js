@@ -30,7 +30,7 @@ function validateInput(data, user) {
  * @throws {ValidationError} If KVK ID is invalid
  */
 function resolveKvkId(data, user) {
-    const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+    const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
     const kvkIdSource = isKvkScoped ? safeGet(user, 'kvkId') : safeGet(data, 'kvkId');
     const kvkId = sanitizeInteger(kvkIdSource);
 
@@ -50,7 +50,7 @@ function resolveKvkId(data, user) {
 function buildRoleBasedWhere(user, additionalWhere = {}) {
     const where = { ...additionalWhere };
 
-    if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+    if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
         if (!user.kvkId) {
             return null; // Signal that user has no KVK access
         }

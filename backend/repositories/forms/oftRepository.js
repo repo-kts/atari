@@ -13,7 +13,7 @@ const oftRepository = {
             throw new ValidationError('User information is required');
         }
 
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? safeGet(user, 'kvkId') : safeGet(data, 'kvkId');
         const kvkId = sanitizeInteger(kvkIdSource);
 
@@ -121,7 +121,7 @@ const oftRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -156,7 +156,7 @@ const oftRepository = {
 
     findById: async (id, user) => {
         const where = { kvkOftId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -183,7 +183,7 @@ const oftRepository = {
 
     update: async (id, data, user) => {
         const where = { kvkOftId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -283,7 +283,7 @@ const oftRepository = {
 
     delete: async (id, user) => {
         const where = { kvkOftId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

@@ -45,7 +45,7 @@ const nicraVcrmcRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -68,7 +68,7 @@ const nicraVcrmcRepository = {
 
     findById: async (id, user) => {
         const where = { nicraVcrmcId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const result = await prisma.nicraVcrmc.findFirst({
@@ -83,7 +83,7 @@ const nicraVcrmcRepository = {
 
     update: async (id, data, user) => {
         const where = { nicraVcrmcId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -111,7 +111,7 @@ const nicraVcrmcRepository = {
 
     delete: async (id, user) => {
         const where = { nicraVcrmcId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.nicraVcrmc.findFirst({ where });
