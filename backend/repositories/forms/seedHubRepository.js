@@ -16,10 +16,11 @@ const seedHubRepository = {
     findAll: async (filters = {}, user) => {
         const where = {};
 
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId, 10);
+        // Role-based filtering
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
-            where.kvkId = parseInt(filters.kvkId, 10);
+            where.kvkId = parseInt(filters.kvkId);
         }
 
         if (filters.reportingYearFrom || filters.reportingYearTo) {
@@ -56,7 +57,7 @@ const seedHubRepository = {
 
     findById: async (id, user) => {
         const where = { seedHubId: parseInt(id, 10) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId, 10);
         }
 
@@ -72,7 +73,7 @@ const seedHubRepository = {
     },
 
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
         const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
         if (Number.isNaN(kvkId)) {
@@ -111,7 +112,7 @@ const seedHubRepository = {
 
     update: async (id, data, user) => {
         const where = { seedHubId: parseInt(id, 10) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId, 10);
         }
 
@@ -151,7 +152,7 @@ const seedHubRepository = {
 
     delete: async (id, user) => {
         const where = { seedHubId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

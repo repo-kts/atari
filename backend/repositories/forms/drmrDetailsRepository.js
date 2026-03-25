@@ -51,7 +51,7 @@ const drmrDetailsRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);

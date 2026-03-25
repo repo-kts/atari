@@ -32,7 +32,7 @@ const nicraConvergenceRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -50,7 +50,7 @@ const nicraConvergenceRepository = {
 
     findById: async (id, user) => {
         const where = { nicraConvergenceProgrammeId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const result = await prisma.nicraConvergenceProgramme.findFirst({
@@ -64,7 +64,7 @@ const nicraConvergenceRepository = {
 
     update: async (id, data, user) => {
         const where = { nicraConvergenceProgrammeId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -87,7 +87,7 @@ const nicraConvergenceRepository = {
 
     delete: async (id, user) => {
         const where = { nicraConvergenceProgrammeId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.nicraConvergenceProgramme.findFirst({ where });

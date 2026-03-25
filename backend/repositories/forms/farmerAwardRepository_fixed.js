@@ -16,7 +16,7 @@ const farmerAwardRepository = {
         let whereClause = '';
         const params = [];
         // Strict isolation for KVK roles
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
             whereClause = 'WHERE a."kvkId" = $1';
             params.push(parseInt(user.kvkId));
         } else if (user && user.kvkId) {
