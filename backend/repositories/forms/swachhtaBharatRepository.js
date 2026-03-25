@@ -76,19 +76,19 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            
+
             const observationDate = data.dateDurationOfObservation ?? data.observationDate;
             if (observationDate !== undefined) updateData.observationDate = parseDateOrNow(observationDate);
-            
+
             const totalActivities = data.totalNoOfActivitiesUndertaken ?? data.totalActivities;
             if (totalActivities !== undefined) updateData.totalActivities = parseInt(totalActivities) || 0;
-            
+
             const staffCount = data.participantsStaff ?? data.noOfStaffs ?? data.staffCount;
             if (staffCount !== undefined) updateData.staffCount = parseInt(staffCount) || 0;
-            
+
             const farmerCount = data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount;
             if (farmerCount !== undefined) updateData.farmerCount = parseInt(farmerCount) || 0;
-            
+
             const othersCount = data.participantsOthers ?? data.noOfOthers ?? data.othersCount;
             if (othersCount !== undefined) updateData.othersCount = parseInt(othersCount) || 0;
 
@@ -175,19 +175,19 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            
+
             const observationDate = data.dateDurationOfObservation ?? data.observationDate;
             if (observationDate !== undefined) updateData.observationDate = parseDateOrNow(observationDate);
-            
+
             const totalActivities = data.totalNoOfActivitiesUndertaken ?? data.totalActivities;
             if (totalActivities !== undefined) updateData.totalActivities = parseInt(totalActivities) || 0;
-            
+
             const staffCount = data.participantsStaff ?? data.noOfStaffs ?? data.staffCount;
             if (staffCount !== undefined) updateData.staffCount = parseInt(staffCount) || 0;
-            
+
             const farmerCount = data.participantsFarmers ?? data.noOfFarmers ?? data.farmerCount;
             if (farmerCount !== undefined) updateData.farmerCount = parseInt(farmerCount) || 0;
-            
+
             const othersCount = data.participantsOthers ?? data.noOfOthers ?? data.othersCount;
             if (othersCount !== undefined) updateData.othersCount = parseInt(othersCount) || 0;
 
@@ -278,22 +278,23 @@ const swachhtaBharatRepository = {
             if (!existing) throw new Error('Record not found or unauthorized');
 
             const updateData = {};
-            
+
             if (data.reportingYear !== undefined) {
                 const d = parseReportingYearDate(data.reportingYear);
                 ensureNotFutureDate(d);
                 updateData.reportingYear = d;
             }
-            
+
+
             const vermiVillageCovered = data.vermicompostingVillages ?? data.vermiVillageCovered ?? data.vermicompostingNoOfVillageCovered;
             if (vermiVillageCovered !== undefined) updateData.vermiVillageCovered = parseInt(vermiVillageCovered) || 0;
-            
+
             const vermiTotalExpenditure = data.vermicompostingExpenditure ?? data.vermiTotalExpenditure ?? data.vermicompostingTotalExpenditure;
             if (vermiTotalExpenditure !== undefined) updateData.vermiTotalExpenditure = parseFloat(vermiTotalExpenditure) || 0;
-            
+
             const otherVillageCovered = data.otherVillages ?? data.otherVillageCovered ?? data.otherNoOfVillageCovered;
             if (otherVillageCovered !== undefined) updateData.otherVillageCovered = parseInt(otherVillageCovered) || 0;
-            
+
             const otherTotalExpenditure = data.otherExpenditure ?? data.otherTotalExpenditure;
             if (otherTotalExpenditure !== undefined) updateData.otherTotalExpenditure = parseFloat(otherTotalExpenditure) || 0;
 
