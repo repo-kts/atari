@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
@@ -9,7 +9,8 @@ import { createMasterDataOptions } from '@/utils/formHelpers'
 interface NicraFormsProps {
     entityType: string
     formData: any
-    setFormData: (data: any) => void
+    setFormData: (data: any | ((prev: any) => any)) => void
+    years: any[]
     seasons?: any[]
     categories?: any[]
     subCategories?: any[]
@@ -164,6 +165,52 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         });
     }, [formData.photographs, setFormData]);
 
+    // Format dates received from backend to YYYY-MM-DD for date inputs
+    useEffect(() => {
+        const dateFields = ['startDate', 'endDate', 'dateOfVisit', 'constitutionDate', 'meetingDate'];
+        let updates: any = {};
+        let hasChanges = false;
+
+        dateFields.forEach(field => {
+            if (formData[field] && typeof formData[field] === 'string' && formData[field].includes('T')) {
+                const formattedDate = formData[field].split('T')[0];
+                if (formData[field] !== formattedDate) {
+                    updates[field] = formattedDate;
+                    hasChanges = true;
+                }
+            }
+        });
+
+        // Special handling for type="month" inputs
+        if (formData.monthYear && typeof formData.monthYear === 'string' && formData.monthYear.includes('-')) {
+            const formattedMonth = formData.monthYear.substring(0, 7); // YYYY-MM
+            if (formData.monthYear !== formattedMonth) {
+                updates.monthYear = formattedMonth;
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            setFormData((prev: any) => ({ ...prev, ...updates }));
+        }
+    }, [formData, setFormData]);
+
+    // Helper to extract photographs array from various potential formats
+    const getPhotographs = (photographs: any) => {
+        if (!photographs) return [];
+        if (photographs instanceof FileList) return Array.from(photographs);
+        if (Array.isArray(photographs)) return photographs;
+        if (typeof photographs === 'string') {
+            try {
+                const parsed = JSON.parse(photographs);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {
+                return photographs.split(',').filter(Boolean);
+            }
+            return photographs.split(',').filter(Boolean);
+        }
+        return [];
+    };
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
@@ -226,6 +273,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="> 10 days"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.dry10 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry10: e.target.value })}
                             />
@@ -233,6 +281,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="> 15 days"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.dry15 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry15: e.target.value })}
                             />
@@ -240,6 +289,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="> 20 days"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.dry20 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry20: e.target.value })}
                             />
@@ -247,6 +297,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Intensive rain > 60 mm"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.intensiveRain || ''}
                                 onChange={(e) => setFormData({ ...formData, intensiveRain: e.target.value })}
                             />
@@ -373,6 +424,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
@@ -380,6 +432,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
@@ -387,6 +440,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
@@ -394,6 +448,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
@@ -516,6 +571,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
@@ -523,6 +579,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
@@ -530,6 +587,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
@@ -537,6 +595,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
@@ -613,6 +672,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
@@ -620,6 +680,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
@@ -627,6 +688,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
@@ -634,6 +696,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
@@ -809,6 +872,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
@@ -816,6 +880,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
@@ -823,6 +888,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
@@ -830,6 +896,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
@@ -1000,6 +1067,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
@@ -1007,6 +1075,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
@@ -1014,6 +1083,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
@@ -1021,6 +1091,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />

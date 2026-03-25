@@ -83,6 +83,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
@@ -90,6 +91,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -97,6 +99,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
@@ -104,6 +107,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -114,6 +118,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scMale || ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
@@ -121,6 +126,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -128,6 +134,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
@@ -135,6 +142,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -215,6 +223,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
@@ -222,6 +231,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -229,6 +239,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
@@ -236,6 +247,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -246,6 +258,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scMale || ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
@@ -253,6 +266,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -260,6 +274,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
@@ -267,6 +282,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -323,6 +339,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
@@ -330,6 +347,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -337,6 +355,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
@@ -344,6 +363,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -354,6 +374,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scMale || ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
@@ -361,6 +382,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -368,6 +390,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
@@ -375,6 +398,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -424,6 +448,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="No of days"
                             required
                             type="number"
+                            wholeNumberOnly
                             value={formData.noOfDays || ''}
                             onChange={(e) => setFormData({ ...formData, noOfDays: parseInt(e.target.value) || 0 })}
                         />
@@ -431,6 +456,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="No of courses"
                             required
                             type="number"
+                            wholeNumberOnly
                             value={formData.noOfCourses || ''}
                             onChange={(e) => setFormData({ ...formData, noOfCourses: parseInt(e.target.value) || 0 })}
                         />
@@ -462,6 +488,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
@@ -469,6 +496,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -476,6 +504,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
@@ -483,6 +512,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -493,6 +523,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scMale || ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
@@ -500,6 +531,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -507,6 +539,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
@@ -514,6 +547,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -557,6 +591,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="No of Activities"
                             required
                             type="number"
+                            wholeNumberOnly
                             value={formData.noOfActivities || ''}
                             onChange={(e) => setFormData({ ...formData, noOfActivities: parseInt(e.target.value) || 0 })}
                         />
@@ -571,6 +606,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: parseInt(e.target.value) || 0 })}
                             />
@@ -578,6 +614,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="General_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -585,6 +622,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: parseInt(e.target.value) || 0 })}
                             />
@@ -592,6 +630,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="OBC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -602,6 +641,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scMale || ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: parseInt(e.target.value) || 0 })}
                             />
@@ -609,6 +649,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="SC_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.scFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: parseInt(e.target.value) || 0 })}
                             />
@@ -616,6 +657,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_M"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: parseInt(e.target.value) || 0 })}
                             />
@@ -623,6 +665,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 label="ST_F"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />

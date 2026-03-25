@@ -86,6 +86,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Staffs"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsStaff ?? formData.staffCount ?? formData.noOfStaffs ?? ''}
                                 onChange={handleNumberChange('participantsStaff')}
                                 placeholder=""
@@ -95,6 +96,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Farmers"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsFarmers ?? formData.farmerCount ?? formData.noOfFarmers ?? ''}
                                 onChange={handleNumberChange('participantsFarmers')}
                                 placeholder=""
@@ -104,12 +106,13 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Others"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsOthers ?? formData.othersCount ?? formData.noOfOthers ?? ''}
                                 onChange={handleNumberChange('participantsOthers')}
                                 placeholder=""
                             />
 
-                            <FormInput
+                            {/* <FormInput
                                 label="No. of Total"
                                 type="number"
                                 disabled
@@ -118,7 +121,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                     (parseInt(formData.participantsOthers ?? formData.othersCount ?? formData.noOfOthers) || 0)}
                                 onChange={() => { }}
                                 placeholder=""
-                            />
+                            /> */}
                         </div>
                     </FormSection>
                 </div>
@@ -153,6 +156,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Staffs"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsStaff ?? formData.staffCount ?? formData.noOfStaffs ?? ''}
                                 onChange={handleNumberChange('participantsStaff')}
                                 placeholder=""
@@ -162,6 +166,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Farmers"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsFarmers ?? formData.farmerCount ?? formData.noOfFarmers ?? ''}
                                 onChange={handleNumberChange('participantsFarmers')}
                                 placeholder=""
@@ -171,12 +176,13 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                 label="Others"
                                 required
                                 type="number"
+                                wholeNumberOnly
                                 value={formData.participantsOthers ?? formData.othersCount ?? formData.noOfOthers ?? ''}
                                 onChange={handleNumberChange('participantsOthers')}
                                 placeholder=""
                             />
 
-                            <FormInput
+                            {/* <FormInput
                                 label="No. of Total"
                                 type="number"
                                 disabled
@@ -185,7 +191,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                                     (parseInt(formData.participantsOthers ?? formData.othersCount ?? formData.noOfOthers) || 0)}
                                 onChange={() => { }}
                                 placeholder=""
-                            />
+                            /> */}
                         </div>
                     </FormSection>
                 </div>

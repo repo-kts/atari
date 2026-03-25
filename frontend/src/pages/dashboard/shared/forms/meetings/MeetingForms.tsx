@@ -62,38 +62,51 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
         [formData, setFormData]
     )
 
-    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
-            const previews: string[] = [];
-            let count = 0;
-
-            newFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews[index] = reader.result as string;
-                    count++;
-                    if (count === newFiles.length) {
-                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                        setFormData({
-                            ...formData,
-                            [field]: [
-                                ...existingPhotos,
-                                ...newFiles.map((f, i) => ({
-                                    file: f,
-                                    preview: previews[i],
-                                    image: previews[i],
-                                    caption: ''
-                                }))
-                            ]
-                        });
+    const handleFileChange = useCallback(
+        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                // Strict image-only validation for SAC meetings section if applicable
+                if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC) {
+                    const hasNonImage = Array.from(files).some(file => !file.type.startsWith('image/'));
+                    if (hasNonImage) {
+                        alert('Only image files are allowed for SAC meetings.');
+                        e.target.value = ''; // Reset input
+                        return;
                     }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-    };
+                }
+
+                const newFiles = Array.from(files);
+                const previews: string[] = [];
+                let count = 0;
+
+                newFiles.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        previews[index] = reader.result as string;
+                        count++;
+                        if (count === newFiles.length) {
+                            const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                            setFormData({
+                                ...formData,
+                                [field]: [
+                                    ...existingPhotos,
+                                    ...newFiles.map((f, i) => ({
+                                        file: f,
+                                        preview: previews[i],
+                                        image: previews[i],
+                                        caption: ''
+                                    }))
+                                ]
+                            });
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        },
+        [formData, setFormData, entityType]
+    )
 
     const removePhoto = (field: string, index: number) => {
         const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];

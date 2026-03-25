@@ -187,15 +187,15 @@ export const CraForms: React.FC<CraFormsProps> = ({
 
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.genM || ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.genF || ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obcM || ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obcF || ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
+                            <FormInput label="General_M" required type="number" wholeNumberOnly value={formData.genM || ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
+                            <FormInput label="General_F" required type="number" wholeNumberOnly value={formData.genF || ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" wholeNumberOnly value={formData.obcM || ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" wholeNumberOnly value={formData.obcF || ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.scM || ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.scF || ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.stM || ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.stF || ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" wholeNumberOnly value={formData.scM || ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.scF || ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.stM || ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.stF || ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
                     </FormSection>
 
@@ -204,6 +204,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Exposure visit (no.)"
                             required
                             type="number"
+                            wholeNumberOnly
                             value={formData.exposureVisit || ''}
                             onChange={(e) => setFormData({ ...formData, exposureVisit: e.target.value })}
                         />

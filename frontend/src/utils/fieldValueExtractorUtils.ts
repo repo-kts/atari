@@ -512,6 +512,26 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.natureOfExtensionActivity || item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
         priority: 7,
     },
+    [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
+        extractor: (item: any) => item.placeOfActivity || item.venue || item.PlaceOfActivity || null,
+        priority: 7,
+    },
+    [FIELD_NAMES.NO_OF_FARMERS_ATTENDED]: {
+        extractor: (item: any) => {
+            const sum = (
+                (item.generalM || 0) + (item.generalF || 0) +
+                (item.obcM || 0) + (item.obcF || 0) +
+                (item.scM || 0) + (item.scF || 0) +
+                (item.stM || 0) + (item.stF || 0) +
+                (item.genMale || 0) + (item.genFemale || 0) +
+                (item.obcMale || 0) + (item.obcFemale || 0) +
+                (item.scMale || 0) + (item.scFemale || 0) +
+                (item.stMale || 0) + (item.stFemale || 0)
+            );
+            return sum > 0 ? String(sum) : (item.noOfFarmersAttended || item.totalFarmers || null);
+        },
+        priority: 7,
+    },
     [FIELD_NAMES.IMPORTANT_DAYS]: {
         extractor: (item: any) => item.importantDays || item['Important Days'] || item['Important days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
         priority: 7,

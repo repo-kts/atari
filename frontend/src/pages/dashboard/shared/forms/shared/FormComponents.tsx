@@ -14,10 +14,18 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     required?: boolean
     error?: string
     helperText?: string
+    wholeNumberOnly?: boolean
 }
 
-export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, className = '', ...props }) => {
+export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, wholeNumberOnly, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (wholeNumberOnly && (e.key === '-' || e.key === '.' || e.key === 'e')) {
+            e.preventDefault()
+        }
+        props.onKeyDown?.(e)
+    }
 
     return (
         <div className={`relative ${displayLabel ? 'pt-2' : ''}`}>
@@ -67,7 +75,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
 
                 const originalOnChange = props.onChange
                 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                    if (type === 'number' && computedStep === '1') {
+                    if (type === 'number' && (computedStep === '1' || wholeNumberOnly)) {
                         const v = e.target.value
                         if (v && v.includes('.')) {
                             // Enforce whole numbers client-side for integer inputs.
@@ -110,11 +118,12 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         {...props}
                         value={inputValue}
                         required={required}
-                        step={computedStep}
-                        min={computedMin}
+                        step={wholeNumberOnly ? 1 : computedStep}
+                        min={wholeNumberOnly ? 0 : computedMin}
                         max={computedMax}
                         onChange={handleChange}
-                        inputMode={type === 'number' ? (isInteger ? 'numeric' : 'decimal') : props.inputMode}
+                        onKeyDown={wholeNumberOnly ? handleKeyDown : props.onKeyDown}
+                        inputMode={type === 'number' ? (isInteger || wholeNumberOnly ? 'numeric' : 'decimal') : props.inputMode}
                         className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
                     />
                 )
