@@ -18,6 +18,16 @@ export const useFileHandling = (formData: any, setFormData: (data: any) => void)
                 return
             }
 
+            // Strictly allow only images
+            const fileArray = Array.from(files)
+            const nonImageFound = fileArray.some(file => !file.type.startsWith('image/'))
+            if (nonImageFound) {
+                alert("Only image files are allowed. Please select valid images.")
+                e.target.value = '' // Clear input
+                setFormData({ ...formData, [field]: null })
+                return
+            }
+
             try {
                 if (multiple) {
                     const base64Files = await Promise.all(Array.from(files).map(convertToBase64))

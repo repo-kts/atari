@@ -65,6 +65,13 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0]
             if (file) {
+                // Strict image-only validation for SAC meetings section if applicable
+                if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC && !file.type.startsWith('image/')) {
+                    alert('Only image files are allowed for SAC meetings.');
+                    e.target.value = ''; // Reset input
+                    return;
+                }
+
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setFormData({
@@ -77,7 +84,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                 setFormData({ ...formData, [field]: null })
             }
         },
-        [formData, setFormData]
+        [formData, setFormData, entityType]
     )
 
     if (!entityType) return null
@@ -206,12 +213,12 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
 
                                 <input
                                     type="file"
-                                    accept="image/*,.pdf,.doc,.docx"
+                                    accept="image/*"
                                     onChange={handleFileChange('uploadedFile')}
                                     className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
                                 />
                                 <p className="text-[10px] text-gray-400 mt-1 italic">
-                                    {formData.uploadedFile || formData.file ? 'Select a new file to replace the existing one.' : 'Upload meeting photos or reports (Max 5MB)'}
+                                    {formData.uploadedFile || formData.file ? 'Select a new image to replace the existing one.' : 'Upload meeting photos (Max 5MB)'}
                                 </p>
                             </div>
                         </div>
