@@ -3,6 +3,9 @@ const router = express.Router();
 
 const userManagementController = require('../controllers/userManagementController.js');
 const rolePermissionController = require('../controllers/rolePermissionController.js');
+const logHistoryController = require('../controllers/logHistoryController.js');
+const notificationController = require('../controllers/notificationController.js');
+const moduleImageController = require('../controllers/moduleImageController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -11,6 +14,9 @@ const { getRoleLevel } = require('../constants/roleHierarchy.js');
 // Module codes (must match seed data and frontend module codes)
 const USER_MANAGEMENT_MODULE = 'user_management_users';
 const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
+const LOG_HISTORY_MODULE = 'log_history';
+const NOTIFICATIONS_MODULE = 'notifications';
+const MODULE_IMAGES_MODULE = 'module_images';
 
 // Apply authentication to all admin routes.
 // Individual routes use requirePermission for granular access control
@@ -31,6 +37,31 @@ router.put('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MO
 
 // Delete user (soft delete) – requires DELETE
 router.delete('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'DELETE'), userManagementController.deleteUser);
+
+// Login activity logs – requires VIEW
+router.get('/log-history', apiRateLimiter, requirePermission(LOG_HISTORY_MODULE, 'VIEW'), logHistoryController.getLogHistory);
+
+// Distinct KVK options for log-history filter – requires VIEW
+router.get('/log-history/kvks', apiRateLimiter, requirePermission(LOG_HISTORY_MODULE, 'VIEW'), logHistoryController.getKvkOptions);
+
+// Distinct user options for log-history filter – requires VIEW
+router.get('/log-history/users', apiRateLimiter, requirePermission(LOG_HISTORY_MODULE, 'VIEW'), logHistoryController.getUserOptions);
+
+// Notifications
+router.get('/notifications', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.listForCurrentUser);
+router.get('/notifications/recent', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.getRecentForCurrentUser);
+router.get('/notifications/unread-count', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.getUnreadCountForCurrentUser);
+router.get('/notifications/users', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.getRecipientUsers);
+router.post('/notifications', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'ADD'), notificationController.createNotification);
+router.patch('/notifications/read-all', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.markAllAsRead);
+router.patch('/notifications/:userNotificationId/read', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.markAsRead);
+
+// Module Images
+router.get('/module-images/categories', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.getCategories);
+router.get('/module-images/kvks', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.getKvkOptions);
+router.get('/module-images', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.list);
+router.post('/module-images', strictRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'ADD'), moduleImageController.create);
+router.get('/module-images/:imageId/file', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.getFile);
 
 // Create role – requires ADD on role management (must be before /roles/:roleId)
 router.post(
@@ -88,4 +119,3 @@ router.put(
 );
 
 module.exports = router;
-

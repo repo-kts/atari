@@ -13,6 +13,11 @@ const authRepository = {
             where: { email, deletedAt: null },
             include: {
                 role: true,
+                kvk: {
+                    select: {
+                        kvkName: true,
+                    },
+                },
             },
         });
         return result;
@@ -28,6 +33,11 @@ const authRepository = {
             where: { userId, deletedAt: null },
             include: {
                 role: true,
+                kvk: {
+                    select: {
+                        kvkName: true,
+                    },
+                },
             },
         });
     },

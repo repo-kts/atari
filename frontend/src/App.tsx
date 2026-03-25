@@ -146,6 +146,14 @@ function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/module-images/create"
+                        element={
+                            <ProtectedRoute requiredModuleCode="module_images">
+                                <ModuleImages />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/targets"
                         element={
                             <ProtectedRoute requiredModuleCode="targets">

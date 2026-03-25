@@ -1,6 +1,7 @@
 const authRepository = require('../repositories/authRepository.js');
 const userPermissionRepository = require('../repositories/userPermissionRepository.js');
 const rolePermissionRepository = require('../repositories/rolePermissionRepository.js');
+const logHistoryService = require('./logHistoryService.js');
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken, decodeToken } = require('../utils/jwt.js');
 const { validateEmail } = require('../utils/validation.js');
@@ -67,7 +68,7 @@ const authService = {
      * @returns {Promise<object>} { user, accessToken, refreshToken }
      * @throws {Error} If credentials are invalid
      */
-    login: async (email, password) => {
+    login: async (email, password, context = {}) => {
         // Validate email format
         if (!validateEmail(email)) {
             throw new Error('Invalid email format');
@@ -114,6 +115,27 @@ const authService = {
 
         // Update last login timestamp
         await authRepository.updateLastLogin(user.userId);
+
+        // Activity log (best-effort; should not block login).
+        try {
+            await logHistoryService.recordAuthActivity({
+                userId: user.userId,
+                userName: user.name,
+                userEmail: user.email,
+                roleName: user.role?.roleName,
+                zoneId: user.zoneId,
+                stateId: user.stateId,
+                districtId: user.districtId,
+                orgId: user.orgId,
+                kvkId: user.kvkId,
+                kvkName: user.kvk?.kvkName || null,
+                activity: 'LOGIN',
+                ipAddress: context.ipAddress || null,
+                userAgent: context.userAgent || null,
+            });
+        } catch (logError) {
+            console.error('Failed to write login activity log:', logError.message);
+        }
 
         // Return user data (without password hash) and tokens
         return {
@@ -211,11 +233,12 @@ const authService = {
      * @param {string} refreshToken - JWT refresh token to revoke
      * @returns {Promise<boolean>} True if logout successful
      */
-    logout: async (refreshToken) => {
+    logout: async (refreshToken, context = {}) => {
+        let logUser = null;
         try {
             const decoded = verifyToken(refreshToken, 'refresh');
             await authRepository.revokeAllUserTokens(decoded.userId);
-            return true;
+            logUser = await authRepository.findUserById(decoded.userId);
         } catch (error) {
             // Token may be expired/invalid — try decoding without verification
             // so we can still revoke all tokens for the user
@@ -223,10 +246,35 @@ const authService = {
                 const decoded = decodeToken(refreshToken);
                 if (decoded?.userId) {
                     await authRepository.revokeAllUserTokens(decoded.userId);
+                    logUser = await authRepository.findUserById(decoded.userId);
                 }
             } catch { }
-            return true;
         }
+
+        // Activity log (best-effort; should not block logout).
+        if (logUser) {
+            try {
+                await logHistoryService.recordAuthActivity({
+                    userId: logUser.userId,
+                    userName: logUser.name,
+                    userEmail: logUser.email,
+                    roleName: logUser.role?.roleName,
+                    zoneId: logUser.zoneId,
+                    stateId: logUser.stateId,
+                    districtId: logUser.districtId,
+                    orgId: logUser.orgId,
+                    kvkId: logUser.kvkId,
+                    kvkName: logUser.kvk?.kvkName || null,
+                    activity: 'LOGOUT',
+                    ipAddress: context.ipAddress || null,
+                    userAgent: context.userAgent || null,
+                });
+            } catch (logError) {
+                console.error('Failed to write logout activity log:', logError.message);
+            }
+        }
+
+        return true;
     },
 
     /**
