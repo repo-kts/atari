@@ -83,6 +83,7 @@ model Kvk {
   swachhtaPakhwada              SwachhtaPakhwada[]
   trainingAchievements          TrainingAchievement[]
   users                         User[]
+  moduleImages                  ModuleImage[]
   kvkImpactActivities           KvkImpactActivity[]
   entrepreneurships             Entrepreneurship[]
   successStories                SuccessStory[]
@@ -124,6 +125,7 @@ model Kvk {
   webPortals                    WebPortal[]
   kisanSarathis                 KisanSarathi[]
   msgDetails                    MsgDetails[]
+  userLoginActivities           UserLoginActivity[]
 
   @@index([zoneId])
   @@index([stateId])
