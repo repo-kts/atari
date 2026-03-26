@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { otherMastersApi } from '../services/otherMastersApi';
 import { invalidateEntityType } from '../utils/queryInvalidation';
 import { ENTITY_TYPES } from '../constants/entityConstants';
-import { useAuth } from '../contexts/AuthContext';
 import type {
     SeasonFormData,
     SanctionedPostFormData,
@@ -18,6 +17,14 @@ import type {
     CropTypeFormData,
     InfrastructureMasterFormData,
     SoilWaterAnalysisFormData,
+    NariCropCategoryFormData,
+    NariActivityFormData,
+    NariNutritionGardenTypeFormData,
+    NicraCategoryFormData,
+    NicraSubCategoryFormData,
+    NicraSeedBankFodderBankFormData,
+    NicraDignitaryTypeFormData,
+    NicraPiTypeFormData,
 } from '../services/otherMastersApi';
 
 // ============================================
@@ -26,7 +33,6 @@ import type {
 
 export function useSeasons(options?: { enabled?: boolean }) {
     const queryClient = useQueryClient();
-    const { hasPermission } = useAuth();
 
     const enabled = options?.enabled !== undefined ? options.enabled : true;
 
@@ -696,27 +702,354 @@ export function useSoilWaterAnalyses() {
 // ============================================
 
 export function useNariCropCategories() {
+    const queryClient = useQueryClient();
+
     const query = useQuery({
         queryKey: ['nari-crop-categories'],
         queryFn: () => otherMastersApi.getNariCropCategories().then((res) => res.data),
         staleTime: 5 * 60 * 1000,
     });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NariCropCategoryFormData) => otherMastersApi.createNariCropCategory(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-crop-categories'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NariCropCategoryFormData> }) =>
+            otherMastersApi.updateNariCropCategory(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-crop-categories'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNariCropCategory(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-crop-categories'] });
+        },
+    });
+
     return {
         data: query.data || [],
         isLoading: query.isLoading,
         error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNariActivities() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nari-activities'],
+        queryFn: () => otherMastersApi.getNariActivities().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NariActivityFormData) => otherMastersApi.createNariActivity(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-activities'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NariActivityFormData> }) =>
+            otherMastersApi.updateNariActivity(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-activities'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNariActivity(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-activities'] });
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
     };
 }
 
 export function useNariNutritionGardenTypes() {
+    const queryClient = useQueryClient();
+
     const query = useQuery({
         queryKey: ['nari-nutrition-garden-types'],
         queryFn: () => otherMastersApi.getNariNutritionGardenTypes().then((res) => res.data),
         staleTime: 5 * 60 * 1000,
     });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NariNutritionGardenTypeFormData) => otherMastersApi.createNariNutritionGardenType(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-nutrition-garden-types'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NariNutritionGardenTypeFormData> }) =>
+            otherMastersApi.updateNariNutritionGardenType(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-nutrition-garden-types'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNariNutritionGardenType(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['nari-nutrition-garden-types'] });
+        },
+    });
+
     return {
         data: query.data || [],
         isLoading: query.isLoading,
         error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNicraCategories() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nicra-categories'],
+        queryFn: () => otherMastersApi.getNicraCategories().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NicraCategoryFormData) => otherMastersApi.createNicraCategory(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_CATEGORY);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NicraCategoryFormData> }) =>
+            otherMastersApi.updateNicraCategory(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_CATEGORY);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNicraCategory(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_CATEGORY);
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SUB_CATEGORY);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNicraSubCategories() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nicra-sub-categories'],
+        queryFn: () => otherMastersApi.getNicraSubCategories().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NicraSubCategoryFormData) => otherMastersApi.createNicraSubCategory(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SUB_CATEGORY);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NicraSubCategoryFormData> }) =>
+            otherMastersApi.updateNicraSubCategory(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SUB_CATEGORY);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNicraSubCategory(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SUB_CATEGORY);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNicraSeedBankFodderBanks() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nicra-seed-bank-fodder-banks'],
+        queryFn: () => otherMastersApi.getNicraSeedBankFodderBanks().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NicraSeedBankFodderBankFormData) => otherMastersApi.createNicraSeedBankFodderBank(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NicraSeedBankFodderBankFormData> }) =>
+            otherMastersApi.updateNicraSeedBankFodderBank(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNicraSeedBankFodderBank(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNicraDignitaryTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nicra-dignitary-types'],
+        queryFn: () => otherMastersApi.getNicraDignitaryTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NicraDignitaryTypeFormData) => otherMastersApi.createNicraDignitaryType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_DIGNITARY_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NicraDignitaryTypeFormData> }) =>
+            otherMastersApi.updateNicraDignitaryType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_DIGNITARY_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNicraDignitaryType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_DIGNITARY_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNicraPiTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['nicra-pi-types'],
+        queryFn: () => otherMastersApi.getNicraPiTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NicraPiTypeFormData) => otherMastersApi.createNicraPiType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_PI_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NicraPiTypeFormData> }) =>
+            otherMastersApi.updateNicraPiType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_PI_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteNicraPiType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_PI_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
     };
 }

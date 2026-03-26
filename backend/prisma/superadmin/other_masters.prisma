@@ -15,8 +15,11 @@ model YearMaster {
   fpoManagementRecords              FpoManagement[]
   geographicalInfoRecords           GeographicalInfo[]
   agriDroneRecords                  KvkAgriDrone[]
+  agriDroneDemonstrationRecords     KvkAgriDroneDemonstration[]
   kvkEquipmentRecords               KvkEquipment[]
+  kvkFldRecords                     KvkFldIntroduction[]
   kvkOftRecords                     Kvkoft[]
+  cfldTechnicalParameterRecords    CfldTechnicalParameter[]
   productionSupplyRecords           KvkProductionSupply[]
   publicationDetailsRecords         KvkPublicationDetails[]
   kvkAwardRecords                   KvkAward[]
@@ -32,12 +35,15 @@ model YearMaster {
 
   // Performance Indicators & Missing Relations
   kvkImpactActivityRecords          KvkImpactActivity[]
+  
+  // Natural Farming
+  demonstrationInfoRecords          DemonstrationInfo[]
   entrepreneurshipRecords           Entrepreneurship[]
   successStoryRecords               SuccessStory[]
   districtLevelDataRecords          DistrictLevelData[]
   operationalAreaRecords            OperationalArea[]
   villageAdoptionRecords            VillageAdoption[]
-  priorityThrustAreaRecords          PriorityThrustArea[]
+  priorityThrustAreaRecords         PriorityThrustArea[]
   demonstrationUnitRecords          DemonstrationUnit[]
   instructionalFarmCropRecords      InstructionalFarmCrop[]
   productionUnitRecords             ProductionUnit[]

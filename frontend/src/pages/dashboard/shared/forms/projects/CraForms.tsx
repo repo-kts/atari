@@ -2,6 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface CraFormsProps {
@@ -11,6 +12,9 @@ interface CraFormsProps {
     years: any[]
     seasons: any[]
     farmingSystems: any[]
+    farmingSystemsLoading?: boolean
+    croppingSystems: any[]
+    croppingSystemsLoading?: boolean
     extensionActivityTypes: any[]
 }
 
@@ -21,6 +25,9 @@ export const CraForms: React.FC<CraFormsProps> = ({
     years,
     seasons,
     farmingSystems,
+    farmingSystemsLoading = false,
+    croppingSystems,
+    croppingSystemsLoading = false,
     extensionActivityTypes
 }) => {
     return (
@@ -40,7 +47,15 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Season"
                             required
                             value={formData.seasonId || ''}
-                            onChange={(value) => setFormData({ ...formData, seasonId: value })}
+                            onChange={(value) =>
+                                setFormData({
+                                    ...formData,
+                                    seasonId: value,
+                                    // reset dependents
+                                    croppingSystemId: '',
+                                    farmingSystemId: '',
+                                })
+                            }
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             emptyMessage="No seasons available"
                         />
@@ -50,19 +65,49 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             value={formData.interventions || ''}
                             onChange={(e) => setFormData({ ...formData, interventions: e.target.value })}
                         />
-                        <FormInput
+                        <DependentDropdown
                             label="Croping system"
                             required
-                            value={formData.croppingSystem || ''}
-                            onChange={(e) => setFormData({ ...formData, croppingSystem: e.target.value })}
+                            value={formData.croppingSystemId || ''}
+                            options={[]}
+                            dependsOn={{ value: formData.seasonId || '', field: 'seasonId' }}
+                            isLoading={croppingSystemsLoading}
+                            loadingMessage="Loading cropping systems..."
+                            emptyMessage="No cropping systems available for selected season"
+                            onOptionsLoad={async (parentSeasonId: any) => {
+                                const seasonId = Number(parentSeasonId)
+                                if (!Number.isFinite(seasonId)) return []
+                                return (croppingSystems || [])
+                                    .filter((cs: any) => Number(cs.seasonId ?? cs.SeasonId ?? cs.season?.seasonId) === seasonId)
+                                    .map((cs: any) => ({
+                                        value: cs.craCropingSystemId ?? cs.id,
+                                        label: cs.cropName ?? cs.croppingSystemName ?? cs.name,
+                                    }))
+                            }}
+                            cacheKey="cra-cropping-systems-by-season"
+                            onChange={(value) => setFormData({ ...formData, croppingSystemId: value })}
                         />
-                        <FormSelect
+                        <DependentDropdown
                             label="Farming System crop under demonstration"
                             required
                             value={formData.farmingSystemId || ''}
-                            onChange={(e) => setFormData({ ...formData, farmingSystemId: parseInt(e.target.value) })}
-                            options={farmingSystems.map((fs: any) => ({ value: fs.id || fs.farmingSystemId, label: fs.farmingSystemName }))}
-                            placeholder={farmingSystems.length === 0 ? "No record found" : "Select Farming System crop under demonstration"}
+                            options={[]}
+                            dependsOn={{ value: formData.seasonId || '', field: 'seasonId' }}
+                            isLoading={farmingSystemsLoading}
+                            loadingMessage="Loading farming systems..."
+                            emptyMessage="No farming systems available for selected season"
+                            onOptionsLoad={async (parentSeasonId: any) => {
+                                const seasonId = Number(parentSeasonId)
+                                if (!Number.isFinite(seasonId)) return []
+                                return (farmingSystems || [])
+                                    .filter((fs: any) => Number(fs.seasonId ?? fs.SeasonId ?? fs.season?.seasonId) === seasonId)
+                                    .map((fs: any) => ({
+                                        value: fs.craFarmingSystemId ?? fs.id ?? fs.farmingSystemId,
+                                        label: fs.farmingSystemName ?? fs.name,
+                                    }))
+                            }}
+                            cacheKey="cra-farming-systems-by-season"
+                            onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
                         />
                         <FormInput
                             label="Area under Demonstration (in acre)"

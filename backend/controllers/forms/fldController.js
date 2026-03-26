@@ -96,6 +96,45 @@ const fldController = {
         });
     }),
 
+    transferToNextYear: asyncHandler(async (req, res) => {
+        const result = await fldService.transferToNextYear(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'FLD transferred to next year successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    addResult: asyncHandler(async (req, res) => {
+        const result = await fldService.addResult(req.params.id, req.body, req.user);
+        res.status(201).json({
+            success: true,
+            message: 'FLD result created successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    editResult: asyncHandler(async (req, res) => {
+        const result = await fldService.editResult(req.params.id, req.body, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'FLD result updated successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    getResult: asyncHandler(async (req, res) => {
+        const result = await fldService.getResult(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
     /**
      * Delete an FLD record
      * @route DELETE /api/forms/achievements/fld/:id

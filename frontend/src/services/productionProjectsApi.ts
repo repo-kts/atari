@@ -8,12 +8,22 @@ import type {
     CraCroppingSystem,
     CraFarmingSystem,
     AryaEnterprise,
+    TspScspType,
+    TspScspActivity,
     ProductCategoryFormData,
     ProductTypeFormData,
     ProductFormData,
     CraCroppingSystemFormData,
     CraFarmingSystemFormData,
     AryaEnterpriseFormData,
+    TspScspTypeFormData,
+    TspScspActivityFormData,
+    NaturalFarmingActivity,
+    NaturalFarmingActivityFormData,
+    NaturalFarmingSoilParameter,
+    NaturalFarmingSoilParameterFormData,
+    AgriDroneDemonstrationsOn,
+    AgriDroneDemonstrationsOnFormData,
     ProductionProjectsStats,
 } from '../types/productionProjects';
 
@@ -133,6 +143,73 @@ export const productionProjectsApi = {
 
     deleteAryaEnterprise: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/arya-enterprises/${id}`),
+
+    // ============================================
+    // TSP/SCSP Type APIs
+    // ============================================
+    getTspScspTypes: () =>
+        apiClient.get<PaginatedResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types`),
+    getTspScspTypeById: (id: number) =>
+        apiClient.get<ApiResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types/${id}`),
+    createTspScspType: (data: TspScspTypeFormData) =>
+        apiClient.post<ApiResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types`, data),
+    updateTspScspType: (id: number, data: Partial<TspScspTypeFormData>) =>
+        apiClient.put<ApiResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types/${id}`, data),
+    deleteTspScspType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/tsp-scsp-types/${id}`),
+
+    // ============================================
+    // TSP/SCSP Activity APIs
+    // ============================================
+    getTspScspActivities: () =>
+        apiClient.get<PaginatedResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities`),
+    getTspScspActivityById: (id: number) =>
+        apiClient.get<ApiResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities/${id}`),
+    createTspScspActivity: (data: TspScspActivityFormData) =>
+        apiClient.post<ApiResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities`, data),
+    updateTspScspActivity: (id: number, data: Partial<TspScspActivityFormData>) =>
+        apiClient.put<ApiResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities/${id}`, data),
+    deleteTspScspActivity: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/tsp-scsp-activities/${id}`),
+
+    // ============================================
+    // Natural Farming Activity APIs
+    // ============================================
+    getNaturalFarmingActivities: () =>
+        apiClient.get<PaginatedResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities`),
+    getNaturalFarmingActivityById: (id: number) =>
+        apiClient.get<ApiResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities/${id}`),
+    createNaturalFarmingActivity: (data: NaturalFarmingActivityFormData) =>
+        apiClient.post<ApiResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities`, data),
+    updateNaturalFarmingActivity: (id: number, data: Partial<NaturalFarmingActivityFormData>) =>
+        apiClient.put<ApiResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities/${id}`, data),
+    deleteNaturalFarmingActivity: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/natural-farming-activities/${id}`),
+
+    getNaturalFarmingSoilParameters: () =>
+        apiClient.get<PaginatedResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters`),
+    getNaturalFarmingSoilParameterById: (id: number) =>
+        apiClient.get<ApiResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters/${id}`),
+    createNaturalFarmingSoilParameter: (data: NaturalFarmingSoilParameterFormData) =>
+        apiClient.post<ApiResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters`, data),
+    updateNaturalFarmingSoilParameter: (id: number, data: Partial<NaturalFarmingSoilParameterFormData>) =>
+        apiClient.put<ApiResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters/${id}`, data),
+    deleteNaturalFarmingSoilParameter: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/natural-farming-soil-parameters/${id}`),
+
+    // ============================================
+    // Agri Drone Masters
+    // ============================================
+    getAgriDroneDemonstrationsOn: () =>
+        apiClient.get<PaginatedResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on`),
+    getAgriDroneDemonstrationsOnById: (id: number) =>
+        apiClient.get<ApiResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on/${id}`),
+    createAgriDroneDemonstrationsOn: (data: AgriDroneDemonstrationsOnFormData) =>
+        apiClient.post<ApiResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on`, data),
+    updateAgriDroneDemonstrationsOn: (id: number, data: Partial<AgriDroneDemonstrationsOnFormData>) =>
+        apiClient.put<ApiResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on/${id}`, data),
+    deleteAgriDroneDemonstrationsOn: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/agri-drone-demonstrations-on/${id}`),
 
     // ============================================
     // Statistics API

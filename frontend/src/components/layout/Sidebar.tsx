@@ -72,7 +72,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Production Masters',
                 path: '/all-master/production-projects',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master'],
+                moduleCodes: ['all_masters_products_master', 'all_masters_agri_drone_master', 'all_masters_climate_master', 'all_masters_arya_master'],
             },
             {
                 label: 'Publication Masters',
@@ -376,10 +376,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/all-master\/(zones|states|organizations|universities|districts)/, parentPath: '/all-master/basic' },
         { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
-        { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise)/, parentPath: '/all-master/production-projects' },
+        { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|important-day|soil-water-analysis)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
+        {pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters'},
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {

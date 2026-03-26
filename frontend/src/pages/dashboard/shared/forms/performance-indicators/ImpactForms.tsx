@@ -14,12 +14,14 @@ interface ImpactFormsProps {
 }
 
 // Hard-coded options for dropdowns
+// WIP: Need to wire to masters
 const SPECIFIC_AREA_OPTIONS = [
     { value: 'Technology', label: 'Technology' },
     { value: 'Training', label: 'Training' },
     { value: 'Entrepreneurship Generated', label: 'Entrepreneurship Generated' },
 ]
 
+// WIP: Need to wire to masters
 const ENTERPRISE_TYPE_OPTIONS = [
     { value: 'Individual', label: 'Individual' },
     { value: 'SHG', label: 'SHG' },

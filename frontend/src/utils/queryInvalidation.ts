@@ -391,6 +391,8 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: ['cra-cropping-systems'],
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: ['cra-farming-systems'],
     [ENTITY_TYPES.ARYA_ENTERPRISES]: ['arya-enterprises'],
+    [ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES]: ['natural-farming-activities'],
+    [ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS]: ['natural-farming-soil-parameters'],
     // Achievement Forms
     [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]: ['production-supplies', 'production-supply', 'project-data'],
     // Employee Masters
@@ -406,6 +408,11 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: ['soil-water-analyses', 'soil-water-analysis-masters'],
+    [ENTITY_TYPES.NICRA_CATEGORY]: ['nicra-categories'],
+    [ENTITY_TYPES.NICRA_SUB_CATEGORY]: ['nicra-sub-categories'],
+    [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: ['nicra-seed-bank-fodder-banks'],
+    [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: ['nicra-dignitary-types'],
+    [ENTITY_TYPES.NICRA_PI_TYPE]: ['nicra-pi-types'],
 };
 
 /**

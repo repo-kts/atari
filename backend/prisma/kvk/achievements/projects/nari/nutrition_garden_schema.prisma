@@ -7,8 +7,8 @@ model NariNutritionalGarden {
   reportingYearId Int?        @map("reporting_year_id")
   reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
 
-  activityId Int         @map("activity_id")
-  activity   FldActivity @relation(fields: [activityId], references: [activityId])
+  activityId Int          @map("activity_id")
+  activity   NariActivity @relation(fields: [activityId], references: [nariActivityId])
 
   nameOfNutriSmartVillage   String              @map("name_of_nutri_smart_village")
   typeOfNutritionalGardenId Int                 @map("type_of_nutritional_garden_id")

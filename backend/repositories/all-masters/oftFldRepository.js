@@ -187,10 +187,10 @@ const ENTITY_CONFIG = {
     'cfld-crops': {
         model: 'fLDCropMaster',
         idField: 'cfldId',
-        nameField: 'CropName',
+        nameField: 'cropName',
         tableName: 'fld_crop_master',
         idColumn: 'cfld_id',
-        requiredFields: ['seasonId', 'typeId', 'CropName'],
+        requiredFields: ['seasonId', 'typeId', 'cropName'],
         includes: {
             season: {
                 select: {

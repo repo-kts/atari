@@ -261,9 +261,9 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
 
             {/* Empty State */}
             {!isActuallyLoading && hasFetched && displayOptions.length === 0 && dependsOn?.value && (
-                <div className="flex items-center gap-2 p-3 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl">
-                    <Info className="w-4 h-4 text-[#757575]" />
-                    <span className="text-sm text-[#757575]">{emptyMessage}</span>
+                <div className="-mt-4 border border-t-0 border-[#E0E0E0] rounded-b-xl bg-gray-50 px-4 pt-3 pb-1 text-xs text-gray-600 flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5 text-[#757575]" />
+                    <span>{emptyMessage}</span>
                 </div>
             )}
 

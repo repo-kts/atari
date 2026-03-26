@@ -4,7 +4,6 @@ model ExtensionActivity {
   createdAt                  DateTime                     @default(now()) @map("created_at")
   updatedAt                  DateTime                     @updatedAt @map("updated_at")
   extensionActivityOrganized ExtensionActivityOrganized[]
-  kvkExtensionActivities     KvkExtensionActivity[]
 
   @@index([extensionActivityId])
   @@index([extensionName])

@@ -1,29 +1,36 @@
 model PhysicalInfo {
   physicalInfoId Int                    @id @default(autoincrement()) @map("physical_info_id")
   kvkId          Int
-  activity       NaturalFarmingActivity
-  trainingTitle  String                 @map("training_title")
-  trainingDate   DateTime               @map("training_date")
-  venue          String
-  generalM       Int                    @map("general_m")
-  generalF       Int                    @map("general_f")
-  obcM           Int                    @map("obc_m")
-  obcF           Int                    @map("obc_f")
-  scM            Int                    @map("sc_m")
-  scF            Int                    @map("sc_f")
-  stM            Int                    @map("st_m")
-  stF            Int                    @map("st_f")
-  remarks        String                 @map("remarks")
+  activityId     Int?                   @map("activity_id")
+  trainingTitle  String?                @map("training_title")
+  trainingDate   DateTime?              @map("training_date")
+  venue          String?
+  generalM       Int?                   @map("general_m")
+  generalF       Int?                   @map("general_f")
+  obcM           Int?                   @map("obc_m")
+  obcF           Int?                   @map("obc_f")
+  scM            Int?                   @map("sc_m")
+  scF            Int?                   @map("sc_f")
+  stM            Int?                   @map("st_m")
+  stF            Int?                   @map("st_f")
+  remarks        String?                @map("remarks")
+  innovativeProgrammeName String?       @map("innovative_programme_name")
+  significanceOfInnovativeProgramme String? @map("significance_of_innovative_programme")
   images         String?                @map("images")
   kvk            Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  activityMaster NaturalFarmingActivityMaster? @relation(fields: [activityId], references: [naturalFarmingActivityId], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([kvkId])
   @@map("physical_info")
 }
 
-enum NaturalFarmingActivity {
-  TRAINING
-  DEMONSTRATION
-  FIELD_VISIT
-  AWARENESS_PROGRAM
+model NaturalFarmingActivityMaster {
+  naturalFarmingActivityId Int           @id @default(autoincrement()) @map("natural_farming_activity_id")
+  activityName             String        @unique @map("activity_name")
+  physicalInfos            PhysicalInfo[]
+  financialInfos           FinancialInformation[]
+
+  @@map("natural_farming_activity_master")
 }
+
+

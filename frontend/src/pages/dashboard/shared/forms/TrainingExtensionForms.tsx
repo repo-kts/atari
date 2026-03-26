@@ -373,17 +373,6 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             emptyMessage="No training types available"
                         />
 
-                        {/* On Campus/Off Campus - Static options */}
-                        <FormSelect
-                            label="On Campus/Off Campus"
-                            required
-                            value={formData.campusType || ''}
-                            onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
-                            options={[
-                                { value: 'On Campus', label: 'On Campus' },
-                                { value: 'Off Campus', label: 'Off Campus' },
-                            ]}
-                        />
 
                         {/* Training Area - Dependent on Training Type */}
                         <DependentDropdown
@@ -408,7 +397,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                         {/* Thematic Area - Dependent on Training Area */}
                         <DependentDropdown
-                            label="Thematic Area"
+                            label="Training Thematic Area"
                             required
                             value={formData.trainingThematicAreaId ? parseInt(formData.trainingThematicAreaId) : (formData.thematicAreaId ? parseInt(formData.thematicAreaId) : '')}
                             onChange={handleTrainingThematicAreaChange}
@@ -425,6 +414,19 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             emptyMessage="No thematic areas available for this training area"
                             loadingMessage="Loading thematic areas..."
                             isLoading={isLoadingTrainingThematicAreas}
+                        />
+
+
+                        {/* On Campus/Off Campus - Static options */}
+                        <FormSelect
+                            label="On Campus/Off Campus"
+                            required
+                            value={formData.campusType || ''}
+                            onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
+                            options={[
+                                { value: 'On Campus', label: 'On Campus' },
+                                { value: 'Off Campus', label: 'Off Campus' },
+                            ]}
                         />
 
                         <FormInput

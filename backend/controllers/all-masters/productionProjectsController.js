@@ -166,6 +166,32 @@ exports.createAryaEnterprise = create('arya-enterprises');
 exports.updateAryaEnterprise = update('arya-enterprises');
 exports.deleteAryaEnterprise = deleteEntity('arya-enterprises');
 
+// TSP/SCSP Master Controllers
+exports.getAllTspScspTypes = getAll('tsp-scsp-types');
+exports.getTspScspTypeById = getById('tsp-scsp-types');
+exports.createTspScspType = create('tsp-scsp-types');
+exports.updateTspScspType = update('tsp-scsp-types');
+exports.deleteTspScspType = deleteEntity('tsp-scsp-types');
+
+exports.getAllTspScspActivities = getAll('tsp-scsp-activities');
+exports.getTspScspActivityById = getById('tsp-scsp-activities');
+exports.createTspScspActivity = create('tsp-scsp-activities');
+exports.updateTspScspActivity = update('tsp-scsp-activities');
+exports.deleteTspScspActivity = deleteEntity('tsp-scsp-activities');
+
+// Natural Farming Activity Master Controllers
+exports.getAllNaturalFarmingActivities = getAll('natural-farming-activities');
+exports.getNaturalFarmingActivityById = getById('natural-farming-activities');
+exports.createNaturalFarmingActivity = create('natural-farming-activities');
+exports.updateNaturalFarmingActivity = update('natural-farming-activities');
+exports.deleteNaturalFarmingActivity = deleteEntity('natural-farming-activities');
+
+exports.getAllNaturalFarmingSoilParameters = getAll('natural-farming-soil-parameters');
+exports.getNaturalFarmingSoilParameterById = getById('natural-farming-soil-parameters');
+exports.createNaturalFarmingSoilParameter = create('natural-farming-soil-parameters');
+exports.updateNaturalFarmingSoilParameter = update('natural-farming-soil-parameters');
+exports.deleteNaturalFarmingSoilParameter = deleteEntity('natural-farming-soil-parameters');
+
 // Hierarchical filtering endpoints
 exports.getProductTypesByCategory = async (req, res) => {
     try {

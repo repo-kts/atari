@@ -1,10 +1,18 @@
+enum CfldTechnicalWorkflowStatus {
+  ONGOING
+  TRANSFERRED
+  COMPLETED
+}
+
 model CfldTechnicalParameter {
   cfldTechId                 Int           @id @default(autoincrement()) @map("cfl_cfld_tech_id")
   kvkId                      Int
   cropId                     Int
   month                      DateTime      @map("month")
-  type                       CfldType      @map("type")
+  typeId                     Int           @map("type_id") 
   seasonId                   Int?
+  reportingYearId           Int?          @map("reporting_year_id")
+  status                     CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
   varietyName                String        @map("variety_name")
   areaInHa                   Float         @map("area_in_ha")
   technologyDemonstrated     String        @map("technology_demonstrated")
@@ -30,22 +38,99 @@ model CfldTechnicalParameter {
   stF                        Int           @map("st_f")
   trainingPhotoPath          String?       @map("training_photo_path")
   qualityActionPhotoPath     String?       @map("quality_action_photo_path")
+
   createdAt                  DateTime      @default(now()) @map("created_at")
   updatedAt                  DateTime      @updatedAt @map("updated_at")
   crop                       FLDCropMaster @relation(fields: [cropId], references: [cfldId])
+  cropType                   CropType      @relation(fields: [typeId], references: [typeId])
   kvk                        Kvk           @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   season                     Season?       @relation(fields: [seasonId], references: [seasonId])
+  reportingYear              YearMaster?   @relation(fields: [reportingYearId], references: [yearId])
+
+  economicParameters         CfldEconomicParameters[]
+  socioEconomicParameters    CfldSocioEconomicParameters[]
+  farmersPerceptionParameters CfldFarmersPerceptionParameters[]
 
   @@index([kvkId])
   @@index([cropId])
   @@index([seasonId])
-  @@index([type])
+  @@index([typeId])
+  @@index([reportingYearId])
   @@map("cfl cfld_technical_parameter")
 }
 
-enum CfldType {
-  OILSEED
-  PULSES
-  CEREALS
-  MILLETS
+model CfldEconomicParameters {
+  cfldEconomicId  Int @id @default(autoincrement()) @map("cfl_cfld_economic_id")
+  cfldTechId      Int @map("cfl_cfld_tech_id")
+  status          CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
+
+  // Economic parameters of CFLD (Rs./ha)
+  existingPlotGrossCost        Float? @map("existing_plot_gross_cost")
+  existingPlotGrossReturn      Float? @map("existing_plot_gross_return")
+  existingPlotNetReturn        Float? @map("existing_plot_net_return")
+  existingPlotBcr              Float? @map("existing_plot_bcr")
+
+  demonstrationPlotGrossCost   Float? @map("demonstration_plot_gross_cost")
+  demonstrationPlotGrossReturn Float? @map("demonstration_plot_gross_return")
+  demonstrationPlotNetReturn   Float? @map("demonstration_plot_net_return")
+  demonstrationPlotBcr         Float? @map("demonstration_plot_bcr")
+
+  additionalIncome             Float? @map("additional_income")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  technicalParameter CfldTechnicalParameter @relation(fields: [cfldTechId], references: [cfldTechId], onDelete: Cascade)
+
+  @@unique([cfldTechId])
+  @@index([cfldTechId])
+  @@map("cfl cfld_economic_parameters")
+}
+
+model CfldSocioEconomicParameters {
+  cfldSocioEconomicId Int @id @default(autoincrement()) @map("cfl_cfld_socio_id")
+  cfldTechId      Int @map("cfl_cfld_tech_id")
+  status          CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
+
+  // Socio-economic parameters
+  totalProduceObtainedKg              Float? @map("total_produce_obtained_kg")
+  produceSoldKgPerHousehold          Float? @map("produce_sold_kg_per_household")
+  sellingRateRsPerKg                 Float? @map("selling_rate_rs_per_kg")
+  produceUsedForOwnSowingKg          Float? @map("produce_used_for_own_sowing_kg")
+  produceDistributedToOtherFarmersKg Float? @map("produce_distributed_to_other_farmers_kg")
+  incomeUtilizationPurpose           String? @map("income_utilization_purpose")
+  employmentGeneratedMandaysPerHousehold Float? @map("employment_generated_mandays_per_household")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  technicalParameter CfldTechnicalParameter @relation(fields: [cfldTechId], references: [cfldTechId], onDelete: Cascade)
+
+  @@unique([cfldTechId])
+  @@index([cfldTechId])
+  @@map("cfl cfld_socio_economic_parameters")
+}
+
+model CfldFarmersPerceptionParameters {
+  cfldPerceptionId Int @id @default(autoincrement()) @map("cfl_cfld_perception_id")
+  cfldTechId      Int @map("cfl_cfld_tech_id")
+  status          CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
+
+  // Farmers perception parameters
+  suitabilityToFarmingSystem             String? @map("suitability_to_farming_system")
+  likingPreference                       String? @map("liking_preference")
+  affordability                          String? @map("affordability")
+  anyNegativeEffect                      String? @map("any_negative_effect")
+  technologyAcceptableToAllGroupVillage String? @map("technology_acceptable_to_all_group_village")
+  suggestionsForChangeOrImprovementIfAny String? @map("suggestions_for_change_or_improvement_if_any")
+  farmerFeedback                          String? @map("farmer_feedback")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  technicalParameter CfldTechnicalParameter @relation(fields: [cfldTechId], references: [cfldTechId], onDelete: Cascade)
+
+  @@unique([cfldTechId])
+  @@index([cfldTechId])
+  @@map("cfl cfld_farmers_perception_parameters")
 }

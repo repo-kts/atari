@@ -36,7 +36,9 @@ const oftRoutes = require('./forms/oftRoutes.js');
 const fldRoutes = require('./forms/fldRoutes.js');
 const csisaRoutes = require('./forms/csisaRoutes.js');
 const agriDroneRoutes = require('./forms/agriDroneRoutes.js');
+const agriDroneDemonstrationRoutes = require('./forms/agriDroneDemonstrationRoutes.js');
 const drmrDetailsRoutes = require('./forms/drmrDetailsRoutes.js');
+const drmrActivityRoutes = require('./forms/drmrActivityRoutes.js');
 const nicraRoutes = require('./forms/nicraRoutes.js');
 const naturalFarmingRoutes = require('./forms/naturalFarmingRoutes.js');
 const kvkOtherProgrammeRoutes = require('./forms/kvkOtherProgrammeRoutes.js');
@@ -50,7 +52,9 @@ const swachhtaBharatRoutes = require('./forms/swachhtaBharatRoutes.js');
 const meetingsRoutes = require('./forms/meetingsRoutes.js');
 const nariRoutes = require('./forms/nariRoutes.js');
 const digitalInformationRoutes = require('./forms/digitalInformationRoutes.js');
+const tspScspRoutes = require('./forms/tspScspRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
+const { validateFormRobustness } = require('../middleware/validateFormRobustness.js');
 
 // Mount routes
 router.use('/auth', authRoutes);
@@ -63,6 +67,9 @@ router.use('/admin/masters', publicationRoutes);
 router.use('/admin/masters', otherMastersRoutes);
 router.use('/admin/masters', exportRoutes);
 router.use('/users', userRoutes);
+// Robust payload validation for all form saves (numbers + dates).
+router.use('/forms', validateFormRobustness);
+
 router.use('/forms/about-kvk', aboutKvkRoutes);
 router.use('/forms/achievements/kvk-awards', kvkAwardRoutes);
 router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
@@ -85,12 +92,15 @@ router.use('/forms/achievements/projects/seed-hub', seedHubRoutes);
 router.use('/forms/achievements/projects/arya/current', aryaCurrentYearRoutes);
 router.use('/forms/achievements/projects/arya/previous', aryaPrevYearRoutes);
 router.use('/forms/achievements/projects/csisa', csisaRoutes);
+router.use('/forms/achievements/projects/agri-drone/demonstrations', agriDroneDemonstrationRoutes);
 router.use('/forms/achievements/projects/agri-drone', agriDroneRoutes);
 router.use('/forms/achievements/projects/drmr/details', drmrDetailsRoutes);
+router.use('/forms/achievements/projects/drmr/activity', drmrActivityRoutes);
 router.use('/forms/achievements/projects/nicra', nicraRoutes);
 router.use('/forms/achievements/projects/cra', craRoutes);
 router.use('/forms/achievements/projects/natural-farming', naturalFarmingRoutes);
 router.use('/forms/achievements/projects/nari', nariRoutes);
+router.use('/forms/achievements/projects/sub-plan-activity', tspScspRoutes);
 router.use('/forms/achievements/digital-information', digitalInformationRoutes);
 router.use('/forms/achievements/other-program', kvkOtherProgrammeRoutes);
 router.use('/forms/miscellaneous/prevalent-diseases', prevalentDiseaseRoutes);

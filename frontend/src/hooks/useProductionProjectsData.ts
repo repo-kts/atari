@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productionProjectsApi } from '../services/productionProjectsApi';
+import { ENTITY_TYPES } from '@/constants/entityConstants';
+import { invalidateEntityType } from '@/utils/queryInvalidation';
 import type {
     ProductCategoryFormData,
     ProductTypeFormData,
@@ -7,6 +9,11 @@ import type {
     CraCroppingSystemFormData,
     CraFarmingSystemFormData,
     AryaEnterpriseFormData,
+    TspScspTypeFormData,
+    TspScspActivityFormData,
+    NaturalFarmingActivityFormData,
+    NaturalFarmingSoilParameterFormData,
+    AgriDroneDemonstrationsOnFormData,
 } from '../types/productionProjects';
 
 // ============================================
@@ -287,6 +294,206 @@ export function useAryaEnterprises() {
         mutationFn: (id: number) => productionProjectsApi.deleteAryaEnterprise(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['arya-enterprises'] });
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useTspScspTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['tsp-scsp-types'],
+        queryFn: () => productionProjectsApi.getTspScspTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: TspScspTypeFormData) => productionProjectsApi.createTspScspType(data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-types'] }),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<TspScspTypeFormData> }) =>
+            productionProjectsApi.updateTspScspType(id, data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-types'] }),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => productionProjectsApi.deleteTspScspType(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-types'] }),
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useTspScspActivities() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['tsp-scsp-activities'],
+        queryFn: () => productionProjectsApi.getTspScspActivities().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: TspScspActivityFormData) => productionProjectsApi.createTspScspActivity(data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-activities'] }),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<TspScspActivityFormData> }) =>
+            productionProjectsApi.updateTspScspActivity(id, data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-activities'] }),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => productionProjectsApi.deleteTspScspActivity(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tsp-scsp-activities'] }),
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNaturalFarmingActivities() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['natural-farming-activities'],
+        queryFn: () => productionProjectsApi.getNaturalFarmingActivities().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NaturalFarmingActivityFormData) => productionProjectsApi.createNaturalFarmingActivity(data),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NaturalFarmingActivityFormData> }) =>
+            productionProjectsApi.updateNaturalFarmingActivity(id, data),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => productionProjectsApi.deleteNaturalFarmingActivity(id),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES),
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useNaturalFarmingSoilParameters() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['natural-farming-soil-parameters'],
+        queryFn: () => productionProjectsApi.getNaturalFarmingSoilParameters().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: NaturalFarmingSoilParameterFormData) => productionProjectsApi.createNaturalFarmingSoilParameter(data),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS),
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<NaturalFarmingSoilParameterFormData> }) =>
+            productionProjectsApi.updateNaturalFarmingSoilParameter(id, data),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => productionProjectsApi.deleteNaturalFarmingSoilParameter(id),
+        onSuccess: () => invalidateEntityType(queryClient, ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS),
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// Agri Drone Masters
+// ============================================
+
+export function useAgriDroneDemonstrationsOn() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['agri-drone-demonstrations-on'],
+        queryFn: () => productionProjectsApi.getAgriDroneDemonstrationsOn().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: AgriDroneDemonstrationsOnFormData) => productionProjectsApi.createAgriDroneDemonstrationsOn(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agri-drone-demonstrations-on'] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<AgriDroneDemonstrationsOnFormData> }) =>
+            productionProjectsApi.updateAgriDroneDemonstrationsOn(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agri-drone-demonstrations-on'] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => productionProjectsApi.deleteAgriDroneDemonstrationsOn(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['agri-drone-demonstrations-on'] });
         },
     });
 
