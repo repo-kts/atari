@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput } from './shared/FormComponents'
+import { FormInput, FormSelect } from './shared/FormComponents'
+import { useNicraCategories } from '@/hooks/useOtherMastersData'
 
 interface OtherMastersFormsProps {
     entityType: ExtendedEntityType | null
@@ -14,6 +15,8 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const { data: nicraCategories = [] } = useNicraCategories()
+
     if (!entityType) return null
 
     return (
@@ -137,6 +140,116 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                         setFormData((prev: any) => ({ ...prev, analysisName: e.target.value }))
                     }, [setFormData])}
                     placeholder="Enter soil water analysis name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NARI_ACTIVITY && (
+                <FormInput
+                    label="Activity Name"
+                    required
+                    value={formData.activityName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, activityName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NARI activity name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NARI_CROP_CATEGORY && (
+                <FormInput
+                    label="Category Name"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NARI crop category name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NARI_NUTRITION_GARDEN_TYPE && (
+                <FormInput
+                    label="Nutrition Garden Type"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter nutrition garden type"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NICRA_CATEGORY && (
+                <FormInput
+                    label="Category Name"
+                    required
+                    value={formData.categoryName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, categoryName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NICRA category name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NICRA_SUB_CATEGORY && (
+                <>
+                    <FormSelect
+                        label="Category"
+                        required
+                        value={formData.nicraCategoryId || ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            setFormData((prev: any) => ({ ...prev, nicraCategoryId: parseInt(e.target.value, 10) }))
+                        }, [setFormData])}
+                        options={nicraCategories.map((c: any) => ({
+                            value: c.nicraCategoryId,
+                            label: c.categoryName,
+                        }))}
+                    />
+                    <FormInput
+                        label="Sub Category Name"
+                        required
+                        value={formData.subCategoryName || ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, subCategoryName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter NICRA sub-category name"
+                    />
+                </>
+            )}
+
+            {entityType === ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK && (
+                <FormInput
+                    label="Name"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NICRA Seed/Fodder Bank name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NICRA_DIGNITARY_TYPE && (
+                <FormInput
+                    label="Dignitary Type"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NICRA dignitary type"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NICRA_PI_TYPE && (
+                <FormInput
+                    label="PI/CO-PI Type"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter NICRA PI/CO-PI type"
                 />
             )}
         </>

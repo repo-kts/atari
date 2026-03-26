@@ -1,0 +1,13 @@
+model NariActivity {
+  nariActivityId Int    @id @default(autoincrement()) @map("nari_activity_id")
+  activityName   String @unique @map("activity_name")
+
+  nariNutritionalGardens NariNutritionalGarden[]
+  nariBioFortifiedCrops  NariBioFortifiedCrop[]
+  nariValueAdditions     NariValueAddition[]
+  nariTrainingProgrammes NariTrainingProgramme[]
+  nariExtensionActivities NariExtensionActivity[]
+
+  @@map("nari_activity")
+}
+

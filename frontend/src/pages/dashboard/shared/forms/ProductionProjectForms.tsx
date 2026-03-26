@@ -257,6 +257,56 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 />
             )}
 
+            {entityType === ENTITY_TYPES.TSP_SCSP_TYPES && (
+                <FormInput
+                    label="TSP/SCSP Type"
+                    required
+                    value={formData.typeName || ''}
+                    onChange={(e) => setFormData({ ...formData, typeName: e.target.value.toUpperCase() })}
+                    placeholder="Enter type (TSP or SCSP)"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.TSP_SCSP_ACTIVITIES && (
+                <FormInput
+                    label="TSP/SCSP Activity Name"
+                    required
+                    value={formData.activityName || ''}
+                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                    placeholder="Enter activity name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES && (
+                <FormInput
+                    label="Natural Farming Activity Name"
+                    required
+                    value={formData.activityName || ''}
+                    onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
+                    placeholder="Enter natural farming activity name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS && (
+                <FormInput
+                    label="Natural Farming Soil Parameter"
+                    required
+                    value={formData.parameterName || ''}
+                    onChange={(e) => setFormData({ ...formData, parameterName: e.target.value })}
+                    placeholder="Enter natural farming soil parameter"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.AGRI_DRONE_DEMONSTRATIONS_ON && (
+                <FormInput
+                    label="Demonstrations on"
+                    required
+                    value={formData.demonstrationsOnName || ''}
+                    onChange={(e) => setFormData({ ...formData, demonstrationsOnName: e.target.value })}
+                    placeholder="Enter demonstrations on"
+                />
+            )}
+
             {entityType === ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

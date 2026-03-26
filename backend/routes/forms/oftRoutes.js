@@ -31,6 +31,10 @@ router.get('/:id', requireRole(allRoles), oftController.getById);
  */
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
 router.put('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.update);
+router.post('/:id/transfer-next-year', requireRole([...kvkRoles, 'super_admin']), oftController.transferToNextYear);
+router.post('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.addResult);
+router.put('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), oftController.editResult);
+router.get('/:id/result', requireRole(allRoles), oftController.getResult);
 
 /**
  * @route   DELETE /api/forms/achievements/oft/:id

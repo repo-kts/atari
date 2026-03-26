@@ -37,6 +37,7 @@ model Kvk {
   university                    UniversityMaster?              @relation(fields: [universityId], references: [universityId])
   zone                          Zone                           @relation(fields: [zoneId], references: [zoneId])
   agriDrones                    KvkAgriDrone[]
+  agriDroneDemonstrations       KvkAgriDroneDemonstration[]
   kvkAwards                     KvkAward[]
   bankAccounts                  KvkBankAccount[]
   kvkBudgetUtilizations         KvkBudgetUtilization[]

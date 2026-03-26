@@ -4,7 +4,7 @@ model SoilDataInformation {
   year                  Int
   crop                  String
   seasonId              Int?
-  soilParameter         SoilParameterType
+  soilParameterId       Int?              @map("soil_parameter_id")
   phBefore              Float             @map("ph_before")
   ecBefore              Float             @map("ec_before")
   ocBefore              Float             @map("oc_before")
@@ -21,14 +21,16 @@ model SoilDataInformation {
   soilMicrobesAfter     Float             @map("soil_microbes_after")
   kvk                   Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   season                Season?           @relation(fields: [seasonId], references: [seasonId])
+  soilParameterMaster   NaturalFarmingSoilParameterMaster? @relation(fields: [soilParameterId], references: [naturalFarmingSoilParameterId], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([kvkId])
   @@map("soil_data_information")
 }
 
-enum SoilParameterType {
-  DEMO_PLOT_KVK
-  NON_DEMO_PLOT_KVK
-  DEMO_PLOT_FARMERS_FIELD
-  NON_DEMO_PLOT_FARMERS_FIELD
+model NaturalFarmingSoilParameterMaster {
+  naturalFarmingSoilParameterId Int                   @id @default(autoincrement()) @map("natural_farming_soil_parameter_id")
+  parameterName                 String                @unique @map("parameter_name")
+  soilDataInformations          SoilDataInformation[]
+
+  @@map("natural_farming_soil_parameter_master")
 }

@@ -74,6 +74,45 @@ const oftController = {
         });
     }),
 
+    transferToNextYear: asyncHandler(async (req, res) => {
+        const result = await oftService.transferToNextYear(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'OFT transferred to next year successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    addResult: asyncHandler(async (req, res) => {
+        const result = await oftService.addResult(req.params.id, req.body, req.user);
+        res.status(201).json({
+            success: true,
+            message: 'OFT result created successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    editResult: asyncHandler(async (req, res) => {
+        const result = await oftService.editResult(req.params.id, req.body, req.user);
+        res.status(200).json({
+            success: true,
+            message: 'OFT result updated successfully',
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
+    getResult: asyncHandler(async (req, res) => {
+        const result = await oftService.getResult(req.params.id, req.user);
+        res.status(200).json({
+            success: true,
+            data: result,
+            timestamp: new Date().toISOString(),
+        });
+    }),
+
     delete: asyncHandler(async (req, res) => {
         await oftService.deleteOft(req.params.id, req.user);
         res.status(200).json({

@@ -11,6 +11,9 @@ interface NaturalFarmingFormsProps {
     years: any[]
     states?: any[]
     seasons?: any[]
+    naturalFarmingActivities?: any[]
+    naturalFarmingSoilParameters?: any[]
+    staffCategories?: any[]
 }
 
 export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
@@ -19,8 +22,16 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     setFormData,
     years,
     states = [],
-    seasons = []
+    seasons = [],
+    naturalFarmingActivities = [],
+    naturalFarmingSoilParameters = [],
+    staffCategories = [],
 }) => {
+    const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
+        (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
+    )
+    const isOtherActivitySelected = String(selectedNaturalFarmingActivity?.activityName || '').trim().toLowerCase() === 'other activity'
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO && (
@@ -78,19 +89,37 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activity || ''}
-                            onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
-                            options={[
-                                { value: 'Training', label: 'Training' },
-                                { value: 'Demonstration', label: 'Demonstration' },
-                                { value: 'Awareness', label: 'Awareness' },
-                                { value: 'Workshop', label: 'Workshop' }
-                            ]}
-                            placeholder="Select"
+                            value={formData.activityId || ''}
+                            onChange={(value) => setFormData({
+                                ...formData,
+                                activityId: value,
+                            })}
+                            options={createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName')}
+                            emptyMessage="No natural farming activities available"
                         />
+                    </div>
+
+                    {isOtherActivitySelected ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <FormInput
+                                label="Name of the Innovative programme organized"
+                                required
+                                value={formData.innovativeProgrammeName || ''}
+                                onChange={(e) => setFormData({ ...formData, innovativeProgrammeName: e.target.value })}
+                            />
+                            <FormInput
+                                label="Significance of innovative programme"
+                                required
+                                value={formData.significanceOfInnovativeProgramme || ''}
+                                onChange={(e) => setFormData({ ...formData, significanceOfInnovativeProgramme: e.target.value })}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
                             label="Title of Natural Farming training Programme"
                             value={formData.trainingTitle || ''}
@@ -190,6 +219,8 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             />
                         </div>
                     </div>
+                        </>
+                    )}
                 </div>
             )}
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO && (
@@ -244,21 +275,16 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormSelect
                             label="Category"
                             required
-                            value={(formData.category || '').toUpperCase()}
-                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                            options={[
-                                { value: 'GENERAL', label: 'General' },
-                                { value: 'OBC', label: 'OBC' },
-                                { value: 'SC', label: 'SC' },
-                                { value: 'ST', label: 'ST' }
-                            ]}
+                            value={formData.staffCategoryId || ''}
+                            onChange={(e) => setFormData({ ...formData, staffCategoryId: e.target.value })}
+                            options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
                             placeholder="Select"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
-                            label="Cropping System of Farmer"
+                            label="Cropping patter of Farmer Plot"
                             required
                             value={formData.croppingSystem || formData.croppingPattern || ''}
                             onChange={(e) => setFormData({ ...formData, croppingSystem: e.target.value })}
@@ -337,12 +363,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                     <div className="space-y-6">
                         <h3 className="text-xl font-semibold text-gray-800">Observations Recorded</h3>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full border-collapse">
+                            <table className="min-w-full border-collapse ">
                                 <thead>
                                     <tr className="bg-gray-50 text-left">
-                                        <th className="p-4 border font-medium text-gray-700 w-1/3">Data Parameter</th>
-                                        <th className="p-4 border font-medium text-gray-700">Without Natural Farming Intervention</th>
-                                        <th className="p-4 border font-medium text-gray-700">With Natural Farming intervention</th>
+                                        <th className="p-4 border border-gray-300 font-medium text-gray-700 w-1/3">Data Parameter</th>
+                                        <th className="p-4 border border-gray-300 font-medium text-gray-700">Without Natural Farming Intervention</th>
+                                        <th className="p-4 border border-gray-300 font-medium text-gray-700">With Natural Farming intervention</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -353,32 +379,32 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                                         { label: 'Cost of cultivation (Rs/ha)', key: 'costOfCultivation' },
                                         { label: 'Gross Return (Rs/ha)', key: 'grossReturn' },
                                         { label: 'Net return (Rs/ha)', key: 'netReturn' },
-                                        { label: 'BCR Ratio', key: 'bcrRatio' },
+                                        { label: 'B:C Ratio', key: 'bcrRatio' },
                                         { label: 'Soil PH', key: 'soilPh' },
-                                        { label: 'Soluble Salt', key: 'solubleSalt' },
-                                        { label: 'Soil OC (q/ha)', key: 'soilOc' },
+                                        { label: 'Soil OC (%)', key: 'soilOc' },
+                                        { label: 'Soil EC (dS/m)', key: 'soilEc' },
                                         { label: 'Available N (kg/ha)', key: 'availableN' },
                                         { label: 'Available P (kg/ha)', key: 'availableP' },
                                         { label: 'Available K (kg/ha)', key: 'availableK' },
-                                        { label: 'Narrative description', key: 'narrativeDescription' },
+                                        { label: 'Soil Microbes (cfu)', key: 'soilMicrobes' },
                                         { label: 'Any other specific', key: 'anyOtherSpecific' }
                                     ].map((row) => (
                                         <tr key={row.key}>
-                                            <td className="p-4 border text-gray-700">{row.label}</td>
-                                            <td className="p-2 border">
+                                            <td className="p-4 border border-gray-300 text-gray-700">{row.label}</td>
+                                            <td className="p-2 border border-gray-300">
                                                 <input
                                                     type="text"
                                                     value={formData[`without_${row.key}`] || ''}
                                                     onChange={(e) => setFormData({ ...formData, [`without_${row.key}`]: e.target.value })}
-                                                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                                                 />
                                             </td>
-                                            <td className="p-2 border">
+                                            <td className="p-2 border border-gray-300">
                                                 <input
                                                     type="text"
                                                     value={formData[`with_${row.key}`] || ''}
                                                     onChange={(e) => setFormData({ ...formData, [`with_${row.key}`]: e.target.value })}
-                                                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                                                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
                                                 />
                                             </td>
                                         </tr>
@@ -411,11 +437,11 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <FormSelect
-                            label="State"
+                            label="Year"
                             required
-                            value={String(formData.stateId || '')}
-                            onChange={(e) => setFormData({ ...formData, stateId: e.target.value })}
-                            options={states.map((s: any) => ({ value: String(s.stateId || s.id), label: s.stateName }))}
+                            value={String(formData.yearId || '')}
+                            onChange={(e) => setFormData({ ...formData, yearId: e.target.value })}
+                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
                             placeholder="Select"
                         />
                         <FormInput
@@ -443,11 +469,11 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         />
                         <FormInput
-                            label="No. of indigenous Cows/Animals"
+                            label="No. of indigenous(Desi Cows)"
                             required
                             type="number"
-                            value={formData.noOfAnimals || ''}
-                            onChange={(e) => setFormData({ ...formData, noOfAnimals: e.target.value })}
+                            value={formData.noOfIndigenousCows || ''}
+                            onChange={(e) => setFormData({ ...formData, noOfIndigenousCows: e.target.value })}
                         />
                         <FormInput
                             label="Land Holding (ha)"
@@ -457,43 +483,43 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, landHolding: e.target.value })}
                         />
                         <FormInput
-                            label="Total farm area (ha)"
+                            label="Normal Crops Grown"
                             required
                             type="number"
-                            value={formData.totalFarmArea || ''}
-                            onChange={(e) => setFormData({ ...formData, totalFarmArea: e.target.value })}
+                            value={formData.normalCropsGrown || ''}
+                            onChange={(e) => setFormData({ ...formData, normalCropsGrown: e.target.value })}
                         />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
-                            label="Area (ha) under practicing Natural Farming"
+                            label="No. of Years practicing in Natural Farming"
                             required
                             type="number"
-                            value={formData.areaUnderPracticing || ''}
-                            onChange={(e) => setFormData({ ...formData, areaUnderPracticing: e.target.value })}
+                            value={formData.practicingYearOfNaturalFarming || ''}
+                            onChange={(e) => setFormData({ ...formData, practicingYearOfNaturalFarming: e.target.value })}
                         />
                         <FormInput
-                            label="Area (ha) in transition phase Natural Farming"
+                            label="Area covered (ha) under Natural Farming"
                             required
                             type="number"
-                            value={formData.areaInTransition || ''}
-                            onChange={(e) => setFormData({ ...formData, areaInTransition: e.target.value })}
+                            value={formData.areaCoveredUnderNaturalFarming || ''}
+                            onChange={(e) => setFormData({ ...formData, areaCoveredUnderNaturalFarming: e.target.value })}
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
-                            label="Crop system under Natural Farming"
+                            label="Crop Grown under Natural Farming"
                             required
-                            value={formData.cropSystem || ''}
-                            onChange={(e) => setFormData({ ...formData, cropSystem: e.target.value })}
+                            value={formData.cropGrownUnderNaturalFarming || ''}
+                            onChange={(e) => setFormData({ ...formData, cropGrownUnderNaturalFarming: e.target.value })}
                         />
                         <FormInput
-                            label="Motivation factor potential for practicing of Natural Farming"
+                            label="Natural Farming Technology practicing/ adopted"
                             required
-                            value={formData.motivationFactors || ''}
-                            onChange={(e) => setFormData({ ...formData, motivationFactors: e.target.value })}
+                            value={formData.naturalFarmingTechnologyPracticingAdopted || ''}
+                            onChange={(e) => setFormData({ ...formData, naturalFarmingTechnologyPracticingAdopted: e.target.value })}
                         />
                     </div>
 
@@ -510,21 +536,21 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                                 </thead>
                                 <tbody>
                                     {[
-                                        { label: 'Plant Weight (cm)', key: 'plantWeight' },
+                                        { label: 'Plant Height (cm)', key: 'plantHeight' },
                                         { label: 'Other relevant parameter', key: 'otherParameter' },
                                         { label: 'Yield (q/ha)', key: 'yield' },
                                         { label: 'Cost of cultivation (Rs/ha)', key: 'costOfCultivation' },
                                         { label: 'Gross Return (Rs/ha)', key: 'grossReturn' },
                                         { label: 'Net return (Rs/ha)', key: 'netReturn' },
-                                        { label: 'BCR Ratio', key: 'bcrRatio' },
+                                        { label: 'B:C Ratio', key: 'bcRatio' },
                                         { label: 'Soil PH', key: 'soilPh' },
-                                        { label: 'Soluble Salt', key: 'solubleSalt' },
-                                        { label: 'Soil OC (q/ha)', key: 'soilOc' },
+                                        { label: 'Soil OC (%)', key: 'soilOc' },
+                                        { label: 'Soil EC (dS/m)', key: 'soilEc' },
                                         { label: 'Available N (kg/ha)', key: 'availableN' },
                                         { label: 'Available P (kg/ha)', key: 'availableP' },
                                         { label: 'Available K (kg/ha)', key: 'availableK' },
-                                        { label: 'Soil Microbial (cfu)', key: 'soilMicrobial' },
-                                        { label: 'Population density', key: 'populationDensity' }
+                                        { label: 'Soil Microbes (cfu)', key: 'soilMicrobes' },
+                                        { label: 'Any other specific', key: 'anyOtherSpecific' }
                                     ].map((row) => (
                                         <tr key={row.key}>
                                             <td className="p-4 border text-gray-700">{row.label}</td>
@@ -641,18 +667,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
                             options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Soil Parameter"
                             required
-                            value={formData.soilParameter || ''}
-                            onChange={(e) => setFormData({ ...formData, soilParameter: e.target.value })}
-                            options={[
-                                { value: 'DEMO_PLOT_KVK', label: 'Demo Plot KVK' },
-                                { value: 'NON_DEMO_PLOT_KVK', label: 'Non-Demo Plot KVK' },
-                                { value: 'DEMO_PLOT_FARMERS_FIELD', label: 'Demo Plot Farmer\'s Field' },
-                                { value: 'NON_DEMO_PLOT_FARMERS_FIELD', label: 'Non-Demo Plot Farmer\'s Field' }
-                            ]}
-                            placeholder="Select"
+                            value={formData.soilParameterId || ''}
+                            onChange={(value) => setFormData({ ...formData, soilParameterId: value })}
+                            options={createMasterDataOptions(naturalFarmingSoilParameters, 'naturalFarmingSoilParameterId', 'parameterName')}
+                            emptyMessage="No soil parameters available"
                         />
                         <FormSelect
                             label="Season"
@@ -779,18 +800,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
                             options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Name of activity"
                             required
-                            value={formData.activityName || ''}
-                            onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
-                            options={[
-                                { value: 'TRAINING', label: 'Training' },
-                                { value: 'DEMONSTRATION', label: 'Demonstration' },
-                                { value: 'FIELD_VISIT', label: 'Field Visit' },
-                                { value: 'AWARENESS_PROGRAM', label: 'Awareness Program' }
-                            ]}
-                            placeholder="Select"
+                            value={formData.activityId || ''}
+                            onChange={(value) => setFormData({ ...formData, activityId: value })}
+                            options={createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName')}
+                            emptyMessage="No activities available"
                         />
                         <FormInput
                             label="Number of activities organized"

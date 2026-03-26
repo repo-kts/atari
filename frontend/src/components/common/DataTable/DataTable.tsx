@@ -26,6 +26,13 @@ interface DataTableProps {
     onViewHistory?: (item: any) => void
     canEditItem?: (item: any) => boolean
     canDeleteItem?: (item: any) => boolean
+    customActions?: Array<{
+        key: string
+        label: string
+        onClick: (item: any) => void
+        isVisible?: (item: any) => boolean
+        className?: string
+    }>
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
@@ -43,6 +50,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     onViewHistory,
     canEditItem,
     canDeleteItem,
+    customActions,
 }) => {
     // Always show table headers, even when there's no data
     // This ensures users can see the field structure and understand what data should be there
@@ -104,6 +112,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                                                 onViewHistory={onViewHistory}
                                                 canEditItem={canEditItem}
                                                 canDeleteItem={canDeleteItem}
+                                                customActions={customActions}
                                             />
                                         </td>
                                     </tr>

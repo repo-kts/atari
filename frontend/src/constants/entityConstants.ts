@@ -53,8 +53,14 @@ export const ENTITY_TYPES = {
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
 
     // NARI Masters
+    NARI_ACTIVITY: 'nari-activity',
     NARI_CROP_CATEGORY: 'nari-crop-category',
     NARI_NUTRITION_GARDEN_TYPE: 'nari-nutrition-garden-type',
+    NICRA_CATEGORY: 'nicra-category',
+    NICRA_SUB_CATEGORY: 'nicra-sub-category',
+    NICRA_SEED_BANK_FODDER_BANK: 'nicra-seed-bank-fodder-bank',
+    NICRA_DIGNITARY_TYPE: 'nicra-dignitary-type',
+    NICRA_PI_TYPE: 'nicra-pi-type',
 
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
@@ -71,6 +77,11 @@ export const ENTITY_TYPES = {
     CRA_CROPPING_SYSTEMS: 'cra-cropping-systems',
     CRA_FARMING_SYSTEMS: 'cra-farming-systems',
     ARYA_ENTERPRISES: 'arya-enterprises',
+    TSP_SCSP_TYPES: 'tsp-scsp-types',
+    TSP_SCSP_ACTIVITIES: 'tsp-scsp-activities',
+    NATURAL_FARMING_ACTIVITIES: 'natural-farming-activities',
+    NATURAL_FARMING_SOIL_PARAMETERS: 'natural-farming-soil-parameters',
+    AGRI_DRONE_DEMONSTRATIONS_ON: 'agri-drone-demonstrations-on',
 
     // Publications
     PUBLICATION_ITEMS: 'publication-items',
@@ -254,6 +265,11 @@ export const ENTITY_PATHS = {
     CRA_CROPPING_SYSTEM: '/all-master/cra-croping-system',
     CRA_FARMING_SYSTEM: '/all-master/cra-farming-system',
     ARYA_ENTERPRISE: '/all-master/arya-enterprise',
+    TSP_SCSP_TYPE: '/all-master/tsp-scsp-type',
+    TSP_SCSP_ACTIVITY: '/all-master/tsp-scsp-activity',
+    NATURAL_FARMING_ACTIVITY: '/all-master/natural-farming-activity',
+    NATURAL_FARMING_SOIL_PARAMETER: '/all-master/natural-farming-soil-parameter',
+    AGRI_DRONE_DEMONSTRATIONS_ON: '/all-master/agri-drone-demonstrations-on',
 
     // Publications
     PUBLICATION_ITEM: '/all-master/publication-item',
@@ -300,6 +316,14 @@ export const ENTITY_PATHS = {
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
     SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',
+    NARI_ACTIVITY: '/all-master/nari-activity',
+    NARI_CROP_CATEGORY: '/all-master/nari-crop-category',
+    NARI_NUTRITION_GARDEN_TYPE: '/all-master/nari-nutrition-garden-type',
+    NICRA_CATEGORY: '/all-master/nicra-category',
+    NICRA_SUB_CATEGORY: '/all-master/nicra-sub-category',
+    NICRA_SEED_BANK_FODDER_BANK: '/all-master/nicra-seed-bank-fodder-bank',
+    NICRA_DIGNITARY_TYPE: '/all-master/nicra-dignitary-type',
+    NICRA_PI_TYPE: '/all-master/nicra-pi-type',
 
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',

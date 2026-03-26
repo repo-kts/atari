@@ -67,7 +67,11 @@ const agriDroneRepository = {
     },
 
     findById: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -83,7 +87,11 @@ const agriDroneRepository = {
     },
 
     update: async (id, data, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -145,7 +153,11 @@ const agriDroneRepository = {
     },
 
     delete: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }

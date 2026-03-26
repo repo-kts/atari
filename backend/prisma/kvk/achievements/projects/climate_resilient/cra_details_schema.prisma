@@ -9,10 +9,17 @@ model CraDetails {
   seasonId Int?    @map("season_id")
   season   Season? @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
 
-  technologyDemonstrated     String @map("technology_demonstrated")
-  cropingSystem              String @map("croping_system")
-  farmingSystemCrop          String @map("farming_system_crop")
-  areaUnderDemonstrationAcre Float  @map("area_under_demonstration_acre")
+  interventions String @map("technology_demonstrated")
+
+  croppingSystem String @map("croping_system")
+
+  croppingSystemId Int?             @map("cra_croping_system_id")
+  croppingSystemRef CraCropingSystem? @relation(fields: [croppingSystemId], references: [craCropingSystemId], onDelete: SetNull)
+
+  farmingSystemId Int?            @map("cra_farming_system_id")
+  farmingSystem   CraFarmingSystem? @relation(fields: [farmingSystemId], references: [craFarmingSystemId], onDelete: SetNull)
+
+  areaInAcre Float @map("area_under_demonstration_acre")
 
   // Farmers Details
   generalM Int @default(0) @map("general_m")
@@ -24,11 +31,13 @@ model CraDetails {
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
 
-  cropYieldQha                         Float @map("crop_yield_qha")
-  systemProductivityQha                Float @map("system_productivity_qha")
-  totalReturnRsHa                      Float @map("total_return_rsha")
-  yieldObtainedUnderFarmerPracticesQha Float @map("yield_obtained_under_farmer_practices_qha")
+  cropYield Float @map("crop_yield_qha")
+  systemProductivity Float @map("system_productivity_qha")
+  totalReturn Float @map("total_return_rsha")
+  farmerPracticeYield Float @map("yield_obtained_under_farmer_practices_qha")
 
   @@index([kvkId])
+  @@index([croppingSystemId])
+  @@index([farmingSystemId])
   @@map("cra_details")
 }

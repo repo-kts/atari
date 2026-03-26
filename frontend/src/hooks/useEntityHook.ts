@@ -38,6 +38,11 @@ import {
     useCraCroppingSystems,
     useCraFarmingSystems,
     useAryaEnterprises,
+    useTspScspTypes,
+    useTspScspActivities,
+    useNaturalFarmingActivities,
+    useNaturalFarmingSoilParameters,
+    useAgriDroneDemonstrationsOn,
 } from './useProductionProjectsData'
 import { useAboutKvkData, AboutKvkEntity } from './forms/useAboutKvkData'
 import {
@@ -55,6 +60,14 @@ import {
     useCropTypes,
     useInfrastructureMasters,
     useSoilWaterAnalyses,
+    useNariActivities,
+    useNariCropCategories,
+    useNariNutritionGardenTypes,
+    useNicraCategories,
+    useNicraSubCategories,
+    useNicraSeedBankFodderBanks,
+    useNicraDignitaryTypes,
+    useNicraPiTypes,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
@@ -108,6 +121,11 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: () => useCraCroppingSystems(),
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: () => useCraFarmingSystems(),
     [ENTITY_TYPES.ARYA_ENTERPRISES]: () => useAryaEnterprises(),
+    [ENTITY_TYPES.TSP_SCSP_TYPES]: () => useTspScspTypes(),
+    [ENTITY_TYPES.TSP_SCSP_ACTIVITIES]: () => useTspScspActivities(),
+    [ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES]: () => useNaturalFarmingActivities(),
+    [ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS]: () => useNaturalFarmingSoilParameters(),
+    [ENTITY_TYPES.AGRI_DRONE_DEMONSTRATIONS_ON]: () => useAgriDroneDemonstrationsOn(),
 
     // Publications
     [ENTITY_TYPES.PUBLICATION_ITEMS]: () => usePublicationItems(),
@@ -127,6 +145,14 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.CROP_TYPE]: () => useCropTypes(),
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: () => useInfrastructureMasters(),
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: () => useSoilWaterAnalyses(),
+    [ENTITY_TYPES.NARI_ACTIVITY]: () => useNariActivities(),
+    [ENTITY_TYPES.NARI_CROP_CATEGORY]: () => useNariCropCategories(),
+    [ENTITY_TYPES.NARI_NUTRITION_GARDEN_TYPE]: () => useNariNutritionGardenTypes(),
+    [ENTITY_TYPES.NICRA_CATEGORY]: () => useNicraCategories(),
+    [ENTITY_TYPES.NICRA_SUB_CATEGORY]: () => useNicraSubCategories(),
+    [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: () => useNicraSeedBankFodderBanks(),
+    [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: () => useNicraDignitaryTypes(),
+    [ENTITY_TYPES.NICRA_PI_TYPE]: () => useNicraPiTypes(),
 
     // Projects (Achievements)
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: () => useCfldTechnicalParameters(),

@@ -20,6 +20,7 @@ model KvkAgriDrone {
   reportingYearId           Int?        @map("reporting_year_id")
   kvk                       Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   reportingYear             YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  demonstrations            KvkAgriDroneDemonstration[]
 
   @@index([kvkId])
   @@index([reportingYearId])

@@ -106,6 +106,57 @@ const ENTITY_CONFIG = {
         idColumn: 'enterprise_id',
         includes: {},
     },
+    // TSP/SCSP Masters
+    'tsp-scsp-types': {
+        model: 'tspScspTypeMaster',
+        idField: 'tspScspTypeId',
+        nameField: 'typeName',
+        tableName: 'tsp_scsp_type_master',
+        idColumn: 'tsp_scsp_type_id',
+        includes: {},
+    },
+    'tsp-scsp-activities': {
+        model: 'tspScspActivities',
+        idField: 'tspScspActivityId',
+        nameField: 'activityName',
+        tableName: 'tsp_scsp_district',
+        idColumn: 'tsp_scsp_district_id',
+        includes: {
+            _count: {
+                select: {
+                    tspScspRecords: true,
+                },
+            },
+        },
+    },
+    'natural-farming-activities': {
+        model: 'naturalFarmingActivityMaster',
+        idField: 'naturalFarmingActivityId',
+        nameField: 'activityName',
+        tableName: 'natural_farming_activity_master',
+        idColumn: 'natural_farming_activity_id',
+        includes: {
+            _count: {
+                select: {
+                    physicalInfos: true,
+                },
+            },
+        },
+    },
+    'natural-farming-soil-parameters': {
+        model: 'naturalFarmingSoilParameterMaster',
+        idField: 'naturalFarmingSoilParameterId',
+        nameField: 'parameterName',
+        tableName: 'natural_farming_soil_parameter_master',
+        idColumn: 'natural_farming_soil_parameter_id',
+        includes: {
+            _count: {
+                select: {
+                    soilDataInformations: true,
+                },
+            },
+        },
+    },
 };
 
 /**

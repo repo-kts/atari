@@ -199,6 +199,22 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'nari-activity': {
+        model: 'nariActivity',
+        idField: 'nariActivityId',
+        nameField: 'activityName',
+        includes: {
+            _count: {
+                select: {
+                    nariNutritionalGardens: true,
+                    nariBioFortifiedCrops: true,
+                    nariValueAdditions: true,
+                    nariTrainingProgrammes: true,
+                    nariExtensionActivities: true,
+                },
+            },
+        },
+    },
     'nari-nutrition-garden-type': {
         model: 'nutritionGardenType',
         idField: 'nutritionGardenTypeId',
@@ -210,6 +226,58 @@ const ENTITY_CONFIG = {
                 },
             },
         },
+    },
+    'nicra-category': {
+        model: 'nicraCategory',
+        idField: 'nicraCategoryId',
+        nameField: 'categoryName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
+        includes: {
+            _count: {
+                select: {
+                    nicraDetails: true,
+                    subCategories: true,
+                },
+            },
+        },
+    },
+    'nicra-sub-category': {
+        model: 'nicraSubCategory',
+        idField: 'nicraSubCategoryId',
+        nameField: 'subCategoryName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
+        parentField: 'nicraCategoryId',
+        includes: {
+            category: {
+                select: {
+                    nicraCategoryId: true,
+                    categoryName: true,
+                },
+            },
+            _count: {
+                select: {
+                    nicraDetails: true,
+                },
+            },
+        },
+    },
+    'nicra-seed-bank-fodder-bank': {
+        model: 'nicraSeedBankFodderBankMaster',
+        idField: 'nicraSeedBankFodderBankId',
+        nameField: 'name',
+        includes: {},
+    },
+    'nicra-dignitary-type': {
+        model: 'nicraDignitaryTypeMaster',
+        idField: 'nicraDignitaryTypeId',
+        nameField: 'name',
+        includes: {},
+    },
+    'nicra-pi-type': {
+        model: 'nicraPiTypeMaster',
+        idField: 'nicraPiTypeId',
+        nameField: 'name',
+        includes: {},
     },
 };
 
@@ -351,8 +419,7 @@ const create = async (entityType, data) => {
         config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
     ];
     
-    // Only include the name field (these are simple master entities)
-    // Validate that the name field is provided and not empty
+    // Validate and include name field
     if (data[config.nameField]) {
         const nameValue = String(data[config.nameField]).trim();
         if (nameValue === '') {
@@ -361,6 +428,19 @@ const create = async (entityType, data) => {
         sanitizedData[config.nameField] = nameValue;
     } else {
         throw new Error(`${config.nameField} is required`);
+    }
+
+    // Optional parent field support (for dependent masters like NICRA sub-category)
+    if (config.parentField) {
+        const parentVal = data[config.parentField];
+        if (parentVal === undefined || parentVal === null || parentVal === '') {
+            throw new Error(`${config.parentField} is required`);
+        }
+        const parsedParentVal = parseInt(parentVal, 10);
+        if (isNaN(parsedParentVal)) {
+            throw new Error(`Invalid ${config.parentField}`);
+        }
+        sanitizedData[config.parentField] = parsedParentVal;
     }
     
     // Ensure no ID field is accidentally included
@@ -526,6 +606,18 @@ const update = async (entityType, id, data) => {
             throw new Error(`${config.nameField} cannot be empty`);
         }
         sanitizedData[config.nameField] = nameValue;
+    }
+
+    if (config.parentField && data[config.parentField] !== undefined) {
+        const parentVal = data[config.parentField];
+        if (parentVal === null || parentVal === '') {
+            throw new Error(`${config.parentField} cannot be empty`);
+        }
+        const parsedParentVal = parseInt(parentVal, 10);
+        if (isNaN(parsedParentVal)) {
+            throw new Error(`Invalid ${config.parentField}`);
+        }
+        sanitizedData[config.parentField] = parsedParentVal;
     }
     
     // Remove ID fields from update data

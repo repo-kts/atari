@@ -1,3 +1,9 @@
+enum FldStatus {
+  ONGOING
+  COMPLETED
+  TRANSFERRED_TO_NEXT_YEAR
+}
+
 model KvkFldIntroduction {
   kvkFldId                    Int                         @id @default(autoincrement()) @map("kvk_fld_id")
   kvkId                       Int
@@ -20,16 +26,19 @@ model KvkFldIntroduction {
   scF                         Int                         @map("sc_f")
   stM                         Int                         @map("st_m")
   stF                         Int                         @map("st_f")
-  ongoingCompleted            String?                     @map("ongoing_completed")
+  ongoingCompleted            FldStatus                   @default(ONGOING) @map("ongoing_completed")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
+  reportingYearId             Int?                        @map("reporting_year_id")
   fldExtensions               FldExtension[]
+  fldResult                   KvkFldResult?
   fldTechnicalFeedbacks       FldTechnicalFeedback[]
   kvkExtensionActivities      KvkExtensionActivity[]
   category                    FldCategory?                @relation(fields: [categoryId], references: [categoryId], onDelete: SetNull)
   crop                        FldCrop?                    @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   kvkStaff                    KvkStaff                    @relation(fields: [kvkStaffId], references: [kvkStaffId])
+  reportingYear               YearMaster?                 @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
   season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
   sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId], onDelete: SetNull)
   subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: SetNull)
@@ -44,5 +53,28 @@ model KvkFldIntroduction {
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
+  @@index([reportingYearId])
   @@map("kvk_fld_introduction")
+}
+
+model KvkFldResult {
+  fldResultId              Int                @id @default(autoincrement()) @map("fld_result_id")
+  kvkFldId                 Int                @unique @map("kvk_fld_id")
+  demoYield                Float              @map("demo_yield")
+  checkYield               Float              @map("check_yield")
+  increasePercent          Float              @map("increase_percent")
+  demoGrossCost            Float              @map("demo_gross_cost")
+  demoGrossReturn          Float              @map("demo_gross_return")
+  demoNetReturn            Float              @map("demo_net_return")
+  demoBcr                  Float              @map("demo_bcr")
+  checkGrossCost           Float              @map("check_gross_cost")
+  checkGrossReturn         Float              @map("check_gross_return")
+  checkNetReturn           Float              @map("check_net_return")
+  checkBcr                 Float              @map("check_bcr")
+  createdAt                DateTime           @default(now()) @map("created_at")
+  updatedAt                DateTime           @updatedAt @map("updated_at")
+  fld                      KvkFldIntroduction @relation(fields: [kvkFldId], references: [kvkFldId], onDelete: Cascade)
+
+  @@index([kvkFldId])
+  @@map("kvk_fld_result")
 }

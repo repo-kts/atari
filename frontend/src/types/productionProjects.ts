@@ -76,6 +76,38 @@ export interface AryaEnterprise {
     enterpriseName: string;
 }
 
+export interface TspScspType {
+    tspScspTypeId: number;
+    typeName: string;
+}
+
+export interface TspScspActivity {
+    tspScspActivityId: number;
+    activityName: string;
+}
+
+export interface NaturalFarmingActivity {
+    naturalFarmingActivityId: number;
+    activityName: string;
+}
+
+export interface NaturalFarmingSoilParameter {
+    naturalFarmingSoilParameterId: number;
+    parameterName: string;
+}
+
+// ============================================
+// Agri Drone Masters
+// ============================================
+
+export interface AgriDroneDemonstrationsOn {
+    agriDroneDemonstrationsOnId: number;
+    demonstrationsOnName: string;
+    // common aliases from backend
+    id?: number;
+    name?: string;
+}
+
 // ============================================
 // Form Data Types
 // ============================================
@@ -107,6 +139,26 @@ export interface CraFarmingSystemFormData {
 
 export interface AryaEnterpriseFormData {
     enterpriseName: string;
+}
+
+export interface TspScspTypeFormData {
+    typeName: string;
+}
+
+export interface TspScspActivityFormData {
+    activityName: string;
+}
+
+export interface NaturalFarmingActivityFormData {
+    activityName: string;
+}
+
+export interface NaturalFarmingSoilParameterFormData {
+    parameterName: string;
+}
+
+export interface AgriDroneDemonstrationsOnFormData {
+    demonstrationsOnName: string;
 }
 
 // ============================================

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
+const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
 const {
     validateInput,
     resolveKvkId,
@@ -26,6 +27,7 @@ const FLD_CONFIG = {
     orderBy: { kvkFldId: 'desc' },
     includes: {
         kvk: { select: { kvkId: true, kvkName: true } },
+        reportingYear: { select: { yearId: true, yearName: true } },
         kvkStaff: { select: { kvkStaffId: true, staffName: true } },
         season: { select: { seasonId: true, seasonName: true } },
         sector: { select: { sectorId: true, sectorName: true } },
@@ -34,7 +36,7 @@ const FLD_CONFIG = {
         subCategory: { select: { subCategoryId: true, subCategoryName: true } },
         crop: { select: { cropId: true, cropName: true } },
     },
-    filterableFields: ['seasonId', 'sectorId', 'thematicAreaId', 'categoryId', 'subCategoryId', 'cropId'],
+    filterableFields: ['reportingYearId', 'seasonId', 'sectorId', 'thematicAreaId', 'categoryId', 'subCategoryId', 'cropId'],
     farmerCountMapping: {
         gen_m: 'generalM',
         gen_f: 'generalF',
@@ -61,6 +63,12 @@ const CREATE_FIELD_DEFINITIONS = {
         errorMessage: 'Season is required',
         errorField: 'seasonId',
         optional: true, // Schema allows Int?
+    },
+    reportingYearId: {
+        fieldNames: ['reportingYearId', 'yearId'],
+        errorMessage: 'Reporting Year is required',
+        errorField: 'reportingYearId',
+        optional: true,
     },
     sectorId: {
         fieldNames: ['sectorId'],
@@ -118,13 +126,6 @@ const CREATE_FIELD_DEFINITIONS = {
         type: 'number',
         options: { allowNegative: false },
     },
-    status: {
-        fieldNames: ['status', 'ongoingCompleted'],
-        errorMessage: 'Status is required',
-        errorField: 'status',
-        type: 'string',
-        optional: true,
-    },
 };
 
 /**
@@ -137,6 +138,14 @@ const UPDATE_FIELD_DEFINITIONS = [
         backendField: 'kvkStaffId',
         errorMessage: 'Valid Staff ID is required',
         errorField: 'staffId',
+    },
+    {
+        fieldNames: ['reportingYearId', 'yearId'],
+        type: 'integer',
+        backendField: 'reportingYearId',
+        errorMessage: 'Valid Reporting Year ID is required',
+        errorField: 'reportingYearId',
+        options: { required: false },
     },
     {
         fieldNames: ['seasonId'],
@@ -217,12 +226,6 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorField: 'area',
         options: { allowNegative: false },
     },
-    {
-        fieldNames: ['status', 'ongoingCompleted'],
-        type: 'string',
-        backendField: 'status',
-        options: { required: false },
-    },
 ];
 
 /**
@@ -246,6 +249,13 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.fieldNames,
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorMessage,
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorField
+            ),
+            reportingYearId: validateRequiredInteger(
+                data,
+                CREATE_FIELD_DEFINITIONS.reportingYearId.fieldNames,
+                CREATE_FIELD_DEFINITIONS.reportingYearId.errorMessage,
+                CREATE_FIELD_DEFINITIONS.reportingYearId.errorField,
+                { required: !CREATE_FIELD_DEFINITIONS.reportingYearId.optional }
             ),
             seasonId: validateRequiredInteger(
                 data,
@@ -315,13 +325,7 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.areaHa.errorField,
                 { allowNegative: false }
             ),
-            status: validateRequiredString(
-                data,
-                CREATE_FIELD_DEFINITIONS.status.fieldNames,
-                CREATE_FIELD_DEFINITIONS.status.errorMessage,
-                CREATE_FIELD_DEFINITIONS.status.errorField,
-                { required: false, defaultValue: 'Ongoing' }
-            ),
+            ongoingCompleted: FLD_STATUS.ONGOING,
             ...validateFarmerCounts(data, FLD_CONFIG.farmerCountMapping, { validateNonNegative: true }),
         };
 
@@ -358,6 +362,18 @@ const fldRepository = {
                     `Missing required field: ${fieldName}. Please provide a valid value.`,
                     fieldName
                 );
+            }
+            if (error.name === 'PrismaClientValidationError') {
+                const message = String(error.message || '');
+                if (message.includes('Unknown argument')) {
+                    const unknownArgMatch = message.match(/Unknown argument `([^`]+)`/);
+                    const unknownArg = unknownArgMatch?.[1] || 'field';
+                    throw new ValidationError(
+                        `Invalid input field: "${unknownArg}". Please refresh and try again.`,
+                        unknownArg
+                    );
+                }
+                throw new ValidationError('Invalid FLD request payload. Please check required fields and formats.');
             }
             // Re-throw other errors
             throw error;
@@ -418,6 +434,8 @@ const fldRepository = {
 
         // Build update data using field definitions
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
+        delete updateData.status;
+        delete updateData.ongoingCompleted;
 
         // Handle farmer counts separately
         const farmerCounts = validateFarmerCounts(data, FLD_CONFIG.farmerCountMapping, {
@@ -458,6 +476,18 @@ const fldRepository = {
                     fieldName
                 );
             }
+            if (error.name === 'PrismaClientValidationError') {
+                const message = String(error.message || '');
+                if (message.includes('Unknown argument')) {
+                    const unknownArgMatch = message.match(/Unknown argument `([^`]+)`/);
+                    const unknownArg = unknownArgMatch?.[1] || 'field';
+                    throw new ValidationError(
+                        `Invalid update field: "${unknownArg}". Please refresh and try again.`,
+                        unknownArg
+                    );
+                }
+                throw new ValidationError('Invalid FLD update payload. Please check the submitted values.');
+            }
             // Re-throw other errors
             throw error;
         }
@@ -485,6 +515,122 @@ const fldRepository = {
 
         return { success: true };
     },
+
+    findRawById: async (id, user) => {
+        const parsedId = validateId(id, FLD_CONFIG.idField);
+        const where = buildRoleBasedWhere(user, { [FLD_CONFIG.idField]: parsedId });
+        if (where === null) return null;
+        return prisma[FLD_CONFIG.model].findFirst({ where, include: FLD_CONFIG.includes });
+    },
+
+    transferToNextYearTx: async (sourceFld, targetReportingYearId) => {
+        return prisma.$transaction(async (tx) => {
+            await tx.kvkFldIntroduction.update({
+                where: { kvkFldId: sourceFld.kvkFldId },
+                data: { ongoingCompleted: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR },
+            });
+
+            const nextStartDate = sourceFld.startDate
+                ? new Date(new Date(sourceFld.startDate).setFullYear(new Date(sourceFld.startDate).getFullYear() + 1))
+                : new Date();
+
+            const cloneData = removeIdFieldsForUpdate({
+                kvkId: sourceFld.kvkId,
+                kvkStaffId: sourceFld.kvkStaffId,
+                seasonId: sourceFld.seasonId,
+                sectorId: sourceFld.sectorId,
+                thematicAreaId: sourceFld.thematicAreaId,
+                categoryId: sourceFld.categoryId,
+                subCategoryId: sourceFld.subCategoryId,
+                cropId: sourceFld.cropId,
+                fldName: sourceFld.fldName,
+                noOfDemonstration: sourceFld.noOfDemonstration,
+                areaHa: sourceFld.areaHa,
+                startDate: nextStartDate,
+                generalM: sourceFld.generalM,
+                generalF: sourceFld.generalF,
+                obcM: sourceFld.obcM,
+                obcF: sourceFld.obcF,
+                scM: sourceFld.scM,
+                scF: sourceFld.scF,
+                stM: sourceFld.stM,
+                stF: sourceFld.stF,
+                ongoingCompleted: FLD_STATUS.ONGOING,
+                reportingYearId: targetReportingYearId,
+            }, ['kvkFldId', 'id']);
+
+            const newRecord = await tx.kvkFldIntroduction.create({
+                data: cloneData,
+                include: FLD_CONFIG.includes,
+            });
+
+            const sourceRecord = await tx.kvkFldIntroduction.findUnique({
+                where: { kvkFldId: sourceFld.kvkFldId },
+                include: FLD_CONFIG.includes,
+            });
+
+            return {
+                source: _mapResponse(sourceRecord),
+                transferred: _mapResponse(newRecord),
+            };
+        });
+    },
+
+    updateStatus: async (id, status) => {
+        const parsedId = validateId(id, FLD_CONFIG.idField);
+        return prisma.kvkFldIntroduction.update({
+            where: { kvkFldId: parsedId },
+            data: { ongoingCompleted: status },
+            include: FLD_CONFIG.includes,
+        });
+    },
+
+    createResultTx: async (fldId, payload) => {
+        const parsedId = validateId(fldId, FLD_CONFIG.idField);
+        return prisma.kvkFldResult.create({
+            data: {
+                kvkFldId: parsedId,
+                demoYield: Number(payload.demoYield),
+                checkYield: Number(payload.checkYield),
+                increasePercent: Number(payload.increasePercent),
+                demoGrossCost: Number(payload.demoGrossCost),
+                demoGrossReturn: Number(payload.demoGrossReturn),
+                demoNetReturn: Number(payload.demoNetReturn),
+                demoBcr: Number(payload.demoBcr),
+                checkGrossCost: Number(payload.checkGrossCost),
+                checkGrossReturn: Number(payload.checkGrossReturn),
+                checkNetReturn: Number(payload.checkNetReturn),
+                checkBcr: Number(payload.checkBcr),
+            },
+        });
+    },
+
+    updateResultTx: async (fldId, payload) => {
+        const parsedId = validateId(fldId, FLD_CONFIG.idField);
+        return prisma.kvkFldResult.update({
+            where: { kvkFldId: parsedId },
+            data: {
+                demoYield: Number(payload.demoYield),
+                checkYield: Number(payload.checkYield),
+                increasePercent: Number(payload.increasePercent),
+                demoGrossCost: Number(payload.demoGrossCost),
+                demoGrossReturn: Number(payload.demoGrossReturn),
+                demoNetReturn: Number(payload.demoNetReturn),
+                demoBcr: Number(payload.demoBcr),
+                checkGrossCost: Number(payload.checkGrossCost),
+                checkGrossReturn: Number(payload.checkGrossReturn),
+                checkNetReturn: Number(payload.checkNetReturn),
+                checkBcr: Number(payload.checkBcr),
+            },
+        });
+    },
+
+    getResultByFldId: async (fldId) => {
+        const parsedId = validateId(fldId, FLD_CONFIG.idField);
+        return prisma.kvkFldResult.findUnique({
+            where: { kvkFldId: parsedId },
+        });
+    },
 };
 
 /**
@@ -501,6 +647,8 @@ function _mapResponse(r) {
         staffId: r.kvkStaffId,
         kvkStaffId: r.kvkStaffId,
         staffName: r.kvkStaff?.staffName,
+        reportingYearId: r.reportingYearId,
+        reportingYear: r.reportingYear?.yearName,
         seasonId: r.seasonId,
         seasonName: r.season?.seasonName,
         sectorId: r.sectorId,
@@ -538,7 +686,8 @@ function _mapResponse(r) {
         stM: r.stM,
         st_f: r.stF,
         stF: r.stF,
-        ongoingCompleted: r.status || 'Ongoing',
+        ongoingCompleted: normalizeFldStatus(r.ongoingCompleted),
+        status: normalizeFldStatus(r.ongoingCompleted),
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

@@ -54,7 +54,18 @@ const cfldTechnicalParameterController = {
             const status = error.message === 'Unauthorized' ? 403 : error.message === 'Record not found' ? 404 : 500;
             res.status(status).json({ success: false, error: error.message });
         }
-    }
+    },
+
+    transferToNextYear: async (req, res) => {
+        try {
+            const result = await cfldTechnicalParameterService.transferToNextYear(req.params.id, req.user);
+            res.json({ success: true, data: result });
+        } catch (error) {
+            console.error('Error transferring CFLD Technical Parameter:', error);
+            const status = error.statusCode || (error.name === 'UnauthorizedError' ? 403 : error.name === 'NotFoundError' ? 404 : 500);
+            res.status(status).json({ success: false, error: error.message || 'Transfer failed' });
+        }
+    },
 };
 
 module.exports = cfldTechnicalParameterController;

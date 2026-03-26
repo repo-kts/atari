@@ -5,16 +5,22 @@ model NicraIntervention {
 
   startDate          DateTime           @map("start_date")
   endDate            DateTime           @map("end_date")
-  seedBankFodderBank SeedBankFodderBank @map("seed_bank_fodder_bank")
+  seedBankFodderBankId Int? @map("seed_bank_fodder_bank_id")
+  seedBankFodderBank NicraSeedBankFodderBankMaster? @relation(fields: [seedBankFodderBankId], references: [nicraSeedBankFodderBankId], onDelete: SetNull, onUpdate: Cascade)
   crop               String             @map("crop")
   variety            String             @map("variety")
   quantityQ          Float              @map("quantity_q")
 
   @@index([kvkId])
+  @@index([seedBankFodderBankId])
   @@map("nicra_intervention")
 }
 
-enum SeedBankFodderBank {
-  SeedBank
-  FodderBank
+model NicraSeedBankFodderBankMaster {
+  nicraSeedBankFodderBankId Int    @id @default(autoincrement()) @map("nicra_seed_bank_fodder_bank_id")
+  name                      String @unique @map("name")
+
+  nicraInterventions NicraIntervention[]
+
+  @@map("nicra_seed_bank_fodder_bank_master")
 }

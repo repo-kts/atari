@@ -265,11 +265,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.CATEGORY_NAME]: {
-        extractor: (item: any) => item.category?.categoryName || null,
+        extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
         priority: 5,
     },
     [FIELD_NAMES.SUB_CATEGORY_NAME]: {
-        extractor: (item: any) => item.subCategory?.subCategoryName || null,
+        extractor: (item: any) => item.subCategory?.subCategoryName || item.subCategoryName || null,
         priority: 5,
     },
     // Sub Category (for FLD table display)
@@ -291,6 +291,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             if (item.season?.name) return item.season.name;
             return null;
         },
+        priority: 5,
+    },
+    [FIELD_NAMES.SEED_BANK_FODDER_BANK]: {
+        extractor: (item: any) => item.seedBankFodderBank || item.name || null,
         priority: 5,
     },
     [FIELD_NAMES.SANCTIONED_POST]: {
@@ -802,7 +806,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
     },
     [FIELD_NAMES.TYPE]: {
-        extractor: (item: any) => item.type || item.typeName || null,
+        extractor: (item: any) => item.type || item.typeName || item.name || item.parameterName || item.activityName || null,
     },
     [FIELD_NAMES.SEASON]: {
         extractor: (item: any) => item.seasonName || (item.season?.seasonName) || null,
@@ -892,6 +896,55 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.HOUSEHOLDS]: {
         extractor: (item: any) => item.noOfHouseholds !== undefined ? String(item.noOfHouseholds) : null,
+    },
+    // FPO fields - backend may use slightly different keys, so handle aliases here
+    [FIELD_NAMES.TRAINING_RECEIVED_BY_FPO_MEMBERS]: {
+        extractor: (item: any) => {
+            if (item.trainingReceivedByFpoMembers !== undefined && item.trainingReceivedByFpoMembers !== null) {
+                return String(item.trainingReceivedByFpoMembers)
+            }
+            if (item.trainingReceivedByMembers !== undefined && item.trainingReceivedByMembers !== null) {
+                // Backend returns 'Yes'/'No' for trainingReceivedByMembers
+                return String(item.trainingReceivedByMembers)
+            }
+            return null
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.IS_BUSINESS_PLAN_PREPARED]: {
+        extractor: (item: any) => {
+            if (item.isBusinessPlanPrepared !== undefined && item.isBusinessPlanPrepared !== null) {
+                return String(item.isBusinessPlanPrepared)
+            }
+
+            // Backend provides businessPlanPreparedWithCbbo/WithoutCbbo (bool) and businessPlanCbbo/WithoutCbbo ('Yes'/'No')
+            const withCbbo = item.businessPlanPreparedWithCbbo ?? item.businessPlanCbbo
+            const withoutCbbo = item.businessPlanPreparedWithoutCbbo ?? item.businessPlanWithoutCbbo
+
+            const normalize = (v: any) => {
+                if (v === true || v === 'true' || v === 1 || v === '1') return true
+                if (v === 'Yes' || v === 'YES' || v === 'Y') return true
+                return false
+            }
+
+            return normalize(withCbbo) || normalize(withoutCbbo) ? 'Yes' : 'No'
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_FPO_RECEIVED_MANAGEMENT_COST]: {
+        extractor: (item: any) => {
+            if (item.noOfFpoReceivedManagementCost !== undefined && item.noOfFpoReceivedManagementCost !== null) {
+                return String(item.noOfFpoReceivedManagementCost)
+            }
+            if (item.fposReceivedManagementCost !== undefined && item.fposReceivedManagementCost !== null) {
+                return String(item.fposReceivedManagementCost)
+            }
+            if (item.fposReceivedMgmtCost !== undefined && item.fposReceivedMgmtCost !== null) {
+                return String(item.fposReceivedMgmtCost)
+            }
+            return null
+        },
+        priority: 6,
     },
     // Activity fields - using camelCase
     'Activity Type': {
@@ -1033,6 +1086,30 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return total > 0 ? String(total) : (item.noOfParticipants || item.numberOfParticipants || null);
         }
     },
+    [FIELD_NAMES.NO_OF_FARMERS_ATTENDED]: {
+        extractor: (item: any) => {
+            const counts = [
+                item.generalM, item.generalF,
+                item.obcM, item.obcF,
+                item.scM, item.scF,
+                item.stM, item.stF,
+                item.genMale, item.genFemale,
+                item.obcMale, item.obcFemale,
+                item.scMale, item.scFemale,
+                item.stMale, item.stFemale,
+                item.participants,
+            ].map(v => Number(v || 0));
+
+            const total = counts.reduce((sum, val) => sum + val, 0);
+            if (total > 0) return String(total);
+
+            const value = item.noOfFarmersAttended || item.numberOfFarmersAttended || item.noOfParticipants || item.numberOfParticipants;
+            return value !== undefined && value !== null ? String(value) : null;
+        }
+    },
+    [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
+        extractor: (item: any) => item.placeOfActivity || item.venue || item.place || null,
+    },
     [FIELD_NAMES.REMARK]: {
         extractor: (item: any) => item.remark || item.remarks || item['Remark'] || null,
     },
@@ -1063,7 +1140,28 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.typeOfNutritionalGarden?.name || item.typeOfNutritionalGardenName || null,
     },
     [FIELD_NAMES.ACTIVITY_NAME]: {
-        extractor: (item: any) => item.nameOfActivity || item.activityName || null,
+        extractor: (item: any) => item.nameOfActivity || item.activityName || item.activityMaster?.activityName || null,
+    },
+    [FIELD_NAMES.TITLE_OF_NATURAL_FARMING_TRAINING_PROGRAMME]: {
+        extractor: (item: any) => item.titleOfNaturalFarmingTrainingProgramme || item.trainingTitle || null,
+    },
+    [FIELD_NAMES.DATE_OF_TRAINING]: {
+        extractor: (item: any) => item.dateOfTraining || item.trainingDate || null,
+    },
+    [FIELD_NAMES.VENUE_OF_PROGRAMME]: {
+        extractor: (item: any) => item.venueOfProgramme || item.venue || null,
+    },
+    [FIELD_NAMES.NORMAL_CROPS_GROWN]: {
+        extractor: (item: any) => item.normalCropsGrown || item.croppingPattern || null,
+    },
+    [FIELD_NAMES.PRACTICING_YEAR_OF_NATURAL_FARMING]: {
+        extractor: (item: any) => item.practicingYearOfNaturalFarming || item.farmerPracticeDetails || null,
+    },
+    [FIELD_NAMES.NAME_OF_INNOVATIVE_PROGRAMME]: {
+        extractor: (item: any) => item.innovativeProgrammeName || item.nameOfInnovativeProgramme || null,
+    },
+    [FIELD_NAMES.SIGNIFICANCE_OF_INNOVATIVE_PROGRAMME]: {
+        extractor: (item: any) => item.significanceOfInnovativeProgramme || null,
     },
     // Other fields (keeping display names for backward compatibility where no camelCase equivalent exists)
     'Name of FPO': {
@@ -1217,7 +1315,19 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     // Seed Hub mappings - using camelCase (CROP_NAME already defined above)
     [FIELD_NAMES.AREA_HA]: {
-        extractor: (item: any) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+        extractor: (item: any) => {
+            if (item.areaCoveredHa !== undefined) return String(item.areaCoveredHa);
+            if (item.areaInHa !== undefined) return String(item.areaInHa);
+            if (item.area !== undefined) return String(item.area);
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
+    },
+    [FIELD_NAMES.AREA_IN_ACRE]: {
+        extractor: (item: any) => {
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
     },
     'Area(ha)': {
         extractor: (item: any) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
@@ -1233,16 +1343,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // NICRA specific fields
-    'RF(mm) district Normal': {
+    [FIELD_NAMES.RF_MM_DISTRICT_NORMAL]: {
         extractor: (item: any) => item.rfNormal !== undefined ? String(item.rfNormal) : null,
     },
-    'RF(mm) district Received': {
+    [FIELD_NAMES.RF_MM_DISTRICT_RECEIVED]: {
         extractor: (item: any) => item.rfReceived !== undefined ? String(item.rfReceived) : null,
     },
-    'Max temperature 0C': {
+    [FIELD_NAMES.MAX_TEMPERATURE]: {
         extractor: (item: any) => item.tempMax !== undefined ? String(item.tempMax) : null,
     },
-    'Min temperature 0C': {
+    [FIELD_NAMES.MIN_TEMPERATURE]: {
         extractor: (item: any) => item.tempMin !== undefined ? String(item.tempMin) : null,
     },
     'Title': {
@@ -1264,6 +1374,13 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return sum > 0 ? String(sum) : '0';
         }
     },
+    [FIELD_NAMES.NO_OF_TRAINING]: {
+        extractor: (item: any) => {
+            if (item.noOfTrainings !== undefined && item.noOfTrainings !== null) return String(item.noOfTrainings);
+            if (item.noOfTraining !== undefined && item.noOfTraining !== null) return String(item.noOfTraining);
+            return null;
+        },
+    },
     'Category': {
         extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
     },
@@ -1272,6 +1389,26 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     'Technology Demonstrated': {
         extractor: (item: any) => item.technologyDemonstrated || null,
+    },
+    [FIELD_NAMES.TECHNOLOGY_DEMONSTRATED]: {
+        extractor: (item: any) => {
+            if (item.technologyDemonstrated) return item.technologyDemonstrated;
+            if (item.interventions) return item.interventions;
+            return null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.DISTRICT_YIELD]: {
+        extractor: (item: any) => item.districtYield !== undefined && item.districtYield !== null ? String(item.districtYield) : null,
+        priority: 5,
+    },
+    [FIELD_NAMES.STATE_YIELD]: {
+        extractor: (item: any) => item.stateYield !== undefined && item.stateYield !== null ? String(item.stateYield) : null,
+        priority: 5,
+    },
+    [FIELD_NAMES.POTENTIAL_YIELD]: {
+        extractor: (item: any) => item.potentialYield !== undefined && item.potentialYield !== null ? String(item.potentialYield) : null,
+        priority: 5,
     },
     'Area (ha)/ Unit': {
         extractor: (item: any) => item.areaOrUnit !== undefined ? String(item.areaOrUnit) : null,
@@ -1520,7 +1657,49 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_FARMERS]: {
-        extractor: (item: any) => String(item.farmerCount ?? item.noOfFarmers ?? 0),
+        extractor: (item: any) => {
+            // Calculate from farmer category counts if available
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            // Fallback to direct field
+            return String(item.farmerCount ?? item.noOfFarmers ?? item.numberOfFarmers ?? 0);
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NUMBER_OF_FARMERS]: {
+        extractor: (item: any) => {
+            // Prioritize the calculated field from backend if available
+            if (item.numberOfFarmers !== undefined && item.numberOfFarmers !== null) {
+                return String(item.numberOfFarmers);
+            }
+            // Calculate from farmer category counts if available
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            // Fallback to other field names
+            return String(item.farmerCount ?? item.noOfFarmers ?? 0);
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NUMBER_OF_FARMERS_UNDER_EXPOSURE]: {
+        extractor: (item: any) => {
+            // Prefer explicit backend field if present
+            if (item.numberOfFarmersUnderExposure !== undefined && item.numberOfFarmersUnderExposure !== null) {
+                return String(item.numberOfFarmersUnderExposure);
+            }
+            // Otherwise calculate from category counts (same as NUMBER_OF_FARMERS)
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            return String(item.farmerCount ?? item.noOfFarmers ?? 0);
+        },
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_OTHERS]: {
@@ -1731,7 +1910,21 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     // Performance Infrastructure - Rainwater Harvesting
     [FIELD_NAMES.NO_OF_TRAINING_PROGRAMME_CONDUCTED]: {
-        extractor: (item: any) => item.trainingProgrammes !== undefined && item.trainingProgrammes !== null ? String(item.trainingProgrammes) : null,
+        extractor: (item: any) => {
+            if (item.trainingProgrammes !== undefined && item.trainingProgrammes !== null) {
+                return String(item.trainingProgrammes);
+            }
+            if (item.noOfTrainingProgrammeConducted !== undefined && item.noOfTrainingProgrammeConducted !== null) {
+                return String(item.noOfTrainingProgrammeConducted);
+            }
+            if (item.noOfTrainings) {
+                return String(item.noOfTrainings);
+            }
+            if (item.noOfTraining !== undefined && item.noOfTraining !== null) {
+                return String(item.noOfTraining);
+            }
+            return null;
+        },
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_DEMONSTRATIONS]: {
@@ -2017,6 +2210,31 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.DEMONSTRATIONS_ON]: {
+        extractor: (item: any) =>
+            item.demonstrationsOnName ||
+            item.demonstrationsOn ||
+            item.demonstrationsOnMaster?.demonstrationsOnName ||
+            item.demonstrationsOnMaster?.name ||
+            null,
+        priority: 5,
+    },
+    [FIELD_NAMES.NO_OF_DEMOS]: {
+        extractor: (item: any) => {
+            const val = item.noOfDemos ?? item.demoCount ?? item['No. of demos'] ?? item['No. of Demos'];
+            return val !== undefined && val !== null && val !== '' ? String(val) : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.AREA_COVERED_UNDER_DEMOS]: {
+        extractor: (item: any) => {
+            const val = item.areaCoveredUnderDemos ?? item.areaHa ?? item.area ?? item['Area covered under demos'] ?? item['Area covered under demos.'];
+            if (val === undefined || val === null || val === '') return null;
+            const num = Number(val);
+            return Number.isFinite(num) ? `${num} ha` : String(val);
+        },
+        priority: 5,
+    },
     [FIELD_NAMES.DEMO_AMOUNT_SANCTIONED]: {
         extractor: (item: any) => {
             const val = item.demoAmountSanctioned;
@@ -2040,7 +2258,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.TARGET_AREA_HA]: {
-        extractor: (item: any) => item.targetAreaHa !== undefined && item.targetAreaHa !== null ? `${item.targetAreaHa} ha` : null,
+        extractor: (item: any) => {
+            if (item.targetAreaHa) return `${item.targetAreaHa} ha`;
+            if (item.targetArea) return `${item.targetArea} ha`;
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
         priority: 5,
     },
     [FIELD_NAMES.OPERATION_TYPE]: {

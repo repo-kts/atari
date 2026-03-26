@@ -205,11 +205,85 @@ export interface NariCropCategory {
     name: string;
 }
 
+export interface NariCropCategoryFormData {
+    name: string;
+}
+
+export interface NariActivity {
+    nariActivityId: number;
+    activityName: string;
+}
+
 export interface NariNutritionGardenType {
     nutritionGardenTypeId: number;
     name: string;
 }
 
+export interface NariActivityFormData {
+    activityName: string;
+}
+
+export interface NariNutritionGardenTypeFormData {
+    name: string;
+}
+
+export interface NicraCategory {
+    nicraCategoryId: number;
+    categoryName: string;
+    _count?: {
+        nicraDetails: number;
+        subCategories: number;
+    };
+}
+
+export interface NicraSubCategory {
+    nicraSubCategoryId: number;
+    nicraCategoryId: number;
+    subCategoryName: string;
+    category?: {
+        nicraCategoryId: number;
+        categoryName: string;
+    };
+    _count?: {
+        nicraDetails: number;
+    };
+}
+
+export interface NicraCategoryFormData {
+    categoryName: string;
+}
+
+export interface NicraSubCategoryFormData {
+    subCategoryName: string;
+    nicraCategoryId: number;
+}
+
+export interface NicraSeedBankFodderBank {
+    nicraSeedBankFodderBankId: number;
+    name: string;
+}
+
+export interface NicraSeedBankFodderBankFormData {
+    name: string;
+}
+
+export interface NicraDignitaryType {
+    nicraDignitaryTypeId: number;
+    name: string;
+}
+
+export interface NicraDignitaryTypeFormData {
+    name: string;
+}
+
+export interface NicraPiType {
+    nicraPiTypeId: number;
+    name: string;
+}
+
+export interface NicraPiTypeFormData {
+    name: string;
+}
 // ============================================
 // Season APIs
 // ============================================
@@ -392,6 +466,89 @@ export const otherMastersApi = {
     // NARI Masters
     getNariCropCategories: () =>
         apiClient.get<PaginatedResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category`),
+    getNariCropCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category/${id}`),
+    createNariCropCategory: (data: NariCropCategoryFormData) =>
+        apiClient.post<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category`, data),
+    updateNariCropCategory: (id: number, data: Partial<NariCropCategoryFormData>) =>
+        apiClient.put<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category/${id}`, data),
+    deleteNariCropCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-crop-category/${id}`),
+    getNariActivities: () =>
+        apiClient.get<PaginatedResponse<NariActivity>>(`${BASE_URL}/nari-activity`),
+    getNariActivityById: (id: number) =>
+        apiClient.get<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity/${id}`),
+    createNariActivity: (data: NariActivityFormData) =>
+        apiClient.post<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity`, data),
+    updateNariActivity: (id: number, data: Partial<NariActivityFormData>) =>
+        apiClient.put<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity/${id}`, data),
+    deleteNariActivity: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-activity/${id}`),
+
     getNariNutritionGardenTypes: () =>
         apiClient.get<PaginatedResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type`),
+    getNariNutritionGardenTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`),
+    createNariNutritionGardenType: (data: NariNutritionGardenTypeFormData) =>
+        apiClient.post<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type`, data),
+    updateNariNutritionGardenType: (id: number, data: Partial<NariNutritionGardenTypeFormData>) =>
+        apiClient.put<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`, data),
+    deleteNariNutritionGardenType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`),
+
+    // NICRA Masters
+    getNicraCategories: () =>
+        apiClient.get<PaginatedResponse<NicraCategory>>(`${BASE_URL}/nicra-category`),
+    getNicraCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category/${id}`),
+    createNicraCategory: (data: NicraCategoryFormData) =>
+        apiClient.post<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category`, data),
+    updateNicraCategory: (id: number, data: Partial<NicraCategoryFormData>) =>
+        apiClient.put<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category/${id}`, data),
+    deleteNicraCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-category/${id}`),
+
+    getNicraSubCategories: () =>
+        apiClient.get<PaginatedResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category`),
+    getNicraSubCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category/${id}`),
+    createNicraSubCategory: (data: NicraSubCategoryFormData) =>
+        apiClient.post<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category`, data),
+    updateNicraSubCategory: (id: number, data: Partial<NicraSubCategoryFormData>) =>
+        apiClient.put<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category/${id}`, data),
+    deleteNicraSubCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-sub-category/${id}`),
+
+    getNicraSeedBankFodderBanks: () =>
+        apiClient.get<PaginatedResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank`),
+    getNicraSeedBankFodderBankById: (id: number) =>
+        apiClient.get<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`),
+    createNicraSeedBankFodderBank: (data: NicraSeedBankFodderBankFormData) =>
+        apiClient.post<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank`, data),
+    updateNicraSeedBankFodderBank: (id: number, data: Partial<NicraSeedBankFodderBankFormData>) =>
+        apiClient.put<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`, data),
+    deleteNicraSeedBankFodderBank: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`),
+
+    getNicraDignitaryTypes: () =>
+        apiClient.get<PaginatedResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type`),
+    getNicraDignitaryTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type/${id}`),
+    createNicraDignitaryType: (data: NicraDignitaryTypeFormData) =>
+        apiClient.post<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type`, data),
+    updateNicraDignitaryType: (id: number, data: Partial<NicraDignitaryTypeFormData>) =>
+        apiClient.put<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type/${id}`, data),
+    deleteNicraDignitaryType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-dignitary-type/${id}`),
+
+    getNicraPiTypes: () =>
+        apiClient.get<PaginatedResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type`),
+    getNicraPiTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type/${id}`),
+    createNicraPiType: (data: NicraPiTypeFormData) =>
+        apiClient.post<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type`, data),
+    updateNicraPiType: (id: number, data: Partial<NicraPiTypeFormData>) =>
+        apiClient.put<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type/${id}`, data),
+    deleteNicraPiType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-pi-type/${id}`),
 };
