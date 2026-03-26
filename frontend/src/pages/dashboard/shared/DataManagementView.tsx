@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Download, ChevronLeft } from 'lucide-react'
+import { Plus, Download, ChevronLeft, ArrowRight, FilePlus2, FilePenLine, ChevronDown } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -27,7 +27,11 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
-import { LoadingButton } from '@/components/common/LoadingButton'
+import { useTransferOftToNextYear, useTransferFldToNextYear, useCreateOftResult, useUpdateOftResult, useOftResult, useFldResult, useCreateFldResult, useUpdateFldResult } from '@/hooks/useOftWorkflow'
+import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
+import { OftResultForm, OftResultFormValue } from './forms/achievement/OftResultForm'
+import { FldResultForm, FldResultValue } from './forms/achievement/FldResultForm'
+import { useYears } from '@/hooks/useOtherMastersData'
 
 interface DataManagementViewProps {
     title: string
@@ -70,6 +74,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const { handleMasterDataDelete } = useDeleteHandler({ confirm, alert })
     const { handleEdit: handleEditItem } = useEditHandler()
     const { handleExport: handleExportData, exportLoading: exportLoadingState } = useExportHandler()
+    const transferOftMutation = useTransferOftToNextYear()
+    const transferFldMutation = useTransferFldToNextYear()
+    const transferCfldMutation = useTransferCfldTechnicalToNextYear()
+    const createOftResultMutation = useCreateOftResult()
+    const updateOftResultMutation = useUpdateOftResult()
+    const createFldResultMutation = useCreateFldResult()
+    const updateFldResultMutation = useUpdateFldResult()
+    const [isOftResultPageOpen, setIsOftResultPageOpen] = useState(false)
+    const [oftResultMode, setOftResultMode] = useState<'create' | 'edit'>('create')
+    const [selectedOftId, setSelectedOftId] = useState<number | string | null>(null)
+    const [selectedOftItem, setSelectedOftItem] = useState<any>(null)
+    const oftResultQuery = useOftResult(selectedOftId || undefined)
+    const [isFldResultPageOpen, setIsFldResultPageOpen] = useState(false)
+    const [fldResultMode, setFldResultMode] = useState<'create' | 'edit'>('create')
+    const [selectedFldId, setSelectedFldId] = useState<number | string | null>(null)
+    const [selectedFldItem, setSelectedFldItem] = useState<any>(null)
+    const fldResultQuery = useFldResult(selectedFldId || undefined)
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
@@ -88,6 +109,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
+    const [selectedYearId, setSelectedYearId] = useState<string>('')
+    const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
+    const [isYearMenuOpen, setIsYearMenuOpen] = useState(false)
+    const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
+    const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
+    const { data: years = [] } = useYears()
+
+    const yearMenuRef = useRef<HTMLDivElement | null>(null)
+    const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
+    const exportMenuRef = useRef<HTMLDivElement | null>(null)
+    const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
 
     // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
@@ -193,18 +225,29 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return () => clearTimeout(timer)
     }, [searchQuery])
 
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [selectedYearId])
+
     // Filter data based on search - memoized for performance
     const filteredData = useMemo(() => {
-        if (!debouncedSearch.trim()) return items
+        const yearFiltered = selectedYearId
+            ? items.filter((item: any) => {
+                const reportingYearId = item.reportingYearId ?? item.yearId ?? item.reportingYear?.yearId
+                return String(reportingYearId ?? '') === selectedYearId
+            })
+            : items
+
+        if (!debouncedSearch.trim()) return yearFiltered
 
         const query = debouncedSearch.toLowerCase()
-        return items.filter((item: any) => {
+        return yearFiltered.filter((item: any) => {
             return fields.some(field => {
                 const value = getFieldValue(item, field)
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [items, debouncedSearch, fields])
+    }, [items, debouncedSearch, fields, selectedYearId])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
@@ -262,6 +305,367 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         openForm()
     }
 
+    const normalizeOftStatus = (status: unknown): string => String(status || '').toUpperCase().trim()
+
+    const handleTransferOftToNextYear = async (item: any) => {
+        const id = item?.id ?? item?.kvkOftId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to transfer OFT: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        try {
+            await transferOftMutation.mutateAsync(id)
+            alert({
+                title: 'Success',
+                message: 'OFT transferred to next reporting year successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Transfer failed',
+                message: err?.message || 'Unable to transfer OFT.',
+                variant: 'error',
+            })
+        }
+    }
+
+    const handleTransferFldToNextYear = async (item: any) => {
+        const id = item?.id ?? item?.kvkFldId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to transfer FLD: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        try {
+            await transferFldMutation.mutateAsync(id)
+            alert({
+                title: 'Success',
+                message: 'FLD transferred to next reporting year successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Transfer failed',
+                message: err?.message || 'Unable to transfer FLD.',
+                variant: 'error',
+            })
+        }
+    }
+
+    const handleTransferCfldToNextYear = async (item: any) => {
+        const id = item?.id ?? item?.cfldTechId
+        if (!id) {
+            alert({
+                title: 'Error',
+                message: 'Unable to transfer CFLD: missing record id.',
+                variant: 'error',
+            })
+            return
+        }
+        try {
+            await transferCfldMutation.mutateAsync(id)
+            alert({
+                title: 'Success',
+                message: 'CFLD transferred to next reporting year successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Transfer failed',
+                message: err?.message || 'Unable to transfer CFLD.',
+                variant: 'error',
+            })
+        }
+    }
+
+    const openCfldSectionForm = (item: any, section: 'technical' | 'economic' | 'socio' | 'perception') => {
+        openForm({
+            ...item,
+            cfldActiveSection: section,
+        })
+    }
+
+    const handleAddOftResult = (item: any) => {
+        const id = item?.id ?? item?.kvkOftId
+        if (!id) return
+        setOftResultMode('create')
+        setSelectedOftId(id)
+        setSelectedOftItem(item || null)
+        setIsOftResultPageOpen(true)
+    }
+
+    const handleEditOftResult = (item: any) => {
+        const id = item?.id ?? item?.kvkOftId
+        if (!id) return
+        setOftResultMode('edit')
+        setSelectedOftId(id)
+        setSelectedOftItem(item || null)
+        setIsOftResultPageOpen(true)
+    }
+
+    const handleSubmitOftResult = async (payload: OftResultFormValue) => {
+        if (!selectedOftId) return
+        if (oftResultMode === 'create') {
+            await createOftResultMutation.mutateAsync({ id: selectedOftId, payload })
+        } else {
+            await updateOftResultMutation.mutateAsync({ id: selectedOftId, payload })
+        }
+        alert({
+            title: 'Success',
+            message: oftResultMode === 'create' ? 'OFT result created successfully.' : 'OFT result updated successfully.',
+            variant: 'success',
+            autoClose: true,
+        })
+    }
+
+    const handleAddFldResult = (item: any) => {
+        const id = item?.id ?? item?.kvkFldId
+        if (!id) return
+        setFldResultMode('create')
+        setSelectedFldId(id)
+        setSelectedFldItem(item || null)
+        setIsFldResultPageOpen(true)
+    }
+
+    const handleEditFldResult = (item: any) => {
+        const id = item?.id ?? item?.kvkFldId
+        if (!id) return
+        setFldResultMode('edit')
+        setSelectedFldId(id)
+        setSelectedFldItem(item || null)
+        setIsFldResultPageOpen(true)
+    }
+
+    const tabButtonClass = (active: boolean) =>
+        active
+            ? 'px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all'
+            : 'px-4 py-2 bg-white border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] transition-all'
+
+    const renderOftFldTabs = (opts: { mode: 'edit' | 'add-result' | 'edit-result'; kind: 'oft' | 'fld'; item: any }) => {
+        const item = opts.item
+        if (!item) return null
+
+        const normalized = normalizeOftStatus(item.status || item.ongoingCompleted)
+        const canAdd = normalized === 'ONGOING'
+        const canEditResult = normalized === 'COMPLETED'
+
+        const labelEdit = opts.kind === 'oft' ? 'Edit OFT' : 'Edit FLD'
+
+        const goEdit = () => {
+            if (opts.kind === 'oft') {
+                setIsOftResultPageOpen(false)
+                setSelectedOftId(null)
+            } else {
+                setIsFldResultPageOpen(false)
+                setSelectedFldId(null)
+            }
+            openForm(item)
+        }
+
+        const goAdd = () => {
+            if (!canAdd) return
+            closeForm()
+            if (opts.kind === 'oft') handleAddOftResult(item)
+            else handleAddFldResult(item)
+        }
+
+        const goEditResult = () => {
+            if (!canEditResult) return
+            closeForm()
+            if (opts.kind === 'oft') handleEditOftResult(item)
+            else handleEditFldResult(item)
+        }
+
+        const options: Array<{ value: 'edit' | 'add-result' | 'edit-result'; label: string; isVisible: boolean }> = [
+            { value: 'edit', label: labelEdit, isVisible: true },
+            { value: 'add-result', label: 'Add Result', isVisible: canAdd },
+            { value: 'edit-result', label: 'Edit Result', isVisible: canEditResult },
+        ]
+
+        return (
+            <>
+                {/* Desktop tabs */}
+                <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
+                    <button type="button" className={tabButtonClass(opts.mode === 'edit')} onClick={goEdit}>
+                        {labelEdit}
+                    </button>
+                    {canAdd && (
+                        <button type="button" className={tabButtonClass(opts.mode === 'add-result')} onClick={goAdd}>
+                            Add Result
+                        </button>
+                    )}
+                    {canEditResult && (
+                        <button type="button" className={tabButtonClass(opts.mode === 'edit-result')} onClick={goEditResult}>
+                            Edit Result
+                        </button>
+                    )}
+                </div>
+
+                {/* Mobile dropdown (custom menu like Download) */}
+                <div className="sm:hidden mb-4">
+                    <div ref={oftFldTabMenuRef} className="relative inline-flex max-w-[90vw]">
+                        <button
+                            type="button"
+                            onClick={() => setIsOftFldTabMenuOpen((v) => !v)}
+                            className="h-11 inline-flex items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                        >
+                            {options.find((o) => o.value === opts.mode)?.label || 'Select'}
+                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                        </button>
+
+                        {isOftFldTabMenuOpen && (
+                            <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                {options
+                                    .filter((o) => o.isVisible)
+                                    .map((o) => {
+                                        const selected = o.value === opts.mode
+                                        return (
+                                            <button
+                                                key={o.value}
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsOftFldTabMenuOpen(false)
+                                                    if (o.value === 'edit') goEdit()
+                                                    else if (o.value === 'add-result') goAdd()
+                                                    else if (o.value === 'edit-result') goEditResult()
+                                                }}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                    selected
+                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                }`}
+                                            >
+                                                {o.label}
+                                            </button>
+                                        )
+                                    })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </>
+        )
+    }
+
+    const handleSubmitFldResult = async (payload: FldResultValue) => {
+        if (!selectedFldId) return
+        if (fldResultMode === 'create') {
+            await createFldResultMutation.mutateAsync({ id: selectedFldId, payload })
+        } else {
+            await updateFldResultMutation.mutateAsync({ id: selectedFldId, payload })
+        }
+        alert({
+            title: 'Success',
+            message: fldResultMode === 'create' ? 'FLD result created successfully.' : 'FLD result updated successfully.',
+            variant: 'success',
+            autoClose: true,
+        })
+    }
+
+    const statusValue = (item: any) => normalizeOftStatus(item.status || item.ongoingCompleted)
+    const oftCustomActions = entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
+        ? [
+            {
+                key: 'transfer-next-year',
+                label: 'Transfer',
+                onClick: handleTransferOftToNextYear,
+                isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                icon: ArrowRight,
+            },
+            {
+                key: 'add-result',
+                label: 'Add Result',
+                onClick: handleAddOftResult,
+                isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                icon: FilePlus2,
+            },
+            {
+                key: 'edit-result',
+                label: 'Edit Result',
+                onClick: handleEditOftResult,
+                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
+                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                icon: FilePenLine,
+            },
+        ]
+        : entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
+            ? [
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferFldToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'add-result',
+                    label: 'Add Result',
+                    onClick: handleAddFldResult,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: handleEditFldResult,
+                    isVisible: (item: any) => statusValue(item) === 'COMPLETED',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
+            : []
+
+    const cfldCustomActions = entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+        ? [
+            {
+                key: 'transfer-next-year',
+                label: 'Transfer',
+                onClick: handleTransferCfldToNextYear,
+                isVisible: (item: any) => item?.status === 'ONGOING',
+                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                icon: ArrowRight,
+            },
+            {
+                key: 'economic-params',
+                label: 'Economic Parameters',
+                onClick: (item: any) => openCfldSectionForm(item, 'economic'),
+                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                icon: FilePenLine,
+            },
+            {
+                key: 'socio-params',
+                label: 'Update Socio Economic Parameters',
+                onClick: (item: any) => openCfldSectionForm(item, 'socio'),
+                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                icon: FilePenLine,
+            },
+            {
+                key: 'perception-params',
+                label: 'Farmers Perception Parameters',
+                onClick: (item: any) => openCfldSectionForm(item, 'perception'),
+                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                icon: FilePenLine,
+            },
+        ]
+        : []
+
     // Custom hook for save operations with proper error handling
     const { save: saveData, isSaving } = useDataSave({
         entityType,
@@ -298,16 +702,58 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         })
     }
 
+    const multiFormNote = useMemo(() => {
+        if (entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM) {
+            return 'Note: Please mark your record as completed only after adding Technical + Economic + Socio-Economic + Farmers Perception details.'
+        }
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT) {
+            return 'Note: Please mark your result as completed after adding the OFT result details.'
+        }
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_FLD) {
+            return 'Note: Please mark your result as completed after adding the FLD result details.'
+        }
+        return null
+    }, [entityType])
+
+    const exportFormatOptions = useMemo(
+        () => [
+            { value: 'pdf', label: 'PDF' },
+            { value: 'excel', label: 'Excel' },
+            { value: 'word', label: 'Word' },
+        ] as const,
+        []
+    )
+
+    useEffect(() => {
+        const onDocMouseDown = (e: MouseEvent) => {
+            const target = e.target as Node
+            if (isYearMenuOpen && yearMenuRef.current && !yearMenuRef.current.contains(target)) {
+                setIsYearMenuOpen(false)
+            }
+            if (isMobileRouteMenuOpen && mobileRouteMenuRef.current && !mobileRouteMenuRef.current.contains(target)) {
+                setIsMobileRouteMenuOpen(false)
+            }
+            if (isExportMenuOpen && exportMenuRef.current && !exportMenuRef.current.contains(target)) {
+                setIsExportMenuOpen(false)
+            }
+            if (isOftFldTabMenuOpen && oftFldTabMenuRef.current && !oftFldTabMenuRef.current.contains(target)) {
+                setIsOftFldTabMenuOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', onDocMouseDown)
+        return () => document.removeEventListener('mousedown', onDocMouseDown)
+    }, [isYearMenuOpen, isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
+
     const loading = getHookLoading(activeHook)
     const error = getHookError(activeHook)
 
     return (
         <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
-            {!isFormPageOpen && (
+            {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && (
                 <div className="flex-none">
                     {breadcrumbs.length > 0 && (
-                        <div className="flex items-center gap-4 px-6 pt-4 pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-4">
                             <button
                                 onClick={() => {
                                     // Special handling for different categories
@@ -340,21 +786,63 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         navigate('/dashboard')
                                     }
                                 }}
-                                className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                                className="self-start flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
                             >
                                 <ChevronLeft className="w-4 h-4" />
                                 Back
                             </button>
-                            <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
+                            <div className="w-full overflow-x-auto whitespace-nowrap [-webkit-overflow-scrolling:touch]">
+                                <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
+                            </div>
                         </div>
                     )}
 
                     {siblingRoutes.length > 1 && (
                         <div className="mb-4">
-                            <TabNavigation
-                                tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
-                                currentPath={location.pathname}
-                            />
+                            {/* Desktop tabs */}
+                            <div className="hidden sm:block">
+                                <TabNavigation
+                                    tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
+                                    currentPath={location.pathname}
+                                />
+                            </div>
+                            {/* Mobile dropdown */}
+                            <div className="sm:hidden px-4">
+                                    <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw]">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMobileRouteMenuOpen((v) => !v)}
+                                            className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                    >
+                                        {siblingRoutes.find((r) => r.path === location.pathname)?.title || 'Select'}
+                                        <ChevronDown className="w-4 h-4 text-[#757575]" />
+                                    </button>
+                                    {isMobileRouteMenuOpen && (
+                                            <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                            {siblingRoutes.map((r) => {
+                                                const selected = r.path === location.pathname
+                                                return (
+                                                    <button
+                                                        key={r.path}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsMobileRouteMenuOpen(false)
+                                                            navigate(r.path)
+                                                        }}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                            selected
+                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                        }`}
+                                                    >
+                                                        {r.title}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -365,6 +853,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 {/* Show Form Page if open, otherwise show List View */}
                 {isFormPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-6">
+                        {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && renderOftFldTabs({ mode: 'edit', kind: 'oft', item: editingItem })}
+                        {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD && renderOftFldTabs({ mode: 'edit', kind: 'fld', item: editingItem })}
+
                         <DataManagementFormPage
                             entityType={entityType}
                             title={editingItem ? `Edit ${title.replace(/ Master$/, '')}` : `Create ${title.replace(/ Master$/, '')}`}
@@ -375,56 +866,147 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             isSaving={isSaving}
                         />
                     </div>
+                ) : isOftResultPageOpen ? (
+                    <div className="flex-1 overflow-y-auto p-4">
+                        <div className="space-y-4 min-h-[300px]">
+                            {renderOftFldTabs({
+                                mode: oftResultMode === 'create' ? 'add-result' : 'edit-result',
+                                kind: 'oft',
+                                item: selectedOftItem,
+                            })}
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => {
+                                        setIsOftResultPageOpen(false)
+                                        setSelectedOftId(null)
+                                        setSelectedOftItem(null)
+                                    }}
+                                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Back
+                                </button>
+                                <h1 className="text-2xl font-semibold text-[#487749]">
+                                    {oftResultMode === 'create' ? 'Create OFT Result' : 'Edit OFT Result'}
+                                </h1>
+                            </div>
+                            <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[260px] p-4">
+                                <OftResultForm
+                                    embedded
+                                    mode={oftResultMode}
+                                    initialValue={(oftResultQuery.data as any)?.data || (oftResultQuery.data as any) || undefined}
+                                    onClose={() => {
+                                        setIsOftResultPageOpen(false)
+                                        setSelectedOftId(null)
+                                        setSelectedOftItem(null)
+                                    }}
+                                    onSubmit={handleSubmitOftResult}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ) : isFldResultPageOpen ? (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="space-y-6 min-h-[400px]">
+                            {renderOftFldTabs({
+                                mode: fldResultMode === 'create' ? 'add-result' : 'edit-result',
+                                kind: 'fld',
+                                item: selectedFldItem,
+                            })}
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => {
+                                        setIsFldResultPageOpen(false)
+                                        setSelectedFldId(null)
+                                        setSelectedFldItem(null)
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Back
+                                </button>
+                            </div>
+                            <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
+                                <FldResultForm
+                                    mode={fldResultMode}
+                                    initialValue={(fldResultQuery.data as any)?.data || (fldResultQuery.data as any) || undefined}
+                                    onClose={() => {
+                                        setIsFldResultPageOpen(false)
+                                        setSelectedFldId(null)
+                                        setSelectedFldItem(null)
+                                    }}
+                                    onSubmit={handleSubmitFldResult}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <div className="flex-none p-6 pb-2">
-                            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
                                     <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
                                     <p className="text-sm text-[#757575] mt-1">{description}</p>
                                 </div>
-                                <div className="flex gap-2 flex-wrap">
-                                    <LoadingButton
-                                        onClick={() => handleExport('pdf')}
-                                        isLoading={exportLoadingState === 'pdf'}
-                                        loadingText="Exporting..."
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={exportLoadingState !== null && exportLoadingState !== 'pdf'}
-                                        className="flex items-center gap-2"
-                                    >
-                                        {exportLoadingState !== 'pdf' && <Download className="w-4 h-4" />}
-                                        Export PDF
-                                    </LoadingButton>
-                                    <LoadingButton
-                                        onClick={() => handleExport('excel')}
-                                        isLoading={exportLoadingState === 'excel'}
-                                        loadingText="Exporting..."
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={exportLoadingState !== null && exportLoadingState !== 'excel'}
-                                        className="flex items-center gap-2"
-                                    >
-                                        {exportLoadingState !== 'excel' && <Download className="w-4 h-4" />}
-                                        Export Excel
-                                    </LoadingButton>
-                                    <LoadingButton
-                                        onClick={() => handleExport('word')}
-                                        isLoading={exportLoadingState === 'word'}
-                                        loadingText="Exporting..."
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={exportLoadingState !== null && exportLoadingState !== 'word'}
-                                        className="flex items-center gap-2"
-                                    >
-                                        {exportLoadingState !== 'word' && <Download className="w-4 h-4" />}
-                                        Export Word
-                                    </LoadingButton>
+                                <div className="flex gap-3 flex-wrap items-center">
+                                    {/* Desktop: show export buttons expanded */}
+                                    <div className="hidden md:flex gap-2 items-center">
+                                        {exportFormatOptions.map((opt) => (
+                                            <button
+                                                key={opt.value}
+                                                type="button"
+                                                onClick={() => handleExport(opt.value)}
+                                                disabled={exportLoadingState !== null && exportLoadingState !== opt.value}
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${
+                                                    exportLoadingState === opt.value
+                                                        ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                        : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                {opt.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Mobile: styled dropdown menu */}
+                                    <div ref={exportMenuRef} className="relative md:hidden">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsExportMenuOpen((v) => !v)}
+                                            disabled={exportLoadingState !== null}
+                                            className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors disabled:opacity-60"
+                                        >
+                                            <Download className="w-4 h-4 text-[#487749]" />
+                                            {exportLoadingState ? 'Downloading...' : 'Download'}
+                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                                        </button>
+                                        {isExportMenuOpen && (
+                                            <div className="absolute z-50 mt-1 w-44 rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                                {exportFormatOptions.map((opt) => (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsExportMenuOpen(false)
+                                                            handleExport(opt.value)
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
+                                                    >
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Download className="w-4 h-4 text-[#487749]" />
+                                                            {opt.label}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {showAddButton && (
                                         <button
                                             onClick={handleAddNew}
-                                            className="flex items-center gap-2 px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] shadow-sm transition-all duration-200"
+                                            className="h-10 flex items-center gap-2 px-4 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all duration-200"
                                         >
                                             <Plus className="w-4 h-4" />
                                             Add New
@@ -433,12 +1015,67 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="my-2">
-                                <SearchInput
-                                    value={searchQuery}
-                                    onChange={setSearchQuery}
-                                    placeholder={`Search ${title.toLowerCase()}...`}
-                                />
+                            <div className="flex flex-row flex-wrap gap-3 items-center">
+                                <div className="min-w-[180px]">
+                                    <SearchInput
+                                        value={searchQuery}
+                                        onChange={setSearchQuery}
+                                        placeholder={`Search ${title.toLowerCase()}...`}
+                                    />
+                                </div>
+                                <div className="">
+                                    <div ref={yearMenuRef} className="relative inline-flex">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsYearMenuOpen((v) => !v)}
+                                            className="h-11 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                        >
+                                            {selectedYearId
+                                                ? (years as any[]).find((y: any) => String(y.yearId) === String(selectedYearId))?.yearName || 'Year'
+                                                : 'All Years'}
+                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                                        </button>
+
+                                        {isYearMenuOpen && (
+                                            <div className="absolute right-0 z-50 mt-1 w-52 rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedYearId('')
+                                                        setIsYearMenuOpen(false)
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                        !selectedYearId
+                                                            ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                            : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                    }`}
+                                                >
+                                                    All Years
+                                                </button>
+                                                {(years as any[]).map((year: any) => {
+                                                    const selected = String(year.yearId) === String(selectedYearId)
+                                                    return (
+                                                        <button
+                                                            key={year.yearId}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedYearId(String(year.yearId))
+                                                                setIsYearMenuOpen(false)
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                                selected
+                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                            }`}
+                                                        >
+                                                            {year.yearName}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {error && <ErrorState message={error} className="my-4" />}
@@ -463,6 +1100,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 </div>
                             ) : (
                                 <>
+                                    {multiFormNote && (
+                                        <div className="mb-2 rounded-xl border border-[#FFE6A7] bg-[#FFF8E1] px-4 py-3 text-xs md:text-sm text-[#5D4037]">
+                                            {multiFormNote}
+                                        </div>
+                                    )}
                                     <DataTable
                                         fields={fields}
                                         data={paginatedData}
@@ -478,6 +1120,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         canDeleteItem={canDeleteItem}
                                         onTransfer={isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED ? handleTransfer : undefined}
                                         onViewHistory={(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) ? handleViewHistory : undefined}
+                                        customActions={entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM ? cfldCustomActions : oftCustomActions}
                                     />
 
                                     <Pagination

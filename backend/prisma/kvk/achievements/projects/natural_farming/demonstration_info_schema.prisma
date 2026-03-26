@@ -1,12 +1,15 @@
 model DemonstrationInfo {
   demonstrationInfoId           Int            @id @default(autoincrement()) @map("demonstration_info_id")
   kvkId                         Int
+  yearId                        Int?
   startDate                     DateTime
   endDate                       DateTime
   farmerName                    String
   villageName                   String
   address                       String
   contactNumber                 String
+  noOfIndigenousCows            Int?           @map("no_of_indigenous_cows")
+  landHolding                   Float?         @map("land_holding")
   gender                        Gender
   category                      FarmerCategory
   croppingPattern               String         @map("cropping_pattern")
@@ -40,7 +43,7 @@ model DemonstrationInfo {
   soilOcWith                    Float?
   soilEcWithout                 Float?
   soilEcWith                    Float?
-  availableNWithout             Float?
+  availableNWithout             Float? 
   availableNWith                Float?
   availablePWithout             Float?
   availablePWith                Float?
@@ -52,8 +55,12 @@ model DemonstrationInfo {
   anyOtherWith                  Float?
   farmerFeedback                String         @map("farmer_feedback")
   images                        String?        @map("images")
+  staffCategoryId               Int?           @map("staff_category_id")
+
   kvk                           Kvk            @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  season                        Season?        @relation(fields: [seasonId], references: [seasonId])
+  staffCategory                 StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId], onDelete: SetNull)
+  season                        Season?        @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+  reportingYear                 YearMaster?    @relation(fields: [yearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
   @@map("demonstration_info")

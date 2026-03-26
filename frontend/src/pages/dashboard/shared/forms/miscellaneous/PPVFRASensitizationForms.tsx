@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
+import { useFileHandling } from '@/hooks/useFileHandling'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -17,6 +18,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     formData,
     setFormData,
 }) => {
+    const { handleFileChange } = useFileHandling(formData, setFormData)
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     const yearOptions = useMemo(
@@ -53,11 +55,22 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     )
 
 
-    const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: e.target.files })
+    const handleFileChangeLocal = useCallback(
+        (field: string, multiple: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            handleFileChange(field, multiple)(e)
+            // If the field is 'image', also update the 'image' property which is used in the repository
+            if (field === 'images') {
+                const file = e.target.files?.[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setFormData({ ...formData, image: reader.result as string });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
         },
-        [formData, setFormData]
+        [handleFileChange, formData, setFormData]
     )
 
     if (!entityType) return null
@@ -274,17 +287,62 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         placeholder="Enter characteristics"
                     />
 
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <label className="block text-sm font-semibold text-gray-700">
                             Images
                         </label>
-                        <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleFileChange('images')}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
-                        />
+
+                        {(formData.image || formData.images) && (
+                            <div className="flex flex-wrap gap-3 mb-4 p-4 border border-dashed border-[#487749]/30 rounded-2xl bg-[#487749]/5">
+                                {(() => {
+                                    try {
+                                        const imageData = formData.image || formData.images;
+                                        const images = typeof imageData === 'string' 
+                                            ? (imageData.startsWith('[') ? JSON.parse(imageData) : [imageData])
+                                            : [];
+                                        return images.map((img: string, idx: number) => (
+                                            <div key={idx} className="relative group">
+                                                <img 
+                                                    src={img} 
+                                                    className="h-24 w-auto object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-transform duration-300" 
+                                                    alt={`Preview ${idx + 1}`} 
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newImages = images.filter((_: any, i: number) => i !== idx);
+                                                        const newValue = newImages.length === 0 ? null : (newImages.length === 1 ? newImages[0] : JSON.stringify(newImages));
+                                                        setFormData({ 
+                                                            ...formData, 
+                                                            image: newValue,
+                                                            images: null // Clear the file objects
+                                                        });
+                                                    }}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ));
+                                    } catch { return null; }
+                                })()}
+                            </div>
+                        )}
+
+                        <div className="relative group">
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleFileChangeLocal('images', true)}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749] file:text-white hover:file:bg-[#3d633e] transition-all border-2 border-dashed border-[#E0E0E0] group-hover:border-[#487749]/50 rounded-2xl p-2 bg-gray-50/50"
+                            />
+                            <p className="mt-2 text-[10px] text-gray-500">
+                                Max 2MB per file. (Optional)
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}

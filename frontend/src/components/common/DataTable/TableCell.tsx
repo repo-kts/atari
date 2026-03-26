@@ -13,11 +13,16 @@ interface TableCellProps {
 }
 
 export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
+    const truncateText = (input: unknown, limit = 30) => {
+        const text = String(input ?? '')
+        return text.length > limit ? `${text.slice(0, limit)}...` : text
+    }
     // Photo/Attachment field
     const isImageValue = typeof value === 'string' && value.startsWith('data:image/') && value.includes('base64,');
     const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath' || field === 'file' || field === 'uploadedFile';
     const imagePath = isImageValue ? value : (item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment || item.uploadedFile || item.file);
     const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
+    const isOftStatusField = field === 'ongoingCompleted' || field === 'status'
 
     // Image field
     if ((isImageField || isImageValue) && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
@@ -57,11 +62,38 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         )
     }
 
+    // OFT status field (ONGOING / COMPLETED / TRANSFERRED_TO_NEXT_YEAR)
+    if (isOftStatusField) {
+        const rawStatus = String(value || item.status || item.ongoingCompleted || '').toUpperCase().trim()
+        const labelMap: Record<string, string> = {
+            ONGOING: 'Ongoing',
+            COMPLETED: 'Completed',
+            TRANSFERRED_TO_NEXT_YEAR: 'Transferred to Next Year',
+        }
+        const classMap: Record<string, string> = {
+            ONGOING: 'bg-amber-100 text-amber-700 border border-amber-200',
+            COMPLETED: 'bg-green-100 text-green-700 border border-green-200',
+            TRANSFERRED_TO_NEXT_YEAR: 'bg-blue-100 text-blue-700 border border-blue-200',
+        }
+        const label = labelMap[rawStatus] || (rawStatus ? rawStatus.replace(/_/g, ' ') : 'Unknown')
+        return (
+            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${classMap[rawStatus] || 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
+                {label}
+            </span>
+        )
+    }
+
     // Object field
     if (typeof value === 'object' && value !== null) {
         return <span>{JSON.stringify(value)}</span>
     }
 
     // Default: text value
+    if (typeof value === 'string' || typeof value === 'number') {
+        const full = String(value)
+        const short = truncateText(full, 30)
+        return <span title={full}>{short || '-'}</span>
+    }
+
     return <span>{value || '-'}</span>
 }

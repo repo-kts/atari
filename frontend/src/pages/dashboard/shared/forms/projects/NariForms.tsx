@@ -10,7 +10,7 @@ interface NariFormsProps {
     setFormData: (data: any) => void
     years: any[]
     seasons: any[]
-    fldActivities: any[]
+    nariActivities: any[]
     nariCropCategories: any[]
     nariNutritionGardenTypes: any[]
 }
@@ -21,7 +21,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
     setFormData,
     years,
     seasons,
-    fldActivities,
+    nariActivities,
     nariCropCategories,
     nariNutritionGardenTypes
 }) => {
@@ -44,7 +44,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             value={formData.activityId || ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
                         />
                         <FormInput
@@ -177,7 +177,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             value={formData.activityId || ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
                         />
                         <MasterDataDropdown
@@ -191,8 +191,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <FormInput
                             label="Name of Crop"
                             required
-                            value={formData.cropName || ''}
-                            onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
+                            value={formData.cropName || formData.nameOfCrop || ''}
+                            onChange={(e) => setFormData({ ...formData, cropName: e.target.value, nameOfCrop: e.target.value })}
                         />
                         <FormInput
                             label="Variety"
@@ -308,7 +308,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             value={formData.activityId || ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
                         />
                         <FormInput
@@ -412,16 +412,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             value={formData.trainingArea || ''}
                             onChange={(e) => setFormData({ ...formData, trainingArea: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activity || ''}
-                            onChange={(e) => setFormData({ ...formData, activity: e.target.value })}
-                            options={[
-                                { value: 'Demonstration', label: 'Demonstration' },
-                                { value: 'Training', label: 'Training' }
-                            ]}
-                            placeholder="Select Option"
+                            value={formData.activityId || ''}
+                            onChange={(value) => setFormData({ ...formData, activityId: value })}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
+                            placeholder="Select Activity"
                         />
                         <FormInput
                             label="Title of training"
@@ -449,8 +446,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             value={formData.campusType || ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
-                                { value: 'On Campus', label: 'On Campus' },
-                                { value: 'Off Campus', label: 'Off Campus' }
+                                { value: 'ON_CAMPUS', label: 'On Campus' },
+                                { value: 'OFF_CAMPUS', label: 'Off Campus' }
                             ]}
                             placeholder="Please Select"
                         />
@@ -554,7 +551,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             value={formData.activityId || ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
                         />
                         <FormInput

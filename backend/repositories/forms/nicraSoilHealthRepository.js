@@ -25,46 +25,66 @@ const nicraSoilHealthRepository = {
         });
     },
 
+    _mapResponse: (r) => {
+        if (!r) return null;
+        return {
+            ...r,
+            id: r.nicraSoilHealthCardId,
+            startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
+            endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || ''),
+            genMale: r.generalM,
+            genFemale: r.generalF,
+            obcMale: r.obcM,
+            obcFemale: r.obcF,
+            scMale: r.scM,
+            scFemale: r.scF,
+            stMale: r.stM,
+            stFemale: r.stF,
+        };
+    },
+
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.nicraSoilHealthCard.findMany({
+        const results = await prisma.nicraSoilHealthCard.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } }
             },
             orderBy: { nicraSoilHealthCardId: 'desc' }
         });
+        return results.map(r => nicraSoilHealthRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
         const where = { nicraSoilHealthCardId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraSoilHealthCard.findFirst({
+        const result = await prisma.nicraSoilHealthCard.findFirst({
             where,
             include: {
                 kvk: { select: { kvkName: true } }
             }
         });
+        return nicraSoilHealthRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
         const where = { nicraSoilHealthCardId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
         const existing = await prisma.nicraSoilHealthCard.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.nicraSoilHealthCard.update({
+        const updated = await prisma.nicraSoilHealthCard.update({
             where: { nicraSoilHealthCardId: parseInt(id) },
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
@@ -82,6 +102,7 @@ const nicraSoilHealthRepository = {
                 stF: data.stFemale !== undefined ? parseInt(data.stFemale) : (data.stF !== undefined ? parseInt(data.stF) : existing.stF),
             }
         });
+        return nicraSoilHealthRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

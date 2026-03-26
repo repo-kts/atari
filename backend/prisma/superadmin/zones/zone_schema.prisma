@@ -42,6 +42,7 @@ model DistrictMaster {
   orgs         OrgMaster[]
   users        User[]
   tspScsps     TspScsp[]
+  agriDroneDemonstrations KvkAgriDroneDemonstration[]
 
   @@index([districtId])
   @@index([stateId])

@@ -11,7 +11,7 @@ const agriDroneRepository = {
         }
 
         const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
-        
+
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_agri_drone (
                 "kvkId", reporting_year_id, project_implementing_centre, 
@@ -67,7 +67,11 @@ const agriDroneRepository = {
     },
 
     findById: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -83,7 +87,11 @@ const agriDroneRepository = {
     },
 
     update: async (id, data, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -145,7 +153,11 @@ const agriDroneRepository = {
     },
 
     delete: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
+        const agriDroneId = parseInt(id);
+        if (!Number.isFinite(agriDroneId)) {
+            throw new Error('Valid agriDroneId is required');
+        }
+        const where = { agriDroneId };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }

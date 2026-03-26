@@ -40,6 +40,10 @@ router.get('/:id', requireRole(allRoles), fldController.getById);
  */
 router.patch('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), fldController.update);
 router.put('/:id', requireRole([...kvkRoles, 'super_admin']), ensureBody(), fldController.update);
+router.post('/:id/transfer-next-year', requireRole([...kvkRoles, 'super_admin']), fldController.transferToNextYear);
+router.post('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), fldController.addResult);
+router.put('/:id/result', requireRole([...kvkRoles, 'super_admin']), ensureBody(), fldController.editResult);
+router.get('/:id/result', requireRole(allRoles), fldController.getResult);
 
 /**
  * @route   DELETE /api/forms/achievements/fld/:id

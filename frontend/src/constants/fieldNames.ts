@@ -163,6 +163,7 @@ export const FIELD_NAMES = {
     // Area Fields
     AREA: 'area',
     AREA_HA: 'areaHa',
+    AREA_IN_ACRE: 'areaInAcre',
     AREA_PRACTICING: 'areaPracticing',
     PLINTH_AREA_SQ_M: 'plinthAreaSqM',
 
@@ -415,12 +416,14 @@ export const FIELD_NAMES = {
     TITLE_OF_NATURAL_FARMING_TRAINING_PROGRAMME: 'titleOfNaturalFarmingTrainingProgramme',
     DATE_OF_TRAINING: 'dateOfTraining',
     VENUE_OF_PROGRAMME: 'venueOfProgramme',
+    NAME_OF_INNOVATIVE_PROGRAMME: 'innovativeProgrammeName',
+    SIGNIFICANCE_OF_INNOVATIVE_PROGRAMME: 'significanceOfInnovativeProgramme',
     NORMAL_CROPS_GROWN: 'normalCropsGrown',
     PRACTICING_YEAR_OF_NATURAL_FARMING: 'practicingYearOfNaturalFarming',
-    NUMBER_OF_BLOCK: 'numberOfBlock',
-    NUMBER_OF_VILLAGE: 'numberOfVillage',
-    NUMBER_OF_TRAINING: 'numberOfTraining',
-    NO_OF_FARMERS_INFLUENCED_TO_ADOPT_NATURAL_FARMING: 'noOfFarmersInfluencedToAdoptNaturalFarming',
+    NUMBER_OF_BLOCK: 'noOfBlocks',
+    NUMBER_OF_VILLAGE: 'noOfVillages',
+    NUMBER_OF_TRAINING: 'totalTrainedFarmers',
+    NO_OF_FARMERS_INFLUENCED_TO_ADOPT_NATURAL_FARMING: 'farmersInfluenced',
     BEFORE_PH: 'beforePh',
     BEFORE_EC: 'beforeEc',
     BEFORE_OC: 'beforeOc',
@@ -431,6 +434,7 @@ export const FIELD_NAMES = {
 
     // Agri-Drone Fields
     DISTRICT: 'district',
+    DEMONSTRATIONS_ON: 'demonstrationsOn',
     DATE_OF_DEMONS: 'dateOfDemons',
     PLACE_OF_DEMONS: 'placeOfDemons',
     NO_OF_DEMOS: 'noOfDemos',
@@ -667,6 +671,9 @@ export const FIELD_GROUPS = {
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,
     SOIL_WATER_ANALYSIS_MASTER: [FIELD_NAMES.ANALYSIS_NAME] as const,
+    NICRA_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
+    NICRA_SUB_CATEGORY_MASTER: [FIELD_NAMES.SUB_CATEGORY_NAME, FIELD_NAMES.CATEGORY_NAME] as const,
+    NICRA_SEED_BANK_FODDER_BANK_MASTER: [FIELD_NAMES.SEED_BANK_FODDER_BANK] as const,
 
     // About KVK Routes
     VIEW_KVKS: [
@@ -797,7 +804,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.SEASON,
         FIELD_NAMES.TECHNOLOGY_DEMONSTRATED,
-        FIELD_NAMES.AREA_HA,
+        FIELD_NAMES.AREA_IN_ACRE,
         FIELD_NAMES.NUMBER_OF_FARMERS,
     ] as const,
     CRA_EXTENSION_ACTIVITY: [
@@ -1092,14 +1099,14 @@ export const FIELD_GROUPS = {
     ] as const,
     AGRI_DRONE_DEMONSTRATION: [
         FIELD_NAMES.KVK_NAME,
-        FIELD_NAMES.YEAR,
-        FIELD_NAMES.PILOT_NAME,
-        FIELD_NAMES.PILOT_CONTACT,
-        FIELD_NAMES.TARGET_AREA_HA,
-        FIELD_NAMES.DEMO_AMOUNT_SANCTIONED,
-        FIELD_NAMES.DEMO_AMOUNT_UTILISED,
-        FIELD_NAMES.OPERATION_TYPE,
-        FIELD_NAMES.ADVANTAGES_OBSERVED,
+        FIELD_NAMES.PROJECT_IMPLEMENTING_CENTRE_NAME,
+        FIELD_NAMES.DISTRICT,
+        FIELD_NAMES.DATE_OF_DEMONS,
+        FIELD_NAMES.PLACE_OF_DEMONS,
+        FIELD_NAMES.CROP_NAME,
+        FIELD_NAMES.NO_OF_DEMOS,
+        FIELD_NAMES.AREA_COVERED_UNDER_DEMOS,
+        FIELD_NAMES.NO_OF_FARMERS,
     ] as const,
 
     // Projects Routes - Seed Hub

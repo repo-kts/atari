@@ -151,6 +151,46 @@ router.delete('/soil-water-analysis/:id', requirePermission('all_masters_soil_wa
 // ============================================
 
 router.get('/nari-crop-category', otherMastersController.getAllNariCropCategories);
-router.get('/nari-nutrition-garden-type', otherMastersController.getAllNariNutritionGardenTypes);
+router.get('/nari-activity', otherMastersController.getAllNariActivities);
+router.get('/nari-activity/:id', otherMastersController.getNariActivityById);
+router.post('/nari-activity', requirePermission('all_masters_nari_activity_master', 'ADD'), otherMastersController.createNariActivity);
+router.put('/nari-activity/:id', requirePermission('all_masters_nari_activity_master', 'EDIT'), otherMastersController.updateNariActivity);
+router.delete('/nari-activity/:id', requirePermission('all_masters_nari_activity_master', 'DELETE'), otherMastersController.deleteNariActivity);
 
+router.get('/nari-nutrition-garden-type', otherMastersController.getAllNariNutritionGardenTypes);
+router.get('/nari-nutrition-garden-type/:id', otherMastersController.getNariNutritionGardenTypeById);
+router.post('/nari-nutrition-garden-type', requirePermission('all_masters_nari_garden_type_master', 'ADD'), otherMastersController.createNariNutritionGardenType);
+router.put('/nari-nutrition-garden-type/:id', requirePermission('all_masters_nari_garden_type_master', 'EDIT'), otherMastersController.updateNariNutritionGardenType);
+router.delete('/nari-nutrition-garden-type/:id', requirePermission('all_masters_nari_garden_type_master', 'DELETE'), otherMastersController.deleteNariNutritionGardenType);
+
+// NICRA Category/Sub-category are grouped under one NICRA module
+router.get('/nicra-category', otherMastersController.getAllNicraCategories);
+router.get('/nicra-category/:id', otherMastersController.getNicraCategoryById);
+router.post('/nicra-category', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraCategory);
+router.put('/nicra-category/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraCategory);
+router.delete('/nicra-category/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraCategory);
+
+router.get('/nicra-sub-category', otherMastersController.getAllNicraSubCategories);
+router.get('/nicra-sub-category/:id', otherMastersController.getNicraSubCategoryById);
+router.post('/nicra-sub-category', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraSubCategory);
+router.put('/nicra-sub-category/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraSubCategory);
+router.delete('/nicra-sub-category/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraSubCategory);
+
+router.get('/nicra-seed-bank-fodder-bank', otherMastersController.getAllNicraSeedBankFodderBank);
+router.get('/nicra-seed-bank-fodder-bank/:id', otherMastersController.getNicraSeedBankFodderBankById);
+router.post('/nicra-seed-bank-fodder-bank', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraSeedBankFodderBank);
+router.put('/nicra-seed-bank-fodder-bank/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraSeedBankFodderBank);
+router.delete('/nicra-seed-bank-fodder-bank/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraSeedBankFodderBank);
+
+router.get('/nicra-dignitary-type', otherMastersController.getAllNicraDignitaryTypes);
+router.get('/nicra-dignitary-type/:id', otherMastersController.getNicraDignitaryTypeById);
+router.post('/nicra-dignitary-type', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraDignitaryType);
+router.put('/nicra-dignitary-type/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraDignitaryType);
+router.delete('/nicra-dignitary-type/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraDignitaryType);
+
+router.get('/nicra-pi-type', otherMastersController.getAllNicraPiTypes);
+router.get('/nicra-pi-type/:id', otherMastersController.getNicraPiTypeById);
+router.post('/nicra-pi-type', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraPiType);
+router.put('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraPiType);
+router.delete('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraPiType);
 module.exports = router;

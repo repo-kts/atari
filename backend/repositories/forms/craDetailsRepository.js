@@ -5,17 +5,34 @@ const craDetailsRepository = {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
+        const croppingSystemIdRaw = data.croppingSystemId ?? data.craCropingSystemId
+        const croppingSystemId = croppingSystemIdRaw !== undefined && croppingSystemIdRaw !== null && croppingSystemIdRaw !== ''
+            ? parseInt(croppingSystemIdRaw)
+            : null
+
+        let croppingSystemName = data.croppingSystem || ''
+        if (croppingSystemId) {
+            const cs = await prisma.craCropingSystem.findFirst({
+                where: { craCropingSystemId: croppingSystemId },
+                select: { cropName: true }
+            })
+            if (cs?.cropName) croppingSystemName = cs.cropName
+        }
+
         return await prisma.craDetails.create({
             data: {
                 kvkId,
                 reportingYearId: parseInt(data.reportingYearId || data.yearId),
                 seasonId: parseInt(data.seasonId),
                 interventions: data.interventions || '',
-                croppingSystem: data.croppingSystem || '',
+                // Persist both the FK and a readable copy for backwards compatibility / reporting
+                croppingSystemId,
+                croppingSystem: croppingSystemName,
                 farmingSystemId: parseInt(data.farmingSystemId),
                 areaInAcre: parseFloat(data.areaInAcre || 0),
-                genM: parseInt(data.genM || 0),
-                genF: parseInt(data.genF || 0),
+                // Prisma model uses generalM/generalF; API payload uses genM/genF
+                generalM: parseInt((data.generalM ?? data.genM) || 0),
+                generalF: parseInt((data.generalF ?? data.genF) || 0),
                 obcM: parseInt(data.obcM || 0),
                 obcF: parseInt(data.obcF || 0),
                 scM: parseInt(data.scM || 0),
@@ -28,7 +45,8 @@ const craDetailsRepository = {
                 farmerPracticeYield: parseFloat(data.farmerPracticeYield || 0)
             },
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
             }
         });
     },
@@ -44,7 +62,8 @@ const craDetailsRepository = {
         const results = await prisma.craDetails.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
             },
             orderBy: { craDetailsId: 'desc' }
         });
@@ -60,7 +79,8 @@ const craDetailsRepository = {
         const result = await prisma.craDetails.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
             }
         });
         return result ? _mapResponse(result) : null;
@@ -75,17 +95,40 @@ const craDetailsRepository = {
         const existing = await prisma.craDetails.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
+        const croppingSystemIdRaw = data.croppingSystemId ?? data.craCropingSystemId
+        const croppingSystemId = croppingSystemIdRaw !== undefined && croppingSystemIdRaw !== null && croppingSystemIdRaw !== ''
+            ? parseInt(croppingSystemIdRaw)
+            : undefined
+
+        let croppingSystemName = data.croppingSystem
+        if (croppingSystemName === undefined && croppingSystemId !== undefined) {
+            if (croppingSystemId) {
+                const cs = await prisma.craCropingSystem.findFirst({
+                    where: { craCropingSystemId: croppingSystemId },
+                    select: { cropName: true }
+                })
+                croppingSystemName = cs?.cropName || ''
+            } else {
+                croppingSystemName = ''
+            }
+        }
+
         const result = await prisma.craDetails.update({
             where: { craDetailsId: parseInt(id) },
             data: {
                 reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : (data.yearId ? parseInt(data.yearId) : existing.reportingYearId),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : existing.seasonId,
                 interventions: data.interventions !== undefined ? data.interventions : existing.interventions,
-                croppingSystem: data.croppingSystem !== undefined ? data.croppingSystem : existing.croppingSystem,
+                croppingSystemId: croppingSystemId !== undefined ? croppingSystemId : existing.croppingSystemId,
+                croppingSystem: croppingSystemName !== undefined ? croppingSystemName : existing.croppingSystem,
                 farmingSystemId: data.farmingSystemId ? parseInt(data.farmingSystemId) : existing.farmingSystemId,
                 areaInAcre: data.areaInAcre !== undefined ? parseFloat(data.areaInAcre) : existing.areaInAcre,
-                genM: data.genM !== undefined ? parseInt(data.genM || 0) : existing.genM,
-                genF: data.genF !== undefined ? parseInt(data.genF || 0) : existing.genF,
+                generalM: (data.generalM !== undefined || data.genM !== undefined)
+                    ? parseInt((data.generalM ?? data.genM) || 0)
+                    : existing.generalM,
+                generalF: (data.generalF !== undefined || data.genF !== undefined)
+                    ? parseInt((data.generalF ?? data.genF) || 0)
+                    : existing.generalF,
                 obcM: data.obcM !== undefined ? parseInt(data.obcM || 0) : existing.obcM,
                 obcF: data.obcF !== undefined ? parseInt(data.obcF || 0) : existing.obcF,
                 scM: data.scM !== undefined ? parseInt(data.scM || 0) : existing.scM,
@@ -98,7 +141,8 @@ const craDetailsRepository = {
                 farmerPracticeYield: data.farmerPracticeYield !== undefined ? parseFloat(data.farmerPracticeYield) : existing.farmerPracticeYield
             },
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                season: { select: { seasonName: true } },
             }
         });
         return _mapResponse(result);
@@ -125,8 +169,11 @@ function _mapResponse(r) {
         ...r,
         id: r.craDetailsId,
         kvkName: r.kvk ? r.kvk.kvkName : '',
+        seasonName: r.season?.seasonName || r.seasonName,
         yearId: r.reportingYearId,
-        reportingYearId: r.reportingYearId
+        reportingYearId: r.reportingYearId,
+        genM: r.generalM,
+        genF: r.generalF,
     };
 }
 

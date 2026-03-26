@@ -25,6 +25,26 @@ const sections: FeatureSection[] = [
             { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
         ],
     },
+    {
+        title: 'NARI Masters',
+        icon: <Calendar className="w-5 h-5" />,
+        items: [
+            { label: 'NARI Activity Master', path: '/all-master/nari-activity' },
+            { label: 'NARI Nutrition Garden Type Master', path: '/all-master/nari-nutrition-garden-type' },
+            { label: 'NARI Crop Category Master', path: '/all-master/nari-crop-category' },
+        ],
+    },
+    {
+        title: 'NICRA Masters',
+        icon: <Calendar className="w-5 h-5" />,
+        items: [
+            { label: 'NICRA Category Master', path: '/all-master/nicra-category' },
+            { label: 'NICRA Sub-category Master', path: '/all-master/nicra-sub-category' },
+            { label: 'NICRA Seed/Fodder Bank Master', path: '/all-master/nicra-seed-bank-fodder-bank' },
+            { label: 'NICRA Dignitary Type Master', path: '/all-master/nicra-dignitary-type' },
+            { label: 'NICRA PI/CO-PI Type Master', path: '/all-master/nicra-pi-type' },
+        ],
+    },
 ]
 
 export const OtherMastersTab: React.FC = () => {

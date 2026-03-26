@@ -10,6 +10,8 @@ interface TspScspFormsProps {
     setFormData: (data: any) => void
     years: any[]
     districts: any[]
+    tspScspTypes: any[]
+    tspScspActivities: any[]
 }
 
 export const TspScspForms: React.FC<TspScspFormsProps> = ({
@@ -17,8 +19,13 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
     formData,
     setFormData,
     years,
-    districts
+    districts,
+    tspScspTypes,
+    tspScspActivities
 }) => {
+    const normalizedType = (formData?.type || '').toString().toUpperCase()
+    const isScsp = normalizedType === 'SCSP'
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_TSP_SCSP && (
@@ -33,25 +40,21 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                             options={createMasterDataOptions(years, 'yearId', 'yearName')}
                             emptyMessage="No reporting years available"
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Type"
                             required
                             value={formData.type || ''}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                            options={[
-                                { value: 'TSP', label: 'TSP' },
-                                { value: 'SCSP', label: 'SCSP' }
-                            ]}
+                            onChange={(value) => setFormData({ ...formData, type: value })}
+                            options={createMasterDataOptions(tspScspTypes, 'typeName', 'typeName')}
+                            placeholder="Select Type"
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Activities"
                             required
                             value={formData.activityId || ''}
-                            onChange={(e) => setFormData({ ...formData, activityId: e.target.value })}
-                            options={[
-                                { value: '1', label: 'Activity 1' },
-                                { value: '2', label: 'Activity 2' }
-                            ]}
+                            onChange={(value) => setFormData({ ...formData, activityId: value })}
+                            options={createMasterDataOptions(tspScspActivities, 'tspScspActivityId', 'activityName')}
+                            placeholder="Select Activity"
                         />
                         <FormInput
                             label="No. of Trainings/Demos"
@@ -67,6 +70,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                             value={formData.noOfBeneficiaries || ''}
                             onChange={(e) => setFormData({ ...formData, noOfBeneficiaries: e.target.value })}
                         />
+                        {!isScsp && (
                         <FormInput
                             label="Funds received"
                             required
@@ -74,8 +78,11 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                             value={formData.fundsReceived || ''}
                             onChange={(e) => setFormData({ ...formData, fundsReceived: e.target.value })}
                         />
+                        )}
                     </div>
 
+                    {!isScsp && (
+                        <>
                     {/* Achievements of physical outcome Section */}
                     <div className="space-y-6 pt-4">
                         <h3 className="text-xl font-bold text-gray-800">Achievements of physical outcome</h3>
@@ -212,6 +219,8 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
                 </div>
             )}
         </>

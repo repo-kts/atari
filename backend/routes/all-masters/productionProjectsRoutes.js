@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken, requirePermission } = require('../../middleware/auth.js');
 const productionProjectsController = require('../../controllers/all-masters/productionProjectsController.js');
+const agriDroneMastersController = require('../../controllers/all-masters/agriDroneMastersController.js');
 
 /**
  * Production & Projects Master Routes
@@ -84,6 +85,50 @@ router.get('/arya-enterprises/:id', productionProjectsController.getAryaEnterpri
 router.post('/arya-enterprises',    requirePermission('all_masters_arya_master', 'ADD'),  productionProjectsController.createAryaEnterprise);
 router.put('/arya-enterprises/:id', requirePermission('all_masters_arya_master', 'EDIT'), productionProjectsController.updateAryaEnterprise);
 router.delete('/arya-enterprises/:id', requirePermission('all_masters_arya_master', 'DELETE'), productionProjectsController.deleteAryaEnterprise);
+
+// ============================================
+// TSP/SCSP Type Routes  (moduleCode: all_masters_tsp_scsp_master)
+// ============================================
+
+router.get('/tsp-scsp-types',     productionProjectsController.getAllTspScspTypes);
+router.get('/tsp-scsp-types/:id', productionProjectsController.getTspScspTypeById);
+router.post('/tsp-scsp-types',    requirePermission('all_masters_tsp_scsp_master', 'ADD'),  productionProjectsController.createTspScspType);
+router.put('/tsp-scsp-types/:id', requirePermission('all_masters_tsp_scsp_master', 'EDIT'), productionProjectsController.updateTspScspType);
+router.delete('/tsp-scsp-types/:id', requirePermission('all_masters_tsp_scsp_master', 'DELETE'), productionProjectsController.deleteTspScspType);
+
+// ============================================
+// TSP/SCSP Activity Routes  (moduleCode: all_masters_tsp_scsp_master)
+// ============================================
+
+router.get('/tsp-scsp-activities',     productionProjectsController.getAllTspScspActivities);
+router.get('/tsp-scsp-activities/:id', productionProjectsController.getTspScspActivityById);
+router.post('/tsp-scsp-activities',    requirePermission('all_masters_tsp_scsp_master', 'ADD'),  productionProjectsController.createTspScspActivity);
+router.put('/tsp-scsp-activities/:id', requirePermission('all_masters_tsp_scsp_master', 'EDIT'), productionProjectsController.updateTspScspActivity);
+router.delete('/tsp-scsp-activities/:id', requirePermission('all_masters_tsp_scsp_master', 'DELETE'), productionProjectsController.deleteTspScspActivity);
+
+// ============================================
+// Natural Farming Activity Routes  (moduleCode: all_masters_natural_farming_master)
+// ============================================
+router.get('/natural-farming-activities', productionProjectsController.getAllNaturalFarmingActivities);
+router.get('/natural-farming-activities/:id', productionProjectsController.getNaturalFarmingActivityById);
+router.post('/natural-farming-activities', requirePermission('all_masters_natural_farming_master', 'ADD'), productionProjectsController.createNaturalFarmingActivity);
+router.put('/natural-farming-activities/:id', requirePermission('all_masters_natural_farming_master', 'EDIT'), productionProjectsController.updateNaturalFarmingActivity);
+router.delete('/natural-farming-activities/:id', requirePermission('all_masters_natural_farming_master', 'DELETE'), productionProjectsController.deleteNaturalFarmingActivity);
+
+router.get('/natural-farming-soil-parameters', productionProjectsController.getAllNaturalFarmingSoilParameters);
+router.get('/natural-farming-soil-parameters/:id', productionProjectsController.getNaturalFarmingSoilParameterById);
+router.post('/natural-farming-soil-parameters', requirePermission('all_masters_natural_farming_master', 'ADD'), productionProjectsController.createNaturalFarmingSoilParameter);
+router.put('/natural-farming-soil-parameters/:id', requirePermission('all_masters_natural_farming_master', 'EDIT'), productionProjectsController.updateNaturalFarmingSoilParameter);
+router.delete('/natural-farming-soil-parameters/:id', requirePermission('all_masters_natural_farming_master', 'DELETE'), productionProjectsController.deleteNaturalFarmingSoilParameter);
+
+// ============================================
+// Agri Drone Masters  (moduleCode: all_masters_agri_drone_master)
+// ============================================
+router.get('/agri-drone-demonstrations-on', agriDroneMastersController.getAllDemonstrationsOn);
+router.get('/agri-drone-demonstrations-on/:id', agriDroneMastersController.getDemonstrationsOnById);
+router.post('/agri-drone-demonstrations-on', requirePermission('all_masters_agri_drone_master', 'ADD'), agriDroneMastersController.createDemonstrationsOn);
+router.put('/agri-drone-demonstrations-on/:id', requirePermission('all_masters_agri_drone_master', 'EDIT'), agriDroneMastersController.updateDemonstrationsOn);
+router.delete('/agri-drone-demonstrations-on/:id', requirePermission('all_masters_agri_drone_master', 'DELETE'), agriDroneMastersController.deleteDemonstrationsOn);
 
 // ============================================
 // Statistics Route

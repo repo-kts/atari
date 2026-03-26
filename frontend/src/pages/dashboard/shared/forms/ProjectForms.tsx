@@ -1,12 +1,12 @@
 import React from 'react'
-import { ExtendedEntityType } from '../../../../utils/masterUtils'
-import { useFldActivities, useCropTypes } from '../../../../hooks/useOftFldData';
-import { useSeasons, useYears, useExtensionActivityTypes, useCfldExtensionActivityTypes, useNariCropCategories, useNariNutritionGardenTypes } from '../../../../hooks/useOtherMastersData'
-import { useAryaEnterprises, useCraFarmingSystems } from '../../../../hooks/useProductionProjectsData'
-import { useNicraCategories, useNicraSubCategories } from '../../../../hooks/useNicraData'
-import { useMasterData } from '../../../../hooks/useMasterData'
+import { ExtendedEntityType } from '@/utils/masterUtils'
+import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { useSeasons, useYears, useExtensionActivityTypes, useNariActivities, useNariCropCategories, useNariNutritionGardenTypes, useNicraCategories, useNicraSubCategories, useNicraSeedBankFodderBanks, useNicraDignitaryTypes, useNicraPiTypes, useStaffCategories } from '@/hooks/useOtherMastersData'
+import { useAgriDroneDemonstrationsOn, useAryaEnterprises, useCraCroppingSystems, useCraFarmingSystems, useNaturalFarmingActivities, useNaturalFarmingSoilParameters, useTspScspActivities, useTspScspTypes } from '@/hooks/useProductionProjectsData'
+import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect } from 'react'
+import { useProjectData } from '@/hooks/useProjectData'
 
 // Project-specific form components
 import { CfldForms } from './projects/CfldForms'
@@ -43,22 +43,30 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
         }
     }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
     const { data: seasons = [] } = useSeasons()
-    const { data: cropTypes = [] } = useCropTypes()
     const { data: years = [] } = useYears()
     const { data: aryaEnterprises = [] } = useAryaEnterprises()
-    const { data: craFarmingSystems = [] } = useCraFarmingSystems()
+    const { data: craFarmingSystems = [], isLoading: craFarmingSystemsLoading } = useCraFarmingSystems()
+    const { data: craCroppingSystems = [], isLoading: craCroppingSystemsLoading } = useCraCroppingSystems()
     const { data: extensionActivityTypes = [] } = useExtensionActivityTypes()
-    const { data: cfldExtensionActivityTypes = [] } = useCfldExtensionActivityTypes()
     const { data: states = [] } = useMasterData('states')
     const { data: districts = [] } = useMasterData('districts')
     const { data: kvks = [] } = useMasterData('organizations')
 
     const { data: nicraCategories = [] } = useNicraCategories()
-    const { data: nicraSubcategories = [] } = useNicraSubCategories(formData.categoryId)
+    const { data: nicraSubcategories = [] } = useNicraSubCategories()
+    const { data: nicraSeedBankFodderBanks = [] } = useNicraSeedBankFodderBanks()
+    const { data: nicraDignitaryTypes = [] } = useNicraDignitaryTypes()
+    const { data: nicraPiTypes = [] } = useNicraPiTypes()
 
-    const { data: fldActivities = [] } = useFldActivities()
+    const { data: nariActivities = [] } = useNariActivities()
     const { data: nariCropCategories = [] } = useNariCropCategories()
     const { data: nariNutritionGardenTypes = [] } = useNariNutritionGardenTypes()
+    const { data: tspScspTypes = [] } = useTspScspTypes()
+    const { data: tspScspActivities = [] } = useTspScspActivities()
+    const { data: agriDroneDemonstrationsOn = [] } = useAgriDroneDemonstrationsOn()
+    const { data: naturalFarmingActivities = [] } = useNaturalFarmingActivities()
+    const { data: naturalFarmingSoilParameters = [] } = useNaturalFarmingSoilParameters()
+    const { data: agriDroneIntros = [] } = useProjectData(ENTITY_TYPES.PROJECT_AGRI_DRONE)
 
     if (!entityType) return null
 
@@ -76,7 +84,7 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     const isSeedHub = entityType.includes('seed-hub')
     const isNaturalFarming = entityType.includes('natural-farming')
     const isOther = entityType.includes('other')
-
+    const { data: staffCategories = [] } = useStaffCategories()
     return (
         <>
 
@@ -85,10 +93,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    seasons={seasons}
-                    cropTypes={cropTypes}
-                    years={years}
-                    extensionActivityTypes={cfldExtensionActivityTypes}
                 />
             )}
 
@@ -100,6 +104,9 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     years={years}
                     seasons={seasons}
                     farmingSystems={craFarmingSystems}
+                    farmingSystemsLoading={craFarmingSystemsLoading}
+                    croppingSystems={craCroppingSystems}
+                    croppingSystemsLoading={craCroppingSystemsLoading}
                     extensionActivityTypes={extensionActivityTypes}
                 />
             )}
@@ -125,6 +132,9 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     seasons={seasons}
                     categories={nicraCategories}
                     subCategories={nicraSubcategories}
+                    seedBankFodderBanks={nicraSeedBankFodderBanks}
+                    dignitaryTypes={nicraDignitaryTypes}
+                    piTypes={nicraPiTypes}
                 />
             )}
 
@@ -135,7 +145,7 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     setFormData={setFormData}
                     years={years}
                     seasons={seasons}
-                    fldActivities={fldActivities}
+                    nariActivities={nariActivities}
                     nariCropCategories={nariCropCategories}
                     nariNutritionGardenTypes={nariNutritionGardenTypes}
                 />
@@ -179,6 +189,8 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     setFormData={setFormData}
                     years={years}
                     districts={districts}
+                    tspScspTypes={tspScspTypes}
+                    tspScspActivities={tspScspActivities}
                 />
             )}
 
@@ -188,6 +200,9 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     formData={formData}
                     setFormData={setFormData}
                     years={years}
+                    districts={districts}
+                    demonstrationsOnMasters={agriDroneDemonstrationsOn}
+                    agriDroneIntros={agriDroneIntros}
                 />
             )}
 
@@ -209,6 +224,9 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     years={years}
                     states={states}
                     seasons={seasons}
+                    staffCategories={staffCategories}
+                    naturalFarmingActivities={naturalFarmingActivities}
+                    naturalFarmingSoilParameters={naturalFarmingSoilParameters}
                 />
             )}
 

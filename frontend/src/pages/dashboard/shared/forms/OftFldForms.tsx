@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect, useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
@@ -73,10 +73,34 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // FLD list for extension training and technical feedback
     const { data: fldList = [] } = useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD)
+    const selectedReportingYearId = formData.reportingYearId ? Number(formData.reportingYearId) : null
+    const fldOptionsByKvkAndYear = useMemo(() => {
+        return (fldList as any[]).filter((f: any) => {
+            const fldKvkId = f.kvkId ?? f.kvk?.kvkId
+            const fldYearId = f.reportingYearId ?? f.yearId ?? f.reportingYear?.yearId
+            const kvkMatch = activeKvkId ? Number(fldKvkId) === Number(activeKvkId) : true
+            const yearMatch = selectedReportingYearId ? Number(fldYearId) === Number(selectedReportingYearId) : false
+            return kvkMatch && yearMatch
+        })
+    }, [fldList, activeKvkId, selectedReportingYearId])
+    const selectedFldForTechnicalFeedback = useMemo(
+        () => fldOptionsByKvkAndYear.find((f: any) => Number(f.kvkFldId || f.id) === Number(formData.fldId)),
+        [fldOptionsByKvkAndYear, formData.fldId]
+    )
+    const cropOptionsForSelectedFld = useMemo(() => {
+        if (!selectedFldForTechnicalFeedback) return []
+        const cropId = selectedFldForTechnicalFeedback.cropId
+        if (!cropId) return []
+        const cropName =
+            selectedFldForTechnicalFeedback.cropName ||
+            fldCrops.find((c: any) => Number(c.cropId) === Number(cropId))?.cropName ||
+            `Crop ${cropId}`
+        return [{ value: cropId, label: cropName }]
+    }, [selectedFldForTechnicalFeedback, fldCrops])
 
     // FldActivity list for extension training - using the proper hook
     const { data: activityList = [] } = useFldActivities()
- 
+
     // OFT Thematic Areas - depends on subjectId
     const { data: oftThematicAreasData = [], isLoading: isLoadingOftThematicAreas } = useOftThematicAreasBySubject(
         formData.oftSubjectId ? parseInt(formData.oftSubjectId) : null
@@ -117,6 +141,28 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         }));
     }, []);
 
+    const loadFldByKvkAndYear = useCallback(async (compositeValue: any) => {
+        const parsed = String(compositeValue || '')
+        const [kvkIdRaw, yearIdRaw] = parsed.split('-')
+        const kvkId = Number(kvkIdRaw)
+        const reportingYearId = Number(yearIdRaw)
+
+        if (!Number.isFinite(kvkId) || !Number.isFinite(reportingYearId)) {
+            return []
+        }
+
+        return (fldList as any[])
+            .filter((f: any) => {
+                const fldKvkId = f.kvkId ?? f.kvk?.kvkId
+                const fldYearId = f.reportingYearId ?? f.yearId ?? f.reportingYear?.yearId
+                return Number(fldKvkId) === kvkId && Number(fldYearId) === reportingYearId
+            })
+            .map((f: any) => ({
+                value: f.kvkFldId || f.id,
+                label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`,
+            }))
+    }, [fldList])
+
     // Derive sectorId from categoryId when editing FLD_CROPS
     useEffect(() => {
         if (entityType === ENTITY_TYPES.FLD_CROPS && formData.categoryId && !formData.sectorId && fldCategories.length > 0) {
@@ -127,9 +173,9 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         }
     }, [entityType, formData.categoryId, formData.sectorId, fldCategories, setFormData])
 
-    // Extract reportingYearId from nested reportingYear object when editing OFT
+    // Extract reportingYearId from nested reportingYear object when editing OFT/FLD
     useEffect(() => {
-        if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT) {
+        if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT || entityType === ENTITY_TYPES.ACHIEVEMENT_FLD) {
             setFormData((prev: any) => {
                 // Skip if reportingYearId already exists
                 if (prev.reportingYearId) return prev
@@ -544,16 +590,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.duration || ''}
                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         />
-                        <FormSelect
-                            label="Status"
-                            required
-                            value={formData.ongoingCompleted || 'Ongoing'}
-                            onChange={(e) => setFormData({ ...formData, ongoingCompleted: e.target.value })}
-                            options={[
-                                { value: 'Ongoing', label: 'Ongoing' },
-                                { value: 'Completed', label: 'Completed' }
-                            ]}
-                        />
                         <FormInput
                             label="Critical Input"
                             required
@@ -616,6 +652,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <div className="space-y-8">
                     {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MasterDataDropdown
+                            label="Reporting Year"
+                            required
+                            value={formData.reportingYearId || ''}
+                            onChange={(value) => setFormData({ ...formData, reportingYearId: value as number })}
+                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
+                            emptyMessage="No reporting years available"
+                        />
+
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
                         <DependentDropdown
                             label="Name of SMS/KVK Head"
@@ -791,9 +836,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             emptyMessage="No crops available for this subcategory"
                             loadingMessage="Loading crops..."
                         />
-                        { /* Spacer to align grid if needed, or just let it flow */}
-                        <div className="hidden md:block"></div>
-
                         <FormInput
                             label="Name of Technology Demonstrated (FLD Name)"
                             required
@@ -813,16 +855,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             type="date"
                             value={formData.startDate || ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        />
-                        <FormSelect
-                            label="Status"
-                            required
-                            value={formData.ongoingCompleted || 'Ongoing'}
-                            onChange={(e) => setFormData({ ...formData, ongoingCompleted: e.target.value })}
-                            options={[
-                                { value: 'Ongoing', label: 'Ongoing' },
-                                { value: 'Completed', label: 'Completed' }
-                            ]}
                         />
                         <FormInput
                             label="Area(ha)"
@@ -868,22 +900,26 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.fldId || ''}
                             onChange={(value) => {
-                                const selectedFld = fldList.find((f: any) => f.kvkFldId === value || f.id === value)
+                                const selectedFld = fldOptionsByKvkAndYear.find((f: any) => f.kvkFldId === value || f.id === value)
                                 setFormData({
                                     ...formData,
                                     fldId: value as number,
-                                    fldName: selectedFld?.fldName || selectedFld?.technologyName
+                                    fldName: selectedFld?.fldName || selectedFld?.technologyName,
+                                    cropId: selectedFld?.cropId || '',
+                                    crop: selectedFld?.cropName || ''
                                 })
                             }}
-                            options={fldList.map((f: any) => ({
+                            options={fldOptionsByKvkAndYear.map((f: any) => ({
                                 value: f.kvkFldId || f.id,
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId,
-                                field: 'kvkId',
+                                value: activeKvkId && selectedReportingYearId ? `${activeKvkId}-${selectedReportingYearId}` : '',
+                                field: 'kvkIdReportingYearId',
                             }}
-                            emptyMessage="No FLD available for this KVK"
+                            onOptionsLoad={loadFldByKvkAndYear}
+                            cacheKey="fld-by-kvk-year-extension-training"
+                            emptyMessage="No FLD available for selected KVK and year"
                             loadingMessage="Loading FLD..."
                         />
 
@@ -966,22 +1002,24 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.fldId || ''}
                             onChange={(value) => {
-                                const selectedFld = fldList.find((f: any) => f.kvkFldId === value || f.id === value)
+                                const selectedFld = fldOptionsByKvkAndYear.find((f: any) => f.kvkFldId === value || f.id === value)
                                 setFormData({
                                     ...formData,
                                     fldId: value as number,
                                     fldName: selectedFld?.fldName || selectedFld?.technologyName
                                 })
                             }}
-                            options={fldList.map((f: any) => ({
+                            options={fldOptionsByKvkAndYear.map((f: any) => ({
                                 value: f.kvkFldId || f.id,
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId,
-                                field: 'kvkId',
+                                value: activeKvkId && selectedReportingYearId ? `${activeKvkId}-${selectedReportingYearId}` : '',
+                                field: 'kvkIdReportingYearId',
                             }}
-                            emptyMessage="No FLD available for this KVK"
+                            onOptionsLoad={loadFldByKvkAndYear}
+                            cacheKey="fld-by-kvk-year-technical-feedback"
+                            emptyMessage="No FLD available for selected KVK and year"
                             loadingMessage="Loading FLD..."
                         />
 
@@ -990,18 +1028,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.cropId || ''}
                             onChange={(value) => {
-                                const selectedCrop = fldCrops.find((c: any) => c.cropId === value)
+                                const selectedCrop = cropOptionsForSelectedFld.find((c: any) => Number(c.value) === Number(value))
                                 setFormData({
                                     ...formData,
                                     cropId: value as number,
-                                    crop: selectedCrop?.cropName || ''
+                                    crop: selectedCrop?.label || ''
                                 })
                             }}
-                            options={fldCrops.map((c: any) => ({
-                                value: c.cropId,
-                                label: c.cropName
-                            }))}
-                            emptyMessage="No crops available"
+                            options={cropOptionsForSelectedFld}
+                            dependsOn={{
+                                value: formData.fldId || '',
+                                field: 'fldId',
+                            }}
+                            emptyMessage="No crop is mapped to selected FLD"
                         />
                     </div>
 

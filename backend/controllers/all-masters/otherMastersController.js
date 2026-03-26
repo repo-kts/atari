@@ -242,4 +242,48 @@ exports.deleteSoilWaterAnalysis = deleteEntity('soil-water-analysis');
 // ============================================
 
 exports.getAllNariCropCategories = getAll('nari-crop-category');
+exports.getAllNariActivities = getAll('nari-activity');
+exports.getNariActivityById = getById('nari-activity');
+exports.createNariActivity = create('nari-activity');
+exports.updateNariActivity = update('nari-activity');
+exports.deleteNariActivity = deleteEntity('nari-activity');
+
 exports.getAllNariNutritionGardenTypes = getAll('nari-nutrition-garden-type');
+exports.getNariNutritionGardenTypeById = getById('nari-nutrition-garden-type');
+exports.createNariNutritionGardenType = create('nari-nutrition-garden-type');
+exports.updateNariNutritionGardenType = update('nari-nutrition-garden-type');
+exports.deleteNariNutritionGardenType = deleteEntity('nari-nutrition-garden-type');
+
+// ============================================
+// NICRA Masters Controllers
+// ============================================
+
+exports.getAllNicraCategories = getAll('nicra-category');
+exports.getNicraCategoryById = getById('nicra-category');
+exports.createNicraCategory = create('nicra-category');
+exports.updateNicraCategory = update('nicra-category');
+exports.deleteNicraCategory = deleteEntity('nicra-category');
+
+exports.getAllNicraSubCategories = getAll('nicra-sub-category');
+exports.getNicraSubCategoryById = getById('nicra-sub-category');
+exports.createNicraSubCategory = create('nicra-sub-category');
+exports.updateNicraSubCategory = update('nicra-sub-category');
+exports.deleteNicraSubCategory = deleteEntity('nicra-sub-category');
+
+exports.getAllNicraSeedBankFodderBank = getAll('nicra-seed-bank-fodder-bank');
+exports.getNicraSeedBankFodderBankById = getById('nicra-seed-bank-fodder-bank');
+exports.createNicraSeedBankFodderBank = create('nicra-seed-bank-fodder-bank');
+exports.updateNicraSeedBankFodderBank = update('nicra-seed-bank-fodder-bank');
+exports.deleteNicraSeedBankFodderBank = deleteEntity('nicra-seed-bank-fodder-bank');
+
+exports.getAllNicraDignitaryTypes = getAll('nicra-dignitary-type');
+exports.getNicraDignitaryTypeById = getById('nicra-dignitary-type');
+exports.createNicraDignitaryType = create('nicra-dignitary-type');
+exports.updateNicraDignitaryType = update('nicra-dignitary-type');
+exports.deleteNicraDignitaryType = deleteEntity('nicra-dignitary-type');
+
+exports.getAllNicraPiTypes = getAll('nicra-pi-type');
+exports.getNicraPiTypeById = getById('nicra-pi-type');
+exports.createNicraPiType = create('nicra-pi-type');
+exports.updateNicraPiType = update('nicra-pi-type');
+exports.deleteNicraPiType = deleteEntity('nicra-pi-type');

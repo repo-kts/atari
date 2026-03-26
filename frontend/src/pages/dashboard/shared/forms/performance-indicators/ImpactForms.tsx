@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/FormComponents'
+import { useFileHandling } from '@/hooks/useFileHandling'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -13,12 +14,14 @@ interface ImpactFormsProps {
 }
 
 // Hard-coded options for dropdowns
+// WIP: Need to wire to masters
 const SPECIFIC_AREA_OPTIONS = [
     { value: 'Technology', label: 'Technology' },
     { value: 'Training', label: 'Training' },
     { value: 'Entrepreneurship Generated', label: 'Entrepreneurship Generated' },
 ]
 
+// WIP: Need to wire to masters
 const ENTERPRISE_TYPE_OPTIONS = [
     { value: 'Individual', label: 'Individual' },
     { value: 'SHG', label: 'SHG' },
@@ -32,6 +35,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const { handleFileChange: originalHandleFileChange } = useFileHandling(formData, setFormData)
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     // Memoize year options
@@ -67,15 +71,19 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
     )
 
     const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: e.target.files })
+        (field: string, multiple: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            originalHandleFileChange(field, multiple)(e)
         },
-        [formData, setFormData]
+        [originalHandleFileChange]
     )
 
     const handleDateChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: new Date(e.target.value).toISOString() })
+            const value = e.target.value
+            setFormData({ 
+                ...formData, 
+                [field]: value ? new Date(value).toISOString() : null 
+            })
         },
         [formData, setFormData]
     )
@@ -342,9 +350,9 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
             {/* 3. Success Stories/Case Studies */}
             {entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES && (
-                <div className="space-y-4">
-                    <FormSection title="Personal Information">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-6">
+                    <FormSection title="Personal Information" noGrid>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <MasterDataDropdown
                                 label="Reporting Year"
                                 required
@@ -364,7 +372,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             <FormInput
                                 label="Date of Birth"
                                 required
@@ -382,7 +390,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormInput
-                                label="Farming Experience/Experience in Enterprise"
+                                label="Farming Experience"
                                 required
                                 value={formData.experience || ''}
                                 onChange={handleFieldChange('experience')}
@@ -392,7 +400,6 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Cell no./E-mail"
                                 required
-                                type="email"
                                 value={formData.contact || ''}
                                 onChange={handleFieldChange('contact')}
                                 placeholder="Enter contact"
@@ -408,7 +415,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             placeholder="Enter full address"
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Professional Membership"
                                 value={formData.professionalMembership || ''}
@@ -436,90 +443,140 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         />
                     </FormSection>
 
-                    <FormSection title="Professional Information">
+                    <FormSection title="Professional Information" noGrid>
+                        <div className="grid grid-cols-1 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                <FormInput
+                                    label="Title of Success Story/Case Study"
+                                    required
+                                    value={formData.storyTitle || ''}
+                                    onChange={handleFieldChange('storyTitle')}
+                                    placeholder="Enter title"
+                                />
 
-                        <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
-                            <FormInput
-                                label="Title of Success Story/Case Study"
-                                required
-                                value={formData.storyTitle || ''}
-                                onChange={handleFieldChange('storyTitle')}
-                                placeholder="Enter title"
-                            />
-                            <FormTextArea
-                                label="Situation Analysis/Problem Statement"
-                                required
-                                value={formData.problemStatement || ''}
-                                onChange={handleFieldChange('problemStatement')}
-                                rows={3}
-                                placeholder="Enter problem statement"
-                            />
+                                <div className="space-y-4">
+                                    <label className="block text-sm font-semibold text-gray-700">
+                                        Supporting images
+                                    </label>
+                                    
+                                    {formData.supportingImages && (
+                                        <div className="flex flex-wrap gap-3 mb-4 p-4 border border-dashed border-[#487749]/30 rounded-2xl bg-[#487749]/5">
+                                            {(() => {
+                                                try {
+                                                    const images = typeof formData.supportingImages === 'string'
+                                                        ? (formData.supportingImages.startsWith('[') ? JSON.parse(formData.supportingImages) : [formData.supportingImages])
+                                                        : [];
+                                                    return images.map((img: string, idx: number) => (
+                                                        <div key={idx} className="relative group">
+                                                            <img
+                                                                src={img}
+                                                                alt={`Preview ${idx + 1}`}
+                                                                className="w-20 h-20 object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-all duration-300"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newImages = images.filter((_: any, i: number) => i !== idx);
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        supportingImages: newImages.length === 0 ? null : (newImages.length === 1 ? newImages[0] : JSON.stringify(newImages))
+                                                                    });
+                                                                }}
+                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    ));
+                                                } catch { return null; }
+                                            })()}
+                                        </div>
+                                    )}
 
-                            <FormTextArea
-                                label="Plan, Implement and Support/KVK Intervention(s)"
-                                required
-                                value={formData.kvkIntervention || ''}
-                                onChange={handleFieldChange('kvkIntervention')}
-                                rows={3}
-                                placeholder="Enter KVK intervention"
-                            />
-                        </div>
+                                    <div className="relative group">
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleFileChange('supportingImages', true)}
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749] file:text-white hover:file:bg-[#3d633e] transition-all border-2 border-dashed border-[#E0E0E0] group-hover:border-[#487749]/50 rounded-2xl p-2 bg-gray-50/50 cursor-pointer"
+                                        />
+                                        <p className="mt-2 text-[10px] text-gray-500 flex items-center">
+                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Max file size: 2MB. (Optional)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <FormTextArea
-                                label="Details of Practices followed by the farmer"
-                                required
-                                value={formData.practicesFollowed || ''}
-                                onChange={handleFieldChange('practicesFollowed')}
-                                rows={3}
-                                placeholder="Enter practices"
-                            />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormTextArea
+                                    label="Situation Analysis/Problem Statement"
+                                    required
+                                    value={formData.problemStatement || ''}
+                                    onChange={handleFieldChange('problemStatement')}
+                                    rows={4}
+                                    placeholder="Enter problem statement"
+                                />
 
-                            <FormTextArea
-                                label="Results/Output (Economical/Social Data)"
-                                required
-                                value={formData.results || ''}
-                                onChange={handleFieldChange('results')}
-                                rows={3}
-                                placeholder="Enter results"
-                            />
-                            <FormTextArea
-                                label="Impact/Outcome"
-                                required
-                                value={formData.impact || ''}
-                                onChange={handleFieldChange('impact')}
-                                rows={3}
-                                placeholder="Enter impact"
-                            />
+                                <FormTextArea
+                                    label="Plan, Implement and Support/KVK Intervention(s)"
+                                    required
+                                    value={formData.kvkIntervention || ''}
+                                    onChange={handleFieldChange('kvkIntervention')}
+                                    rows={4}
+                                    placeholder="Enter KVK intervention"
+                                />
+                            </div>
 
-                            <FormTextArea
-                                label="Future Plans"
-                                value={formData.futurePlans || ''}
-                                onChange={handleFieldChange('futurePlans')}
-                                rows={3}
-                                placeholder="Enter future plans"
-                            />
-                        </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormTextArea
+                                    label="Details of Practices followed by the farmer"
+                                    required
+                                    value={formData.practicesFollowed || ''}
+                                    onChange={handleFieldChange('practicesFollowed')}
+                                    rows={4}
+                                    placeholder="Enter practices"
+                                />
 
-                        <div className="space-y-2">
-                            <label className="block text-sm font-semibold text-gray-700">
-                                Supporting images
-                            </label>
-                            <p className="text-xs text-gray-500 mb-2">
-                                File size must be less than 2MB
-                            </p>
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={handleFileChange('supportingImages')}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
-                            />
+                                <FormTextArea
+                                    label="Results/Output (Economical/Social Data)"
+                                    required
+                                    value={formData.results || ''}
+                                    onChange={handleFieldChange('results')}
+                                    rows={4}
+                                    placeholder="Enter results"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormTextArea
+                                    label="Impact/Outcome"
+                                    required
+                                    value={formData.impact || ''}
+                                    onChange={handleFieldChange('impact')}
+                                    rows={4}
+                                    placeholder="Enter impact"
+                                />
+
+                                <FormTextArea
+                                    label="Future Plans"
+                                    value={formData.futurePlans || ''}
+                                    onChange={handleFieldChange('futurePlans')}
+                                    rows={4}
+                                    placeholder="Enter future plans"
+                                    required
+                                />
+                            </div>
                         </div>
                     </FormSection>
 
-                    <FormSection title="Economic Information">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <FormSection title="Economic Information" noGrid>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             <FormInput
                                 label="Enterprise"
                                 required
@@ -529,7 +586,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormInput
-                                label="Gross Income (annual)"
+                                label="Gross Income"
                                 required
                                 type="number"
                                 step="0.01"
@@ -549,7 +606,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             />
 
                             <FormInput
-                                label="Cost-Benefit Ratio"
+                                label="C-B Ratio"
                                 required
                                 type="number"
                                 step="0.01"
