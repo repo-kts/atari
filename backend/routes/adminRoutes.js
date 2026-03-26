@@ -17,6 +17,7 @@ const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
 const LOG_HISTORY_MODULE = 'log_history';
 const NOTIFICATIONS_MODULE = 'notifications';
 const MODULE_IMAGES_MODULE = 'module_images';
+const HIDDEN_ROLE_NAMES = new Set(['zone_admin']);
 
 // Apply authentication to all admin routes.
 // Individual routes use requirePermission for granular access control
@@ -95,7 +96,8 @@ router.get(
               return roleLevel >= callerLevel;
             });
 
-      res.json(filtered.map(({ hierarchyLevel: _, ...r }) => r));
+      const visibleRoles = filtered.filter((r) => !HIDDEN_ROLE_NAMES.has(r.roleName));
+      res.json(visibleRoles.map(({ hierarchyLevel: _, ...r }) => r));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch roles' });
     }

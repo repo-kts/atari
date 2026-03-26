@@ -6,7 +6,7 @@ import { LoadingButton } from '../common/LoadingButton'
 /** Hierarchy level options: 0=highest, 9=lowest */
 export const HIERARCHY_LEVEL_OPTIONS: { value: number; label: string }[] = [
     { value: 0, label: '0 - Super Admin (highest)' },
-    { value: 1, label: '1 - Zone Admin' },
+    { value: 1, label: '1 - High-level Admin' },
     { value: 2, label: '2 - State Admin' },
     { value: 3, label: '3 - District Admin' },
     { value: 4, label: '4 - Org Admin' },
@@ -96,7 +96,7 @@ export const AddRoleModal: React.FC<AddRoleModalProps> = ({
                     />
                     {!errors.roleName && (
                         <p className="mt-1 text-xs text-[#757575]">
-                            Use snake_case (e.g. zone_admin, state_user)
+                            Use snake_case (e.g. state_admin, state_user)
                         </p>
                     )}
                 </div>

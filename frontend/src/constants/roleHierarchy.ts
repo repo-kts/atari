@@ -39,7 +39,7 @@ export function outranksOrEqual(callerRole: string, targetRole: string): boolean
  * which belong to a higher organizational scope.
  */
 const CREATABLE_ROLES_MAP: Record<string, string[]> = {
-  super_admin: ['zone_admin', 'state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'kvk_user', 'state_user', 'district_user', 'org_user'],
+  super_admin: ['state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'kvk_user', 'state_user', 'district_user', 'org_user'],
   zone_admin: ['state_admin', 'district_admin', 'org_admin', 'kvk_admin', 'state_user', 'district_user', 'org_user', 'kvk_user'],
   state_admin: ['state_user', 'district_user', 'org_user', 'kvk_user'],
   district_admin: ['district_user', 'org_user', 'kvk_user'],
