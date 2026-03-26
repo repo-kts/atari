@@ -79,6 +79,12 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.FUNDING_SOURCE,
         ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE,
         ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE,
+        ENTITY_TYPES.IMPACT_SPECIFIC_AREA,
+        ENTITY_TYPES.ENTERPRISE_TYPE,
+        ENTITY_TYPES.ACCOUNT_TYPE,
+        ENTITY_TYPES.PROGRAMME_TYPE,
+        ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
+        ENTITY_TYPES.DIGNITARY_TYPE,
     ] as ExtendedEntityType[],
     ABOUT_KVK: [
         ENTITY_TYPES.KVKS,
@@ -268,6 +274,12 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/extension-activity-type': ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE,
         '/all-master/other-extension-activity-type': ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE,
         '/all-master/agri-drone-demonstrations-on': ENTITY_TYPES.AGRI_DRONE_DEMONSTRATIONS_ON,
+        '/all-master/impact-specific-area': ENTITY_TYPES.IMPACT_SPECIFIC_AREA,
+        '/all-master/enterprise-type': ENTITY_TYPES.ENTERPRISE_TYPE,
+        '/all-master/account-type': ENTITY_TYPES.ACCOUNT_TYPE,
+        '/all-master/programme-type': ENTITY_TYPES.PROGRAMME_TYPE,
+        '/all-master/ppv-fra-training-type': ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
+        '/all-master/dignitary-type': ENTITY_TYPES.DIGNITARY_TYPE,
 
         // About KVK
         '/forms/about-kvk/bank-account': ENTITY_TYPES.KVK_BANK_ACCOUNTS,
@@ -327,11 +339,9 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/achievements/projects/nari/training-programm': ENTITY_TYPES.PROJECT_NARI_TRAINING,
         '/forms/achievements/projects/nari/extension-activities': ENTITY_TYPES.PROJECT_NARI_EXTENSION,
         // NICRA
-        '/forms/achievements/projects/nicra/basic': ENTITY_TYPES.PROJECT_NICRA_BASIC,
         '/forms/achievements/projects/nicra/basic-information': ENTITY_TYPES.PROJECT_NICRA_BASIC,
         '/forms/achievements/projects/nicra/details': ENTITY_TYPES.PROJECT_NICRA_DETAILS,
         '/forms/achievements/projects/nicra/training': ENTITY_TYPES.PROJECT_NICRA_TRAINING,
-        '/forms/achievements/projects/nicra/extension': ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
         '/forms/achievements/projects/nicra/extension-activity': ENTITY_TYPES.PROJECT_NICRA_EXTENSION,
         '/forms/achievements/projects/nicra/others/intervention': ENTITY_TYPES.PROJECT_NICRA_INTERVENTION,
         '/forms/achievements/projects/nicra/others/revenue-generated': ENTITY_TYPES.PROJECT_NICRA_REVENUE,

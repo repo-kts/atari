@@ -354,6 +354,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             // Handle nested object first (for master tables)
             if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.typeName) return item.trainingType.typeName;
                 if (item.trainingType.name) return item.trainingType.name;
                 if (item.trainingType.trainingTypeName) return item.trainingType.trainingTypeName;
             }
@@ -585,6 +586,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.enterpriseName || null,
         priority: 5,
     },
+    [FIELD_NAMES.SPECIFIC_AREA_NAME]: {
+        extractor: (item: any) => item.specificAreaName || null,
+        priority: 5,
+    },
 
     // About KVK fields
     kvk: {
@@ -806,7 +811,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
     },
     [FIELD_NAMES.TYPE]: {
-        extractor: (item: any) => item.type || item.typeName || item.name || item.parameterName || item.activityName || null,
+        extractor: (item: any) => {
+            // Handle relation first (Master tables)
+            if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.typeName) return item.trainingType.typeName;
+                if (item.trainingType.name) return item.trainingType.name;
+            }
+            // Direct field evaluation
+            return item.type || item.typeName || item.name || item.parameterName || item.activityName || null;
+        },
+        priority: 7,
     },
     [FIELD_NAMES.SEASON]: {
         extractor: (item: any) => item.seasonName || (item.season?.seasonName) || null,
@@ -2292,6 +2306,41 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
 
+    [FIELD_NAMES.BUDGET_ESTIMATE]: {
+        extractor: (item: any) => {
+            const val = item.budgetEstimate;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.BUDGET_ALLOCATED]: {
+        extractor: (item: any) => {
+            const val = item.budgetAllocated;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.BUDGET_RELEASED]: {
+        extractor: (item: any) => {
+            const val = item.budgetReleased;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.EXPENDITURE]: {
+        extractor: (item: any) => {
+            const val = item.expenditure;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.UNSPENT_BALANCE]: {
+        extractor: (item: any) => {
+            const val = item.unspentBalance;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
 } as any;
 
 // ============================================

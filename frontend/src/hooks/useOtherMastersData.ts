@@ -25,6 +25,12 @@ import type {
     NicraSeedBankFodderBankFormData,
     NicraDignitaryTypeFormData,
     NicraPiTypeFormData,
+    ImpactSpecificAreaFormData,
+    EnterpriseTypeFormData,
+    AccountTypeFormData,
+    ProgrammeTypeFormData,
+    PpvFraTrainingTypeFormData,
+    DignitaryTypeFormData,
 } from '../services/otherMastersApi';
 
 // ============================================
@@ -1038,6 +1044,279 @@ export function useNicraPiTypes() {
         mutationFn: (id: number) => otherMastersApi.deleteNicraPiType(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.NICRA_PI_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// Impact Specific Area Hooks
+// ============================================
+
+export function useImpactSpecificAreas() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['impact-specific-areas'],
+        queryFn: () => otherMastersApi.getImpactSpecificAreas().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: ImpactSpecificAreaFormData) => otherMastersApi.createImpactSpecificArea(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.IMPACT_SPECIFIC_AREA);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<ImpactSpecificAreaFormData> }) =>
+            otherMastersApi.updateImpactSpecificArea(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.IMPACT_SPECIFIC_AREA);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteImpactSpecificArea(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.IMPACT_SPECIFIC_AREA);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+// ============================================
+// Enterprise Type Hooks
+// ============================================
+
+export function useEnterpriseTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['enterprise-types'],
+        queryFn: () => otherMastersApi.getEnterpriseTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: EnterpriseTypeFormData) => otherMastersApi.createEnterpriseType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ENTERPRISE_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<EnterpriseTypeFormData> }) =>
+            otherMastersApi.updateEnterpriseType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ENTERPRISE_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteEnterpriseType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ENTERPRISE_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useAccountTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['account-types'],
+        queryFn: () => otherMastersApi.getAccountTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: AccountTypeFormData) => otherMastersApi.createAccountType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ACCOUNT_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<AccountTypeFormData> }) =>
+            otherMastersApi.updateAccountType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ACCOUNT_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteAccountType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ACCOUNT_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useProgrammeTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['programme-types'],
+        queryFn: () => otherMastersApi.getProgrammeTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: ProgrammeTypeFormData) => otherMastersApi.createProgrammeType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PROGRAMME_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<ProgrammeTypeFormData> }) =>
+            otherMastersApi.updateProgrammeType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PROGRAMME_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteProgrammeType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PROGRAMME_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function usePpvFraTrainingTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['ppv-fra-training-types'],
+        queryFn: () => otherMastersApi.getPpvFraTrainingTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: PpvFraTrainingTypeFormData) =>
+            otherMastersApi.createPpvFraTrainingType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PPV_FRA_TRAINING_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<PpvFraTrainingTypeFormData> }) =>
+            otherMastersApi.updatePpvFraTrainingType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PPV_FRA_TRAINING_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deletePpvFraTrainingType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PPV_FRA_TRAINING_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useDignitaryTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['dignitary-types'],
+        queryFn: () => otherMastersApi.getDignitaryTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: DignitaryTypeFormData) =>
+            otherMastersApi.createDignitaryType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DIGNITARY_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<DignitaryTypeFormData> }) =>
+            otherMastersApi.updateDignitaryType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DIGNITARY_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteDignitaryType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.DIGNITARY_TYPE);
         },
     });
 

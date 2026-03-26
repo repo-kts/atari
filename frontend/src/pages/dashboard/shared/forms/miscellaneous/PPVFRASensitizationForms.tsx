@@ -3,7 +3,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
 import { useFileHandling } from '@/hooks/useFileHandling'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { useYears, usePpvFraTrainingTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -20,6 +20,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
 }) => {
     const { handleFileChange } = useFileHandling(formData, setFormData)
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: trainingTypes = [], isLoading: isLoadingTypes } = usePpvFraTrainingTypes()
 
     const yearOptions = useMemo(
         () => {
@@ -28,6 +29,11 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
             return createMasterDataOptions(years, 'yearId', 'yearName')
         },
         [years]
+    )
+
+    const trainingTypeOptions = useMemo(
+        () => createMasterDataOptions(trainingTypes, 'typeId', 'typeName'),
+        [trainingTypes]
     )
 
     const handleFieldChange = useCallback(
@@ -89,19 +95,15 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             onChange={handleDateChange('programmeDate')}
                         />
 
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-semibold text-gray-700">Type <span className="text-red-500">*</span></label>
-                            <select
-                                className="w-full px-4 py-2 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white"
-                                value={formData.type || ''}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Type</option>
-                                <option value="TRAINING">TRAINING</option>
-                                <option value="AWARENESS">AWARENESS</option>
-                            </select>
-                        </div>
+                        <MasterDataDropdown
+                            label="Type"
+                            required
+                            value={formData.typeId || ''}
+                            onChange={(val) => setFormData({ ...formData, typeId: val })}
+                            options={trainingTypeOptions}
+                            isLoading={isLoadingTypes}
+                            emptyMessage="No training types available"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

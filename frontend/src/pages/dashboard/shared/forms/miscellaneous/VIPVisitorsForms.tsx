@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormTextArea, FormSelect } from '../shared/FormComponents'
+import { useDignitaryTypes } from '@/hooks/useOtherMastersData'
 
 interface VIPVisitorsFormsProps {
     entityType: ExtendedEntityType | null
@@ -9,23 +10,21 @@ interface VIPVisitorsFormsProps {
     setFormData: (data: any) => void
 }
 
-// Dignitary type options as shown in the Type of Dignitaries dropdown
-const DIGNITARY_TYPE_OPTIONS = [
-    { value: 'Minister', label: 'Minister' },
-    { value: 'MP', label: 'MP' },
-    { value: 'MLA', label: 'MLA' },
-    { value: 'DM', label: 'DM' },
-    { value: 'VC', label: 'VC' },
-    { value: 'Zila Sabhadipati', label: 'Zila Sabhadipati' },
-    { value: 'Other Head of Organization', label: 'Other Head of Organization' },
-    { value: 'Foreigners', label: 'Foreigners' },
-]
+// Legacy options removed
 
 export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
     entityType,
     formData,
     setFormData,
 }) => {
+    const { data: dignitaryTypes, isLoading: loadingDignitaryTypes } = useDignitaryTypes()
+
+    const dignitaryTypeOptions = React.useMemo(() => {
+        return dignitaryTypes.map((type: any) => ({
+            value: type.dignitaryTypeId,
+            label: type.name,
+        }))
+    }, [dignitaryTypes])
     const handleFieldChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
             const value = e.target.value
@@ -43,22 +42,17 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
 
     if (!entityType) return null
 
-    // Resolve dignitary type: API returns { name: '...' } object on edit, plain string on create
-    const dignitaryTypeValue = (() => {
-        const dt = formData.dignitaryType
-        if (dt && typeof dt === 'object' && dt.name) return dt.name
-        if (typeof dt === 'string') return dt
-        return ''
-    })()
-
-    // Resolve date: API returns dateOfVisit ISO string; form uses visitDate key during create
+    // Resolve dignitary type
+    const dignitaryTypeIdValue = formData.dignitaryTypeId || formData.dignitaryType?.dignitaryTypeId || ''
+    
+    // Resolve date: API returns dateOfVisit; form uses visitDate
     const dateOfVisitValue = (() => {
         const d = formData.visitDate || formData.dateOfVisit
         if (!d) return ''
         try { return new Date(d).toISOString().split('T')[0] } catch { return '' }
     })()
-
-    // Resolve observations/salientPoints: API returns salientPoints on edit
+    
+    // Resolve observations: API might return salientPoints
     const observationsValue = formData.observations || formData.salientPoints || ''
 
     return (
@@ -77,10 +71,11 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
                         <FormSelect
                             label="Type of Dignitaries"
                             required
-                            value={dignitaryTypeValue}
-                            onChange={handleFieldChange('dignitaryType')}
-                            options={DIGNITARY_TYPE_OPTIONS}
-                            placeholder="Select"
+                            value={dignitaryTypeIdValue}
+                            onChange={(e) => setFormData({ ...formData, dignitaryTypeId: e.target.value })}
+                            options={dignitaryTypeOptions}
+                            placeholder={loadingDignitaryTypes ? "Loading..." : "Select"}
+                            disabled={loadingDignitaryTypes}
                         />
                     </div>
 

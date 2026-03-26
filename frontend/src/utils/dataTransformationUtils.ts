@@ -79,15 +79,8 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return data;
         },
     },
-    [ENTITY_TYPES.MISC_VIP_VISITORS]: {
-        transform: (data: any) => {
-            // dignitaryType can come back as an object { dignitaryTypeId, name } from the API
-            // Convert it to just the name string for the backend to look up
-            if (data.dignitaryType && typeof data.dignitaryType === 'object' && data.dignitaryType.name) {
-                data.dignitaryType = data.dignitaryType.name;
-            }
-            return data;
-        },
+    [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
+        excludeFields: ['id', 'kvkName'],
     },
 };
 
@@ -128,6 +121,7 @@ const COMMON_NESTED_OBJECTS = [
     'enterprise',
     'reportingYear',
     'cropDetails',
+    'dignitaryType',
 ] as const;
 
 // ============================================

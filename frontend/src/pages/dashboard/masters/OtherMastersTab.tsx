@@ -23,6 +23,7 @@ const sections: FeatureSection[] = [
             { label: 'Infrastructure Master', path: '/all-master/infrastructure-master' },
             { label: 'Important Day Master', path: '/all-master/important-day' },
             { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
+            { label: 'Impact Specific Area Master', path: '/all-master/impact-specific-area' },
         ],
     },
     {
@@ -43,6 +44,17 @@ const sections: FeatureSection[] = [
             { label: 'NICRA Seed/Fodder Bank Master', path: '/all-master/nicra-seed-bank-fodder-bank' },
             { label: 'NICRA Dignitary Type Master', path: '/all-master/nicra-dignitary-type' },
             { label: 'NICRA PI/CO-PI Type Master', path: '/all-master/nicra-pi-type' },
+        ],
+    },
+    {
+        title: 'Performance Indicator Masters',
+        icon: <Calendar className="w-5 h-5" />,
+        items: [
+            { label: 'Type of Enterprise Master', path: '/all-master/enterprise-type' },
+            { label: 'Account Type Master', path: '/all-master/account-type' },
+            { label: 'Programme Type Master', path: '/all-master/programme-type' },
+            { label: 'PPV & FRA Training Type Master', path: '/all-master/ppv-fra-training-type' },
+            { label: 'VIP Dignitary Master', path: '/all-master/dignitary-type' },
         ],
     },
 ]

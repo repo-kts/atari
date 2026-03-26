@@ -279,6 +279,48 @@ const ENTITY_CONFIG = {
         nameField: 'name',
         includes: {},
     },
+    'impact-specific-area-master': {
+        model: 'impactSpecificAreaMaster',
+        idField: 'specificAreaId',
+        nameField: 'specificAreaName',
+        includes: {},
+    },
+    'enterprise-type': {
+        model: 'enterpriseTypeMaster',
+        idField: 'enterpriseTypeId',
+        nameField: 'enterpriseTypeName',
+        includes: {},
+    },
+    'account-type': {
+        model: 'accountTypeMaster',
+        idField: 'accountTypeId',
+        nameField: 'accountType',
+        includes: {},
+    },
+    'programme-type': {
+        model: 'programmeTypeMaster',
+        idField: 'programmeTypeId',
+        nameField: 'programmeType',
+        includes: {},
+    },
+    'ppv-fra-training-type': {
+        model: 'ppvFraTrainingTypeMaster',
+        idField: 'typeId',
+        nameField: 'typeName',
+        includes: {},
+    },
+    'dignitary-type': {
+        model: 'dignitaryType',
+        idField: 'dignitaryTypeId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    visitors: true,
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -467,6 +509,11 @@ const create = async (entityType, data) => {
         'crop-type',
         'important-day',
         'soil-water-analysis',
+        'enterprise-type',
+        'account-type',
+        'programme-type',
+        'ppv-fra-training-type',
+        'dignitary-type',
     ];
     
     if (entitiesWithSeededData.includes(entityType)) {
@@ -483,7 +530,12 @@ const create = async (entityType, data) => {
                          entityType === 'funding-source' ? 'funding_source_master' :
                          entityType === 'crop-type' ? 'crop_type' :
                          entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
-                         entityType === 'soil-water-analysis' ? 'soil_water_analysis' : null;
+                         entityType === 'soil-water-analysis' ? 'soil_water_analysis' :
+                         entityType === 'enterprise-type' ? 'enterprise_type_master' :
+                         entityType === 'account-type' ? 'account_type_master' :
+                         entityType === 'programme-type' ? 'programme_type_master' : 
+                         entityType === 'ppv-fra-training-type' ? 'ppv_fra_training_type_master' :
+                         entityType === 'dignitary-type' ? 'dignitary_type' : null;
         
         if (tableName) {
             const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();

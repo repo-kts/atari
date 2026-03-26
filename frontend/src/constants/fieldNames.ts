@@ -53,6 +53,7 @@ export const FIELD_NAMES = {
     TRAINING_TYPE: 'trainingType',
     TRAINING_AREA_NAME: 'trainingAreaName',
     TRAINING_THEMATIC_AREA: 'trainingThematicArea',
+    SPECIFIC_AREA_NAME: 'specificAreaName',
 
     // Product Master Fields
     PRODUCT_CATEGORY_NAME: 'productCategoryName',
@@ -64,6 +65,7 @@ export const FIELD_NAMES = {
 
     // ARYA Master Fields
     ENTERPRISE_NAME: 'enterpriseName',
+    ENTERPRISE_TYPE_NAME: 'enterpriseTypeName',
 
     // Publication Master Fields
     PUBLICATION_ITEM: 'publicationItem',
@@ -187,6 +189,7 @@ export const FIELD_NAMES = {
     SOURCE_OF_FUND: 'sourceOfFund',
     BUDGET_SANCTION: 'budgetSanction',
     BUDGET_EXPENDITURE: 'budgetExpenditure',
+    EXPENDITURE: 'expenditure',
     COST_SANCTIONED: 'costSanctioned',
     FUNDS: 'funds',
     AMOUNT: 'amount',
@@ -407,6 +410,13 @@ export const FIELD_NAMES = {
     MEETING_DATE: 'meetingDate',
     AMOUNT_RS: 'amountRs',
     QUANTITY_Q: 'quantityQ',
+    REPORTING_DATE: 'reportingDate',
+    MONTH_YEAR: 'monthYear',
+    DRY_SPELL_10_DAYS: 'dry10',
+    DRY_SPELL_15_DAYS: 'dry15',
+    DRY_SPELL_20_DAYS: 'dry20',
+    INTENSIVE_RAIN_60MM: 'intensiveRain',
+    WATER_DEPTH: 'waterDepth',
 
     // Natural Farming Fields
     AGRO_CLIMATIC_ZONE: 'agroClimaticZone',
@@ -435,6 +445,8 @@ export const FIELD_NAMES = {
     // Agri-Drone Fields
     DISTRICT: 'district',
     DEMONSTRATIONS_ON: 'demonstrationsOn',
+    DEMONSTRATIONS_ON_NAME: 'demonstrationsOnName',
+    PARAMETER_NAME: 'parameterName',
     DATE_OF_DEMONS: 'dateOfDemons',
     PLACE_OF_DEMONS: 'placeOfDemons',
     NO_OF_DEMOS: 'noOfDemos',
@@ -674,6 +686,11 @@ export const FIELD_GROUPS = {
     NICRA_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
     NICRA_SUB_CATEGORY_MASTER: [FIELD_NAMES.SUB_CATEGORY_NAME, FIELD_NAMES.CATEGORY_NAME] as const,
     NICRA_SEED_BANK_FODDER_BANK_MASTER: [FIELD_NAMES.SEED_BANK_FODDER_BANK] as const,
+    IMPACT_SPECIFIC_AREA_MASTER: [FIELD_NAMES.SPECIFIC_AREA_NAME] as const,
+    ENTERPRISE_TYPE_MASTER: [FIELD_NAMES.ENTERPRISE_TYPE_NAME] as const,
+    ACCOUNT_TYPE_MASTER: [FIELD_NAMES.ACCOUNT_TYPE] as const,
+    PROGRAMME_TYPE_MASTER: [FIELD_NAMES.PROGRAMME_TYPE] as const,
+    PPV_FRA_TRAINING_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
 
     // About KVK Routes
     VIEW_KVKS: [
@@ -1412,7 +1429,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.BUDGET_ESTIMATE,
         FIELD_NAMES.BUDGET_ALLOCATED,
         FIELD_NAMES.BUDGET_RELEASED,
-        FIELD_NAMES.BUDGET_EXPENDITURE,
+        FIELD_NAMES.EXPENDITURE,
         FIELD_NAMES.UNSPENT_BALANCE,
     ] as const,
     PERFORMANCE_REVOLVING_FUND: [

@@ -193,4 +193,65 @@ router.get('/nicra-pi-type/:id', otherMastersController.getNicraPiTypeById);
 router.post('/nicra-pi-type', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraPiType);
 router.put('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraPiType);
 router.delete('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraPiType);
+
+// ============================================
+// Impact Specific Area Master Routes
+// ============================================
+
+router.get('/impact-specific-area-master', otherMastersController.getAllImpactSpecificAreas);
+router.get('/impact-specific-area-master/:id', otherMastersController.getImpactSpecificAreaById);
+router.post('/impact-specific-area-master', requirePermission('all_masters_impact_area_master', 'ADD'), otherMastersController.createImpactSpecificArea);
+router.put('/impact-specific-area-master/:id', requirePermission('all_masters_impact_area_master', 'EDIT'), otherMastersController.updateImpactSpecificArea);
+router.delete('/impact-specific-area-master/:id', requirePermission('all_masters_impact_area_master', 'DELETE'), otherMastersController.deleteImpactSpecificArea);
+
+// ============================================
+// Enterprise Type Master Routes
+// ============================================
+
+router.get('/enterprise-type', otherMastersController.getAllEnterpriseTypes);
+router.get('/enterprise-type/:id', otherMastersController.getEnterpriseTypeById);
+router.post('/enterprise-type', requirePermission('all_masters_enterprise_type_master', 'ADD'), otherMastersController.createEnterpriseType);
+router.put('/enterprise-type/:id', requirePermission('all_masters_enterprise_type_master', 'EDIT'), otherMastersController.updateEnterpriseType);
+router.delete('/enterprise-type/:id', requirePermission('all_masters_enterprise_type_master', 'DELETE'), otherMastersController.deleteEnterpriseType);
+
+// ============================================
+// Account Type Master Routes
+// ============================================
+
+router.get('/account-type', otherMastersController.getAllAccountTypes);
+router.get('/account-type/:id', otherMastersController.getAccountTypeById);
+router.post('/account-type', requirePermission('all_masters_account_type_master', 'ADD'), otherMastersController.createAccountType);
+router.put('/account-type/:id', requirePermission('all_masters_account_type_master', 'EDIT'), otherMastersController.updateAccountType);
+router.delete('/account-type/:id', requirePermission('all_masters_account_type_master', 'DELETE'), otherMastersController.deleteAccountType);
+
+// ============================================
+// Programme Type Master Routes
+// ============================================
+
+router.get('/programme-type', otherMastersController.getAllProgrammeTypes);
+router.get('/programme-type/:id', otherMastersController.getProgrammeTypeById);
+router.post('/programme-type', requirePermission('all_masters_programme_type_master', 'ADD'), otherMastersController.createProgrammeType);
+router.put('/programme-type/:id', requirePermission('all_masters_programme_type_master', 'EDIT'), otherMastersController.updateProgrammeType);
+router.delete('/programme-type/:id', requirePermission('all_masters_programme_type_master', 'DELETE'), otherMastersController.deleteProgrammeType);
+
+// ============================================
+// PPV & FRA Training Type Master Routes
+// ============================================
+
+router.get('/ppv-fra-training-type', otherMastersController.getAllPpvFraTrainingTypes);
+router.get('/ppv-fra-training-type/:id', otherMastersController.getPpvFraTrainingTypeById);
+router.post('/ppv-fra-training-type', requirePermission('all_masters_ppv_fra_training_type_master', 'ADD'), otherMastersController.createPpvFraTrainingType);
+router.put('/ppv-fra-training-type/:id', requirePermission('all_masters_ppv_fra_training_type_master', 'EDIT'), otherMastersController.updatePpvFraTrainingType);
+router.delete('/ppv-fra-training-type/:id', requirePermission('all_masters_ppv_fra_training_type_master', 'DELETE'), otherMastersController.deletePpvFraTrainingType);
+
+// ============================================
+// Dignitary Type Master Routes
+// ============================================
+
+router.get('/dignitary-type', otherMastersController.getAllDignitaryTypes);
+router.get('/dignitary-type/:id', otherMastersController.getDignitaryTypeById);
+router.post('/dignitary-type', requirePermission('all_masters_dignitary_type_master', 'ADD'), otherMastersController.createDignitaryType);
+router.put('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'EDIT'), otherMastersController.updateDignitaryType);
+router.delete('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'DELETE'), otherMastersController.deleteDignitaryType);
+
 module.exports = router;

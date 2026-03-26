@@ -52,15 +52,15 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Normal"
                                 required
                                 type="number"
-                                value={formData.rfNormal || ''}
-                                onChange={(e) => setFormData({ ...formData, rfNormal: e.target.value })}
+                                value={formData.rfMmDistrictNormal || ''}
+                                onChange={(e) => setFormData({ ...formData, rfMmDistrictNormal: e.target.value })}
                             />
                             <FormInput
                                 label="Received"
                                 required
                                 type="number"
-                                value={formData.rfReceived || ''}
-                                onChange={(e) => setFormData({ ...formData, rfReceived: e.target.value })}
+                                value={formData.rfMmDistrictReceived || ''}
+                                onChange={(e) => setFormData({ ...formData, rfMmDistrictReceived: e.target.value })}
                             />
                         </div>
                     </div>
@@ -72,15 +72,15 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Max."
                                 required
                                 type="number"
-                                value={formData.tempMax || ''}
-                                onChange={(e) => setFormData({ ...formData, tempMax: e.target.value })}
+                                value={formData.maxTemperature || ''}
+                                onChange={(e) => setFormData({ ...formData, maxTemperature: e.target.value })}
                             />
                             <FormInput
                                 label="Min."
                                 required
                                 type="number"
-                                value={formData.tempMin || ''}
-                                onChange={(e) => setFormData({ ...formData, tempMin: e.target.value })}
+                                value={formData.minTemperature || ''}
+                                onChange={(e) => setFormData({ ...formData, minTemperature: e.target.value })}
                             />
                         </div>
                     </div>

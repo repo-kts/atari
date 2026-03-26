@@ -2,7 +2,7 @@ model DistrictLevelData {
   districtLevelDataId String      @id @default(uuid()) @map("district_level_data_id")
   kvkId               Int
   reportingYearId     Int?        @map("reporting_year_id")
-  accountType         String      @map("account_type")
+  items               String      @map("account_type")
   information         String      @map("information")
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
@@ -11,7 +11,7 @@ model DistrictLevelData {
 
   @@index([kvkId])
   @@index([reportingYearId])
-  @@index([accountType])
+  @@index([items])
   @@index([createdAt])
   @@map("district_level_data")
 }

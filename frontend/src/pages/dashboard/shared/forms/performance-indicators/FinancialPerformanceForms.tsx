@@ -373,6 +373,118 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                     </div>
                 </div>
             )}
+            {/* 5. Project-wise Budget */}
+            {entityType === ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET && (
+                <div className="space-y-4">
+                    {financialYearNote}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            type="date"
+                            label="Start Date"
+                            required
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('startDate')}
+                        />
+                        <FormInput
+                            type="date"
+                            label="End Date"
+                            required
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            onChange={handleFieldChange('endDate')}
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-700">
+                                Name of project<span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                className="w-full h-11 px-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent transition-all"
+                                required
+                                value={formData.projectName || ''}
+                                onChange={handleFieldChange('projectName')}
+                            >
+                                <option value="">Select</option>
+                                <option value="CFLD Oilseed">CFLD Oilseed</option>
+                                <option value="CFLD Pulses">CFLD Pulses</option>
+                                <option value="Model Village Oilseed">Model Village Oilseed</option>
+                                <option value="Model Village Pulses">Model Village Pulses</option>
+                                <option value="NICRA">NICRA</option>
+                                <option value="ARYA">ARYA</option>
+                                <option value="FPO">FPO</option>
+                                <option value="Natural Farming">Natural Farming</option>
+                                <option value="DRMR">DRMR</option>
+                                <option value="NARI">NARI</option>
+                                <option value="IIPR">IIPR</option>
+                                <option value="TSP">TSP</option>
+                                <option value="SCSP">SCSP</option>
+                            </select>
+                        </div>
+                        <FormInput
+                            label="Account Number"
+                            required
+                            value={formData.accountNumber || ''}
+                            onChange={handleFieldChange('accountNumber')}
+                            placeholder="Enter account number..."
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-700">
+                                Name of Funding agency<span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                className="w-full h-11 px-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent transition-all"
+                                required
+                                value={formData.fundingAgency || ''}
+                                onChange={handleFieldChange('fundingAgency')}
+                            >
+                                <option value="">Select</option>
+                                <option value="ICAR">ICAR</option>
+                                <option value="State Govt. Ministry of A&FW">State Govt. Ministry of A&FW</option>
+                                <option value="Central Govt.">Central Govt.</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <FormInput
+                            type="number"
+                            label="Budget Estimate"
+                            required
+                            value={formData.budgetEstimate || ''}
+                            onChange={handleFieldChange('budgetEstimate')}
+                            placeholder="0.00"
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            type="number"
+                            label="Budget Allocated"
+                            required
+                            value={formData.budgetAllocated || ''}
+                            onChange={handleFieldChange('budgetAllocated')}
+                            placeholder="0.00"
+                        />
+                        <FormInput
+                            type="number"
+                            label="Budget released"
+                            required
+                            value={formData.budgetReleased || ''}
+                            onChange={handleFieldChange('budgetReleased')}
+                            placeholder="0.00"
+                        />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            type="number"
+                            label="Expenditure"
+                            required
+                            value={formData.expenditure || ''}
+                            onChange={handleFieldChange('expenditure')}
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

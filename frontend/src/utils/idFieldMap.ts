@@ -213,6 +213,11 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]: 'resourceGenerationId',
     [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: 'functionalLinkageId',
     [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: 'specialProgrammeId',
+    [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: 'specificAreaId',
+    [ENTITY_TYPES.ENTERPRISE_TYPE]: 'enterpriseTypeId',
+    [ENTITY_TYPES.ACCOUNT_TYPE]: 'accountTypeId',
+    [ENTITY_TYPES.PROGRAMME_TYPE]: 'programmeTypeId',
+    [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: 'typeId',
 };
 
 /**

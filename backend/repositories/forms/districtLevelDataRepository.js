@@ -9,7 +9,7 @@ const districtLevelDataRepository = {
             data: {
                 kvkId,
                 reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
-                accountType: data.accountType,
+                items: data.items,
                 information: data.information,
             }
         });
@@ -60,7 +60,7 @@ const districtLevelDataRepository = {
             where: { districtLevelDataId: id },
             data: {
                 reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
-                accountType: data.accountType !== undefined ? data.accountType : existing.accountType,
+                items: data.items !== undefined ? data.items : existing.items,
                 information: data.information !== undefined ? data.information : existing.information,
             }
         });

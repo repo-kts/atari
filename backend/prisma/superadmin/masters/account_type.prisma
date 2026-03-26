@@ -1,0 +1,8 @@
+model AccountTypeMaster {
+  accountTypeId Int      @id @default(autoincrement()) @map("account_type_id")
+  accountType   String   @map("account_type")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("account_type_master")
+}

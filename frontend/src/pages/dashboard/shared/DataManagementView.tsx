@@ -539,11 +539,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     else if (o.value === 'add-result') goAdd()
                                                     else if (o.value === 'edit-result') goEditResult()
                                                 }}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                    selected
-                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                }`}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                    }`}
                                             >
                                                 {o.label}
                                             </button>
@@ -748,12 +747,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const error = getHookError(activeHook)
 
     return (
-        <div className="flex flex-col h-full bg-white rounded-2xl p-1 overflow-hidden">
+        <div className="flex flex-col h-full w-full bg-[#FAF9F6] overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
             {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && (
-                <div className="flex-none">
+                <div className="flex-none bg-white border-b border-[#E0E0E0]">
                     {breadcrumbs.length > 0 && (
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 pt-4 pb-4">
+                        <div className="flex items-center gap-3 px-4 sm:px-6 pt-3 pb-3">
                             <button
                                 onClick={() => {
                                     // Special handling for different categories
@@ -798,7 +797,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     )}
 
                     {siblingRoutes.length > 1 && (
-                        <div className="mb-4">
+                        <div className="mb-3 px-4 sm:px-6 pb-1">
                             {/* Desktop tabs */}
                             <div className="hidden sm:block">
                                 <TabNavigation
@@ -808,17 +807,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                             {/* Mobile dropdown */}
                             <div className="sm:hidden px-4">
-                                    <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw]">
+                                <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw]">
                                     <button
                                         type="button"
                                         onClick={() => setIsMobileRouteMenuOpen((v) => !v)}
-                                            className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                        className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
                                     >
                                         {siblingRoutes.find((r) => r.path === location.pathname)?.title || 'Select'}
                                         <ChevronDown className="w-4 h-4 text-[#757575]" />
                                     </button>
                                     {isMobileRouteMenuOpen && (
-                                            <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                        <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
                                             {siblingRoutes.map((r) => {
                                                 const selected = r.path === location.pathname
                                                 return (
@@ -829,11 +828,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                             setIsMobileRouteMenuOpen(false)
                                                             navigate(r.path)
                                                         }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                            selected
-                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                        }`}
+                                                        className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                            ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                            : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                            }`}
                                                     >
                                                         {r.title}
                                                     </button>
@@ -849,7 +847,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             )}
 
             {/* Main Content Area - Flexible height */}
-            <div className="flex-1 flex flex-col min-h-0 bg-[#FAF9F6] rounded-xl overflow-hidden shadow-sm m-1">
+            <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
                 {/* Show Form Page if open, otherwise show List View */}
                 {isFormPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-6">
@@ -942,7 +940,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     </div>
                 ) : (
                     <>
-                        <div className="flex-none p-6 pb-2">
+                        <div className="flex-none px-6 py-4 pb-2">
                             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
                                     <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
@@ -957,11 +955,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 type="button"
                                                 onClick={() => handleExport(opt.value)}
                                                 disabled={exportLoadingState !== null && exportLoadingState !== opt.value}
-                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${
-                                                    exportLoadingState === opt.value
-                                                        ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
-                                                        : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
-                                                } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${exportLoadingState === opt.value
+                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                    } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 <Download className="w-4 h-4" />
                                                 {opt.label}
@@ -1016,11 +1013,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
 
                             <div className="flex flex-row flex-wrap gap-3 items-center">
-                                <div className="min-w-[180px]">
+                                <div className="min-w-[280px]">
                                     <SearchInput
                                         value={searchQuery}
                                         onChange={setSearchQuery}
-                                        placeholder={`Search ${title.toLowerCase()}...`}
+                                        placeholder="Search..."
                                     />
                                 </div>
                                 <div className="">
@@ -1044,11 +1041,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                         setSelectedYearId('')
                                                         setIsYearMenuOpen(false)
                                                     }}
-                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                        !selectedYearId
-                                                            ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                            : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                    }`}
+                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${!selectedYearId
+                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                        }`}
                                                 >
                                                     All Years
                                                 </button>
@@ -1062,11 +1058,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                 setSelectedYearId(String(year.yearId))
                                                                 setIsYearMenuOpen(false)
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                                selected
-                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                            }`}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                                }`}
                                                         >
                                                             {year.yearName}
                                                         </button>

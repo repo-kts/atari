@@ -68,6 +68,12 @@ import {
     useNicraSeedBankFodderBanks,
     useNicraDignitaryTypes,
     useNicraPiTypes,
+    useImpactSpecificAreas,
+    useEnterpriseTypes,
+    useAccountTypes,
+    useProgrammeTypes,
+    usePpvFraTrainingTypes,
+    useDignitaryTypes,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
@@ -153,6 +159,12 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: () => useNicraSeedBankFodderBanks(),
     [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: () => useNicraDignitaryTypes(),
     [ENTITY_TYPES.NICRA_PI_TYPE]: () => useNicraPiTypes(),
+    [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: () => useImpactSpecificAreas(),
+    [ENTITY_TYPES.ENTERPRISE_TYPE]: () => useEnterpriseTypes(),
+    [ENTITY_TYPES.ACCOUNT_TYPE]: () => useAccountTypes(),
+    [ENTITY_TYPES.PROGRAMME_TYPE]: () => useProgrammeTypes(),
+    [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: () => usePpvFraTrainingTypes(),
+    [ENTITY_TYPES.DIGNITARY_TYPE]: () => useDignitaryTypes(),
 
     // Projects (Achievements)
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: () => useCfldTechnicalParameters(),

@@ -101,10 +101,12 @@ export function useProjectData(entityType: string) {
         'performance-operational-area': '/forms/performance/district-village/operational-areas',
         'performance-village-adoption': '/forms/performance/district-village/village-adoptions',
         'performance-priority-thrust': '/forms/performance/district-village/priority-thrust-areas',
+        'performance-district-level': '/forms/performance/district-village/district-levels',
         'performance-budget-details': '/forms/performance/financial/budget-details',
         'performance-revolving-fund': '/forms/performance/financial/revolving-fund',
         'performance-revenue-generation': '/forms/performance/financial/revenue-generation',
         'performance-resource-generation': '/forms/performance/financial/resource-generation',
+        'performance-project-budget': '/forms/performance/financial/project-budget',
         // Digital Information
         'misc-digital-mobile-app': '/forms/achievements/digital-information/mobile-app',
         'misc-digital-web-portal': '/forms/achievements/digital-information/web-portal',
