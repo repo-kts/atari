@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/FormComponents'
+import { FormInput, FormTextArea, FormSection } from '../shared/FormComponents'
 import { useFileHandling } from '@/hooks/useFileHandling'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { useYears, useImpactSpecificAreas, useEnterpriseTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -13,23 +13,6 @@ interface ImpactFormsProps {
     setFormData: (data: any) => void
 }
 
-// Hard-coded options for dropdowns
-// WIP: Need to wire to masters
-const SPECIFIC_AREA_OPTIONS = [
-    { value: 'Technology', label: 'Technology' },
-    { value: 'Training', label: 'Training' },
-    { value: 'Entrepreneurship Generated', label: 'Entrepreneurship Generated' },
-]
-
-// WIP: Need to wire to masters
-const ENTERPRISE_TYPE_OPTIONS = [
-    { value: 'Individual', label: 'Individual' },
-    { value: 'SHG', label: 'SHG' },
-    { value: 'FIG', label: 'FIG' },
-    { value: 'FPO', label: 'FPO' },
-    { value: 'Private', label: 'Private' },
-]
-
 export const ImpactForms: React.FC<ImpactFormsProps> = ({
     entityType,
     formData,
@@ -37,11 +20,23 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 }) => {
     const { handleFileChange: originalHandleFileChange } = useFileHandling(formData, setFormData)
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: specificAreas = [], isLoading: isLoadingAreas } = useImpactSpecificAreas()
+    const { data: enterpriseTypes = [], isLoading: isLoadingEnterpriseTypes } = useEnterpriseTypes()
 
-    // Memoize year options
+    // Memoize options
     const yearOptions = useMemo(
         () => createMasterDataOptions(years, 'yearId', 'yearName'),
         [years]
+    )
+
+    const specificAreaOptions = useMemo(
+        () => createMasterDataOptions(specificAreas, 'specificAreaName', 'specificAreaName'),
+        [specificAreas]
+    )
+
+    const enterpriseTypeOptions = useMemo(
+        () => createMasterDataOptions(enterpriseTypes, 'enterpriseTypeName', 'enterpriseTypeName'),
+        [enterpriseTypes]
     )
 
     // Optimized onChange handlers using useCallback
@@ -106,12 +101,14 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             emptyMessage="No reporting years available"
                         />
 
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Name of Specific Area"
                             required
                             value={formData.specificArea || ''}
-                            onChange={handleFieldChange('specificArea')}
-                            options={SPECIFIC_AREA_OPTIONS}
+                            onChange={(value) => setFormData({ ...formData, specificArea: value })}
+                            options={specificAreaOptions}
+                            isLoading={isLoadingAreas}
+                            emptyMessage="No specific areas available"
                         />
                     </div>
 
@@ -242,12 +239,14 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             placeholder="Enter year"
                         />
 
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Type of Enterprise"
                             required
                             value={formData.enterpriseType || ''}
-                            onChange={handleFieldChange('enterpriseType')}
-                            options={ENTERPRISE_TYPE_OPTIONS}
+                            onChange={(value) => setFormData({ ...formData, enterpriseType: value })}
+                            options={enterpriseTypeOptions}
+                            isLoading={isLoadingEnterpriseTypes}
+                            emptyMessage="No enterprise types available"
                         />
 
                         <FormInput

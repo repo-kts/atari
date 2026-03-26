@@ -9,7 +9,7 @@ const ppvFraTrainingRepository = {
             data: {
                 kvkId,
                 programmeDate: data.programmeDate ? new Date(data.programmeDate) : new Date(),
-                type: data.type || 'TRAINING',
+                typeId: parseInt(data.typeId || 0),
                 title: data.title || '',
                 venue: data.venue || '',
                 resourcePerson: data.resourcePerson || '',
@@ -21,6 +21,10 @@ const ppvFraTrainingRepository = {
                 scF: parseInt(data.scF || 0),
                 stM: parseInt(data.stM || 0),
                 stF: parseInt(data.stF || 0),
+            },
+            include: { 
+                kvk: { select: { kvkName: true } },
+                trainingType: { select: { typeName: true } }
             }
         });
     },
@@ -34,7 +38,10 @@ const ppvFraTrainingRepository = {
         }
         return await prisma.ppvFraTraining.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } } },
+            include: { 
+                kvk: { select: { kvkName: true } },
+                trainingType: { select: { typeName: true } }
+            },
             orderBy: { ppvFraTrainingId: 'desc' }
         });
     },
@@ -44,7 +51,10 @@ const ppvFraTrainingRepository = {
         if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
         return await prisma.ppvFraTraining.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } } }
+            include: { 
+                kvk: { select: { kvkName: true } },
+                trainingType: { select: { typeName: true } }
+            }
         });
     },
 
@@ -57,7 +67,7 @@ const ppvFraTrainingRepository = {
             where: { ppvFraTrainingId: parseInt(id) },
             data: {
                 programmeDate: data.programmeDate !== undefined ? new Date(data.programmeDate) : existing.programmeDate,
-                type: data.type !== undefined ? data.type : existing.type,
+                typeId: data.typeId !== undefined ? parseInt(data.typeId) : existing.typeId,
                 title: data.title !== undefined ? data.title : existing.title,
                 venue: data.venue !== undefined ? data.venue : existing.venue,
                 resourcePerson: data.resourcePerson !== undefined ? data.resourcePerson : existing.resourcePerson,
@@ -69,6 +79,10 @@ const ppvFraTrainingRepository = {
                 scF: data.scF !== undefined ? parseInt(data.scF) : existing.scF,
                 stM: data.stM !== undefined ? parseInt(data.stM) : existing.stM,
                 stF: data.stF !== undefined ? parseInt(data.stF) : existing.stF,
+            },
+            include: { 
+                kvk: { select: { kvkName: true } },
+                trainingType: { select: { typeName: true } }
             }
         });
     },

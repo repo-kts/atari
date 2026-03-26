@@ -4,6 +4,7 @@ const budgetDetailRepository = require('../../repositories/forms/budgetDetailRep
 const revolvingFundRepository = require('../../repositories/forms/revolvingFundRepository');
 const revenueGenerationRepository = require('../../repositories/forms/revenueGenerationRepository');
 const resourceGenerationRepository = require('../../repositories/forms/resourceGenerationRepository');
+const projectBudgetRepository = require('../../repositories/forms/projectBudgetRepository');
 const { authenticateToken, requireRole } = require('../../middleware/auth');
 
 // All routes require authentication
@@ -65,5 +66,8 @@ createRoutes('revenue-generation', revenueGenerationRepository);
 
 // 4. Resource Generation
 createRoutes('resource-generation', resourceGenerationRepository);
+
+// 5. Project-wise Budget
+createRoutes('project-budget', projectBudgetRepository);
 
 module.exports = router;

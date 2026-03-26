@@ -287,3 +287,63 @@ exports.getNicraPiTypeById = getById('nicra-pi-type');
 exports.createNicraPiType = create('nicra-pi-type');
 exports.updateNicraPiType = update('nicra-pi-type');
 exports.deleteNicraPiType = deleteEntity('nicra-pi-type');
+
+// ============================================
+// Impact Specific Area Master Controllers
+// ============================================
+
+exports.getAllImpactSpecificAreas = getAll('impact-specific-area-master');
+exports.getImpactSpecificAreaById = getById('impact-specific-area-master');
+exports.createImpactSpecificArea = create('impact-specific-area-master');
+exports.updateImpactSpecificArea = update('impact-specific-area-master');
+exports.deleteImpactSpecificArea = deleteEntity('impact-specific-area-master');
+
+// ============================================
+// Enterprise Type Master Controllers
+// ============================================
+
+exports.getAllEnterpriseTypes = getAll('enterprise-type');
+exports.getEnterpriseTypeById = getById('enterprise-type');
+exports.createEnterpriseType = create('enterprise-type');
+exports.updateEnterpriseType = update('enterprise-type');
+exports.deleteEnterpriseType = deleteEntity('enterprise-type');
+
+// ============================================
+// Account Type Master Controllers
+// ============================================
+
+exports.getAllAccountTypes = getAll('account-type');
+exports.getAccountTypeById = getById('account-type');
+exports.createAccountType = create('account-type');
+exports.updateAccountType = update('account-type');
+exports.deleteAccountType = deleteEntity('account-type');
+
+// ============================================
+// Programme Type Master Controllers
+// ============================================
+
+exports.getAllProgrammeTypes = getAll('programme-type');
+exports.getProgrammeTypeById = getById('programme-type');
+exports.createProgrammeType = create('programme-type');
+exports.updateProgrammeType = update('programme-type');
+exports.deleteProgrammeType = deleteEntity('programme-type');
+
+// ============================================
+// PPV & FRA Training Type Master Controllers
+// ============================================
+
+exports.getAllPpvFraTrainingTypes = getAll('ppv-fra-training-type');
+exports.getPpvFraTrainingTypeById = getById('ppv-fra-training-type');
+exports.createPpvFraTrainingType = create('ppv-fra-training-type');
+exports.updatePpvFraTrainingType = update('ppv-fra-training-type');
+exports.deletePpvFraTrainingType = deleteEntity('ppv-fra-training-type');
+
+// ============================================
+// Dignitary Type Master Controllers
+// ============================================
+
+exports.getAllDignitaryTypes = getAll('dignitary-type');
+exports.getDignitaryTypeById = getById('dignitary-type');
+exports.createDignitaryType = create('dignitary-type');
+exports.updateDignitaryType = update('dignitary-type');
+exports.deleteDignitaryType = deleteEntity('dignitary-type');

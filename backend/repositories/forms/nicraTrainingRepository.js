@@ -41,6 +41,7 @@ const nicraTrainingRepository = {
             scFemale: r.scF,
             stMale: r.stM,
             stFemale: r.stF,
+            noOfFarmersAttended: (r.generalM || 0) + (r.generalF || 0) + (r.obcM || 0) + (r.obcF || 0) + (r.scM || 0) + (r.scF || 0) + (r.stM || 0) + (r.stF || 0),
         };
     },
 
@@ -52,11 +53,12 @@ const nicraTrainingRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.nicraTraining.findMany({
+        const items = await prisma.nicraTraining.findMany({
             where,
             include: { kvk: { select: { kvkName: true } } },
             orderBy: { nicraTrainingId: 'desc' }
         });
+        return items.map(nicraTrainingRepository._mapResponse);
     },
 
     findById: async (id, user) => {
@@ -64,10 +66,11 @@ const nicraTrainingRepository = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraTraining.findFirst({
+        const item = await prisma.nicraTraining.findFirst({
             where,
             include: { kvk: { select: { kvkName: true } } }
         });
+        return nicraTrainingRepository._mapResponse(item);
     },
 
     update: async (id, data, user) => {
@@ -79,7 +82,7 @@ const nicraTrainingRepository = {
         const existing = await prisma.nicraTraining.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.nicraTraining.update({
+        const updated = await prisma.nicraTraining.update({
             where: { nicraTrainingId: parseInt(id) },
             data: {
                 titleOfTraining: data.trainingTitle !== undefined ? data.trainingTitle : existing.titleOfTraining,
@@ -97,6 +100,7 @@ const nicraTrainingRepository = {
                 stF: data.stFemale !== undefined ? parseInt(data.stFemale || 0) : (data.stF !== undefined ? parseInt(data.stF || 0) : existing.stF),
             }
         });
+        return nicraTrainingRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { FormInput, FormTextArea } from '../shared/FormComponents'
+import { useYears, useAccountTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -12,12 +12,7 @@ interface DistrictLevelDataFormsProps {
     setFormData: (data: any) => void
 }
 
-// Dummy data for Account Type dropdown
-const ACCOUNT_TYPE_OPTIONS = [
-    { value: 'Agriculture', label: 'Agriculture' },
-    { value: 'Livestock', label: 'Livestock' },
-    { value: 'Farming Situation', label: 'Farming Situation' },
-]
+
 
 export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
     entityType,
@@ -25,11 +20,17 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
     setFormData,
 }) => {
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: accountTypes = [], isLoading: isLoadingAccountTypes } = useAccountTypes()
 
     // Memoize year options
     const yearOptions = useMemo(
         () => createMasterDataOptions(years, 'yearId', 'yearName'),
         [years]
+    )
+
+    const accountTypeOptions = useMemo(
+        () => createMasterDataOptions(accountTypes, 'accountType', 'accountType'),
+        [accountTypes]
     )
 
     // Optimized onChange handlers using useCallback
@@ -66,12 +67,14 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                             emptyMessage="No reporting years available"
                         />
 
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Account Type"
                             required
-                            value={formData.accountType || ''}
-                            onChange={handleFieldChange('accountType')}
-                            options={ACCOUNT_TYPE_OPTIONS}
+                            value={formData.items || ''}
+                            onChange={(value) => setFormData({ ...formData, items: value })}
+                            options={accountTypeOptions}
+                            isLoading={isLoadingAccountTypes}
+                            emptyMessage="No account types available"
                         />
                     </div>
 

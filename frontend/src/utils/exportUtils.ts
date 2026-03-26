@@ -9,7 +9,17 @@
  * Format field name to readable header label
  * Example: "zoneName" -> "Zone Name"
  */
+const CUSTOM_LABELS: Record<string, string> = {
+    'rfMmDistrictNormal': 'RF (mm) district Normal',
+    'rfMmDistrictReceived': 'RF (mm) district Received',
+    'maxTemperature': 'Max. Temperature 0C',
+    'minTemperature': 'Min. Temperature 0C',
+    'kvkName': 'KVK',
+}
+
 export function formatHeaderLabel(field: string): string {
+    if (CUSTOM_LABELS[field]) return CUSTOM_LABELS[field]
+    
     return field
         .charAt(0)
         .toUpperCase() + field

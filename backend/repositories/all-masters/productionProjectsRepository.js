@@ -157,6 +157,14 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'impact-specific-area-master': {
+        model: 'impactSpecificAreaMaster',
+        idField: 'specificAreaId',
+        nameField: 'specificAreaName',
+        tableName: 'impact_specific_area_master',
+        idColumn: 'specific_area_id',
+        includes: {},
+    },
 };
 
 /**

@@ -118,6 +118,8 @@ export const AllMasters: React.FC = () => {
         if (currentPath.startsWith('/all-master/season') ||
             currentPath.startsWith('/all-master/sanctioned-post') ||
             currentPath.startsWith('/all-master/year') ||
+            currentPath.startsWith('/all-master/enterprise-type') ||
+            currentPath.startsWith('/all-master/dignitary-type') ||
             currentPath.startsWith('/all-master/other-masters')) {
             return 'other-masters'
         }

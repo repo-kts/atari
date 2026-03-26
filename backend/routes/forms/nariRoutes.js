@@ -5,6 +5,7 @@ const nariExtensionActivityController = require('../../controllers/forms/nariExt
 const nariNutritionalGardenController = require('../../controllers/forms/nariNutritionalGardenController.js');
 const nariTrainingProgrammeController = require('../../controllers/forms/nariTrainingProgrammeController.js');
 const nariValueAdditionController = require('../../controllers/forms/nariValueAdditionController.js');
+const nariTrainingController = require('../../controllers/forms/nariTrainingController.js');
 const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // Apply authentication to all routes
@@ -39,10 +40,10 @@ router.put('/value-addition/:id', requireRole(['kvk_admin', 'kvk_user', 'super_a
 router.delete('/value-addition/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariValueAdditionController.delete);
 
 // Training Programme Routes
-router.post('/training-programme', requireRole(['kvk_admin', 'kvk_user', 'super_admin', 'icar_admin', 'atari_admin']), nariTrainingProgrammeController.create);
-router.get('/training-programme', nariTrainingProgrammeController.getAll);
-router.get('/training-programme/:id', nariTrainingProgrammeController.getById);
-router.put('/training-programme/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariTrainingProgrammeController.update);
-router.delete('/training-programme/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariTrainingProgrammeController.delete);
+router.post('/training-programme', requireRole(['kvk_admin', 'kvk_user', 'super_admin', 'icar_admin', 'atari_admin']), nariTrainingController.create);
+router.get('/training-programme', nariTrainingController.getAll);
+router.get('/training-programme/:id', nariTrainingController.getById);
+router.put('/training-programme/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariTrainingController.update);
+router.delete('/training-programme/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariTrainingController.delete);
 
 module.exports = router;

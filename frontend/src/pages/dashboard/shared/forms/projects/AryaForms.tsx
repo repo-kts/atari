@@ -19,6 +19,22 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     years,
     aryaEnterprises
 }) => {
+    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData({
+                    ...formData,
+                    [field]: reader.result as string
+                })
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setFormData({ ...formData, [field]: null })
+        }
+    }
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_ARYA_CURRENT && (
@@ -190,15 +206,48 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 value={formData.employmentGeneratedMandays || ''}
                                 onChange={(e) => setFormData({ ...formData, employmentGeneratedMandays: parseFloat(e.target.value) || 0 })}
                             />
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 <label className="block text-sm font-medium text-[#212121]">
                                     Images
                                 </label>
+                                
+                                {formData.imagePath && (
+                                    <div className="mb-4">
+                                        <p className="text-xs font-semibold text-[#487749] mb-2">Existing/Selected Image:</p>
+                                        <div className="relative group w-32 h-32">
+                                            <img
+                                                src={formData.imagePath.startsWith('data:') 
+                                                    ? formData.imagePath 
+                                                    : `${import.meta.env.VITE_API_URL || ''}${formData.imagePath.startsWith('/') ? '' : '/'}${formData.imagePath}`}
+                                                className="w-full h-full object-cover rounded-xl border-2 border-[#487749]/20 shadow-md transition-transform group-hover:scale-105"
+                                                alt="Preview"
+                                                onError={(e) => {
+                                                    const img = e.target as HTMLImageElement;
+                                                    img.style.display = 'none';
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, imagePath: null })}
+                                                className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 shadow-sm transition-colors"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <input
                                     type="file"
-                                    multiple
-                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all"
+                                    accept="image/*"
+                                    onChange={handleFileChange('imagePath')}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-dashed border-[#487749]/30 p-4 rounded-2xl"
                                 />
+                                <p className="text-[11px] text-gray-400 italic">
+                                    Supported formats: JPG, PNG, GIF. Max file size: 5MB.
+                                </p>
                             </div>
                         </div>
                     </div>

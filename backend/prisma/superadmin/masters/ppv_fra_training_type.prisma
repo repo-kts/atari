@@ -1,0 +1,10 @@
+model PpvFraTrainingTypeMaster {
+  typeId    Int      @id @default(autoincrement()) @map("type_id")
+  typeName  String   @unique @map("type_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ppvFraTrainings PpvFraTraining[]
+
+  @@map("ppv_fra_training_type_master")
+}

@@ -60,6 +60,7 @@ export const ENTITY_TYPES = {
     NICRA_SUB_CATEGORY: 'nicra-sub-category',
     NICRA_SEED_BANK_FODDER_BANK: 'nicra-seed-bank-fodder-bank',
     NICRA_DIGNITARY_TYPE: 'nicra-dignitary-type',
+    DIGNITARY_TYPE: 'dignitary-type',
     NICRA_PI_TYPE: 'nicra-pi-type',
 
     // Training, Extension & Events
@@ -227,6 +228,11 @@ export const ENTITY_TYPES = {
     // Meetings
     MISC_MEETINGS_SAC: 'misc-meetings-sac',
     MISC_MEETINGS_OTHER: 'misc-meetings-other',
+    IMPACT_SPECIFIC_AREA: 'impact-specific-area-master',
+    ENTERPRISE_TYPE: 'enterprise-type',
+    ACCOUNT_TYPE: 'account-type',
+    PROGRAMME_TYPE: 'programme-type',
+    PPV_FRA_TRAINING_TYPE: 'misc-ppv-fra-training-type',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
@@ -270,6 +276,11 @@ export const ENTITY_PATHS = {
     NATURAL_FARMING_ACTIVITY: '/all-master/natural-farming-activity',
     NATURAL_FARMING_SOIL_PARAMETER: '/all-master/natural-farming-soil-parameter',
     AGRI_DRONE_DEMONSTRATIONS_ON: '/all-master/agri-drone-demonstrations-on',
+    IMPACT_SPECIFIC_AREA: '/all-master/impact-specific-area',
+    ENTERPRISE_TYPE: '/all-master/enterprise-type',
+    ACCOUNT_TYPE: '/all-master/account-type',
+    PROGRAMME_TYPE: '/all-master/programme-type',
+    PPV_FRA_TRAINING_TYPE: '/all-master/ppv-fra-training-type',
 
     // Publications
     PUBLICATION_ITEM: '/all-master/publication-item',
@@ -324,6 +335,7 @@ export const ENTITY_PATHS = {
     NICRA_SEED_BANK_FODDER_BANK: '/all-master/nicra-seed-bank-fodder-bank',
     NICRA_DIGNITARY_TYPE: '/all-master/nicra-dignitary-type',
     NICRA_PI_TYPE: '/all-master/nicra-pi-type',
+    DIGNITARY_TYPE: '/all-master/dignitary-type',
 
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',

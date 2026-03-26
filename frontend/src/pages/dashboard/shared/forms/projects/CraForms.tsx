@@ -87,27 +87,18 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             cacheKey="cra-cropping-systems-by-season"
                             onChange={(value) => setFormData({ ...formData, croppingSystemId: value })}
                         />
-                        <DependentDropdown
+                        <MasterDataDropdown
                             label="Farming System crop under demonstration"
                             required
                             value={formData.farmingSystemId || ''}
-                            options={[]}
-                            dependsOn={{ value: formData.seasonId || '', field: 'seasonId' }}
-                            isLoading={farmingSystemsLoading}
-                            loadingMessage="Loading farming systems..."
-                            emptyMessage="No farming systems available for selected season"
-                            onOptionsLoad={async (parentSeasonId: any) => {
-                                const seasonId = Number(parentSeasonId)
-                                if (!Number.isFinite(seasonId)) return []
-                                return (farmingSystems || [])
-                                    .filter((fs: any) => Number(fs.seasonId ?? fs.SeasonId ?? fs.season?.seasonId) === seasonId)
-                                    .map((fs: any) => ({
-                                        value: fs.craFarmingSystemId ?? fs.id ?? fs.farmingSystemId,
-                                        label: fs.farmingSystemName ?? fs.name,
-                                    }))
-                            }}
-                            cacheKey="cra-farming-systems-by-season"
                             onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
+                            options={createMasterDataOptions(
+                                farmingSystems.filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId)),
+                                'craFarmingSystemId',
+                                'farmingSystemName'
+                            )}
+                            placeholder="Select Farming System crop under demonstration"
+                            emptyMessage={formData.seasonId ? "No systems found for this season" : "Please select a season first"}
                         />
                         <FormInput
                             label="Area under Demonstration (in acre)"

@@ -252,6 +252,78 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                     placeholder="Enter NICRA PI/CO-PI type"
                 />
             )}
+            
+            {entityType === ENTITY_TYPES.IMPACT_SPECIFIC_AREA && (
+                <FormInput
+                    label="Specific Area Name"
+                    required
+                    value={formData.specificAreaName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, specificAreaName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter impact specific area name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.ENTERPRISE_TYPE && (
+                <FormInput
+                    label="Enterprise Type Name"
+                    required
+                    value={formData.enterpriseTypeName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, enterpriseTypeName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter enterprise type name"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.ACCOUNT_TYPE && (
+                <FormInput
+                    label="Account Type"
+                    required
+                    value={formData.accountType || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, accountType: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter account type"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.PROGRAMME_TYPE && (
+                <FormInput
+                    label="Programme Type"
+                    required
+                    value={formData.programmeType || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, programmeType: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter programme type"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.PPV_FRA_TRAINING_TYPE && (
+                <FormInput
+                    label="Training/Awareness Type"
+                    required
+                    value={formData.typeName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, typeName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter training/awareness type name"
+                />
+            )}
+            
+            {entityType === ENTITY_TYPES.DIGNITARY_TYPE && (
+                <FormInput
+                    label="Dignitary Type"
+                    required
+                    value={formData.name || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter dignitary type name"
+                />
+            )}
         </>
     )
 }

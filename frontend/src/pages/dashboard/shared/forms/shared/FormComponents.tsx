@@ -23,7 +23,16 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                 type === 'number'
                     ? (stepFromProps !== undefined && stepFromProps !== null && String(stepFromProps).length > 0
                         ? stepFromProps
-                        : (lowerLabel.includes('ha') || lowerLabel.includes('area') ? '0.01' : '1'))
+                        : (lowerLabel.includes('ha') ||
+                            lowerLabel.includes('area') ||
+                            lowerLabel.includes('budget') ||
+                            lowerLabel.includes('expenditure') ||
+                            lowerLabel.includes('allocation') ||
+                            lowerLabel.includes('income') ||
+                            lowerLabel.includes('amount') ||
+                            lowerLabel.includes('balance')
+                            ? '0.01'
+                            : '1'))
                     : stepFromProps
 
             const computedMin =

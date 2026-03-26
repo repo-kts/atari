@@ -284,6 +284,59 @@ export interface NicraPiType {
 export interface NicraPiTypeFormData {
     name: string;
 }
+
+export interface ImpactSpecificArea {
+    specificAreaId: number;
+    specificAreaName: string;
+}
+
+export interface ImpactSpecificAreaFormData {
+    specificAreaName: string;
+}
+
+export interface EnterpriseType {
+    enterpriseTypeId: number;
+    enterpriseTypeName: string;
+}
+
+export interface EnterpriseTypeFormData {
+    enterpriseTypeName: string;
+}
+
+export interface AccountType {
+    accountTypeId: number;
+    accountType: string;
+}
+
+export interface AccountTypeFormData {
+    accountType: string;
+}
+
+export interface ProgrammeType {
+    programmeTypeId: number;
+    programmeType: string;
+}
+
+export interface ProgrammeTypeFormData {
+    programmeType: string;
+}
+
+export interface PpvFraTrainingTypeFormData {
+    typeName: string;
+}
+
+export interface DignitaryType {
+    dignitaryTypeId: number;
+    name: string;
+    _count?: {
+        visitors: number;
+    };
+}
+
+export interface DignitaryTypeFormData {
+    name: string;
+}
+
 // ============================================
 // Season APIs
 // ============================================
@@ -551,4 +604,83 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type/${id}`, data),
     deleteNicraPiType: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-pi-type/${id}`),
+
+    // Impact Specific Areas
+    getImpactSpecificAreas: () =>
+        apiClient.get<PaginatedResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master`),
+    getImpactSpecificAreaById: (id: number) =>
+        apiClient.get<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master/${id}`),
+    createImpactSpecificArea: (data: ImpactSpecificAreaFormData) =>
+        apiClient.post<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master`, data),
+    updateImpactSpecificArea: (id: number, data: Partial<ImpactSpecificAreaFormData>) =>
+        apiClient.put<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master/${id}`, data),
+    deleteImpactSpecificArea: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/impact-specific-area-master/${id}`),
+
+    // Enterprise Types
+    getEnterpriseTypes: () =>
+        apiClient.get<PaginatedResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type`),
+    getEnterpriseTypeById: (id: number) =>
+        apiClient.get<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type/${id}`),
+    createEnterpriseType: (data: EnterpriseTypeFormData) =>
+        apiClient.post<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type`, data),
+    updateEnterpriseType: (id: number, data: Partial<EnterpriseTypeFormData>) =>
+        apiClient.put<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type/${id}`, data),
+    deleteEnterpriseType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/enterprise-type/${id}`),
+
+    // Account Types
+    getAccountTypes: () =>
+        apiClient.get<PaginatedResponse<AccountType>>(`${BASE_URL}/account-type`),
+    getAccountTypeById: (id: number) =>
+        apiClient.get<ApiResponse<AccountType>>(`${BASE_URL}/account-type/${id}`),
+    createAccountType: (data: AccountTypeFormData) =>
+        apiClient.post<ApiResponse<AccountType>>(`${BASE_URL}/account-type`, data),
+    updateAccountType: (id: number, data: Partial<AccountTypeFormData>) =>
+        apiClient.put<ApiResponse<AccountType>>(`${BASE_URL}/account-type/${id}`, data),
+    deleteAccountType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/account-type/${id}`),
+
+    // Programme Types
+    getProgrammeTypes: () =>
+        apiClient.get<PaginatedResponse<ProgrammeType>>(`${BASE_URL}/programme-type`),
+    getProgrammeTypeById: (id: number) =>
+        apiClient.get<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type/${id}`),
+    createProgrammeType: (data: ProgrammeTypeFormData) =>
+        apiClient.post<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type`, data),
+    updateProgrammeType: (id: number, data: Partial<ProgrammeTypeFormData>) =>
+        apiClient.put<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type/${id}`, data),
+    deleteProgrammeType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/programme-type/${id}`),
+
+    // ============================================
+    // PPV & FRA Training Type Master
+    // ============================================
+    getPpvFraTrainingTypes: () =>
+        apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/ppv-fra-training-type`),
+
+    createPpvFraTrainingType: (data: PpvFraTrainingTypeFormData) =>
+        apiClient.post<ApiResponse<any>>(`${BASE_URL}/ppv-fra-training-type`, data),
+
+    updatePpvFraTrainingType: (id: number, data: Partial<PpvFraTrainingTypeFormData>) =>
+        apiClient.put<ApiResponse<any>>(`${BASE_URL}/ppv-fra-training-type/${id}`, data),
+
+    deletePpvFraTrainingType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/ppv-fra-training-type/${id}`),
+
+    // Dignitary Types
+    getDignitaryTypes: () =>
+        apiClient.get<PaginatedResponse<DignitaryType>>(`${BASE_URL}/dignitary-type`),
+
+    getDignitaryTypeById: (id: number) =>
+        apiClient.get<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type/${id}`),
+
+    createDignitaryType: (data: DignitaryTypeFormData) =>
+        apiClient.post<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type`, data),
+
+    updateDignitaryType: (id: number, data: Partial<DignitaryTypeFormData>) =>
+        apiClient.put<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type/${id}`, data),
+
+    deleteDignitaryType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/dignitary-type/${id}`),
 };

@@ -3,6 +3,7 @@ const router = express.Router();
 const operationalAreaRepository = require('../../repositories/forms/operationalAreaRepository');
 const villageAdoptionRepository = require('../../repositories/forms/villageAdoptionRepository');
 const priorityThrustAreaRepository = require('../../repositories/forms/priorityThrustAreaRepository');
+const districtLevelDataRepository = require('../../repositories/forms/districtLevelDataRepository');
 const { authenticateToken, requireRole } = require('../../middleware/auth');
 
 // All routes require authentication
@@ -58,6 +59,7 @@ const routeConfigs = [
     { path: '/operational-areas', repository: operationalAreaRepository },
     { path: '/village-adoptions', repository: villageAdoptionRepository },
     { path: '/priority-thrust-areas', repository: priorityThrustAreaRepository },
+    { path: '/district-levels', repository: districtLevelDataRepository },
 ];
 
 // Create standard CRUD routes for each configuration

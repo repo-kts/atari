@@ -45,7 +45,7 @@ const vipVisitorsRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                dignitaryType: { select: { name: true } }
+                dignitaryType: { select: { dignitaryTypeId: true, name: true } }
             },
             orderBy: { vipVisitorId: 'desc' }
         });
@@ -61,7 +61,7 @@ const vipVisitorsRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                dignitaryType: { select: { name: true } }
+                dignitaryType: { select: { dignitaryTypeId: true, name: true } }
             }
         });
     },
