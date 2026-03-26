@@ -69,7 +69,6 @@ function decodePermissions(encoded) {
  *
  * Bitmask encoding: VIEW=1, ADD=2, EDIT=4, DELETE=8. This cuts the permissions
  * payload by ~50%, keeping even 74-module roles under the ~4 KB cookie limit.
- * super_admin is still bypassed in authService.js (empty map) as an optimisation.
  *
  * @param {number} userId - User ID
  * @param {number} roleId - Role ID

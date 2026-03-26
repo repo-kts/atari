@@ -102,9 +102,6 @@ function requirePermission(moduleCode, action) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // super_admin has unrestricted access to every module
-    if (req.user.roleName === 'super_admin') return next();
-
     const modulePerms = req.user.permissionsByModule?.[moduleCode];
     if (!modulePerms?.includes(normalizedAction)) {
       return res.status(403).json({
@@ -131,8 +128,6 @@ function requireAnyPermission(moduleCodes, action) {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });
     }
-
-    if (req.user.roleName === 'super_admin') return next();
 
     const hasAny = moduleCodes.some((code) =>
       req.user.permissionsByModule?.[code]?.includes(normalizedAction)
