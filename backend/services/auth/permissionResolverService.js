@@ -1,9 +1,26 @@
 const rolePermissionRepository = require('../../repositories/rolePermissionRepository.js');
 const userPermissionRepository = require('../../repositories/userPermissionRepository.js');
+const prisma = require('../../config/prisma.js');
 const cacheService = require('../cache/redisCacheService.js');
 
 const CACHE_VERSION = 'v1';
 const DEFAULT_CACHE_TTL_SECONDS = 3600;
+
+const USER_PROFILE_FIELDS = {
+  userId: true,
+  email: true,
+  name: true,
+  zoneId: true,
+  stateId: true,
+  districtId: true,
+  orgId: true,
+  kvkId: true,
+  deletedAt: true,
+};
+
+function userProfileCacheKey(userId) {
+  return `user:profile:${userId}:${CACHE_VERSION}`;
+}
 
 function getCacheTtlSeconds() {
   const parsed = Number(process.env.PERMISSION_CACHE_TTL_SECONDS);
@@ -46,6 +63,36 @@ function intersectWithUserActions(rolePermissionsByModule, userActions) {
 }
 
 const permissionResolverService = {
+  /**
+   * Fetch user profile fields needed by auth middleware.
+   * Returns null if user does not exist.
+   *
+   * @param {number} userId
+   * @param {{ bypassCache?: boolean }} [options]
+   * @returns {Promise<object|null>}
+   */
+  getUserProfile: async (userId, options = {}) => {
+    const bypassCache = options.bypassCache === true;
+    const key = userProfileCacheKey(userId);
+
+    if (!bypassCache) {
+      const cached = await cacheService.get(key);
+      if (cached !== null) {
+        return cached;
+      }
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { userId },
+      select: USER_PROFILE_FIELDS,
+    });
+
+    if (!user) return null;
+
+    await cacheService.set(key, user, getCacheTtlSeconds());
+    return user;
+  },
+
   /**
    * Resolve role-level permissions grouped by module.
    * Cache-backed with DB fallback.
@@ -136,6 +183,7 @@ const permissionResolverService = {
    */
   invalidateUserPermissions: async (userId) => {
     if (!userId) return;
+    await cacheService.del(userProfileCacheKey(userId));
     await cacheService.delPattern(`perm:user:${userId}:*`);
   },
 

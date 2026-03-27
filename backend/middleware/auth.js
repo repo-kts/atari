@@ -1,5 +1,4 @@
 const { verifyToken } = require('../utils/jwt.js');
-const prisma = require('../config/prisma.js');
 const permissionResolverService = require('../services/auth/permissionResolverService.js');
 
 /**
@@ -18,22 +17,18 @@ async function authenticateToken(req, res, next) {
     // Verify token
     const decoded = verifyToken(token, 'access');
 
-    // Fetch user from database to ensure they still exist and are active.
-    // roleName and permissionsByModule come from the token (embedded at login/refresh).
-    const user = await prisma.user.findUnique({
-      where: { userId: decoded.userId },
-    });
+    // Fetch user profile (Redis-cached, DB fallback).
+    const user = await permissionResolverService.getUserProfile(decoded.userId);
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    // Check if user is soft-deleted
     if (user.deletedAt) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
-    // Resolve effective permissions server-side (DB + cache).
+    // Resolve effective permissions (Redis-cached, DB fallback).
     const permissionsByModule = await permissionResolverService.getEffectivePermissions({
       userId: user.userId,
       roleId: decoded.roleId,
