@@ -64,24 +64,19 @@ function decodePermissions(encoded) {
 /**
  * Generate access token (short-lived, 1 hour).
  *
- * Permissions are embedded in the token as a bitmask so that every subsequent
- * request can be authorised with zero DB queries (see auth.js requirePermission).
- *
- * Bitmask encoding: VIEW=1, ADD=2, EDIT=4, DELETE=8. This cuts the permissions
- * payload by ~50%, keeping even 74-module roles under the ~4 KB cookie limit.
+ * Access token intentionally carries only identity/session claims.
+ * Effective permissions are resolved server-side in auth middleware.
  *
  * @param {number} userId - User ID
  * @param {number} roleId - Role ID
  * @param {string} roleName - Role name
- * @param {Record<string, string[]>} permissionsByModule - Effective permissions map
  * @returns {string} JWT access token
  */
-function generateAccessToken(userId, roleId, roleName, permissionsByModule = {}) {
+function generateAccessToken(userId, roleId, roleName) {
   const payload = {
     userId,
     roleId,
     roleName,
-    permissions: encodePermissions(permissionsByModule),
     type: 'access',
   };
 

@@ -1,5 +1,6 @@
-const { verifyToken, decodePermissions } = require('../utils/jwt.js');
+const { verifyToken } = require('../utils/jwt.js');
 const prisma = require('../config/prisma.js');
+const permissionResolverService = require('../services/auth/permissionResolverService.js');
 
 /**
  * Middleware to authenticate JWT token from HTTP-only cookie
@@ -32,16 +33,21 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
+    // Resolve effective permissions server-side (DB + cache).
+    const permissionsByModule = await permissionResolverService.getEffectivePermissions({
+      userId: user.userId,
+      roleId: decoded.roleId,
+      roleName: decoded.roleName,
+    });
+
     // Attach user info to request object.
-    // Decode bitmask permissions back to string arrays so requirePermission
-    // and all downstream consumers see the familiar { moduleCode: ['VIEW', ...] } format.
     req.user = {
       userId: user.userId,
       email: user.email,
       name: user.name,
       roleId: decoded.roleId,
       roleName: decoded.roleName,
-      permissionsByModule: decodePermissions(decoded.permissions),
+      permissionsByModule,
       zoneId: user.zoneId,
       stateId: user.stateId,
       districtId: user.districtId,
