@@ -47,6 +47,26 @@ function getFileUrl(path: string): string {
   }
 }
 
+async function downloadImage(downloadUrl: string, fileName?: string | null) {
+  try {
+    const url = getFileUrl(downloadUrl)
+    const res = await fetch(url, { credentials: 'include' })
+    if (!res.ok) throw new Error('Download failed')
+    const blob = await res.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = fileName || 'image'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch {
+    // Fallback: open in new tab
+    window.open(getFileUrl(downloadUrl), '_blank')
+  }
+}
+
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -476,14 +496,13 @@ export const ModuleImages: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-[#212121]">{row.caption || 'N/A'}</td>
                         <td className="px-4 py-3 text-sm">
-                          <a
-                            href={getFileUrl(row.downloadUrl)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[#536DFE] hover:underline"
+                          <button
+                            type="button"
+                            onClick={() => downloadImage(row.downloadUrl, row.fileName)}
+                            className="text-[#536DFE] hover:underline cursor-pointer"
                           >
                             Download Image
-                          </a>
+                          </button>
                         </td>
                       </tr>
                     ))
