@@ -110,7 +110,7 @@ const permissionResolverService = {
     const effectivePermissions =
       userActions.length > 0
         ? intersectWithUserActions(rolePermissionsByModule, userActions)
-        : rolePermissionsByModule;
+        : {};
 
     await cacheService.set(key, effectivePermissions, getCacheTtlSeconds());
     return clonePermissionsMap(effectivePermissions);

@@ -9,58 +9,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '1h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
-// Bitmask encoding for permission actions.
-// Reduces JWT size by ~50%: ["VIEW","ADD","EDIT","DELETE"] (30 bytes) → 15 (2 bytes).
-const ACTION_BITS = { VIEW: 1, ADD: 2, EDIT: 4, DELETE: 8 };
-const BITS_TO_ACTIONS = Object.fromEntries(
-  Object.entries(ACTION_BITS).map(([action, bit]) => [bit, action])
-);
-
-/**
- * Encode permissionsByModule as bitmask for compact JWT storage.
- *   { "module_code": ["VIEW","ADD","EDIT","DELETE"] }
- *   → { "module_code": 15 }
- * @param {Record<string, string[]>} permissionsByModule
- * @returns {Record<string, number>}
- */
-function encodePermissions(permissionsByModule) {
-  const encoded = {};
-  for (const [moduleCode, actions] of Object.entries(permissionsByModule)) {
-    let mask = 0;
-    for (const action of actions) {
-      mask |= ACTION_BITS[action] || 0;
-    }
-    if (mask > 0) encoded[moduleCode] = mask;
-  }
-  return encoded;
-}
-
-/**
- * Decode bitmask permissions back to string arrays.
- *   { "module_code": 15 }
- *   → { "module_code": ["VIEW","ADD","EDIT","DELETE"] }
- * Also handles legacy tokens that still have the old string[] format.
- * @param {Record<string, number|string[]>} encoded
- * @returns {Record<string, string[]>}
- */
-function decodePermissions(encoded) {
-  if (!encoded || typeof encoded !== 'object') return {};
-  const decoded = {};
-  for (const [moduleCode, value] of Object.entries(encoded)) {
-    if (Array.isArray(value)) {
-      // Legacy format — already decoded
-      decoded[moduleCode] = value;
-    } else if (typeof value === 'number') {
-      const actions = [];
-      for (const [bit, action] of Object.entries(BITS_TO_ACTIONS)) {
-        if (value & Number(bit)) actions.push(action);
-      }
-      decoded[moduleCode] = actions;
-    }
-  }
-  return decoded;
-}
-
 /**
  * Generate access token (short-lived, 1 hour).
  *
@@ -149,5 +97,4 @@ module.exports = {
   generateRefreshToken,
   verifyToken,
   decodeToken,
-  decodePermissions,
 };

@@ -95,7 +95,7 @@ function requireRole(allowedRoles) {
 
 /**
  * Middleware to require specific permission.
- * Permissions are embedded in the JWT at login/refresh — no DB query needed.
+ * Permissions are resolved server-side and attached to req.user by authenticateToken.
  * @param {string} moduleCode - Module code (e.g., 'user_management_users')
  * @param {string} action - Permission action (VIEW, ADD, EDIT, DELETE)
  * @returns {Function} Express middleware function
