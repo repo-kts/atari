@@ -90,8 +90,8 @@ const authService = {
             user.userId,
         );
 
-        // Generate access token with permissions embedded (zero DB queries on subsequent requests)
-        const accessToken = generateAccessToken(user.userId, user.roleId, user.role.roleName, permissionsByModule);
+        // Generate compact access token (identity claims only).
+        const accessToken = generateAccessToken(user.userId, user.roleId, user.role.roleName);
 
         // Calculate refresh token expiration (7 days from now)
         const refreshExpiresAt = new Date();
@@ -186,19 +186,11 @@ const authService = {
             throw new Error('User account has been deleted');
         }
 
-        // Build permissions to embed in the new access token
-        const { permissionsByModule } = await buildPermissionsByModule(
-            tokenRecord.user.roleId,
-            tokenRecord.user.role.roleName,
-            tokenRecord.userId,
-        );
-
-        // Generate new access token with permissions embedded
+        // Generate compact access token (identity claims only).
         const accessToken = generateAccessToken(
             tokenRecord.userId,
             tokenRecord.user.roleId,
             tokenRecord.user.role.roleName,
-            permissionsByModule,
         );
 
         // Rotate refresh token: revoke old, create new
