@@ -140,6 +140,15 @@ const NARI_CROP_CATEGORIES = [
   'Fruits', 'Vegetables', 'Pulses', 'Oilseeds', 'Cereals', 'Other'
 ];
 
+const FINANCIAL_PROJECTS = [
+  'CFLD Oilseed', 'CFLD Pulses', 'Model Village Oilseed', 'Model Village Pulses',
+  'NICRA', 'ARYA', 'FPO', 'Natural Farming', 'DRMR', 'NARI', 'IIPR', 'TSP', 'SCSP', 'SAP', 'Others'
+];
+
+const FUNDING_AGENCIES = [
+  'ICAR', 'State Govt. Ministry of A&FW', 'Central Govt.', 'Others'
+];
+
 async function seedStaffMasters() {
   console.log('🌱 Staff masters...');
 
@@ -466,6 +475,51 @@ async function seedNariMasters() {
   console.log('   ✅ Done\n');
 }
 
+async function seedFundingAgencies() {
+  console.log('🌱 Funding agencies...');
+  for (const agencyName of FUNDING_AGENCIES) {
+    await prisma.fundingAgency.upsert({
+      where: { agencyName },
+      update: {},
+      create: { agencyName }
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedFinancialProjects() {
+  console.log('🌱 Financial projects...');
+  
+  // Get all agencies to link defaults
+  const agencies = await prisma.fundingAgency.findMany();
+  const icar = agencies.find(a => a.agencyName === 'ICAR');
+  const state = agencies.find(a => a.agencyName === 'State Govt. Ministry of A&FW');
+
+  for (const projectName of FINANCIAL_PROJECTS) {
+    let fundingAgencyId = null;
+    
+    // Default mappings
+    if (icar && (
+      projectName.startsWith('CFLD') || 
+      ['NICRA', 'ARYA', 'FPO', 'Natural Farming', 'DRMR', 'NARI', 'IIPR', 'SAP'].includes(projectName)
+    )) {
+      fundingAgencyId = icar.fundingAgencyId;
+    } else if (state && ['TSP', 'SCSP'].includes(projectName)) {
+      fundingAgencyId = state.fundingAgencyId;
+    } else if (projectName === 'Others') {
+       const othersAgency = agencies.find(a => a.agencyName === 'Others');
+       if (othersAgency) fundingAgencyId = othersAgency.fundingAgencyId;
+    }
+
+    await prisma.financialProject.upsert({
+      where: { projectName },
+      update: { fundingAgencyId },
+      create: { projectName, fundingAgencyId }
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
 async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
@@ -478,6 +532,8 @@ async function run() {
   await seedUniversities();
   await seedAttachmentTypes();
   await seedNariMasters();
+  await seedFundingAgencies();
+  await seedFinancialProjects();
   console.log('✅ All masters seeded successfully!');
 }
 

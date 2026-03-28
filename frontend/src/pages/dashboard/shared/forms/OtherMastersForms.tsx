@@ -2,7 +2,8 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
-import { useNicraCategories } from '@/hooks/useOtherMastersData'
+import { useNicraCategories, useFundingAgencies } from '@/hooks/useOtherMastersData'
+import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface OtherMastersFormsProps {
     entityType: ExtendedEntityType | null
@@ -16,6 +17,12 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
     setFormData,
 }) => {
     const { data: nicraCategories = [] } = useNicraCategories()
+    const { data: fundingAgencies = [] } = useFundingAgencies()
+
+    const agencyOptions = React.useMemo(() => 
+        createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
+        [fundingAgencies]
+    )
 
     if (!entityType) return null
 
@@ -252,7 +259,40 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                     placeholder="Enter NICRA PI/CO-PI type"
                 />
             )}
-            
+
+            {entityType === ENTITY_TYPES.FINANCIAL_PROJECT && (
+                <div className="space-y-4">
+                    <FormInput
+                        label="Project Name"
+                        required
+                        value={formData.projectName || ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, projectName: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="Enter financial project name"
+                    />
+                    <FormSelect
+                        label="Default Funding Agency"
+                        value={formData.fundingAgencyId || ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            setFormData((prev: any) => ({ ...prev, fundingAgencyId: parseInt(e.target.value) }))
+                        }, [setFormData])}
+                        options={agencyOptions}
+                    />
+                </div>
+            )}
+
+            {entityType === ENTITY_TYPES.FUNDING_AGENCY && (
+                <FormInput
+                    label="Agency Name"
+                    required
+                    value={formData.agencyName || ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, agencyName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="Enter funding agency name"
+                />
+            )}
             {entityType === ENTITY_TYPES.IMPACT_SPECIFIC_AREA && (
                 <FormInput
                     label="Specific Area Name"

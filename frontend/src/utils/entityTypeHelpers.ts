@@ -85,6 +85,8 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.PROGRAMME_TYPE,
         ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
         ENTITY_TYPES.DIGNITARY_TYPE,
+        ENTITY_TYPES.FINANCIAL_PROJECT,
+        ENTITY_TYPES.FUNDING_AGENCY,
     ] as ExtendedEntityType[],
     ABOUT_KVK: [
         ENTITY_TYPES.KVKS,
@@ -280,6 +282,8 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/programme-type': ENTITY_TYPES.PROGRAMME_TYPE,
         '/all-master/ppv-fra-training-type': ENTITY_TYPES.PPV_FRA_TRAINING_TYPE,
         '/all-master/dignitary-type': ENTITY_TYPES.DIGNITARY_TYPE,
+        '/all-master/financial-project': ENTITY_TYPES.FINANCIAL_PROJECT,
+        '/all-master/funding-agency': ENTITY_TYPES.FUNDING_AGENCY,
 
         // About KVK
         '/forms/about-kvk/bank-account': ENTITY_TYPES.KVK_BANK_ACCOUNTS,

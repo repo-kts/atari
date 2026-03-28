@@ -74,6 +74,8 @@ import {
     useProgrammeTypes,
     usePpvFraTrainingTypes,
     useDignitaryTypes,
+    useFinancialProjects,
+    useFundingAgencies,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
@@ -165,6 +167,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PROGRAMME_TYPE]: () => useProgrammeTypes(),
     [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: () => usePpvFraTrainingTypes(),
     [ENTITY_TYPES.DIGNITARY_TYPE]: () => useDignitaryTypes(),
+    [ENTITY_TYPES.FINANCIAL_PROJECT]: () => useFinancialProjects(),
+    [ENTITY_TYPES.FUNDING_AGENCY]: () => useFundingAgencies(),
 
     // Projects (Achievements)
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: () => useCfldTechnicalParameters(),

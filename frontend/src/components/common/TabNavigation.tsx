@@ -131,7 +131,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
     if (tabs.length <= 1) return null
 
     return (
-        <div className={`relative px-4 sm:px-6 pb-2 w-full ${className}`}>
+        <div className={`relative px-1 pb-2 w-fit ${className}`}>
             {/* Left scroll button */}
             {showLeftArrow && (
                 <button
@@ -146,7 +146,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             {/* Tabs container */}
             <div
                 ref={containerRef}
-                className="flex items-center gap-1 overflow-x-auto w-full scrollbar-hide bg-[#487749] rounded-xl p-1 shadow-inner"
+                className="flex items-center gap-1 overflow-x-auto w-fit scrollbar-hide bg-[#487749] rounded-2xl p-1 shadow-inner"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {tabs.map((tab) => {

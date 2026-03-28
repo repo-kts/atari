@@ -233,6 +233,8 @@ export const ENTITY_TYPES = {
     ACCOUNT_TYPE: 'account-type',
     PROGRAMME_TYPE: 'programme-type',
     PPV_FRA_TRAINING_TYPE: 'misc-ppv-fra-training-type',
+    FINANCIAL_PROJECT: 'financial-project',
+    FUNDING_AGENCY: 'funding-agency',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
@@ -346,4 +348,6 @@ export const ENTITY_PATHS = {
     EMPLOYEE_MASTERS: '/all-master/employee-masters',
     PRODUCTION_PROJECTS_MASTERS: '/all-master/production-projects',
     PUBLICATIONS_MASTERS: '/all-master/publications',
+    FINANCIAL_PROJECT: '/all-master/financial-project',
+    FUNDING_AGENCY: '/all-master/funding-agency',
 } as const;

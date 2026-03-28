@@ -18,7 +18,7 @@ export const Layout: React.FC = () => {
                     ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}
             >
                 <Header />
-                <main className="flex-1 overflow-y-auto p-4 relative">
+                <main className="flex-1 overflow-y-auto md:p-4 relative">
                     <Outlet />
                 </main>
             </div>

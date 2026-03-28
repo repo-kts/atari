@@ -347,3 +347,23 @@ exports.getDignitaryTypeById = getById('dignitary-type');
 exports.createDignitaryType = create('dignitary-type');
 exports.updateDignitaryType = update('dignitary-type');
 exports.deleteDignitaryType = deleteEntity('dignitary-type');
+
+// ============================================
+// Financial Project Master Controllers
+// ============================================
+
+exports.getAllFinancialProjects = getAll('financial-project');
+exports.getFinancialProjectById = getById('financial-project');
+exports.createFinancialProject = create('financial-project');
+exports.updateFinancialProject = update('financial-project');
+exports.deleteFinancialProject = deleteEntity('financial-project');
+
+// ============================================
+// Funding Agency Master Controllers
+// ============================================
+
+exports.getAllFundingAgencies = getAll('funding-agency');
+exports.getFundingAgencyById = getById('funding-agency');
+exports.createFundingAgency = create('funding-agency');
+exports.updateFundingAgency = update('funding-agency');
+exports.deleteFundingAgency = deleteEntity('funding-agency');

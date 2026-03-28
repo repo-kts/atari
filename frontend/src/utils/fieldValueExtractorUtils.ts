@@ -600,6 +600,23 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
+    [FIELD_NAMES.PROJECT_NAME]: {
+        extractor: (item: any) => {
+            const masterName = item.projectName?.projectName || item.projectName;
+            const specifyName = item.specifyProjectName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            if (typeof masterName === 'string') return masterName;
+            // Fallback for budget where projectName is the relation
+            return item.projectName?.projectName || null;
+        },
+        priority: 7,
+    },
+    [FIELD_NAMES.SPECIFY_PROJECT_NAME]: {
+        extractor: (item: any) => item.specifyProjectName || null,
+        priority: 7,
+    },
     kvkName: {
         extractor: (item: any) => {
             if (item.kvk?.kvkName) return item.kvk.kvkName;
@@ -1986,10 +2003,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
-    [FIELD_NAMES.FUNDING_AGENCY]: {
-        extractor: (item: any) => item.fundingAgency || null,
-        priority: 6,
-    },
     // Performance - District & Village
     [FIELD_NAMES.TALUK]: {
         extractor: (item: any) => item.taluk || null,
@@ -2305,7 +2318,32 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-
+    [FIELD_NAMES.FUNDING_AGENCY_NAME]: {
+        extractor: (item: any) => {
+            const masterName = item.fundingAgency?.agencyName || item.agencyName;
+            const specifyName = item.specifyAgencyName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            return masterName || null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.FUNDING_AGENCY]: {
+        extractor: (item: any) => {
+            const masterName = item.fundingAgency?.agencyName || item.agencyName;
+            const specifyName = item.specifyAgencyName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            return masterName || null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.SPECIFY_AGENCY_NAME]: {
+        extractor: (item: any) => item.specifyAgencyName || null,
+        priority: 5,
+    },
     [FIELD_NAMES.BUDGET_ESTIMATE]: {
         extractor: (item: any) => {
             const val = item.budgetEstimate;

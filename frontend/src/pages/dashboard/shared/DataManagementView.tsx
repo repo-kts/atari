@@ -117,6 +117,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const { data: years = [] } = useYears()
 
     const yearMenuRef = useRef<HTMLDivElement | null>(null)
+    const mobileYearMenuRef = useRef<HTMLDivElement | null>(null)
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
     const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
@@ -513,11 +514,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
                 {/* Mobile dropdown (custom menu like Download) */}
                 <div className="sm:hidden mb-4">
-                    <div ref={oftFldTabMenuRef} className="relative inline-flex max-w-[90vw]">
+                    <div ref={oftFldTabMenuRef} className="relative inline-flex bg-red-300 max-w-[90vw]">
                         <button
                             type="button"
                             onClick={() => setIsOftFldTabMenuOpen((v) => !v)}
-                            className="h-11 inline-flex items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                            className="inline-flex items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
                         >
                             {options.find((o) => o.value === opts.mode)?.label || 'Select'}
                             <ChevronDown className="w-4 h-4 text-[#757575]" />
@@ -726,7 +727,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     useEffect(() => {
         const onDocMouseDown = (e: MouseEvent) => {
             const target = e.target as Node
-            if (isYearMenuOpen && yearMenuRef.current && !yearMenuRef.current.contains(target)) {
+            if (isYearMenuOpen && 
+                (!yearMenuRef.current || !yearMenuRef.current.contains(target)) &&
+                (!mobileYearMenuRef.current || !mobileYearMenuRef.current.contains(target))
+            ) {
                 setIsYearMenuOpen(false)
             }
             if (isMobileRouteMenuOpen && mobileRouteMenuRef.current && !mobileRouteMenuRef.current.contains(target)) {
@@ -747,12 +751,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const error = getHookError(activeHook)
 
     return (
-        <div className="flex flex-col h-full w-full bg-[#FAF9F6] overflow-hidden">
+        <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden px-4 md:px-6">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
             {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && (
-                <div className="flex-none bg-white border-b border-[#E0E0E0]">
+                <div className="flex-none bg-white border-b mb-1 border-[#E0E0E0] relative z-20">
                     {breadcrumbs.length > 0 && (
-                        <div className="flex items-center gap-3 px-4 sm:px-6 pt-3 pb-3">
+                        <div className="flex flex-row items-center gap-3 sm:gap-4 pt-4 pb-4">
                             <button
                                 onClick={() => {
                                     // Special handling for different categories
@@ -790,14 +794,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 <ChevronLeft className="w-4 h-4" />
                                 Back
                             </button>
-                            <div className="w-full overflow-x-auto whitespace-nowrap [-webkit-overflow-scrolling:touch]">
+                            <div className="w-full">
                                 <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
                             </div>
                         </div>
                     )}
 
                     {siblingRoutes.length > 1 && (
-                        <div className="mb-3 px-4 sm:px-6 pb-1">
+                        <div className="pb-2">
                             {/* Desktop tabs */}
                             <div className="hidden sm:block">
                                 <TabNavigation
@@ -806,12 +810,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 />
                             </div>
                             {/* Mobile dropdown */}
-                            <div className="sm:hidden px-4">
-                                <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw]">
+                            <div className="sm:hidden">
+                                <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw] h-11">
                                     <button
                                         type="button"
                                         onClick={() => setIsMobileRouteMenuOpen((v) => !v)}
-                                        className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                        className="inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
                                     >
                                         {siblingRoutes.find((r) => r.path === location.pathname)?.title || 'Select'}
                                         <ChevronDown className="w-4 h-4 text-[#757575]" />
@@ -850,7 +854,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
                 {/* Show Form Page if open, otherwise show List View */}
                 {isFormPageOpen ? (
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className="flex-1 overflow-y-auto py-4">
                         {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && renderOftFldTabs({ mode: 'edit', kind: 'oft', item: editingItem })}
                         {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD && renderOftFldTabs({ mode: 'edit', kind: 'fld', item: editingItem })}
 
@@ -940,7 +944,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     </div>
                 ) : (
                     <>
-                        <div className="flex-none px-6 py-4 pb-2">
+                        <div className="flex-none pb-2">
                             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
                                     <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
@@ -964,6 +968,57 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 {opt.label}
                                             </button>
                                         ))}
+                                    </div>
+
+                                    {/* Mobile: styled dropdown menu for years */}
+                                    <div ref={mobileYearMenuRef} className="relative sm:hidden">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsYearMenuOpen((v) => !v)}
+                                            className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                        >
+                                            {selectedYearId
+                                                ? (years as any[]).find((y: any) => String(y.yearId) === String(selectedYearId))?.yearName || 'Year'
+                                                : 'All Years'}
+                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                                        </button>
+                                        
+                                        {isYearMenuOpen && (
+                                            <div className="absolute right-0 top-full mt-1 z-50 w-[max-content] min-w-[12rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E0E0E0] bg-white p-1 shadow-lg max-h-[40vh] overflow-y-auto">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSelectedYearId('')
+                                                        setIsYearMenuOpen(false)
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${!selectedYearId
+                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                        }`}
+                                                >
+                                                    All Years
+                                                </button>
+                                                {(years as any[]).map((year: any) => {
+                                                    const selected = String(year.yearId) === String(selectedYearId)
+                                                    return (
+                                                        <button
+                                                            key={year.yearId}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedYearId(String(year.yearId))
+                                                                setIsYearMenuOpen(false)
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                                }`}
+                                                        >
+                                                            {year.yearName}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Mobile: styled dropdown menu */}
@@ -1012,20 +1067,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex flex-row flex-wrap gap-3 items-center">
-                                <div className="min-w-[280px]">
+                            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
+                                <div className="w-full sm:w-[280px]">
                                     <SearchInput
                                         value={searchQuery}
                                         onChange={setSearchQuery}
                                         placeholder="Search..."
+                                        className="!max-w-full"
                                     />
                                 </div>
-                                <div className="">
+                                <div className="hidden sm:block">
                                     <div ref={yearMenuRef} className="relative inline-flex">
                                         <button
                                             type="button"
                                             onClick={() => setIsYearMenuOpen((v) => !v)}
-                                            className="h-11 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                            className="h-10 inline-flex justify-between items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
                                         >
                                             {selectedYearId
                                                 ? (years as any[]).find((y: any) => String(y.yearId) === String(selectedYearId))?.yearName || 'Year'
@@ -1034,7 +1090,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         </button>
 
                                         {isYearMenuOpen && (
-                                            <div className="absolute right-0 z-50 mt-1 w-52 rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                            <div className="absolute left-0 top-full mt-1 z-50 w-full sm:w-52 rounded-2xl border border-[#E0E0E0] bg-white p-1 shadow-lg max-h-64 overflow-y-auto">
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -1076,7 +1132,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             {error && <ErrorState message={error} className="my-4" />}
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 px-6 pb-6 overflow-hidden">
+                        <div className="flex-1 flex flex-col min-h-0 pb-6 overflow-hidden">
                             {loading ? (
                                 <LoadingState />
                             ) : isKvkRoleWithoutKvk ? (
