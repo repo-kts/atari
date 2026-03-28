@@ -38,6 +38,14 @@ export const featureRoutes: RouteConfig[] = [
         moduleCode: 'targets',
     },
     {
+        path: '/targets/create',
+        title: 'Add Targets',
+        description: 'Create a new target',
+        category: 'Features',
+        parent: '/targets',
+        moduleCode: 'targets',
+    },
+    {
         path: '/all-reports',
         title: 'Reports',
         description: 'View and generate system reports',

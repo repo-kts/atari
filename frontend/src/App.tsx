@@ -162,6 +162,14 @@ function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/targets/create"
+                        element={
+                            <ProtectedRoute requiredModuleCode="targets">
+                                <Targets />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/all-reports"
                         element={
                             <ProtectedRoute requiredModuleCode="reports">

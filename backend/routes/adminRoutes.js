@@ -6,6 +6,7 @@ const rolePermissionController = require('../controllers/rolePermissionControlle
 const logHistoryController = require('../controllers/logHistoryController.js');
 const notificationController = require('../controllers/notificationController.js');
 const moduleImageController = require('../controllers/moduleImageController.js');
+const targetController = require('../controllers/targetController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -17,6 +18,7 @@ const ROLE_MANAGEMENT_MODULE = 'role_management_roles';
 const LOG_HISTORY_MODULE = 'log_history';
 const NOTIFICATIONS_MODULE = 'notifications';
 const MODULE_IMAGES_MODULE = 'module_images';
+const TARGETS_MODULE = 'targets';
 const HIDDEN_ROLE_NAMES = new Set(['zone_admin']);
 
 // Apply authentication to all admin routes.
@@ -63,6 +65,14 @@ router.get('/module-images/kvks', apiRateLimiter, requirePermission(MODULE_IMAGE
 router.get('/module-images', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.list);
 router.post('/module-images', strictRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'ADD'), moduleImageController.create);
 router.get('/module-images/:imageId/file', apiRateLimiter, requirePermission(MODULE_IMAGES_MODULE, 'VIEW'), moduleImageController.getFile);
+
+// Targets
+router.get('/targets/types', apiRateLimiter, requirePermission(TARGETS_MODULE, 'VIEW'), targetController.getTypeOptions);
+router.get('/targets/kvks', apiRateLimiter, requirePermission(TARGETS_MODULE, 'VIEW'), targetController.getKvkOptions);
+router.get('/targets', apiRateLimiter, requirePermission(TARGETS_MODULE, 'VIEW'), targetController.list);
+router.post('/targets', strictRateLimiter, requirePermission(TARGETS_MODULE, 'ADD'), targetController.create);
+router.put('/targets/:targetId', strictRateLimiter, requirePermission(TARGETS_MODULE, 'EDIT'), targetController.update);
+router.delete('/targets/:targetId', strictRateLimiter, requirePermission(TARGETS_MODULE, 'DELETE'), targetController.remove);
 
 // Create role – requires ADD on role management (must be before /roles/:roleId)
 router.post(
