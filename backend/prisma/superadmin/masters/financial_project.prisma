@@ -1,0 +1,14 @@
+model FinancialProject {
+  financialProjectId Int              @id @default(autoincrement()) @map("financial_project_id")
+  projectName        String           @unique @map("project_name")
+  fundingAgencyId    Int?             @map("funding_agency_id")
+  fundingAgency      FundingAgency?   @relation(fields: [fundingAgencyId], references: [fundingAgencyId], onDelete: SetNull)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  projectBudgets     ProjectBudget[]
+
+  @@index([financialProjectId])
+  @@index([projectName])
+  @@index([fundingAgencyId])
+  @@map("financial_project")
+}

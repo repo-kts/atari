@@ -10,9 +10,11 @@ const projectBudgetRepository = {
                 kvkId,
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
-                projectName: data.projectName || '',
+                financialProjectId: parseInt(data.financialProjectId),
+                fundingAgencyId: data.fundingAgencyId ? parseInt(data.fundingAgencyId) : null,
+                specifyProjectName: data.specifyProjectName || null,
+                specifyAgencyName: data.specifyAgencyName || null,
                 accountNumber: data.accountNumber || '',
-                fundingAgency: data.fundingAgency || '',
                 budgetEstimate: parseFloat(data.budgetEstimate || 0),
                 budgetAllocated: parseFloat(data.budgetAllocated || 0),
                 budgetReleased: parseFloat(data.budgetReleased || 0),
@@ -37,7 +39,9 @@ const projectBudgetRepository = {
         const records = await prisma.projectBudget.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                projectName: { select: { projectName: true } },
+                fundingAgency: { select: { agencyName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -56,7 +60,9 @@ const projectBudgetRepository = {
         const record = await prisma.projectBudget.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                projectName: { select: { projectName: true } },
+                fundingAgency: { select: { agencyName: true } }
             }
         });
 
@@ -82,9 +88,11 @@ const projectBudgetRepository = {
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
-                projectName: data.projectName !== undefined ? data.projectName : existing.projectName,
+                financialProjectId: data.financialProjectId !== undefined ? parseInt(data.financialProjectId) : existing.financialProjectId,
+                fundingAgencyId: data.fundingAgencyId !== undefined ? (data.fundingAgencyId ? parseInt(data.fundingAgencyId) : null) : existing.fundingAgencyId,
+                specifyProjectName: data.specifyProjectName !== undefined ? data.specifyProjectName : existing.specifyProjectName,
+                specifyAgencyName: data.specifyAgencyName !== undefined ? data.specifyAgencyName : existing.specifyAgencyName,
                 accountNumber: data.accountNumber !== undefined ? data.accountNumber : existing.accountNumber,
-                fundingAgency: data.fundingAgency !== undefined ? data.fundingAgency : existing.fundingAgency,
                 budgetEstimate: data.budgetEstimate !== undefined ? parseFloat(data.budgetEstimate) : existing.budgetEstimate,
                 budgetAllocated: data.budgetAllocated !== undefined ? parseFloat(data.budgetAllocated) : existing.budgetAllocated,
                 budgetReleased: data.budgetReleased !== undefined ? parseFloat(data.budgetReleased) : existing.budgetReleased,

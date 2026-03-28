@@ -254,4 +254,24 @@ router.post('/dignitary-type', requirePermission('all_masters_dignitary_type_mas
 router.put('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'EDIT'), otherMastersController.updateDignitaryType);
 router.delete('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'DELETE'), otherMastersController.deleteDignitaryType);
 
+// ============================================
+// Financial Project Master Routes
+// ============================================
+
+router.get('/financial-project', otherMastersController.getAllFinancialProjects);
+router.get('/financial-project/:id', otherMastersController.getFinancialProjectById);
+router.post('/financial-project', requirePermission('all_masters_financial_project_master', 'ADD'), otherMastersController.createFinancialProject);
+router.put('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'EDIT'), otherMastersController.updateFinancialProject);
+router.delete('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'DELETE'), otherMastersController.deleteFinancialProject);
+
+// ============================================
+// Funding Agency Master Routes
+// ============================================
+
+router.get('/funding-agency', otherMastersController.getAllFundingAgencies);
+router.get('/funding-agency/:id', otherMastersController.getFundingAgencyById);
+router.post('/funding-agency', requirePermission('all_masters_funding_agency_master', 'ADD'), otherMastersController.createFundingAgency);
+router.put('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'EDIT'), otherMastersController.updateFundingAgency);
+router.delete('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'DELETE'), otherMastersController.deleteFundingAgency);
+
 module.exports = router;

@@ -321,6 +321,37 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'financial-project': {
+        model: 'financialProject',
+        idField: 'financialProjectId',
+        nameField: 'projectName',
+        includes: {
+            fundingAgency: {
+                select: {
+                    fundingAgencyId: true,
+                    agencyName: true,
+                },
+            },
+            _count: {
+                select: {
+                    projectBudgets: true,
+                },
+            },
+        },
+    },
+    'funding-agency': {
+        model: 'fundingAgency',
+        idField: 'fundingAgencyId',
+        nameField: 'agencyName',
+        includes: {
+            _count: {
+                select: {
+                    financialProjects: true,
+                    projectBudgets: true,
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -514,6 +545,7 @@ const create = async (entityType, data) => {
         'programme-type',
         'ppv-fra-training-type',
         'dignitary-type',
+        'financial-project',
     ];
     
     if (entitiesWithSeededData.includes(entityType)) {
@@ -535,7 +567,8 @@ const create = async (entityType, data) => {
                          entityType === 'account-type' ? 'account_type_master' :
                          entityType === 'programme-type' ? 'programme_type_master' : 
                          entityType === 'ppv-fra-training-type' ? 'ppv_fra_training_type_master' :
-                         entityType === 'dignitary-type' ? 'dignitary_type' : null;
+                         entityType === 'dignitary-type' ? 'dignitary_type' : 
+                         entityType === 'financial-project' ? 'financial_project' : null;
         
         if (tableName) {
             const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();

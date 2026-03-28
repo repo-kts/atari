@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput } from '../shared/FormComponents'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { useYears, useFinancialProjects, useFundingAgencies } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -18,21 +18,53 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     setFormData,
 }) => {
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: financialProjects = [], isLoading: isLoadingProjects } = useFinancialProjects()
 
-    // Memoize year options
+    const { data: fundingAgencies = [], isLoading: isLoadingAgencies } = useFundingAgencies()
+
+    // Memoize options
     const yearOptions = useMemo(
         () => createMasterDataOptions(years, 'yearId', 'yearName'),
         [years]
     )
 
+    const projectOptions = useMemo(
+        () => createMasterDataOptions(financialProjects, 'financialProjectId', 'projectName'),
+        [financialProjects]
+    )
+
+    const agencyOptions = useMemo(
+        () => createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
+        [fundingAgencies]
+    )
+
+    const handleProjectChange = useCallback((value: string | number) => {
+        const projectId = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
+        
+        setFormData((prev: any) => {
+            const updates: any = { financialProjectId: projectId };
+            
+            if (projectId) {
+                const project = financialProjects.find((p: any) => p.financialProjectId === projectId);
+                // Auto-fill funding agency if project has one linked
+                if (project?.fundingAgencyId) {
+                    updates.fundingAgencyId = project.fundingAgencyId;
+                }
+            }
+            
+            return { ...prev, ...updates };
+        });
+    }, [financialProjects, setFormData]);
+
     // Optimized onChange handlers
     const handleFieldChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-            const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value
-            setFormData({ ...formData, [field]: value })
+            const { type, value } = e.target;
+            const computedValue = type === 'number' ? (value === '' ? '' : parseFloat(value)) : value;
+            setFormData((prev: any) => ({ ...prev, [field]: computedValue }));
         },
-        [formData, setFormData]
-    )
+        [setFormData]
+    );
 
     const handleYearChange = useCallback(
         (value: string | number) => {
@@ -394,32 +426,24 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-700">
-                                Name of project<span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                className="w-full h-11 px-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent transition-all"
+                        <MasterDataDropdown
+                            label="Name of project"
+                            required
+                            value={formData.financialProjectId || ''}
+                            onChange={handleProjectChange}
+                            options={projectOptions}
+                            isLoading={isLoadingProjects}
+                            emptyMessage="No financial projects available"
+                        />
+                        {financialProjects.find((p: any) => p.financialProjectId === parseInt(formData.financialProjectId?.toString()))?.projectName === 'Others' && (
+                            <FormInput
+                                label="Specify Project Name"
                                 required
-                                value={formData.projectName || ''}
-                                onChange={handleFieldChange('projectName')}
-                            >
-                                <option value="">Select</option>
-                                <option value="CFLD Oilseed">CFLD Oilseed</option>
-                                <option value="CFLD Pulses">CFLD Pulses</option>
-                                <option value="Model Village Oilseed">Model Village Oilseed</option>
-                                <option value="Model Village Pulses">Model Village Pulses</option>
-                                <option value="NICRA">NICRA</option>
-                                <option value="ARYA">ARYA</option>
-                                <option value="FPO">FPO</option>
-                                <option value="Natural Farming">Natural Farming</option>
-                                <option value="DRMR">DRMR</option>
-                                <option value="NARI">NARI</option>
-                                <option value="IIPR">IIPR</option>
-                                <option value="TSP">TSP</option>
-                                <option value="SCSP">SCSP</option>
-                            </select>
-                        </div>
+                                value={formData.specifyProjectName || ''}
+                                onChange={handleFieldChange('specifyProjectName')}
+                                placeholder="Enter project name..."
+                            />
+                        )}
                         <FormInput
                             label="Account Number"
                             required
@@ -429,23 +453,27 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-700">
-                                Name of Funding agency<span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                className="w-full h-11 px-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-olive-500 focus:border-transparent transition-all"
+                        <MasterDataDropdown
+                            label="Name of Funding agency"
+                            required
+                            value={formData.fundingAgencyId || ''}
+                            onChange={(value) => {
+                                const id = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
+                                setFormData((prev: any) => ({ ...prev, fundingAgencyId: id }));
+                            }}
+                            options={agencyOptions}
+                            isLoading={isLoadingAgencies}
+                            emptyMessage="No funding agencies available"
+                        />
+                        {fundingAgencies.find((a: any) => a.fundingAgencyId === parseInt(formData.fundingAgencyId?.toString()))?.agencyName === 'Others' && (
+                            <FormInput
+                                label="Specify Agency Name"
                                 required
-                                value={formData.fundingAgency || ''}
-                                onChange={handleFieldChange('fundingAgency')}
-                            >
-                                <option value="">Select</option>
-                                <option value="ICAR">ICAR</option>
-                                <option value="State Govt. Ministry of A&FW">State Govt. Ministry of A&FW</option>
-                                <option value="Central Govt.">Central Govt.</option>
-                                <option value="Others">Others</option>
-                            </select>
-                        </div>
+                                value={formData.specifyAgencyName || ''}
+                                onChange={handleFieldChange('specifyAgencyName')}
+                                placeholder="Enter agency name..."
+                            />
+                        )}
                         <FormInput
                             type="number"
                             label="Budget Estimate"
