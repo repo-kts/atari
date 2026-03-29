@@ -35,6 +35,7 @@ interface MenuItem {
     moduleCodes?: string[]
     children?: MenuItem[]
     dropdown?: boolean // If true, show children as dropdown in sidebar and hide tabs on page
+    target?: string
 }
 
 // Super Admin menu items with dropdown support
@@ -186,6 +187,7 @@ const superAdminMenuItems: MenuItem[] = [
         path: '/all-reports',
         icon: <FileBarChart className="w-5 h-5" />,
         moduleCode: 'reports',
+        target: '_blank',
     },
 ]
 
@@ -627,6 +629,7 @@ const SidebarDropdownItem: React.FC<{
                                     <Link
                                         key={child.path}
                                         to={child.path}
+                                        target={child.target}
                                         onClick={() => onMobileClose()}
                                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
                                             ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
@@ -673,6 +676,7 @@ const SidebarItem: React.FC<{
         <div className="mx-2 my-0.5">
             <Link
                 to={props.item.path}
+                target={props.item.target}
                 onClick={props.onMobileClose}
                 className={`flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 ${active
                     ? 'bg-[#3d6540] text-white font-medium'

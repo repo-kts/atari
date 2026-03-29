@@ -1,10 +1,19 @@
-import React, { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 
 export const Layout: React.FC = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const location = useLocation()
+    const isReportPage = location.pathname === '/all-reports'
+    const [sidebarOpen, setSidebarOpen] = useState(!isReportPage)
+
+    // Automatically collapse sidebar when navigating to reports
+    useEffect(() => {
+        if (isReportPage) {
+            setSidebarOpen(false)
+        }
+    }, [isReportPage])
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5F5F5]">

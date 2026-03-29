@@ -9,7 +9,7 @@ const authService = require('../services/authService.js');
 function getCookieOptions(maxAge) {
   const isProduction = process.env.NODE_ENV === 'production';
   const isDevelopment = !isProduction;
-  
+
   // In production (cross-origin), need SameSite=None + Secure
   // In development (same-origin), use SameSite=Lax for better compatibility
   const cookieOptions = {
