@@ -66,10 +66,6 @@ const generateKvkReport = async (req, res) => {
 const getReportConfig = async (req, res) => {
     try {
         const config = reportService.getReportConfig();
-        console.log('--- DEBUG: GENERATING REPORT CONFIG ---');
-        console.log('Total sections in config:', config.sections?.length);
-        console.log('First section ID:', config.sections?.[0]?.id);
-        console.log('Last section ID:', config.sections?.[config.sections.length - 1]?.id);
         res.json({
             success: true,
             data: config,
