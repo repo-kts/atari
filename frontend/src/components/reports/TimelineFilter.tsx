@@ -31,16 +31,16 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
     const yearOptions = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
     return (
-        <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-6 py-4 shadow-sm">
-            <h3 className="text-xs font-black text-[#212121] uppercase tracking-[0.1em] mb-4 flex items-center gap-3">
+        <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-6 py-3 shadow-sm">
+            <h3 className="text-[15px] font-bold text-[#212121] mb-3 flex items-center gap-3">
                 <div className="p-1.5 bg-[#487749]/10 rounded-lg text-[#487749]">
                     <Calendar className="w-4 h-4" />
                 </div>
                 Timeline Filter
             </h3>
-            <div className="space-y-4">
-                <div className="flex flex-col xl:flex-row items-center justify-between gap-6 pb-4 border-b border-[#F5F5F5]">
-                    <div className="flex-1 flex flex-wrap items-center gap-x-8 gap-y-3 w-full">
+            <div className="space-y-2">
+                <div className="flex flex-col xl:flex-row items-center justify-between gap-4 pb-2 border-b border-[#F5F5F5]">
+                    <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-2 w-full">
                         <label className="flex items-center gap-3 cursor-pointer group shrink-0">
                             <input
                                 type="radio"
@@ -51,7 +51,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                 disabled={disabled}
                                 className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
                             />
-                            <span className={`text-[13px] font-black tracking-tight transition-all duration-300 ${filterType === 'none' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>No Filter (All Data)</span>
+                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'none' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>No Filter (All Data)</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer group shrink-0">
                             <input
@@ -63,7 +63,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                 disabled={disabled}
                                 className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
                             />
-                            <span className={`text-[13px] font-black tracking-tight transition-all duration-300 ${filterType === 'dateRange' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Date Range</span>
+                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'dateRange' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Date Range</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer group shrink-0">
                             <input
@@ -75,7 +75,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                 disabled={disabled}
                                 className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
                             />
-                            <span className={`text-[13px] font-black tracking-tight transition-all duration-300 ${filterType === 'year' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Year Selection</span>
+                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'year' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Year Selection</span>
                         </label>
                     </div>
 

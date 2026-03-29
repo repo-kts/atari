@@ -29,25 +29,33 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
 }) => {
     return (
         <Card className="flex-1 flex flex-col min-h-[600px] border-[#E0E0E0] shadow-sm overflow-hidden bg-white">
-            <div className="p-4 border-b border-[#E0E0E0] bg-[#FAF9F6] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#487749]/10 rounded-lg">
-                        <FileText className="w-5 h-5 text-[#487749]" />
+            <div className="p-6 border-b border-[#E0E0E0] bg-[#FAF9F6] flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#487749]/10 rounded-xl">
+                        <FileText className="w-6 h-6 text-[#487749]" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-bold text-[#212121]">Report Preview</h3>
-                        <p className="text-[11px] text-[#757575] font-medium">
+                        <h3 className="text-base font-bold text-[#212121]">Report Preview</h3>
+                        <p className="text-xs text-[#757575] font-medium mt-0.5">
                             {selectedSectionsCount} sections • {selectedScopeCount} KVKs targeted
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-2">
-                        <Search className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3">
+                    <Button 
+                        variant="outline" 
+                        size="md" 
+                        className="h-10 px-6 rounded-xl border-[#487749] text-[#487749] hover:bg-[#487749]/5 flex items-center justify-center gap-2 transition-all font-bold text-xs"
+                    >
+                        <Search className="w-4 h-4" />
                         Zoom
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 text-xs gap-2">
-                        <Printer className="w-3.5 h-3.5" />
+                    <Button 
+                        variant="outline" 
+                        size="md" 
+                        className="h-10 px-6 rounded-xl border-[#487749] text-[#487749] hover:bg-[#487749]/5 flex items-center justify-center gap-2 transition-all font-bold text-xs"
+                    >
+                        <Printer className="w-4 h-4" />
                         Print
                     </Button>
                 </div>

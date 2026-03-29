@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent } from '../ui/Card';
 import {
     ClipboardList,
     Building2,
@@ -9,8 +8,8 @@ import {
     Globe,
     Trash2,
     Users,
-    Layout,
-    Check
+    Check,
+    ChevronDown
 } from 'lucide-react';
 import type { ReportSection } from '../../types/reports';
 
@@ -28,6 +27,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     onCategorySelectAll,
 }) => {
     const [activeTab, setActiveTab] = useState<string>('about');
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const categoryMapping = [
         { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
@@ -82,26 +82,32 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     }, [sections]);
 
     return (
-        <Card className="border-[#E0E0E0] shadow-sm hover:shadow-md transition-shadow rounded-2xl overflow-hidden">
-            <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-4 px-1">
-                    <div className="p-1.5 bg-[#487749]/10 rounded-lg">
-                        <Layout className="w-4 h-4 text-[#487749]" />
+        <div className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+            <div className="p-0">
+                <div 
+                    className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${isCollapsed ? 'mb-0' : 'mb-4'}`}
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                >
+                    <div className="flex items-center gap-3 h-10">
+                        <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}>
+                            <ChevronDown className="w-4 h-4 text-[#487749]" />
+                        </div>
+                        <h3 className="text-sm font-bold text-[#487749] leading-none">Report Modules</h3>
                     </div>
-                    <h3 className="text-sm font-bold text-[#212121]">Report Modules</h3>
                 </div>
 
-                <div className="space-y-0.5 animate-in fade-in duration-500">
-                    {/* Green Tab Bar Header - Matches Picture Style */}
-                    <div className="bg-[#487749] p-4 pb-0 rounded-t-[20px] flex items-center gap-1 overflow-x-auto no-scrollbar">
+                {!isCollapsed && (
+                    <div className="space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-500">
+                    {/* Green Tab Bar Header - Synchronized with ReportScopeSelector style */}
+                    <div className="bg-[#487749] p-1 rounded-[12px] flex items-center gap-0.5 overflow-x-auto no-scrollbar shadow-sm mb-2">
                         {categoryMapping.map(category => {
                             const isActive = activeTab === category.id;
                             return (
                                 <button
                                     key={category.id}
                                     onClick={() => handleTabChange(category.id)}
-                                    className={`flex items-center gap-2 px-5 py-3 rounded-t-xl text-[13px] font-black whitespace-nowrap transition-all
-                                    ${isActive ? 'bg-white text-[#487749]' : 'bg-[#487749]/50 text-white hover:bg-white/10'}`}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-[12.5px] font-bold whitespace-nowrap transition-all duration-300
+                                    ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
                                 >
                                     <span className={isActive ? 'text-[#487749]' : 'text-white'}>{category.icon}</span>
                                     {category.label}
@@ -111,7 +117,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                     </div>
 
                     {/* Content Area */}
-                    <div className="bg-white border-x border-b border-[#E0E0E0] rounded-b-[20px] overflow-hidden">
+                    <div className="bg-white border-none rounded-b-[20px]">
                         {(() => {
                             const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
                             const { mainSections, subSections } = sectionHierarchy[category.id] || { mainSections: [], subSections: {} };
@@ -133,11 +139,11 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                     {/* Select All Bar - Matches Picture Style */}
                                     <div 
                                         onClick={() => onCategorySelectAll(allCategoryItemIds)}
-                                        className="bg-[#F1F8F1] px-6 py-3 border-b border-[#E0E0E0] flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
+                                        className="bg-[#F1F8F1] px-4 py-2 border-b border-[#E0E0E0] mb-2 rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
                                     >
-                                        <span className="text-[12px] font-bold text-[#757575] italic">Select all</span>
-                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${allSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-[#D1D1D1]'}`}>
-                                            {allSelected && <Check className="w-4 h-4 text-white" strokeWidth={5} />}
+                                        <span className="text-[11px] font-bold text-[#757575] italic">Select all</span>
+                                        <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all ${allSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
+                                            {allSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
                                         </div>
                                     </div>
 
@@ -156,11 +162,11 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                             onClick={() => onSectionToggle(child.id)}
                                                             className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                         >
-                                                            <span className={`text-[13px] font-bold text-[#424242] ${isSelected ? 'text-[#487749]' : ''}`}>
+                                                            <span className={`text-[13px] font-medium text-[#424242] ${isSelected ? 'text-[#487749] font-bold' : ''}`}>
                                                                 {child.title}
                                                             </span>
-                                                            <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-[#D1D1D1] group-hover:border-blue-600'}`}>
-                                                                {isSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
+                                                            <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
+                                                                {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
                                                             </div>
                                                         </div>
                                                     );
@@ -175,11 +181,11 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                         onClick={() => onSectionToggle(parent.id)}
                                                         className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                     >
-                                                        <span className={`text-[13px] font-bold text-[#424242] ${isSelected ? 'text-[#487749]' : ''}`}>
+                                                        <span className={`text-[13px] font-medium text-[#424242] ${isSelected ? 'text-[#487749] font-bold' : ''}`}>
                                                             {parent.title}
                                                         </span>
-                                                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-blue-600 border-blue-600' : 'bg-white border-[#D1D1D1] group-hover:border-blue-600'}`}>
-                                                            {isSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
+                                                        <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
+                                                            {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
                                                         </div>
                                                     </div>
                                                 );
@@ -193,8 +199,9 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         })()}
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            )}
+            </div>
+        </div>
     );
 };
 

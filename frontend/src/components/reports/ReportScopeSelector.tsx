@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from '../ui/Card';
-import { 
-    MapPin, 
-    Loader2, 
+import {
+    MapPin,
+    Loader2,
     Check,
+    ChevronDown
 } from 'lucide-react';
 import {
     useScopeOptions,
@@ -23,6 +24,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 }) => {
     const [activeTab, setActiveTab] = useState<'zones' | 'states' | 'districts' | 'orgs' | 'kvks'>('zones');
     const [selectedScope, setSelectedScope] = useState<ReportScope>({});
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Fetch scope options
     const { data: scopeOptions, isLoading: isLoadingScopeOptions } = useScopeOptions();
@@ -153,36 +155,42 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
     return (
         <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
-            <div className="flex items-center gap-2 mb-2 px-1">
-                <div className="p-1.5 bg-[#487749]/10 rounded-lg">
-                    <MapPin className="w-4 h-4 text-[#487749]" />
+            <div 
+                className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${isCollapsed ? 'mb-0' : 'mb-4'}`}
+                onClick={() => setIsCollapsed(!isCollapsed)}
+            >
+                <div className="flex items-center gap-3 h-10">
+                    <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}>
+                        <ChevronDown className="w-4 h-4 text-[#487749]" />
+                    </div>
+                    <h3 className="text-sm font-bold text-[#487749] leading-none">Report Scope</h3>
                 </div>
-                <h3 className="text-sm font-bold text-[#212121]">Report Scope</h3>
             </div>
 
-            {/* Green Tab Bar - Very Compact */}
-            <div className="bg-[#487749] p-1 rounded-[12px] flex items-center gap-0.5 overflow-x-auto no-scrollbar shadow-sm mb-3">
-                {tabsData.filter(t => t.canSelect).map(t => {
-                    const isActive = activeTab === t.id;
-                    const count = selectedScope[t.parentKey]?.length || 0;
-                    return (
-                        <button
-                            key={t.id}
-                            onClick={() => setActiveTab(t.id)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[10px] text-[10px] font-bold whitespace-nowrap transition-all duration-300
+            {!isCollapsed && (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="bg-[#487749] p-1 rounded-[12px] flex items-center gap-0.5 overflow-x-auto no-scrollbar shadow-sm mb-3">
+                    {tabsData.filter(t => t.canSelect).map(t => {
+                        const isActive = activeTab === t.id;
+                        const count = selectedScope[t.parentKey]?.length || 0;
+                        return (
+                            <button
+                                key={t.id}
+                                onClick={() => setActiveTab(t.id)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold whitespace-nowrap transition-all duration-300
                             ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
-                        >
-                            {t.label}
-                            {count > 0 && <span className={`flex items-center justify-center min-w-[14px] h-[14px] px-0.5 text-[8px] font-black rounded-full ${isActive ? 'bg-[#487749] text-white' : 'bg-white text-[#487749]'}`}>{count}</span>}
-                        </button>
-                    );
-                })}
-            </div>
+                            >
+                                {t.label}
+                                {count > 0 && <span className={`flex items-center justify-center min-w-[14px] h-[14px] px-0.5 text-[8px] font-black rounded-full ${isActive ? 'bg-[#487749] text-white' : 'bg-white text-[#487749]'}`}>{count}</span>}
+                            </button>
+                        );
+                    })}
+                </div>
 
             <Card className="border-none shadow-none bg-transparent">
                 <CardContent className="p-0">
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#F0F0F0] px-1">
-                        <span className="text-[9px] font-black text-[#9E9E9E] uppercase tracking-tighter">
+                        <span className="text-[11px] font-black text-[#9E9E9E] uppercase tracking-tighter">
                             {currentTab.options.length} {currentTab.id} available
                         </span>
                         <div className="flex items-center gap-2">
@@ -190,14 +198,14 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                             <button
                                 onClick={() => handleSelectAll(currentTab.id)}
                                 disabled={disabled || currentTab.options.length === 0}
-                                className={`text-[9px] font-bold uppercase tracking-tight underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
+                                className={`text-[11px] font-bold uppercase tracking-tight underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
                             >
                                 {isAllSelected ? 'Reset All' : 'Select All'}
                             </button>
                         </div>
                     </div>
 
-                    <div className="max-h-[95px] overflow-y-auto pr-1 custom-scrollbar px-1">
+                    <div className="min-h-[200px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar px-1">
                         <div className="flex flex-col gap-0.5">
                             {currentTab.options.map(option => {
                                 const isSelected = selectedScope[currentTab.parentKey]?.includes(option.id);
@@ -211,7 +219,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                                             {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
                                         </div>
                                         <input type="checkbox" className="hidden" checked={isSelected} onChange={() => handleOptionToggle(currentTab.parentKey, option.id)} />
-                                        <span className={`text-[11.5px] font-medium truncate ${isSelected ? 'text-[#212121] font-bold' : 'text-[#757575]'}`}>{option.name}</span>
+                                        <span className={`text-[13px] font-medium truncate ${isSelected ? 'text-[#212121] font-bold' : 'text-[#757575]'}`}>{option.name}</span>
                                     </label>
                                 );
                             })}
@@ -224,6 +232,8 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                     </div>
                 </CardContent>
             </Card>
+            </div>
+            )}
         </div>
     );
 };
