@@ -7,6 +7,7 @@ const logHistoryController = require('../controllers/logHistoryController.js');
 const notificationController = require('../controllers/notificationController.js');
 const moduleImageController = require('../controllers/moduleImageController.js');
 const targetController = require('../controllers/targetController.js');
+const technicalAchievementSummaryController = require('../controllers/technicalAchievementSummaryController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -19,6 +20,7 @@ const LOG_HISTORY_MODULE = 'log_history';
 const NOTIFICATIONS_MODULE = 'notifications';
 const MODULE_IMAGES_MODULE = 'module_images';
 const TARGETS_MODULE = 'targets';
+const TECHNICAL_SUMMARY_MODULE = 'achievements_technical_achievement_summary';
 const HIDDEN_ROLE_NAMES = new Set(['zone_admin']);
 
 // Apply authentication to all admin routes.
@@ -73,6 +75,20 @@ router.get('/targets', apiRateLimiter, requirePermission(TARGETS_MODULE, 'VIEW')
 router.post('/targets', strictRateLimiter, requirePermission(TARGETS_MODULE, 'ADD'), targetController.create);
 router.put('/targets/:targetId', strictRateLimiter, requirePermission(TARGETS_MODULE, 'EDIT'), targetController.update);
 router.delete('/targets/:targetId', strictRateLimiter, requirePermission(TARGETS_MODULE, 'DELETE'), targetController.remove);
+
+// Technical Achievement Summary
+router.get(
+  '/technical-achievement-summary/options',
+  apiRateLimiter,
+  requirePermission(TECHNICAL_SUMMARY_MODULE, 'VIEW'),
+  technicalAchievementSummaryController.getFilterOptions,
+);
+router.get(
+  '/technical-achievement-summary',
+  apiRateLimiter,
+  requirePermission(TECHNICAL_SUMMARY_MODULE, 'VIEW'),
+  technicalAchievementSummaryController.getSummary,
+);
 
 // Create role – requires ADD on role management (must be before /roles/:roleId)
 router.post(
