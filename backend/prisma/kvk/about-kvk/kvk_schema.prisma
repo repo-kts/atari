@@ -84,6 +84,7 @@ model Kvk {
   trainingAchievements          TrainingAchievement[]
   users                         User[]
   moduleImages                  ModuleImage[]
+  targets                       Target[]
   kvkImpactActivities           KvkImpactActivity[]
   entrepreneurships             Entrepreneurship[]
   successStories                SuccessStory[]

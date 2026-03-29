@@ -96,6 +96,7 @@ model User {
   createdNotifications Notification[]       @relation("CreatedNotifications")
   loginActivities    UserLoginActivity[]
   moduleImages       ModuleImage[]
+  targets            Target[]              @relation("UserTargets")
   refreshTokens      RefreshToken[]
   transfersPerformed StaffTransferHistory[]
   userNotifications  UserNotification[]     @relation("UserNotifications")

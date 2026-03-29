@@ -21,7 +21,11 @@ const sections: FeatureSection[] = [
         title: 'Technical Achievement Summary',
         icon: <Trophy className="w-5 h-5" />,
         items: [
-            { label: 'Technical Achievement Summary', path: '/forms/achievements/technical-summary' },
+            {
+                label: 'Technical Achievement Summary',
+                path: ROUTE_PATHS.ACHIEVEMENTS.TECHNICAL_SUMMARY,
+                moduleCode: 'achievements_technical_achievement_summary',
+            },
 
         ],
     },

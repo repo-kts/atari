@@ -23,6 +23,7 @@ import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
+import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 import {
     projectsRoutes,
@@ -162,6 +163,14 @@ function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/targets/create"
+                        element={
+                            <ProtectedRoute requiredModuleCode="targets">
+                                <Targets />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/all-reports"
                         element={
                             <ProtectedRoute requiredModuleCode="reports">
@@ -172,6 +181,14 @@ function AppRoutes() {
 
                     {/* Form Management */}
                     <Route path="/forms" element={<FormManagement />} />
+                    <Route
+                        path="/forms/achievements/technical-summary"
+                        element={
+                            <ProtectedRoute requiredModuleCode="achievements_technical_achievement_summary">
+                                <TechnicalAchievementSummary />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Dynamic Project Form Routes - All rendered by DynamicFormPage */}
                     {projectsRoutes.map(route => (
