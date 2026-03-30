@@ -322,7 +322,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { is: { yearName: String(year) } },
+          reportingYear: { gte: start, lt: endExclusive },
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.SEED_PRODUCTION]),
         },
         _sum: {
@@ -342,7 +342,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { is: { yearName: String(year) } },
+          reportingYear: { gte: start, lt: endExclusive },
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.PLANTING_MATERIAL]),
         },
         _sum: {
@@ -362,7 +362,7 @@ const technicalAchievementSummaryService = {
       prisma.kvkProductionSupply.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { is: { yearName: String(year) } },
+          reportingYear: { gte: start, lt: endExclusive },
           ...buildCategoryWhere(PRODUCTION_CATEGORY_ALIASES[TARGET_TYPE.LIVESTOCK]),
         },
         _sum: {
@@ -382,7 +382,7 @@ const technicalAchievementSummaryService = {
       prisma.kkvSoilWaterAnalysis.aggregate({
         where: {
           ...baseWhere,
-          reportingYear: { is: { yearName: String(year) } },
+          reportingYear: { gte: start, lt: endExclusive },
         },
         _sum: {
           samplesAnalysed: true,

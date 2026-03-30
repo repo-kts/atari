@@ -6,14 +6,13 @@ import {
     Download,
     File as FileIcon,
     Layers,
-    Printer,
     Loader2,
-    Search
 } from 'lucide-react';
 
 interface ReportPreviewProps {
     isGenerating: boolean;
     hasData: boolean;
+    previewUrl?: string | null;
     onDownload: (format: 'pdf' | 'excel' | 'doc') => void;
     selectedScopeCount: number;
     selectedSectionsCount: number;
@@ -22,6 +21,7 @@ interface ReportPreviewProps {
 export const ReportPreview: React.FC<ReportPreviewProps> = ({
     isGenerating,
     hasData,
+    previewUrl,
     onDownload,
     selectedScopeCount,
     selectedSectionsCount,
@@ -35,29 +35,12 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                     </div>
                     <div className="min-w-0">
                         <h3 className="text-base font-bold text-[#212121] truncate">Report Preview</h3>
-                        <p className="text-xs text-[#757575] font-medium mt-0.5 break-words">
+                        <p className="text-xs text-[#757575] font-medium mt-0.5 wrap-break-word">
                             {selectedSectionsCount} sections • {selectedScopeCount} KVKs targeted
                         </p>
                     </div>
                 </div>
-                <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end">
-                    <Button
-                        variant="outline"
-                        size="md"
-                        className="h-7 px-2.5 rounded-lg border-[#487749] text-[#487749] hover:bg-[#487749]/5 inline-flex items-center justify-center gap-1 transition-colors font-medium text-[12px] leading-none whitespace-nowrap"
-                    >
-                        <Search className="w-3 h-3 shrink-0" />
-                        Zoom
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="md"
-                        className="h-7 px-2.5 rounded-lg border-[#487749] text-[#487749] hover:bg-[#487749]/5 inline-flex items-center justify-center gap-1 transition-colors font-medium text-[12px] leading-none whitespace-nowrap"
-                    >
-                        <Printer className="w-3 h-3 shrink-0" />
-                        Print
-                    </Button>
-                </div>
+                <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end" />
             </div>
 
             <CardContent className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-[#F5F5F5] flex flex-col items-center justify-center relative">
@@ -97,6 +80,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             </div>
                         </div>
                     </div>
+                ) : previewUrl ? (
+                    <div className="w-full h-full min-h-[900px] bg-white border border-[#E0E0E0] rounded-lg overflow-hidden shadow-sm">
+                        <iframe
+                            src={previewUrl}
+                            title="Report PDF Preview"
+                            className="w-full h-full min-h-[900px]"
+                        />
+                    </div>
                 ) : (
                     // Mock Preview Content
                     <div className="w-full max-w-[800px] bg-white shadow-xl border border-[#E0E0E0] rounded-sm p-5 sm:p-8 lg:p-12 space-y-6 sm:space-y-8 animate-in fade-in zoom-in duration-300">
@@ -104,7 +95,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                         <div className="border-b-2 border-[#487749] pb-6 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
                             <div className="space-y-1">
                                 <h1 className="text-xl sm:text-2xl font-black text-[#2d4a2f] uppercase tracking-tighter">KVK COMPREHENSIVE REPORT</h1>
-                                <p className="text-xs sm:text-sm text-[#757575] font-bold uppercase break-words">Zone: Multizone • State: Kerala • District: Ernakulam</p>
+                                <p className="text-xs sm:text-sm text-[#757575] font-bold uppercase wrap-break-word">Zone: Multizone • State: Kerala • District: Ernakulam</p>
                             </div>
                             <div className="text-left sm:text-right">
                                 <p className="text-[11px] text-[#757575] font-bold uppercase tracking-widest">Generated On</p>

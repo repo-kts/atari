@@ -1,7 +1,9 @@
 import React from 'react';
-import { Input } from '../ui/Input';
-import { Calendar, CheckCircle2 } from 'lucide-react';
+import * as Popover from '@radix-ui/react-popover';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon, CheckCircle2, CalendarRange, CalendarDays } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Calendar } from '../ui/calendar';
 
 interface TimelineFilterProps {
     filterType: 'none' | 'dateRange' | 'year';
@@ -30,54 +32,62 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
 }) => {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 30 }, (_, i) => currentYear - i);
+    const toDate = (value: string) => {
+        if (!value) return undefined;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? undefined : date;
+    };
+    const toIso = (date: Date) => date.toISOString().slice(0, 10);
 
     return (
         <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-4 sm:px-6 py-3 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#212121] mb-3 flex items-center gap-3">
                 <div className="p-1.5 bg-[#487749]/10 rounded-lg text-[#487749]">
-                    <Calendar className="w-4 h-4" />
+                    <CalendarIcon className="w-4 h-4" />
                 </div>
                 Timeline Filter
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
                 <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 pb-2 border-b border-[#F5F5F5]">
-                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 w-full">
-                        <label className="flex items-center gap-2.5 cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="filterType"
-                                value="none"
-                                checked={filterType === 'none'}
-                                onChange={() => onFilterTypeChange('none')}
-                                disabled={disabled}
-                                className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
-                            />
-                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'none' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>No Filter (All Data)</span>
-                        </label>
-                        <label className="flex items-center gap-2.5 cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="filterType"
-                                value="dateRange"
-                                checked={filterType === 'dateRange'}
-                                onChange={() => onFilterTypeChange('dateRange')}
-                                disabled={disabled}
-                                className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
-                            />
-                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'dateRange' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Date Range</span>
-                        </label>
-                        <label className="flex items-center gap-2.5 cursor-pointer group">
-                            <input
-                                type="radio"
-                                name="filterType"
-                                value="year"
-                                checked={filterType === 'year'}
-                                onChange={() => onFilterTypeChange('year')}
-                                disabled={disabled}
-                                className="w-4 h-4 text-[#487749] focus:ring-[#487749] border-[#E0E0E0] cursor-pointer"
-                            />
-                            <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'year' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Year Selection</span>
-                        </label>
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 w-full">
+                        <button
+                            type="button"
+                            onClick={() => onFilterTypeChange('dateRange')}
+                            disabled={disabled}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                                filterType === 'dateRange'
+                                    ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
+                                    : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
+                            }`}
+                        >
+                            <CalendarRange className="w-3.5 h-3.5" />
+                            Date Range
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onFilterTypeChange('year')}
+                            disabled={disabled}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                                filterType === 'year'
+                                    ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
+                                    : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
+                            }`}
+                        >
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            Year
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => onFilterTypeChange('none')}
+                            disabled={disabled}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
+                                filterType === 'none'
+                                    ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
+                                    : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
+                            }`}
+                        >
+                            All Data
+                        </button>
                     </div>
 
                     {onApplySelection && (
@@ -96,24 +106,94 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                 </div>
 
                 {filterType === 'dateRange' && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
-                        <Input
-                            label="Start Date"
-                            type="date"
-                            value={startDate}
-                            onChange={e => onStartDateChange(e.target.value)}
-                            disabled={disabled}
-                            className="rounded-xl h-10 text-sm"
-                        />
-                        <Input
-                            label="End Date"
-                            type="date"
-                            value={endDate}
-                            onChange={e => onEndDateChange(e.target.value)}
-                            min={startDate}
-                            disabled={disabled}
-                            className="rounded-xl h-10 text-sm"
-                        />
+                    <div className="space-y-3 pb-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-[#487749] uppercase tracking-wider">
+                                    From Date
+                                </label>
+                                <Popover.Root>
+                                    <Popover.Trigger asChild>
+                                        <button
+                                            type="button"
+                                            disabled={disabled}
+                                            className="w-full h-10 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-4 focus:ring-[#487749]/10 focus:border-[#487749] disabled:opacity-50"
+                                        >
+                                            <span className={startDate ? 'text-[#212121]' : 'text-[#9E9E9E]'}>
+                                                {startDate ? format(new Date(startDate), 'dd-MM-yyyy') : 'Select start date'}
+                                            </span>
+                                            <CalendarIcon className="h-4 w-4 text-[#487749]" />
+                                        </button>
+                                    </Popover.Trigger>
+                                    <Popover.Portal>
+                                        <Popover.Content align="start" sideOffset={8} className="z-50 rounded-xl border border-[#E0E0E0] bg-white shadow-lg p-2">
+                                            <Calendar
+                                                mode="single"
+                                                captionLayout="dropdown"
+                                                selected={toDate(startDate)}
+                                                onSelect={(date) => {
+                                                    if (!date) return;
+                                                    onStartDateChange(toIso(date));
+                                                }}
+                                                endMonth={toDate(endDate)}
+                                                disabled={(date) => !!toDate(endDate) && date > (toDate(endDate) as Date)}
+                                            />
+                                        </Popover.Content>
+                                    </Popover.Portal>
+                                </Popover.Root>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-[#487749] uppercase tracking-wider">
+                                    To Date
+                                </label>
+                                <Popover.Root>
+                                    <Popover.Trigger asChild>
+                                        <button
+                                            type="button"
+                                            disabled={disabled}
+                                            className="w-full h-10 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-4 focus:ring-[#487749]/10 focus:border-[#487749] disabled:opacity-50"
+                                        >
+                                            <span className={endDate ? 'text-[#212121]' : 'text-[#9E9E9E]'}>
+                                                {endDate ? format(new Date(endDate), 'dd-MM-yyyy') : 'Select end date'}
+                                            </span>
+                                            <CalendarIcon className="h-4 w-4 text-[#487749]" />
+                                        </button>
+                                    </Popover.Trigger>
+                                    <Popover.Portal>
+                                        <Popover.Content align="start" sideOffset={8} className="z-50 rounded-xl border border-[#E0E0E0] bg-white shadow-lg p-2">
+                                            <Calendar
+                                                mode="single"
+                                                captionLayout="dropdown"
+                                                selected={toDate(endDate)}
+                                                onSelect={(date) => {
+                                                    if (!date) return;
+                                                    onEndDateChange(toIso(date));
+                                                }}
+                                                startMonth={toDate(startDate)}
+                                                disabled={(date) => !!toDate(startDate) && date < (toDate(startDate) as Date)}
+                                            />
+                                        </Popover.Content>
+                                    </Popover.Portal>
+                                </Popover.Root>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    onStartDateChange('');
+                                    onEndDateChange('');
+                                }}
+                                disabled={disabled || (!startDate && !endDate)}
+                                className="h-8 rounded-lg px-3 text-xs font-semibold border-[#E0E0E0]"
+                            >
+                                Clear All
+                            </Button>
+                        </div>
                     </div>
                 )}
 

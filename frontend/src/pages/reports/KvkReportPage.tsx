@@ -41,12 +41,19 @@ export const KvkReportPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [selectedScope, setSelectedScope] = useState<ReportScope | null>(null);
+    const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
 
-    // Filter states
-    const [filterType, setFilterType] = useState<'none' | 'dateRange' | 'year'>('none');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [year, setYear] = useState<number>(new Date().getFullYear());
+    // Draft filter states (editable in UI)
+    const currentYear = new Date().getFullYear();
+    const [filterType, setFilterType] = useState<'none' | 'dateRange' | 'year'>('dateRange');
+    const [startDate, setStartDate] = useState(`${currentYear}-04-01`);
+    const [endDate, setEndDate] = useState(`${currentYear + 1}-03-31`);
+    const [year, setYear] = useState<number>(currentYear);
+    // Applied filter states (used for report generation)
+    const [appliedFilterType, setAppliedFilterType] = useState<'none' | 'dateRange' | 'year'>('dateRange');
+    const [appliedStartDate, setAppliedStartDate] = useState(`${currentYear}-04-01`);
+    const [appliedEndDate, setAppliedEndDate] = useState(`${currentYear + 1}-03-31`);
+    const [appliedYear, setAppliedYear] = useState<number>(currentYear);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
     const [isScopeCollapsed, setIsScopeCollapsed] = useState(false);
     const [isModuleCollapsed, setIsModuleCollapsed] = useState(false);
@@ -111,16 +118,24 @@ export const KvkReportPage: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => {
+        return () => {
+            if (previewBlobUrl) {
+                window.URL.revokeObjectURL(previewBlobUrl);
+            }
+        };
+    }, [previewBlobUrl]);
+
     const buildFilters = useCallback((): ReportFilters => {
         const filters: ReportFilters = {};
-        if (filterType === 'dateRange' && startDate && endDate) {
-            filters.startDate = startDate;
-            filters.endDate = endDate;
-        } else if (filterType === 'year') {
-            filters.year = year;
+        if (appliedFilterType === 'dateRange' && appliedStartDate && appliedEndDate) {
+            filters.startDate = appliedStartDate;
+            filters.endDate = appliedEndDate;
+        } else if (appliedFilterType === 'year') {
+            filters.year = appliedYear;
         }
         return filters;
-    }, [filterType, startDate, endDate, year]);
+    }, [appliedFilterType, appliedStartDate, appliedEndDate, appliedYear]);
 
     const clampSplitPercent = useCallback((rawPercent: number): number => {
         const container = splitPaneRef.current;
@@ -220,15 +235,50 @@ export const KvkReportPage: React.FC = () => {
     };
 
     const handleApplySelection = () => {
-        // Filters and selections are already controlled state;
-        // Apply now only confirms current selection context without extra UI side effects.
+        if (filterType === 'dateRange') {
+            if (!startDate || !endDate) {
+                setError('Please select both start and end dates.');
+                return;
+            }
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
+                setError('Please select a valid date range.');
+                return;
+            }
+        }
+
+        if (filterType === 'year' && (!Number.isInteger(year) || year <= 0)) {
+            setError('Please select a valid year.');
+            return;
+        }
+
+        setAppliedFilterType(filterType);
+        setAppliedStartDate(startDate);
+        setAppliedEndDate(endDate);
+        setAppliedYear(year);
         setError(null);
+        setSuccess('Filters applied successfully.');
+        // Immediately trigger the preview to render in the iframe
+        handlePreview(
+            Array.from(selectedSections),
+            {
+                ...(filterType === 'dateRange' && startDate && endDate
+                    ? { startDate, endDate }
+                    : {}),
+                ...(filterType === 'year'
+                    ? { year }
+                    : {}),
+            },
+            selectedScope
+        );
     };
 
     const handleGenerate = async (
         sectionIds: string[],
         filters: ReportFilters,
-        scope?: ReportScope | null
+        scope?: ReportScope | null,
+        format: 'pdf' | 'excel' | 'docx' = 'pdf'
     ) => {
         try {
             setIsGenerating(true);
@@ -243,11 +293,17 @@ export const KvkReportPage: React.FC = () => {
             // If scope is provided, use aggregated report
             if (scope && Object.keys(scope).length > 0) {
                 request.scope = scope;
-                const blob = await reportApi.generateAggregatedReport(request);
+                const blob = await reportApi.generateAggregatedReport(request, format);
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = `Aggregated_Report_${Date.now()}.pdf`;
+                const fname =
+                    format === 'excel'
+                        ? `Aggregated_Report_${Date.now()}.xlsx`
+                        : format === 'docx'
+                        ? `Aggregated_Report_${Date.now()}.docx`
+                        : `Aggregated_Report_${Date.now()}.pdf`;
+                link.download = fname;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -256,16 +312,62 @@ export const KvkReportPage: React.FC = () => {
                 // Single KVK report
                 const kvkId = user?.kvkId || undefined;
                 request.kvkId = kvkId;
-                await reportApi.downloadReport(
-                    request,
-                    `KVK_Report_${kvkId || 'All'}_${Date.now()}.pdf`
-                );
+                const fname =
+                    format === 'excel'
+                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}.xlsx`
+                        : format === 'docx'
+                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}.docx`
+                        : `KVK_Report_${kvkId || 'All'}_${Date.now()}.pdf`;
+                await reportApi.downloadReport(request, fname, format);
             }
 
             setSuccess('Report generated and downloaded successfully!');
         } catch (err) {
             console.error('Error generating report:', err);
             setError(err instanceof Error ? err.message : 'Failed to generate report');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handlePreview = async (
+        sectionIds: string[],
+        filters: ReportFilters,
+        scope?: ReportScope | null
+    ) => {
+        try {
+            setIsGenerating(true);
+            setError(null);
+            setSuccess(null);
+
+            const request: any = {
+                sectionIds,
+                filters,
+            };
+
+            if (scope && Object.keys(scope).length > 0) {
+                request.scope = scope;
+                const blob = await reportApi.generateAggregatedReport(request);
+                const url = window.URL.createObjectURL(blob);
+                setPreviewBlobUrl(previousUrl => {
+                    if (previousUrl) window.URL.revokeObjectURL(previousUrl);
+                    return url;
+                });
+            } else {
+                const kvkId = user?.kvkId || undefined;
+                request.kvkId = kvkId;
+                const blob = await reportApi.generateReport(request);
+                const url = window.URL.createObjectURL(blob);
+                setPreviewBlobUrl(previousUrl => {
+                    if (previousUrl) window.URL.revokeObjectURL(previousUrl);
+                    return url;
+                });
+            }
+
+            setSuccess('Report preview loaded.');
+        } catch (err) {
+            console.error('Error previewing report:', err);
+            setError(err instanceof Error ? err.message : 'Failed to preview report');
         } finally {
             setIsGenerating(false);
         }
@@ -389,12 +491,14 @@ export const KvkReportPage: React.FC = () => {
 
                                     <ReportPreview
                                         isGenerating={isGenerating}
-                                        hasData={false}
-                                        onDownload={() => {
+                                        hasData={selectedSections.size > 0}
+                                        previewUrl={previewBlobUrl}
+                                        onDownload={(fmt) => {
                                             handleGenerate(
                                                 Array.from(selectedSections),
                                                 buildFilters(),
-                                                selectedScope
+                                                selectedScope,
+                                                fmt === 'excel' ? 'excel' : fmt === 'doc' ? 'docx' : 'pdf'
                                             );
                                         }}
                                         selectedScopeCount={selectedScopeCount}

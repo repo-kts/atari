@@ -79,18 +79,18 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                 const sParentId = String(s.parentSectionId || '');
                 const cParentId = String(cat.parentId || '');
                 const sId = String(s.id || '');
-                
+
                 // Direct children of category
                 const matchesParent = sParentId === cParentId;
                 // Prefix match (fallback)
                 const matchesPrefix = sId.startsWith(cParentId + '.');
-                
+
                 return matchesParent || matchesPrefix;
             });
 
             // Find main sections (direct children of category)
             const mainSections = catSections.filter(s => String(s.parentSectionId) === String(cat.parentId));
-            
+
             // Find subsections (children of main sections)
             const subSections: Record<string, ReportSection[]> = {};
             catSections.forEach(s => {
@@ -110,7 +110,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     return (
         <div className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
             <div className="p-0">
-                <div 
+                <div
                     className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
                     onClick={onToggleCollapse}
                 >
@@ -118,8 +118,15 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-[#487749]" />
                         </div>
-                        <h3 className="text-sm font-semibold text-[#487749] leading-none">Report Modules</h3>
-                    </div>
+                        {isSearchOpen ? (
+                        <h3 className="hidden text-sm font-semibold text-[#487749] leading-none">
+                            Report Modules
+                        </h3>
+                    ) : (
+                        <h3 className="text-sm font-semibold text-[#487749] leading-none">
+                            Report Modules
+                        </h3>
+                    )}                    </div>
                     <div
                         className="flex items-center gap-2"
                         onClick={event => event.stopPropagation()}
@@ -183,7 +190,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         {(() => {
                             const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
                             const { mainSections, subSections } = sectionHierarchy[category.id] || { mainSections: [], subSections: {} };
-                            
+
                             const allCategoryItemIds: string[] = [];
                             mainSections.forEach(m => {
                                 if (subSections[m.id]) {
@@ -199,7 +206,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                             return (
                                 <div key={category.id} className="flex flex-col">
                                     {/* Select All Bar - Matches Picture Style */}
-                                    <div 
+                                    <div
                                         onClick={() => onCategorySelectAll(allCategoryItemIds)}
                                         className="bg-[#F1F8F1] px-4 py-2 border-b border-[#E0E0E0] mb-2 rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
                                     >
@@ -213,7 +220,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                     <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-white">
                                         {mainSections.map(parent => {
                                             const children = subSections[parent.id] || [];
-                                            
+
                                             // If it has sub-sections, we list them all in order
                                             if (children.length > 0) {
                                                 const filteredChildren = normalizedSearchTerm

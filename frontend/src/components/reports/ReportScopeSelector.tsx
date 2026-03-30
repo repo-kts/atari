@@ -32,6 +32,8 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const [isNarrow, setIsNarrow] = useState(false);
     const searchInputId = 'report-scope-search';
 
     // Fetch scope options
@@ -140,36 +142,40 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
         onScopeChange(Object.keys(newScope).length > 0 ? newScope : null);
     };
 
-    if (isLoadingScopeOptions) return <Card><CardContent className="p-6 flex items-center justify-center py-4"><Loader2 className="w-5 h-5 text-[#487749] animate-spin" /><span className="ml-2 text-xs text-[#757575]">Loading options...</span></CardContent></Card>;
-    if (!scopeOptions) return null;
-
-    if (scopeOptions.defaultKvkId && !scopeOptions.canSelectKvks) {
-        const kvkName = scopeOptions.availableKvks.find(k => k.id === scopeOptions.defaultKvkId)?.name || 'Your KVK';
-        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
-    }
-
-    const tabsData = [
+    const tabsData = scopeOptions ? [
         { id: 'zones' as const, label: 'Zone', parentKey: 'zoneIds' as const, canSelect: scopeOptions.canSelectZones, options: scopeOptions.availableZones },
         { id: 'states' as const, label: 'State', parentKey: 'stateIds' as const, canSelect: scopeOptions.canSelectStates, options: filteredStates },
         { id: 'districts' as const, label: 'District', parentKey: 'districtIds' as const, canSelect: scopeOptions.canSelectDistricts, options: filteredDistricts },
         { id: 'orgs' as const, label: 'Org', parentKey: 'orgIds' as const, canSelect: scopeOptions.canSelectOrgs, options: filteredOrgs },
         { id: 'kvks' as const, label: 'KVK', parentKey: 'kvkIds' as const, canSelect: scopeOptions.canSelectKvks, options: filteredKvks },
-    ];
+    ] : [];
 
     const currentTab = tabsData.find(t => t.id === activeTab) || tabsData[0];
-    const selectedCount = selectedScope[currentTab.parentKey]?.length || 0;
-    const isAllSelected = selectedCount === currentTab.options.length && currentTab.options.length > 0;
+    const currentTabOptions = currentTab?.options || [];
+    const selectedCount = currentTab ? (selectedScope[currentTab.parentKey]?.length || 0) : 0;
+    const isAllSelected = selectedCount === currentTabOptions.length && currentTabOptions.length > 0;
     const normalizedSearchTerm = searchTerm.trim().toLowerCase();
     const filteredCurrentOptions = useMemo(() => {
-        if (!normalizedSearchTerm) return currentTab.options;
-        return currentTab.options.filter(option => option.name.toLowerCase().includes(normalizedSearchTerm));
-    }, [currentTab.options, normalizedSearchTerm]);
+        if (!normalizedSearchTerm) return currentTabOptions;
+        return currentTabOptions.filter(option => option.name.toLowerCase().includes(normalizedSearchTerm));
+    }, [currentTabOptions, normalizedSearchTerm]);
 
     useEffect(() => {
         if (isSearchOpen) {
             searchInputRef.current?.focus();
         }
     }, [isSearchOpen]);
+
+    useEffect(() => {
+        const computeNarrow = () => {
+            const width = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
+            // Treat <640px as "smaller than sm"
+            setIsNarrow(width < 640);
+        };
+        computeNarrow();
+        window.addEventListener('resize', computeNarrow);
+        return () => window.removeEventListener('resize', computeNarrow);
+    }, []);
 
     const handleToggleSearch = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
@@ -181,8 +187,17 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
         setIsSearchOpen(true);
     };
 
+    if (isLoadingScopeOptions) return <Card><CardContent className="p-6 flex items-center justify-center py-4"><Loader2 className="w-5 h-5 text-[#487749] animate-spin" /><span className="ml-2 text-xs text-[#757575]">Loading options...</span></CardContent></Card>;
+    if (!scopeOptions || !currentTab) return null;
+
+    if (scopeOptions.defaultKvkId && !scopeOptions.canSelectKvks) {
+        const kvkName = scopeOptions.availableKvks.find(k => k.id === scopeOptions.defaultKvkId)?.name || 'Your KVK';
+        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
+    }
+    console.log("isSearchOpen", isSearchOpen);
+
     return (
-        <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+        <div ref={containerRef} className="relative space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
             <div
                 className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
                 onClick={onToggleCollapse}
@@ -191,7 +206,15 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                     <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                         <ChevronDown className="w-4 h-4 text-[#487749]" />
                     </div>
-                    <h3 className="text-sm font-semibold text-[#487749] leading-none">Report Scope</h3>
+                    {isSearchOpen ? (
+                        <h3 className="hidden text-sm font-semibold text-[#487749] leading-none">
+                            Report Scope
+                        </h3>
+                    ) : (
+                        <h3 className="text-sm font-semibold text-[#487749] leading-none">
+                            Report Scope
+                        </h3>
+                    )}
                 </div>
                 <div
                     className="flex items-center gap-2"
@@ -214,23 +237,22 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                             className="h-8 w-full rounded-lg border border-[#D8E3D8] bg-white px-2.5 text-xs text-[#2d4a2f] outline-none focus:border-[#487749]"
                         />
                     </div>
-                        <button
-                            type="button"
-                            onClick={handleToggleSearch}
-                            className="h-8 w-8 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
-                            aria-label="Toggle scope search"
-                            aria-expanded={isSearchOpen}
-                            aria-controls={searchInputId}
-                        >
-                            <Search className="h-3.5 w-3.5" />
-                        </button>
+                    <button
+                        type="button"
+                        onClick={handleToggleSearch}
+                        className="h-8 w-8 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
+                        aria-label="Toggle scope search"
+                        aria-expanded={isSearchOpen}
+                        aria-controls={searchInputId}
+                    >
+                        <Search className="h-3.5 w-3.5" />
+                    </button>
                 </div>
             </div>
 
             <div
-                className={`space-y-4 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${
-                    collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[900px] opacity-100'
-                }`}
+                className={`space-y-4 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[900px] opacity-100'
+                    }`}
             >
                 <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 shadow-sm mb-3">
                     {tabsData.filter(t => t.canSelect).map(t => {
@@ -250,58 +272,58 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                     })}
                 </div>
 
-            <Card className="border-none shadow-none bg-transparent">
-                <CardContent className="p-0">
-                    <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#F0F0F0] px-1">
-                        <span className="text-[11px] font-medium text-[#9E9E9E]">
-                            {normalizedSearchTerm
-                                ? `${filteredCurrentOptions.length} of ${currentTab.options.length} shown`
-                                : `${currentTab.options.length} ${currentTab.id} available`}
-                        </span>
-                        <div className="flex items-center gap-2">
-                            {isLoadingOptions && <Loader2 className="w-3 h-3 text-[#487749] animate-spin" />}
-                            <button
-                                onClick={() => handleSelectAll(currentTab.id)}
-                                disabled={disabled || currentTab.options.length === 0}
-                                className={`text-[11px] font-medium underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
-                            >
-                                {isAllSelected ? 'Reset All' : 'Select All'}
-                            </button>
+                <Card className="border-none shadow-none bg-transparent">
+                    <CardContent className="p-0">
+                        <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#F0F0F0] px-1">
+                            <span className="text-[11px] font-medium text-[#9E9E9E]">
+                                {normalizedSearchTerm
+                                    ? `${filteredCurrentOptions.length} of ${currentTab.options.length} shown`
+                                    : `${currentTab.options.length} ${currentTab.id} available`}
+                            </span>
+                            <div className="flex items-center gap-2">
+                                {isLoadingOptions && <Loader2 className="w-3 h-3 text-[#487749] animate-spin" />}
+                                <button
+                                    onClick={() => handleSelectAll(currentTab.id)}
+                                    disabled={disabled || currentTab.options.length === 0}
+                                    className={`text-[11px] font-medium underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
+                                >
+                                    {isAllSelected ? 'Reset All' : 'Select All'}
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="min-h-[200px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar px-1">
-                        <div className="flex flex-col gap-0.5">
-                            {filteredCurrentOptions.map(option => {
-                                const isSelected = selectedScope[currentTab.parentKey]?.includes(option.id);
-                                return (
-                                    <label
-                                        key={option.id}
-                                        className="flex items-center gap-2 py-1 px-1 rounded transition-all cursor-pointer hover:bg-[#F5F5F5] group"
-                                    >
-                                        <div className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition-all flex-shrink-0
+                        <div className="min-h-[200px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar px-1">
+                            <div className="flex flex-col gap-0.5">
+                                {filteredCurrentOptions.map(option => {
+                                    const isSelected = selectedScope[currentTab.parentKey]?.includes(option.id);
+                                    return (
+                                        <label
+                                            key={option.id}
+                                            className="flex items-center gap-2 py-1 px-1 rounded transition-all cursor-pointer hover:bg-[#F5F5F5] group"
+                                        >
+                                            <div className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition-all flex-shrink-0
                                             ${isSelected ? 'bg-[#487749] border-[#487749]' : 'border-[#D1D1D1] bg-white group-hover:border-[#487749]'}`}>
-                                            {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
-                                        </div>
-                                        <input type="checkbox" className="hidden" checked={isSelected} onChange={() => handleOptionToggle(currentTab.parentKey, option.id)} />
-                                        <span className={`text-[13px] font-normal truncate ${isSelected ? 'text-[#2f5a30] font-medium' : 'text-[#757575]'}`}>{option.name}</span>
-                                    </label>
-                                );
-                            })}
+                                                {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
+                                            </div>
+                                            <input type="checkbox" className="hidden" checked={isSelected} onChange={() => handleOptionToggle(currentTab.parentKey, option.id)} />
+                                            <span className={`text-[13px] font-normal truncate ${isSelected ? 'text-[#2f5a30] font-medium' : 'text-[#757575]'}`}>{option.name}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                            {currentTab.options.length === 0 && (
+                                <div className="py-4 text-center">
+                                    <p className="text-[10px] text-[#9E9E9E] italic">Select a {tabsData.find(t => t.canSelect && (tabsData.indexOf(t) < tabsData.indexOf(currentTab)))?.id || 'parent'} first</p>
+                                </div>
+                            )}
+                            {currentTab.options.length > 0 && filteredCurrentOptions.length === 0 && (
+                                <div className="py-4 text-center">
+                                    <p className="text-[10px] text-[#9E9E9E] italic">No matching results</p>
+                                </div>
+                            )}
                         </div>
-                        {currentTab.options.length === 0 && (
-                            <div className="py-4 text-center">
-                                <p className="text-[10px] text-[#9E9E9E] italic">Select a {tabsData.find(t => t.canSelect && (tabsData.indexOf(t) < tabsData.indexOf(currentTab)))?.id || 'parent'} first</p>
-                            </div>
-                        )}
-                        {currentTab.options.length > 0 && filteredCurrentOptions.length === 0 && (
-                            <div className="py-4 text-center">
-                                <p className="text-[10px] text-[#9E9E9E] italic">No matching results</p>
-                            </div>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
