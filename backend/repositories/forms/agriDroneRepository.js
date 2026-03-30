@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const agriDroneRepository = {
     create: async (data, user) => {
@@ -10,11 +11,12 @@ const agriDroneRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
 
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_agri_drone (
-                "kvkId", reporting_year_id, project_implementing_centre, 
+                "kvkId", reporting_year, project_implementing_centre, 
                 drones_sanctioned, drones_purchased, amount_sanctioned, 
                 cost_per_drone, drone_company, drone_model, 
                 pilot_name, pilot_contact, target_area_ha, 
@@ -27,7 +29,7 @@ const agriDroneRepository = {
             ) RETURNING agri_drone_id
         `,
             kvkId,
-            reportingYearId,
+            reportingYear,
             data.picName ?? data.projectImplementingCentre ?? '',
             parseInt(data.dronesSanctioned || 0),
             parseInt(data.dronesPurchased || 0),
@@ -58,7 +60,6 @@ const agriDroneRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { agriDroneId: 'desc' }
         });
@@ -80,7 +81,6 @@ const agriDroneRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
         return agriDroneRepository._mapResponse(record);
@@ -104,8 +104,11 @@ const agriDroneRepository = {
         if (!existing) throw new Error("Record not found or unauthorized");
 
         const updateData = {};
-        const reportingYearId = data.reportingYearId ?? data.yearId ?? data.reportingYear;
-        if (reportingYearId !== undefined) updateData.reporting_year_id = parseInt(reportingYearId);
+        if (data.reportingYear !== undefined) {
+            const reportingYearDate = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(reportingYearDate);
+            updateData.reporting_year = reportingYearDate;
+        }
         const picName = data.picName ?? data.projectImplementingCentre;
         if (picName !== undefined) updateData.project_implementing_centre = picName;
         if (data.dronesSanctioned !== undefined) updateData.drones_sanctioned = parseInt(data.dronesSanctioned);
@@ -176,9 +179,8 @@ const agriDroneRepository = {
         return {
             ...r,
             id: r.agriDroneId,
-            reportingYearId: r.reportingYearId,
-            yearId: r.reportingYearId, // Frontend alias
-            reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
+            reportingYear: r.reportingYear,
+            yearName: formatReportingYear(r.reportingYear),
             projectImplementingCentre: r.projectImplementingCentre,
             droneCompany: r.droneCompany,
             droneModel: r.droneModel,

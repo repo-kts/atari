@@ -1,8 +1,18 @@
 const exportHelper = require('../utils/exportHelper');
+const reportTemplateService = require('../services/reports/reportTemplateService.js');
+const { getAllSections } = require('../config/reportConfig.js');
+const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const exportData = async (req, res) => {
     try {
-        const { title, headers, rows, format } = req.body;
+        const { 
+            title, 
+            headers, 
+            rows, 
+            format, 
+            templateKey, 
+            rawData
+        } = req.body;
 
         if (!title || !headers || !rows || !format) {
             return res.status(400).json({ message: 'Missing required fields: title, headers, rows, format' });
@@ -12,20 +22,27 @@ const exportData = async (req, res) => {
         let contentType;
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
+        const tabularData = (templateKey && rawData)
+            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows)
+            : { headers, rows };
+
         switch (format.toLowerCase()) {
             case 'pdf':
-                const html = generateHTML(title, headers, rows);
+                const html = templateKey
+                    ? generateCustomTemplateHTML(templateKey, rawData, title)
+                    : generateHTML(title, headers, rows);
+
                 buffer = await exportHelper.generatePDF(html);
                 contentType = 'application/pdf';
                 fileName += '.pdf';
                 break;
             case 'excel':
-                buffer = await exportHelper.generateExcel(title, headers, rows);
+                buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                 fileName += '.xlsx';
                 break;
             case 'word':
-                buffer = await exportHelper.generateWord(title, headers, rows);
+                buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
                 contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
                 fileName += '.docx';
                 break;
@@ -42,6 +59,74 @@ const exportData = async (req, res) => {
         res.status(500).json({ message: 'Failed to export data', error: error.message });
     }
 };
+
+function generateCustomTemplateHTML(templateKey, rawData, title) {
+    // Accept either one object or list of objects from form exports.
+    // WIP: to delete after testing
+    console.log('rawData----------------', rawData);
+    console.log('templateKey----------------', templateKey);
+    console.log('title----------------', title);
+
+    const normalizedData = Array.isArray(rawData)
+        ? rawData
+        : (rawData ? [rawData] : []);
+
+    return reportTemplateService.generateStandaloneCustomTemplateHTML(
+        templateKey,
+        normalizedData,
+        {
+            sectionId: '1.1',
+            title,
+        }
+    );
+}
+
+function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows) {
+    const sections = getAllSections();
+    const section = sections.find(s => s.customTemplate === templateKey);
+    if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const mappedHeaders = section.fields.map(field => field.displayName);
+    const mappedRows = normalizedData.map(record => {
+        return section.fields.map(field => {
+            const value = getNestedValue(record, field.dbField);
+            return formatExportValue(value);
+        });
+    });
+
+    return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function getNestedValue(obj, path) {
+    if (!obj || !path) return null;
+    return path.split('.').reduce((acc, key) => {
+        if (acc === null || acc === undefined) return null;
+        return acc[key] !== undefined ? acc[key] : null;
+    }, obj);
+}
+
+function formatExportValue(value) {
+    if (value === null || value === undefined || value === '') return '-';
+    if (value instanceof Date) return formatReportingYear(value);
+
+    if (typeof value === 'object') {
+        if (value instanceof Date) return formatReportingYear(value);
+        if (value.yearName) return value.yearName;
+        if (value.reportingYear) return formatReportingYear(value.reportingYear);
+        if (value.name) return value.name;
+        if (value.label) return value.label;
+        if (value.value !== undefined && value.value !== null) return String(value.value);
+        return '-';
+    }
+
+    const parsedDate = new Date(value);
+    if (!Number.isNaN(parsedDate.getTime())) return formatReportingYear(parsedDate);
+
+    return String(value);
+}
 
 /**
  * Generates professional HTML for PDF
@@ -67,14 +152,14 @@ function generateHTML(title, headers, rows) {
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
                 color: #000; 
                 margin: 0;
-                padding: 40px;
+                padding: 6mm;
                 line-height: 1.2;
             }
             .header { 
                 text-align: left; 
-                margin-bottom: 30px;
-                border-bottom: 1.5px solid #000;
-                padding-bottom: 15px;
+                margin-bottom: 10px;
+                border-bottom: 0.5px solid #000;
+                padding-bottom: 6px;
             }
             .header h1 { 
                 margin: 0; 
@@ -93,10 +178,10 @@ function generateHTML(title, headers, rows) {
                 width: 100%; 
                 border-collapse: collapse; 
                 margin-top: 10px; 
-                border: 0.2px solid #000;
+                border: none;
             }
             th { 
-                border: 0.2px solid #000;
+                border: 0.1px solid #000;
                 text-align: left; 
                 padding: 6px 8px; 
                 font-weight: 700; 
@@ -106,7 +191,7 @@ function generateHTML(title, headers, rows) {
             }
             td { 
                 padding: 5px 8px; 
-                border: 0.2px solid #000; 
+                border: 0.1px solid #000; 
                 font-size: 9px;
                 color: #000;
                 vertical-align: top;
@@ -119,17 +204,17 @@ function generateHTML(title, headers, rows) {
             }
             .footer { 
                 position: fixed;
-                bottom: 40px;
-                left: 40px;
-                right: 40px;
+                bottom: 6mm;
+                left: 6mm;
+                right: 6mm;
                 text-align: left; 
                 font-size: 9px; 
                 color: #777;
                 border-top: 0.5px solid #ccc;
-                padding-top: 10px;
+                padding-top: 4px;
             }
             @page {
-                margin: 20mm;
+                margin: 6mm;
                 size: A4;
                 @bottom-right {
                     content: "Page " counter(page) " of " counter(pages);
@@ -143,7 +228,7 @@ function generateHTML(title, headers, rows) {
     <body>
         <div class="header">
             <h1>${title} Report</h1>
-            <div class="meta">PROJECT ATARI • GENERATED ON ${date.toUpperCase()}</div>
+            <div class="meta">PROJECT ATARI • GENERATEDjjj ON ${date.toUpperCase()}</div>
         </div>
         <table>
             <thead>

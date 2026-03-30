@@ -6,8 +6,6 @@ export interface ProductionSupply {
     productionSupplyId: string;
     id: string;
     kvkId: number;
-    reportingYearId?: number;
-    yearId?: number;
     productCategoryId?: number;
     prodCategory?: string;
     productTypeId?: number;
@@ -28,19 +26,7 @@ export interface ProductionSupply {
     farmersStF: number;
     createdAt: string;
     updatedAt: string;
-    // Display fields
-    'KVK Name'?: string;
-    'Reporting Year'?: string | number;
     reportingYear?: string | number;
-    'Product Category'?: string;
-    'Product Type'?: string;
-    'Product'?: string;
-    'Species / Breed / Variety'?: string;
-    'Unit'?: string;
-    'Quantity'?: number;
-    'Value(Rs)'?: number;
-    'No. of Participants'?: number;
-    // Frontend format
     gen_m?: number;
     gen_f?: number;
     obc_m?: number;
@@ -55,7 +41,6 @@ export interface ProductionSupply {
     };
     reportingYearRelation?: {
         yearName: string;
-        yearId: number;
     };
     productCategory?: {
         productCategoryName: string;
@@ -73,9 +58,7 @@ export interface ProductionSupply {
 
 export interface ProductionSupplyFormData {
     kvkId?: number;
-    reportingYearId?: number;
     reportingYear?: string | number;
-    yearId?: number;
     productCategoryId?: number;
     prodCategory?: string | number;
     productTypeId?: number;

@@ -1,7 +1,7 @@
 model DemonstrationInfo {
   demonstrationInfoId           Int            @id @default(autoincrement()) @map("demonstration_info_id")
   kvkId                         Int
-  yearId                        Int?
+  reportingYear                 DateTime?      @map("reporting_year")
   startDate                     DateTime
   endDate                       DateTime
   farmerName                    String
@@ -60,7 +60,6 @@ model DemonstrationInfo {
   kvk                           Kvk            @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   staffCategory                 StaffCategoryMaster? @relation(fields: [staffCategoryId], references: [staffCategoryId], onDelete: SetNull)
   season                        Season?        @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
-  reportingYear                 YearMaster?    @relation(fields: [yearId], references: [yearId], onDelete: SetNull)
 
   @@index([kvkId])
   @@map("demonstration_info")

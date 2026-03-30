@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const specialProgrammeRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const specialProgrammeRepository = {
         return await prisma.specialProgramme.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 programmeType: data.programmeType,
                 programmeName: data.programmeName,
                 programmePurpose: data.programmePurpose,
@@ -31,7 +36,6 @@ const specialProgrammeRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -46,7 +50,6 @@ const specialProgrammeRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -63,7 +66,13 @@ const specialProgrammeRepository = {
         return await prisma.specialProgramme.update({
             where: { specialProgrammeId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 programmeType: data.programmeType !== undefined ? data.programmeType : existing.programmeType,
                 programmeName: data.programmeName !== undefined ? data.programmeName : existing.programmeName,
                 programmePurpose: data.programmePurpose !== undefined ? data.programmePurpose : existing.programmePurpose,

@@ -1,5 +1,4 @@
 const fldRepository = require('../../repositories/forms/fldRepository.js');
-const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
 
@@ -65,21 +64,17 @@ const fldService = {
             throw new ValidationError('Only ONGOING FLD records can be transferred');
         }
 
-        const currentReportingYearId = source.reportingYearId;
-        if (!currentReportingYearId) {
-            throw new ValidationError('Cannot transfer FLD without reportingYearId');
+        if (!source.reportingYear) {
+            throw new ValidationError('Cannot transfer FLD without reportingYear');
         }
 
-        const nextYear = await prisma.yearMaster.findFirst({
-            where: { yearId: { gt: currentReportingYearId } },
-            orderBy: { yearId: 'asc' },
-            select: { yearId: true },
-        });
-        if (!nextYear) {
-            throw new ValidationError('No next reporting year found for transfer');
+        const nextReportingYear = new Date(source.reportingYear);
+        if (Number.isNaN(nextReportingYear.getTime())) {
+            throw new ValidationError('Invalid source reportingYear for transfer');
         }
+        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
-        return fldRepository.transferToNextYearTx(source, nextYear.yearId);
+        return fldRepository.transferToNextYearTx(source, nextReportingYear);
     },
 
     addResult: async (id, payload, user) => {

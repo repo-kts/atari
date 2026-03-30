@@ -150,21 +150,6 @@ async function getOrCreateOftTechnologyType(name) {
   return type;
 }
 
-// Helper function to get yearId by year name (e.g., '2024-25')
-async function getYearId(yearName) {
-  const year = await prisma.yearMaster.findFirst({
-    where: { yearName }
-  });
-  if (!year) {
-    // Try to create it if it doesn't exist
-    const newYear = await prisma.yearMaster.create({
-      data: { yearName }
-    });
-    return newYear.yearId;
-  }
-  return year.yearId;
-}
-
 async function getOrCreateInfraMaster(name) {
   let infra = await prisma.kvkInfrastructureMaster.findFirst({
     where: { name }
@@ -222,7 +207,7 @@ async function getOrCreateRole(name) {
 }
 
 // Create KVKs with all related data
-async function seedKvks(yearId2024) {
+async function seedKvks() {
   console.log('\n🌱 Seeding KVKs and related data...\n');
 
   // Create master data
@@ -419,7 +404,7 @@ async function seedKvks(yearId2024) {
         totalCost: 500000,
         presentStatus: 'WORKING',
         sourceOfFunding: 'ICAR',
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         type: 'EQUIPMENT',
       },
       {
@@ -429,7 +414,7 @@ async function seedKvks(yearId2024) {
         totalCost: 800000,
         presentStatus: 'WORKING',
         sourceOfFunding: 'State Government',
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         type: 'EQUIPMENT',
       },
     ];
@@ -505,7 +490,7 @@ async function seedKvks(yearId2024) {
         totalCost: 800000,
         totalRun: '50000',
         presentStatus: 'WORKING',
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         sourceOfFunding: 'ICAR',
         repairingCost: 50000,
       },
@@ -530,7 +515,7 @@ async function seedKvks(yearId2024) {
   for (const kvk of kvks) {
     const csisaData = {
       kvkId: kvk.kvkId,
-      reportingYearId: yearId2024,
+      reportingYear: new Date('2024-01-01'),
       seasonId: season1.seasonId,
       villagesCovered: 10,
       blocksCovered: 2,
@@ -575,7 +560,7 @@ async function seedKvks(yearId2024) {
     const existing = await prisma.csisa.findFirst({
       where: {
         kvkId: kvk.kvkId,
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         seasonId: season1.seasonId,
       },
     });
@@ -595,7 +580,7 @@ async function seedKvks(yearId2024) {
 
     const oftData = {
       kvkId: kvk.kvkId,
-      reportingYearId: yearId2024,
+      reportingYear: new Date('2024-01-01'),
       seasonId: season1.seasonId,
       staffId: staff.kvkStaffId,
       oftSubjectId: oftSubject1.oftSubjectId,
@@ -637,7 +622,7 @@ async function seedKvks(yearId2024) {
     const existing = await prisma.kvkoft.findFirst({
       where: {
         kvkId: kvk.kvkId,
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         seasonId: season1.seasonId,
       },
     });
@@ -757,7 +742,7 @@ async function seedKvks(yearId2024) {
               kvkId: kvk.kvkId,
               fldId: fld.kvkFldId,
               activityId: activity.activityId,
-              reportingYearId: yearId2024,
+              reportingYear: new Date('2024-01-01'),
               activityDate: new Date('2024-08-15'),
               numberOfActivities: 2,
               remarks: 'Successful field day',
@@ -777,7 +762,7 @@ async function seedKvks(yearId2024) {
               kvkId: kvk.kvkId,
               fldId: fld.kvkFldId,
               cropId: fldCrop1.cropId,
-              reportingYearId: yearId2024,
+              reportingYear: new Date('2024-01-01'),
               feedback: 'Excellent performance of the demonstrated technology',
             },
           });
@@ -793,7 +778,7 @@ async function seedKvks(yearId2024) {
   for (const kvk of kvks) {
       const drmrData = {
         kvkId: kvk.kvkId,
-        reportingYearId: yearId2024,
+        reportingYear: new Date('2024-01-01'),
         startDate: new Date('2024-06-01'),
         endDate: new Date('2024-12-31'),
         totalBudgetUtilized: 200000,
@@ -832,7 +817,7 @@ async function seedKvks(yearId2024) {
       const existing = await prisma.drmrActivity.findFirst({
         where: {
           kvkId: kvk.kvkId,
-          reportingYearId: yearId2024,
+          reportingYear: new Date('2024-01-01'),
         },
       });
       if (!existing) {
@@ -954,11 +939,8 @@ async function run() {
         console.log('⚠️  Warning: No zones found. Please run seed-masters.js first.\n');
       }
 
-      // Get yearId for 2024-25 (corresponds to year 2024)
-      const yearId2024 = await getYearId('2024-25');
-
       // Seed KVKs and all related data
-      const kvks = await seedKvks(yearId2024);
+      const kvks = await seedKvks();
 
       // Seed users mapped to KVKs
       await seedKvkUsers(kvks);

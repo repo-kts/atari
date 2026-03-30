@@ -1,8 +1,8 @@
 model RainwaterHarvesting {
   rainwaterHarvestingId String      @id @default(uuid()) @map("rainwater_harvesting_id")
   kvkId                 Int
-  reportingYearId       Int?        @map("reporting_year_id")
-  trainingProgrammes    Int         @map("training_programmes")
+  reportingYear DateTime? @map("reporting_year")
+trainingProgrammes    Int         @map("training_programmes")
   demonstrations        Int         @map("demonstrations")
   plantMaterial         Int         @map("plant_material")
   farmerVisits          Int         @map("farmer_visits")
@@ -10,10 +10,8 @@ model RainwaterHarvesting {
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
   kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([createdAt])
   @@map("rainwater_harvesting")
 }

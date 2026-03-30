@@ -24,7 +24,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
 
     // Memoized options for Year dropdown
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -43,12 +43,10 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
     const handleYearChange = useCallback(
         (value: string | number) => {
             setFormData((prev: any) => {
-                const selectedYear = years.find((y: any) => y.yearId === value)
+                const selectedYear = years.find((y: any) => y.reportingYear === value)
                 return {
                     ...prev,
-                    year: value,
-                    yearId: value,
-                    reportingYearId: value,
+                    reportingYear: selectedYear?.reportingYear || value,
                     yearName: selectedYear?.yearName || '',
                 }
             })
@@ -124,7 +122,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                         <MasterDataDropdown
                             label="Year"
                             required
-                            value={formData.yearId || formData.year || formData.reportingYearId || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}

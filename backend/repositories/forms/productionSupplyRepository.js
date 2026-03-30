@@ -7,6 +7,7 @@ const {
     normalizeFarmersData,
     validateUUID,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 /**
  * Production Supply Repository
@@ -94,8 +95,7 @@ const _validateForeignKey = async (id, modelName, idField, fieldName, required =
 const _mapResponse = (r) => {
     if (!r) return null;
 
-    // Calculate reporting year from yearId if available
-    const reportingYear = r.reportingYear?.yearName || r.reportingYearId || null;
+    const reportingYear = formatReportingYear(r.reportingYear);
 
     // Calculate total participants
     const totalParticipants = (r.farmersGeneralM || 0) + (r.farmersGeneralF || 0) +
@@ -158,11 +158,8 @@ const productionSupplyRepository = {
             // Validate KVK exists
             await validateKvkExists(kvkId);
 
-            // Validate and resolve foreign keys
-            const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-            if (reportingYearId) {
-                await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-            }
+            const reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(reportingYear);
 
             const productCategoryId = data.productCategoryId || data.prodCategory;
             if (productCategoryId) {
@@ -194,7 +191,7 @@ const productionSupplyRepository = {
             // Prepare create data
             const createData = {
                 kvkId,
-                reportingYearId: reportingYearId ? parseInteger(reportingYearId, 'reportingYearId', false) : null,
+                reportingYear,
                 productCategoryId: productCategoryId ? parseInteger(productCategoryId, 'productCategoryId', false) : null,
                 productTypeId: productTypeId ? parseInteger(productTypeId, 'productTypeId', false) : null,
                 productId: productId ? parseInteger(productId, 'productId', false) : null,
@@ -210,7 +207,6 @@ const productionSupplyRepository = {
                 data: createData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
                     product: { select: { productName: true } },
@@ -249,8 +245,24 @@ const productionSupplyRepository = {
             }
 
             // Additional filters
-            if (filters.reportingYearId) {
-                where.reportingYearId = parseInteger(filters.reportingYearId, 'reportingYearId', false);
+            if (filters.reportingYearFrom || filters.reportingYearTo) {
+                where.reportingYear = {};
+                if (filters.reportingYearFrom) {
+                    const from = parseReportingYearDate(filters.reportingYearFrom);
+                    if (from) {
+                        ensureNotFutureDate(from);
+                        from.setHours(0, 0, 0, 0);
+                        where.reportingYear.gte = from;
+                    }
+                }
+                if (filters.reportingYearTo) {
+                    const to = parseReportingYearDate(filters.reportingYearTo);
+                    if (to) {
+                        ensureNotFutureDate(to);
+                        to.setHours(23, 59, 59, 999);
+                        where.reportingYear.lte = to;
+                    }
+                }
             }
             if (filters.productCategoryId) {
                 where.productCategoryId = parseInteger(filters.productCategoryId, 'productCategoryId', false);
@@ -263,7 +275,6 @@ const productionSupplyRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
                     product: { select: { productName: true } },
@@ -298,7 +309,6 @@ const productionSupplyRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
                     product: { select: { productName: true } },
@@ -358,14 +368,10 @@ const productionSupplyRepository = {
             }
 
             // Update foreign keys if provided
-            if (data.reportingYearId !== undefined || data.reportingYear !== undefined || data.yearId !== undefined) {
-                const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-                if (reportingYearId) {
-                    await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-                    updateData.reportingYearId = parseInteger(reportingYearId, 'reportingYearId', false);
-                } else {
-                    updateData.reportingYearId = null;
-                }
+            if (data.reportingYear !== undefined) {
+                const parsedDate = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(parsedDate);
+                updateData.reportingYear = parsedDate;
             }
 
             if (data.productCategoryId !== undefined || data.prodCategory !== undefined) {
@@ -430,7 +436,6 @@ const productionSupplyRepository = {
                 data: updateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     productCategory: { select: { productCategoryName: true } },
                     productType: { select: { productCategoryType: true } },
                     product: { select: { productName: true } },

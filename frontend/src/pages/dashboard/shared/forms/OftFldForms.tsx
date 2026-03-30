@@ -16,7 +16,6 @@ import {
     useFldCrops,
     useFldActivities,
 } from '../../../../hooks/useOftFldData'
-import { useYears } from '../../../../hooks/useOtherMastersData'
 import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
 import { useAuth } from '../../../../contexts/AuthContext'
@@ -62,7 +61,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const { data: fldSubcategories = [] } = useFldSubcategories()
     const { data: seasons = [] } = useSeasons()
     const { data: cropTypes = [] } = useCropTypes()
-    const { data: years = [] } = useYears()
     const { data: disciplines = [] } = useDisciplines()
     const { data: fldThematicAreas = [], isLoading: isLoadingFldThematicAreas } = useFldThematicAreas()
     const { data: fldCrops = [] } = useFldCrops()
@@ -73,16 +71,25 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // FLD list for extension training and technical feedback
     const { data: fldList = [] } = useProjectData(ENTITY_TYPES.ACHIEVEMENT_FLD)
-    const selectedReportingYearId = formData.reportingYearId ? Number(formData.reportingYearId) : null
+    const selectedReportingYear = formData.reportingYear || ''
+    const getYearValue = (value: any): number | null => {
+        if (!value) return null
+        const parsed = new Date(value)
+        if (!Number.isNaN(parsed.getTime())) return parsed.getFullYear()
+        const text = String(value)
+        const match = text.match(/^(\d{4})/)
+        return match ? Number(match[1]) : null
+    }
     const fldOptionsByKvkAndYear = useMemo(() => {
         return (fldList as any[]).filter((f: any) => {
             const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-            const fldYearId = f.reportingYearId ?? f.yearId ?? f.reportingYear?.yearId
+            const fldYear = getYearValue(f.reportingYear)
+            const selectedYear = getYearValue(selectedReportingYear)
             const kvkMatch = activeKvkId ? Number(fldKvkId) === Number(activeKvkId) : true
-            const yearMatch = selectedReportingYearId ? Number(fldYearId) === Number(selectedReportingYearId) : false
+            const yearMatch = selectedYear ? Number(fldYear) === Number(selectedYear) : false
             return kvkMatch && yearMatch
         })
-    }, [fldList, activeKvkId, selectedReportingYearId])
+    }, [fldList, activeKvkId, selectedReportingYear])
     const selectedFldForTechnicalFeedback = useMemo(
         () => fldOptionsByKvkAndYear.find((f: any) => Number(f.kvkFldId || f.id) === Number(formData.fldId)),
         [fldOptionsByKvkAndYear, formData.fldId]
@@ -143,19 +150,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     const loadFldByKvkAndYear = useCallback(async (compositeValue: any) => {
         const parsed = String(compositeValue || '')
-        const [kvkIdRaw, yearIdRaw] = parsed.split('-')
+        const [kvkIdRaw, yearRaw] = parsed.split('-')
         const kvkId = Number(kvkIdRaw)
-        const reportingYearId = Number(yearIdRaw)
+        const reportingYear = Number(yearRaw)
 
-        if (!Number.isFinite(kvkId) || !Number.isFinite(reportingYearId)) {
+        if (!Number.isFinite(kvkId) || !Number.isFinite(reportingYear)) {
             return []
         }
 
         return (fldList as any[])
             .filter((f: any) => {
                 const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-                const fldYearId = f.reportingYearId ?? f.yearId ?? f.reportingYear?.yearId
-                return Number(fldKvkId) === kvkId && Number(fldYearId) === reportingYearId
+                const fldYear = getYearValue(f.reportingYear)
+                return Number(fldKvkId) === kvkId && Number(fldYear) === reportingYear
             })
             .map((f: any) => ({
                 value: f.kvkFldId || f.id,
@@ -173,28 +180,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         }
     }, [entityType, formData.categoryId, formData.sectorId, fldCategories, setFormData])
 
-    // Extract reportingYearId from nested reportingYear object when editing OFT/FLD
+    // Normalize reportingYear for edit forms (prefer canonical Date field)
     useEffect(() => {
         if (entityType === ENTITY_TYPES.ACHIEVEMENT_OFT || entityType === ENTITY_TYPES.ACHIEVEMENT_FLD) {
             setFormData((prev: any) => {
-                // Skip if reportingYearId already exists
-                if (prev.reportingYearId) return prev
-
                 const updates: any = {}
-
-                // Extract reportingYearId from nested reportingYear object if not directly available
-                if (prev.reportingYear) {
-                    if (prev.reportingYear.yearId) {
-                        // Nested object case: { reportingYear: { yearId: X, yearName: "..." } }
-                        updates.reportingYearId = prev.reportingYear.yearId
-                    } else if (typeof prev.reportingYear === 'number') {
-                        // Legacy: reportingYear is already the ID
-                        updates.reportingYearId = prev.reportingYear
-                    }
-                }
-                // Handle legacy yearId (backward compatibility - map to reportingYearId)
-                if (!updates.reportingYearId && prev.yearId) {
-                    updates.reportingYearId = prev.yearId
+                if (!prev.reportingYear) {
+                    return prev
                 }
 
                 if (Object.keys(updates).length === 0) return prev
@@ -435,14 +427,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <div className="space-y-8">
                     {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Reporting Year - From Year Master */}
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value as number })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
                         <DependentDropdown
@@ -652,13 +642,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <div className="space-y-8">
                     {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value as number })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
@@ -886,13 +875,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <DependentDropdown
@@ -914,7 +902,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId && selectedReportingYearId ? `${activeKvkId}-${selectedReportingYearId}` : '',
+                                value: activeKvkId && selectedReportingYear ? `${activeKvkId}-${getYearValue(selectedReportingYear)}` : '',
                                 field: 'kvkIdReportingYearId',
                             }}
                             onOptionsLoad={loadFldByKvkAndYear}
@@ -988,13 +976,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <DependentDropdown
@@ -1014,7 +1001,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId && selectedReportingYearId ? `${activeKvkId}-${selectedReportingYearId}` : '',
+                                value: activeKvkId && selectedReportingYear ? `${activeKvkId}-${getYearValue(selectedReportingYear)}` : '',
                                 field: 'kvkIdReportingYearId',
                             }}
                             onOptionsLoad={loadFldByKvkAndYear}

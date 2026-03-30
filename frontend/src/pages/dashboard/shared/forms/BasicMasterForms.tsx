@@ -109,7 +109,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
             setFormData((prev: any) => extractNestedIds(prev, entityType))
         }
     }, [entityType, setFormData])
-   
+
     if (!entityType) return null
 
     return (
@@ -251,12 +251,17 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                             setFormData((prev: any) => ({ ...prev, districtId: value }))
                         }}
                         options={[]}
-                        dependsOn={{
-                            value: formData.stateId,
-                            field: 'stateId',
-                        }}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
+                        dependsOn={[
+                            { value: formData.zoneId, field: 'zoneId' },
+                            { value: formData.stateId, field: 'stateId' },
+                        ]}
+                        onOptionsLoad={async (dependencyValues: any, signal) => {
+                            const stateId = Number(
+                                typeof dependencyValues === 'object' && dependencyValues !== null
+                                    ? dependencyValues.stateId
+                                    : dependencyValues
+                            )
+                            const response = await masterDataApi.getDistrictsByState(stateId, signal)
                             return response.data.map((d: District) => ({
                                 value: d.districtId,
                                 label: d.districtName,
@@ -321,12 +326,17 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                             setFormData((prev: any) => ({ ...prev, districtId: value, orgId: '' }))
                         }}
                         options={[]}
-                        dependsOn={{
-                            value: formData.stateId,
-                            field: 'stateId',
-                        }}
-                        onOptionsLoad={async (stateId, signal) => {
-                            const response = await masterDataApi.getDistrictsByState(stateId as number, signal)
+                        dependsOn={[
+                            { value: formData.zoneId, field: 'zoneId' },
+                            { value: formData.stateId, field: 'stateId' },
+                        ]}
+                        onOptionsLoad={async (dependencyValues: any, signal) => {
+                            const stateId = Number(
+                                typeof dependencyValues === 'object' && dependencyValues !== null
+                                    ? dependencyValues.stateId
+                                    : dependencyValues
+                            )
+                            const response = await masterDataApi.getDistrictsByState(stateId, signal)
                             return response.data.map((d: District) => ({
                                 value: d.districtId,
                                 label: d.districtName,
@@ -344,12 +354,18 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                             setFormData((prev: any) => ({ ...prev, orgId: value }))
                         }}
                         options={[]}
-                        dependsOn={{
-                            value: formData.districtId,
-                            field: 'districtId',
-                        }}
-                        onOptionsLoad={async (districtId, signal) => {
-                            const response = await masterDataApi.getOrganizationsByDistrict(districtId as number, signal)
+                        dependsOn={[
+                            { value: formData.zoneId, field: 'zoneId' },
+                            { value: formData.stateId, field: 'stateId' },
+                            { value: formData.districtId, field: 'districtId' },
+                        ]}
+                        onOptionsLoad={async (dependencyValues: any, signal) => {
+                            const districtId = Number(
+                                typeof dependencyValues === 'object' && dependencyValues !== null
+                                    ? dependencyValues.districtId
+                                    : dependencyValues
+                            )
+                            const response = await masterDataApi.getOrganizationsByDistrict(districtId, signal)
                             return response.data.map((org: Organization) => ({
                                 value: org.orgId,
                                 label: org.orgName,

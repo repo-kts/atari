@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const villageAdoptionRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const villageAdoptionRepository = {
         return await prisma.villageAdoption.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 village: data.village,
                 block: data.block,
                 actionTaken: data.actionTaken,
@@ -28,7 +33,6 @@ const villageAdoptionRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -43,7 +47,6 @@ const villageAdoptionRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -60,7 +63,13 @@ const villageAdoptionRepository = {
         return await prisma.villageAdoption.update({
             where: { villageAdoptionId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 village: data.village !== undefined ? data.village : existing.village,
                 block: data.block !== undefined ? data.block : existing.block,
                 actionTaken: data.actionTaken !== undefined ? data.actionTaken : existing.actionTaken,

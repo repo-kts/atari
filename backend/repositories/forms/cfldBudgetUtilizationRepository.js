@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
+const { formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { mapCommonRelations } = require('../../utils/responseMapper.js');
 
 const cfldBudgetUtilizationRepository = {
@@ -65,7 +66,7 @@ const cfldBudgetUtilizationRepository = {
             { id: getItemIdByPattern('Publication'), r: data.publicationReceived, u: data.publicationUtilized }
         ].filter(item => item.id !== null);
 
-        const rawYear = data.yearId || data.year;
+        const rawYear = data.reportingYear || data.year;
         let numericYear = new Date().getFullYear();
         if (rawYear) {
             const parsed = parseInt(String(rawYear).split('-')[0]);
@@ -151,7 +152,7 @@ const cfldBudgetUtilizationRepository = {
         }
 
         const updateData = {};
-        const rawYear = data.yearId || data.year;
+        const rawYear = data.reportingYear || data.year;
         if (rawYear !== undefined) {
             const parsed = parseInt(String(rawYear).split('-')[0]);
             if (!isNaN(parsed)) updateData.year = parsed;
@@ -258,7 +259,7 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         ...relations,
         year: r.year,
-        yearId: r.year,
+        reportingYear: formatReportingYear(r.reportingYear),
         overallFundAllocation: r.overallFundAllocation,
         areaAllotted: r.areaAllotted,
         areaAchieved: r.areaAchieved,

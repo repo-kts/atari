@@ -31,7 +31,6 @@ export const ENTITY_TYPES = {
     // Other Masters
     SEASON: 'season',
     SANCTIONED_POST: 'sanctioned-post',
-    YEAR: 'year',
 
     // Employee Masters
     STAFF_CATEGORY: 'staff-category',
@@ -308,7 +307,6 @@ export const ENTITY_PATHS = {
     // Other Masters
     SEASON: '/all-master/season',
     SANCTIONED_POST: '/all-master/sanctioned-post',
-    YEAR: '/all-master/year',
     OTHER_MASTERS: '/all-master/other-masters',
 
     // Employee Masters

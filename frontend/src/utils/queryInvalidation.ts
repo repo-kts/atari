@@ -217,16 +217,6 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
         relatedQueryPatterns: [],
     },
 
-    // Year Master Dependencies
-    [ENTITY_TYPES.YEAR]: {
-        dependents: [
-            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
-            ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
-        ],
-        dependencyField: 'yearId',
-        relatedQueryPatterns: [],
-    },
-
     // Soil Water Analysis Master Dependencies
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: {
         dependents: [
@@ -365,7 +355,6 @@ function invalidateQueryKey(
 const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.SEASON]: ['seasons'], // Other Masters - singular
     [ENTITY_TYPES.SANCTIONED_POST]: ['sanctioned-posts'],
-    [ENTITY_TYPES.YEAR]: ['years'],
     [ENTITY_TYPES.SEASONS]: ['seasons'], // OFT/FLD - plural
     [ENTITY_TYPES.OFT_SUBJECTS]: ['oft-subjects'],
     [ENTITY_TYPES.OFT_THEMATIC_AREAS]: ['oft-thematic-areas'],

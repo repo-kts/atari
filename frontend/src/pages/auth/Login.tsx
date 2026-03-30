@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { Input } from '../../components/ui/Input'
-import { Button } from '../../components/ui/Button'
+import { Button } from '../../components/ui/button'
 import { AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 export const Login: React.FC = () => {
@@ -151,6 +151,7 @@ export const Login: React.FC = () => {
                         <Button
                             type="submit"
                             variant="primary"
+                            size="md"
                             className="w-full"
                             disabled={isLoading}
                         >

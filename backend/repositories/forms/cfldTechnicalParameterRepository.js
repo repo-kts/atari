@@ -4,6 +4,7 @@
  */
 
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const {
     resolveCropTypeId,
     resolveOrCreateCfldCrop,
@@ -22,7 +23,6 @@ const REPO_CONFIG = {
         crop: { select: { cropName: true } },
         cropType: { select: { typeId: true, typeName: true } },
         season: { select: { seasonName: true } },
-        reportingYear: { select: { yearId: true, yearName: true } },
         economicParameters: {
             select: {
                 status: true,
@@ -109,7 +109,8 @@ async function buildCreateData(data, user) {
     const kvkId = resolveKvkId(user, data);
     const seasonId = data.seasonId ? safeParseInt(data.seasonId) : null;
     const month = parseMonth(data.month);
-    const reportingYearId = data.reportingYearId || data.yearId ? safeParseInt(data.reportingYearId || data.yearId) : null;
+    const reportingYear = parseReportingYearDate(data.reportingYear);
+    ensureNotFutureDate(reportingYear);
 
     // Resolve CFLD crop ID
     let cropId = null;
@@ -152,7 +153,7 @@ async function buildCreateData(data, user) {
         seasonId,
         month,
         typeId,
-        ...(reportingYearId ? { reportingYearId } : {}),
+        ...(reportingYear ? { reportingYear } : {}),
         ...(data.status ? { status: data.status } : {}),
         varietyName: data.varietyName || '',
         areaInHa: safeParseFloat(data.areaInHa || data.areaHectare, 0),
@@ -425,9 +426,10 @@ async function buildUpdateData(data, existing) {
         updateData.qualityActionPhotoPath = data.qualityActionPhotoPath;
     }
 
-    if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-        const nextReportingYearId = safeParseInt(data.reportingYearId || data.yearId);
-        updateData.reportingYearId = Number.isFinite(nextReportingYearId) && nextReportingYearId > 0 ? nextReportingYearId : null;
+    if (data.reportingYear !== undefined) {
+        const parsed = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(parsed);
+        updateData.reportingYear = parsed;
     }
 
     if (data.status !== undefined) {
@@ -622,8 +624,7 @@ function _mapResponse(r) {
         typeName: r.cropType ? r.cropType.typeName : undefined,
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
-        reportingYearId: r.reportingYearId,
-        reportingYear: r.reportingYear?.yearName,
+        reportingYear: formatReportingYear(r.reportingYear),
         status: r.status,
         varietyName: r.varietyName,
         areaInHa: r.areaInHa,

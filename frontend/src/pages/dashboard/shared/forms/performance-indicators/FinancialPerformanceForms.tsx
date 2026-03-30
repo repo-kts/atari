@@ -24,7 +24,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
 
     // Memoize options
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -68,7 +68,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
@@ -248,7 +248,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}

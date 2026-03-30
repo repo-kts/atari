@@ -35,13 +35,11 @@ model AryaCurrentYear {
   imagePath                  String?     @map("image_path")
   createdAt                  DateTime    @default(now()) @map("created_at")
   updatedAt                  DateTime    @updatedAt @map("updated_at")
-  reportingYearId            Int?        @map("reporting_year_id")
-  enterprise                 Enterprise  @relation(fields: [enterpriseId], references: [enterpriseId])
+  reportingYear DateTime? @map("reporting_year")
+enterprise                 Enterprise  @relation(fields: [enterpriseId], references: [enterpriseId])
   kvk                        Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear              YearMaster? @relation(fields: [reportingYearId], references: [yearId])
-
-  @@index([kvkId])
+@@index([kvkId])
   @@index([enterpriseId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("arya_current_year")
 }

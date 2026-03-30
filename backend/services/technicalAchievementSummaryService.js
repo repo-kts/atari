@@ -183,30 +183,14 @@ const technicalAchievementSummaryService = {
   getFilterOptions: async (actor) => {
     const scopeWhere = getScopeWhere(actor);
 
-    const [kvks, years] = await Promise.all([
-      prisma.kvk.findMany({
-        where: scopeWhere,
-        select: { kvkId: true, kvkName: true },
-        orderBy: [{ kvkName: 'asc' }, { kvkId: 'asc' }],
-      }),
-      prisma.yearMaster.findMany({
-        select: { yearName: true },
-        orderBy: { yearId: 'desc' },
-      }),
-    ]);
-
-    const parsedYears = Array.from(
-      new Set(
-        years
-          .map((row) => Number.parseInt(String(row.yearName), 10))
-          .filter((value) => Number.isInteger(value) && value >= 1900 && value <= 3000),
-      ),
-    ).sort((a, b) => b - a);
+    const kvks = await prisma.kvk.findMany({
+      where: scopeWhere,
+      select: { kvkId: true, kvkName: true },
+      orderBy: [{ kvkName: 'asc' }, { kvkId: 'asc' }],
+    });
 
     const currentYear = new Date().getFullYear();
-    if (!parsedYears.includes(currentYear)) {
-      parsedYears.unshift(currentYear);
-    }
+    const parsedYears = Array.from({ length: 20 }, (_, index) => currentYear - index);
 
     return {
       years: parsedYears,
@@ -248,8 +232,8 @@ const technicalAchievementSummaryService = {
         where: {
           ...baseWhere,
           OR: [
-            { reportingYear: { is: { yearName: String(year) } } },
-            { reportingYearId: null, oftStartDate: { gte: start, lt: endExclusive } },
+            { reportingYear: { gte: start, lt: endExclusive } },
+            { reportingYear: null, oftStartDate: { gte: start, lt: endExclusive } },
           ],
         },
         _count: { _all: true },
@@ -271,8 +255,8 @@ const technicalAchievementSummaryService = {
         where: {
           ...baseWhere,
           OR: [
-            { reportingYear: { is: { yearName: String(year) } } },
-            { reportingYearId: null, startDate: { gte: start, lt: endExclusive } },
+            { reportingYear: { gte: start, lt: endExclusive } },
+            { reportingYear: null, startDate: { gte: start, lt: endExclusive } },
           ],
         },
         _count: { _all: true },

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeForPrisma, sanitizeInteger, sanitizeBoolean, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const fpoCbboDetailsRepository = {
     create: async (data, user) => {
@@ -14,7 +15,11 @@ const fpoCbboDetailsRepository = {
         try {
             const createData = {
                 kvkId,
-                reportingYearId: sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId') || safeGet(data, 'reportingYear')),
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(safeGet(data, 'reportingYear'));
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 blocksAllocated: sanitizeInteger(safeGet(data, 'blocksAllocated'), { defaultValue: 0 }),
                 fposRegisteredAsCbbo: sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'), { defaultValue: 0 }),
                 avgMembersPerFpo: sanitizeInteger(safeGet(data, 'avgMembersPerFpo'), { defaultValue: 0 }),
@@ -36,7 +41,6 @@ const fpoCbboDetailsRepository = {
                 data: finalCreateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearId: true, yearName: true } }
                 }
             });
 
@@ -54,18 +58,30 @@ const fpoCbboDetailsRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
-        } else if (filters.reportingYear) {
-            // Backward compatibility: if reportingYear is provided, try to find yearId
-            where.reportingYearId = parseInt(filters.reportingYear);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.fpoCbboDetails.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { fpoCbboDetailsId: 'desc' }
         });
@@ -78,7 +94,6 @@ const fpoCbboDetailsRepository = {
             where: { fpoCbboDetailsId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -98,11 +113,9 @@ const fpoCbboDetailsRepository = {
 
         const updateData = {};
 
-        if (safeGet(data, 'reportingYearId') !== undefined || safeGet(data, 'yearId') !== undefined) {
-            updateData.reportingYearId = sanitizeInteger(safeGet(data, 'reportingYearId') || safeGet(data, 'yearId'));
-        } else if (safeGet(data, 'reportingYear') !== undefined) {
-            // Backward compatibility
-            updateData.reportingYearId = sanitizeInteger(safeGet(data, 'reportingYear'));
+        if (safeGet(data, 'reportingYear') !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(safeGet(data, 'reportingYear'));
+            ensureNotFutureDate(updateData.reportingYear);
         }
         if (safeGet(data, 'blocksAllocated') !== undefined) updateData.blocksAllocated = sanitizeInteger(safeGet(data, 'blocksAllocated'));
         if (safeGet(data, 'fposRegisteredAsCbbo') !== undefined) updateData.fposRegisteredAsCbbo = sanitizeInteger(safeGet(data, 'fposRegisteredAsCbbo'));
@@ -144,7 +157,6 @@ const fpoCbboDetailsRepository = {
                 data: finalUpdateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearId: true, yearName: true } }
                 }
             });
 
@@ -175,10 +187,8 @@ function _mapResponse(r) {
     return {
         id: r.fpoCbboDetailsId,
         kvkId: r.kvkId,
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId, // Frontend alias
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
+        reportingYear: formatReportingYear(r.reportingYear),
         blocksAllocated: r.blocksAllocated,
         fposRegisteredAsCbbo: r.fposRegisteredAsCbbo,
         avgMembersPerFpo: r.avgMembersPerFpo,
@@ -197,12 +207,6 @@ function _mapResponse(r) {
         businessPlanPreparedWithoutCbbo: r.businessPlanPreparedWithoutCbbo,
         businessPlanWithoutCbbo: r.businessPlanPreparedWithoutCbbo ? 'Yes' : 'No', // Frontend alias
         fposDoingBusiness: r.fposDoingBusiness,
-
-        // Dashboard table labels from routeConfig.ts
-        'Reporting Year': r.reportingYear ? r.reportingYear.yearName : undefined,
-        'No. of blocks allocated': r.blocksAllocated,
-        'No. of FPOs registered as CBBO': r.fposRegisteredAsCbbo,
-        'Average members per FPO': r.avgMembersPerFpo,
     };
 }
 

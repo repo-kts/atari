@@ -6,10 +6,17 @@ model Kvk {
   districtId                    Int
   orgId                         Int                            @map("org_id")
   universityId                  Int?                           @map("university_id")
-  hostOrg                       String                         @map("host_org_name")
   mobile                        String                         @map("mobile")
+  landline                      String?                        @map("landline")
+  fax                           String?                        @map("fax")
   email                         String                         @map("email")
   address                       String                         @map("address")
+  hostOrg                       String                         @map("host_org_name")
+  hostMobile                    String?                        @map("host_mobile")
+  hostLandline                  String?                        @map("host_landline")
+  hostFax                       String?                        @map("host_fax")
+  hostEmail                     String?                        @map("host_email")
+  hostAddress                   String?                        @map("host_address")
   yearOfSanction                Int                            @map("year_of_sanction")
   createdAt                     DateTime                       @default(now()) @map("created_at")
   updatedAt                     DateTime                       @updatedAt @map("updated_at")
@@ -127,6 +134,7 @@ model Kvk {
   kisanSarathis                 KisanSarathi[]
   msgDetails                    MsgDetails[]
   userLoginActivities           UserLoginActivity[]
+  landDetails                   KvkLandDetail[]
 
   @@index([zoneId])
   @@index([stateId])
@@ -136,4 +144,16 @@ model Kvk {
   @@index([kvkName])
   @@index([email])
   @@map("kvk")
+}
+
+model KvkLandDetail {
+  landId Int    @id @default(autoincrement()) @map("land_id")
+  kvkId  Int    @map("kvk_id")
+  item   String @map("item")
+  areaHa Float  @map("area_ha")
+
+  kvk Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+  @@map("kvk_land_details")
 }

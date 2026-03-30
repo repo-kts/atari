@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const productionUnitRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const productionUnitRepository = {
         return await prisma.productionUnit.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 productName: data.productName,
                 quantity: parseFloat(data.quantity || 0),
                 costOfInputs: parseFloat(data.costOfInputs || 0),
@@ -30,7 +35,6 @@ const productionUnitRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -45,7 +49,6 @@ const productionUnitRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -62,7 +65,13 @@ const productionUnitRepository = {
         return await prisma.productionUnit.update({
             where: { productionUnitId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 productName: data.productName !== undefined ? data.productName : existing.productName,
                 quantity: data.quantity !== undefined ? parseFloat(data.quantity || 0) : existing.quantity,
                 costOfInputs: data.costOfInputs !== undefined ? parseFloat(data.costOfInputs || 0) : existing.costOfInputs,

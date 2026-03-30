@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const instructionalFarmLivestockRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const instructionalFarmLivestockRepository = {
         return await prisma.instructionalFarmLivestock.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 animalName: data.animalName,
                 speciesBreed: data.speciesBreed,
                 typeOfProduce: data.typeOfProduce,
@@ -32,7 +37,6 @@ const instructionalFarmLivestockRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -47,7 +51,6 @@ const instructionalFarmLivestockRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -64,7 +67,13 @@ const instructionalFarmLivestockRepository = {
         return await prisma.instructionalFarmLivestock.update({
             where: { instructionalFarmLivestockId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 animalName: data.animalName !== undefined ? data.animalName : existing.animalName,
                 speciesBreed: data.speciesBreed !== undefined ? data.speciesBreed : existing.speciesBreed,
                 typeOfProduce: data.typeOfProduce !== undefined ? data.typeOfProduce : existing.typeOfProduce,

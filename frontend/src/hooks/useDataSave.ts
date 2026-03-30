@@ -64,6 +64,15 @@ export function useDataSave({
                 // Update operation
                 const idField = getIdField(entityType);
                 const updateData = transformDataForUpdate(entityType, idField, processedFormData);
+                // Debug: log final update payload
+                // Note: Remove or guard this in production if noisy
+                // eslint-disable-next-line no-console
+                console.log('[useDataSave] Update payload', {
+                    entityType,
+                    idField,
+                    id: editingItem[idField],
+                    payload: updateData,
+                });
 
                 if (isBasicMasterEntity) {
                     await activeHook.update(editingItem[idField], updateData);
@@ -73,6 +82,12 @@ export function useDataSave({
             } else {
                 // Create operation
                 const createData = transformDataForCreate(entityType, processedFormData);
+                // Debug: log final create payload
+                // eslint-disable-next-line no-console
+                console.log('[useDataSave] Create payload', {
+                    entityType,
+                    payload: createData,
+                });
                 await activeHook.create(createData);
             }
 

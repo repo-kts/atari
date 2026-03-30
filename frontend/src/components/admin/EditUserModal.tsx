@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { userApi, UpdateUserData, PermissionAction, getRoleLabel } from '../../services/userApi'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
@@ -278,6 +278,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                     <Button
                         type="button"
                         variant="secondary"
+                        size="md"
                         onClick={onClose}
                         disabled={isSubmitting || submitSuccess}
                     >

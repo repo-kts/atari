@@ -26,7 +26,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
 
     // Memoized options for Year dropdown
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -81,12 +81,10 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
     const handleYearChange = useCallback(
         (value: string | number) => {
             setFormData((prev: any) => {
-                const selectedYear = years.find((y: any) => y.yearId === value)
+                const selectedYear = years.find((y: any) => y.reportingYear === value)
                 return {
                     ...prev,
-                    year: value,
-                    yearId: value,
-                    reportingYearId: value,
+                    reportingYear: selectedYear?.reportingYear || value,
                     yearName: selectedYear?.yearName || '',
                 }
             })
@@ -186,7 +184,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || formData.year || formData.reportingYearId || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -230,7 +228,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || formData.year || formData.reportingYearId || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -284,7 +282,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.yearId || formData.year || formData.reportingYearId || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -339,9 +337,9 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                                 <div className="p-4 border border-[#E0E0E0] rounded-xl bg-gray-50">
                                     <p className="text-sm font-semibold text-gray-700 mb-2">Current Image:</p>
                                     <div className="relative w-full max-w-xs h-40 overflow-hidden rounded-lg border border-gray-200">
-                                        <img 
-                                            src={formData.image} 
-                                            alt="Achievement" 
+                                        <img
+                                            src={formData.image}
+                                            alt="Achievement"
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
@@ -351,7 +349,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                                     <p className="text-xs text-gray-500 mt-2 italic">Uploading a new file will replace this image.</p>
                                 </div>
                             )}
-                            
+
                             <FormInput
                                 label="Image"
                                 type="file"

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const nicraRevenueRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const nicraRevenueRepository = {
         return await prisma.nicraRevenueGenerated.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 revenue: parseFloat(data.revenue || 0),
             }
         });
@@ -22,15 +27,30 @@ const nicraRevenueRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         return await prisma.nicraRevenueGenerated.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             },
             orderBy: { nicraRevenueGeneratedId: 'desc' }
         });
@@ -45,7 +65,6 @@ const nicraRevenueRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             }
         });
     },
@@ -62,7 +81,13 @@ const nicraRevenueRepository = {
         return await prisma.nicraRevenueGenerated.update({
             where: { nicraRevenueGeneratedId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 revenue: data.revenue !== undefined ? parseFloat(data.revenue) : existing.revenue,
             }
         });

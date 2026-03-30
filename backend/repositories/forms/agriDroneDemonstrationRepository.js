@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 function isKvkUser(user) {
     return user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
@@ -39,7 +40,11 @@ const agriDroneDemonstrationRepository = {
             data: {
                 kvkId,
                 agriDroneId,
-                reportingYearId: safeInt(data.reportingYearId || data.yearId, null),
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 demonstrationsOnId: safeInt(data.demonstrationsOnId, null),
                 districtId: safeInt(data.districtId, null),
                 dateOfDemonstration: safeDate(data.dateOfDemons || data.dateOfDemonstration),
@@ -60,7 +65,6 @@ const agriDroneDemonstrationRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 agriDrone: { select: { agriDroneId: true, projectImplementingCentre: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 district: { select: { districtId: true, districtName: true } },
                 demonstrationsOn: { select: { agriDroneDemonstrationsOnId: true, demonstrationsOnName: true } },
             },
@@ -79,7 +83,6 @@ const agriDroneDemonstrationRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 agriDrone: { select: { agriDroneId: true, projectImplementingCentre: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 district: { select: { districtId: true, districtName: true } },
                 demonstrationsOn: { select: { agriDroneDemonstrationsOnId: true, demonstrationsOnName: true } },
             },
@@ -97,7 +100,6 @@ const agriDroneDemonstrationRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 agriDrone: { select: { agriDroneId: true, projectImplementingCentre: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 district: { select: { districtId: true, districtName: true } },
                 demonstrationsOn: { select: { agriDroneDemonstrationsOnId: true, demonstrationsOnName: true } },
             },
@@ -125,7 +127,13 @@ const agriDroneDemonstrationRepository = {
             where: { agriDroneDemonstrationId: existing.agriDroneDemonstrationId },
             data: {
                 agriDroneId: nextAgriDroneId || undefined,
-                reportingYearId: (data.reportingYearId || data.yearId) !== undefined ? safeInt(data.reportingYearId || data.yearId, null) : undefined,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : undefined,
                 demonstrationsOnId: data.demonstrationsOnId !== undefined ? safeInt(data.demonstrationsOnId, null) : undefined,
                 districtId: data.districtId !== undefined ? safeInt(data.districtId, null) : undefined,
                 dateOfDemonstration: (data.dateOfDemons || data.dateOfDemonstration) !== undefined ? safeDate(data.dateOfDemons || data.dateOfDemonstration) : undefined,
@@ -146,7 +154,6 @@ const agriDroneDemonstrationRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 agriDrone: { select: { agriDroneId: true, projectImplementingCentre: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 district: { select: { districtId: true, districtName: true } },
                 demonstrationsOn: { select: { agriDroneDemonstrationsOnId: true, demonstrationsOnName: true } },
             },
@@ -171,8 +178,8 @@ const agriDroneDemonstrationRepository = {
             // Link back to intro
             agriDroneId: r.agriDroneId,
             projectImplementingCentre: r.agriDrone?.projectImplementingCentre,
-            reportingYearId: r.reportingYearId,
-            yearId: r.reportingYearId,
+            reportingYear: r.reportingYear,
+            yearName: formatReportingYear(r.reportingYear),
             districtId: r.districtId,
             district: r.district?.districtName,
             demonstrationsOnId: r.demonstrationsOnId,

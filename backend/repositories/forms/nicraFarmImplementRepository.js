@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const nicraFarmImplementRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const nicraFarmImplementRepository = {
         const result = await prisma.nicraFarmImplement.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 nameOfFarmImplement: data.nameOfFarmImplement,
@@ -78,15 +83,30 @@ const nicraFarmImplementRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.nicraFarmImplement.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             },
             orderBy: { nicraFarmImplementId: 'desc' }
         });
@@ -102,7 +122,6 @@ const nicraFarmImplementRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             }
         });
         return nicraFarmImplementRepository._mapResponse(result);
@@ -120,7 +139,13 @@ const nicraFarmImplementRepository = {
         const updated = await prisma.nicraFarmImplement.update({
             where: { nicraFarmImplementId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 nameOfFarmImplement: data.nameOfFarmImplement !== undefined ? data.nameOfFarmImplement : existing.nameOfFarmImplement,

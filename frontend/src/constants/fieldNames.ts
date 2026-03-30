@@ -112,7 +112,6 @@ export const FIELD_NAMES = {
 
     // Reporting Fields
     REPORTING_YEAR: 'reportingYear',
-    REPORTING_YEAR_ID: 'reportingYearId',
 
     // Date Fields
     START_DATE: 'startDate',
@@ -682,7 +681,6 @@ export const FIELD_GROUPS = {
     DISCIPLINE_MASTER: [FIELD_NAMES.DISCIPLINE_NAME] as const,
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,
-    YEAR_MASTER: [FIELD_NAMES.YEAR_NAME] as const,
     CROP_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,

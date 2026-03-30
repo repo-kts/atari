@@ -11,8 +11,8 @@ model CfldTechnicalParameter {
   month                      DateTime      @map("month")
   typeId                     Int           @map("type_id") 
   seasonId                   Int?
-  reportingYearId           Int?          @map("reporting_year_id")
-  status                     CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
+  reportingYear DateTime? @map("reporting_year")
+status                     CfldTechnicalWorkflowStatus @default(ONGOING) @map("status")
   varietyName                String        @map("variety_name")
   areaInHa                   Float         @map("area_in_ha")
   technologyDemonstrated     String        @map("technology_demonstrated")
@@ -45,9 +45,7 @@ model CfldTechnicalParameter {
   cropType                   CropType      @relation(fields: [typeId], references: [typeId])
   kvk                        Kvk           @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   season                     Season?       @relation(fields: [seasonId], references: [seasonId])
-  reportingYear              YearMaster?   @relation(fields: [reportingYearId], references: [yearId])
-
-  economicParameters         CfldEconomicParameters[]
+economicParameters         CfldEconomicParameters[]
   socioEconomicParameters    CfldSocioEconomicParameters[]
   farmersPerceptionParameters CfldFarmersPerceptionParameters[]
 
@@ -55,7 +53,7 @@ model CfldTechnicalParameter {
   @@index([cropId])
   @@index([seasonId])
   @@index([typeId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("cfl cfld_technical_parameter")
 }
 

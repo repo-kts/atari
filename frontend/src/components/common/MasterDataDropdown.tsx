@@ -1,6 +1,7 @@
 import React from 'react';
 import { FormSelect } from '@/pages/dashboard/shared/forms/shared/FormComponents';
 import { Loader2 } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface MasterDataDropdownProps {
     label: string;
@@ -35,6 +36,15 @@ export const MasterDataDropdown: React.FC<MasterDataDropdownProps> = ({
     loadingMessage = 'Loading...',
     showEmptyState = true,
 }) => {
+    const isReportingYearField = /reporting year|^year$/i.test(label);
+
+    const normalizeYearLikeValue = (input: string | number | '') => {
+        if (input === '' || input === null || input === undefined) return '';
+        const raw = String(input).trim();
+        if (/^\d{4}$/.test(raw)) return `${raw}-01-01`;
+        return raw;
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
         onChange(isNaN(Number(val)) ? val : Number(val));
@@ -42,6 +52,22 @@ export const MasterDataDropdown: React.FC<MasterDataDropdownProps> = ({
 
     const hasOptions = !isLoading && options.length > 0;
     const showEmpty = !isLoading && options.length === 0 && showEmptyState;
+
+    if (isReportingYearField) {
+        return (
+            <DatePicker
+                label={label}
+                value={normalizeYearLikeValue(value)}
+                onChange={(next) => onChange(next)}
+                max={new Date().toISOString().split('T')[0]}
+                placeholder={`Select ${label}`}
+                required={required}
+                error={error}
+                disabled={disabled}
+                ariaLabel={label}
+            />
+        );
+    }
 
     return (
         <div className="space-y-2">

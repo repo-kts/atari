@@ -1,9 +1,11 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const drmrDetailsRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
 
         const situation = data.situations || data.situation || '';
         const varietyImprovedPractice = data.varietiesTechImproved || data.varietyImprovedPractice || '';
@@ -27,7 +29,7 @@ const drmrDetailsRepository = {
 
         const [insertResult] = await prisma.$queryRawUnsafe(`
             INSERT INTO drmr_details (
-                "kvkId", reporting_year_id, situation, variety_improved_practice, 
+                "kvkId", reporting_year, situation, variety_improved_practice, 
                 variety_farmer_practice, yield_improved_kg_per_ha, yield_farmer_kg_per_ha, 
                 yield_increase_percent, cost_improved_per_ha, cost_farmer_per_ha, 
                 gross_return_improved_per_ha, gross_return_farmer_per_ha, 
@@ -35,7 +37,7 @@ const drmrDetailsRepository = {
                 bc_ratio_improved, bc_ratio_farmer, created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING drmr_details_id
-        `, kvkId, reportingYearId, situation, varietyImprovedPractice,
+        `, kvkId, reportingYear, situation, varietyImprovedPractice,
             varietyFarmerPractice, yieldImprovedKgPerHa, yieldFarmerKgPerHa,
             yieldIncreasePercent, costImprovedPerHa, costFarmerPerHa,
             grossReturnImprovedPerHa, grossReturnFarmerPerHa,
@@ -55,15 +57,30 @@ const drmrDetailsRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.drmrDetails.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { drmrDetailsId: 'desc' }
         });
@@ -76,7 +93,6 @@ const drmrDetailsRepository = {
             where: { drmrDetailsId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -90,8 +106,9 @@ const drmrDetailsRepository = {
         if (!existing) throw new Error("Record not found");
 
         const updateData = {};
-        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
         }
         if (data.situations !== undefined || data.situation !== undefined)
             updateData.situation = data.situations || data.situation;
@@ -130,7 +147,7 @@ const drmrDetailsRepository = {
         await prisma.$executeRawUnsafe(`
             UPDATE drmr_details 
             SET 
-                reporting_year_id = $1, situation = $2, variety_improved_practice = $3, 
+                reporting_year = $1, situation = $2, variety_improved_practice = $3, 
                 variety_farmer_practice = $4, yield_improved_kg_per_ha = $5, yield_farmer_kg_per_ha = $6, 
                 yield_increase_percent = $7, cost_improved_per_ha = $8, cost_farmer_per_ha = $9, 
                 gross_return_improved_per_ha = $10, gross_return_farmer_per_ha = $11, 
@@ -139,7 +156,7 @@ const drmrDetailsRepository = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE drmr_details_id = $16
         `,
-            updateData.reportingYearId ?? existing.reportingYearId,
+            updateData.reportingYear ?? existing.reportingYear,
             updateData.situation ?? existing.situation,
             updateData.varietyImprovedPractice ?? existing.varietyImprovedPractice,
             updateData.varietyFarmerPractice ?? existing.varietyFarmerPractice,
@@ -174,9 +191,7 @@ function _mapResponse(r) {
         drmrDetailsId: r.drmrDetailsId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId,
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined,
+        reportingYear: formatReportingYear(r.reportingYear),
         situation: r.situation,
         situations: r.situation,
         varietyImprovedPractice: r.varietyImprovedPractice,

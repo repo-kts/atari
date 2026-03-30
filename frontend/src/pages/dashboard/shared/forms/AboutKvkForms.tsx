@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
 import { State, District, Organization, University } from '@/types/masterData'
-import { useMasterData, useRelatedData } from '@/hooks/useMasterData'
+import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
+import { Trash2, Plus } from 'lucide-react'
 import {
     useSanctionedPosts,
     useInfraMasters,
@@ -16,9 +17,9 @@ import {
     EquipmentPresentStatusEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, useDisciplines, useYears } from '@/hooks/useOtherMastersData'
-import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
-import { createMasterDataOptions } from '@/utils/formHelpers'
+import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
+import { DependentDropdown } from '@/components/common/DependentDropdown'
+import { masterDataApi } from '@/services/masterDataApi'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -33,72 +34,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
 }) => {
 
     const { data: zones = [] } = useMasterData('zones')
-    const { data: states = [] } = useMasterData<State>('states')
-    const { data: organizations = [] } = useMasterData<Organization>('organizations')
-    const { data: districts = [] } = useMasterData<District>('districts')
-    const { data: universities = [] } = useMasterData<University>('universities')
-    const { getOrganizationsByDistrict, getOrganizationsByDistrictFromStore, getUniversitiesByOrganization, getUniversitiesByOrganizationFromStore } = useRelatedData()
     const { user } = useAuth()
-
-    // State for filtered organizations and universities
-    const [filteredOrganizations, setFilteredOrganizations] = useState<Organization[]>([])
-    const [filteredUniversities, setFilteredUniversities] = useState<University[]>([])
-
-    // Fetch organizations when districtId changes
-    useEffect(() => {
-        if (formData.districtId) {
-            const cached = getOrganizationsByDistrictFromStore(formData.districtId)
-            if (cached && cached.length > 0) {
-                setFilteredOrganizations(cached)
-            } else {
-                // Fetch from API if not cached
-                getOrganizationsByDistrict(formData.districtId)
-                    .then((data: Organization[]) => {
-                        setFilteredOrganizations(data)
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching organizations by district:', error)
-                        // Fallback to client-side filtering
-                        if (organizations.length > 0) {
-                            const filtered = organizations.filter(o => o.districtId === formData.districtId)
-                            setFilteredOrganizations(filtered)
-                        } else {
-                            setFilteredOrganizations([])
-                        }
-                    })
-            }
-        } else {
-            setFilteredOrganizations([])
-        }
-    }, [formData.districtId, getOrganizationsByDistrict, getOrganizationsByDistrictFromStore, organizations])
-
-    // Fetch universities when orgId changes
-    useEffect(() => {
-        if (formData.orgId) {
-            const cached = getUniversitiesByOrganizationFromStore(formData.orgId)
-            if (cached && cached.length > 0) {
-                setFilteredUniversities(cached)
-            } else {
-                // Fetch from API if not cached
-                getUniversitiesByOrganization(formData.orgId)
-                    .then((data: University[]) => {
-                        setFilteredUniversities(data)
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching universities by organization:', error)
-                        // Fallback to client-side filtering
-                        if (universities.length > 0) {
-                            const filtered = universities.filter(u => u.orgId === formData.orgId)
-                            setFilteredUniversities(filtered)
-                        } else {
-                            setFilteredUniversities([])
-                        }
-                    })
-            }
-        } else {
-            setFilteredUniversities([])
-        }
-    }, [formData.orgId, getUniversitiesByOrganization, getUniversitiesByOrganizationFromStore, universities])
 
 
     // Fetch About KVK master data
@@ -107,7 +43,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: infraMasters = [] } = useInfraMasters()
     const { data: staffCategories = [] } = useStaffCategories()
     const { data: payLevels = [] } = usePayLevels()
-    const { data: years = [] } = useYears()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
@@ -142,6 +77,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             // Extract districtId and orgId from nested objects when editing KVK
             setFormData((prev: any) => {
                 const updates: any = {}
+                if (prev.district?.state?.zone?.zoneId && !prev.zoneId) {
+                    updates.zoneId = prev.district.state.zone.zoneId
+                }
+                if (prev.district?.state?.stateId && !prev.stateId) {
+                    updates.stateId = prev.district.state.stateId
+                }
                 if (prev.district?.districtId && !prev.districtId) {
                     updates.districtId = prev.district.districtId
                 }
@@ -517,13 +458,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {/* Vehicle Details Form */}
             {entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS && (
                 <div className="space-y-4">
-                    <MasterDataDropdown
-                        label="Reporting Year"
+                    <FormInput
+                        label="Reporting Year Date"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })}
-                        options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                        emptyMessage="No reporting years available"
+                        type="date"
+                        max={new Date().toISOString().split('T')[0]}
+                        value={formData.reportingYear ? new Date(formData.reportingYear).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                            const value = e.target.value
+                            setFormData({ ...formData, reportingYear: value ? new Date(value).toISOString() : '' })
+                        }}
                     />
                     <FormSelect
                         label="Vehicle"
@@ -561,13 +505,16 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {/* Equipment Details Form */}
             {entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS && (
                 <div className="space-y-4">
-                    <MasterDataDropdown
-                        label="Reporting Year"
+                    <FormInput
+                        label="Reporting Year Date"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
-                        onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })}
-                        options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                        emptyMessage="No reporting years available"
+                        type="date"
+                        max={new Date().toISOString().split('T')[0]}
+                        value={formData.reportingYear ? new Date(formData.reportingYear).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                            const value = e.target.value
+                            setFormData({ ...formData, reportingYear: value ? new Date(value).toISOString() : '' })
+                        }}
                     />
                     <FormSelect
                         label="Equipment"
@@ -631,115 +578,188 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                 </div>
             )}
             {entityType === ENTITY_TYPES.KVKS && (
-                <div className="space-y-8">
-                    <FormSection title="Add KVK Details">
-                        <div className="md:col-span-2">
+                <div className="space-y-6">
+                    <FormSection title="KVK General Information">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="md:col-span-2">
+                                <FormInput
+                                    label="Name of KVK"
+                                    required
+                                    value={formData.kvkName || ''}
+                                    onChange={(e) => setFormData({ ...formData, kvkName: e.target.value })}
+                                    placeholder="Enter KVK name"
+                                />
+                            </div>
                             <FormInput
-                                label="Name of KVK"
+                                label="Mobile Number"
                                 required
-                                value={formData.kvkName || ''}
-                                onChange={(e) => setFormData({ ...formData, kvkName: e.target.value })}
-                                placeholder="Enter KVK name"
+                                value={formData.mobile || ''}
+                                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                                placeholder="+91"
+                            />
+                            <FormInput
+                                label="Landline"
+                                value={formData.landline || ''}
+                                onChange={(e) => setFormData({ ...formData, landline: e.target.value })}
+                                placeholder="Enter landline"
+                            />
+                            <FormInput
+                                label="Fax"
+                                value={formData.fax || ''}
+                                onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
+                                placeholder="Enter fax"
+                            />
+                            <div className="md:col-span-1 lg:col-span-2">
+                                <FormInput
+                                    label="E-mail"
+                                    type="email"
+                                    required
+                                    value={formData.email || ''}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    placeholder="Enter email address"
+                                />
+                            </div>
+                            <FormInput
+                                label="Year of Sanction"
+                                required
+                                type="number"
+                                value={formData.yearOfSanction || ''}
+                                onChange={(e) => setFormData({ ...formData, yearOfSanction: parseInt(e.target.value) })}
+                                placeholder="e.g. 2004"
                             />
                         </div>
-                        <FormInput
-                            label="Mobile Number"
-                            required
-                            value={formData.mobile || ''}
-                            onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                            placeholder="+91"
-                        />
-                        <FormInput
-                            label="Landline"
-                            value={formData.landline || ''}
-                            onChange={(e) => setFormData({ ...formData, landline: e.target.value })}
-                            placeholder="Enter landline"
-                        />
-                        <FormInput
-                            label="Fax"
-                            value={formData.fax || ''}
-                            onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
-                            placeholder="Enter fax"
-                        />
-                        <div className="md:col-span-2">
-                            <FormInput
-                                label="E-mail"
-                                type="email"
-                                required
-                                value={formData.email || ''}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="Enter email address"
-                            />
-                        </div>
-                        <FormSelect
-                            label="Zone"
-                            required
-                            value={formData.zoneId || ''}
-                            onChange={(e) => setFormData({ ...formData, zoneId: parseInt(e.target.value), stateId: '', districtId: '' })}
-                            options={(zones as any).map((z: any) => ({ value: z.zoneId, label: z.zoneName }))}
-                        />
-                        <FormSelect
-                            label="State"
-                            required
-                            value={formData.stateId || ''}
-                            onChange={(e) => setFormData({ ...formData, stateId: parseInt(e.target.value), districtId: '' })}
-                            disabled={!formData.zoneId}
-                            options={states
-                                .filter(s => s.zoneId === formData.zoneId)
-                                .map(s => ({ value: s.stateId, label: s.stateName }))}
-                        />
-                        <FormSelect
-                            label="District"
-                            required
-                            value={formData.districtId || ''}
-                            onChange={(e) => {
-                                const districtId = parseInt(e.target.value);
-                                setFormData({ ...formData, districtId, orgId: '', universityId: '' });
-                            }}
-                            disabled={!formData.stateId}
-                            options={districts
-                                .filter((d) => d.stateId === formData.stateId)
-                                .map(d => ({ value: d.districtId, label: d.districtName }))}
-                        />
-                        <div className="md:col-span-2">
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <FormSelect
+                                label="Zone"
+                                required
+                                value={formData.zoneId || ''}
+                                onChange={(e) => setFormData({
+                                    ...formData,
+                                    zoneId: parseInt(e.target.value),
+                                    stateId: '',
+                                    districtId: '',
+                                    orgId: '',
+                                    universityId: '',
+                                })}
+                                options={(zones as any).map((z: any) => ({ value: z.zoneId, label: z.zoneName }))}
+                            />
+                            <DependentDropdown
+                                label="State"
+                                required
+                                value={formData.stateId || ''}
+                                onChange={(value) => setFormData({
+                                    ...formData,
+                                    stateId: value === '' ? '' : Number(value),
+                                    districtId: '',
+                                    orgId: '',
+                                    universityId: '',
+                                })}
+                                options={[]}
+                                dependsOn={{ value: formData.zoneId, field: 'zoneId' }}
+                                onOptionsLoad={async (zoneId, signal) => {
+                                    const response = await masterDataApi.getStatesByZone(Number(zoneId), signal)
+                                    return response.data.map((s: State) => ({
+                                        value: s.stateId,
+                                        label: s.stateName,
+                                    }))
+                                }}
+                                cacheKey="about-kvk-states-by-zone"
+                            />
+                            <DependentDropdown
+                                label="District"
+                                required
+                                value={formData.districtId || ''}
+                                onChange={(value) => {
+                                    const districtId = value === '' ? '' : Number(value)
+                                    setFormData({ ...formData, districtId, orgId: '', universityId: '' })
+                                }}
+                                options={[]}
+                                dependsOn={[
+                                    { value: formData.zoneId, field: 'zoneId' },
+                                    { value: formData.stateId, field: 'stateId' },
+                                ]}
+                                onOptionsLoad={async (dependencyValues: any, signal) => {
+                                    const stateId = Number(dependencyValues?.stateId)
+                                    const response = await masterDataApi.getDistrictsByState(stateId, signal)
+                                    return response.data.map((d: District) => ({
+                                        value: d.districtId,
+                                        label: d.districtName,
+                                    }))
+                                }}
+                                cacheKey="about-kvk-districts-by-zone-state"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <DependentDropdown
                                 label="Organization"
                                 required
                                 value={formData.orgId || ''}
-                                onChange={(e) => {
-                                    const orgId = parseInt(e.target.value);
-                                    setFormData({
-                                        ...formData,
+                                onChange={(value) => {
+                                    const orgId = value === '' ? '' : Number(value)
+                                    setFormData((prev: any) => ({
+                                        ...prev,
                                         orgId,
-                                        universityId: '' // Reset university when org changes
-                                    });
+                                        org: undefined,
+                                        universityId: ''
+                                    }))
                                 }}
-                                disabled={!formData.districtId}
-                                options={filteredOrganizations.map(org => ({
-                                    value: org.orgId,
-                                    label: org.orgName
+                                options={
+                                    formData.orgId && formData.org?.orgName
+                                        ? [{ value: formData.orgId, label: formData.org.orgName }]
+                                        : []
+                                }
+                                dependsOn={[
+                                    { value: formData.zoneId, field: 'zoneId' },
+                                    { value: formData.stateId, field: 'stateId' },
+                                    { value: formData.districtId, field: 'districtId' },
+                                ]}
+                                onOptionsLoad={async (dependencyValues: any, signal) => {
+                                    const districtId = Number(dependencyValues?.districtId)
+                                    const response = await masterDataApi.getOrganizationsByDistrict(districtId, signal)
+                                    return response.data.map((org: Organization) => ({
+                                        value: org.orgId,
+                                        label: org.orgName,
+                                    }))
+                                }}
+                                cacheKey="about-kvk-organizations-by-zone-state-district"
+                            />
+                            <DependentDropdown
+                                label="University"
+                                required
+                                value={formData.universityId || ''}
+                                onChange={(value) => setFormData((prev: any) => ({
+                                    ...prev,
+                                    universityId: value === '' ? '' : Number(value),
+                                    university: undefined
                                 }))}
+                                options={
+                                    formData.universityId && formData.university?.universityName
+                                        ? [{ value: formData.universityId, label: formData.university.universityName }]
+                                        : []
+                                }
+                                dependsOn={[
+                                    { value: formData.zoneId, field: 'zoneId' },
+                                    { value: formData.stateId, field: 'stateId' },
+                                    { value: formData.districtId, field: 'districtId' },
+                                    { value: formData.orgId, field: 'orgId' },
+                                ]}
+                                onOptionsLoad={async (dependencyValues: any, signal) => {
+                                    const orgId = Number(dependencyValues?.orgId)
+                                    const response = await masterDataApi.getUniversitiesByOrganization(orgId, signal)
+                                    return response.data.map((u: University) => ({
+                                        value: u.universityId,
+                                        label: u.universityName,
+                                    }))
+                                }}
+                                cacheKey="about-kvk-universities-by-zone-state-district-org"
                             />
                         </div>
-                        {/* University field - always show when organization is selected */}
-                        {formData.orgId && (
-                            <div className="md:col-span-2">
-                                <FormSelect
-                                    label="University"
-                                    required
-                                    value={formData.universityId || ''}
-                                    onChange={(e) => setFormData({ ...formData, universityId: parseInt(e.target.value) })}
-                                    disabled={!formData.orgId}
-                                    options={filteredUniversities.map(u => ({
-                                        value: u.universityId,
-                                        label: u.universityName
-                                    }))}
-                                />
-                            </div>
-                        )}
-                        <div className="md:col-span-2 lg:col-span-2">
+
+                        <div className="mt-4">
                             <FormTextArea
-                                label="Address"
+                                label="KVK Address"
                                 required
                                 value={formData.address || ''}
                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -750,77 +770,106 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     </FormSection>
 
                     <FormSection title="Host Organization Details">
-                        <div className="md:col-span-2 lg:col-span-1">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="md:col-span-3">
+                                <FormInput
+                                    label="Host Organization Name"
+                                    required
+                                    value={formData.hostOrg || ''}
+                                    onChange={(e) => setFormData({ ...formData, hostOrg: e.target.value })}
+                                    placeholder="Enter host organization name"
+                                />
+                            </div>
                             <FormInput
-                                label="Host Organization Name"
-                                required
-                                value={formData.hostOrg || ''}
-                                onChange={(e) => setFormData({ ...formData, hostOrg: e.target.value })}
-                                placeholder="Enter host organization name"
+                                label="Mobile Number"
+                                value={formData.hostMobile || ''}
+                                onChange={(e) => setFormData({ ...formData, hostMobile: e.target.value })}
+                                placeholder="+91"
                             />
-                        </div>
-                        <FormInput
-                            label="Mobile Number"
-                            value={formData.hostMobile || ''}
-                            onChange={(e) => setFormData({ ...formData, hostMobile: e.target.value })}
-                            placeholder="+91"
-                        />
-                        <FormInput
-                            label="Landline"
-                            value={formData.hostLandline || ''}
-                            onChange={(e) => setFormData({ ...formData, hostLandline: e.target.value })}
-                            placeholder="Enter landline"
-                        />
-                        <FormInput
-                            label="Fax"
-                            value={formData.hostFax || ''}
-                            onChange={(e) => setFormData({ ...formData, hostFax: e.target.value })}
-                            placeholder="Enter fax"
-                        />
-                        <div className="md:col-span-2">
                             <FormInput
-                                label="E-mail"
-                                type="email"
-                                value={formData.hostEmail || ''}
-                                onChange={(e) => setFormData({ ...formData, hostEmail: e.target.value })}
-                                placeholder="Enter email address"
+                                label="Landline"
+                                value={formData.hostLandline || ''}
+                                onChange={(e) => setFormData({ ...formData, hostLandline: e.target.value })}
+                                placeholder="Enter landline"
                             />
-                        </div>
-                        <div className="md:col-span-2 lg:col-span-2">
-                            <FormTextArea
-                                label="Address"
-                                value={formData.hostAddress || ''}
-                                onChange={(e) => setFormData({ ...formData, hostAddress: e.target.value })}
-                                rows={2}
-                                placeholder="Enter complete address"
-                            />
-                        </div>
-                    </FormSection>
-
-                    <FormSection title="Year of Sanction">
-                        <div className="max-w-xs">
                             <FormInput
-                                label="Enter Year"
-                                required
-                                type="number"
-                                value={formData.yearOfSanction || ''}
-                                onChange={(e) => setFormData({ ...formData, yearOfSanction: parseInt(e.target.value) })}
-                                placeholder="e.g. 2004"
+                                label="Fax"
+                                value={formData.hostFax || ''}
+                                onChange={(e) => setFormData({ ...formData, hostFax: e.target.value })}
+                                placeholder="Enter fax"
                             />
+                            <div className="md:col-span-3">
+                                <FormInput
+                                    label="E-mail"
+                                    type="email"
+                                    value={formData.hostEmail || ''}
+                                    onChange={(e) => setFormData({ ...formData, hostEmail: e.target.value })}
+                                    placeholder="Enter email address"
+                                />
+                            </div>
+                            <div className="md:col-span-3">
+                                <FormTextArea
+                                    label="Host Address"
+                                    value={formData.hostAddress || ''}
+                                    onChange={(e) => setFormData({ ...formData, hostAddress: e.target.value })}
+                                    rows={2}
+                                    placeholder="Enter complete address"
+                                />
+                            </div>
                         </div>
                     </FormSection>
 
                     <FormSection title="Total Land with KVK">
-                        <FormInput
-                            label="Item"
-                            placeholder="e.g. Main Farm"
-                        />
-                        <FormInput
-                            label="In Ha"
-                            placeholder="e.g. 20"
-                        />
-                        <div className="flex items-end pb-1">
-                            <button type="button" className="px-4 py-2.5 text-sm font-medium text-white bg-[#487749] rounded-xl hover:bg-[#3d6540] transition-all">
+                        <div className="space-y-4">
+                            {(formData.landDetails || []).map((item: any, index: number) => (
+                                <div key={index} className="flex gap-4 items-center">
+                                    <div className="flex-1">
+                                        <FormInput
+                                            label={`Item ${index + 1}`}
+                                            value={item.item || ''}
+                                            onChange={(e) => {
+                                                const newList = [...formData.landDetails];
+                                                newList[index].item = e.target.value;
+                                                setFormData({ ...formData, landDetails: newList });
+                                            }}
+                                            placeholder="e.g. Main Farm"
+                                        />
+                                    </div>
+                                    <div className="w-32">
+                                        <FormInput
+                                            label="Area (Ha)"
+                                            type="number"
+                                            step="any"
+                                            value={item.areaHa || ''}
+                                            onChange={(e) => {
+                                                const newList = [...formData.landDetails];
+                                                newList[index].areaHa = e.target.value;
+                                                setFormData({ ...formData, landDetails: newList });
+                                            }}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const newList = formData.landDetails.filter((_: any, i: number) => i !== index);
+                                            setFormData({ ...formData, landDetails: newList });
+                                        }}
+                                        className="mt-6 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newList = [...(formData.landDetails || []), { item: '', areaHa: '' }];
+                                    setFormData({ ...formData, landDetails: newList });
+                                }}
+                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#487749] border border-[#487749] rounded-xl hover:bg-[#487749] hover:text-white transition-all"
+                            >
+                                <Plus className="w-4 h-4" />
                                 Add More Item
                             </button>
                         </div>

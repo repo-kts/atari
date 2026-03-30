@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/button'
 import { Breadcrumbs } from './Breadcrumbs'
 import { SiblingNavigation } from './SiblingNavigation'
 import { useNavigationContext } from '../../utils/navigationContext'
