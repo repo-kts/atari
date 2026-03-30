@@ -1,5 +1,36 @@
 const { verifyToken, decodePermissions } = require('../utils/jwt.js');
 const prisma = require('../config/prisma.js');
+const rolePermissionRepository = require('../repositories/rolePermissionRepository.js');
+const userPermissionRepository = require('../repositories/userPermissionRepository.js');
+
+/**
+ * Build effective permissions by module from DB.
+ * Used as a fallback when access tokens intentionally omit embedded permissions
+ * to keep cookie size small and avoid browser cookie size limits.
+ */
+async function buildPermissionsByModuleFromDb(roleId, roleName, userId) {
+  if (roleName === 'super_admin') {
+    return {};
+  }
+
+  const permissionsByModule = await rolePermissionRepository.getRolePermissionsByModule(roleId);
+
+  if (roleName.endsWith('_user')) {
+    const userActions = await userPermissionRepository.getUserPermissionActions(userId);
+    if (userActions.length > 0) {
+      for (const code of Object.keys(permissionsByModule)) {
+        permissionsByModule[code] = permissionsByModule[code].filter((action) =>
+          userActions.includes(action)
+        );
+        if (permissionsByModule[code].length === 0) {
+          delete permissionsByModule[code];
+        }
+      }
+    }
+  }
+
+  return permissionsByModule;
+}
 
 /**
  * Middleware to authenticate JWT token from HTTP-only cookie
@@ -18,9 +49,15 @@ async function authenticateToken(req, res, next) {
     const decoded = verifyToken(token, 'access');
 
     // Fetch user from database to ensure they still exist and are active.
-    // roleName and permissionsByModule come from the token (embedded at login/refresh).
     const user = await prisma.user.findUnique({
       where: { userId: decoded.userId },
+      include: {
+        role: {
+          select: {
+            roleName: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -32,16 +69,24 @@ async function authenticateToken(req, res, next) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
+    const roleId = user.roleId;
+    const roleName = user.role?.roleName || decoded.roleName;
+
+    // Prefer embedded token permissions when present (backward compatible with old tokens).
+    // If absent, build permissions from DB to avoid oversized access-token cookies.
+    let permissionsByModule = decodePermissions(decoded.permissions);
+    if (roleName !== 'super_admin' && Object.keys(permissionsByModule).length === 0) {
+      permissionsByModule = await buildPermissionsByModuleFromDb(roleId, roleName, user.userId);
+    }
+
     // Attach user info to request object.
-    // Decode bitmask permissions back to string arrays so requirePermission
-    // and all downstream consumers see the familiar { moduleCode: ['VIEW', ...] } format.
     req.user = {
       userId: user.userId,
       email: user.email,
       name: user.name,
-      roleId: decoded.roleId,
-      roleName: decoded.roleName,
-      permissionsByModule: decodePermissions(decoded.permissions),
+      roleId,
+      roleName,
+      permissionsByModule,
       zoneId: user.zoneId,
       stateId: user.stateId,
       districtId: user.districtId,
@@ -89,7 +134,8 @@ function requireRole(allowedRoles) {
 
 /**
  * Middleware to require specific permission.
- * Permissions are embedded in the JWT at login/refresh — no DB query needed.
+ * Permissions are resolved in authenticateToken (from token when present,
+ * otherwise from DB fallback for compact-token mode).
  * @param {string} moduleCode - Module code (e.g., 'user_management_users')
  * @param {string} action - Permission action (VIEW, ADD, EDIT, DELETE)
  * @returns {Function} Express middleware function

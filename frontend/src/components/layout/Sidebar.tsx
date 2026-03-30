@@ -187,7 +187,6 @@ const superAdminMenuItems: MenuItem[] = [
         path: '/all-reports',
         icon: <FileBarChart className="w-5 h-5" />,
         moduleCode: 'reports',
-        target: '_blank',
     },
 ]
 
@@ -252,7 +251,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     }, [rawMenuItems, hasPermission])
 
     const menuItemsRef = useRef(menuItems)
-    menuItemsRef.current = menuItems
+    useEffect(() => {
+        menuItemsRef.current = menuItems
+    }, [menuItems])
 
     // Debounce search query
     useEffect(() => {
@@ -305,7 +306,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
         // 1. Expand active section
         items.forEach(item => {
-            if (item.children && item.dropdown && isSectionActive(item)) {
+            const sectionActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path + '/') ||
+                !!item.children?.some(
+                    child =>
+                        location.pathname === child.path ||
+                        location.pathname.startsWith(child.path + '/')
+                )
+
+            if (item.children && item.dropdown && sectionActive) {
                 itemsToExpand.push(item.path)
             }
         })
@@ -696,4 +706,3 @@ const SidebarItem: React.FC<{
         </div>
     )
 }
-

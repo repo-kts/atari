@@ -1,3 +1,4 @@
+import React from 'react';
 import { Input } from '../ui/Input';
 import { Calendar, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
@@ -31,7 +32,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
     const yearOptions = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
     return (
-        <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-6 py-3 shadow-sm">
+        <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-4 sm:px-6 py-3 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#212121] mb-3 flex items-center gap-3">
                 <div className="p-1.5 bg-[#487749]/10 rounded-lg text-[#487749]">
                     <Calendar className="w-4 h-4" />
@@ -39,9 +40,9 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                 Timeline Filter
             </h3>
             <div className="space-y-2">
-                <div className="flex flex-col xl:flex-row items-center justify-between gap-4 pb-2 border-b border-[#F5F5F5]">
-                    <div className="flex-1 flex flex-wrap items-center gap-x-6 gap-y-2 w-full">
-                        <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 pb-2 border-b border-[#F5F5F5]">
+                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-2 w-full">
+                        <label className="flex items-center gap-2.5 cursor-pointer group">
                             <input
                                 type="radio"
                                 name="filterType"
@@ -53,7 +54,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                             />
                             <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'none' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>No Filter (All Data)</span>
                         </label>
-                        <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                        <label className="flex items-center gap-2.5 cursor-pointer group">
                             <input
                                 type="radio"
                                 name="filterType"
@@ -65,7 +66,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                             />
                             <span className={`text-sm font-medium tracking-tight transition-all duration-300 ${filterType === 'dateRange' ? 'text-[#487749]' : 'text-[#757575] hover:text-[#487749]'}`}>Date Range</span>
                         </label>
-                        <label className="flex items-center gap-3 cursor-pointer group shrink-0">
+                        <label className="flex items-center gap-2.5 cursor-pointer group">
                             <input
                                 type="radio"
                                 name="filterType"
@@ -81,20 +82,21 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
 
                     {onApplySelection && (
                         <Button
+                            type="button"
                             variant="primary"
                             size="sm"
                             onClick={onApplySelection}
                             disabled={disabled}
-                            className="rounded-xl px-8 h-10 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-[#487749]/20 hover:shadow-xl transition-all flex items-center gap-2 group shrink-0"
+                            className="w-full sm:w-auto rounded-lg px-3 h-8 font-semibold uppercase tracking-[0.12em] text-[10px] inline-flex items-center justify-center gap-1.5 shrink-0 leading-none whitespace-nowrap"
                         >
-                            <CheckCircle2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                             Apply Selection
                         </Button>
                     )}
                 </div>
 
                 {filterType === 'dateRange' && (
-                    <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-left-4 duration-500 pb-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2">
                         <Input
                             label="Start Date"
                             type="date"
@@ -116,7 +118,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                 )}
 
                 {filterType === 'year' && (
-                    <div className="w-full max-w-xs animate-in slide-in-from-left-4 duration-500 pb-2">
+                    <div className="w-full pb-2 sm:max-w-xs">
                         <label className="block text-[10px] font-bold text-[#487749] mb-1.5 uppercase tracking-wider">
                             Select Year
                         </label>

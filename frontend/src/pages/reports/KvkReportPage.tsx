@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ChevronDown, FileBarChart, AlertCircle, CheckCircle2, MapPin, Calendar, Loader2 } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
 import { Card, CardContent } from '../../components/ui/Card';
 import { ReportScopeSelector } from '../../components/reports/ReportScopeSelector';
@@ -14,6 +14,21 @@ import { useReportConfig } from '../../hooks/report/useReportScope';
 import { Button } from '../../components/ui/Button';
 import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
+
+const DEFAULT_LEFT_PANEL_PERCENT = 50;
+const SPLIT_DIVIDER_WIDTH_PX = 12;
+const MIN_LEFT_PANEL_WIDTH_PX = 320;
+const MIN_RIGHT_PANEL_WIDTH_PX = 460;
+
+const getSelectedScopeCount = (scope: ReportScope | null): number => {
+    if (!scope) return 0;
+    if (scope.kvkIds?.length) return scope.kvkIds.length;
+    if (scope.orgIds?.length) return scope.orgIds.length;
+    if (scope.districtIds?.length) return scope.districtIds.length;
+    if (scope.stateIds?.length) return scope.stateIds.length;
+    if (scope.zoneIds?.length) return scope.zoneIds.length;
+    return 0;
+};
 
 export const KvkReportPage: React.FC = () => {
     const navigate = useNavigate();
@@ -33,7 +48,12 @@ export const KvkReportPage: React.FC = () => {
     const [endDate, setEndDate] = useState('');
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
-    const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+    const [isScopeCollapsed, setIsScopeCollapsed] = useState(false);
+    const [isModuleCollapsed, setIsModuleCollapsed] = useState(false);
+    const [leftPanelPercent, setLeftPanelPercent] = useState(DEFAULT_LEFT_PANEL_PERCENT);
+
+    const splitPaneRef = useRef<HTMLDivElement | null>(null);
+    const [isResizing, setIsResizing] = useState(false);
 
     // Load report configuration using TanStack Query
     const reportConfigQuery = useReportConfig();
@@ -84,10 +104,125 @@ export const KvkReportPage: React.FC = () => {
         }
     }, [reportConfigQuery.error]);
 
+    useEffect(() => {
+        return () => {
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+        };
+    }, []);
+
+    const buildFilters = useCallback((): ReportFilters => {
+        const filters: ReportFilters = {};
+        if (filterType === 'dateRange' && startDate && endDate) {
+            filters.startDate = startDate;
+            filters.endDate = endDate;
+        } else if (filterType === 'year') {
+            filters.year = year;
+        }
+        return filters;
+    }, [filterType, startDate, endDate, year]);
+
+    const clampSplitPercent = useCallback((rawPercent: number): number => {
+        const container = splitPaneRef.current;
+        if (!container) {
+            return Math.min(90, Math.max(10, rawPercent));
+        }
+
+        const availableWidth = container.getBoundingClientRect().width - SPLIT_DIVIDER_WIDTH_PX;
+        if (availableWidth <= 0) return DEFAULT_LEFT_PANEL_PERCENT;
+
+        const minLeftPercent = Math.max(10, Math.min(90, (MIN_LEFT_PANEL_WIDTH_PX / availableWidth) * 100));
+        const maxLeftPercent = Math.min(90, Math.max(10, 100 - ((MIN_RIGHT_PANEL_WIDTH_PX / availableWidth) * 100)));
+
+        if (minLeftPercent > maxLeftPercent) {
+            return DEFAULT_LEFT_PANEL_PERCENT;
+        }
+
+        return Math.min(maxLeftPercent, Math.max(minLeftPercent, rawPercent));
+    }, []);
+
+    const updateSplitFromClientX = useCallback((clientX: number) => {
+        const container = splitPaneRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const availableWidth = rect.width - SPLIT_DIVIDER_WIDTH_PX;
+        if (availableWidth <= 0) return;
+
+        const leftWidth = clientX - rect.left;
+        const rawPercent = (leftWidth / availableWidth) * 100;
+        setLeftPanelPercent(clampSplitPercent(rawPercent));
+    }, [clampSplitPercent]);
+
+    useEffect(() => {
+        if (!isResizing) return;
+
+        const handlePointerMove = (event: PointerEvent) => {
+            updateSplitFromClientX(event.clientX);
+        };
+
+        const handlePointerUp = () => {
+            setIsResizing(false);
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+        };
+
+        window.addEventListener('pointermove', handlePointerMove);
+        window.addEventListener('pointerup', handlePointerUp);
+        window.addEventListener('pointercancel', handlePointerUp);
+
+        return () => {
+            window.removeEventListener('pointermove', handlePointerMove);
+            window.removeEventListener('pointerup', handlePointerUp);
+            window.removeEventListener('pointercancel', handlePointerUp);
+            document.body.style.userSelect = '';
+            document.body.style.cursor = '';
+        };
+    }, [isResizing, updateSplitFromClientX]);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setLeftPanelPercent(current => clampSplitPercent(current));
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [clampSplitPercent]);
+
+    const splitPaneStyle = useMemo(
+        () => ({
+            gridTemplateColumns: `minmax(0, ${leftPanelPercent}fr) ${SPLIT_DIVIDER_WIDTH_PX}px minmax(0, ${100 - leftPanelPercent}fr)`,
+        }),
+        [leftPanelPercent]
+    );
+
+    const selectedScopeCount = useMemo(
+        () => getSelectedScopeCount(selectedScope),
+        [selectedScope]
+    );
+
+    const handleSplitterPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setIsResizing(true);
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+    };
+
+    const handleSplitterKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
+        event.preventDefault();
+        const delta = event.key === 'ArrowLeft' ? -2 : 2;
+        setLeftPanelPercent(current => clampSplitPercent(current + delta));
+    };
+
     const handleApplySelection = () => {
-        setIsLeftPanelCollapsed(true);
-        setSuccess('Selection applied. Previewing report data...');
-        setTimeout(() => setSuccess(null), 3000);
+        // Filters and selections are already controlled state;
+        // Apply now only confirms current selection context without extra UI side effects.
+        setError(null);
     };
 
     const handleGenerate = async (
@@ -138,7 +273,7 @@ export const KvkReportPage: React.FC = () => {
 
 
     return (
-        <div className="bg-white rounded-2xl p-1 min-h-screen">
+        <div className="bg-white rounded-2xl p-1 min-h-screen w-full max-w-full overflow-x-hidden">
             {/* Back + Breadcrumbs + Focus Mode */}
             <div className="mb-4 flex items-center justify-between px-6 pt-4 shrink-0">
                 <div className="flex items-center gap-4">
@@ -163,79 +298,24 @@ export const KvkReportPage: React.FC = () => {
                         </div>
                     )}
                 </div>
-                <Button
-                    variant="outline"
-                    size="md"
-                    onClick={() => setIsLeftPanelCollapsed(!isLeftPanelCollapsed)}
-                    className={`rounded-2xl px-5 py-2.5 h-12 flex items-center gap-3 border-[#E0E0E0] shadow-sm transition-all hover:border-[#487749] hover:bg-[#487749]/5 ${isLeftPanelCollapsed ? 'text-[#487749] border-[#487749]' : 'text-[#757575]'}`}
-                >
-                    <ChevronLeft className={`w-5 h-5 transition-transform duration-500 ${isLeftPanelCollapsed ? 'rotate-180' : ''}`} />
-                    <span className="text-[12px] font-bold text-[#424242] tracking-normal">{isLeftPanelCollapsed ? 'Show Options' : 'Focus Mode'}</span>
-                </Button>
             </div>
 
             <Card className="bg-[#FAF9F6] border-none shadow-none">
                 <CardContent className="p-6">
-                    {/* Header with title and main actions */}
-                    <div className="mb-4 flex justify-between items-center bg-white p-4 rounded-2xl border border-[#EEEEEE] shadow-sm">
-                        <div className="flex-1">
-                            <h2 className="text-xl font-semibold text-[#487749] flex items-center gap-2">
-                                <FileBarChart className="w-6 h-6" />
-                                KVK Comprehensive Report
-                            </h2>
+                    {(error || success) && (
+                        <div className="mb-4 space-y-2">
+                            {error && (
+                                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    {error}
+                                </div>
+                            )}
+                            {success && (
+                                <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700">
+                                    {success}
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="outline"
-                                size="md"
-                                onClick={() => {
-                                    setSelectedSections(new Set());
-                                    setSelectedScope({});
-                                }}
-                                className="rounded-full px-6 hover:bg-red-50 hover:text-red-600 border-[#E0E0E0] h-10 text-xs font-bold"
-                            >
-                                Reset
-                            </Button>
-                            <Button
-                                variant="primary"
-                                size="lg"
-                                onClick={() => {
-                                    const filters: ReportFilters = {};
-                                    if (filterType === 'dateRange' && startDate && endDate) {
-                                        filters.startDate = startDate;
-                                        filters.endDate = endDate;
-                                    } else if (filterType === 'year') {
-                                        filters.year = year;
-                                    }
-                                    handleGenerate(Array.from(selectedSections), filters, selectedScope);
-                                }}
-                                disabled={isGenerating || selectedSections.size === 0}
-                                className="rounded-full px-10 h-10 shadow-lg shadow-[#487749]/20 text-sm font-bold"
-                            >
-                                {isGenerating ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    "Generate Report"
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Error/Success Messages */}
-                    <div>
-                        {error && (
-                            <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm animate-in slide-in-from-top-2">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-                        {success && (
-                            <div className="mb-6 flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm animate-in slide-in-from-top-2">
-                                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                                <span>{success}</span>
-                            </div>
-                        )}
-                    </div>
+                    )}
 
                     {reportConfigQuery.isLoading ? (
                         <div className="flex items-center justify-center py-20">
@@ -245,56 +325,53 @@ export const KvkReportPage: React.FC = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col lg:flex-row gap-10 items-start relative min-h-[700px]">
+                        <div
+                            ref={splitPaneRef}
+                            className="relative flex min-h-[700px] flex-col gap-6 lg:grid lg:gap-0 lg:items-start"
+                            style={splitPaneStyle}
+                        >
                             {/* Left Side: Configuration Sidebar */}
-                            <div className={`transition-all duration-700 ease-in-out shrink-0 ${isLeftPanelCollapsed ? 'w-full lg:w-[80px]' : 'w-full lg:w-[300px]'}`}>
-                                {isLeftPanelCollapsed ? (
-                                    <div className="flex flex-col items-center gap-6 py-6 bg-white border border-[#E0E0E0] rounded-2xl shadow-sm">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setIsLeftPanelCollapsed(false)}
-                                            className="w-12 h-12 rounded-xl flex items-center justify-center border-[#487749] text-[#487749] hover:bg-[#487749] hover:text-white transition-all shadow-sm"
-                                            title="Expand Configuration"
-                                        >
-                                            <ChevronRight className="w-6 h-6" />
-                                        </Button>
-
-                                        <div className="h-px w-8 bg-[#E0E0E0]" />
-
-                                        <div className="flex flex-col items-center gap-8">
-                                            {[
-                                                { icon: <MapPin className="w-5 h-5" />, count: selectedScope?.kvkIds?.length || selectedScope?.districtIds?.length || selectedScope?.stateIds?.length || selectedScope?.zoneIds?.length || 0 },
-                                                { icon: <ChevronDown className="w-5 h-5" />, count: selectedSections.size },
-                                                { icon: <Calendar className="w-5 h-5" />, count: filterType === 'none' ? 'All' : (filterType === 'year' ? year : 'Date') }
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex flex-col items-center">
-                                                    <div className="p-3 bg-[#487749]/5 text-[#487749] rounded-xl mb-1 border border-[#487749]/10">
-                                                        {item.icon}
-                                                    </div>
-                                                    <span className="text-[10px] font-black text-[#487749]">{item.count}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-col gap-4">
-                                        <ReportScopeSelector
-                                            onScopeChange={setSelectedScope}
-                                            disabled={isGenerating}
-                                        />
-                                        <ReportModuleSelector
-                                            sections={reportConfigQuery.data?.sections || []}
-                                            selectedSections={selectedSections}
-                                            onSectionToggle={handleSectionToggle}
-                                            onCategorySelectAll={handleCategorySelectAll}
-                                        />
-                                    </div>
-                                )}
+                            <div className="w-full min-w-0 transition-all duration-300 ease-in-out lg:pr-5">
+                                <div className="flex flex-col gap-4">
+                                    <ReportScopeSelector
+                                        onScopeChange={setSelectedScope}
+                                        disabled={isGenerating}
+                                        collapsed={isScopeCollapsed}
+                                        onToggleCollapse={() => setIsScopeCollapsed(prev => !prev)}
+                                    />
+                                    <ReportModuleSelector
+                                        sections={reportConfigQuery.data?.sections || []}
+                                        selectedSections={selectedSections}
+                                        onSectionToggle={handleSectionToggle}
+                                        onCategorySelectAll={handleCategorySelectAll}
+                                        collapsed={isModuleCollapsed}
+                                        onToggleCollapse={() => setIsModuleCollapsed(prev => !prev)}
+                                    />
+                                </div>
                             </div>
 
+                            <button
+                                type="button"
+                                aria-label="Resize report panels"
+                                aria-orientation="vertical"
+                                aria-valuemin={10}
+                                aria-valuemax={90}
+                                aria-valuenow={Math.round(leftPanelPercent)}
+                                role="separator"
+                                className={`hidden h-full cursor-col-resize items-center justify-center rounded-md transition-colors lg:flex ${
+                                    isResizing ? 'bg-[#487749]/15' : 'hover:bg-[#487749]/10'
+                                }`}
+                                onPointerDown={handleSplitterPointerDown}
+                                onKeyDown={handleSplitterKeyDown}
+                            >
+                                <div className="flex h-16 items-center justify-center gap-1">
+                                    <span className="h-full w-[2px] rounded-full bg-[#487749]/40" />
+                                    <span className="h-full w-[2px] rounded-full bg-[#487749]/20" />
+                                </div>
+                            </button>
+
                             {/* Right Side: Filters and Content Area */}
-                            <div className={`transition-all duration-500 ease-in-out min-w-0 ${isLeftPanelCollapsed ? 'flex-1' : 'flex-1'}`}>
+                            <div className="min-w-0 w-full overflow-x-hidden transition-all duration-300 ease-in-out lg:pl-5">
                                 <div className="flex flex-col gap-8">
                                     {/* Timeline Filter Area */}
                                     <TimelineFilter
@@ -310,52 +387,17 @@ export const KvkReportPage: React.FC = () => {
                                         disabled={isGenerating}
                                     />
 
-                                    {/* Summary Banner for collapsed state or quick overview
-                                    <div className="bg-white border border-[#EEEEEE] rounded-[24px] p-6 shadow-sm">
-                                        <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#F5F5F5]">
-                                            <h4 className="text-[14px] font-bold text-[#212121] uppercase tracking-normal">Configuration Summary</h4>
-                                            {isLeftPanelCollapsed && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setIsLeftPanelCollapsed(false)}
-                                                    className="text-[11px] font-black uppercase text-[#487749] border-[#487749]/30 rounded-full h-10 px-6"
-                                                >
-                                                    Edit Configuration
-                                                </Button>
-                                            )}
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-                                            {[
-                                                { label: 'Zones', val: selectedScope?.zoneIds?.length || 0 },
-                                                { label: 'States', val: selectedScope?.stateIds?.length || 0 },
-                                                { label: 'Districts', val: selectedScope?.districtIds?.length || 0 },
-                                                { label: 'Orgs', val: selectedScope?.orgIds?.length || 0 },
-                                                { label: 'KVKs', val: selectedScope?.kvkIds?.length || 0 },
-                                                { label: 'Modules', val: selectedSections.size, highlight: true },
-                                            ].map((item, idx) => (
-                                                <div key={idx} className={`p-3 rounded-[16px] flex flex-col items-center justify-center transition-all duration-300 ${item.highlight ? 'bg-[#487749] text-white shadow-md lg:scale-105' : 'bg-[#FAF9F6] border border-[#EEEEEE] hover:border-[#487749]/30'}`}>
-                                                    <span className={`text-[10px] font-semibold mb-0.5 uppercase tracking-normal ${item.highlight ? 'text-white/80' : 'text-[#616161]'}`}>{item.label}</span>
-                                                    <span className={`text-lg font-bold ${item.highlight ? 'text-white' : 'text-[#212121]'}`}>{item.val}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div> */}
-
                                     <ReportPreview
                                         isGenerating={isGenerating}
                                         hasData={false}
                                         onDownload={() => {
-                                            const filters: ReportFilters = {};
-                                            if (filterType === 'dateRange' && startDate && endDate) {
-                                                filters.startDate = startDate;
-                                                filters.endDate = endDate;
-                                            } else if (filterType === 'year') {
-                                                filters.year = year;
-                                            }
-                                            handleGenerate(Array.from(selectedSections), filters, selectedScope);
+                                            handleGenerate(
+                                                Array.from(selectedSections),
+                                                buildFilters(),
+                                                selectedScope
+                                            );
                                         }}
-                                        selectedScopeCount={selectedScope ? 1 : 0}
+                                        selectedScopeCount={selectedScopeCount}
                                         selectedSectionsCount={selectedSections.size}
                                     />
                                 </div>

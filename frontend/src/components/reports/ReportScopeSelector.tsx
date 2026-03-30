@@ -4,7 +4,8 @@ import {
     MapPin,
     Loader2,
     Check,
-    ChevronDown
+    ChevronDown,
+    Search
 } from 'lucide-react';
 import {
     useScopeOptions,
@@ -16,15 +17,22 @@ import type { ReportScope } from '../../types/reportScope';
 interface ReportScopeSelectorProps {
     onScopeChange: (scope: ReportScope | null) => void;
     disabled?: boolean;
+    collapsed?: boolean;
+    onToggleCollapse?: () => void;
 }
 
 export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
     onScopeChange,
     disabled = false,
+    collapsed = false,
+    onToggleCollapse,
 }) => {
     const [activeTab, setActiveTab] = useState<'zones' | 'states' | 'districts' | 'orgs' | 'kvks'>('zones');
     const [selectedScope, setSelectedScope] = useState<ReportScope>({});
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+    const searchInputId = 'report-scope-search';
 
     // Fetch scope options
     const { data: scopeOptions, isLoading: isLoadingScopeOptions } = useScopeOptions();
@@ -83,7 +91,6 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
     useEffect(() => {
         if (scopeOptions?.defaultKvkId && !scopeOptions.canSelectKvks) {
-            setSelectedScope({ kvkIds: [scopeOptions.defaultKvkId] });
             onScopeChange({ kvkIds: [scopeOptions.defaultKvkId] });
         }
     }, [scopeOptions, onScopeChange]);
@@ -138,7 +145,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
     if (scopeOptions.defaultKvkId && !scopeOptions.canSelectKvks) {
         const kvkName = scopeOptions.availableKvks.find(k => k.id === scopeOptions.defaultKvkId)?.name || 'Your KVK';
-        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-bold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-bold text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
+        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
     }
 
     const tabsData = [
@@ -152,24 +159,80 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
     const currentTab = tabsData.find(t => t.id === activeTab) || tabsData[0];
     const selectedCount = selectedScope[currentTab.parentKey]?.length || 0;
     const isAllSelected = selectedCount === currentTab.options.length && currentTab.options.length > 0;
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const filteredCurrentOptions = useMemo(() => {
+        if (!normalizedSearchTerm) return currentTab.options;
+        return currentTab.options.filter(option => option.name.toLowerCase().includes(normalizedSearchTerm));
+    }, [currentTab.options, normalizedSearchTerm]);
+
+    useEffect(() => {
+        if (isSearchOpen) {
+            searchInputRef.current?.focus();
+        }
+    }, [isSearchOpen]);
+
+    const handleToggleSearch = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
+        if (isSearchOpen) {
+            setIsSearchOpen(false);
+            setSearchTerm('');
+            return;
+        }
+        setIsSearchOpen(true);
+    };
 
     return (
         <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
             <div 
-                className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${isCollapsed ? 'mb-0' : 'mb-4'}`}
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
+                onClick={onToggleCollapse}
             >
                 <div className="flex items-center gap-3 h-10">
-                    <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}>
+                    <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                         <ChevronDown className="w-4 h-4 text-[#487749]" />
                     </div>
-                    <h3 className="text-sm font-bold text-[#487749] leading-none">Report Scope</h3>
+                    <h3 className="text-sm font-semibold text-[#487749] leading-none">Report Scope</h3>
+                </div>
+                <div
+                    className="flex items-center gap-2"
+                    onClick={event => event.stopPropagation()}
+                >
+                    <div className={`overflow-hidden transition-all duration-200 ease-out ${isSearchOpen ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
+                        <input
+                            id={searchInputId}
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchTerm}
+                            onChange={event => setSearchTerm(event.target.value)}
+                            placeholder="Search..."
+                            onKeyDown={event => {
+                                if (event.key === 'Escape') {
+                                    setIsSearchOpen(false);
+                                    setSearchTerm('');
+                                }
+                            }}
+                            className="h-8 w-full rounded-lg border border-[#D8E3D8] bg-white px-2.5 text-xs text-[#2d4a2f] outline-none focus:border-[#487749]"
+                        />
+                    </div>
+                        <button
+                            type="button"
+                            onClick={handleToggleSearch}
+                            className="h-8 w-8 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
+                            aria-label="Toggle scope search"
+                            aria-expanded={isSearchOpen}
+                            aria-controls={searchInputId}
+                        >
+                            <Search className="h-3.5 w-3.5" />
+                        </button>
                 </div>
             </div>
 
-            {!isCollapsed && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                <div className="bg-[#487749] p-1 rounded-[12px] flex items-center gap-0.5 overflow-x-auto no-scrollbar shadow-sm mb-3">
+            <div
+                className={`space-y-4 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${
+                    collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[900px] opacity-100'
+                }`}
+            >
+                <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 shadow-sm mb-3">
                     {tabsData.filter(t => t.canSelect).map(t => {
                         const isActive = activeTab === t.id;
                         const count = selectedScope[t.parentKey]?.length || 0;
@@ -177,11 +240,11 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                             <button
                                 key={t.id}
                                 onClick={() => setActiveTab(t.id)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-bold whitespace-nowrap transition-all duration-300
+                                className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-medium whitespace-nowrap transition-all duration-300
                             ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
                             >
                                 {t.label}
-                                {count > 0 && <span className={`flex items-center justify-center min-w-[14px] h-[14px] px-0.5 text-[8px] font-black rounded-full ${isActive ? 'bg-[#487749] text-white' : 'bg-white text-[#487749]'}`}>{count}</span>}
+                                {count > 0 && <span className={`flex items-center justify-center min-w-[14px] h-[14px] px-0.5 text-[8px] font-semibold rounded-full ${isActive ? 'bg-[#487749] text-white' : 'bg-white text-[#487749]'}`}>{count}</span>}
                             </button>
                         );
                     })}
@@ -190,15 +253,17 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
             <Card className="border-none shadow-none bg-transparent">
                 <CardContent className="p-0">
                     <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#F0F0F0] px-1">
-                        <span className="text-[11px] font-black text-[#9E9E9E] uppercase tracking-tighter">
-                            {currentTab.options.length} {currentTab.id} available
+                        <span className="text-[11px] font-medium text-[#9E9E9E]">
+                            {normalizedSearchTerm
+                                ? `${filteredCurrentOptions.length} of ${currentTab.options.length} shown`
+                                : `${currentTab.options.length} ${currentTab.id} available`}
                         </span>
                         <div className="flex items-center gap-2">
                             {isLoadingOptions && <Loader2 className="w-3 h-3 text-[#487749] animate-spin" />}
                             <button
                                 onClick={() => handleSelectAll(currentTab.id)}
                                 disabled={disabled || currentTab.options.length === 0}
-                                className={`text-[11px] font-bold uppercase tracking-tight underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
+                                className={`text-[11px] font-medium underline-offset-2 hover:underline ${isAllSelected ? 'text-red-500' : 'text-[#487749]'}`}
                             >
                                 {isAllSelected ? 'Reset All' : 'Select All'}
                             </button>
@@ -207,7 +272,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
                     <div className="min-h-[200px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar px-1">
                         <div className="flex flex-col gap-0.5">
-                            {currentTab.options.map(option => {
+                            {filteredCurrentOptions.map(option => {
                                 const isSelected = selectedScope[currentTab.parentKey]?.includes(option.id);
                                 return (
                                     <label
@@ -219,7 +284,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                                             {isSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
                                         </div>
                                         <input type="checkbox" className="hidden" checked={isSelected} onChange={() => handleOptionToggle(currentTab.parentKey, option.id)} />
-                                        <span className={`text-[13px] font-medium truncate ${isSelected ? 'text-[#212121] font-bold' : 'text-[#757575]'}`}>{option.name}</span>
+                                        <span className={`text-[13px] font-normal truncate ${isSelected ? 'text-[#2f5a30] font-medium' : 'text-[#757575]'}`}>{option.name}</span>
                                     </label>
                                 );
                             })}
@@ -229,12 +294,15 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                                 <p className="text-[10px] text-[#9E9E9E] italic">Select a {tabsData.find(t => t.canSelect && (tabsData.indexOf(t) < tabsData.indexOf(currentTab)))?.id || 'parent'} first</p>
                             </div>
                         )}
+                        {currentTab.options.length > 0 && filteredCurrentOptions.length === 0 && (
+                            <div className="py-4 text-center">
+                                <p className="text-[10px] text-[#9E9E9E] italic">No matching results</p>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
             </div>
-            )}
         </div>
     );
 };
-
