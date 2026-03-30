@@ -20,15 +20,13 @@ model TspScspTypeMaster {
   @@map("tsp_scsp_type_master")
 }
 
-
 model TspScsp {
   tspScspId Int @id @default(autoincrement()) @map("tsp_scsp_id")
 
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  reportingYearId Int?        @map("reporting_year_id")
-  reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear DateTime? @map("reporting_year")
 
   type TspScspType
 

@@ -1,8 +1,8 @@
 model InstructionalFarmCrop {
   instructionalFarmCropId String      @id @default(uuid()) @map("instructional_farm_crop_id")
   kvkId                   Int
-  reportingYearId         Int?        @map("reporting_year_id")
-  seasonId                Int?        @map("season_id")
+  reportingYear DateTime? @map("reporting_year")
+seasonId                Int?        @map("season_id")
   cropName                String      @map("crop_name")
   area                    Float       @map("area")
   variety                 String      @map("variety")
@@ -14,11 +14,10 @@ model InstructionalFarmCrop {
   createdAt               DateTime    @default(now()) @map("created_at")
   updatedAt               DateTime    @updatedAt @map("updated_at")
   kvk                     Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear           YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-  season                  Season?     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+season                  Season?     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
 
   @@index([kvkId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@index([seasonId])
   @@index([cropName])
   @@index([createdAt])

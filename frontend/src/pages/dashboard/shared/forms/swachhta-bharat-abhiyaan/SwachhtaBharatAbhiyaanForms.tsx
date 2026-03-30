@@ -20,7 +20,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -41,7 +41,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
@@ -198,7 +198,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}

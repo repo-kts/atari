@@ -35,12 +35,6 @@ const ENTITY_CONFIG = {
             },
         },
     },
-    'years': {
-        model: 'yearMaster',
-        idField: 'yearId',
-        nameField: 'yearName',
-        includes: {},
-    },
     // Employee Masters
     'staff-category': {
         model: 'staffCategoryMaster',
@@ -536,7 +530,6 @@ const create = async (entityType, data) => {
         'discipline',
         'sanctioned-posts',
         'seasons',
-        'years',
         'crop-type',
         'important-day',
         'soil-water-analysis',
@@ -551,7 +544,6 @@ const create = async (entityType, data) => {
     if (entitiesWithSeededData.includes(entityType)) {
         const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
                          entityType === 'seasons' ? 'season' :
-                         entityType === 'years' ? 'year_master' :
                          entityType === 'staff-category' ? 'staff_category_master' :
                          entityType === 'pay-level' ? 'pay_level_master' :
                          entityType === 'discipline' ? 'discipline' :
@@ -608,7 +600,6 @@ const create = async (entityType, data) => {
                 // Try to automatically fix the sequence
                 const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
                                  entityType === 'seasons' ? 'season' :
-                                 entityType === 'years' ? 'year_master' :
                                  entityType === 'staff-category' ? 'staff_category_master' :
                                  entityType === 'pay-level' ? 'pay_level_master' :
                                  entityType === 'discipline' ? 'discipline' :

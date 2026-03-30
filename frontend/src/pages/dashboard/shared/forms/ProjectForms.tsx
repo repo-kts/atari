@@ -1,7 +1,7 @@
 import React from 'react'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { useSeasons, useYears, useExtensionActivityTypes, useNariActivities, useNariCropCategories, useNariNutritionGardenTypes, useNicraCategories, useNicraSubCategories, useNicraSeedBankFodderBanks, useNicraDignitaryTypes, useNicraPiTypes, useStaffCategories } from '@/hooks/useOtherMastersData'
+import { useSeasons, useExtensionActivityTypes, useNariActivities, useNariCropCategories, useNariNutritionGardenTypes, useNicraCategories, useNicraSubCategories, useNicraSeedBankFodderBanks, useNicraDignitaryTypes, useNicraPiTypes, useStaffCategories } from '@/hooks/useOtherMastersData'
 import { useAgriDroneDemonstrationsOn, useAryaEnterprises, useCraCroppingSystems, useCraFarmingSystems, useNaturalFarmingActivities, useNaturalFarmingSoilParameters, useTspScspActivities, useTspScspTypes } from '@/hooks/useProductionProjectsData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
@@ -43,7 +43,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
         }
     }, [user?.kvkId, formData.kvkId, formData.id, setFormData])
     const { data: seasons = [] } = useSeasons()
-    const { data: years = [] } = useYears()
     const { data: aryaEnterprises = [] } = useAryaEnterprises()
     const { data: craFarmingSystems = [], isLoading: craFarmingSystemsLoading } = useCraFarmingSystems()
     const { data: craCroppingSystems = [], isLoading: craCroppingSystemsLoading } = useCraCroppingSystems()
@@ -101,7 +100,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     seasons={seasons}
                     farmingSystems={craFarmingSystems}
                     farmingSystemsLoading={craFarmingSystemsLoading}
@@ -116,7 +114,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     aryaEnterprises={aryaEnterprises}
                 />
             )}
@@ -128,7 +125,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     seasons={seasons}
                     categories={nicraCategories}
                     subCategories={nicraSubcategories}
@@ -143,7 +139,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     seasons={seasons}
                     nariActivities={nariActivities}
                     nariCropCategories={nariCropCategories}
@@ -156,7 +151,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                 />
             )}
 
@@ -165,7 +159,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     states={states}
                     districts={districts}
                     kvks={kvks}
@@ -177,7 +170,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     seasons={seasons}
                 />
             )}
@@ -187,7 +179,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     districts={districts}
                     tspScspTypes={tspScspTypes}
                     tspScspActivities={tspScspActivities}
@@ -199,7 +190,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     districts={districts}
                     demonstrationsOnMasters={agriDroneDemonstrationsOn}
                     agriDroneIntros={agriDroneIntros}
@@ -211,7 +201,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     seasons={seasons}
                 />
             )}
@@ -221,7 +210,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     entityType={entityType}
                     formData={formData}
                     setFormData={setFormData}
-                    years={years}
                     states={states}
                     seasons={seasons}
                     staffCategories={staffCategories}

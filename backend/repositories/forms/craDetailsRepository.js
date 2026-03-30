@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const craDetailsRepository = {
     create: async (data, opts, user) => {
@@ -17,7 +18,11 @@ const craDetailsRepository = {
         return await prisma.craDetails.create({
             data: {
                 kvkId,
-                reportingYearId: (data.reportingYearId || data.yearId) ? parseInt(data.reportingYearId || data.yearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
                 technologyDemonstrated: data.technologyDemonstrated || data.interventions || '',
                 cropingSystem: data.cropingSystem || data.croppingSystem || '',
@@ -56,7 +61,6 @@ const craDetailsRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { craDetailsId: 'desc' }
         });
@@ -74,7 +78,6 @@ const craDetailsRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
         return result ? _mapResponse(result) : null;
@@ -100,7 +103,13 @@ const craDetailsRepository = {
         const result = await prisma.craDetails.update({
             where: { craDetailsId: parseInt(id) },
             data: {
-                reportingYearId: (data.reportingYearId || data.yearId) ? parseInt(data.reportingYearId || data.yearId) : undefined,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
                 technologyDemonstrated: data.interventions !== undefined ? data.interventions : (data.technologyDemonstrated !== undefined ? data.technologyDemonstrated : undefined),
                 cropingSystem: data.croppingSystem !== undefined ? data.croppingSystem : (data.cropingSystem !== undefined ? data.cropingSystem : undefined),
@@ -122,7 +131,6 @@ const craDetailsRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
         return _mapResponse(result);
@@ -148,9 +156,8 @@ function _mapResponse(r) {
     return {
         id: r.craDetailsId,
         kvkName: r.kvk ? r.kvk.kvkName : '',
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId,
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : '',
+        reportingYear: r.reportingYear,
+        yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         season: r.season ? r.season.seasonName : '',
         // Map back to frontend names

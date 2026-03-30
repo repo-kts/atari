@@ -46,8 +46,8 @@ const cfldTechnicalParameterService = {
             throw new UnauthorizedError('Unauthorized');
         }
 
-        if (!source.reportingYearId) {
-            throw new ValidationError('Cannot transfer CFLD without reportingYearId', 'reportingYearId');
+        if (!source.reportingYear) {
+            throw new ValidationError('Cannot transfer CFLD without reportingYear', 'reportingYear');
         }
 
         // Allow transfer unless already transferred
@@ -55,35 +55,11 @@ const cfldTechnicalParameterService = {
             throw new ValidationError('This CFLD record is already transferred');
         }
 
-        // Determine next year: try yearId ordering first, then derive from yearName
-        let nextYear = await prisma.yearMaster.findFirst({
-            where: { yearId: { gt: source.reportingYearId } },
-            orderBy: { yearId: 'asc' },
-            select: { yearId: true, yearName: true },
-        });
-
-        if (!nextYear) {
-            const allYears = await prisma.yearMaster.findMany({
-                select: { yearId: true, yearName: true },
-                orderBy: { yearId: 'asc' },
-            });
-
-            const current = allYears.find((y) => y.yearId === source.reportingYearId);
-            const currentStart = _extractYearStart(current?.yearName);
-            if (currentStart !== null) {
-                const candidate = allYears
-                    .map((year) => ({ ...year, start: _extractYearStart(year.yearName) }))
-                    .filter((year) => year.start !== null && year.start > currentStart)
-                    .sort((a, b) => a.start - b.start)[0];
-                nextYear = candidate || null;
-            }
+        const nextReportingYear = new Date(source.reportingYear);
+        if (Number.isNaN(nextReportingYear.getTime())) {
+            throw new ValidationError('Invalid source reportingYear for transfer', 'reportingYear');
         }
-
-        if (!nextYear) {
-            throw new ValidationError('No next reporting year found for transfer');
-        }
-
-        const nextYearId = nextYear.yearId;
+        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
         const sourceEconomic = (source.economicParameters || [])[0] || null;
         const sourceSocio = (source.socioEconomicParameters || [])[0] || null;
@@ -118,7 +94,7 @@ const cfldTechnicalParameterService = {
                     month: source.month,
                     typeId: source.typeId,
                     seasonId: source.seasonId,
-                    reportingYearId: nextYearId,
+                    reportingYear: nextReportingYear,
                     status: 'ONGOING',
                     varietyName: source.varietyName,
                     areaInHa: source.areaInHa,
@@ -215,9 +191,3 @@ const cfldTechnicalParameterService = {
 };
 
 module.exports = cfldTechnicalParameterService;
-
-function _extractYearStart(yearName) {
-    if (!yearName) return null;
-    const match = String(yearName).match(/(19|20)\\d{2}/);
-    return match ? Number(match[0]) : null;
-}

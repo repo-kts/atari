@@ -3,7 +3,6 @@ import { apiClient, ApiError } from './api';
 export interface SeedHubData {
     id?: number;
     kvkId?: number;
-    yearId?: number; // Frontend key
     kvkName?: string;
     reportingYear: number;
     seasonId: number;

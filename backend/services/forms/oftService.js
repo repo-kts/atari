@@ -1,5 +1,4 @@
 const oftRepository = require('../../repositories/forms/oftRepository.js');
-const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
 const { validateFileSize } = require('../../utils/fileValidation.js');
@@ -38,44 +37,17 @@ const oftService = {
             throw new ValidationError('Only ONGOING OFT records can be transferred');
         }
 
-        if (!source.reportingYearId) {
-            throw new ValidationError('Cannot transfer OFT without reportingYearId');
+        if (!source.reportingYear) {
+            throw new ValidationError('Cannot transfer OFT without reportingYear');
         }
 
-        let nextYear = await prisma.yearMaster.findFirst({
-            where: { yearId: { gt: source.reportingYearId } },
-            orderBy: { yearId: 'asc' },
-            select: { yearId: true, yearName: true },
-        });
-
-        // Fallback: derive chronological order from yearName (e.g. "2023-24")
-        // for databases where yearId ordering does not reflect actual year progression.
-        if (!nextYear) {
-            const allYears = await prisma.yearMaster.findMany({
-                select: { yearId: true, yearName: true },
-                orderBy: { yearId: 'asc' },
-            });
-
-            const current = allYears.find((year) => year.yearId === source.reportingYearId);
-            const currentStart = _extractYearStart(current?.yearName);
-
-            if (currentStart !== null) {
-                const candidate = allYears
-                    .map((year) => ({ ...year, start: _extractYearStart(year.yearName) }))
-                    .filter((year) => year.start !== null && year.start > currentStart)
-                    .sort((a, b) => a.start - b.start)[0];
-
-                if (candidate) {
-                    nextYear = candidate;
-                }
-            }
+        const nextReportingYear = new Date(source.reportingYear);
+        if (Number.isNaN(nextReportingYear.getTime())) {
+            throw new ValidationError('Invalid source reportingYear for transfer');
         }
+        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
-        if (!nextYear) {
-            throw new ValidationError('No next reporting year found for transfer');
-        }
-
-        return oftRepository.transferToNextYearTx(source, nextYear.yearId);
+        return oftRepository.transferToNextYearTx(source, nextReportingYear);
     },
 
     addResult: async (id, payload, user) => {
@@ -144,9 +116,3 @@ function _validateResultPayload(payload) {
 }
 
 module.exports = oftService;
-
-function _extractYearStart(yearName) {
-    if (!yearName) return null;
-    const match = String(yearName).match(/(19|20)\d{2}/);
-    return match ? Number(match[0]) : null;
-}

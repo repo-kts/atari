@@ -10,7 +10,6 @@ import {
     useProducts,
 } from '@/hooks/useProductionProjectsData'
 import { useSeasons } from '@/hooks/useOftFldData'
-import { useYears } from '@/hooks/useOtherMastersData'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface ProductionProjectFormsProps {
@@ -29,7 +28,6 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
     const { data: productTypes = [] } = useProductTypes()
     const { data: products = [] } = useProducts()
     const { data: seasons = [] } = useSeasons()
-    const { data: years = [] } = useYears()
 
     // Memoized function to load product types by category (for DependentDropdown)
     const loadProductTypesByCategory = useCallback(async (categoryId: string | number, signal?: AbortSignal): Promise<{ value: string | number; label: string }[]> => {
@@ -87,8 +85,8 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
     ], [])
 
     // Optimized onChange handlers using useCallback
-    const handleReportingYearChange = useCallback((value: string | number) => {
-        setFormData({ ...formData, reportingYear: value, reportingYearId: value })
+    const handleReportingYearChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, reportingYear: e.target.value })
     }, [formData, setFormData])
 
     const handleProductCategoryChange = useCallback((value: string | number) => {
@@ -310,14 +308,12 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             {entityType === ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Reporting Year - From Years Master */}
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.reportingYear || formData.yearId || ''}
+                            type="date"
+                            value={formData.reportingYear || ''}
                             onChange={handleReportingYearChange}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
                         />
 
                         {/* Product Category - From Product Categories Master */}

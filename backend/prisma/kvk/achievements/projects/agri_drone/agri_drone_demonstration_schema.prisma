@@ -4,7 +4,7 @@ model KvkAgriDroneDemonstration {
   kvkId       Int
   agriDroneId Int      @map("agri_drone_id")
 
-  reportingYearId     Int?  @map("reporting_year_id")
+  reportingYear       DateTime? @map("reporting_year")
   demonstrationsOnId  Int?  @map("agri_drone_demonstrations_on_id")
   districtId          Int?  @map("district_id")
 
@@ -29,13 +29,12 @@ model KvkAgriDroneDemonstration {
 
   kvk              Kvk                             @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   agriDrone        KvkAgriDrone                    @relation(fields: [agriDroneId], references: [agriDroneId], onDelete: Cascade)
-  reportingYear    YearMaster?                     @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
   district         DistrictMaster?                 @relation(fields: [districtId], references: [districtId], onDelete: SetNull)
   demonstrationsOn AgriDroneDemonstrationsOnMaster? @relation(fields: [demonstrationsOnId], references: [agriDroneDemonstrationsOnId], onDelete: SetNull)
 
   @@index([kvkId])
   @@index([agriDroneId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@index([districtId])
   @@index([demonstrationsOnId])
   @@map("kvk_agri_drone_demonstration")

@@ -6,7 +6,7 @@ import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown';
 import { DependentDropdown } from '@/components/common/DependentDropdown';
 import { createMasterDataOptions } from '@/utils/formHelpers';
-import { useSeasons, useYears, useCropTypes, useCfldExtensionActivityTypes } from '@/hooks/useOtherMastersData';
+import { useSeasons, useCropTypes, useCfldExtensionActivityTypes } from '@/hooks/useOtherMastersData';
 import { useCfldCrops } from '@/hooks/useOftFldData';
 
 interface CfldFormsProps {
@@ -144,7 +144,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     }, [entityType, formData, setFormData]);
     // Data fetching hooks - only fetch when needed
     const { data: seasons = [] } = useSeasons();
-    const { data: years = [] } = useYears();
     const { data: cropTypes = [] } = useCropTypes();
     const { data: extensionActivityTypes = [] } = useCfldExtensionActivityTypes();
     const { data: cfldCrops = [] } = useCfldCrops();
@@ -155,10 +154,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [seasons]
     );
 
-    const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
-        [years]
-    );
 
     // Function to load CFLD crops by crop type ID
     const loadCfldCropsByType = useCallback(
@@ -273,16 +268,11 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [handleFieldChange]
     );
 
-    // Year change handler (for budget form)
-    const handleYearChange = useCallback(
-        (value: string | number) => {
-            setFormData((prev: any) => ({
-                ...prev,
-                reportingYearId: value,
-                yearId: value,
-            }));
+    const handleReportingYearChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            handleFieldChange('reportingYear', e.target.value);
         },
-        [setFormData]
+        [handleFieldChange]
     );
 
     const setActiveSection = useCallback(
@@ -383,13 +373,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     const renderTechnicalParamForm = () => (
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <MasterDataDropdown
+                <FormInput
                     label="Reporting Year"
                     required
-                    value={formData.reportingYearId ?? ''}
-                    onChange={handleYearChange}
-                    options={yearOptions}
-                    emptyMessage="No reporting years available"
+                    type="date"
+                    value={formData.reportingYear ?? ''}
+                    onChange={handleReportingYearChange}
                 />
                 <FormSelect
                     label="Month"
@@ -762,13 +751,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     const renderBudgetForm = () => (
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <MasterDataDropdown
-                    label="Year"
+                <FormInput
+                    label="Reporting Year"
                     required
-                    value={formData.reportingYearId ?? formData.yearId ?? ''}
-                    onChange={handleYearChange}
-                    options={yearOptions}
-                    emptyMessage="No reporting years available"
+                    type="date"
+                    value={formData.reportingYear ?? ''}
+                    onChange={handleReportingYearChange}
                 />
                 <MasterDataDropdown
                     label="Season"

@@ -1,8 +1,8 @@
 model InstructionalFarmLivestock {
   instructionalFarmLivestockId String      @id @default(uuid()) @map("instructional_farm_livestock_id")
   kvkId                        Int
-  reportingYearId              Int?        @map("reporting_year_id")
-  animalName                   String      @map("animal_name")
+  reportingYear DateTime? @map("reporting_year")
+animalName                   String      @map("animal_name")
   speciesBreed                 String      @map("species_breed")
   typeOfProduce                String      @map("type_of_produce")
   quantity                     Float       @map("quantity")
@@ -12,10 +12,8 @@ model InstructionalFarmLivestock {
   createdAt                    DateTime    @default(now()) @map("created_at")
   updatedAt                    DateTime    @updatedAt @map("updated_at")
   kvk                          Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear                YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([animalName])
   @@index([createdAt])
   @@map("instructional_farm_livestock")

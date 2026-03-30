@@ -10,7 +10,10 @@ interface DependentDropdownProps extends Omit<React.SelectHTMLAttributes<HTMLSel
     dependsOn?: {
         value: any
         field: string
-    }
+    } | {
+        value: any
+        field: string
+    }[]
     emptyMessage?: string
     loadingMessage?: string
     error?: string
@@ -44,7 +47,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
     const [localLoading, setLocalLoading] = useState(false)
     const [localOptions, setLocalOptions] = useState<{ value: string | number; label: string }[]>(options)
     const [hasFetched, setHasFetched] = useState(false)
-    const [lastParentValue, setLastParentValue] = useState<any>(null)
+    const [lastDependencyKey, setLastDependencyKey] = useState<string | null>(null)
 
     // Generate stable IDs for accessibility
     const selectId = React.useMemo(() => `dependent-dropdown-${label.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 9)}`, [label])
@@ -72,10 +75,34 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
 
     // Store timeout ID in a ref to clear it properly
     const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const dependencyItems = React.useMemo(() => {
+        if (!dependsOn) return []
+        return Array.isArray(dependsOn) ? dependsOn : [dependsOn]
+    }, [dependsOn])
+    const hasAllDependencies = React.useMemo(() => {
+        if (dependencyItems.length === 0) return true
+        return dependencyItems.every((dependency) =>
+            dependency.value !== undefined &&
+            dependency.value !== null &&
+            dependency.value !== ''
+        )
+    }, [dependencyItems])
+    const dependencyPayload = React.useMemo(() => {
+        if (dependencyItems.length === 0) return null
+        if (dependencyItems.length === 1) return dependencyItems[0].value
+        return dependencyItems.reduce<Record<string, any>>((acc, dependency) => {
+            acc[dependency.field] = dependency.value
+            return acc
+        }, {})
+    }, [dependencyItems])
+    const dependencyKey = React.useMemo(() => {
+        if (dependencyItems.length === 0) return ''
+        return dependencyItems.map((dependency) => `${dependency.field}:${String(dependency.value)}`).join('|')
+    }, [dependencyItems])
 
     // Debounced fetch function with AbortController support
     // Use refs for onOptionsLoad, cacheKey, and label to prevent recreation
-    const debouncedFetch = useCallback((parentValue: any) => {
+    const debouncedFetch = useCallback((payload: any, currentDependencyKey: string) => {
         // Clear previous timeout
         if (timeoutIdRef.current) {
             clearTimeout(timeoutIdRef.current)
@@ -88,7 +115,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
 
         timeoutIdRef.current = setTimeout(async () => {
             const currentOnOptionsLoad = onOptionsLoadRef.current
-            if (!currentOnOptionsLoad || !parentValue) {
+            if (!currentOnOptionsLoad || payload === null || payload === undefined || currentDependencyKey === '') {
                 setLocalOptions([])
                 setLocalLoading(false)
                 setHasFetched(false)
@@ -97,8 +124,8 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
 
             // Always include parent value in cache key to ensure uniqueness
             const cacheKeyToUse = cacheKey
-                ? `${cacheKey}-${parentValue}`
-                : `${label}-${parentValue}`
+                ? `${cacheKey}-${currentDependencyKey}`
+                : `${label}-${currentDependencyKey}`
 
             const cached = getCachedOptions(cacheKeyToUse)
 
@@ -117,7 +144,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
             setLocalLoading(true)
             try {
                 // Call onOptionsLoad with abort signal
-                const fetchedOptions = await currentOnOptionsLoad(parentValue, abortController.signal)
+                const fetchedOptions = await currentOnOptionsLoad(payload, abortController.signal)
 
                 // Check if this request was aborted
                 if (abortController.signal.aborted || requestId !== currentRequestIdRef.current) {
@@ -162,30 +189,28 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
 
     // Handle parent value changes
     useEffect(() => {
-        const currentParentValue = dependsOn?.value
-
-        // If parent value changed, clear local options immediately
-        if (lastParentValue !== currentParentValue) {
+        // If dependency chain changed, clear local options immediately
+        if (lastDependencyKey !== dependencyKey) {
             setLocalOptions([])
             setHasFetched(false)
-            setLastParentValue(currentParentValue)
+            setLastDependencyKey(dependencyKey)
         }
 
-        if (currentParentValue !== undefined && currentParentValue !== null && currentParentValue !== '') {
-            debouncedFetch(currentParentValue)
+        if (hasAllDependencies && dependencyPayload !== null) {
+            debouncedFetch(dependencyPayload, dependencyKey)
         } else {
             setLocalOptions([])
             setHasFetched(false)
-            setLastParentValue(null)
+            setLastDependencyKey(null)
         }
-    }, [dependsOn?.value, debouncedFetch, lastParentValue])
+    }, [dependencyKey, hasAllDependencies, dependencyPayload, debouncedFetch, lastDependencyKey])
 
     // Use local options if available, otherwise use provided options
     const displayOptions = localOptions.length > 0 ? localOptions : options
     const isActuallyLoading = isLoading || localLoading
     // Don't disable the select during loading - allow user to interact
     // Only disable if explicitly disabled or (if dependsOn is defined, then check if parent value is missing)
-    const isActuallyDisabled = isDisabled || (dependsOn !== undefined && (!dependsOn?.value || dependsOn.value === ''))
+    const isActuallyDisabled = isDisabled || (dependsOn !== undefined && !hasAllDependencies)
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         const value = e.target.value
@@ -237,7 +262,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
                         <option value="">
                             {isActuallyLoading ? loadingMessage : `Select ${label}`}
                         </option>
-                        {!isActuallyLoading && displayOptions.length > 0 && displayOptions.map((opt) => (
+                        {displayOptions.length > 0 && displayOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                                 {opt.label}
                             </option>
@@ -260,7 +285,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
             </div>
 
             {/* Empty State */}
-            {!isActuallyLoading && hasFetched && displayOptions.length === 0 && dependsOn?.value && (
+            {!isActuallyLoading && hasFetched && displayOptions.length === 0 && hasAllDependencies && (
                 <div className="-mt-4 border border-t-0 border-[#E0E0E0] rounded-b-xl bg-gray-50 px-4 pt-3 pb-1 text-xs text-gray-600 flex items-center gap-2">
                     <Info className="w-3.5 h-3.5 text-[#757575]" />
                     <span>{emptyMessage}</span>
@@ -268,7 +293,7 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
             )}
 
             {/* Loading State (if parent not selected) */}
-            {isActuallyLoading && !dependsOn?.value && (
+            {isActuallyLoading && !hasAllDependencies && (
                 <div className="flex items-center gap-2 p-3 bg-[#F5F5F5] border border-[#E0E0E0] rounded-xl">
                     <InlineLoader size="sm" text={loadingMessage} />
                 </div>

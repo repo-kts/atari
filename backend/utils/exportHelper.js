@@ -26,7 +26,7 @@ if (isServerless) {
 }
 
 const ExcelJS = require('exceljs');
-const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType } = require('docx');
+const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, PageOrientation } = require('docx');
 
 /**
  * Generates a PDF buffer from HTML using Puppeteer
@@ -78,7 +78,7 @@ async function generatePDF(html) {
         
         const pdfBuffer = await page.pdf({
             format: 'A4',
-            margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' },
+            margin: { top: '4mm', right: '4mm', bottom: '4mm', left: '4mm' },
             printBackground: true,
             preferCSSPageSize: false,
             timeout: 30000
@@ -202,7 +202,13 @@ async function generateWord(title, headers, rows) {
 
     const doc = new Document({
         sections: [{
-            properties: {},
+            properties: {
+                page: {
+                    size: {
+                        orientation: PageOrientation.LANDSCAPE,
+                    },
+                },
+            },
             children: [
                 new Paragraph({
                     text: title,

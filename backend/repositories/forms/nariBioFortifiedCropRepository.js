@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const nariBioFortifiedCropRepository = {
     create: async (data, user) => {
@@ -10,7 +11,11 @@ const nariBioFortifiedCropRepository = {
         const result = await prisma.nariBioFortifiedCrop.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
                 activityId: data.activityId ? parseInt(data.activityId) : null,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
@@ -29,7 +34,6 @@ const nariBioFortifiedCropRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } },
                 activity: { select: { activityName: true } },
                 cropCategory: { select: { name: true } },
@@ -46,13 +50,30 @@ const nariBioFortifiedCropRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                if (from) {
+                    ensureNotFutureDate(from);
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                if (to) {
+                    ensureNotFutureDate(to);
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma.nariBioFortifiedCrop.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } },
                 activity: { select: { activityName: true } },
                 cropCategory: { select: { name: true } },
@@ -67,7 +88,6 @@ const nariBioFortifiedCropRepository = {
             where: { nariBioFortifiedCropId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } },
                 activity: { select: { activityName: true } },
                 cropCategory: { select: { name: true } },
@@ -80,7 +100,13 @@ const nariBioFortifiedCropRepository = {
         const result = await prisma.nariBioFortifiedCrop.update({
             where: { nariBioFortifiedCropId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : undefined,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
@@ -99,7 +125,6 @@ const nariBioFortifiedCropRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } },
                 activity: { select: { activityName: true } },
                 cropCategory: { select: { name: true } },
@@ -123,8 +148,8 @@ function _mapResponse(r) {
         id: r.nariBioFortifiedCropId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
-        reportingYearId: r.reportingYearId,
-        yearName: r.reportingYear?.yearName,
+        reportingYear: r.reportingYear,
+        yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         seasonName: r.season?.seasonName,
         activityId: r.activityId,

@@ -72,9 +72,10 @@ function mapCommonRelations(record, options = {}) {
     }
     
     if (includeYear && record.reportingYear) {
-        mapped.reportingYearId = record.reportingYearId;
-        mapped.yearId = record.reportingYearId; // Alias
-        mapped.reportingYear = record.reportingYear.yearName;
+        const reportingDate = record.reportingYear instanceof Date ? record.reportingYear : new Date(record.reportingYear);
+        mapped.reportingYear = Number.isNaN(reportingDate.getTime())
+            ? ''
+            : String(reportingDate.getFullYear());
     }
     
     if (includeStaff && record.kvkStaff) {

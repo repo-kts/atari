@@ -9,7 +9,6 @@ interface NicraFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     seasons?: any[]
     categories?: any[]
     subCategories?: any[]
@@ -22,7 +21,6 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     seasons = [],
     categories = [],
     subCategories = [],
@@ -147,13 +145,12 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NICRA_DETAILS && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormSelect
                             label="Category"
@@ -637,13 +634,12 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NICRA_REVENUE && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
-                            label="Year"
+                        <FormInput
+                            label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Revenue"
@@ -659,13 +655,12 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
@@ -834,13 +829,12 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NICRA_VCRMC && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Village name"

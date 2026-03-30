@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const priorityThrustAreaRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const priorityThrustAreaRepository = {
         return await prisma.priorityThrustArea.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 thrustArea: data.thrustArea,
             }
         });
@@ -26,7 +31,6 @@ const priorityThrustAreaRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -41,7 +45,6 @@ const priorityThrustAreaRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -58,7 +61,13 @@ const priorityThrustAreaRepository = {
         return await prisma.priorityThrustArea.update({
             where: { priorityThrustAreaId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 thrustArea: data.thrustArea !== undefined ? data.thrustArea : existing.thrustArea,
             }
         });

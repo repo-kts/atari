@@ -8,7 +8,6 @@ interface NaturalFarmingFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     states?: any[]
     seasons?: any[]
     naturalFarmingActivities?: any[]
@@ -20,7 +19,6 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     states = [],
     seasons = [],
     naturalFarmingActivities = [],
@@ -37,13 +35,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
@@ -436,13 +433,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <FormSelect
-                            label="Year"
+                        <FormInput
+                            label="Reporting Year"
                             required
-                            value={String(formData.yearId || '')}
-                            onChange={(e) => setFormData({ ...formData, yearId: e.target.value })}
-                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
-                            placeholder="Select"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Farmer Name"
@@ -590,12 +586,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <FormSelect
-                            label="Year"
+                        <FormInput
+                            label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="No. of blocks covered"
@@ -660,12 +656,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <FormSelect
-                            label="Year"
+                        <FormInput
+                            label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Soil Parameter"
@@ -793,12 +789,12 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET && (
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <FormSelect
-                            label="Year"
+                        <FormInput
+                            label="Reporting Year"
                             required
-                            value={formData.yearId || ''}
-                            onChange={(e) => setFormData({ ...formData, yearId: parseInt(e.target.value) })}
-                            options={years.map((y: any) => ({ value: String(y.id || y.yearId), label: y.yearName || y.year || y.name }))}
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Name of activity"

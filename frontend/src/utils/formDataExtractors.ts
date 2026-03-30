@@ -294,7 +294,7 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.scF !== undefined) formData.scFemale = item.scF;
         if (item.stM !== undefined) formData.stMale = item.stM;
         if (item.stF !== undefined) formData.stFemale = item.stF;
-        // Season extraction handled by COMMON_EXTRACTORS/default behavior mostly, 
+        // Season extraction handled by COMMON_EXTRACTORS/default behavior mostly,
         // but let's ensure category/subCategory IDs are mapped if they are nested
         if (item.category?.nicraCategoryId) formData.nicraCategoryId = item.category.nicraCategoryId;
         if (item.subCategory?.nicraSubCategoryId) formData.nicraSubCategoryId = item.subCategory.nicraSubCategoryId;
@@ -304,8 +304,7 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: (item: any, formData: any) => {
         if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
         if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
-        if (item.reportingYear?.yearId) formData.reportingYearId = item.reportingYear.yearId;
-        else if (item.reportingYearId) formData.reportingYearId = item.reportingYearId;
+        if (item.reportingYear) formData.reportingYear = new Date(item.reportingYear).toISOString().split('T')[0];
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: (item: any, formData: any) => {
         if (item.trainingDate) formData.trainingDate = new Date(item.trainingDate).toISOString().split('T')[0];
@@ -336,12 +335,16 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]: (item: any, formData: any) => {
-        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.reportingYear !== undefined) {
+            formData.reportingYear = String(item.reportingYear).slice(0, 10);
+        }
         if (item.blocksCovered !== undefined) formData.noOfBlocks = item.blocksCovered;
         if (item.villagesCovered !== undefined) formData.noOfVillages = item.villagesCovered;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL]: (item: any, formData: any) => {
-        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.reportingYear !== undefined) {
+            formData.reportingYear = String(item.reportingYear).slice(0, 10);
+        }
         if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
         else if (item.seasonId) formData.seasonId = item.seasonId;
         if (item.phBefore !== undefined) formData.beforePh = item.phBefore;
@@ -360,7 +363,9 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.soilMicrobesAfter !== undefined) formData.afterMicrobes = item.soilMicrobesAfter;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET]: (item: any, formData: any) => {
-        if (item.year !== undefined) formData.yearId = item.year;
+        if (item.reportingYear !== undefined) {
+            formData.reportingYear = String(item.reportingYear).slice(0, 10);
+        }
         if (item.activity) formData.activityName = item.activity;
         if (item.numberOfActivities !== undefined) formData.noOfActivities = item.numberOfActivities;
     },

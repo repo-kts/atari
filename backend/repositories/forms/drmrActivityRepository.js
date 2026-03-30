@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const kvkRoles = ['kvk_admin', 'kvk_user'];
 
@@ -62,14 +63,13 @@ const drmrActivityRepository = {
         const kvkId = (user && user.kvkId) ? toInt(user.kvkId) : toInt(data.kvkId, null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        const reportingYearId = data.reportingYearId || data.yearId
-            ? toInt(data.reportingYearId || data.yearId, null)
-            : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
 
         const result = await prisma.drmrActivity.create({
             data: {
                 kvkId,
-                reportingYearId,
+                reportingYear,
                 startDate: data.startDate ? new Date(data.startDate) : new Date(),
                 endDate: data.endDate ? new Date(data.endDate) : new Date(),
                 totalBudgetUtilized: toFloatOrNull(data.totalBudget) ?? toFloatOrNull(data.totalBudgetUtilized) ?? 0,
@@ -79,7 +79,6 @@ const drmrActivityRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 components: true,
             },
         });
@@ -94,15 +93,30 @@ const drmrActivityRepository = {
         } else if (filters.kvkId) {
             where.kvkId = toInt(filters.kvkId);
         }
-        if (filters.reportingYearId) {
-            where.reportingYearId = toInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.drmrActivity.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 components: true,
             },
             orderBy: { drmrActivityId: 'desc' },
@@ -121,7 +135,6 @@ const drmrActivityRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 components: true,
             },
         });
@@ -140,9 +153,13 @@ const drmrActivityRepository = {
         const result = await prisma.drmrActivity.update({
             where: { drmrActivityId: toInt(id) },
             data: {
-                reportingYearId: data.reportingYearId || data.yearId
-                    ? toInt(data.reportingYearId || data.yearId, null)
-                    : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 totalBudgetUtilized: (data.totalBudget !== undefined || data.totalBudgetUtilized !== undefined)
@@ -155,7 +172,6 @@ const drmrActivityRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 components: true,
             },
         });
@@ -196,9 +212,7 @@ function _mapResponse(r) {
         ...r,
         id: r.drmrActivityId,
         kvkName: r.kvk?.kvkName || '',
-        yearId: r.reportingYearId,
-        reportingYearId: r.reportingYearId,
-        reportingYear: r.reportingYear?.yearName,
+        reportingYear: formatReportingYear(r.reportingYear),
         startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : '',
         endDate: r.endDate ? r.endDate.toISOString().split('T')[0] : '',
         totalBudget: r.totalBudgetUtilized,

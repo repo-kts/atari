@@ -19,7 +19,7 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
     const { data: nicraCategories = [] } = useNicraCategories()
     const { data: fundingAgencies = [] } = useFundingAgencies()
 
-    const agencyOptions = React.useMemo(() => 
+    const agencyOptions = React.useMemo(() =>
         createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
         [fundingAgencies]
     )
@@ -87,18 +87,6 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                         setFormData((prev: any) => ({ ...prev, seasonName: e.target.value }))
                     }, [setFormData])}
                     placeholder="Enter season name"
-                />
-            )}
-
-            {entityType === ENTITY_TYPES.YEAR && (
-                <FormInput
-                    label="Year Name"
-                    required
-                    value={formData.yearName || ''}
-                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFormData((prev: any) => ({ ...prev, yearName: e.target.value }))
-                    }, [setFormData])}
-                    placeholder="Enter year name"
                 />
             )}
 
@@ -352,7 +340,7 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                     placeholder="Enter training/awareness type name"
                 />
             )}
-            
+
             {entityType === ENTITY_TYPES.DIGNITARY_TYPE && (
                 <FormInput
                     label="Dignitary Type"

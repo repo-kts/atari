@@ -8,7 +8,6 @@ interface NariFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     seasons: any[]
     nariActivities: any[]
     nariCropCategories: any[]
@@ -19,7 +18,6 @@ export const NariForms: React.FC<NariFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     seasons,
     nariActivities,
     nariCropCategories,
@@ -31,13 +29,12 @@ export const NariForms: React.FC<NariFormsProps> = ({
                 <div className="space-y-10">
                     {/* Basic Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Activity"
@@ -150,13 +147,12 @@ export const NariForms: React.FC<NariFormsProps> = ({
                 <div className="space-y-10">
                     {/* Basic Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of Nutri-Smart Village"
@@ -283,13 +279,12 @@ export const NariForms: React.FC<NariFormsProps> = ({
                 <div className="space-y-10">
                     {/* Basic Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of Nutri-Smart Village"
@@ -392,13 +387,12 @@ export const NariForms: React.FC<NariFormsProps> = ({
                 <div className="space-y-10">
                     {/* Basic Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of Nutri-Smart Village"
@@ -532,13 +526,12 @@ export const NariForms: React.FC<NariFormsProps> = ({
                 <div className="space-y-10">
                     {/* Basic Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of Nutri-Smart Village"

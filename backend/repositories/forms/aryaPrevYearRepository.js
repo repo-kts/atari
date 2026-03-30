@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const aryaPrevYearRepository = {
     create: async (data, user) => {
@@ -10,7 +11,8 @@ const aryaPrevYearRepository = {
             throw new Error('Valid kvkId is required');
         }
 
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
         const enterpriseId = parseInt(data.enterpriseId, 10);
         if (isNaN(enterpriseId)) {
             throw new Error('Valid enterpriseId is required');
@@ -36,7 +38,7 @@ const aryaPrevYearRepository = {
 
         const resultRows = await prisma.$queryRawUnsafe(`
             INSERT INTO arya_prev_year (
-                "kvkId", reporting_year_id, "enterpriseId", 
+                "kvkId", reporting_year, "enterpriseId", 
                 units_male, units_female, non_functional_units_closed, date_of_closing,
                 non_functional_units_restarted, date_of_restart, number_of_units,
                 unit_capacity, fixed_cost, variable_cost, total_production_per_unit_year,
@@ -45,7 +47,7 @@ const aryaPrevYearRepository = {
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYearId, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
+        `, kvkId, reportingYear, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
             nonFunctionalUnitsRestarted, dateOfRestart, numberOfUnits, unitCapacity, fixedCost, variableCost,
             totalProductionPerUnitYear, grossCostPerUnitYear, grossReturnPerUnitYear, netBenefitPerUnitYear,
             employmentFamilyMandays, employmentOtherMandays, personsVisitedUnit);
@@ -55,7 +57,6 @@ const aryaPrevYearRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 enterprise: { select: { enterpriseName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -70,10 +71,24 @@ const aryaPrevYearRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
-        } else if (filters.reportingYear) {
-            where.reportingYearId = parseInt(filters.reportingYear);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
         if (filters.enterpriseId) {
             where.enterpriseId = parseInt(filters.enterpriseId);
@@ -84,7 +99,6 @@ const aryaPrevYearRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 enterprise: { select: { enterpriseName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { aryaPrevYearId: 'desc' }
         });
@@ -105,7 +119,6 @@ const aryaPrevYearRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 enterprise: { select: { enterpriseName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -122,7 +135,8 @@ const aryaPrevYearRepository = {
         const existing = await prisma.aryaPrevYear.findFirst({ where: whereSpec });
         if (!existing) throw new Error("Record not found or unauthorized");
 
-        const reportingYearId = data.yearId !== undefined || data.reportingYearId !== undefined ? parseInt(data.yearId ?? data.reportingYearId) : existing.reportingYearId;
+        const reportingYear = data.reportingYear !== undefined ? parseReportingYearDate(data.reportingYear) : existing.reportingYear;
+        ensureNotFutureDate(reportingYear);
         const enterpriseId = data.enterpriseId !== undefined ? parseInt(data.enterpriseId) : existing.enterpriseId;
         const unitsMale = data.unitsMale !== undefined || data.unitsEstablishedMale !== undefined ? parseInt(data.unitsMale ?? data.unitsEstablishedMale) : existing.unitsMale;
         const unitsFemale = data.unitsFemale !== undefined || data.unitsEstablishedFemale !== undefined ? parseInt(data.unitsFemale ?? data.unitsEstablishedFemale) : existing.unitsFemale;
@@ -145,7 +159,7 @@ const aryaPrevYearRepository = {
         await prisma.$executeRawUnsafe(`
             UPDATE arya_prev_year 
             SET 
-                reporting_year_id = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
+                reporting_year = $1, "enterpriseId" = $2, units_male = $3, units_female = $4, 
                 non_functional_units_closed = $5, date_of_closing = $6, 
                 non_functional_units_restarted = $7, date_of_restart = $8, 
                 number_of_units = $9, unit_capacity = $10, fixed_cost = $11, 
@@ -156,7 +170,7 @@ const aryaPrevYearRepository = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE arya_prev_year_id = $20
         `,
-            reportingYearId, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
+            reportingYear, enterpriseId, unitsMale, unitsFemale, nonFunctionalUnitsClosed, dateOfClosing,
             nonFunctionalUnitsRestarted, dateOfRestart, numberOfUnits, unitCapacity, fixedCost, variableCost,
             totalProductionPerUnitYear, grossCostPerUnitYear, grossReturnPerUnitYear, netBenefitPerUnitYear,
             employmentFamilyMandays, employmentOtherMandays, personsVisitedUnit,
@@ -168,7 +182,6 @@ const aryaPrevYearRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 enterprise: { select: { enterpriseName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -200,9 +213,7 @@ function _mapResponse(r) {
         aryaPrevYearId: r.aryaPrevYearId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId,
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined,
+        reportingYear: formatReportingYear(r.reportingYear),
         enterpriseId: r.enterpriseId,
         enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,
 

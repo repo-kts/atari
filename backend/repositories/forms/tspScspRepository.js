@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 function normalizeTspScspType(value) {
     const normalized = String(value || '').trim().toUpperCase();
@@ -87,7 +88,11 @@ const tspScspRepository = {
         const result = await prisma.tspScsp.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 type,
                 tspScspTypeId,
                 activityId,
@@ -110,7 +115,6 @@ const tspScspRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 tspScspType: { select: { typeName: true } },
                 activity: { select: { activityName: true } },
                 district: { select: { districtName: true } },
@@ -126,13 +130,30 @@ const tspScspRepository = {
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
         }
-        if (filters.reportingYearId) where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                if (from) {
+                    ensureNotFutureDate(from);
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                if (to) {
+                    ensureNotFutureDate(to);
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma.tspScsp.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 tspScspType: { select: { typeName: true } },
                 activity: { select: { activityName: true } },
                 district: { select: { districtName: true } },
@@ -147,7 +168,6 @@ const tspScspRepository = {
             where: { tspScspId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 tspScspType: { select: { typeName: true } },
                 activity: { select: { activityName: true } },
                 district: { select: { districtName: true } },
@@ -170,7 +190,13 @@ const tspScspRepository = {
         const result = await prisma.tspScsp.update({
             where: { tspScspId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : undefined,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : undefined,
                 type: resolvedType,
                 tspScspTypeId: resolvedTypeId,
                 activityId: resolvedActivityId,
@@ -228,7 +254,6 @@ const tspScspRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 tspScspType: { select: { typeName: true } },
                 activity: { select: { activityName: true } },
                 district: { select: { districtName: true } },
@@ -250,8 +275,8 @@ function _mapResponse(r) {
         id: r.tspScspId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
-        reportingYearId: r.reportingYearId,
-        yearName: r.reportingYear?.yearName,
+        reportingYear: r.reportingYear,
+        yearName: formatReportingYear(r.reportingYear),
         type: r.type,
         typeName: r.tspScspType?.typeName ?? r.type,
         tspScspTypeId: r.tspScspTypeId,

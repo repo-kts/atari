@@ -183,7 +183,7 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
     return (
         <div className="space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
-            <div 
+            <div
                 className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
                 onClick={onToggleCollapse}
             >

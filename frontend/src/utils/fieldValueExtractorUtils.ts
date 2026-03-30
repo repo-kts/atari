@@ -316,6 +316,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
                 if (typeof item.reportingYear === 'object' && item.reportingYear.yearName) {
                     return item.reportingYear.yearName;
                 }
+                const reportingYearDate = new Date(item.reportingYear);
+                if (!Number.isNaN(reportingYearDate.getTime())) {
+                    return String(reportingYearDate.getUTCFullYear());
+                }
                 return item.reportingYear;
             }
             if (item.yearName) return item.yearName;
@@ -877,7 +881,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.YEAR]: {
         extractor: (item: any) => {
             const val = item.reportingYear || item.year;
-            if (val !== undefined && val !== null) return String(val);
+            if (val !== undefined && val !== null) {
+                const dt = new Date(val);
+                if (!Number.isNaN(dt.getTime())) return String(dt.getUTCFullYear());
+                return String(val);
+            }
             return item.yearName || item.year?.yearName || item.reportingYear?.yearName || null;
         },
     },

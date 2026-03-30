@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { parseReportingYearDate, ensureNotFutureDate, normalizeDateRange } = require('../../utils/reportingYearUtils.js');
 
 /**
  * About KVK Repository
@@ -28,6 +29,9 @@ const ENTITY_CONFIG = {
             },
             university: {
                 select: { universityId: true, universityName: true }
+            },
+            landDetails: {
+                select: { landId: true, item: true, areaHa: true }
             }
         }
     },
@@ -107,7 +111,6 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-vehicle-details': { // Alias for vehicles
@@ -116,7 +119,6 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-equipments': {
@@ -125,7 +127,6 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-equipment-details': {
@@ -134,7 +135,6 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-farm-implements': {
@@ -224,6 +224,15 @@ async function findAll(entityName, options = {}, user = null) {
     } else {
         // For other entities: use standard filter spreading
         where = { ...filters };
+        const { reportingYearFrom, reportingYearTo } = where;
+        if (reportingYearFrom !== undefined || reportingYearTo !== undefined) {
+            where.reportingYear = normalizeDateRange({
+                from: reportingYearFrom,
+                to: reportingYearTo,
+            });
+            delete where.reportingYearFrom;
+            delete where.reportingYearTo;
+        }
 
         // Add search filter if nameField is defined
         if (search && config.nameField) {
@@ -398,6 +407,17 @@ function convertRelationFieldsForKvk(data) {
         }
         delete converted.universityId;
     }
+
+    // Handle landDetails nested write (replaces existing records with new list)
+    if (converted.landDetails && Array.isArray(converted.landDetails)) {
+        converted.landDetails = {
+            deleteMany: {},
+            create: converted.landDetails.map(item => ({
+                item: sanitizeString(item.item),
+                areaHa: parseFloat(item.areaHa) || 0
+            }))
+        };
+    }
     
     return converted;
 }
@@ -497,20 +517,47 @@ function sanitizeData(entityName, data) {
 
     // Remove fields that don't exist in Prisma schema for KVK
     if (entityName === 'kvks') {
-        // Prisma schema only has: kvkName, zoneId, stateId, districtId, orgId, universityId,
-        // hostOrg, mobile, email, address, yearOfSanction
+        const allowedFields = [
+            'kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId',
+            'mobile', 'landline', 'fax', 'email', 'address',
+            'hostOrg', 'hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'hostAddress',
+            'yearOfSanction', 'landDetails'
+        ];
+
         // Remove all fields that don't exist in the schema
-        const invalidFields = ['hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'createdAt', 'updatedAt'];
-        invalidFields.forEach(field => {
-            delete sanitized[field];
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
         });
 
         // Sanitize string fields
         if (sanitized.kvkName !== undefined) {
             sanitized.kvkName = sanitizeString(safeGet(data, 'kvkName'), { allowEmpty: false });
         }
+        if (sanitized.landline !== undefined) {
+            sanitized.landline = sanitizeString(safeGet(data, 'landline'), { allowEmpty: true });
+        }
+        if (sanitized.fax !== undefined) {
+            sanitized.fax = sanitizeString(safeGet(data, 'fax'), { allowEmpty: true });
+        }
         if (sanitized.hostOrg !== undefined) {
             sanitized.hostOrg = sanitizeString(safeGet(data, 'hostOrg'), { allowEmpty: true });
+        }
+        if (sanitized.hostMobile !== undefined) {
+            sanitized.hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { allowEmpty: true });
+        }
+        if (sanitized.hostLandline !== undefined) {
+            sanitized.hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { allowEmpty: true });
+        }
+        if (sanitized.hostFax !== undefined) {
+            sanitized.hostFax = sanitizeString(safeGet(data, 'hostFax'), { allowEmpty: true });
+        }
+        if (sanitized.hostEmail !== undefined) {
+            sanitized.hostEmail = sanitizeString(safeGet(data, 'hostEmail'), { allowEmpty: true });
+        }
+        if (sanitized.hostAddress !== undefined) {
+            sanitized.hostAddress = sanitizeString(safeGet(data, 'hostAddress'), { allowEmpty: true });
         }
         if (sanitized.mobile !== undefined) {
             sanitized.mobile = sanitizeString(safeGet(data, 'mobile'), { allowEmpty: true });
@@ -601,9 +648,6 @@ async function create(entityName, data) {
         const vehicleId = sanitizedData.vehicleId;
         // Remove vehicleId from update data as it's used in where clause
         const updateData = removeIdFieldsForUpdate(sanitizedData, [config.idField, 'vehicleId']);
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
         return await prisma[config.model].update({
             where: { [config.idField]: vehicleId },
             data: updateData,
@@ -616,9 +660,6 @@ async function create(entityName, data) {
         const equipmentId = sanitizedData.equipmentId;
         // Remove equipmentId from update data as it's used in where clause
         const updateData = removeIdFieldsForUpdate(sanitizedData, [config.idField, 'equipmentId']);
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
         return await prisma[config.model].update({
             where: { [config.idField]: equipmentId },
             data: updateData,
@@ -642,23 +683,16 @@ async function create(entityName, data) {
     // Note: vehicleId/equipmentId validation is done before sanitization above
     // They are restored in sanitizedData after sanitization
 
-    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
     if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
         const convertedData = { ...sanitizedData };
-        
-        // Remove old reportingYear and yearId fields
-        delete convertedData.reportingYear;
-        delete convertedData.yearId;
-        
-        // Convert reportingYearId to relation connect/disconnect
-        if (convertedData.reportingYearId !== undefined) {
-            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
-                convertedData.reportingYear = { disconnect: true };
-            } else {
-                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
-            }
-            delete convertedData.reportingYearId;
+
+        if (convertedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(convertedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            convertedData.reportingYear = parsedReportingYear;
         }
+
         
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
@@ -674,10 +708,7 @@ async function create(entityName, data) {
 
     // Generic create path - ensure ID fields are removed
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    // For vehicle-details and equipment-details, remove old reportingYear and yearId fields
     if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
-        delete finalData.reportingYear;
-        delete finalData.yearId;
     }
     try {
         return await prisma[config.model].create({
@@ -738,9 +769,6 @@ async function update(entityName, id, data) {
                 updateData[key] = value;
             }
         }
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
         // Ensure ID fields are removed from updateData
         const finalUpdateData = removeIdFieldsForUpdate(updateData, [config.idField]);
         return await prisma[config.model].update({
@@ -764,23 +792,16 @@ async function update(entityName, id, data) {
         }
     }
 
-    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
     if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
         const convertedData = { ...sanitizedData };
-        
-        // Remove old reportingYear and yearId fields
-        delete convertedData.reportingYear;
-        delete convertedData.yearId;
-        
-        // Convert reportingYearId to relation connect/disconnect
-        if (convertedData.reportingYearId !== undefined) {
-            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
-                convertedData.reportingYear = { disconnect: true };
-            } else {
-                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
-            }
-            delete convertedData.reportingYearId;
+
+        if (convertedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(convertedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            convertedData.reportingYear = parsedReportingYear;
         }
+
         
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);

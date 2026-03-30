@@ -33,4 +33,3 @@ model NaturalFarmingActivityMaster {
   @@map("natural_farming_activity_master")
 }
 
-

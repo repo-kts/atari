@@ -5,7 +5,6 @@ import { ENTITY_TYPES } from '../constants/entityConstants';
 import type {
     SeasonFormData,
     SanctionedPostFormData,
-    YearFormData,
     StaffCategoryFormData,
     PayLevelFormData,
     DisciplineFormData,
@@ -139,46 +138,27 @@ export function useSanctionedPosts() {
 // ============================================
 
 export function useYears() {
-    const queryClient = useQueryClient();
-
-    const query = useQuery({
-        queryKey: ['years'],
-        queryFn: () => otherMastersApi.getYears().then((res) => res.data),
-        staleTime: 5 * 60 * 1000,
+    const currentYear = new Date().getFullYear();
+    const data = Array.from({ length: 20 }, (_, index) => {
+        const year = currentYear - index;
+        return {
+            yearName: String(year),
+            reportingYear: `${year}-01-01`,
+        };
     });
 
-    const createMutation = useMutation({
-        mutationFn: (data: YearFormData) => otherMastersApi.createYear(data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.YEAR);
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: number; data: Partial<YearFormData> }) =>
-            otherMastersApi.updateYear(id, data),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.YEAR);
-        },
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: (id: number) => otherMastersApi.deleteYear(id),
-        onSuccess: () => {
-            invalidateEntityType(queryClient, ENTITY_TYPES.YEAR);
-        },
-    });
+    const noop = async () => undefined;
 
     return {
-        data: query.data || [],
-        isLoading: query.isLoading,
-        error: query.error,
-        create: createMutation.mutateAsync,
-        update: updateMutation.mutateAsync,
-        remove: deleteMutation.mutateAsync,
-        isCreating: createMutation.isPending,
-        isUpdating: updateMutation.isPending,
-        isDeleting: deleteMutation.isPending,
+        data,
+        isLoading: false,
+        error: null,
+        create: noop,
+        update: noop,
+        remove: noop,
+        isCreating: false,
+        isUpdating: false,
+        isDeleting: false,
     };
 }
 

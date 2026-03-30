@@ -26,7 +26,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
         () => {
             // For Plant Varieties, we might want the year name/value if the backend expects an Int (parseInt will handle "2023-24" as 2023)
             // But usually IDs are preferred if relations exist. Since no relation here, let's keep IDs but be mindful.
-            return createMasterDataOptions(years, 'yearId', 'yearName')
+            return createMasterDataOptions(years, 'reportingYear', 'yearName')
         },
         [years]
     )
@@ -214,14 +214,12 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear || ''}
                         onChange={(val) => {
-                            const selectedYear = years.find(y => y.yearId === val || y.yearName === val);
+                            const selectedYear = years.find(y => y.reportingYear === val || y.yearName === val);
                             setFormData({
                                 ...formData,
-                                reportingYearId: val,
-                                yearId: val,
-                                reportingYear: selectedYear ? (parseInt(selectedYear.yearName) || val) : val
+                                reportingYear: selectedYear ? (selectedYear.reportingYear || val) : val
                             });
                         }}
                         options={yearOptions}
@@ -299,23 +297,23 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 {(() => {
                                     try {
                                         const imageData = formData.image || formData.images;
-                                        const images = typeof imageData === 'string' 
+                                        const images = typeof imageData === 'string'
                                             ? (imageData.startsWith('[') ? JSON.parse(imageData) : [imageData])
                                             : [];
                                         return images.map((img: string, idx: number) => (
                                             <div key={idx} className="relative group">
-                                                <img 
-                                                    src={img} 
-                                                    className="h-24 w-auto object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-transform duration-300" 
-                                                    alt={`Preview ${idx + 1}`} 
+                                                <img
+                                                    src={img}
+                                                    className="h-24 w-auto object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-transform duration-300"
+                                                    alt={`Preview ${idx + 1}`}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => {
                                                         const newImages = images.filter((_: any, i: number) => i !== idx);
                                                         const newValue = newImages.length === 0 ? null : (newImages.length === 1 ? newImages[0] : JSON.stringify(newImages));
-                                                        setFormData({ 
-                                                            ...formData, 
+                                                        setFormData({
+                                                            ...formData,
                                                             image: newValue,
                                                             images: null // Clear the file objects
                                                         });

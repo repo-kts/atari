@@ -31,14 +31,13 @@ import { useTransferOftToNextYear, useTransferFldToNextYear, useCreateOftResult,
 import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
 import { OftResultForm, OftResultFormValue } from './forms/achievement/OftResultForm'
 import { FldResultForm, FldResultValue } from './forms/achievement/FldResultForm'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { DatePicker } from '@/components/ui/date-picker'
 
 interface DataManagementViewProps {
     title: string
     description?: string
     fields?: readonly string[] | string[]
 }
-
 
 export const DataManagementView: React.FC<DataManagementViewProps> = ({
     title,
@@ -109,15 +108,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const moduleCode = routeConfig?.moduleCode
     const [debouncedSearch, setDebouncedSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
-    const [selectedYearId, setSelectedYearId] = useState<string>('')
+    const [reportingYearFrom, setReportingYearFrom] = useState<string>('')
+    const [reportingYearTo, setReportingYearTo] = useState<string>('')
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
-    const [isYearMenuOpen, setIsYearMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
-    const { data: years = [] } = useYears()
+    const hasActiveFilters = Boolean(searchQuery.trim() || reportingYearFrom || reportingYearTo)
 
-    const yearMenuRef = useRef<HTMLDivElement | null>(null)
-    const mobileYearMenuRef = useRef<HTMLDivElement | null>(null)
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
     const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
@@ -228,16 +225,30 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     useEffect(() => {
         setCurrentPage(1)
-    }, [selectedYearId])
+    }, [reportingYearFrom, reportingYearTo])
 
     // Filter data based on search - memoized for performance
     const filteredData = useMemo(() => {
-        const yearFiltered = selectedYearId
-            ? items.filter((item: any) => {
-                const reportingYearId = item.reportingYearId ?? item.yearId ?? item.reportingYear?.yearId
-                return String(reportingYearId ?? '') === selectedYearId
-            })
-            : items
+        const maxDate = new Date()
+        maxDate.setHours(23, 59, 59, 999)
+        const rawFromDate = reportingYearFrom ? new Date(reportingYearFrom) : null
+        if (rawFromDate) rawFromDate.setHours(0, 0, 0, 0)
+        const rawToDate = reportingYearTo ? new Date(reportingYearTo) : null
+        if (rawToDate) rawToDate.setHours(23, 59, 59, 999)
+        const fromDate =
+            rawFromDate && rawToDate ? (rawFromDate <= rawToDate ? rawFromDate : rawToDate) : rawFromDate
+        const toDate =
+            rawFromDate && rawToDate ? (rawFromDate <= rawToDate ? rawToDate : rawFromDate) : rawToDate
+        const yearFiltered = items.filter((item: any) => {
+            const value = item.reportingYear || item.reportingYearDate || item.reportingYear?.yearName
+            if (!value) return !fromDate && !toDate
+            const itemDate = new Date(value)
+            if (Number.isNaN(itemDate.getTime())) return !fromDate && !toDate
+            if (itemDate > maxDate) return false
+            if (fromDate && itemDate < fromDate) return false
+            if (toDate && itemDate > toDate) return false
+            return true
+        })
 
         if (!debouncedSearch.trim()) return yearFiltered
 
@@ -248,7 +259,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 return value && String(value).toLowerCase().includes(query)
             })
         })
-    }, [items, debouncedSearch, fields, selectedYearId])
+    }, [items, debouncedSearch, fields, reportingYearFrom, reportingYearTo])
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
@@ -694,11 +705,24 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleExport = async (format: 'pdf' | 'excel' | 'word' | 'csv') => {
+        const templateKey =
+            entityType === ENTITY_TYPES.KVKS
+                ? 'about-kvk-view'
+                : entityType === ENTITY_TYPES.KVK_BANK_ACCOUNTS
+                ? 'about-kvk-bank-accounts'
+                : entityType === ENTITY_TYPES.KVK_EMPLOYEES
+                ? 'about-kvk-employees-full'
+                : entityType === ENTITY_TYPES.KVK_VEHICLES
+                ? 'about-kvk-vehicles'
+                : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
+                ? 'about-kvk-vehicle-details'
+                : undefined;
         await handleExportData(format, {
             title,
             fields,
             data: filteredData,
             pathname: location.pathname,
+            templateKey,
         })
     }
 
@@ -727,12 +751,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     useEffect(() => {
         const onDocMouseDown = (e: MouseEvent) => {
             const target = e.target as Node
-            if (isYearMenuOpen && 
-                (!yearMenuRef.current || !yearMenuRef.current.contains(target)) &&
-                (!mobileYearMenuRef.current || !mobileYearMenuRef.current.contains(target))
-            ) {
-                setIsYearMenuOpen(false)
-            }
             if (isMobileRouteMenuOpen && mobileRouteMenuRef.current && !mobileRouteMenuRef.current.contains(target)) {
                 setIsMobileRouteMenuOpen(false)
             }
@@ -745,7 +763,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         }
         document.addEventListener('mousedown', onDocMouseDown)
         return () => document.removeEventListener('mousedown', onDocMouseDown)
-    }, [isYearMenuOpen, isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
+    }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
 
     const loading = getHookLoading(activeHook)
     const error = getHookError(activeHook)
@@ -970,57 +988,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         ))}
                                     </div>
 
-                                    {/* Mobile: styled dropdown menu for years */}
-                                    <div ref={mobileYearMenuRef} className="relative sm:hidden">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsYearMenuOpen((v) => !v)}
-                                            className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
-                                        >
-                                            {selectedYearId
-                                                ? (years as any[]).find((y: any) => String(y.yearId) === String(selectedYearId))?.yearName || 'Year'
-                                                : 'All Years'}
-                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
-                                        </button>
-                                        
-                                        {isYearMenuOpen && (
-                                            <div className="absolute right-0 top-full mt-1 z-50 w-[max-content] min-w-[12rem] max-w-[calc(100vw-2rem)] rounded-2xl border border-[#E0E0E0] bg-white p-1 shadow-lg max-h-[40vh] overflow-y-auto">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedYearId('')
-                                                        setIsYearMenuOpen(false)
-                                                    }}
-                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${!selectedYearId
-                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                        }`}
-                                                >
-                                                    All Years
-                                                </button>
-                                                {(years as any[]).map((year: any) => {
-                                                    const selected = String(year.yearId) === String(selectedYearId)
-                                                    return (
-                                                        <button
-                                                            key={year.yearId}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedYearId(String(year.yearId))
-                                                                setIsYearMenuOpen(false)
-                                                            }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
-                                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                                }`}
-                                                        >
-                                                            {year.yearName}
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-
                                     {/* Mobile: styled dropdown menu */}
                                     <div ref={exportMenuRef} className="relative md:hidden">
                                         <button
@@ -1073,59 +1040,39 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         value={searchQuery}
                                         onChange={setSearchQuery}
                                         placeholder="Search..."
-                                        className="!max-w-full"
+                                        className="max-w-full!"
                                     />
                                 </div>
-                                <div className="hidden sm:block">
-                                    <div ref={yearMenuRef} className="relative inline-flex">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsYearMenuOpen((v) => !v)}
-                                            className="h-10 inline-flex justify-between items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
-                                        >
-                                            {selectedYearId
-                                                ? (years as any[]).find((y: any) => String(y.yearId) === String(selectedYearId))?.yearName || 'Year'
-                                                : 'All Years'}
-                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
-                                        </button>
-
-                                        {isYearMenuOpen && (
-                                            <div className="absolute left-0 top-full mt-1 z-50 w-full sm:w-52 rounded-2xl border border-[#E0E0E0] bg-white p-1 shadow-lg max-h-64 overflow-y-auto">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedYearId('')
-                                                        setIsYearMenuOpen(false)
-                                                    }}
-                                                    className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${!selectedYearId
-                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                        }`}
-                                                >
-                                                    All Years
-                                                </button>
-                                                {(years as any[]).map((year: any) => {
-                                                    const selected = String(year.yearId) === String(selectedYearId)
-                                                    return (
-                                                        <button
-                                                            key={year.yearId}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setSelectedYearId(String(year.yearId))
-                                                                setIsYearMenuOpen(false)
-                                                            }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
-                                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                                }`}
-                                                        >
-                                                            {year.yearName}
-                                                        </button>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <DatePicker
+                                        value={reportingYearFrom}
+                                        onChange={setReportingYearFrom}
+                                        max={new Date().toISOString().split('T')[0]}
+                                        placeholder="From date"
+                                        ariaLabel="Reporting year from"
+                                        className="h-10 px-3 py-2 text-sm sm:w-[170px]"
+                                    />
+                                    <DatePicker
+                                        value={reportingYearTo}
+                                        onChange={setReportingYearTo}
+                                        max={new Date().toISOString().split('T')[0]}
+                                        placeholder="To date"
+                                        ariaLabel="Reporting year to"
+                                        className="h-10 px-3 py-2 text-sm sm:w-[170px]"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSearchQuery('')
+                                            setReportingYearFrom('')
+                                            setReportingYearTo('')
+                                            setCurrentPage(1)
+                                        }}
+                                        disabled={!hasActiveFilters}
+                                        className="h-11 px-3 border border-[#487749] rounded-xl bg-[#487749] text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3d6540]"
+                                    >
+                                        Clear Filters
+                                    </button>
                                 </div>
                             </div>
 

@@ -18,13 +18,11 @@ model KkvSoilWaterAnalysis {
   stF                    Int               @map("st_f")
   createdAt              DateTime          @default(now()) @map("created_at")
   updatedAt              DateTime          @updatedAt @map("updated_at")
-  reportingYearId        Int?              @map("reporting_year_id")
-  soilWaterAnalysis      SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
+  reportingYear DateTime? @map("reporting_year")
+soilWaterAnalysis      SoilWaterAnalysis @relation(fields: [analysisId], references: [soilWaterAnalysisId])
   kvk                    Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear          YearMaster?       @relation(fields: [reportingYearId], references: [yearId])
-
-  @@index([kvkId])
+@@index([kvkId])
   @@index([analysisId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("kvk_soil_water_analysis")
 }

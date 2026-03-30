@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const nicraVcrmcRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const nicraVcrmcRepository = {
         return await prisma.nicraVcrmc.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 villageName: data.villageName,
                 constitutionDate: new Date(data.constitutionDate),
                 meetingsOrganized: parseInt(data.meetingsOrganized || 0),
@@ -51,15 +56,30 @@ const nicraVcrmcRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.nicraVcrmc.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             },
             orderBy: { nicraVcrmcId: 'desc' }
         });
@@ -75,7 +95,6 @@ const nicraVcrmcRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             }
         });
         return nicraVcrmcRepository._mapResponse(result);
@@ -93,7 +112,13 @@ const nicraVcrmcRepository = {
         const updated = await prisma.nicraVcrmc.update({
             where: { nicraVcrmcId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 villageName: data.villageName !== undefined ? data.villageName : existing.villageName,
                 constitutionDate: data.constitutionDate ? new Date(data.constitutionDate) : existing.constitutionDate,
                 meetingsOrganized: data.meetingsOrganized !== undefined ? parseInt(data.meetingsOrganized) : existing.meetingsOrganized,

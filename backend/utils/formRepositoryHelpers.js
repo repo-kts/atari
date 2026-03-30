@@ -142,7 +142,7 @@ function validateRequiredInteger(data, fieldNames, errorMessage, errorField, opt
  * @throws {ValidationError} If validation fails
  */
 function validateOptionalInteger(data, fieldDef) {
-    // Handle field definition object (e.g., CREATE_FIELD_DEFINITIONS.reportingYearId)
+    // Handle field definition object (e.g., CREATE_FIELD_DEFINITIONS.reportingYear)
     let actualFieldNames = fieldDef;
     let actualErrorMessage = '';
     let actualErrorField = '';
@@ -533,7 +533,7 @@ module.exports = {
     validateInput,
     resolveKvkId,
     buildRoleBasedWhere,
-    validateRequiredInteger,
+    validateRequiredInteger, 
     validateOptionalInteger,
     validateRequiredString,
     validateRequiredNumber,

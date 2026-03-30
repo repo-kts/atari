@@ -10,15 +10,14 @@ model Csisa {
   areaCoveredHa    Float             @map("area_covered_ha")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
-  reportingYearId  Int?              @map("reporting_year_id")
-  kvk              Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear    YearMaster?       @relation(fields: [reportingYearId], references: [yearId])
-  season           Season?           @relation(fields: [seasonId], references: [seasonId])
+  reportingYear DateTime? @map("reporting_year")
+kvk              Kvk               @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+season           Season?           @relation(fields: [seasonId], references: [seasonId])
   cropDetails      CsisaCropDetail[]
 
   @@index([kvkId])
   @@index([seasonId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("csisa")
 }
 

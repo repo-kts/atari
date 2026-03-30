@@ -8,7 +8,6 @@ interface AgriDroneFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     districts: any[]
     demonstrationsOnMasters: any[]
     agriDroneIntros: any[]
@@ -18,7 +17,6 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     districts,
     demonstrationsOnMasters,
     agriDroneIntros
@@ -28,13 +26,12 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_AGRI_DRONE && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of the project implementing centre (PIC)"
@@ -146,13 +143,12 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <MasterDataDropdown

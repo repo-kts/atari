@@ -29,8 +29,8 @@ model KvkFldIntroduction {
   ongoingCompleted            FldStatus                   @default(ONGOING) @map("ongoing_completed")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
-  reportingYearId             Int?                        @map("reporting_year_id")
-  fldExtensions               FldExtension[]
+  reportingYear DateTime? @map("reporting_year")
+fldExtensions               FldExtension[]
   fldResult                   KvkFldResult?
   fldTechnicalFeedbacks       FldTechnicalFeedback[]
   kvkExtensionActivities      KvkExtensionActivity[]
@@ -38,8 +38,7 @@ model KvkFldIntroduction {
   crop                        FldCrop?                    @relation(fields: [cropId], references: [cropId], onDelete: SetNull)
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   kvkStaff                    KvkStaff                    @relation(fields: [kvkStaffId], references: [kvkStaffId])
-  reportingYear               YearMaster?                 @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-  season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
+season                      Season?                     @relation(fields: [seasonId], references: [seasonId], onDelete: SetNull)
   sector                      Sector?                     @relation(fields: [sectorId], references: [sectorId], onDelete: SetNull)
   subCategory                 FldSubcategory?             @relation(fields: [subCategoryId], references: [subCategoryId], onDelete: SetNull)
   thematicArea                FldThematicArea?            @relation(fields: [thematicAreaId], references: [thematicAreaId], onDelete: SetNull)
@@ -53,7 +52,7 @@ model KvkFldIntroduction {
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("kvk_fld_introduction")
 }
 

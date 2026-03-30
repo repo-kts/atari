@@ -1,17 +1,15 @@
 model KvkAward {
   kvkAwardId          String      @id @default(uuid()) @map("kvk_award_id")
   kvkId               Int
-  reportingYearId     Int?        @map("reporting_year_id")
-  awardName           String      @map("award_name")
+  reportingYear DateTime? @map("reporting_year")
+awardName           String      @map("award_name")
   amount              Int         @map("amount")
   achievement          String      @map("achievement")
   conferringAuthority  String      @map("conferring_authority")
   createdAt            DateTime    @default(now()) @map("created_at")
   updatedAt            DateTime    @updatedAt @map("updated_at")
   kvk                  Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear        YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([createdAt])
 }

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const rainwaterHarvestingRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const rainwaterHarvestingRepository = {
         return await prisma.rainwaterHarvesting.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 trainingProgrammes: parseInt(data.trainingProgrammes || 0),
                 demonstrations: parseInt(data.demonstrations || 0),
                 plantMaterial: parseInt(data.plantMaterial || 0),
@@ -30,7 +35,6 @@ const rainwaterHarvestingRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -45,7 +49,6 @@ const rainwaterHarvestingRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -62,7 +65,13 @@ const rainwaterHarvestingRepository = {
         return await prisma.rainwaterHarvesting.update({
             where: { rainwaterHarvestingId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 trainingProgrammes: data.trainingProgrammes !== undefined ? parseInt(data.trainingProgrammes || 0) : existing.trainingProgrammes,
                 demonstrations: data.demonstrations !== undefined ? parseInt(data.demonstrations || 0) : existing.demonstrations,
                 plantMaterial: data.plantMaterial !== undefined ? parseInt(data.plantMaterial || 0) : existing.plantMaterial,
