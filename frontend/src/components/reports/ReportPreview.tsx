@@ -1,11 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { 
-    FileText, 
-    Download, 
-    File as FileIcon, 
-    Layers, 
+import { Button } from '../ui/button';
+import {
+    FileText,
+    Download,
+    File as FileIcon,
+    Layers,
     Printer,
     Loader2,
     Search
@@ -41,17 +41,17 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                     </div>
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end">
-                    <Button 
-                        variant="outline" 
-                        size="md" 
+                    <Button
+                        variant="outline"
+                        size="md"
                         className="h-7 px-2.5 rounded-lg border-[#487749] text-[#487749] hover:bg-[#487749]/5 inline-flex items-center justify-center gap-1 transition-colors font-medium text-[12px] leading-none whitespace-nowrap"
                     >
                         <Search className="w-3 h-3 shrink-0" />
                         Zoom
                     </Button>
-                    <Button 
-                        variant="outline" 
-                        size="md" 
+                    <Button
+                        variant="outline"
+                        size="md"
                         className="h-7 px-2.5 rounded-lg border-[#487749] text-[#487749] hover:bg-[#487749]/5 inline-flex items-center justify-center gap-1 transition-colors font-medium text-[12px] leading-none whitespace-nowrap"
                     >
                         <Printer className="w-3 h-3 shrink-0" />
@@ -120,7 +120,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 <div className="h-3 w-full bg-[#FAF9F6] rounded" />
                                 <div className="h-3 w-4/5 bg-[#FAF9F6] rounded" />
                             </div>
-                            
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                                 <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-center justify-center">
                                     <span className="text-[10px] text-[#9E9E9E] font-medium uppercase tracking-widest">Statistical Graph Area</span>
@@ -157,8 +157,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
 
                 <div className="flex w-full flex-wrap items-center gap-1.5 lg:w-auto lg:justify-end">
                     <div className="flex flex-wrap items-center gap-1.5">
-                        <Button 
-                            variant="primary" 
+                        <Button
+                            variant="primary"
                             className="bg-[#487749] hover:bg-[#3d6540] text-white shadow-sm shadow-[#487749]/15 font-medium px-2.5 py-1 h-7 rounded-lg inline-flex items-center gap-1 transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('pdf')}
                             disabled={isGenerating || !hasData}
@@ -166,16 +166,16 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             <Download className="w-3 h-3 text-[#C1FF72] shrink-0" />
                             Download PDF
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('excel')}
                             disabled={isGenerating || !hasData}
                         >
                             Excel
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('doc')}
                             disabled={isGenerating || !hasData}
