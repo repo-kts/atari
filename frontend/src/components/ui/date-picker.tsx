@@ -24,12 +24,20 @@ interface DatePickerProps {
 
 function parseIsoDate(value?: string): Date | undefined {
   if (!value) return undefined
-  const date = new Date(value)
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (!m) return undefined
+  const y = Number(m[1])
+  const mo = Number(m[2]) - 1
+  const d = Number(m[3])
+  const date = new Date(y, mo, d, 0, 0, 0, 0)
   return Number.isNaN(date.getTime()) ? undefined : date
 }
 
 function formatIso(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, "0")
+  const d = String(date.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -49,7 +57,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const [open, setOpen] = useState(false)
   const selectedDate = useMemo(() => parseIsoDate(value), [value])
   const minDate = useMemo(() => parseIsoDate(min), [min])
-  const maxDate = useMemo(() => parseIsoDate(max), [max])
+  const maxDate = useMemo(() => {
+    if (max) return parseIsoDate(max)
+    const now = new Date()
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+  }, [max])
   const startMonth = minDate ?? new Date(1950, 0, 1)
   const endMonth = maxDate ?? new Date(new Date().getFullYear() + 10, 11, 31)
 

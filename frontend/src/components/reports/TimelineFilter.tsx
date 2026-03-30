@@ -32,12 +32,37 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
 }) => {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 30 }, (_, i) => currentYear - i);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const todayDayValue = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0, 0, 0, 0
+    ).getTime();
     const toDate = (value: string) => {
+        // value is expected as 'YYYY-MM-DD' (local date; avoid UTC shifting)
         if (!value) return undefined;
-        const date = new Date(value);
-        return Number.isNaN(date.getTime()) ? undefined : date;
+        const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return undefined;
+        const y = Number(m[1]);
+        const mo = Number(m[2]) - 1;
+        const d = Number(m[3]);
+        const dt = new Date(y, mo, d, 0, 0, 0, 0);
+        return Number.isNaN(dt.getTime()) ? undefined : dt;
     };
-    const toIso = (date: Date) => date.toISOString().slice(0, 10);
+
+    const toYmd = (date: Date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    };
+
+    const startDt = toDate(startDate);
+    const endDt = toDate(endDate);
+    const toDayValue = (date: Date) =>
+        new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).getTime();
 
     return (
         <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-4 sm:px-6 py-3 shadow-sm">
@@ -120,7 +145,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                             className="w-full h-10 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-4 focus:ring-[#487749]/10 focus:border-[#487749] disabled:opacity-50"
                                         >
                                             <span className={startDate ? 'text-[#212121]' : 'text-[#9E9E9E]'}>
-                                                {startDate ? format(new Date(startDate), 'dd-MM-yyyy') : 'Select start date'}
+                                                {startDt ? format(startDt, 'dd-MM-yyyy') : 'Select start date'}
                                             </span>
                                             <CalendarIcon className="h-4 w-4 text-[#487749]" />
                                         </button>
@@ -133,10 +158,14 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                                 selected={toDate(startDate)}
                                                 onSelect={(date) => {
                                                     if (!date) return;
-                                                    onStartDateChange(toIso(date));
+                                                    onStartDateChange(toYmd(date));
                                                 }}
                                                 endMonth={toDate(endDate)}
-                                                disabled={(date) => !!toDate(endDate) && date > (toDate(endDate) as Date)}
+                                                disabled={(date) => {
+                                                    if (toDayValue(date) > todayDayValue) return true;
+                                                    if (endDt && toDayValue(date) > toDayValue(endDt)) return true;
+                                                    return false;
+                                                }}
                                             />
                                         </Popover.Content>
                                     </Popover.Portal>
@@ -155,7 +184,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                             className="w-full h-10 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-4 focus:ring-[#487749]/10 focus:border-[#487749] disabled:opacity-50"
                                         >
                                             <span className={endDate ? 'text-[#212121]' : 'text-[#9E9E9E]'}>
-                                                {endDate ? format(new Date(endDate), 'dd-MM-yyyy') : 'Select end date'}
+                                                {endDt ? format(endDt, 'dd-MM-yyyy') : 'Select end date'}
                                             </span>
                                             <CalendarIcon className="h-4 w-4 text-[#487749]" />
                                         </button>
@@ -168,10 +197,14 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                                 selected={toDate(endDate)}
                                                 onSelect={(date) => {
                                                     if (!date) return;
-                                                    onEndDateChange(toIso(date));
+                                                    onEndDateChange(toYmd(date));
                                                 }}
                                                 startMonth={toDate(startDate)}
-                                                disabled={(date) => !!toDate(startDate) && date < (toDate(startDate) as Date)}
+                                                disabled={(date) => {
+                                                    if (toDayValue(date) > todayDayValue) return true;
+                                                    if (startDt && toDayValue(date) < toDayValue(startDt)) return true;
+                                                    return false;
+                                                }}
                                             />
                                         </Popover.Content>
                                     </Popover.Portal>

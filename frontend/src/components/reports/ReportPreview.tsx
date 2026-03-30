@@ -13,6 +13,7 @@ interface ReportPreviewProps {
     isGenerating: boolean;
     hasData: boolean;
     previewUrl?: string | null;
+    downloadingFormat?: 'pdf' | 'excel' | 'doc' | null;
     onDownload: (format: 'pdf' | 'excel' | 'doc') => void;
     selectedScopeCount: number;
     selectedSectionsCount: number;
@@ -22,6 +23,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     isGenerating,
     hasData,
     previewUrl,
+    downloadingFormat = null,
     onDownload,
     selectedScopeCount,
     selectedSectionsCount,
@@ -154,8 +156,17 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             onClick={() => onDownload('pdf')}
                             disabled={isGenerating || !hasData}
                         >
-                            <Download className="w-3 h-3 text-[#C1FF72] shrink-0" />
-                            Download PDF
+                            {downloadingFormat === 'pdf' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Downloading...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="w-3 h-3 text-[#C1FF72] shrink-0" />
+                                    Download PDF
+                                </>
+                            )}
                         </Button>
                         <Button
                             variant="outline"
@@ -163,7 +174,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             onClick={() => onDownload('excel')}
                             disabled={isGenerating || !hasData}
                         >
-                            Excel
+                            {downloadingFormat === 'excel' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Excel
+                                </>
+                            ) : (
+                                'Excel'
+                            )}
                         </Button>
                         <Button
                             variant="outline"
@@ -171,7 +189,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             onClick={() => onDownload('doc')}
                             disabled={isGenerating || !hasData}
                         >
-                            Word
+                            {downloadingFormat === 'doc' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Word
+                                </>
+                            ) : (
+                                'Word'
+                            )}
                         </Button>
                     </div>
                 </div>

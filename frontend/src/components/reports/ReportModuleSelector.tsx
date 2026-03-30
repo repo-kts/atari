@@ -35,6 +35,8 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const [isNarrow, setIsNarrow] = useState(false);
     const searchInputId = 'report-module-search';
 
     const categoryMapping = [
@@ -59,6 +61,19 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
             searchInputRef.current?.focus();
         }
     }, [isSearchOpen]);
+
+    React.useEffect(() => {
+        if (!containerRef.current || typeof ResizeObserver === 'undefined') return;
+        const element = containerRef.current;
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const width = entry.contentRect.width;
+                setIsNarrow(width < 340);
+            }
+        });
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
 
     const handleToggleSearch = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
@@ -108,7 +123,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     }, [sections]);
 
     return (
-        <div className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+        <div ref={containerRef} className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
             <div className="p-0">
                 <div
                     className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
@@ -118,15 +133,10 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-[#487749]" />
                         </div>
-                        {isSearchOpen ? (
-                        <h3 className="hidden text-sm font-semibold text-[#487749] leading-none">
+                        <h3 className={`text-sm font-semibold text-[#487749] leading-none ${(isSearchOpen && isNarrow) ? 'hidden' : 'block'}`}>
                             Report Modules
                         </h3>
-                    ) : (
-                        <h3 className="text-sm font-semibold text-[#487749] leading-none">
-                            Report Modules
-                        </h3>
-                    )}                    </div>
+                    </div>
                     <div
                         className="flex items-center gap-2"
                         onClick={event => event.stopPropagation()}
@@ -162,9 +172,8 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                 </div>
 
                 <div
-                    className={`space-y-0.5 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${
-                        collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[1200px] opacity-100'
-                    }`}
+                    className={`space-y-0.5 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[1200px] opacity-100'
+                        }`}
                 >
                     {/* Green Tab Bar Header - synchronized with ReportScopeSelector style */}
                     <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 shadow-sm mb-2">
@@ -175,11 +184,11 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                     key={category.id}
                                     onClick={() => handleTabChange(category.id)}
                                     title={category.label}
-                                    className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2 rounded-[10px] text-[11px] font-medium whitespace-nowrap transition-all duration-300
+                                    className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2 rounded-[10px] text-[11px] font-medium whitespace-nowrap transition-all duration-300 text-center
                                     ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
                                 >
-                                    <span className={`shrink-0 ${isActive ? 'text-[#487749]' : 'text-white'}`}>{category.icon}</span>
-                                    <span className="truncate">{category.label}</span>
+                                    <span className={`shrink-0 text-center ${isActive ? 'text-[#487749]' : 'text-white'}`}>{category.icon}</span>
+                                    <span className={`truncate ${isNarrow ? 'hidden' : 'block'}`}>{category.label}</span>
                                 </button>
                             );
                         })}

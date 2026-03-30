@@ -167,14 +167,16 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
     }, [isSearchOpen]);
 
     useEffect(() => {
-        const computeNarrow = () => {
-            const width = containerRef.current?.getBoundingClientRect().width || window.innerWidth;
-            // Treat <640px as "smaller than sm"
-            setIsNarrow(width < 640);
-        };
-        computeNarrow();
-        window.addEventListener('resize', computeNarrow);
-        return () => window.removeEventListener('resize', computeNarrow);
+        if (!containerRef.current || typeof ResizeObserver === 'undefined') return;
+        const element = containerRef.current;
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const width = entry.contentRect.width;
+                setIsNarrow(width < 340);
+            }
+        });
+        observer.observe(element);
+        return () => observer.disconnect();
     }, []);
 
     const handleToggleSearch = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -194,7 +196,6 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
         const kvkName = scopeOptions.availableKvks.find(k => k.id === scopeOptions.defaultKvkId)?.name || 'Your KVK';
         return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
     }
-    console.log("isSearchOpen", isSearchOpen);
 
     return (
         <div ref={containerRef} className="relative space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
@@ -206,15 +207,9 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
                     <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                         <ChevronDown className="w-4 h-4 text-[#487749]" />
                     </div>
-                    {isSearchOpen ? (
-                        <h3 className="hidden text-sm font-semibold text-[#487749] leading-none">
-                            Report Scope
-                        </h3>
-                    ) : (
-                        <h3 className="text-sm font-semibold text-[#487749] leading-none">
-                            Report Scope
-                        </h3>
-                    )}
+                    <h3 className={`text-sm font-semibold text-[#487749] leading-none ${(isSearchOpen && isNarrow) ? 'hidden' : 'block'}`}>
+                        Report Scope
+                    </h3>
                 </div>
                 <div
                     className="flex items-center gap-2"

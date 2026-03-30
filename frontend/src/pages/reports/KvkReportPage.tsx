@@ -38,6 +38,7 @@ export const KvkReportPage: React.FC = () => {
     const breadcrumbs = getBreadcrumbsForPath(location.pathname);
 
     const [isGenerating, setIsGenerating] = useState(false);
+    const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'excel' | 'docx' | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [selectedScope, setSelectedScope] = useState<ReportScope | null>(null);
@@ -45,14 +46,14 @@ export const KvkReportPage: React.FC = () => {
 
     // Draft filter states (editable in UI)
     const currentYear = new Date().getFullYear();
-    const [filterType, setFilterType] = useState<'none' | 'dateRange' | 'year'>('dateRange');
-    const [startDate, setStartDate] = useState(`${currentYear}-04-01`);
-    const [endDate, setEndDate] = useState(`${currentYear + 1}-03-31`);
+    const [filterType, setFilterType] = useState<'none' | 'dateRange' | 'year'>('none');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
     const [year, setYear] = useState<number>(currentYear);
     // Applied filter states (used for report generation)
-    const [appliedFilterType, setAppliedFilterType] = useState<'none' | 'dateRange' | 'year'>('dateRange');
-    const [appliedStartDate, setAppliedStartDate] = useState(`${currentYear}-04-01`);
-    const [appliedEndDate, setAppliedEndDate] = useState(`${currentYear + 1}-03-31`);
+    const [appliedFilterType, setAppliedFilterType] = useState<'none' | 'dateRange' | 'year'>('none');
+    const [appliedStartDate, setAppliedStartDate] = useState('');
+    const [appliedEndDate, setAppliedEndDate] = useState('');
     const [appliedYear, setAppliedYear] = useState<number>(currentYear);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
     const [isScopeCollapsed, setIsScopeCollapsed] = useState(false);
@@ -240,10 +241,25 @@ export const KvkReportPage: React.FC = () => {
                 setError('Please select both start and end dates.');
                 return;
             }
-            const start = new Date(startDate);
-            const end = new Date(endDate);
+            const parseLocalYmd = (value: string) => {
+                const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (!m) return new Date(''); // invalid
+                const y = Number(m[1]);
+                const mo = Number(m[2]) - 1;
+                const d = Number(m[3]);
+                return new Date(y, mo, d, 0, 0, 0, 0);
+            };
+
+            const start = parseLocalYmd(startDate);
+            const end = parseLocalYmd(endDate);
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
             if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start > end) {
                 setError('Please select a valid date range.');
+                return;
+            }
+            if (start > today || end > today) {
+                setError('Future dates are not allowed for report generation.');
                 return;
             }
         }
@@ -282,6 +298,7 @@ export const KvkReportPage: React.FC = () => {
     ) => {
         try {
             setIsGenerating(true);
+            setDownloadingFormat(format);
             setError(null);
             setSuccess(null);
 
@@ -327,6 +344,7 @@ export const KvkReportPage: React.FC = () => {
             setError(err instanceof Error ? err.message : 'Failed to generate report');
         } finally {
             setIsGenerating(false);
+            setDownloadingFormat(null);
         }
     };
 
@@ -493,6 +511,7 @@ export const KvkReportPage: React.FC = () => {
                                         isGenerating={isGenerating}
                                         hasData={selectedSections.size > 0}
                                         previewUrl={previewBlobUrl}
+                                        downloadingFormat={downloadingFormat === 'docx' ? 'doc' : (downloadingFormat as 'pdf' | 'excel' | null)}
                                         onDownload={(fmt) => {
                                             handleGenerate(
                                                 Array.from(selectedSections),
