@@ -8,7 +8,6 @@ const prisma = require('../config/prisma');
 
 const ROLES = [
   { roleName: 'super_admin', description: 'Super Administrator - Full system access' },
-  { roleName: 'zone_admin', description: 'Zone Administrator' },
   { roleName: 'state_admin', description: 'State Administrator' },
   { roleName: 'district_admin', description: 'District Administrator' },
   { roleName: 'org_admin', description: 'Organization Administrator' },

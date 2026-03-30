@@ -337,6 +337,30 @@ export interface DignitaryTypeFormData {
     name: string;
 }
 
+export interface FinancialProject {
+    financialProjectId: number;
+    projectName: string;
+    fundingAgencyId?: number;
+    fundingAgency?: {
+        fundingAgencyId: number;
+        agencyName: string;
+    };
+}
+
+export interface FinancialProjectFormData {
+    projectName: string;
+    fundingAgencyId?: number;
+}
+
+export interface FundingAgency {
+    fundingAgencyId: number;
+    agencyName: string;
+}
+
+export interface FundingAgencyFormData {
+    agencyName: string;
+}
+
 // ============================================
 // Season APIs
 // ============================================
@@ -683,4 +707,28 @@ export const otherMastersApi = {
 
     deleteDignitaryType: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/dignitary-type/${id}`),
+
+    // Financial Projects
+    getFinancialProjects: () =>
+        apiClient.get<PaginatedResponse<FinancialProject>>(`${BASE_URL}/financial-project`),
+    getFinancialProjectById: (id: number) =>
+        apiClient.get<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project/${id}`),
+    createFinancialProject: (data: FinancialProjectFormData) =>
+        apiClient.post<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project`, data),
+    updateFinancialProject: (id: number, data: Partial<FinancialProjectFormData>) =>
+        apiClient.put<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project/${id}`, data),
+    deleteFinancialProject: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/financial-project/${id}`),
+
+    // Funding Agencies
+    getFundingAgencies: () =>
+        apiClient.get<PaginatedResponse<FundingAgency>>(`${BASE_URL}/funding-agency`),
+    getFundingAgencyById: (id: number) =>
+        apiClient.get<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`),
+    createFundingAgency: (data: FundingAgencyFormData) =>
+        apiClient.post<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency`, data),
+    updateFundingAgency: (id: number, data: Partial<FundingAgencyFormData>) =>
+        apiClient.put<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`, data),
+    deleteFundingAgency: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-agency/${id}`),
 };

@@ -2,6 +2,7 @@ const rolePermissionRepository = require('../repositories/rolePermissionReposito
 const prisma = require('../config/prisma.js');
 const userRepository = require('../repositories/userRepository.js');
 const { outranks, outranksOrEqual } = require('../constants/roleHierarchy.js');
+const permissionResolverService = require('./auth/permissionResolverService.js');
 
 /**
  * Normalize role name to snake_case (lowercase, spaces to underscores)
@@ -143,6 +144,14 @@ const rolePermissionService = {
 
     // Update permissions
     const result = await rolePermissionRepository.setRolePermissions(roleId, permissionIds);
+
+    // Best-effort cache invalidation; permission update should not fail due to cache issues.
+    try {
+      await permissionResolverService.invalidateRolePermissions(roleId);
+    } catch (error) {
+      console.error('Permission cache invalidation failed after role permission update:', error.message);
+    }
+
     return result;
   },
 };

@@ -19,6 +19,7 @@ model Module {
   moduleCode  String       @unique @map("module_code")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
+  moduleImages ModuleImage[]
   permissions Permission[]
 
   @@map("modules")
@@ -92,8 +93,13 @@ model User {
   lastLoginAt        DateTime?              @map("last_login_at")
   deletedAt          DateTime?              @map("deleted_at")
   phoneNumber        String?                @map("phone_number")
+  createdNotifications Notification[]       @relation("CreatedNotifications")
+  loginActivities    UserLoginActivity[]
+  moduleImages       ModuleImage[]
+  targets            Target[]              @relation("UserTargets")
   refreshTokens      RefreshToken[]
   transfersPerformed StaffTransferHistory[]
+  userNotifications  UserNotification[]     @relation("UserNotifications")
   userPermissions    UserPermission[]
   district           DistrictMaster?        @relation(fields: [districtId], references: [districtId])
   kvk                Kvk?                   @relation(fields: [kvkId], references: [kvkId])

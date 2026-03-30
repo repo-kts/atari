@@ -40,7 +40,7 @@ export const adminManagementRoutes: RouteConfig[] = [
     {
         path: '/view-email-notifications',
         title: 'Notifications',
-        description: 'Manage email notifications',
+        description: 'Manage system notifications',
         category: 'Admin',
         moduleCode: 'notifications',
     },

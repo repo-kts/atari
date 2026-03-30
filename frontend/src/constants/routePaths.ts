@@ -28,6 +28,7 @@ export const ROUTE_PATHS = {
     // Achievements Routes
     ACHIEVEMENTS: {
         BASE: '/forms/achievements',
+        TECHNICAL_SUMMARY: '/forms/achievements/technical-summary',
         OFT: '/forms/achievements/oft',
         FLD: {
             BASE: '/forms/achievements/fld',

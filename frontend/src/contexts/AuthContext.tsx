@@ -174,9 +174,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             return false
         }
 
-        // super_admin has unrestricted access to every module
-        if (user.role === 'super_admin') return true
-
         const actions = user.permissionsByModule?.[moduleCode]
 
         if (!actions || !Array.isArray(actions)) return false
