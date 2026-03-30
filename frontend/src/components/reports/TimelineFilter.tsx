@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input } from '../ui/Input';
 import { Calendar, CheckCircle2 } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { Button } from '../ui/button';
 
 interface TimelineFilterProps {
     filterType: 'none' | 'dateRange' | 'year';

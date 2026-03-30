@@ -11,7 +11,7 @@ import { reportApi } from '../../services/reportApi';
 import { useAuth } from '../../contexts/AuthContext';
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route';
 import { useReportConfig } from '../../hooks/report/useReportScope';
-import { Button } from '../../components/ui/Button';
+import { Button } from '../../components/ui/button';
 import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
 
