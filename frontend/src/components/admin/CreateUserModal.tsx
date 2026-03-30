@@ -3,7 +3,7 @@ import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../s
 import { masterDataApi } from '../../services/masterDataApi'
 import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
-import { getRoleLevel, isAdminRole, getCreatableRoles } from '../../constants/roleHierarchy'
+import { getRoleLevel, getCreatableRoles } from '../../constants/roleHierarchy'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'

@@ -193,7 +193,7 @@ function flattenObject(obj: any, prefix = ''): any {
     const flattened: any = {}
 
     for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const newKey = prefix ? `${prefix}.${key}` : key
             if (obj[key] && typeof obj[key] === 'object' && !Array.isArray(obj[key]) && !(obj[key] instanceof Date)) {
                 Object.assign(flattened, flattenObject(obj[key], newKey))

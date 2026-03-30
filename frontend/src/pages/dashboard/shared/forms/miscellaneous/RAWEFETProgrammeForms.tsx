@@ -2,7 +2,6 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
-import { useFileHandling } from '@/hooks/useFileHandling'
 
 interface RAWEFETProgrammeFormsProps {
     entityType: ExtendedEntityType | null
@@ -15,8 +14,6 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
     formData,
     setFormData,
 }) => {
-    const { handleFileChange: originalHandleFileChange } = useFileHandling(formData, setFormData)
-
     const handleFileChange = useCallback(
         (field: string) => async (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0]

@@ -35,6 +35,7 @@ interface MenuItem {
     moduleCodes?: string[]
     children?: MenuItem[]
     dropdown?: boolean // If true, show children as dropdown in sidebar and hide tabs on page
+    target?: string
 }
 
 // Super Admin menu items with dropdown support
@@ -250,7 +251,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     }, [rawMenuItems, hasPermission])
 
     const menuItemsRef = useRef(menuItems)
-    menuItemsRef.current = menuItems
+    useEffect(() => {
+        menuItemsRef.current = menuItems
+    }, [menuItems])
 
     // Debounce search query
     useEffect(() => {
@@ -303,7 +306,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
         // 1. Expand active section
         items.forEach(item => {
-            if (item.children && item.dropdown && isSectionActive(item)) {
+            const sectionActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path + '/') ||
+                !!item.children?.some(
+                    child =>
+                        location.pathname === child.path ||
+                        location.pathname.startsWith(child.path + '/')
+                )
+
+            if (item.children && item.dropdown && sectionActive) {
                 itemsToExpand.push(item.path)
             }
         })
@@ -628,6 +640,7 @@ const SidebarDropdownItem: React.FC<{
                                     <Link
                                         key={child.path}
                                         to={child.path}
+                                        target={child.target}
                                         onClick={() => onMobileClose()}
                                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
                                             ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
@@ -674,6 +687,7 @@ const SidebarItem: React.FC<{
         <div className="mx-2 my-0.5">
             <Link
                 to={props.item.path}
+                target={props.item.target}
                 onClick={props.onMobileClose}
                 className={`flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 ${active
                     ? 'bg-[#3d6540] text-white font-medium'
@@ -693,4 +707,3 @@ const SidebarItem: React.FC<{
         </div>
     )
 }
-

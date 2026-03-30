@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react'
 import { UserRole } from '../../types/auth'
 
 /**
@@ -23,7 +24,7 @@ export interface RouteConfig {
     // (matches backend seedModulesForRolePermissions MODULES.moduleCode)
     moduleCode?: string
     // Optional component to render instead of DataManagementView
-    component?: React.ComponentType<any>
+    component?: ComponentType<any>
     // Optional mock data for prototyping
     mockData?: any[]
 }

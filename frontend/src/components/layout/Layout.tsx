@@ -1,21 +1,26 @@
 import React, { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 
 export const Layout: React.FC = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    const location = useLocation()
+    const isReportPage = location.pathname === '/all-reports'
+    const [sidebarOpen, setSidebarOpen] = useState(!isReportPage)
+    const effectiveSidebarOpen = sidebarOpen
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F5F5F5]">
             <Sidebar
-                isOpen={sidebarOpen}
-                onToggle={() => setSidebarOpen(!sidebarOpen)}
+                isOpen={effectiveSidebarOpen}
+                onToggle={() => setSidebarOpen(prev => !prev)}
             />
             <div
-                className={`flex-1 flex flex-col h-screen transition-all duration-300
-                    ml-0
-                    ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}
+                className={`w-full flex flex-col h-screen transition-all duration-300 ml-0 ${
+                    effectiveSidebarOpen
+                        ? 'lg:ml-64 lg:w-[calc(100%-16rem)]'
+                        : 'lg:ml-16 lg:w-[calc(100%-4rem)]'
+                }`}
             >
                 <Header />
                 <main className="flex-1 overflow-y-auto md:p-4 relative">

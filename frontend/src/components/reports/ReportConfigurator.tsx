@@ -77,7 +77,7 @@ export const ReportConfigurator: React.FC<ReportConfiguratorProps> = ({
             {/* Timeline Filter Section */}
             <Card>
                 <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold text-[#487749] mb-4 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#212121] mb-4 flex items-center gap-2">
                         <Calendar className="w-5 h-5" />
                         Timeline Filter
                     </h3>

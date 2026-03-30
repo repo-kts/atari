@@ -36,35 +36,27 @@ class ReportDataService {
         let rawData;
         const dataSource = sectionConfig.dataSource;
 
-        switch (dataSource) {
-            case 'kvk':
-                rawData = await reportRepository.getKvkBasicInfo(kvkId);
-                break;
-            case 'kvkBankAccounts':
-                rawData = await reportRepository.getKvkBankAccounts(kvkId, sectionFilters);
-                break;
-            case 'kvkEmployees':
-                rawData = await reportRepository.getKvkEmployees(kvkId, sectionFilters);
-                break;
-            case 'kvkStaffTransferred':
-                rawData = await reportRepository.getKvkStaffTransferred(kvkId, sectionFilters);
-                break;
-            case 'kvkInfrastructure':
-                rawData = await reportRepository.getKvkInfrastructure(kvkId, sectionFilters);
-                break;
-            case 'kvkVehicles':
-                rawData = await reportRepository.getKvkVehicles(kvkId, sectionFilters);
-                break;
-            case 'kvkEquipments':
-                rawData = await reportRepository.getKvkEquipments(kvkId, sectionFilters);
-                break;
-            case 'kvkFarmImplements':
-                rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
-                break;
-            default:
-                throw new Error(`Unknown data source: ${dataSource}`);
-        }
+        // Specialized data sources with custom queries/includes
+        const specializedSources = {
+            kvk: () => reportRepository.getKvkBasicInfo(kvkId),
+            kvkBankAccounts: () => reportRepository.getKvkBankAccounts(kvkId, sectionFilters),
+            kvkEmployees: () => reportRepository.getKvkEmployees(kvkId, sectionFilters),
+            kvkStaffTransferred: () => reportRepository.getKvkStaffTransferred(kvkId, sectionFilters),
+            kvkInfrastructure: () => reportRepository.getKvkInfrastructure(kvkId, sectionFilters),
+            kvkVehicles: () => reportRepository.getKvkVehicles(kvkId, sectionFilters),
+            kvkEquipments: () => reportRepository.getKvkEquipments(kvkId, sectionFilters),
+            kvkFarmImplements: () => reportRepository.getKvkFarmImplements(kvkId, sectionFilters),
+        };
 
+        if (specializedSources[dataSource]) {
+            rawData = await specializedSources[dataSource]();
+        } else {
+            // All other data sources: resolve via dynamic model map
+            rawData = await reportRepository.getByDataSource(dataSource, kvkId, sectionFilters);
+            if (rawData === null) {
+                throw new Error(`Unknown data source: ${dataSource}`);
+            }
+        }
         // Transform data according to section configuration
         const transformedData = this._transformSectionData(rawData, sectionConfig);
         

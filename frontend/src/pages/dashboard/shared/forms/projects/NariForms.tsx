@@ -417,7 +417,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             value={formData.activityId || ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
-                            options={createMasterDataOptions(fldActivities, 'activityId', 'activityName')}
+                            options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
                         />
                         <FormInput

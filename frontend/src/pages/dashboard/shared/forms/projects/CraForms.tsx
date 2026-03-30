@@ -92,6 +92,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             value={formData.farmingSystemId || ''}
                             onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
+                            isLoading={farmingSystemsLoading}
                             options={createMasterDataOptions(
                                 farmingSystems.filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId)),
                                 'craFarmingSystemId',

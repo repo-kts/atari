@@ -16,7 +16,7 @@ const PAGE_SIZE = 10
 export const RoleManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { user: currentUser, hasPermission } = useAuth()
+    const { hasPermission } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [openActionId, setOpenActionId] = useState<number | null>(null)
