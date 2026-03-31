@@ -296,6 +296,54 @@ export function sanitizeEnumFields(
 }
 
 /**
+ * Normalizes reporting year aliases and strips ambiguous legacy year strings
+ * when a canonical year ID is already present.
+ */
+export function normalizeReportingYearFields(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+
+    const hasReportingYearId =
+        normalized.reportingYearId !== undefined &&
+        normalized.reportingYearId !== null &&
+        normalized.reportingYearId !== '';
+
+    const hasYearId =
+        normalized.yearId !== undefined &&
+        normalized.yearId !== null &&
+        normalized.yearId !== '';
+
+    if (!hasReportingYearId && hasYearId) {
+        normalized.reportingYearId = normalized.yearId;
+    }
+
+    if (normalized.reportingYearId !== undefined && normalized.reportingYearId !== null && normalized.reportingYearId !== '') {
+        if (normalized.yearId === undefined || normalized.yearId === null || normalized.yearId === '') {
+            normalized.yearId = normalized.reportingYearId;
+        }
+
+        if (
+            typeof normalized.reportingYear === 'string' &&
+            normalized.reportingYear.trim() !== '' &&
+            !/^\d+$/.test(normalized.reportingYear.trim())
+        ) {
+            delete normalized.reportingYear;
+        }
+
+        if (
+            typeof normalized.year === 'string' &&
+            normalized.year.trim() !== '' &&
+            !/^\d+$/.test(normalized.year.trim())
+        ) {
+            delete normalized.year;
+        }
+    }
+
+    return normalized;
+}
+
+/**
  * Removes category field conditionally
  * Category is a direct field for KVK employees, not a nested object
  */
@@ -376,6 +424,7 @@ export function transformDataForCreate(
     formData: any
 ): any {
     let transformed = removeNestedObjects(formData);
+    transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
@@ -394,6 +443,7 @@ export function transformDataForUpdate(
 ): any {
     let transformed = removeIdField(entityType, idField, formData);
     transformed = removeNestedObjects(transformed);
+    transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
