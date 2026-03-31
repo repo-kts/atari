@@ -61,12 +61,6 @@ const exportData = async (req, res) => {
 };
 
 function generateCustomTemplateHTML(templateKey, rawData, title) {
-    // Accept either one object or list of objects from form exports.
-    // WIP: to delete after testing
-    console.log('rawData----------------', rawData);
-    console.log('templateKey----------------', templateKey);
-    console.log('title----------------', title);
-
     const normalizedData = Array.isArray(rawData)
         ? rawData
         : (rawData ? [rawData] : []);
@@ -122,8 +116,16 @@ function formatExportValue(value) {
         return '-';
     }
 
-    const parsedDate = new Date(value);
-    if (!Number.isNaN(parsedDate.getTime())) return formatReportingYear(parsedDate);
+    if (typeof value === 'string') {
+        const isYearOnly = /^\d{4}$/.test(value.trim());
+        if (isYearOnly) return value.trim();
+
+        const looksLikeDate = /^\d{4}-\d{1,2}-\d{1,2}(?:[T ].*)?$/.test(value.trim()) || value.includes('/');
+        if (looksLikeDate) {
+            const parsedDate = new Date(value);
+            if (!Number.isNaN(parsedDate.getTime())) return formatReportingYear(parsedDate);
+        }
+    }
 
     return String(value);
 }

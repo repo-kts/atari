@@ -217,6 +217,28 @@ const reportConfig = {
                 { dbField: 'sourceOfFunding', displayName: 'Funding Source', optional: true },
             ],
         },
+        {
+            id: '1.11',
+            title: 'Equipment Records',
+            description: 'Equipment reporting-year records (Equipment Details form)',
+            subsection: true,
+            parentSectionId: '1',
+            dataSource: 'kvkEquipmentRecords',
+            format: 'custom',
+            customTemplate: 'about-kvk-equipment-records',
+            filters: {
+                dateFields: ['createdAt'],
+            },
+            fields: [
+                { dbField: 'reportingYear', displayName: 'Year' },
+                { dbField: 'kvk.kvkName', displayName: 'KVK' },
+                { dbField: 'equipmentName', displayName: 'Equipment Name' },
+                { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
+                { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
+                { dbField: 'sourceOfFunding', displayName: 'Source of fund' },
+                { dbField: 'presentStatus', displayName: 'Present status' },
+            ],
+        },
     ],
 };
 

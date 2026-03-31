@@ -10,6 +10,7 @@ const {
     getKvkVehicles,
     getKvkVehicleDetails,
     getKvkEquipments,
+    getKvkEquipmentRecords,
     getKvkFarmImplements,
 } = require('./assetsReportRepository.js');
 
@@ -23,6 +24,6 @@ module.exports = {
     getKvkVehicles,
     getKvkVehicleDetails,
     getKvkEquipments,
+    getKvkEquipmentRecords,
     getKvkFarmImplements,
 };
-
