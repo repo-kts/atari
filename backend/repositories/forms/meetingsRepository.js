@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const parseDateOrNow = (dateStr) => {
     if (!dateStr) return new Date();
@@ -110,7 +111,11 @@ const meetingsRepository = {
                     typeOfMeeting: data.typeOfMeeting || '',
                     agenda: data.agenda || '',
                     representativeFromAtari: data.representativeFromAtari || '',
-                    reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                 }
             });
         },
@@ -125,7 +130,6 @@ const meetingsRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: true
                 },
                 orderBy: { atariMeetingId: 'desc' }
             });
@@ -139,7 +143,6 @@ const meetingsRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: true
                 }
             });
         },
@@ -156,7 +159,11 @@ const meetingsRepository = {
             if (data.typeOfMeeting !== undefined) updateData.typeOfMeeting = data.typeOfMeeting;
             if (data.agenda !== undefined) updateData.agenda = data.agenda;
             if (data.representativeFromAtari !== undefined) updateData.representativeFromAtari = data.representativeFromAtari;
-            if (data.reportingYearId !== undefined) updateData.reportingYearId = data.reportingYearId ? parseInt(data.reportingYearId) : null;
+            if (data.reportingYear !== undefined) {
+                const d = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(d);
+                updateData.reportingYear = d;
+            }
 
             return await prisma.atariMeeting.update({
                 where: { atariMeetingId: parseInt(id) },

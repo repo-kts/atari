@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const csisaRepository = {
     create: async (data, user) => {
@@ -45,8 +46,8 @@ const csisaRepository = {
             }];
         }
 
-        // Accept reportingYearId (yearId from YearMaster) from frontend
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
         const seasonId = parseInt(data.seasonId) || 1;
         const villagesCovered = parseInt(data.villageCovered || data.villagesCovered) || 0;
         const blocksCovered = parseInt(data.blockCovered || data.blocksCovered) || 0;
@@ -57,13 +58,13 @@ const csisaRepository = {
 
         const [csisaRecord] = await prisma.$queryRawUnsafe(`
             INSERT INTO csisa (
-                "kvkId", reporting_year_id, "seasonId", 
+                "kvkId", reporting_year, "seasonId", 
                 villages_covered, blocks_covered, districts_covered, 
                 respondents, trial_name, area_covered_ha,
                 created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING *
-        `, kvkId, reportingYearId, seasonId, villagesCovered, blocksCovered, districtsCovered,
+        `, kvkId, reportingYear, seasonId, villagesCovered, blocksCovered, districtsCovered,
             respondents, trialName, areaCoveredHa);
 
         const csisaId = csisaRecord.csisa_id;
@@ -101,11 +102,24 @@ const csisaRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
-        } else if (filters.reportingYear) {
-            // Backward compatibility: if reportingYear is provided, try to find yearId
-            where.reportingYearId = parseInt(filters.reportingYear);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.csisa.findMany({
@@ -113,7 +127,6 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             },
             orderBy: { csisaId: 'desc' }
@@ -133,7 +146,6 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             }
         });
@@ -153,11 +165,9 @@ const csisaRepository = {
         if (!existing) throw new Error("Record not found or unauthorized");
 
         const updateData = {};
-        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
-        } else if (data.reportingYear !== undefined) {
-            // Backward compatibility
-            updateData.reportingYearId = parseInt(data.reportingYear);
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
         }
         if (data.seasonId !== undefined) updateData.seasonId = parseInt(data.seasonId);
         if (data.villagesCovered !== undefined || data.villageCovered !== undefined || data.villagesCoveredNo !== undefined)
@@ -210,12 +220,12 @@ const csisaRepository = {
             await tx.$executeRawUnsafe(`
                 UPDATE csisa 
                 SET 
-                    reporting_year_id = $1, "seasonId" = $2, villages_covered = $3, 
+                    reporting_year = $1, "seasonId" = $2, villages_covered = $3, 
                     blocks_covered = $4, districts_covered = $5, respondents = $6, 
                     trial_name = $7, area_covered_ha = $8, updated_at = CURRENT_TIMESTAMP
                 WHERE csisa_id = $9
             `,
-                updateData.reportingYearId ?? existing.reportingYearId,
+                updateData.reportingYear ?? existing.reportingYear,
                 updateData.seasonId ?? existing.seasonId,
                 updateData.villagesCovered ?? existing.villagesCovered,
                 updateData.blocksCovered ?? existing.blocksCovered,
@@ -248,7 +258,6 @@ const csisaRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 season: { select: { seasonName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } },
                 cropDetails: true
             }
         });
@@ -288,9 +297,7 @@ function _mapResponse(r) {
         csisaId: r.csisaId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId, // Frontend alias
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
+        reportingYear: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         villagesCovered: r.villagesCovered,

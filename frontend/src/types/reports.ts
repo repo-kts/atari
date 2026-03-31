@@ -7,8 +7,10 @@ export interface ReportSection {
     id: string;
     title: string;
     description: string;
-    subsection: boolean;
+    subsection?: boolean;
     parentSectionId?: string;
+    dataSource?: string;
+    fields?: any[];
 }
 
 export interface ReportConfig {

@@ -46,6 +46,9 @@ class ReportDataService {
             case 'kvkEmployees':
                 rawData = await reportRepository.getKvkEmployees(kvkId, sectionFilters);
                 break;
+            case 'kvkEmployeesHeads':
+                rawData = await reportRepository.getKvkEmployeeHeads(kvkId, sectionFilters);
+                break;
             case 'kvkStaffTransferred':
                 rawData = await reportRepository.getKvkStaffTransferred(kvkId, sectionFilters);
                 break;
@@ -54,6 +57,9 @@ class ReportDataService {
                 break;
             case 'kvkVehicles':
                 rawData = await reportRepository.getKvkVehicles(kvkId, sectionFilters);
+                break;
+            case 'kvkVehicleDetails':
+                rawData = await reportRepository.getKvkVehicleDetails(kvkId, sectionFilters);
                 break;
             case 'kvkEquipments':
                 rawData = await reportRepository.getKvkEquipments(kvkId, sectionFilters);
@@ -212,6 +218,8 @@ class ReportDataService {
         }
 
         switch (field.type) {
+            case 'raw':
+                return value;
             case 'date':
                 if (value instanceof Date) {
                     return value.toLocaleDateString('en-IN', {
@@ -278,8 +286,8 @@ class ReportDataService {
             zone: kvk.zone?.zoneName || '',
             state: kvk.state?.stateName || '',
             district: kvk.district?.districtName || '',
-            organization: kvk.org?.uniName || '',
-            university: kvk.university?.uniName || null,
+            organization: kvk.org?.orgName || '',
+            university: kvk.university?.universityName || null,
             hostOrg: kvk.hostOrg,
             yearOfSanction: kvk.yearOfSanction,
         };

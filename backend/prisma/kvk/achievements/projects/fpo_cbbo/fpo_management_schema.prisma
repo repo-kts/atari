@@ -13,12 +13,10 @@ model FpoManagement {
   successIndicator      String      @map("success_indicator")
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
-  reportingYearId       Int?        @map("reporting_year_id")
-  kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear         YearMaster? @relation(fields: [reportingYearId], references: [yearId])
-
-  @@index([kvkId])
+  reportingYear DateTime? @map("reporting_year")
+kvk                   Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+@@index([kvkId])
   @@index([fpoName])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("fpo_management")
 }

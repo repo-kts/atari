@@ -1,8 +1,8 @@
 import React from 'react'
 import { X } from 'lucide-react'
-import { ENTITY_TYPES } from '../../../constants/entityTypes'
+import { ENTITY_TYPES } from '../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../utils/masterUtils'
-import { getEntityTypeChecks } from '../../../utils/entityTypeUtils'
+import { getEntityTypeChecks } from '../../../utils/entityTypeHelpers'
 
 // Form Components
 import { BasicMasterForms } from './forms/BasicMasterForms'

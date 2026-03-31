@@ -1,4 +1,5 @@
 import React from 'react'
+import { DatePicker } from '@/components/ui/date-picker'
 
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     label: string
@@ -19,20 +20,26 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
             const todayStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
 
             const stepFromProps = props.step
+            const isInteger =
+                type === 'number' &&
+                (lowerLabel.includes('no of') ||
+                 lowerLabel.includes('number of') ||
+                 lowerLabel.includes('count') ||
+                 lowerLabel.includes('beneficiar') ||
+                 lowerLabel.includes('farmer') ||
+                 lowerLabel.includes('village') ||
+                 lowerLabel.includes('training') ||
+                 lowerLabel.includes('trainee') ||
+                 lowerLabel.includes('demonstration') ||
+                 lowerLabel.includes('days') ||
+                 lowerLabel.includes('year') ||
+                 lowerLabel.includes('id'));
+
             const computedStep =
                 type === 'number'
                     ? (stepFromProps !== undefined && stepFromProps !== null && String(stepFromProps).length > 0
                         ? stepFromProps
-                        : (lowerLabel.includes('ha') ||
-                            lowerLabel.includes('area') ||
-                            lowerLabel.includes('budget') ||
-                            lowerLabel.includes('expenditure') ||
-                            lowerLabel.includes('allocation') ||
-                            lowerLabel.includes('income') ||
-                            lowerLabel.includes('amount') ||
-                            lowerLabel.includes('balance')
-                            ? '0.01'
-                            : '1'))
+                        : (isInteger ? '1' : 'any'))
                     : stepFromProps
 
             const computedMin =
@@ -47,7 +54,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
 
             const originalOnChange = props.onChange
             const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                if (type === 'number' && String(computedStep) === '1') {
+                if (type === 'number' && computedStep === '1') {
                     const v = e.target.value
                     if (v && v.includes('.')) {
                         // Enforce whole numbers client-side for integer inputs.
@@ -57,15 +64,44 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                 originalOnChange?.(e)
             }
 
+            // Ensure 0 is shown instead of empty string by handling it specifically
+            const inputValue = (type === 'number' && props.value === 0) ? '0' : (props.value ?? '');
+
+            if (type === 'date') {
+                const dateValue = String(props.value ?? '')
+                const datePlaceholder =
+                    typeof props.placeholder === 'string' && props.placeholder.trim().length > 0
+                        ? props.placeholder
+                        : `Approx. date (e.g. 15-03-${today.getFullYear()})`
+                return (
+                    <DatePicker
+                        value={dateValue}
+                        onChange={(nextValue) => {
+                            originalOnChange?.({
+                                target: { value: nextValue },
+                                currentTarget: { value: nextValue },
+                            } as React.ChangeEvent<HTMLInputElement>)
+                        }}
+                        min={typeof props.min === 'string' ? props.min : undefined}
+                        max={typeof computedMax === 'string' ? computedMax : undefined}
+                        disabled={props.disabled}
+                        placeholder={datePlaceholder}
+                        ariaLabel={label}
+                        className={className}
+                    />
+                )
+            }
+
             return (
                 <input
                     {...props}
+                    value={inputValue}
                     required={required}
                     step={computedStep}
                     min={computedMin}
                     max={computedMax}
                     onChange={handleChange}
-                    inputMode={type === 'number' ? 'numeric' : props.inputMode}
+                    inputMode={type === 'number' ? (isInteger ? 'numeric' : 'decimal') : props.inputMode}
                     className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
                 />
             )

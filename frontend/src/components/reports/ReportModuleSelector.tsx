@@ -9,7 +9,8 @@ import {
     Trash2,
     Users,
     Check,
-    ChevronDown
+    ChevronDown,
+    Search
 } from 'lucide-react';
 import type { ReportSection } from '../../types/reports';
 
@@ -18,6 +19,8 @@ interface ReportModuleSelectorProps {
     selectedSections: Set<string>;
     onSectionToggle: (sectionId: string) => void;
     onCategorySelectAll: (sectionIds: string[]) => void;
+    collapsed?: boolean;
+    onToggleCollapse?: () => void;
 }
 
 export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
@@ -25,9 +28,16 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     selectedSections,
     onSectionToggle,
     onCategorySelectAll,
+    collapsed = false,
+    onToggleCollapse,
 }) => {
     const [activeTab, setActiveTab] = useState<string>('about');
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const searchInputRef = React.useRef<HTMLInputElement | null>(null);
+    const containerRef = React.useRef<HTMLDivElement | null>(null);
+    const [isNarrow, setIsNarrow] = useState(false);
+    const searchInputId = 'report-module-search';
 
     const categoryMapping = [
         { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
@@ -44,6 +54,38 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
         setActiveTab(categoryId);
     };
 
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+    React.useEffect(() => {
+        if (isSearchOpen) {
+            searchInputRef.current?.focus();
+        }
+    }, [isSearchOpen]);
+
+    React.useEffect(() => {
+        if (!containerRef.current || typeof ResizeObserver === 'undefined') return;
+        const element = containerRef.current;
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const width = entry.contentRect.width;
+                setIsNarrow(width < 340);
+            }
+        });
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
+
+    const handleToggleSearch = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation();
+        if (isSearchOpen) {
+            setIsSearchOpen(false);
+            setSearchTerm('');
+            return;
+        }
+        setIsSearchOpen(true);
+    };
+
+    // Helper to get all sections for a category and build the hierarchy
     const sectionHierarchy = useMemo(() => {
         const hierarchy: Record<string, { mainSections: ReportSection[], subSections: Record<string, ReportSection[]> }> = {};
 
@@ -52,13 +94,19 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                 const sParentId = String(s.parentSectionId || '');
                 const cParentId = String(cat.parentId || '');
                 const sId = String(s.id || '');
+
+                // Direct children of category
                 const matchesParent = sParentId === cParentId;
+                // Prefix match (fallback)
                 const matchesPrefix = sId.startsWith(cParentId + '.');
+
                 return matchesParent || matchesPrefix;
             });
 
+            // Find main sections (direct children of category)
             const mainSections = catSections.filter(s => String(s.parentSectionId) === String(cat.parentId));
 
+            // Find subsections (children of main sections)
             const subSections: Record<string, ReportSection[]> = {};
             catSections.forEach(s => {
                 if (mainSections.some(m => String(m.id) === String(s.parentSectionId))) {
@@ -75,121 +123,189 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     }, [sections]);
 
     return (
-        <div className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+        <div ref={containerRef} className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
             <div className="p-0">
                 <div
-                    className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${isCollapsed ? 'mb-0' : 'mb-4'}`}
-                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
+                    onClick={onToggleCollapse}
                 >
                     <div className="flex items-center gap-3 h-10">
-                        <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${isCollapsed ? '-rotate-90' : ''}`}>
+                        <div className={`p-1.5 bg-[#487749]/10 rounded-lg transition-transform duration-300 ${collapsed ? '-rotate-90' : ''}`}>
                             <ChevronDown className="w-4 h-4 text-[#487749]" />
                         </div>
-                        <h3 className="text-sm font-bold text-[#487749] leading-none">Report Modules</h3>
+                        <h3 className={`text-sm font-semibold text-[#487749] leading-none ${(isSearchOpen && isNarrow) ? 'hidden' : 'block'}`}>
+                            Report Modules
+                        </h3>
+                    </div>
+                    <div
+                        className="flex items-center gap-2"
+                        onClick={event => event.stopPropagation()}
+                    >
+                        <div className={`overflow-hidden transition-all duration-200 ease-out ${isSearchOpen ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
+                            <input
+                                id={searchInputId}
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchTerm}
+                                onChange={event => setSearchTerm(event.target.value)}
+                                placeholder="Search..."
+                                onKeyDown={event => {
+                                    if (event.key === 'Escape') {
+                                        setIsSearchOpen(false);
+                                        setSearchTerm('');
+                                    }
+                                }}
+                                className="h-8 w-full rounded-lg border border-[#D8E3D8] bg-white px-2.5 text-xs text-[#2d4a2f] outline-none focus:border-[#487749]"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleToggleSearch}
+                            className="h-8 w-8 rounded-lg border border-[#D8E3D8] bg-white text-[#487749] hover:bg-[#F5FAF5] flex items-center justify-center"
+                            aria-label="Toggle module search"
+                            aria-expanded={isSearchOpen}
+                            aria-controls={searchInputId}
+                        >
+                            <Search className="h-3.5 w-3.5" />
+                        </button>
                     </div>
                 </div>
 
-                {!isCollapsed && (
-                    <div className="space-y-0.5 animate-in fade-in slide-in-from-top-2 duration-500">
-                        <div className="bg-[#487749] p-1 rounded-[12px] flex items-center gap-0.5 overflow-x-auto no-scrollbar shadow-sm mb-2">
-                            {categoryMapping.map(category => {
-                                const isActive = activeTab === category.id;
-                                return (
-                                    <button
-                                        key={category.id}
-                                        onClick={() => handleTabChange(category.id)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-[12.5px] font-bold whitespace-nowrap transition-all duration-300
+                <div
+                    className={`space-y-0.5 overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ${collapsed ? 'max-h-0 opacity-0 pointer-events-none' : 'max-h-[1200px] opacity-100'
+                        }`}
+                >
+                    {/* Green Tab Bar Header - synchronized with ReportScopeSelector style */}
+                    <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 shadow-sm mb-2">
+                        {categoryMapping.map(category => {
+                            const isActive = activeTab === category.id;
+                            return (
+                                <button
+                                    key={category.id}
+                                    onClick={() => handleTabChange(category.id)}
+                                    title={category.label}
+                                    className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2 rounded-[10px] text-[11px] font-medium whitespace-nowrap transition-all duration-300 text-center
                                     ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
+                                >
+                                    <span className={`shrink-0 text-center ${isActive ? 'text-[#487749]' : 'text-white'}`}>{category.icon}</span>
+                                    <span className={`truncate ${isNarrow ? 'hidden' : 'block'}`}>{category.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="bg-white border-none rounded-b-[20px]">
+                        {(() => {
+                            const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
+                            const { mainSections, subSections } = sectionHierarchy[category.id] || { mainSections: [], subSections: {} };
+
+                            const allCategoryItemIds: string[] = [];
+                            mainSections.forEach(m => {
+                                if (subSections[m.id]) {
+                                    allCategoryItemIds.push(...subSections[m.id].map(s => s.id));
+                                } else if (m.dataSource) {
+                                    allCategoryItemIds.push(m.id);
+                                }
+                            });
+
+                            const selectedInCat = allCategoryItemIds.filter(id => selectedSections.has(id)).length;
+                            const allSelected = selectedInCat === allCategoryItemIds.length && allCategoryItemIds.length > 0;
+
+                            return (
+                                <div key={category.id} className="flex flex-col">
+                                    {/* Select All Bar - Matches Picture Style */}
+                                    <div
+                                        onClick={() => onCategorySelectAll(allCategoryItemIds)}
+                                        className="bg-[#F1F8F1] px-4 py-2 border-b border-[#E0E0E0] mb-2 rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
                                     >
-                                        <span className={isActive ? 'text-[#487749]' : 'text-white'}>{category.icon}</span>
-                                        {category.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <div className="bg-white border-none rounded-b-[20px]">
-                            {(() => {
-                                const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
-                                const { mainSections, subSections } = sectionHierarchy[category.id] || { mainSections: [], subSections: {} };
-
-                                const allCategoryItemIds: string[] = [];
-                                mainSections.forEach(m => {
-                                    if (subSections[m.id]) {
-                                        allCategoryItemIds.push(...subSections[m.id].map(s => s.id));
-                                    } else if (m.dataSource) {
-                                        allCategoryItemIds.push(m.id);
-                                    }
-                                });
-
-                                const selectedInCat = allCategoryItemIds.filter(id => selectedSections.has(id)).length;
-                                const allSelected = selectedInCat === allCategoryItemIds.length && allCategoryItemIds.length > 0;
-
-                                return (
-                                    <div key={category.id} className="flex flex-col">
-                                        <div
-                                            onClick={() => onCategorySelectAll(allCategoryItemIds)}
-                                            className="bg-[#F1F8F1] px-4 py-2 border-b border-[#E0E0E0] mb-2 rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
-                                        >
-                                            <span className="text-[11px] font-bold text-[#757575] italic">Select all</span>
-                                            <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all ${allSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
-                                                {allSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
-                                            </div>
+                                        <span className="text-[11px] font-medium text-[#757575]">Select all</span>
+                                        <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all ${allSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
+                                            {allSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
                                         </div>
+                                    </div>
 
-                                        <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-white">
-                                            {mainSections.map(parent => {
-                                                const children = subSections[parent.id] || [];
+                                    {/* Single Column Vertical List - Matches Picture Style */}
+                                    <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-white">
+                                        {mainSections.map(parent => {
+                                            const children = subSections[parent.id] || [];
 
-                                                if (children.length > 0) {
-                                                    return children.map(child => {
-                                                        const isSelected = selectedSections.has(child.id);
-                                                        return (
-                                                            <div
-                                                                key={child.id}
-                                                                onClick={() => onSectionToggle(child.id)}
-                                                                className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
-                                                            >
-                                                                <span className={`text-[13px] font-medium text-[#424242] ${isSelected ? 'text-[#487749] font-bold' : ''}`}>
-                                                                    {child.title}
-                                                                </span>
-                                                                <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
-                                                                    {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    });
-                                                }
+                                            // If it has sub-sections, we list them all in order
+                                            if (children.length > 0) {
+                                                const filteredChildren = normalizedSearchTerm
+                                                    ? children.filter(child => child.title.toLowerCase().includes(normalizedSearchTerm))
+                                                    : children;
 
-                                                if (parent.dataSource) {
-                                                    const isSelected = selectedSections.has(parent.id);
+                                                return filteredChildren.map(child => {
+                                                    const isSelected = selectedSections.has(child.id);
                                                     return (
                                                         <div
-                                                            key={parent.id}
-                                                            onClick={() => onSectionToggle(parent.id)}
+                                                            key={child.id}
+                                                            onClick={() => onSectionToggle(child.id)}
                                                             className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                         >
-                                                            <span className={`text-[13px] font-medium text-[#424242] ${isSelected ? 'text-[#487749] font-bold' : ''}`}>
-                                                                {parent.title}
+                                                            <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
+                                                                {child.title}
                                                             </span>
                                                             <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
                                                                 {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
                                                             </div>
                                                         </div>
                                                     );
-                                                }
+                                                });
+                                            }
 
-                                                return null;
-                                            })}
-                                        </div>
+                                            if (parent.dataSource) {
+                                                if (normalizedSearchTerm && !parent.title.toLowerCase().includes(normalizedSearchTerm)) {
+                                                    return null;
+                                                }
+                                                const isSelected = selectedSections.has(parent.id);
+                                                return (
+                                                    <div
+                                                        key={parent.id}
+                                                        onClick={() => onSectionToggle(parent.id)}
+                                                        className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
+                                                    >
+                                                        <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
+                                                            {parent.title}
+                                                        </span>
+                                                        <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
+                                                            {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return null;
+                                        })}
                                     </div>
-                                );
-                            })()}
-                        </div>
+                                    {normalizedSearchTerm && (
+                                        (() => {
+                                            const visibleCount = mainSections.reduce((count, parent) => {
+                                                const children = subSections[parent.id] || [];
+                                                if (children.length > 0) {
+                                                    return count + children.filter(child => child.title.toLowerCase().includes(normalizedSearchTerm)).length;
+                                                }
+                                                if (parent.dataSource && parent.title.toLowerCase().includes(normalizedSearchTerm)) {
+                                                    return count + 1;
+                                                }
+                                                return count;
+                                            }, 0);
+
+                                            if (visibleCount > 0) return null;
+                                            return (
+                                                <div className="py-4 text-center">
+                                                    <p className="text-[10px] text-[#9E9E9E] italic">No matching results</p>
+                                                </div>
+                                            );
+                                        })()
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
 };
-

@@ -46,12 +46,6 @@ router.delete('/sanctioned-posts/:id', requirePermission('all_masters_sanctioned
 // Year Routes
 // ============================================
 
-router.get('/years',     otherMastersController.getAllYears);
-router.get('/years/:id', otherMastersController.getYearById);
-router.post('/years',    requirePermission('all_masters_year_master', 'ADD'),  otherMastersController.createYear);
-router.put('/years/:id', requirePermission('all_masters_year_master', 'EDIT'), otherMastersController.updateYear);
-router.delete('/years/:id', requirePermission('all_masters_year_master', 'DELETE'), otherMastersController.deleteYear);
-
 // ============================================
 // Employee Masters Routes
 // ============================================

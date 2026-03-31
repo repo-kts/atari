@@ -40,11 +40,6 @@ export interface SanctionedPost {
     };
 }
 
-export interface Year {
-    yearId: number;
-    yearName: string;
-}
-
 // Form Data Types
 export interface SeasonFormData {
     seasonName: string;
@@ -52,10 +47,6 @@ export interface SeasonFormData {
 
 export interface SanctionedPostFormData {
     postName: string;
-}
-
-export interface YearFormData {
-    yearName: string;
 }
 
 // Employee Masters
@@ -397,22 +388,6 @@ export const otherMastersApi = {
 
     deleteSanctionedPost: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/sanctioned-posts/${id}`),
-
-    // Years
-    getYears: () =>
-        apiClient.get<PaginatedResponse<Year>>(`${BASE_URL}/years`),
-
-    getYearById: (id: number) =>
-        apiClient.get<ApiResponse<Year>>(`${BASE_URL}/years/${id}`),
-
-    createYear: (data: YearFormData) =>
-        apiClient.post<ApiResponse<Year>>(`${BASE_URL}/years`, data),
-
-    updateYear: (id: number, data: Partial<YearFormData>) =>
-        apiClient.put<ApiResponse<Year>>(`${BASE_URL}/years/${id}`, data),
-
-    deleteYear: (id: number) =>
-        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/years/${id}`),
 
     // Employee Masters
     getStaffCategories: () =>

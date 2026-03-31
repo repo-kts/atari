@@ -4,10 +4,11 @@ const {
     parseInteger,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {
     if (!r) return null;
-    return { ...r, id: r.msgDetailsId };
+    return { ...r, id: r.msgDetailsId, yearName: formatReportingYear(r.reportingYear) };
 };
 
 const msgDetailsRepository = {
@@ -22,7 +23,11 @@ const msgDetailsRepository = {
             const result = await prisma.msgDetails.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInteger(data.reportingYearId, 'reportingYearId') : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     textNoOfFarmersCovered: parseInteger(data.textNoOfFarmersCovered || 0, 'textNoOfFarmersCovered'),
                     textNoOfAdvisoriesSent: parseInteger(data.textNoOfAdvisoriesSent || 0, 'textNoOfAdvisoriesSent'),
                     textCrop: String(data.textCrop || ''),
@@ -56,7 +61,7 @@ const msgDetailsRepository = {
                     socialAwareness: String(data.socialAwareness || ''),
                     socialOtherEnterprises: String(data.socialOtherEnterprises || ''),
                 },
-                include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+                include: { kvk: { select: { kvkName: true } } }
             });
             return _mapResponse(result);
         } catch (error) {
@@ -75,7 +80,7 @@ const msgDetailsRepository = {
 
         const records = await prisma.msgDetails.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
             orderBy: { msgDetailsId: 'desc' },
         });
         return records.map(_mapResponse);
@@ -90,7 +95,7 @@ const msgDetailsRepository = {
 
         const record = await prisma.msgDetails.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
         });
         if (!record) throw new RepositoryError('Message Details record not found', 'NOT_FOUND', 404);
         return _mapResponse(record);
@@ -109,7 +114,13 @@ const msgDetailsRepository = {
         const result = await prisma.msgDetails.update({
             where: { msgDetailsId },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? parseInteger(data.reportingYearId, 'reportingYearId') : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 // Text
                 textNoOfFarmersCovered: data.textNoOfFarmersCovered !== undefined ? parseInteger(data.textNoOfFarmersCovered) : existing.textNoOfFarmersCovered,
                 textNoOfAdvisoriesSent: data.textNoOfAdvisoriesSent !== undefined ? parseInteger(data.textNoOfAdvisoriesSent) : existing.textNoOfAdvisoriesSent,
@@ -147,7 +158,7 @@ const msgDetailsRepository = {
                 socialAwareness: data.socialAwareness !== undefined ? String(data.socialAwareness) : existing.socialAwareness,
                 socialOtherEnterprises: data.socialOtherEnterprises !== undefined ? String(data.socialOtherEnterprises) : existing.socialOtherEnterprises,
             },
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+            include: { kvk: { select: { kvkName: true } } }
         });
         return _mapResponse(result);
     },

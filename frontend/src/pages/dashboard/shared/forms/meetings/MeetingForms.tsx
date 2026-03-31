@@ -26,7 +26,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -56,7 +56,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
@@ -168,15 +168,15 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 <label className="block text-sm font-semibold text-gray-700">
                                     Upload File <span className="text-red-500">*</span>
                                 </label>
-                                
+
                                 {(formData.uploadedFile || formData.file) && (
                                     <div className="mb-2 p-3 bg-[#487749]/5 border border-[#487749]/20 rounded-xl flex items-center justify-between">
                                         <div className="flex items-center gap-3 overflow-hidden">
                                             {typeof (formData.uploadedFile || formData.file) === 'string' && (formData.uploadedFile || formData.file).startsWith('data:image') ? (
-                                                <img 
-                                                    src={formData.uploadedFile || formData.file} 
-                                                    alt="Preview" 
-                                                    className="w-10 h-10 object-cover rounded-lg border border-[#E0E0E0]" 
+                                                <img
+                                                    src={formData.uploadedFile || formData.file}
+                                                    alt="Preview"
+                                                    className="w-10 h-10 object-cover rounded-lg border border-[#E0E0E0]"
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 bg-[#487749]/10 rounded-lg flex items-center justify-center text-[#487749]">
@@ -188,8 +188,8 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-semibold text-[#487749]">Existing File</span>
                                                 <span className="text-[10px] text-gray-500 truncate max-w-[150px]">
-                                                    {typeof (formData.uploadedFile || formData.file) === 'string' && (formData.uploadedFile || formData.file).length > 30 
-                                                        ? 'Current file attached' 
+                                                    {typeof (formData.uploadedFile || formData.file) === 'string' && (formData.uploadedFile || formData.file).length > 30
+                                                        ? 'Current file attached'
                                                         : (formData.uploadedFile || formData.file)}
                                                 </span>
                                             </div>
@@ -225,7 +225,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear || ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}

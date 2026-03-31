@@ -9,7 +9,6 @@ interface CraFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     seasons: any[]
     farmingSystems: any[]
     farmingSystemsLoading?: boolean
@@ -22,7 +21,6 @@ export const CraForms: React.FC<CraFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     seasons,
     farmingSystems,
     farmingSystemsLoading = false,
@@ -35,13 +33,12 @@ export const CraForms: React.FC<CraFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Season"
@@ -92,6 +89,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             value={formData.farmingSystemId || ''}
                             onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
+                            isLoading={farmingSystemsLoading}
                             options={createMasterDataOptions(
                                 farmingSystems.filter((fs: any) => !formData.seasonId || fs.seasonId === parseInt(formData.seasonId)),
                                 'craFarmingSystemId',

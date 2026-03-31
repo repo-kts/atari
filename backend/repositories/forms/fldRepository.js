@@ -2,6 +2,7 @@ const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const {
     validateInput,
     resolveKvkId,
@@ -27,7 +28,6 @@ const FLD_CONFIG = {
     orderBy: { kvkFldId: 'desc' },
     includes: {
         kvk: { select: { kvkId: true, kvkName: true } },
-        reportingYear: { select: { yearId: true, yearName: true } },
         kvkStaff: { select: { kvkStaffId: true, staffName: true } },
         season: { select: { seasonId: true, seasonName: true } },
         sector: { select: { sectorId: true, sectorName: true } },
@@ -36,7 +36,7 @@ const FLD_CONFIG = {
         subCategory: { select: { subCategoryId: true, subCategoryName: true } },
         crop: { select: { cropId: true, cropName: true } },
     },
-    filterableFields: ['reportingYearId', 'seasonId', 'sectorId', 'thematicAreaId', 'categoryId', 'subCategoryId', 'cropId'],
+    filterableFields: ['seasonId', 'sectorId', 'thematicAreaId', 'categoryId', 'subCategoryId', 'cropId'],
     farmerCountMapping: {
         gen_m: 'generalM',
         gen_f: 'generalF',
@@ -64,10 +64,10 @@ const CREATE_FIELD_DEFINITIONS = {
         errorField: 'seasonId',
         optional: true, // Schema allows Int?
     },
-    reportingYearId: {
-        fieldNames: ['reportingYearId', 'yearId'],
+    reportingYear: {
+        fieldNames: ['reportingYear'],
         errorMessage: 'Reporting Year is required',
-        errorField: 'reportingYearId',
+        errorField: 'reportingYear',
         optional: true,
     },
     sectorId: {
@@ -139,14 +139,7 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorMessage: 'Valid Staff ID is required',
         errorField: 'staffId',
     },
-    {
-        fieldNames: ['reportingYearId', 'yearId'],
-        type: 'integer',
-        backendField: 'reportingYearId',
-        errorMessage: 'Valid Reporting Year ID is required',
-        errorField: 'reportingYearId',
-        options: { required: false },
-    },
+    
     {
         fieldNames: ['seasonId'],
         type: 'integer',
@@ -250,13 +243,11 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorMessage,
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorField
             ),
-            reportingYearId: validateRequiredInteger(
-                data,
-                CREATE_FIELD_DEFINITIONS.reportingYearId.fieldNames,
-                CREATE_FIELD_DEFINITIONS.reportingYearId.errorMessage,
-                CREATE_FIELD_DEFINITIONS.reportingYearId.errorField,
-                { required: !CREATE_FIELD_DEFINITIONS.reportingYearId.optional }
-            ),
+            reportingYear: (() => {
+                const d = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(d);
+                return d;
+            })(),
             seasonId: validateRequiredInteger(
                 data,
                 CREATE_FIELD_DEFINITIONS.seasonId.fieldNames,
@@ -388,6 +379,25 @@ const fldRepository = {
         if (where === null) return []; // User has no KVK access
 
         applyFilters(where, filters, FLD_CONFIG.filterableFields);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma[FLD_CONFIG.model].findMany({
             where,
@@ -434,6 +444,10 @@ const fldRepository = {
 
         // Build update data using field definitions
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
+        }
         delete updateData.status;
         delete updateData.ongoingCompleted;
 
@@ -556,7 +570,7 @@ const fldRepository = {
                 stM: sourceFld.stM,
                 stF: sourceFld.stF,
                 ongoingCompleted: FLD_STATUS.ONGOING,
-                reportingYearId: targetReportingYearId,
+                reportingYear: parseReportingYearDate(targetReportingYearId),
             }, ['kvkFldId', 'id']);
 
             const newRecord = await tx.kvkFldIntroduction.create({
@@ -647,8 +661,7 @@ function _mapResponse(r) {
         staffId: r.kvkStaffId,
         kvkStaffId: r.kvkStaffId,
         staffName: r.kvkStaff?.staffName,
-        reportingYearId: r.reportingYearId,
-        reportingYear: r.reportingYear?.yearName,
+        reportingYear: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         seasonName: r.season?.seasonName,
         sectorId: r.sectorId,

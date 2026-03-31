@@ -101,7 +101,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
 
     // Memoize options
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -129,7 +129,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
@@ -160,7 +160,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -265,7 +265,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -371,7 +371,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -436,7 +436,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear || ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -519,7 +519,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear || ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -631,7 +631,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear || ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}

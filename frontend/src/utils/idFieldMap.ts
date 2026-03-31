@@ -32,7 +32,6 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.SEASONS]: 'seasonId',
     [ENTITY_TYPES.SEASON]: 'seasonId',
     [ENTITY_TYPES.SANCTIONED_POST]: 'sanctionedPostId',
-    [ENTITY_TYPES.YEAR]: 'yearId',
 
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: 'staffCategoryId',

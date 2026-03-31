@@ -1,10 +1,27 @@
 const { getSectionConfig, getAllSections } = require('../../config/reportConfig.js');
+const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
+const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
+const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
+const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
+const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
+const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 
 /**
  * Report Template Service
  * Generates HTML templates for PDF reports
  */
 class ReportTemplateService {
+    constructor() {
+        this.customTemplateHandlers = {
+            'about-kvk-view': renderAboutKvkSection.bind(this),
+            'about-kvk-bank-accounts': renderSimpleTableSection.bind(this),
+            'about-kvk-employee-contacts': renderEmployeeContactsSection.bind(this),
+            'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
+            'about-kvk-vehicles': renderVehiclesSection.bind(this),
+            'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
+        };
+    }
+
     /**
      * Generate complete HTML for the report
      */
@@ -13,12 +30,12 @@ class ReportTemplateService {
         // Filter sections that have valid data (not errors, not null/undefined)
         const selectedSections = sections.filter(s => {
             const sectionData = sectionsData[s.id];
-            return sectionData && 
-                   !sectionData.error && 
-                   sectionData.data !== null && 
-                   sectionData.data !== undefined;
+            return sectionData &&
+                !sectionData.error &&
+                sectionData.data !== null &&
+                sectionData.data !== undefined;
         });
-        
+
         const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +55,40 @@ class ReportTemplateService {
 </html>`;
 
         return html;
+    }
+
+    /**
+     * Generate standalone HTML document for a custom template.
+     * Reuses the same custom-template handlers used by all-reports flow.
+     */
+    generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
+        const { sectionId = '1.1', title = 'Custom Report' } = options;
+        const pseudoSection = { id: sectionId, title };
+        const sectionConfig = { customTemplate: templateKey };
+        const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
+        const renderedSection = this._generateCustomSection(
+            pseudoSection,
+            data,
+            sectionConfig,
+            sectionAnchorId,
+            true
+        );
+
+        return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this._escapeHtml(title)}</title>
+    ${this._getStyles()}
+</head>
+<body>
+    <div class="sections-container">
+        ${renderedSection}
+    </div>
+</body>
+</html>`;
     }
 
     /**
@@ -138,18 +189,81 @@ class ReportTemplateService {
             }
 
             // Generate section based on format
-            if (sectionConfig.format === 'formatted-text') {
+            if (sectionConfig.format === 'custom') {
+                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection);
+            } else if (sectionConfig.format === 'formatted-text') {
                 html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
             } else if (sectionConfig.format === 'table') {
                 html += this._generateTableSection(section, data, sectionId, isFirstSection);
             } else if (sectionConfig.format === 'grouped-table') {
                 html += this._generateGroupedTableSection(section, data, sectionId, isFirstSection);
             }
-            
+
             isFirstSection = false;
         });
 
         return html;
+    }
+
+    /**
+     * Generate custom section using dedicated template keys
+     */
+    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection) {
+        const customTemplateKey = sectionConfig?.customTemplate;
+        if (!customTemplateKey) {
+            return this._generateEmptySection(section, 'Custom template key is missing', sectionId, isFirstSection);
+        }
+
+        const customTemplateHandler = this.customTemplateHandlers[customTemplateKey];
+        if (!customTemplateHandler) {
+            return this._generateEmptySection(
+                section,
+                `Unsupported custom template: ${customTemplateKey}`,
+                sectionId,
+                isFirstSection
+            );
+        }
+
+        return customTemplateHandler(section, data, sectionId, isFirstSection);
+    }
+
+    /**
+     * Generic simple table renderer for custom templates (bank accounts, employees, etc.)
+     */
+    _generateSimpleTableSection(section, data, sectionId, isFirstSection) {
+        // Delegated to forms template files to keep this service manageable.
+        return renderSimpleTableSection.call(this, section, data, sectionId, isFirstSection);
+    }
+
+    /**
+     * Employee contacts section (KVK, Name, Residence, Mobile, Email)
+     */
+    _generateEmployeeContactsSection(section, data, sectionId, isFirstSection) {
+        // Delegated to forms template files to keep this service manageable.
+        return renderEmployeeContactsSection.call(this, section, data, sectionId, isFirstSection);
+    }
+
+    /**
+     * Employees full section with sanctioned post, DoB, discipline, pay, joining, category
+     */
+    _generateEmployeesFullSection(section, data, sectionId, isFirstSection) {
+        // Delegated to forms template files to keep this service manageable.
+        return renderEmployeesFullSection.call(this, section, data, sectionId, isFirstSection);
+    }
+
+    /**
+     * Vehicles section template: S.No., KVK, Type of vehicle, Year of purchase, Cost, Total Run, Present status
+     */
+    _generateVehiclesSection(section, data, sectionId, isFirstSection) {
+        // Delegated to forms template files to keep this service manageable.
+        return renderVehiclesSection.call(this, section, data, sectionId, isFirstSection);
+    }
+
+    /**
+     * Generate "About KVK" section in the official tabular layout.
+     */
+    _generateAboutKvkSection(section, data, sectionId, isFirstSection) {
+        return renderAboutKvkSection.call(this, section, data, sectionId, isFirstSection);
     }
 
     /**
@@ -163,10 +277,10 @@ class ReportTemplateService {
         }
 
         const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
-        
+
         // Handle both single object and array of objects
         const dataArray = Array.isArray(data) ? data : [data];
-        
+
         if (dataArray.length === 0) {
             return this._generateEmptySection(section, null, sectionId, isFirstSection);
         }
@@ -181,11 +295,11 @@ class ReportTemplateService {
             // Include field if at least one row has a value
             return dataArray.some(row => row[key] !== null && row[key] !== undefined);
         });
-        
+
         if (fieldNames.length === 0) {
             return this._generateEmptySection(section, null, sectionId, isFirstSection);
         }
-        
+
         let html = `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
@@ -210,13 +324,13 @@ class ReportTemplateService {
             html += `
             <tr class="${rowClass}">
                 <td class="s-no">${index + 1}.</td>`;
-            
+
             // Add data values in cells
             fieldNames.forEach(fieldName => {
                 const value = rowData[fieldName];
                 html += `<td>${value !== null && value !== undefined ? this._escapeHtml(String(value)) : '-'}</td>`;
             });
-            
+
             html += `
             </tr>`;
         });
@@ -291,8 +405,8 @@ class ReportTemplateService {
 
         data.forEach((item, itemIndex) => {
             // Main item info
-            const mainFields = Object.keys(item).filter(key => 
-                !key.includes('Reporting Year') && 
+            const mainFields = Object.keys(item).filter(key =>
+                !key.includes('Reporting Year') &&
                 !key.includes('Total Run') &&
                 !key.includes('Present Status') &&
                 key !== 'reportingYear'
@@ -339,7 +453,7 @@ class ReportTemplateService {
      * Generate empty section
      */
     _generateEmptySection(section, error = null, sectionId = null, isFirstSection = false) {
-        const message = error 
+        const message = error
             ? `Error loading data: ${this._escapeHtml(error)}`
             : 'No data available for this section.';
         const idAttr = sectionId ? `id="${sectionId}"` : '';
@@ -349,6 +463,196 @@ class ReportTemplateService {
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
     <p class="empty-message">${message}</p>
 </div>`;
+    }
+
+    _renderContactTable({ rows, nameColumnLabel, includeSanctionYear = false }) {
+        const bodyRows = (rows && rows.length > 0 ? rows : [{}])
+            .map((row, index) => `
+            <tr>
+                <td class="serial-col">${index + 1}.</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.name))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.address))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.officePhone))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.fax))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.email))}</td>
+                ${includeSanctionYear ? `<td>${this._escapeHtml(this._toDisplayValue(row.sanctionYear))}</td>` : ''}
+            </tr>`)
+            .join('');
+
+        return `
+    <table class="about-kvk-table contact-table">
+        <thead>
+            <tr>
+                <th rowspan="2" class="serial-col">S.No.</th>
+                <th rowspan="2" class="name-col">${this._escapeHtml(nameColumnLabel)}</th>
+                <th rowspan="2" class="address-col">Address</th>
+                <th colspan="2" class="phone-col">Telephone</th>
+                <th rowspan="2" class="email-col">E-Mail</th>
+                ${includeSanctionYear ? '<th rowspan="2" class="year-col">Sanction Year</th>' : ''}
+            </tr>
+            <tr>
+                <th class="office-col">Office</th>
+                <th class="fax-col">FAX</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${bodyRows}
+        </tbody>
+    </table>`;
+    }
+
+    _renderLandTable(records) {
+        const landRows = [];
+        records.forEach(record => {
+            const kvkName = this._toDisplayValue(this._pickValue(record, ['KVK Name', 'kvkName']));
+            const details = this._normalizeLandDetails(this._pickValue(record, ['Land Details', 'landDetails']));
+
+            if (details.length === 0) {
+                landRows.push({ kvkName, item: '-', areaHa: '-' });
+                return;
+            }
+            details.forEach(detail => {
+                landRows.push({
+                    kvkName,
+                    item: detail.item,
+                    areaHa: detail.areaHa,
+                });
+            });
+        });
+
+        const rows = landRows.length > 0 ? landRows : [{ kvkName: '-', item: '-', areaHa: '-' }];
+        const includeKvkColumn = records.length > 1;
+
+        const bodyRows = rows
+            .map((row, index) => `
+            <tr>
+                <td class="serial-col">${index + 1}.</td>
+                ${includeKvkColumn ? `<td>${this._escapeHtml(this._toDisplayValue(row.kvkName))}</td>` : ''}
+                <td>${this._escapeHtml(this._toDisplayValue(row.item))}</td>
+                <td>${this._escapeHtml(this._toDisplayValue(row.areaHa))}</td>
+            </tr>`)
+            .join('');
+
+        return `
+    <table class="about-kvk-table land-table">
+        <thead>
+            <tr>
+                <th class="serial-col">S.No.</th>
+                ${includeKvkColumn ? '<th>KVK Name</th>' : ''}
+                <th>Item</th>
+                <th class="area-col">Area (Ha)</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${bodyRows}
+        </tbody>
+    </table>`;
+    }
+
+    _normalizeLandDetails(landDetails) {
+        if (!Array.isArray(landDetails)) {
+            return [];
+        }
+
+        return landDetails
+            .filter(item => item && typeof item === 'object')
+            .map(item => ({
+                item: item.item ?? '-',
+                areaHa: item.areaHa ?? '-'
+            }));
+    }
+
+    _mergeAddressName(name, address) {
+        const cleanName = this._toDisplayValue(name);
+        const cleanAddress = this._toDisplayValue(address);
+
+        if (cleanName === '-' && cleanAddress === '-') {
+            return '-';
+        }
+        if (cleanName === '-') {
+            return cleanAddress;
+        }
+        if (cleanAddress === '-') {
+            return cleanName;
+        }
+        return `${cleanName}, ${cleanAddress}`;
+    }
+
+    _toDisplayValue(value) {
+        if (value === null || value === undefined || value === '') {
+            return '-';
+        }
+        return String(value);
+    }
+
+    _pickValue(obj, candidatePaths = []) {
+        if (!obj || typeof obj !== 'object') {
+            return null;
+        }
+
+        for (const path of candidatePaths) {
+            const value = path.includes('.')
+                ? this._getNestedValue(obj, path)
+                : obj[path];
+
+            if (value !== null && value !== undefined && value !== '') {
+                return value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get nested value from object using dot notation
+     */
+    _getNestedValue(obj, path) {
+        return path.split('.').reduce((current, prop) => {
+            return current && current[prop] !== undefined ? current[prop] : null;
+        }, obj);
+    }
+
+    /**
+     * Format field value for template rendering
+     */
+    _formatFieldValue(value, field = {}) {
+        if (value === null || value === undefined) {
+            return '-';
+        }
+        switch (field.type) {
+            case 'raw':
+                return value;
+            case 'date': {
+                if (value instanceof Date) {
+                    return value.toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    });
+                }
+                const d = new Date(value);
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                    });
+                }
+                return String(value);
+            }
+            case 'currency':
+                if (typeof value === 'number') {
+                    return `₹${value.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                    })}`;
+                }
+                return String(value);
+            case 'boolean':
+                return value ? 'Yes' : 'No';
+            default:
+                return String(value);
+        }
     }
 
     /**
@@ -412,7 +716,7 @@ class ReportTemplateService {
     }
 
     .page {
-        padding: 15mm;
+        padding: 1mm;
         min-height: auto;
     }
 
@@ -439,8 +743,8 @@ class ReportTemplateService {
     .kvk-info-box {
         background: #FFFFFF;
         border: 0.2px solid #000000;
-        padding: 15mm;
-        margin: 20mm 0;
+        padding: 5mm;
+        margin: 6mm 0;
         text-align: left;
     }
 
@@ -458,8 +762,8 @@ class ReportTemplateService {
     }
 
     .report-meta {
-        margin-top: 20mm;
-        padding-top: 10mm;
+        margin-top: 6mm;
+        padding-top: 3mm;
         border-top: 0.2px solid #000000;
     }
 
@@ -471,7 +775,7 @@ class ReportTemplateService {
 
     .toc-page {
         page-break-after: always;
-        padding-top: 20mm;
+        padding-top: 6mm;
     }
 
     .toc-title {
@@ -522,12 +826,12 @@ class ReportTemplateService {
     }
 
     .sections-container {
-        padding: 15mm;
+        padding: 5mm;
         page-break-inside: auto;
     }
 
     .section-page {
-        margin-top: 15mm;
+        margin-top: 4mm;
         page-break-before: auto;
         page-break-after: auto;
     }
@@ -539,7 +843,7 @@ class ReportTemplateService {
     }
 
     .section-page-continued {
-        margin-top: 15mm;
+        margin-top: 4mm;
         page-break-before: auto !important;
         page-break-after: auto;
     }
@@ -567,9 +871,9 @@ class ReportTemplateService {
 
     .data-table th,
     .grouped-table th {
-        background-color: #F5F5F5;
+        background-color: #FFFFFF;
         color: #000000;
-        padding: 4px 6px;
+        padding: 5px 6px;
         text-align: left;
         font-weight: bold;
         border: 0.2px solid #000000;
@@ -584,7 +888,7 @@ class ReportTemplateService {
 
     .data-table td,
     .grouped-table td {
-        padding: 4px 6px;
+        padding: 5px 6px;
         border: 0.2px solid #000000;
         color: #000000;
         font-size: 8pt;
@@ -632,6 +936,86 @@ class ReportTemplateService {
         font-size: 8pt;
     }
 
+    .about-kvk-report {
+        margin-top: 8px;
+        margin-bottom: 14px;
+    }
+
+    .about-kvk-record-title {
+        font-size: 9pt;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .about-kvk-heading {
+        font-size: 10pt;
+        font-weight: bold;
+        margin: 6px 0 10px;
+    }
+
+    .about-kvk-subheading {
+        font-size: 9pt;
+        font-weight: bold;
+        margin: 8px 0 6px;
+    }
+
+    .about-kvk-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+        border: 0.2px solid #000000;
+        font-size: 8pt;
+        page-break-inside: avoid;
+    }
+
+    .about-kvk-table th,
+    .about-kvk-table td {
+        border: 0.2px solid #000000;
+        padding: 5px 6px;
+        vertical-align: top;
+        text-align: left;
+    }
+
+    .about-kvk-table th {
+        font-weight: 700;
+        text-align: center;
+        background-color: #FFFFFF;
+    }
+
+    .contact-table .name-col {
+        width: 16%;
+    }
+
+    .contact-table .address-col {
+        width: 40%;
+    }
+
+    .contact-table .phone-col {
+        width: 16%;
+    }
+
+    .contact-table .office-col,
+    .contact-table .fax-col {
+        width: 8%;
+    }
+
+    .contact-table .email-col {
+        width: 20%;
+    }
+
+    .contact-table .year-col {
+        width: 8%;
+    }
+
+    .about-kvk-table .serial-col {
+        width: 45px;
+        text-align: center;
+    }
+
+    .land-table .area-col {
+        width: 22%;
+    }
+
     @media print {
         .page {
             page-break-after: auto;
@@ -662,7 +1046,7 @@ class ReportTemplateService {
         
         .section-page-continued {
             page-break-before: auto !important;
-            margin-top: 15mm;
+            margin-top: 4mm;
         }
         
         .data-table,

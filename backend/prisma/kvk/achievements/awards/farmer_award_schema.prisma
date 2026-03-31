@@ -1,8 +1,8 @@
 model FarmerAward {
   farmerAwardId       String      @id @default(uuid()) @map("farmer_award_id")
   kvkId               Int
-  reportingYearId     Int?        @map("reporting_year_id")
-  farmerName          String      @map("farmer_name")
+  reportingYear DateTime? @map("reporting_year")
+farmerName          String      @map("farmer_name")
   contactNumber       String      @map("contact_number")
   address             String      @map("address")
   awardName           String      @map("award_name")
@@ -13,10 +13,8 @@ model FarmerAward {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
   kvk                 Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear       YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([createdAt])
   @@map("farmer_award")
 }

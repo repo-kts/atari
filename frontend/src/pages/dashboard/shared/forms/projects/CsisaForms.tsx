@@ -8,7 +8,6 @@ interface CsisaFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     seasons: any[]
 }
 
@@ -16,7 +15,6 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years = [],
     seasons = []
 }) => {
     return (
@@ -25,13 +23,12 @@ export const CsisaForms: React.FC<CsisaFormsProps> = ({
                 <div className="space-y-10">
                     {/* Header Details */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Season"

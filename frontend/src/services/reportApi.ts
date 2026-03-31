@@ -33,10 +33,10 @@ class ReportApiService {
     }
 
     /**
-     * Generate and download KVK report PDF
+     * Generate KVK report in desired format (pdf|excel|docx)
      */
-    async generateReport(request: ReportGenerationRequest): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/reports/kvk/generate`, {
+    async generateReport(request: ReportGenerationRequest, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<Blob> {
+        const response = await fetch(`${API_BASE_URL}/reports/kvk/generate?format=${format}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -56,13 +56,19 @@ class ReportApiService {
     /**
      * Download report as PDF file
      */
-    async downloadReport(request: ReportGenerationRequest, fileName?: string): Promise<void> {
+    async downloadReport(request: ReportGenerationRequest, fileName?: string, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<void> {
         try {
-            const blob = await this.generateReport(request);
+            const blob = await this.generateReport(request, format);
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = fileName || `KVK_Report_${Date.now()}.pdf`;
+            const defaultName =
+                format === 'excel'
+                    ? `KVK_Report_${Date.now()}.xlsx`
+                    : format === 'docx'
+                    ? `KVK_Report_${Date.now()}.docx`
+                    : `KVK_Report_${Date.now()}.pdf`;
+            link.download = fileName || defaultName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -111,8 +117,8 @@ class ReportApiService {
     /**
      * Generate aggregated report
      */
-    async generateAggregatedReport(request: ReportGenerationRequest): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/reports/aggregated/generate`, {
+    async generateAggregatedReport(request: ReportGenerationRequest, format: 'pdf' | 'excel' | 'docx' = 'pdf'): Promise<Blob> {
+        const response = await fetch(`${API_BASE_URL}/reports/aggregated/generate?format=${format}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

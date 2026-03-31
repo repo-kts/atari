@@ -31,6 +31,19 @@ export interface TransformationRule {
  * This configuration makes it easy to add/modify rules for any entity
  */
 const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, TransformationRule>> = {
+    [ENTITY_TYPES.KVKS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            // Ensure primitive FK IDs are present and numeric
+            const coerce = (v: any) => (v === '' || v === null || v === undefined ? undefined : Number(v));
+            transformed.zoneId = coerce(transformed.zoneId ?? transformed.district?.state?.zone?.zoneId);
+            transformed.stateId = coerce(transformed.stateId ?? transformed.district?.state?.stateId);
+            transformed.districtId = coerce(transformed.districtId ?? transformed.district?.districtId);
+            transformed.orgId = coerce(transformed.orgId ?? transformed.org?.orgId ?? transformed.organization?.orgId);
+            transformed.universityId = coerce(transformed.universityId ?? transformed.university?.universityId);
+            return transformed;
+        },
+    },
     [ENTITY_TYPES.UNIVERSITIES]: {
         includeFields: ['universityName', 'orgId'],
     },
@@ -67,9 +80,6 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.SANCTIONED_POST]: {
         excludeFields: ['sanctionedPostId', '_count'],
     },
-    [ENTITY_TYPES.YEAR]: {
-        excludeFields: ['yearId', '_count'],
-    },
     [ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY]: {
         transform: (data: any) => {
             if (data.date) {
@@ -81,6 +91,24 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     },
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
         excludeFields: ['id', 'kvkName'],
+    },
+    [ENTITY_TYPES.KVK_VEHICLE_DETAILS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (transformed.reportingYear) {
+                transformed.reportingYear = new Date(transformed.reportingYear).toISOString();
+            }
+            return transformed;
+        },
+    },
+    [ENTITY_TYPES.KVK_EQUIPMENT_DETAILS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (transformed.reportingYear) {
+                transformed.reportingYear = new Date(transformed.reportingYear).toISOString();
+            }
+            return transformed;
+        },
     },
 };
 
@@ -217,6 +245,29 @@ export function removeEmptyIdFields(data: any): any {
 }
 
 /**
+ * Normalizes legacy year fields to canonical reportingYear (Date string).
+ * Accepts year-like numeric inputs (e.g. 2024) and converts to YYYY-01-01.
+ */
+export function normalizeLegacyReportingYear(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+    const legacyYear =
+        normalized.reportingYear ??
+        normalized.year;
+
+    if (legacyYear !== undefined && legacyYear !== null && legacyYear !== '') {
+        const asString = String(legacyYear).trim();
+        const yearMatch = asString.match(/^\d{4}$/);
+        normalized.reportingYear = yearMatch ? `${asString}-01-01` : asString;
+    }
+
+    delete normalized.year;
+
+    return normalized;
+}
+
+/**
  * Sanitizes optional enum fields (converts empty strings to null)
  * Prisma requires null for optional enum fields, not empty strings
  */
@@ -327,6 +378,7 @@ export function transformDataForCreate(
     let transformed = removeNestedObjects(formData);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
+    transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
@@ -344,6 +396,7 @@ export function transformDataForUpdate(
     transformed = removeNestedObjects(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
+    transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;

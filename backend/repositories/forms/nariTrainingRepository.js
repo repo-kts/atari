@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const nariTrainingRepository = {
     create: async (data, user) => {
@@ -10,7 +11,11 @@ const nariTrainingRepository = {
         const result = await prisma.nariTrainingProgramme.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 activityId: data.activityId ? parseInt(data.activityId) : null,
                 campusType: data.campusType || 'ON_CAMPUS',
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
@@ -30,7 +35,6 @@ const nariTrainingRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -45,13 +49,30 @@ const nariTrainingRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                if (from) {
+                    ensureNotFutureDate(from);
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                if (to) {
+                    ensureNotFutureDate(to);
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma.nariTrainingProgramme.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 activity: { select: { activityName: true } },
             },
             orderBy: { nariTrainingProgrammeId: 'desc' }
@@ -64,7 +85,6 @@ const nariTrainingRepository = {
             where: { nariTrainingProgrammeId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -75,7 +95,13 @@ const nariTrainingRepository = {
         const result = await prisma.nariTrainingProgramme.update({
             where: { nariTrainingProgrammeId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : undefined,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
                 campusType: data.campusType || undefined,
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
@@ -95,7 +121,6 @@ const nariTrainingRepository = {
             },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -117,8 +142,8 @@ function _mapResponse(r) {
         id: r.nariTrainingProgrammeId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
-        reportingYearId: r.reportingYearId,
-        yearName: r.reportingYear?.yearName,
+        reportingYear: r.reportingYear,
+        yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
         activityName: r.activity?.activityName,
         campusType: r.campusType,

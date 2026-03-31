@@ -1,8 +1,8 @@
 model SpecialProgramme {
   specialProgrammeId String      @id @default(uuid()) @map("special_programme_id")
   kvkId              Int
-  reportingYearId    Int?        @map("reporting_year_id")
-  programmeType      String      @map("programme_type")
+  reportingYear DateTime? @map("reporting_year")
+programmeType      String      @map("programme_type")
   programmeName      String      @map("programme_name")
   programmePurpose   String      @map("programme_purpose")
   initiationDate     DateTime    @map("initiation_date")
@@ -11,10 +11,8 @@ model SpecialProgramme {
   createdAt          DateTime    @default(now()) @map("created_at")
   updatedAt          DateTime    @updatedAt @map("updated_at")
   kvk                Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear      YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([programmeType])
   @@index([programmeName])
   @@index([initiationDate])

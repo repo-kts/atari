@@ -43,6 +43,11 @@ export default defineConfig([
             // Allow setState in useEffect - this is valid React code for syncing state with props/route changes
             'react-hooks/exhaustive-deps': 'off',
             'react-hooks/rules-of-hooks': 'off',
+            // These rules are too strict for the current legacy form code patterns and
+            // create noisy false positives during migration to React compiler patterns.
+            'react-hooks/preserve-manual-memoization': 'off',
+            'react-hooks/set-state-in-effect': 'off',
+            'react-hooks/refs': 'off',
             // Disable any rules that complain about setState in useEffect
             '@typescript-eslint/no-floating-promises': 'off',
         },

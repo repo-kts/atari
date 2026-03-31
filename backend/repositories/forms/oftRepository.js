@@ -2,12 +2,12 @@ const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const OFT_TECH_KEYS = ['Farmer Practice', 'TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'C1', 'C2'];
 
 const OFT_INCLUDE = {
     kvk: { select: { kvkName: true } },
-    reportingYear: { select: { yearId: true, yearName: true } },
     staff: { select: { staffName: true } },
     season: { select: { seasonName: true } },
     oftSubject: { select: { subjectName: true } },
@@ -68,9 +68,24 @@ const oftRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        // Standardize on reportingYearId 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.kvkoft.findMany({
@@ -180,7 +195,7 @@ const oftRepository = {
 
             const createData = removeIdFieldsForUpdate({
                 kvkId: sourceOft.kvkId,
-                reportingYearId: targetReportingYearId,
+                reportingYear: parseReportingYearDate(targetReportingYearId),
                 seasonId: sourceOft.seasonId,
                 staffId: sourceOft.staffId,
                 oftSubjectId: sourceOft.oftSubjectId,
@@ -275,7 +290,8 @@ const oftRepository = {
 };
 
 function _buildOftCreateData(data, kvkId) {
-    const reportingYearId = sanitizeInteger(safeGet(data, 'reportingYearId'));
+    const reportingYear = parseReportingYearDate(safeGet(data, 'reportingYear'));
+    ensureNotFutureDate(reportingYear);
     const seasonId = sanitizeInteger(safeGet(data, 'seasonId'), { defaultValue: 1 });
     const staffId = sanitizeInteger(safeGet(data, 'staffId') || safeGet(data, 'staffName'), { defaultValue: 1 });
     const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
@@ -288,7 +304,7 @@ function _buildOftCreateData(data, kvkId) {
 
     return {
         kvkId,
-        reportingYearId,
+        reportingYear,
         seasonId,
         staffId,
         oftSubjectId,
@@ -319,7 +335,10 @@ function _buildOftCreateData(data, kvkId) {
 
 function _buildOftUpdateData(data, existing) {
     const updateData = {};
-    if (data.reportingYearId !== undefined) updateData.reportingYearId = sanitizeInteger(data.reportingYearId);
+    if (data.reportingYear !== undefined) {
+        updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(updateData.reportingYear);
+    }
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
     if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
@@ -375,8 +394,7 @@ function _mapOftResponse(r) {
         kvkOftId: r.kvkOftId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYearId: r.reportingYearId, // Standardized field name
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name for table view
+        reportingYear: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         staffId: r.staffId,

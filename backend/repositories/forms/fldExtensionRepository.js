@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const {
@@ -27,9 +28,9 @@ const FLD_EXTENSION_CONFIG = {
         fld: { select: { kvkFldId: true, fldName: true } },
         // Note: activity is not included because FldExtension has no Prisma relation to FldActivity
         // We'll fetch it manually in _mapResponse when needed
-        reportingYear: { select: { yearId: true, yearName: true } },
+        
     },
-    filterableFields: ['kvkId', 'fldId', 'activityId', 'reportingYearId'],
+    filterableFields: ['kvkId', 'fldId', 'activityId'],
     farmerCountMapping: {
         gen_m: 'generalM',
         gen_f: 'generalF',
@@ -73,10 +74,10 @@ const CREATE_FIELD_DEFINITIONS = {
         errorField: 'numberOfActivities',
         type: 'integer',
     },
-    reportingYearId: {
-        fieldNames: ['reportingYearId', 'reportingYear'],
+    reportingYear: {
+        fieldNames: ['reportingYear'],
         errorMessage: 'Reporting Year is required',
-        errorField: 'reportingYearId',
+        errorField: 'reportingYear',
         optional: true,
     },
     remarks: {
@@ -125,14 +126,7 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorField: 'numberOfActivities',
         options: { required: false }, // Allow updates without changing count
     },
-    {
-        fieldNames: ['reportingYearId', 'reportingYear'],
-        type: 'integer',
-        backendField: 'reportingYearId',
-        errorMessage: 'Valid Reporting Year ID is required',
-        errorField: 'reportingYearId',
-        options: { required: false }, // Optional field
-    },
+    
     {
         fieldNames: ['remarks', 'remark'],
         type: 'string',
@@ -155,7 +149,8 @@ const fldExtensionRepository = {
         const activityId = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.activityId);
         const activityDate = validateRequiredDate(data, CREATE_FIELD_DEFINITIONS.activityDate);
         const numberOfActivities = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.numberOfActivities);
-        const reportingYearId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.reportingYearId);
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
         const remarks = data.remarks || data.remark || null;
 
         // Validate farmer counts
@@ -182,16 +177,6 @@ const fldExtensionRepository = {
             throw new ValidationError('Activity not found', 'activityId');
         }
 
-        // Verify reporting year if provided
-        if (reportingYearId) {
-            const year = await prisma.yearMaster.findFirst({
-                where: { yearId: reportingYearId },
-            });
-            if (!year) {
-                throw new ValidationError('Reporting Year not found', 'reportingYearId');
-            }
-        }
-
         const createData = {
             kvkId,
             fldId,
@@ -199,7 +184,7 @@ const fldExtensionRepository = {
             activityDate: new Date(activityDate),
             numberOfActivities,
             remarks,
-            reportingYearId,
+            reportingYear,
             ...farmerCounts,
         };
 
@@ -239,6 +224,25 @@ const fldExtensionRepository = {
 
         // Apply filters to the where clause
         applyFilters(where, filters, FLD_EXTENSION_CONFIG.filterableFields);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma[FLD_EXTENSION_CONFIG.model].findMany({
             where,
@@ -316,6 +320,10 @@ const fldExtensionRepository = {
         if (Object.keys(farmerCounts).length > 0) {
             Object.assign(updateData, farmerCounts);
         }
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
+        }
 
         // Ensure date is a Date object (sanitizeDate returns Date or null, but double-check)
         if (updateData.activityDate && !(updateData.activityDate instanceof Date)) {
@@ -345,16 +353,6 @@ const fldExtensionRepository = {
 
             if (!activity) {
                 throw new ValidationError('Activity not found', 'activityId');
-            }
-        }
-
-        // Verify reporting year if provided
-        if (updateData.reportingYearId !== undefined && updateData.reportingYearId !== null) {
-            const year = await prisma.yearMaster.findFirst({
-                where: { yearId: updateData.reportingYearId },
-            });
-            if (!year) {
-                throw new ValidationError('Reporting Year not found', 'reportingYearId');
             }
         }
 
@@ -457,8 +455,7 @@ function _mapResponse(r, activity = null) {
         activityCount: r.numberOfActivities,
         remarks: r.remarks,
         remark: r.remarks,
-        reportingYearId: r.reportingYearId,
-        reportingYear: r.reportingYear?.yearName,
+        reportingYear: formatReportingYear(r.reportingYear),
         gen_m: r.generalM,
         generalM: r.generalM,
         gen_f: r.generalF,

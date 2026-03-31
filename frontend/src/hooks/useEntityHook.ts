@@ -48,7 +48,6 @@ import { useAboutKvkData, AboutKvkEntity } from './forms/useAboutKvkData'
 import {
     useSeasons,
     useSanctionedPosts,
-    useYears,
     useStaffCategories,
     usePayLevels,
     useDisciplines,
@@ -141,7 +140,6 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     // Other Masters
     [ENTITY_TYPES.SEASON]: () => useSeasons(),
     [ENTITY_TYPES.SANCTIONED_POST]: () => useSanctionedPosts(),
-    [ENTITY_TYPES.YEAR]: () => useYears(),
     [ENTITY_TYPES.STAFF_CATEGORY]: () => useStaffCategories(),
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
     [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),

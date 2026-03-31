@@ -465,17 +465,6 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_season_master',
     },
     {
-        path: ENTITY_PATHS.YEAR,
-        title: 'Year Master',
-        category: 'All Masters',
-        subcategory: 'Other Masters',
-        parent: '/all-master',
-        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
-        siblings: MASTER_SIBLING_GROUPS.CALENDAR_MASTERS,
-        fields: FIELD_GROUPS.YEAR_MASTER,
-        moduleCode: 'all_masters_year_master',
-    },
-    {
         path: ENTITY_PATHS.CROP_TYPE,
         title: 'Crop Type Master',
         category: 'All Masters',

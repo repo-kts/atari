@@ -8,7 +8,6 @@ interface AryaFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     aryaEnterprises: any[]
 }
 
@@ -16,7 +15,6 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
     aryaEnterprises
 }) => {
     const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,13 +41,12 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Basic Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <MasterDataDropdown
+                            <FormInput
                                 label="Reporting Year"
                                 required
-                                value={formData.reportingYearId || formData.yearId || ''}
-                                onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                                options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                                emptyMessage="No reporting years available"
+                                type="date"
+                                value={formData.reportingYear || ''}
+                                onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                             />
                             <MasterDataDropdown
                                 label="Name of enterprises"
@@ -210,14 +207,14 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 <label className="block text-sm font-medium text-[#212121]">
                                     Images
                                 </label>
-                                
+
                                 {formData.imagePath && (
                                     <div className="mb-4">
                                         <p className="text-xs font-semibold text-[#487749] mb-2">Existing/Selected Image:</p>
                                         <div className="relative group w-32 h-32">
                                             <img
-                                                src={formData.imagePath.startsWith('data:') 
-                                                    ? formData.imagePath 
+                                                src={formData.imagePath.startsWith('data:')
+                                                    ? formData.imagePath
                                                     : `${import.meta.env.VITE_API_URL || ''}${formData.imagePath.startsWith('/') ? '' : '/'}${formData.imagePath}`}
                                                 className="w-full h-full object-cover rounded-xl border-2 border-[#487749]/20 shadow-md transition-transform group-hover:scale-105"
                                                 alt="Preview"
@@ -260,13 +257,12 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                     <div>
                         <h3 className="text-xl font-bold text-[#487749] mb-6">Basic Details</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <MasterDataDropdown
+                            <FormInput
                                 label="Reporting Year"
                                 required
-                                value={formData.reportingYearId || formData.yearId || ''}
-                                onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                                options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                                emptyMessage="No reporting years available"
+                                type="date"
+                                value={formData.reportingYear || ''}
+                                onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                             />
                             <MasterDataDropdown
                                 label="Name of enterprises"

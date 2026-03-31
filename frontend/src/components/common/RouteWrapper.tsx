@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react'
 import { Breadcrumbs } from './Breadcrumbs'
 import { TabNavigation } from './TabNavigation'
 import { getRouteConfig, getSiblingRoutes, getBreadcrumbsForPath } from '../../config/route'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/button'
 
 interface RouteWrapperProps {
     children: React.ReactNode

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const parseDateOrNow = (dateStr) => {
     if (!dateStr) return new Date();
@@ -213,7 +214,11 @@ const swachhtaBharatRepository = {
             return await prisma.swachhQuarterlyExpenditure.create({
                 data: {
                     kvkId,
-                    reportingYearId: parseInt(data.reportingYearId ?? data.yearId ?? data.reportingYear) || null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     vermiVillageCovered: parseInt(data.vermicompostingVillages ?? data.vermiVillageCovered ?? data.vermicompostingNoOfVillageCovered) || 0,
                     vermiTotalExpenditure: parseFloat(data.vermicompostingExpenditure ?? data.vermiTotalExpenditure ?? data.vermicompostingTotalExpenditure) || 0,
                     otherVillageCovered: parseInt(data.otherVillages ?? data.otherVillageCovered ?? data.otherNoOfVillageCovered) || 0,
@@ -232,7 +237,6 @@ const swachhtaBharatRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: true
                 },
                 orderBy: { swachhQuarterlyExpenditureId: 'desc' }
             });
@@ -254,7 +258,6 @@ const swachhtaBharatRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: true
                 }
             });
             if (!item) return null;
@@ -276,8 +279,11 @@ const swachhtaBharatRepository = {
 
             const updateData = {};
             
-            const reportingYearId = data.reportingYearId ?? data.yearId ?? data.reportingYear;
-            if (reportingYearId !== undefined) updateData.reportingYearId = parseInt(reportingYearId) || null;
+            if (data.reportingYear !== undefined) {
+                const d = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(d);
+                updateData.reportingYear = d;
+            }
             
             const vermiVillageCovered = data.vermicompostingVillages ?? data.vermiVillageCovered ?? data.vermicompostingNoOfVillageCovered;
             if (vermiVillageCovered !== undefined) updateData.vermiVillageCovered = parseInt(vermiVillageCovered) || 0;

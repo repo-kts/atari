@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { Search, ChevronLeft, ChevronRight, Edit2, Trash2, Eye } from 'lucide-react'
 import { Card, CardContent } from '../ui/Card'
-import { Button } from '../ui/Button'
+import { Button } from '../ui/button'
 import { RouteWrapper } from './RouteWrapper'
 
 export interface TableColumn {

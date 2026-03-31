@@ -4,10 +4,11 @@ const {
     parseInteger,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {
     if (!r) return null;
-    return { ...r, id: r.webPortalId };
+    return { ...r, id: r.webPortalId, yearName: formatReportingYear(r.reportingYear) };
 };
 
 const webPortalRepository = {
@@ -22,11 +23,15 @@ const webPortalRepository = {
             const result = await prisma.webPortal.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInteger(data.reportingYearId, 'reportingYearId') : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     noOfFarmersRegistered: parseInteger(data.noOfFarmersRegistered || 0, 'noOfFarmersRegistered'),
                     noOfVisitors: parseInteger(data.noOfVisitors || 0, 'noOfVisitors'),
                 },
-                include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+                include: { kvk: { select: { kvkName: true } } }
             });
             return _mapResponse(result);
         } catch (error) {
@@ -45,7 +50,7 @@ const webPortalRepository = {
 
         const records = await prisma.webPortal.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
             orderBy: { webPortalId: 'desc' },
         });
         return records.map(_mapResponse);
@@ -60,7 +65,7 @@ const webPortalRepository = {
 
         const record = await prisma.webPortal.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
         });
         if (!record) throw new RepositoryError('Web Portal record not found', 'NOT_FOUND', 404);
         return _mapResponse(record);
@@ -79,11 +84,17 @@ const webPortalRepository = {
         const result = await prisma.webPortal.update({
             where: { webPortalId },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? parseInteger(data.reportingYearId, 'reportingYearId') : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 noOfFarmersRegistered: data.noOfFarmersRegistered !== undefined ? parseInteger(data.noOfFarmersRegistered, 'noOfFarmersRegistered') : existing.noOfFarmersRegistered,
                 noOfVisitors: data.noOfVisitors !== undefined ? parseInteger(data.noOfVisitors, 'noOfVisitors') : existing.noOfVisitors,
             },
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+            include: { kvk: { select: { kvkName: true } } }
         });
         return _mapResponse(result);
     },

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const entrepreneurshipRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const entrepreneurshipRepository = {
         return await prisma.entrepreneurship.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 entrepreneurName: data.entrepreneurName,
                 registeredAddress: data.registeredAddress,
                 yearOfEstablishment: parseInt(data.yearOfEstablishment || 0),
@@ -39,7 +44,6 @@ const entrepreneurshipRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -54,7 +58,6 @@ const entrepreneurshipRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -71,7 +74,13 @@ const entrepreneurshipRepository = {
         return await prisma.entrepreneurship.update({
             where: { entrepreneurshipId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 entrepreneurName: data.entrepreneurName !== undefined ? data.entrepreneurName : existing.entrepreneurName,
                 registeredAddress: data.registeredAddress !== undefined ? data.registeredAddress : existing.registeredAddress,
                 yearOfEstablishment: data.yearOfEstablishment !== undefined ? parseInt(data.yearOfEstablishment || 0) : existing.yearOfEstablishment,

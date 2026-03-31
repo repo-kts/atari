@@ -15,11 +15,9 @@ model KkvWorldSoilCelebration {
   stF                       Int         @map("st_f")
   createdAt                 DateTime    @default(now()) @map("created_at")
   updatedAt                 DateTime    @updatedAt @map("updated_at")
-  reportingYearId           Int?        @map("reporting_year_id")
-  kvk                       Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear             YearMaster? @relation(fields: [reportingYearId], references: [yearId])
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+  reportingYear DateTime? @map("reporting_year")
+kvk                       Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+@@index([kvkId])
+  @@index([reportingYear])
   @@map("kvk_world_soil_celebration")
 }

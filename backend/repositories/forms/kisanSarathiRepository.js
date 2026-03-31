@@ -4,10 +4,11 @@ const {
     parseInteger,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {
     if (!r) return null;
-    return { ...r, id: r.kisanSarathiId };
+    return { ...r, id: r.kisanSarathiId, yearName: formatReportingYear(r.reportingYear) };
 };
 
 const kisanSarathiRepository = {
@@ -22,7 +23,11 @@ const kisanSarathiRepository = {
             const result = await prisma.kisanSarathi.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInteger(data.reportingYearId, 'reportingYearId') : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     noOfFarmersRegisteredOnKspPortal: parseInteger(data.noOfFarmersRegisteredOnKspPortal || 0, 'noOfFarmersRegisteredOnKspPortal'),
                     phoneCallAddressed: parseInteger(data.phoneCallAddressed || 0, 'phoneCallAddressed'),
                     phoneCallAnswered: parseInteger(data.phoneCallAnswered || 0, 'phoneCallAnswered'),
@@ -33,7 +38,7 @@ const kisanSarathiRepository = {
                     marketing: String(data.marketing || ''),
                     otherEnterprises: String(data.otherEnterprises || ''),
                 },
-                include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+                include: { kvk: { select: { kvkName: true } } }
             });
             return _mapResponse(result);
         } catch (error) {
@@ -52,7 +57,7 @@ const kisanSarathiRepository = {
 
         const records = await prisma.kisanSarathi.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
             orderBy: { kisanSarathiId: 'desc' },
         });
         return records.map(_mapResponse);
@@ -67,7 +72,7 @@ const kisanSarathiRepository = {
 
         const record = await prisma.kisanSarathi.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
         });
         if (!record) throw new RepositoryError('Kisan Sarathi record not found', 'NOT_FOUND', 404);
         return _mapResponse(record);
@@ -86,7 +91,13 @@ const kisanSarathiRepository = {
         const result = await prisma.kisanSarathi.update({
             where: { kisanSarathiId },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? parseInteger(data.reportingYearId, 'reportingYearId') : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 noOfFarmersRegisteredOnKspPortal: data.noOfFarmersRegisteredOnKspPortal !== undefined ? parseInteger(data.noOfFarmersRegisteredOnKspPortal, 'noOfFarmersRegisteredOnKspPortal') : existing.noOfFarmersRegisteredOnKspPortal,
                 phoneCallAddressed: data.phoneCallAddressed !== undefined ? parseInteger(data.phoneCallAddressed, 'phoneCallAddressed') : existing.phoneCallAddressed,
                 phoneCallAnswered: data.phoneCallAnswered !== undefined ? parseInteger(data.phoneCallAnswered, 'phoneCallAnswered') : existing.phoneCallAnswered,
@@ -97,7 +108,7 @@ const kisanSarathiRepository = {
                 marketing: data.marketing !== undefined ? String(data.marketing) : existing.marketing,
                 otherEnterprises: data.otherEnterprises !== undefined ? String(data.otherEnterprises) : existing.otherEnterprises,
             },
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+            include: { kvk: { select: { kvkName: true } } }
         });
         return _mapResponse(result);
     },

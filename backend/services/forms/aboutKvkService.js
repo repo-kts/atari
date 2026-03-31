@@ -1,5 +1,7 @@
 const aboutKvkRepository = require('../../repositories/forms/aboutKvkRepository.js');
 const prisma = require('../../config/prisma.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 /** Roles scoped to a specific KVK */
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
@@ -59,7 +61,7 @@ class AboutKvkService {
     async getById(entityName, id, user = null) {
         const entity = await aboutKvkRepository.findById(entityName, id);
         if (!entity) {
-            throw new Error(`${entityName} with ID ${id} not found`);
+            throw new ValidationError(`${entityName} with ID ${id} not found`);
         }
 
         // If user has kvkId (KVK role), ensure they can only access their own data
@@ -98,7 +100,7 @@ class AboutKvkService {
         if (entityName === 'kvks') {
             // Only super_admin can create KVKs
             if (!user || user.roleName !== 'super_admin') {
-                throw new Error('Only super admin can create KVKs');
+                throw new ValidationError('Only super admin can create KVKs');
             }
         } else {
             // For other entities, permission is enforced by route middleware (requirePermission).
@@ -113,7 +115,7 @@ class AboutKvkService {
                 // Admin users without kvkId: validate that data.kvkId is within their geographic scope
                 const requestedKvkId = data.kvkId ? Number(data.kvkId) : null;
                 if (!Number.isInteger(requestedKvkId)) {
-                    throw new Error('KVK ID is required');
+                    throw new ValidationError('KVK ID is required');
                 }
                 const scopedKvkIds = await this._getScopedKvkIds(user);
                 if (!scopedKvkIds.includes(requestedKvkId)) {
@@ -252,7 +254,14 @@ class AboutKvkService {
             'sanctionedPost', 'discipline', 'infraMaster', 'staffCategory', 'payLevel',
             'vehicle', 'equipment'
         ];
-        
+        // Allow updating geo/org fields for KVK entity itself
+        // Note: universityId should also be updatable
+        let effectiveReadOnly = [...readOnlyFields];
+        if (entityName === 'kvks') {
+            effectiveReadOnly = readOnlyFields.filter(
+                (f) => !['zoneId', 'stateId', 'districtId', 'orgId', 'universityId'].includes(f)
+            );
+        }
         // For employee updates, allow updating foreign key IDs but not the relation objects
         // Note: sanctionedPostId, disciplineId, staffCategoryId, and payLevelId are updatable
         // They are foreign keys that users should be able to change
@@ -261,7 +270,7 @@ class AboutKvkService {
         const sanitized = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip read-only fields
-            if (readOnlyFields.includes(key)) {
+            if (effectiveReadOnly.includes(key)) {
                 continue;
             }
             // Skip nested objects (relations)
@@ -307,9 +316,7 @@ class AboutKvkService {
 
         // Fields that should be integers (convert from string if needed)
         // Note: vehicle-details uses String for reportingYear, only equipment-details uses Int
-        const integerFields = {
-            'kvk-equipment-details': ['reportingYear'],
-        };
+        const integerFields = {};
 
         const fieldsToConvert = integerFields[entityName] || [];
 
@@ -328,6 +335,12 @@ class AboutKvkService {
             }
         }
 
+        if ((entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') && 'reportingYear' in sanitized) {
+            const parsedDate = parseReportingYearDate(sanitized.reportingYear);
+            ensureNotFutureDate(parsedDate);
+            sanitized.reportingYear = parsedDate ? parsedDate.toISOString() : null;
+        }
+
         return sanitized;
     }
 
@@ -336,16 +349,16 @@ class AboutKvkService {
      */
     validateRequiredFields(entityName, data) {
         const requiredFields = {
-            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
-            // Note: universityId is optional (can be required based on business rules)
+            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
+            // Note: universityId is required as per the newest form requirements
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
             'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
-            'kvk-vehicle-details': ['kvkId', 'reportingYearId', 'vehicleId', 'totalRun', 'presentStatus'],
+            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'presentStatus'],
             'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFunding'],
-            'kvk-equipment-details': ['kvkId', 'reportingYearId', 'equipmentId', 'presentStatus'],
+            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'presentStatus'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
         };
 
@@ -359,7 +372,7 @@ class AboutKvkService {
         });
 
         if (missing.length > 0) {
-            throw new Error(`Missing required fields: ${missing.join(', ')}. Received: ${Object.keys(data).join(', ')}`);
+            throw new ValidationError(`Missing required fields: ${missing.join(', ')}`);
         }
     }
 

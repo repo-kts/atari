@@ -6,6 +6,7 @@ const {
     validateKvkExists,
     validateUUID,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 /**
  * Farmer Award Repository
@@ -99,8 +100,7 @@ const _validateForeignKey = async (id, modelName, idField, displayName, required
 const _mapResponse = (r) => {
     if (!r) return null;
 
-    // Calculate reporting year from yearId if available
-    const reportingYear = r.reportingYear?.yearName || r.reportingYearId || null;
+    const reportingYear = formatReportingYear(r.reportingYear);
 
     return {
         ...r,
@@ -119,11 +119,8 @@ const _mapResponse = (r) => {
         amount: r.amount,
         achievement: r.achievement,
         conferringAuthority: r.conferringAuthority,
-        // Backend format
         farmerAwardId: r.farmerAwardId,
-        farmerAwardID: r.farmerAwardId, // Legacy compatibility
         kvkId: r.kvkId,
-        reportingYearId: r.reportingYearId,
         contactNumber: r.contactNumber,
         contactNo: r.contactNumber, // Frontend compatibility
         address: r.address,
@@ -132,9 +129,7 @@ const _mapResponse = (r) => {
         achievement: r.achievement,
         conferringAuthority: r.conferringAuthority,
         image: r.image,
-        // Frontend format (for compatibility)
         year: reportingYear,
-        yearId: r.reportingYearId,
     };
 };
 
@@ -157,11 +152,8 @@ const farmerAwardRepository = {
             // Validate KVK exists
             await validateKvkExists(kvkId);
 
-            // Validate and resolve foreign keys
-            const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-            if (reportingYearId) {
-                await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-            }
+            const reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(reportingYear);
 
             // Validate required fields
             const farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
@@ -176,7 +168,7 @@ const farmerAwardRepository = {
             // Prepare create data
             const createData = {
                 kvkId,
-                reportingYearId: reportingYearId ? parseInteger(reportingYearId, 'reportingYearId', false) : null,
+                reportingYear,
                 farmerName,
                 contactNumber,
                 address,
@@ -192,7 +184,6 @@ const farmerAwardRepository = {
                 data: createData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                 }
             });
 
@@ -227,8 +218,24 @@ const farmerAwardRepository = {
             }
 
             // Additional filters
-            if (filters.reportingYearId) {
-                where.reportingYearId = parseInteger(filters.reportingYearId, 'reportingYearId', false);
+            if (filters.reportingYearFrom || filters.reportingYearTo) {
+                where.reportingYear = {};
+                if (filters.reportingYearFrom) {
+                    const from = parseReportingYearDate(filters.reportingYearFrom);
+                    if (from) {
+                        ensureNotFutureDate(from);
+                        from.setHours(0, 0, 0, 0);
+                        where.reportingYear.gte = from;
+                    }
+                }
+                if (filters.reportingYearTo) {
+                    const to = parseReportingYearDate(filters.reportingYearTo);
+                    if (to) {
+                        ensureNotFutureDate(to);
+                        to.setHours(23, 59, 59, 999);
+                        where.reportingYear.lte = to;
+                    }
+                }
             }
 
             // Fetch records with relations
@@ -236,7 +243,6 @@ const farmerAwardRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                 },
                 orderBy: { createdAt: 'desc' },
             });
@@ -269,7 +275,6 @@ const farmerAwardRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                 },
             });
 
@@ -318,14 +323,10 @@ const farmerAwardRepository = {
             // Validate and resolve foreign keys if provided
             const updateData = {};
 
-            if (data.reportingYearId !== undefined || data.reportingYear !== undefined || data.yearId !== undefined) {
-                const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-                if (reportingYearId) {
-                    await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-                    updateData.reportingYearId = parseInteger(reportingYearId, 'reportingYearId', false);
-                } else {
-                    updateData.reportingYearId = null;
-                }
+            if (data.reportingYear !== undefined) {
+                const parsedDate = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(parsedDate);
+                updateData.reportingYear = parsedDate;
             }
 
             // Update fields if provided
@@ -365,7 +366,6 @@ const farmerAwardRepository = {
                 data: updateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                 },
             });
 

@@ -1,20 +1,19 @@
 import React from 'react';
 import { Card, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { 
-    FileText, 
-    Download, 
-    File as FileIcon, 
-    Layers, 
-    Printer,
-    ExternalLink,
+import { Button } from '../ui/button';
+import {
+    FileText,
+    Download,
+    File as FileIcon,
+    Layers,
     Loader2,
-    Search
 } from 'lucide-react';
 
 interface ReportPreviewProps {
     isGenerating: boolean;
     hasData: boolean;
+    previewUrl?: string | null;
+    downloadingFormat?: 'pdf' | 'excel' | 'doc' | null;
     onDownload: (format: 'pdf' | 'excel' | 'doc') => void;
     selectedScopeCount: number;
     selectedSectionsCount: number;
@@ -23,45 +22,30 @@ interface ReportPreviewProps {
 export const ReportPreview: React.FC<ReportPreviewProps> = ({
     isGenerating,
     hasData,
+    previewUrl,
+    downloadingFormat = null,
     onDownload,
     selectedScopeCount,
     selectedSectionsCount,
 }) => {
     return (
-        <Card className="flex-1 flex flex-col min-h-[600px] border-[#E0E0E0] shadow-sm overflow-hidden bg-white">
-            <div className="p-4 border-b border-[#E0E0E0] bg-[#FAF9F6] flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-4">
+        <Card className="flex-1 min-w-0 flex flex-col min-h-[600px] border-[#E0E0E0] shadow-sm overflow-hidden bg-white">
+            <div className="p-4 sm:p-6 border-b border-[#E0E0E0] bg-[#FAF9F6] flex flex-wrap items-start justify-between gap-4">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <div className="p-3 bg-[#487749]/10 rounded-xl">
                         <FileText className="w-6 h-6 text-[#487749]" />
                     </div>
-                    <div>
-                        <h3 className="text-base font-bold text-[#212121]">Report Preview</h3>
-                        <p className="text-xs text-[#757575] font-medium mt-0.5">
+                    <div className="min-w-0">
+                        <h3 className="text-base font-bold text-[#212121] truncate">Report Preview</h3>
+                        <p className="text-xs text-[#757575] font-medium mt-0.5 wrap-break-word">
                             {selectedSectionsCount} sections • {selectedScopeCount} KVKs targeted
                         </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button 
-                        variant="outline" 
-                        size="md" 
-                        className="h-10 px-6 rounded-xl border-[#487749] text-[#487749] hover:bg-[#487749]/5 flex items-center justify-center gap-2 transition-all font-bold text-xs"
-                    >
-                        <Search className="w-4 h-4" />
-                        Zoom
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        size="md" 
-                        className="h-10 px-6 rounded-xl border-[#487749] text-[#487749] hover:bg-[#487749]/5 flex items-center justify-center gap-2 transition-all font-bold text-xs"
-                    >
-                        <Printer className="w-4 h-4" />
-                        Print
-                    </Button>
-                </div>
+                <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end" />
             </div>
 
-            <CardContent className="flex-1 overflow-auto p-8 bg-[#F5F5F5] flex flex-col items-center justify-center relative">
+            <CardContent className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-[#F5F5F5] flex flex-col items-center justify-center relative">
                 {isGenerating ? (
                     <div className="flex flex-col items-center gap-4 text-center">
                         <div className="relative">
@@ -98,16 +82,24 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             </div>
                         </div>
                     </div>
+                ) : previewUrl ? (
+                    <div className="w-full h-full min-h-[900px] bg-white border border-[#E0E0E0] rounded-lg overflow-hidden shadow-sm">
+                        <iframe
+                            src={previewUrl}
+                            title="Report PDF Preview"
+                            className="w-full h-full min-h-[900px]"
+                        />
+                    </div>
                 ) : (
                     // Mock Preview Content
-                    <div className="w-full max-w-[800px] bg-white shadow-xl border border-[#E0E0E0] rounded-sm p-12 space-y-8 animate-in fade-in zoom-in duration-300">
+                    <div className="w-full max-w-[800px] bg-white shadow-xl border border-[#E0E0E0] rounded-sm p-5 sm:p-8 lg:p-12 space-y-6 sm:space-y-8 animate-in fade-in zoom-in duration-300">
                         {/* Header Mock */}
-                        <div className="border-b-2 border-[#487749] pb-6 flex justify-between items-start">
+                        <div className="border-b-2 border-[#487749] pb-6 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
                             <div className="space-y-1">
-                                <h1 className="text-2xl font-black text-[#2d4a2f] uppercase tracking-tighter">KVK COMPREHENSIVE REPORT</h1>
-                                <p className="text-sm text-[#757575] font-bold uppercase">Zone: Multizone • State: Kerala • District: Ernakulam</p>
+                                <h1 className="text-xl sm:text-2xl font-black text-[#2d4a2f] uppercase tracking-tighter">KVK COMPREHENSIVE REPORT</h1>
+                                <p className="text-xs sm:text-sm text-[#757575] font-bold uppercase wrap-break-word">Zone: Multizone • State: Kerala • District: Ernakulam</p>
                             </div>
-                            <div className="text-right">
+                            <div className="text-left sm:text-right">
                                 <p className="text-[11px] text-[#757575] font-bold uppercase tracking-widest">Generated On</p>
                                 <p className="text-sm font-black text-[#212121]">{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                             </div>
@@ -121,8 +113,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 <div className="h-3 w-full bg-[#FAF9F6] rounded" />
                                 <div className="h-3 w-4/5 bg-[#FAF9F6] rounded" />
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-4 pt-4">
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                                 <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-center justify-center">
                                     <span className="text-[10px] text-[#9E9E9E] font-medium uppercase tracking-widest">Statistical Graph Area</span>
                                 </div>
@@ -132,7 +124,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             </div>
                         </div>
 
-                        <div className="pt-8 border-t border-[#F5F5F5] flex justify-between">
+                        <div className="pt-8 border-t border-[#F5F5F5] flex flex-col gap-2 sm:flex-row sm:justify-between">
                             <span className="text-[10px] text-[#9E9E9E] font-bold uppercase">Confidential Internal Use Only</span>
                             <span className="text-[10px] text-[#9E9E9E] font-bold uppercase">Page 1 of 42</span>
                         </div>
@@ -141,10 +133,10 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
             </CardContent>
 
             {/* Action Footer */}
-            <div className="p-4 border-t border-[#E0E0E0] bg-white flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-col">
+            <div className="p-4 sm:p-6 border-t border-[#E0E0E0] bg-white flex flex-wrap items-start justify-between gap-4">
+                <div className="flex flex-col min-w-0">
                     <span className="text-xs font-bold text-[#757575] uppercase tracking-wider mb-1">Export Options</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                          <div className="p-1.5 bg-[#487749]/5 border border-[#487749]/10 rounded flex items-center gap-2">
                              <FileIcon className="w-3 h-3 text-[#487749]" />
                              <span className="text-[10px] font-bold text-[#487749] uppercase">PDF Standard</span>
@@ -156,42 +148,55 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-[#757575] hover:text-[#212121] gap-2 border-transparent hover:border-[#E0E0E0]"
-                        onClick={() => {}}
-                    >
-                        <ExternalLink className="w-4 h-4" />
-                        Pop-out Viewer
-                    </Button>
-                    <div className="h-8 w-px bg-[#E0E0E0] mx-2" />
-                    <div className="flex items-center gap-2">
-                        <Button 
-                            variant="primary" 
-                            className="bg-[#487749] hover:bg-[#3d6540] text-white shadow-md shadow-[#487749]/20 font-bold px-6 py-2.5 h-auto rounded-xl gap-2 transition-all active:scale-95"
+                <div className="flex w-full flex-wrap items-center gap-1.5 lg:w-auto lg:justify-end">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <Button
+                            variant="primary"
+                            className="bg-[#487749] hover:bg-[#3d6540] text-white shadow-sm shadow-[#487749]/15 font-medium px-2.5 py-1 h-7 rounded-lg inline-flex items-center gap-1 transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('pdf')}
                             disabled={isGenerating || !hasData}
                         >
-                            <Download className="w-4 h-4 text-[#C1FF72]" />
-                            Download PDF
+                            {downloadingFormat === 'pdf' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Downloading...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="w-3 h-3 text-[#C1FF72] shrink-0" />
+                                    Download PDF
+                                </>
+                            )}
                         </Button>
-                        <Button 
-                            variant="outline" 
-                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-bold px-4 py-2.5 h-auto rounded-xl transition-all"
+                        <Button
+                            variant="outline"
+                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('excel')}
                             disabled={isGenerating || !hasData}
                         >
-                            Excel
+                            {downloadingFormat === 'excel' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Excel
+                                </>
+                            ) : (
+                                'Excel'
+                            )}
                         </Button>
-                        <Button 
-                            variant="outline" 
-                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-bold px-4 py-2.5 h-auto rounded-xl transition-all"
+                        <Button
+                            variant="outline"
+                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
                             onClick={() => onDownload('doc')}
                             disabled={isGenerating || !hasData}
                         >
-                            Word
+                            {downloadingFormat === 'doc' ? (
+                                <>
+                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                                    Word
+                                </>
+                            ) : (
+                                'Word'
+                            )}
                         </Button>
                     </div>
                 </div>

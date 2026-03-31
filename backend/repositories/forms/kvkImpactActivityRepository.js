@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const kvkImpactActivityRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const kvkImpactActivityRepository = {
         return await prisma.kvkImpactActivity.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 specificArea: data.specificArea,
                 briefDetails: data.briefDetails,
                 farmersBenefitted: parseInt(data.farmersBenefitted || 0),
@@ -34,7 +39,6 @@ const kvkImpactActivityRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -49,7 +53,6 @@ const kvkImpactActivityRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -66,7 +69,13 @@ const kvkImpactActivityRepository = {
         return await prisma.kvkImpactActivity.update({
             where: { impactActivityId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 specificArea: data.specificArea !== undefined ? data.specificArea : existing.specificArea,
                 briefDetails: data.briefDetails !== undefined ? data.briefDetails : existing.briefDetails,
                 farmersBenefitted: data.farmersBenefitted !== undefined ? parseInt(data.farmersBenefitted || 0) : existing.farmersBenefitted,

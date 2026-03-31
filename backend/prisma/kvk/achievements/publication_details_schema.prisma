@@ -1,19 +1,18 @@
 model KvkPublicationDetails {
   publicationDetailsId String       @id @default(uuid()) @map("publication_details_id")
   kvkId                Int
-  reportingYearId      Int?         @map("reporting_year_id")
-  publicationId        Int?         @map("publication_id")
+  reportingYear DateTime? @map("reporting_year")
+publicationId        Int?         @map("publication_id")
   title                String       @map("title")
   authorName           String       @map("author_name")
   journalName          String       @map("journal_name")
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
   kvk                  Kvk          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear        YearMaster?  @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-  publication          Publication? @relation(fields: [publicationId], references: [publicationId], onDelete: SetNull)
+publication          Publication? @relation(fields: [publicationId], references: [publicationId], onDelete: SetNull)
 
   @@index([kvkId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@index([publicationId])
   @@index([createdAt])
   @@map("kvk_publication_details")

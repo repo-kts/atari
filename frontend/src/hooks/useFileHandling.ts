@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, type ChangeEvent } from 'react'
 
 export const useFileHandling = (formData: any, setFormData: (data: any) => void) => {
     const convertToBase64 = (file: File): Promise<string> => {
@@ -11,7 +11,7 @@ export const useFileHandling = (formData: any, setFormData: (data: any) => void)
     }
 
     const handleFileChange = useCallback(
-        (field: string, multiple: boolean = false) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+        (field: string, multiple: boolean = false) => async (e: ChangeEvent<HTMLInputElement>) => {
             const files = e.target.files
             if (!files || files.length === 0) {
                 setFormData({ ...formData, [field]: null })

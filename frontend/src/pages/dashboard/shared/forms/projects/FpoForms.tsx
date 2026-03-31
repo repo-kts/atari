@@ -8,27 +8,24 @@ interface FpoFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
 }
 
 export const FpoForms: React.FC<FpoFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years
 }) => {
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="No. of blocks allocated"
@@ -129,13 +126,12 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
             {entityType === ENTITY_TYPES.PROJECT_FPO_MANAGEMENT && (
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear || ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of the FPO"
