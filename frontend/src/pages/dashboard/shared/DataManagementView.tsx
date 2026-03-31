@@ -481,7 +481,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 setIsFldResultPageOpen(false)
                 setSelectedFldId(null)
             }
-            openForm(item)
+            handleEditItem({
+                item,
+                entityType,
+                onOpenForm: openForm,
+            })
         }
 
         const goAdd = () => {

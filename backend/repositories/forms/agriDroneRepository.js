@@ -179,7 +179,7 @@ const agriDroneRepository = {
         return {
             ...r,
             id: r.agriDroneId,
-            reportingYear: r.reportingYear,
+            reportingYear: formatReportingYear(r.reportingYear),
             yearName: formatReportingYear(r.reportingYear),
             projectImplementingCentre: r.projectImplementingCentre,
             droneCompany: r.droneCompany,

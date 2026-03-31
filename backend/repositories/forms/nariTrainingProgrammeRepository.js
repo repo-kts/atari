@@ -153,7 +153,7 @@ function _mapResponse(r) {
         id: r.nariTrainingProgrammeId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
-        reportingYear: r.reportingYear,
+        reportingYear: formatReportingYear(r.reportingYear),
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
         activityName: r.activity?.activityName,

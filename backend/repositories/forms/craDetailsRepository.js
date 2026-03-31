@@ -156,7 +156,7 @@ function _mapResponse(r) {
     return {
         id: r.craDetailsId,
         kvkName: r.kvk ? r.kvk.kvkName : '',
-        reportingYear: r.reportingYear,
+        reportingYear: formatReportingYear(r.reportingYear),
         yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,
         season: r.season ? r.season.seasonName : '',

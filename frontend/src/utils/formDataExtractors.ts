@@ -6,6 +6,64 @@
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
+function toDateInputValue(value: unknown): unknown {
+    if (value === null || value === undefined || value === '') return value;
+
+    if (value instanceof Date) {
+        if (Number.isNaN(value.getTime())) return '';
+        return value.toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'object' && value !== null) {
+        const candidate =
+            (value as any).yearName ??
+            (value as any).reportingYear ??
+            (value as any).year ??
+            (value as any).value;
+        if (candidate !== undefined && candidate !== null && candidate !== value) {
+            return toDateInputValue(candidate);
+        }
+        return value;
+    }
+
+    const asString = String(value).trim();
+    if (!asString) return '';
+
+    if (/^\d{4}$/.test(asString)) {
+        return `${asString}-01-01`;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(asString)) {
+        return asString.slice(0, 10);
+    }
+
+    const parsed = new Date(asString);
+    if (!Number.isNaN(parsed.getTime())) {
+        return parsed.toISOString().split('T')[0];
+    }
+
+    return value;
+}
+
+function normalizeCommonDateFields(item: any, formData: any): void {
+    const reportingYearSource =
+        formData.reportingYear ??
+        item.reportingYear ??
+        item.yearName ??
+        item.year;
+
+    if (reportingYearSource !== undefined && reportingYearSource !== null && reportingYearSource !== '') {
+        formData.reportingYear = toDateInputValue(reportingYearSource);
+    }
+
+    Object.keys(formData).forEach((field) => {
+        if (field === 'reportingYear') return;
+        if (!field.toLowerCase().endsWith('date')) return;
+        if (formData[field] === undefined || formData[field] === null || formData[field] === '') return;
+        formData[field] = toDateInputValue(formData[field]);
+    });
+}
+
 /**
  * Common nested field extractors that apply to multiple entity types
  */
@@ -396,6 +454,10 @@ export function extractFormData(item: any, entityType?: ExtendedEntityType | nul
     if (entityType && ENTITY_EXTRACTORS[entityType]) {
         ENTITY_EXTRACTORS[entityType](item, formData);
     }
+
+    // Normalize common date-like fields for entities without dedicated extractors.
+    // This keeps HTML date inputs stable in edit mode across modules.
+    normalizeCommonDateFields(item, formData);
 
     return formData;
 }
