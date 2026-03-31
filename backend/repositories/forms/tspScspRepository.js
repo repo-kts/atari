@@ -275,7 +275,7 @@ function _mapResponse(r) {
         id: r.tspScspId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
-        reportingYear: r.reportingYear,
+        reportingYear: formatReportingYear(r.reportingYear),
         yearName: formatReportingYear(r.reportingYear),
         type: r.type,
         typeName: r.tspScspType?.typeName ?? r.type,

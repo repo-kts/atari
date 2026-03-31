@@ -257,9 +257,24 @@ export function normalizeLegacyReportingYear(data: any): any {
         normalized.year;
 
     if (legacyYear !== undefined && legacyYear !== null && legacyYear !== '') {
+        if (legacyYear instanceof Date && !Number.isNaN(legacyYear.getTime())) {
+            normalized.reportingYear = legacyYear.toISOString().split('T')[0];
+            delete normalized.year;
+            return normalized;
+        }
+
         const asString = String(legacyYear).trim();
         const yearMatch = asString.match(/^\d{4}$/);
-        normalized.reportingYear = yearMatch ? `${asString}-01-01` : asString;
+        if (yearMatch) {
+            normalized.reportingYear = `${asString}-01-01`;
+        } else if (/^\d{4}-\d{2}-\d{2}/.test(asString)) {
+            normalized.reportingYear = asString.slice(0, 10);
+        } else {
+            const parsed = new Date(asString);
+            normalized.reportingYear = Number.isNaN(parsed.getTime())
+                ? asString
+                : parsed.toISOString().split('T')[0];
+        }
     }
 
     delete normalized.year;

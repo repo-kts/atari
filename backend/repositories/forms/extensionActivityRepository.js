@@ -600,7 +600,7 @@ function _mapResponse(r) {
     if (startDate && !isNaN(startDate.getTime())) {
         const month = startDate.getMonth() + 1;
         const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-        reportingYear = String(startYear);
+        reportingYear = `${startYear}-04-01`;
     }
 
     const activityName = r.fldActivity ? r.fldActivity.activityName : undefined;

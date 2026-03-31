@@ -178,7 +178,7 @@ const agriDroneDemonstrationRepository = {
             // Link back to intro
             agriDroneId: r.agriDroneId,
             projectImplementingCentre: r.agriDrone?.projectImplementingCentre,
-            reportingYear: r.reportingYear,
+            reportingYear: formatReportingYear(r.reportingYear),
             yearName: formatReportingYear(r.reportingYear),
             districtId: r.districtId,
             district: r.district?.districtName,

@@ -1,5 +1,25 @@
 const prisma = require('../../config/prisma.js');
 
+const parseYearFromInput = (value, fallback = null) => {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = parseInt(String(value).trim(), 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const formatYearAsDate = (value) => {
+    const year = parseYearFromInput(value, null);
+    return year === null ? '' : `${year}-01-01`;
+};
+
+const mapPlantVarietyRecord = (record) => {
+    if (!record) return null;
+    return {
+        ...record,
+        reportingYear: formatYearAsDate(record.reportingYear),
+        year: record.reportingYear,
+    };
+};
+
 const ppvFraPlantVarietiesRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -8,7 +28,7 @@ const ppvFraPlantVarietiesRepository = {
         return await prisma.ppvFraPlantVarieties.create({
             data: {
                 kvkId,
-                reportingYear: parseInt(data.reportingYear || new Date().getFullYear()),
+                reportingYear: parseYearFromInput(data.reportingYear ?? data.year, new Date().getFullYear()),
                 cropName: data.cropName || '',
                 farmerName: data.farmerName || '',
                 mobile: data.mobile || '',
@@ -28,7 +48,7 @@ const ppvFraPlantVarietiesRepository = {
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
         }
-        return await prisma.ppvFraPlantVarieties.findMany({
+        const records = await prisma.ppvFraPlantVarieties.findMany({
             where,
             include: {
                 kvk: {
@@ -40,12 +60,13 @@ const ppvFraPlantVarietiesRepository = {
             },
             orderBy: { ppvFraPlantVarietiesID: 'desc' }
         });
+        return records.map(mapPlantVarietyRecord);
     },
 
     findById: async (id, user) => {
         const where = { ppvFraPlantVarietiesID: parseInt(id) };
         if (user && user.kvkId) where.kvkId = parseInt(user.kvkId);
-        return await prisma.ppvFraPlantVarieties.findFirst({
+        const record = await prisma.ppvFraPlantVarieties.findFirst({
             where,
             include: {
                 kvk: {
@@ -56,6 +77,7 @@ const ppvFraPlantVarietiesRepository = {
                 }
             }
         });
+        return mapPlantVarietyRecord(record);
     },
 
     update: async (id, data, user) => {
@@ -66,7 +88,9 @@ const ppvFraPlantVarietiesRepository = {
         return await prisma.ppvFraPlantVarieties.update({
             where: { ppvFraPlantVarietiesID: parseInt(id) },
             data: {
-                reportingYear: data.reportingYear !== undefined ? parseInt(data.reportingYear) : existing.reportingYear,
+                reportingYear: (data.reportingYear !== undefined || data.year !== undefined)
+                    ? parseYearFromInput(data.reportingYear ?? data.year, existing.reportingYear)
+                    : existing.reportingYear,
                 cropName: data.cropName !== undefined ? data.cropName : existing.cropName,
                 farmerName: data.farmerName !== undefined ? data.farmerName : existing.farmerName,
                 mobile: data.mobile !== undefined ? data.mobile : existing.mobile,
