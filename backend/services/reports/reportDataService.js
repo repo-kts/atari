@@ -1,4 +1,4 @@
-const reportRepository = require('../../repositories/reports/reportRepository.js');
+const reportRepository = require('../../repositories/reports/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
