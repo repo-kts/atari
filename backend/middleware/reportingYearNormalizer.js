@@ -13,6 +13,12 @@ function shouldSkipNormalization(req) {
 }
 
 async function fetchYearRows() {
+    // Some branches do not include YearMaster in Prisma schema/client.
+    // In that case, skip ID resolution and rely on strict date validation paths.
+    if (!prisma.yearMaster || typeof prisma.yearMaster.findMany !== 'function') {
+        return [];
+    }
+
     const now = Date.now();
     if (cachedYears && now < cacheExpiresAt) {
         return cachedYears;

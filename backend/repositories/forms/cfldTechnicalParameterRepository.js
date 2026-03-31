@@ -14,6 +14,11 @@ const {
 } = require('../../utils/cfldHelpers.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 
+const TRANSACTION_OPTIONS = {
+    maxWait: 5000,
+    timeout: 12000,
+};
+
 // Repository configuration for reusability
 const REPO_CONFIG = {
     model: 'cfldTechnicalParameter',
@@ -451,7 +456,6 @@ const cfldTechnicalParameterRepository = {
             const result = await prisma.$transaction(async (tx) => {
                 const created = await tx[REPO_CONFIG.model].create({
                     data: createData,
-                    include: REPO_CONFIG.include,
                 });
 
                 if (activeSection === 'economic') {
@@ -467,7 +471,7 @@ const cfldTechnicalParameterRepository = {
                     where: { [REPO_CONFIG.idField]: created.cfldTechId },
                     include: REPO_CONFIG.include,
                 });
-            });
+            }, TRANSACTION_OPTIONS);
 
             return _mapResponse(result);
         } catch (error) {
@@ -543,10 +547,9 @@ const cfldTechnicalParameterRepository = {
             const activeSection = normalizeActiveSection(data);
 
             const result = await prisma.$transaction(async (tx) => {
-                const updated = await tx[REPO_CONFIG.model].update({
+                await tx[REPO_CONFIG.model].update({
                     where: { [REPO_CONFIG.idField]: cfldTechId },
                     data: updateData,
-                    include: REPO_CONFIG.include,
                 });
 
                 if (activeSection === 'economic') {
@@ -562,7 +565,7 @@ const cfldTechnicalParameterRepository = {
                     where: { [REPO_CONFIG.idField]: cfldTechId },
                     include: REPO_CONFIG.include,
                 });
-            });
+            }, TRANSACTION_OPTIONS);
 
             return _mapResponse(result);
         } catch (error) {
