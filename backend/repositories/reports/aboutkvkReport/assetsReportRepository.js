@@ -64,6 +64,24 @@ async function getKvkEquipments(kvkId, filters = {}) {
 
     return await prisma.kvkEquipment.findMany({
         where,
+        orderBy: [
+            { yearOfPurchase: 'desc' },
+            { equipmentName: 'asc' },
+        ],
+    });
+}
+
+async function getKvkEquipmentRecords(kvkId, filters = {}) {
+    const where = {
+        kvkId,
+        reportingYear: {
+            not: null,
+        },
+    };
+    applyCreatedAtFilters(where, filters);
+
+    return await prisma.kvkEquipment.findMany({
+        where,
         include: {
             kvk: {
                 select: { kvkId: true, kvkName: true },
@@ -95,5 +113,6 @@ module.exports = {
     getKvkVehicles,
     getKvkVehicleDetails,
     getKvkEquipments,
+    getKvkEquipmentRecords,
     getKvkFarmImplements,
 };

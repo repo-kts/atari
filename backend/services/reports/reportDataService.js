@@ -64,6 +64,9 @@ class ReportDataService {
             case 'kvkEquipments':
                 rawData = await reportRepository.getKvkEquipments(kvkId, sectionFilters);
                 break;
+            case 'kvkEquipmentRecords':
+                rawData = await reportRepository.getKvkEquipmentRecords(kvkId, sectionFilters);
+                break;
             case 'kvkFarmImplements':
                 rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
                 break;
