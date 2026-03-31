@@ -303,6 +303,7 @@ export function normalizeReportingYearFields(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
     const normalized = { ...data };
+    const strictDatePattern = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 
     const hasReportingYearId =
         normalized.reportingYearId !== undefined &&
@@ -336,6 +337,25 @@ export function normalizeReportingYearFields(data: any): any {
             normalized.year.trim() !== '' &&
             !/^\d+$/.test(normalized.year.trim())
         ) {
+            delete normalized.year;
+        }
+    }
+
+    const hasCanonicalYearId =
+        normalized.reportingYearId !== undefined &&
+        normalized.reportingYearId !== null &&
+        normalized.reportingYearId !== '';
+
+    if (normalized.reportingYear !== undefined && typeof normalized.reportingYear === 'string') {
+        const value = normalized.reportingYear.trim();
+        if (value && !strictDatePattern.test(value) && !hasCanonicalYearId) {
+            delete normalized.reportingYear;
+        }
+    }
+
+    if (normalized.year !== undefined && typeof normalized.year === 'string') {
+        const value = normalized.year.trim();
+        if (value && !strictDatePattern.test(value) && !hasCanonicalYearId) {
             delete normalized.year;
         }
     }

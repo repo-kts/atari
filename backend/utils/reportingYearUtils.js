@@ -22,6 +22,10 @@ function toIsoDate(date) {
     return date.toISOString().split('T')[0];
 }
 
+function isStrictDateString(value) {
+    return typeof value === 'string' && STRICT_DATE_PATTERN.test(value.trim());
+}
+
 function parseReportingYearDate(input) {
     if (input === null || input === undefined || input === '') return null;
 
@@ -32,16 +36,11 @@ function parseReportingYearDate(input) {
         return new Date(input.getTime());
     }
 
-    if (typeof input !== 'string') {
+    if (typeof input !== 'string' || !isStrictDateString(input)) {
         throw new ValidationError('Invalid reportingYear date');
     }
 
-    const trimmed = input.trim();
-    if (!STRICT_DATE_PATTERN.test(trimmed)) {
-        throw new ValidationError('Invalid reportingYear date');
-    }
-
-    const parsed = new Date(trimmed);
+    const parsed = new Date(input.trim());
     if (Number.isNaN(parsed.getTime())) {
         throw new ValidationError('Invalid reportingYear date');
     }
@@ -120,12 +119,9 @@ function parseStrictDate(value) {
         return Number.isNaN(value.getTime()) ? null : value;
     }
 
-    if (typeof value !== 'string') return null;
+    if (!isStrictDateString(value)) return null;
 
-    const trimmed = value.trim();
-    if (!STRICT_DATE_PATTERN.test(trimmed)) return null;
-
-    const parsed = new Date(trimmed);
+    const parsed = new Date(value.trim());
     return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
@@ -148,25 +144,23 @@ function resolveReportingYearId(inputValue, yearRows = []) {
     const normalizedRows = yearRows
         .filter((row) => row && row.yearId !== undefined && row.yearId !== null)
         .map((row) => {
-            const normalizedName = normalizeYearName(row.yearName);
+            const normalizedName = normalizeYearName(row.yearName).toLowerCase();
             const rowDate = toDate(row.yearName);
             const rowIsoDate = rowDate ? toIsoDate(rowDate).toLowerCase() : '';
 
             return {
                 yearId: row.yearId,
-                yearNameLower: normalizedName.toLowerCase(),
+                normalizedName,
                 rowIsoDate,
             };
         });
 
-    if (normalizedRows.length === 0) return null;
-
     const matched = normalizedRows.find(
         (row) =>
             row.rowIsoDate === inputIsoDate ||
-            row.yearNameLower === inputIsoDate ||
-            row.yearNameLower.startsWith(`${inputIsoDate}t`) ||
-            row.yearNameLower.startsWith(inputIsoDate)
+            row.normalizedName === inputIsoDate ||
+            row.normalizedName.startsWith(`${inputIsoDate}t`) ||
+            row.normalizedName.startsWith(inputIsoDate)
     );
 
     return matched ? matched.yearId : null;
@@ -216,7 +210,10 @@ function normalizeReportingYearPayload(payload, yearRows = [], options = {}) {
         }
     } else if (stripUnresolvedLegacyFields && typeof rawValue === 'string') {
         const trimmedRaw = rawValue.trim();
-        const isLegacyString = trimmedRaw !== '' && !INTEGER_PATTERN.test(trimmedRaw) && !STRICT_DATE_PATTERN.test(trimmedRaw);
+        const isLegacyString =
+            trimmedRaw !== '' &&
+            !INTEGER_PATTERN.test(trimmedRaw) &&
+            !STRICT_DATE_PATTERN.test(trimmedRaw);
 
         if (
             isLegacyString &&
@@ -266,4 +263,5 @@ module.exports = {
     resolveReportingYearId,
     normalizeReportingYearPayload,
     formatReportingYearLabel,
+    isStrictDateString,
 };
