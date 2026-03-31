@@ -69,10 +69,10 @@ export const Targets: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const currentYear = new Date().getFullYear()
-  const [selectedReportingYear, setSelectedReportingYear] = useState<number>(currentYear)
+  const [selectedReportingYear, setSelectedReportingYear] = useState<string>('')
   const [selectedKvkId, setSelectedKvkId] = useState<string>('')
   const [selectedTypeName, setSelectedTypeName] = useState<string>('')
-  const [appliedReportingYear, setAppliedReportingYear] = useState<number>(currentYear)
+  const [appliedReportingYear, setAppliedReportingYear] = useState<number | undefined>(undefined)
   const [appliedKvkId, setAppliedKvkId] = useState<number | undefined>(undefined)
   const [appliedTypeName, setAppliedTypeName] = useState<string | undefined>(undefined)
   const [openActionId, setOpenActionId] = useState<number | null>(null)
@@ -212,7 +212,7 @@ export const Targets: React.FC = () => {
   }, [selectedTypeConfig?.isCfld, formSeason, formTypeName, seasons, cropTypes])
 
   const handleApplyFilter = () => {
-    setAppliedReportingYear(selectedReportingYear)
+    setAppliedReportingYear(selectedReportingYear ? Number(selectedReportingYear) : undefined)
     setAppliedKvkId(selectedKvkId ? Number(selectedKvkId) : undefined)
     setAppliedTypeName(selectedTypeName || undefined)
     setCurrentPage(1)
@@ -627,9 +627,10 @@ export const Targets: React.FC = () => {
               <label className="block text-sm font-medium text-[#212121] mb-2">Reporting Year</label>
               <select
                 value={selectedReportingYear}
-                onChange={(e) => setSelectedReportingYear(Number(e.target.value))}
+                onChange={(e) => setSelectedReportingYear(e.target.value)}
                 className="w-full px-3 py-2.5 border border-[#E0E0E0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
               >
+                <option value="">All</option>
                 {yearOptions.map((year) => (
                   <option key={year} value={year}>{year}</option>
                 ))}
@@ -698,8 +699,8 @@ export const Targets: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-white rounded-xl border border-[#E0E0E0] overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="bg-white rounded-xl border border-[#E0E0E0]">
+            <div className="overflow-visible">
               <table className="w-full">
                 <thead className="bg-[#E6EFE3] border-b border-[#D6E0D3]">
                   <tr>
