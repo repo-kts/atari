@@ -21,6 +21,8 @@ class ReportTemplateService {
             'about-kvk-vehicles': renderVehiclesSection.bind(this),
             'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
         };
     }
 
