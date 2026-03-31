@@ -64,7 +64,13 @@ async function getKvkEquipments(kvkId, filters = {}) {
 
     return await prisma.kvkEquipment.findMany({
         where,
+        include: {
+            kvk: {
+                select: { kvkId: true, kvkName: true },
+            },
+        },
         orderBy: [
+            { reportingYear: 'desc' },
             { yearOfPurchase: 'desc' },
             { equipmentName: 'asc' },
         ],
@@ -91,4 +97,3 @@ module.exports = {
     getKvkEquipments,
     getKvkFarmImplements,
 };
-

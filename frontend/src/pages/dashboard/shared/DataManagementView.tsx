@@ -716,6 +716,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ? 'about-kvk-vehicles'
                 : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
                 ? 'about-kvk-vehicle-details'
+                : entityType === ENTITY_TYPES.KVK_EQUIPMENTS || entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
+                ? 'about-kvk-equipment-records'
                 : undefined;
         await handleExportData(format, {
             title,

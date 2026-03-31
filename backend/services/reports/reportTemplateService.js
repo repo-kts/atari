@@ -4,6 +4,7 @@ const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTempl
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
+const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 
 /**
@@ -19,6 +20,7 @@ class ReportTemplateService {
             'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
             'about-kvk-vehicles': renderVehiclesSection.bind(this),
             'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
+            'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
         };
     }
 
