@@ -163,7 +163,17 @@ function validateOptionalInteger(data, fieldDef) {
         const fieldValue = safeGet(data, fieldName);
         if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
             rawValue = fieldValue;
-            value = sanitizeInteger(fieldValue);
+
+            if (typeof fieldValue === 'string') {
+                const trimmed = fieldValue.trim();
+                if (!/^-?\d+$/.test(trimmed)) {
+                    value = null;
+                    break;
+                }
+                value = parseInt(trimmed, 10);
+            } else {
+                value = sanitizeInteger(fieldValue);
+            }
             break;
         }
     }

@@ -2,6 +2,11 @@ const cfldTechnicalParameterRepository = require('../../repositories/forms/cfldT
 const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError, UnauthorizedError } = require('../../utils/errorHandler.js');
 
+const TRANSACTION_OPTIONS = {
+    maxWait: 5000,
+    timeout: 12000,
+};
+
 const cfldTechnicalParameterService = {
     create: async (data, user) => {
         return await cfldTechnicalParameterRepository.create(data, {}, user);
@@ -176,7 +181,7 @@ const cfldTechnicalParameterService = {
             }
 
             return newTechnical;
-        });
+        }, TRANSACTION_OPTIONS);
     },
 
     delete: async (id, user) => {
