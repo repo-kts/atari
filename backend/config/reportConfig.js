@@ -156,7 +156,7 @@ const reportConfig = {
             fields: [
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
                 { dbField: 'vehicleName', displayName: 'Type of vehicle' },
-                { dbField: 'yearOfPurchase', displayName: 'Year of purchase' },
+                { dbField: 'yearOfPurchase', displayName: 'Year' },
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
                 { dbField: 'totalRun', displayName: 'Total Run(km/hrs)', optional: true },
                 { dbField: 'presentStatus', displayName: 'Present status' },
