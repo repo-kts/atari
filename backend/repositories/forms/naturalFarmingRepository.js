@@ -13,6 +13,15 @@ function getKvkId(user, data) {
 
 const safeFloat = (val, d = 0) => { const n = parseFloat(val); return isNaN(n) ? d : n; };
 const safeInt = (val, d = 0) => { const n = parseInt(val, 10); return isNaN(n) ? d : n; };
+const parseYearFromInput = (val, d = null) => {
+    if (val === undefined || val === null || val === '') return d;
+    const n = parseInt(String(val).trim(), 10);
+    return Number.isNaN(n) ? d : n;
+};
+const formatYearAsDate = (val) => {
+    const n = parseYearFromInput(val, null);
+    return n === null ? '' : `${n}-01-01`;
+};
 const isOtherActivityName = (value) => String(value || '').trim().toLowerCase() === 'other activity';
 
 async function resolveNaturalFarmingActivity(rawValue) {
@@ -756,7 +765,7 @@ const beneficiariesRepository = {
         return await prisma.beneficiariesDetails.create({
             data: {
                 kvkId,
-                year: safeInt(data.reportingYear || data.year || new Date().getFullYear()),
+                year: parseYearFromInput(data.reportingYear ?? data.year, new Date().getFullYear()),
                 blocksCovered: safeInt(data.noOfBlocks || data.blocksCovered, 0),
                 villagesCovered: safeInt(data.noOfVillages || data.villagesCovered, 0),
                 totalTrainedFarmers: safeInt(data.totalTrainedFarmers, 0),
@@ -783,7 +792,7 @@ const beneficiariesRepository = {
             kvkName: r.kvk?.kvkName,
             noOfBlocks: r.blocksCovered,
             noOfVillages: r.villagesCovered,
-            reportingYear: String(r.year),
+            reportingYear: formatYearAsDate(r.year),
         }));
     },
     findById: async (id, user) => {
@@ -797,7 +806,7 @@ const beneficiariesRepository = {
             kvkName: r.kvk?.kvkName,
             noOfBlocks: r.blocksCovered,
             noOfVillages: r.villagesCovered,
-            reportingYear: String(r.year),
+            reportingYear: formatYearAsDate(r.year),
         };
     },
     update: async (id, data, user) => {
@@ -808,7 +817,9 @@ const beneficiariesRepository = {
         return await prisma.beneficiariesDetails.update({
             where: { beneficiariesDetailsId: parseInt(id) },
             data: {
-                year: (data.reportingYear || data.year) !== undefined ? parseInt(data.reportingYear || data.year || 0) : existing.year,
+                year: (data.reportingYear !== undefined || data.year !== undefined)
+                    ? parseYearFromInput(data.reportingYear ?? data.year, existing.year)
+                    : existing.year,
                 blocksCovered: (data.noOfBlocks || data.blocksCovered) !== undefined ? parseInt(data.noOfBlocks || data.blocksCovered || 0) : existing.blocksCovered,
                 villagesCovered: (data.noOfVillages || data.villagesCovered) !== undefined ? parseInt(data.noOfVillages || data.villagesCovered || 0) : existing.villagesCovered,
                 totalTrainedFarmers: data.totalTrainedFarmers !== undefined ? parseInt(data.totalTrainedFarmers || 0) : existing.totalTrainedFarmers,
@@ -836,7 +847,7 @@ const soilDataRepository = {
         return await prisma.soilDataInformation.create({
             data: {
                 kvkId,
-                year: safeInt(data.reportingYear || data.year || new Date().getFullYear()),
+                year: parseYearFromInput(data.reportingYear ?? data.year, new Date().getFullYear()),
                 crop: data.crop || '',
                 seasonId: data.seasonId ? safeInt(data.seasonId, null) : null,
                 soilParameterId,
@@ -877,7 +888,7 @@ const soilDataRepository = {
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
             seasonId: r.seasonId,
-            reportingYear: String(r.year),
+            reportingYear: formatYearAsDate(r.year),
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,
@@ -917,7 +928,7 @@ const soilDataRepository = {
             kvkName: r.kvk?.kvkName,
             season: r.season?.seasonName,
             seasonId: r.seasonId,
-            reportingYear: String(r.year),
+            reportingYear: formatYearAsDate(r.year),
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,
@@ -949,7 +960,9 @@ const soilDataRepository = {
         return await prisma.soilDataInformation.update({
             where: { soilDataInformationId: parseInt(id) },
             data: {
-                year: (data.reportingYear || data.year) !== undefined ? safeInt(data.reportingYear || data.year, existing.year) : existing.year,
+                year: (data.reportingYear !== undefined || data.year !== undefined)
+                    ? parseYearFromInput(data.reportingYear ?? data.year, existing.year)
+                    : existing.year,
                 crop: data.crop !== undefined ? data.crop : existing.crop,
                 seasonId: data.seasonId !== undefined ? (data.seasonId ? safeInt(data.seasonId, null) : null) : existing.seasonId,
                 soilParameterId: resolvedSoilParameterId,
@@ -987,7 +1000,7 @@ const financialInfoRepository = {
         return await prisma.financialInformation.create({
             data: {
                 kvkId,
-                year: safeInt(data.reportingYear || data.year || new Date().getFullYear()),
+                year: parseYearFromInput(data.reportingYear ?? data.year, new Date().getFullYear()),
                 activityId: resolvedActivity?.naturalFarmingActivityId || null,
                 numberOfActivities: safeInt(data.noOfActivities || data.numberOfActivities, 0),
                 budgetSanction: safeFloat(data.budgetSanction, 0),
@@ -1017,6 +1030,7 @@ const financialInfoRepository = {
             noOfActivities: r.numberOfActivities,
             activityName: r.activityMaster?.activityName || null,
             activityId: r.activityId,
+            reportingYear: formatYearAsDate(r.year),
         }));
     },
     findById: async (id, user) => {
@@ -1038,7 +1052,7 @@ const financialInfoRepository = {
             noOfActivities: r.numberOfActivities,
             activityName: r.activityMaster?.activityName || null,
             activityId: r.activityId,
-            reportingYear: String(r.year),
+            reportingYear: formatYearAsDate(r.year),
         };
     },
     update: async (id, data, user) => {
@@ -1052,7 +1066,9 @@ const financialInfoRepository = {
         return await prisma.financialInformation.update({
             where: { financialInformationId: parseInt(id) },
             data: {
-                year: (data.reportingYear || data.year) !== undefined ? safeInt(data.reportingYear || data.year, existing.year) : existing.year,
+                year: (data.reportingYear !== undefined || data.year !== undefined)
+                    ? parseYearFromInput(data.reportingYear ?? data.year, existing.year)
+                    : existing.year,
                 activityId: resolvedActivity ? resolvedActivity.naturalFarmingActivityId : existing.activityId,
                 numberOfActivities: (data.noOfActivities || data.numberOfActivities) !== undefined ? safeInt(data.noOfActivities || data.numberOfActivities, existing.numberOfActivities) : existing.numberOfActivities,
                 budgetSanction: data.budgetSanction !== undefined ? safeFloat(data.budgetSanction, existing.budgetSanction) : existing.budgetSanction,

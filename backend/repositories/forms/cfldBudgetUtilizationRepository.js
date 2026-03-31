@@ -1,7 +1,17 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
-const { formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { mapCommonRelations } = require('../../utils/responseMapper.js');
+
+const parseYearFromInput = (value, fallback = null) => {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = parseInt(String(value).trim(), 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const formatYearAsDate = (yearValue) => {
+    const year = parseYearFromInput(yearValue, null);
+    return year === null ? '' : `${year}-01-01`;
+};
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
@@ -67,11 +77,7 @@ const cfldBudgetUtilizationRepository = {
         ].filter(item => item.id !== null);
 
         const rawYear = data.reportingYear || data.year;
-        let numericYear = new Date().getFullYear();
-        if (rawYear) {
-            const parsed = parseInt(String(rawYear).split('-')[0]);
-            numericYear = isNaN(parsed) ? new Date().getFullYear() : parsed;
-        }
+        const numericYear = parseYearFromInput(rawYear, new Date().getFullYear());
 
         const insertResult = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_budget_utilization (
@@ -154,8 +160,8 @@ const cfldBudgetUtilizationRepository = {
         const updateData = {};
         const rawYear = data.reportingYear || data.year;
         if (rawYear !== undefined) {
-            const parsed = parseInt(String(rawYear).split('-')[0]);
-            if (!isNaN(parsed)) updateData.year = parsed;
+            const parsed = parseYearFromInput(rawYear, null);
+            if (parsed !== null) updateData.year = parsed;
         }
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
 
@@ -259,7 +265,7 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         ...relations,
         year: r.year,
-        reportingYear: formatReportingYear(r.reportingYear),
+        reportingYear: formatYearAsDate(r.year),
         overallFundAllocation: r.overallFundAllocation,
         areaAllotted: r.areaAllotted,
         areaAchieved: r.areaAchieved,

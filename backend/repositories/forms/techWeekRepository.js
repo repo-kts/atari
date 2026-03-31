@@ -154,7 +154,7 @@ const techWeekRepository = {
         const startDate = new Date(a.startDate);
         const month = startDate.getMonth() + 1;
         const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-        const reportingYear = String(startYear);
+        const reportingYear = `${startYear}-04-01`;
 
         const farmersGeneralM = a.farmersGeneralM ?? a.farmers_general_m ?? 0;
         const farmersGeneralF = a.farmersGeneralF ?? a.farmers_general_f ?? 0;
