@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { normalizeReportingYearRequest } = require('../middleware/reportingYearNormalizer.js');
 
 const userRoutes = require('./userRoutes.js');
 const authRoutes = require('./authRoutes.js');
@@ -69,7 +70,7 @@ router.use('/admin/masters', exportRoutes);
 router.use('/users', userRoutes);
 // Robust payload validation for all form saves (numbers + dates).
 router.use('/forms', validateFormRobustness);
-
+router.use('/forms', normalizeReportingYearRequest);
 router.use('/forms/about-kvk', aboutKvkRoutes);
 router.use('/forms/achievements/kvk-awards', kvkAwardRoutes);
 router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);
