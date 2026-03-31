@@ -730,6 +730,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 ? 'about-kvk-vehicle-details'
                                 : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
                                     ? 'about-kvk-equipment-records'
+                                    : entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS
+                                        ? 'about-kvk-farm-implements'
                                     : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
                                         ? 'oft-combined'
                                         : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM

@@ -2,6 +2,20 @@ const exportHelper = require('../utils/exportHelper');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
+const {
+    formatCostValue,
+    formatStatusValue,
+} = require('../services/reports/formsTemplate/aboutkvkTemplates/farmImplementsFormatters.js');
+
+const FARM_IMPLEMENTS_TEMPLATE_KEY = 'about-kvk-farm-implements';
+const FARM_IMPLEMENTS_FIELD_PATHS = {
+    'kvk.kvkName': ['kvk.kvkName', 'kvkName', 'KVK'],
+    implementName: ['implementName', 'Name of equipment'],
+    yearOfPurchase: ['yearOfPurchase', 'Year', 'Year of purchase'],
+    totalCost: ['totalCost', 'Cost (Rs.)'],
+    presentStatus: ['presentStatus', 'Present status'],
+    sourceOfFund: ['sourceOfFund', 'sourceOfFunding', 'Source of fund', 'Source of Funding'],
+};
 
 const exportData = async (req, res) => {
     try {
@@ -14,23 +28,26 @@ const exportData = async (req, res) => {
             rawData
         } = req.body;
 
-        if (!title || !headers || !rows || !format) {
-            return res.status(400).json({ message: 'Missing required fields: title, headers, rows, format' });
+        const hasTemplatePayload = Boolean(templateKey && rawData);
+        if (!title || !format || (!hasTemplatePayload && (!headers || !rows))) {
+            return res.status(400).json({
+                message: 'Missing required fields. For template exports: title, format, templateKey, rawData. Otherwise: title, headers, rows, format'
+            });
         }
 
         let buffer;
         let contentType;
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
-        const tabularData = (templateKey && rawData)
-            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows, format)
+        const tabularData = hasTemplatePayload
+            ? buildTabularDataFromTemplate(templateKey, rawData, headers || [], rows || [], format)
             : {
                 headers,
                 rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
             };
 
         switch (format.toLowerCase()) {
-            case 'pdf':
+            case 'pdf': {
                 const html = templateKey
                     ? await generateCustomTemplateHTML(templateKey, rawData, title)
                     : generateHTML(title, headers, rows);
@@ -39,6 +56,7 @@ const exportData = async (req, res) => {
                 contentType = 'application/pdf';
                 fileName += '.pdf';
                 break;
+            }
             case 'excel':
                 buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -75,7 +93,7 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         normalizedData,
         {
             sectionId: matchedSection?.id || '1.1',
-            title: matchedSection?.title || title,
+            title: matchedSection?.customSectionLabel || title,
             customSectionLabel: matchedSection?.customSectionLabel,
         }
     );
@@ -104,12 +122,42 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     const mappedHeaders = section.fields.map(field => field.displayName);
     const mappedRows = normalizedData.map(record => {
         return section.fields.map(field => {
-            const value = getNestedValue(record, field.dbField);
-            return formatExportValue(value, format);
+            const value = resolveTemplateFieldValue(templateKey, record, field.dbField);
+            return templateKey === FARM_IMPLEMENTS_TEMPLATE_KEY
+                ? formatFarmImplementsExportValue(field.dbField, value, format)
+                : formatExportValue(value, format);
         });
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function resolveTemplateFieldValue(templateKey, record, dbFieldPath) {
+    if (templateKey === FARM_IMPLEMENTS_TEMPLATE_KEY) {
+        const fallbackPaths = FARM_IMPLEMENTS_FIELD_PATHS[dbFieldPath];
+        if (Array.isArray(fallbackPaths) && fallbackPaths.length > 0) {
+            return pickFirstValue(record, fallbackPaths);
+        }
+    }
+
+    return getNestedValue(record, dbFieldPath);
+}
+
+function pickFirstValue(record, candidatePaths = []) {
+    if (!record || typeof record !== 'object') {
+        return null;
+    }
+
+    for (const path of candidatePaths) {
+        const value = path.includes('.')
+            ? getNestedValue(record, path)
+            : record[path];
+        if (value !== null && value !== undefined && value !== '') {
+            return value;
+        }
+    }
+
+    return null;
 }
 
 function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows) {
@@ -335,6 +383,12 @@ function getNestedValue(obj, path) {
         if (acc === null || acc === undefined) return null;
         return acc[key] !== undefined ? acc[key] : null;
     }, obj);
+}
+
+function formatFarmImplementsExportValue(dbFieldPath, value, format = 'csv') {
+    if (dbFieldPath === 'totalCost') return formatCostValue(value);
+    if (dbFieldPath === 'presentStatus') return formatStatusValue(value);
+    return formatExportValue(value, format);
 }
 
 function formatExportValue(value, format = 'csv') {

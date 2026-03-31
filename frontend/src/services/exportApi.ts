@@ -12,10 +12,10 @@ class ExportApi {
 
     async exportData(data: {
         title: string;
-        headers: string[];
-        rows: any[][];
-        format: 'pdf' | 'excel' | 'word';
+        headers?: string[];
+        rows?: any[][];
         templateKey?: string;
+        format: 'pdf' | 'excel' | 'word';
         rawData?: any[] | Record<string, any>;
     }, pathname?: string): Promise<Blob> {
         const baseUrl = this.getBaseUrl(pathname);

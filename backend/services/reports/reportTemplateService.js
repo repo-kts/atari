@@ -6,6 +6,7 @@ const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/veh
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
+const { renderFarmImplementsSection } = require('./formsTemplate/aboutkvkTemplates/farmImplementsTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
@@ -33,6 +34,7 @@ class ReportTemplateService {
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-farm-implements': renderFarmImplementsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
@@ -90,8 +92,8 @@ class ReportTemplateService {
      * Reuses the same custom-template handlers used by all-reports flow.
      */
     async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
-        const { sectionId = '1.1', title = 'Custom Report' } = options;
-        const pseudoSection = { id: sectionId, title };
+        const { sectionId = '1.1', title = 'Custom Report', customSectionLabel = '' } = options;
+        const pseudoSection = { id: sectionId, title, customSectionLabel };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
         const reportContext = {
@@ -175,11 +177,12 @@ class ReportTemplateService {
         selectedSections.forEach((section, index) => {
             const pageNumber = index + 3; // Cover page + TOC + sections start at page 3
             const sectionId = `section-${section.id.replace(/\./g, '-')}`;
+            const sectionLabel = this._getSectionLabelParts(section);
             tocHtml += `
         <li class="toc-item">
             <a href="#${sectionId}" class="toc-link">
-                <span class="toc-section-id">${section.id}</span>
-                <span class="toc-section-title">${this._escapeHtml(section.title)}</span>
+                <span class="toc-section-id">${this._escapeHtml(sectionLabel.idLabel)}</span>
+                <span class="toc-section-title">${this._escapeHtml(sectionLabel.titleLabel)}</span>
                 <span class="toc-page-number">${pageNumber}</span>
             </a>
         </li>`;
@@ -332,9 +335,10 @@ class ReportTemplateService {
             return this._generateEmptySection(section, null, sectionId, isFirstSection);
         }
 
+        const sectionLabel = this._getSectionLabelParts(section);
         let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h1 class="section-title">${this._escapeHtml(sectionLabel.fullLabel)}</h1>
     <table class="data-table">
         <thead>
             <tr>
@@ -387,9 +391,10 @@ class ReportTemplateService {
         const headers = Object.keys(data[0]);
         const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
 
+        const sectionLabel = this._getSectionLabelParts(section);
         let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h1 class="section-title">${this._escapeHtml(sectionLabel.fullLabel)}</h1>
     <table class="data-table">
         <thead>
             <tr>
@@ -431,9 +436,10 @@ class ReportTemplateService {
         }
 
         const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+        const sectionLabel = this._getSectionLabelParts(section);
         let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>`;
+    <h1 class="section-title">${this._escapeHtml(sectionLabel.fullLabel)}</h1>`;
 
         data.forEach((item, itemIndex) => {
             // Main item info
@@ -490,9 +496,10 @@ class ReportTemplateService {
             : 'No data available for this section.';
         const idAttr = sectionId ? `id="${sectionId}"` : '';
         const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+        const sectionLabel = this._getSectionLabelParts(section);
         return `
 <div ${idAttr} class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h1 class="section-title">${this._escapeHtml(sectionLabel.fullLabel)}</h1>
     <p class="empty-message">${message}</p>
 </div>`;
     }
@@ -708,6 +715,37 @@ class ReportTemplateService {
             return `${start} to ${end}`;
         }
         return 'All Time';
+    }
+
+    _getSectionLabelParts(section) {
+        const fallbackId = section?.id || '';
+        const fallbackTitle = section?.title || '';
+        const customLabel = typeof section?.customSectionLabel === 'string'
+            ? section.customSectionLabel.trim()
+            : '';
+
+        if (!customLabel) {
+            return {
+                idLabel: fallbackId,
+                titleLabel: fallbackTitle,
+                fullLabel: `${fallbackId} ${fallbackTitle}`.trim(),
+            };
+        }
+
+        const match = customLabel.match(/^([0-9]+(?:\.[0-9]+)*\.?)\s+(.*)$/);
+        if (!match) {
+            return {
+                idLabel: fallbackId,
+                titleLabel: customLabel,
+                fullLabel: customLabel,
+            };
+        }
+
+        return {
+            idLabel: match[1],
+            titleLabel: match[2],
+            fullLabel: customLabel,
+        };
     }
 
     /**
