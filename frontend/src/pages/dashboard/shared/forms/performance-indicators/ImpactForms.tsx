@@ -2,10 +2,10 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormTextArea, FormSection } from '../shared/FormComponents'
-import { useFileHandling } from '@/hooks/useFileHandling'
 import { useYears, useImpactSpecificAreas, useEnterpriseTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { X } from 'lucide-react'
 
 interface ImpactFormsProps {
     entityType: ExtendedEntityType | null
@@ -18,7 +18,16 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
     formData,
     setFormData,
 }) => {
-    const { handleFileChange: originalHandleFileChange } = useFileHandling(formData, setFormData)
+    // Local helper for file to base64 conversion
+    const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.readAsDataURL(file)
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = error => reject(error)
+        })
+    }
+
     const { data: years = [], isLoading: isLoadingYears } = useYears()
     const { data: specificAreas = [], isLoading: isLoadingAreas } = useImpactSpecificAreas()
     const { data: enterpriseTypes = [], isLoading: isLoadingEnterpriseTypes } = useEnterpriseTypes()
@@ -66,10 +75,35 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
     )
 
     const handleFileChange = useCallback(
-        (field: string, multiple: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            originalHandleFileChange(field, multiple)(e)
+        (field: string, multiple: boolean = false) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+            const files = e.target.files
+            if (!files || files.length === 0) return
+
+            try {
+                if (multiple) {
+                    const base64Files = await Promise.all(Array.from(files).map(convertToBase64))
+                    const newPhotos = base64Files.map(base64 => ({
+                        preview: base64,
+                        image: base64,
+                        caption: ''
+                    }))
+
+                    setFormData((prev: any) => {
+                        const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : []
+                        return { 
+                            ...prev, 
+                            [field]: [...existingPhotos, ...newPhotos] 
+                        }
+                    })
+                } else {
+                    const base64 = await convertToBase64(files[0])
+                    setFormData((prev: any) => ({ ...prev, [field]: base64 }))
+                }
+            } catch (error) {
+                console.error("Error converting files to base64:", error)
+            }
         },
-        [originalHandleFileChange]
+        [setFormData] // formData is no longer a dependency thanks to functional update
     )
 
     const handleDateChange = useCallback(
@@ -82,6 +116,122 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
         },
         [formData, setFormData]
     )
+
+    const removePhoto = (field: string, index: number) => {
+        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
+        existingPhotos.splice(index, 1);
+        setFormData({
+            ...formData,
+            [field]: existingPhotos
+        });
+    };
+
+    const updateCaption = (field: string, index: number, caption: string) => {
+        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
+        if (existingPhotos[index]) {
+            existingPhotos[index] = { ...existingPhotos[index], caption };
+            setFormData({
+                ...formData,
+                [field]: existingPhotos
+            });
+        }
+    };
+
+    const renderPhotoFields = (field: string) => (
+        <div className="space-y-4">
+            <FormInput
+                label="Supporting Images"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field, true)}
+                helperText="Only images allowed. Uploading new files will be added to the list."
+            />
+
+            {Array.isArray(formData[field]) && formData[field].length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData[field].map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`P ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(field, idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+
+    // Normalize incoming photographs data when editing
+    React.useEffect(() => {
+        // Only normalize if we are editing an existing record and have an ID
+        // Success Stories uses successStoryId, others use generic id or specific mapping
+        const hasId = formData.id || formData.successStoryId || formData.kvkActivityImpactId || formData.entrepreneurshipDevelopmentId;
+        if (!hasId) return;
+
+        const photoFields = ['supportingImages'];
+        let hasChanges = false;
+        const newData = { ...formData };
+
+        photoFields.forEach(field => {
+            const rawValue = formData[field];
+            if (rawValue && typeof rawValue === 'string') {
+                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawValue);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        newData[field] = arrayToMap
+                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url))
+                            .map((item: any) => {
+                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
+                                const url = item.image || item.url || item.path || item.preview || '';
+                                return { preview: url, image: url, caption: item.caption || '' };
+                            });
+                        hasChanges = true;
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (rawValue.trim() !== '' && !rawValue.includes('object Object')) {
+                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+                    newData[field] = values
+                        .filter((v: string) => v && v.trim() !== '')
+                        .map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                    hasChanges = true;
+                }
+            }
+        });
+
+        if (hasChanges) {
+            setFormData(newData);
+        }
+    }, [formData.id, formData.entityType, setFormData]);
 
     if (!entityType) return null
 
@@ -454,61 +604,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 />
 
                                 <div className="space-y-4">
-                                    <label className="block text-sm font-semibold text-gray-700">
-                                        Supporting images
-                                    </label>
-                                    
-                                    {formData.supportingImages && (
-                                        <div className="flex flex-wrap gap-3 mb-4 p-4 border border-dashed border-[#487749]/30 rounded-2xl bg-[#487749]/5">
-                                            {(() => {
-                                                try {
-                                                    const images = typeof formData.supportingImages === 'string'
-                                                        ? (formData.supportingImages.startsWith('[') ? JSON.parse(formData.supportingImages) : [formData.supportingImages])
-                                                        : [];
-                                                    return images.map((img: string, idx: number) => (
-                                                        <div key={idx} className="relative group">
-                                                            <img
-                                                                src={img}
-                                                                alt={`Preview ${idx + 1}`}
-                                                                className="w-20 h-20 object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-all duration-300"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    const newImages = images.filter((_: any, i: number) => i !== idx);
-                                                                    setFormData({
-                                                                        ...formData,
-                                                                        supportingImages: newImages.length === 0 ? null : (newImages.length === 1 ? newImages[0] : JSON.stringify(newImages))
-                                                                    });
-                                                                }}
-                                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                                </svg>
-                                                            </button>
-                                                        </div>
-                                                    ));
-                                                } catch { return null; }
-                                            })()}
-                                        </div>
-                                    )}
-
-                                    <div className="relative group">
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="image/*"
-                                            onChange={handleFileChange('supportingImages', true)}
-                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749] file:text-white hover:file:bg-[#3d633e] transition-all border-2 border-dashed border-[#E0E0E0] group-hover:border-[#487749]/50 rounded-2xl p-2 bg-gray-50/50 cursor-pointer"
-                                        />
-                                        <p className="mt-2 text-[10px] text-gray-500 flex items-center">
-                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Max file size: 2MB. (Optional)
-                                        </p>
-                                    </div>
+                                     {renderPhotoFields('supportingImages')}
                                 </div>
                             </div>
 

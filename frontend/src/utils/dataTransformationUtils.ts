@@ -110,6 +110,185 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return transformed;
         },
     },
+    [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+
+            // Map training photos
+            if (transformed.trainingPhotos || transformed.trainingPhotos_caption) {
+                transformed.trainingPhotoPath = JSON.stringify({
+                    image: transformed.trainingPhotos ?? transformed.trainingPhotoPath ?? null,
+                    caption: transformed.trainingPhotos_caption ?? ""
+                });
+            }
+
+            // Map action photos
+            if (transformed.actionPhotos || transformed.actionPhotos_caption) {
+                transformed.qualityActionPhotoPath = JSON.stringify({
+                    image: transformed.actionPhotos ?? transformed.qualityActionPhotoPath ?? null,
+                    caption: transformed.actionPhotos_caption ?? ""
+                });
+            }
+
+            // Clean up temporary frontend fields
+            delete transformed.trainingPhotos;
+            delete transformed.trainingPhotos_preview;
+            delete transformed.trainingPhotos_caption;
+            delete transformed.actionPhotos;
+            delete transformed.actionPhotos_preview;
+            delete transformed.actionPhotos_caption;
+
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_ARYA_CURRENT]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.arya_photos)) {
+                const photos = data.arya_photos.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.imagePath = JSON.stringify(photos);
+            }
+            delete transformed.arya_photos;
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.arya_photos)) {
+                const photos = data.arya_photos.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.imagePath = JSON.stringify(photos);
+            }
+            delete transformed.arya_photos;
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_VCRMC]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.images)) {
+                transformed.images = JSON.stringify(data.images.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.images)) {
+                transformed.images = JSON.stringify(data.images.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.image)) {
+                transformed.image = JSON.stringify(data.image.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.supportingImages)) {
+                transformed.supportingImages = JSON.stringify(data.supportingImages.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
 };
 
 // ============================================

@@ -5,12 +5,12 @@ const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const exportData = async (req, res) => {
     try {
-        const { 
-            title, 
-            headers, 
-            rows, 
-            format, 
-            templateKey, 
+        const {
+            title,
+            headers,
+            rows,
+            format,
+            templateKey,
             rawData
         } = req.body;
 
@@ -24,7 +24,10 @@ const exportData = async (req, res) => {
 
         const tabularData = (templateKey && rawData)
             ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows)
-            : { headers, rows };
+            : {
+                headers,
+                rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
+            };
 
         switch (format.toLowerCase()) {
             case 'pdf':
@@ -87,7 +90,7 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     const mappedRows = normalizedData.map(record => {
         return section.fields.map(field => {
             const value = getNestedValue(record, field.dbField);
-            return formatExportValue(value);
+            return formatExportValue(value, format);
         });
     });
 
@@ -102,8 +105,32 @@ function getNestedValue(obj, path) {
     }, obj);
 }
 
-function formatExportValue(value) {
+function formatExportValue(value, format = 'csv') {
     if (value === null || value === undefined || value === '') return '-';
+
+    // Check for JSON-encoded image and caption
+    if (typeof value === 'string' && value.startsWith('{"image":')) {
+        try {
+            const parsed = JSON.parse(value);
+            const captionText = parsed.caption ? `Caption: ${parsed.caption}` : '';
+
+            if (format.toLowerCase() === 'pdf' && parsed.image) {
+                // For PDF, render an actual image tag
+                return `
+                    <div style="display: flex; flex-direction: column; gap: 4px; max-width: 150px;">
+                        <img src="${parsed.image}" style="max-width: 100%; height: auto; border: 0.1px solid #000;" />
+                        ${captionText ? `<div style="font-size: 7px; font-style: italic;">${captionText}</div>` : ''}
+                    </div>
+                `.replace(/\s+/g, ' ').trim();
+            } else {
+                // For Excel/Word/CSV, return descriptive text
+                return captionText ? `${captionText} [Image]` : '[Image]';
+            }
+        } catch (e) {
+            // Not valid JSON, continue with normal processing
+        }
+    }
+
     if (value instanceof Date) return formatReportingYear(value);
 
     if (typeof value === 'object') {

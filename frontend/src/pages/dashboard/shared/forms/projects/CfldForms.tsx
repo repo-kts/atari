@@ -139,6 +139,29 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
             // Keep OBC / SC / ST as-is (field names already match backend)
 
+            // Image and Caption normalization
+            if (next.trainingPhotoPath && typeof next.trainingPhotoPath === 'string' && next.trainingPhotoPath.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(next.trainingPhotoPath);
+                    next.trainingPhotoPath = parsed.image;
+                    next.trainingPhotos_caption = parsed.caption;
+                    changed = true;
+                } catch (e) {
+                    // Not valid JSON, treat as regular path/base64
+                }
+            }
+
+            if (next.qualityActionPhotoPath && typeof next.qualityActionPhotoPath === 'string' && next.qualityActionPhotoPath.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(next.qualityActionPhotoPath);
+                    next.qualityActionPhotoPath = parsed.image;
+                    next.actionPhotos_caption = parsed.caption;
+                    changed = true;
+                } catch (e) {
+                    // Not valid JSON, treat as regular path/base64
+                }
+            }
+
             return changed ? next : prev;
         });
     }, [entityType, formData, setFormData]);
@@ -289,7 +312,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     // File upload handlers
     const handleFileChange = useCallback(
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            handleFieldChange(field, e.target.files?.[0]);
+            const file = e.target.files?.[0];
+            if (file) {
+                // Store the file for upload
+                handleFieldChange(field, file);
+
+                // Create a temporary preview URL
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    handleFieldChange(`${field}_preview`, reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
         },
         [handleFieldChange]
     );
@@ -632,19 +666,58 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
                 </div>
-                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <FormInput
-                        label="Farmers' training photographs"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange('trainingPhotos')}
-                    />
-                    <FormInput
-                        label="Quality Action Photographs of field visits/field days and technology demonstrated"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange('actionPhotos')}
-                    />
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div className="space-y-4">
+                        <FormInput
+                            label="Farmers' training photographs"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange('trainingPhotos')}
+                        />
+                        {(formData.trainingPhotos_preview || formData.trainingPhotoPath) && (
+                            <div className="space-y-2">
+                                <div className="relative w-full h-48 rounded-xl border border-[#E0E0E0] overflow-hidden bg-gray-50">
+                                    <img
+                                        src={formData.trainingPhotos_preview || formData.trainingPhotoPath}
+                                        alt="Training Preview"
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                                <FormInput
+                                    label="Caption for Training Photograph"
+                                    placeholder="Enter caption for the training photograph"
+                                    value={formData.trainingPhotos_caption ?? ''}
+                                    onChange={(e) => handleFieldChange('trainingPhotos_caption', e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="space-y-4">
+                        <FormInput
+                            label="Quality Action Photographs of field visits/field days and technology demonstrated"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange('actionPhotos')}
+                        />
+                        {(formData.actionPhotos_preview || formData.qualityActionPhotoPath) && (
+                            <div className="space-y-2">
+                                <div className="relative w-full h-48 rounded-xl border border-[#E0E0E0] overflow-hidden bg-gray-50">
+                                    <img
+                                        src={formData.actionPhotos_preview || formData.qualityActionPhotoPath}
+                                        alt="Action Preview"
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                                <FormInput
+                                    label="Caption for Action Photograph"
+                                    placeholder="Enter caption for the action photograph"
+                                    value={formData.actionPhotos_caption ?? ''}
+                                    onChange={(e) => handleFieldChange('actionPhotos_caption', e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
             </FormSection>
         </div>

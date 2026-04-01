@@ -1,4 +1,5 @@
 import React from 'react'
+import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
@@ -28,6 +29,147 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
         (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
     )
+    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            const previews: string[] = [];
+            let count = 0;
+
+            newFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    previews[index] = reader.result as string;
+                    count++;
+                    if (count === newFiles.length) {
+                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                        setFormData({
+                            ...formData,
+                            [field]: [
+                                ...existingPhotos,
+                                ...newFiles.map((f, i) => ({
+                                    file: f,
+                                    preview: previews[i],
+                                    image: previews[i],
+                                    caption: ''
+                                }))
+                            ]
+                        });
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removePhoto = (field: string, index: number) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        photos.splice(index, 1);
+        setFormData({ ...formData, [field]: photos });
+    };
+
+    const updateCaption = (field: string, index: number, caption: string) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        if (photos[index]) {
+            photos[index] = { ...photos[index], caption };
+            setFormData({ ...formData, [field]: photos });
+        }
+    };
+
+    const renderPhotoFields = (field: string) => (
+        <div className="space-y-4">
+            <FormInput
+                label="Photographs"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field)}
+                helperText="Only images allowed. Uploading new files will be added to the list."
+            />
+
+            {Array.isArray(formData[field]) && formData[field].length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData[field].map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`P ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(field, idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+
+    // Normalize incoming photographs data when editing
+    React.useEffect(() => {
+        // Only normalize if we are editing an existing record and have an ID
+        if (!formData.id) return;
+
+        const photoFields = ['images', 'photographs', 'demoImages'];
+        let hasChanges = false;
+        const newData = { ...formData };
+
+        photoFields.forEach(field => {
+            const rawValue = formData[field];
+            if (rawValue && typeof rawValue === 'string') {
+                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawValue);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        newData[field] = arrayToMap
+                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url))
+                            .map((item: any) => {
+                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
+                                const url = item.image || item.url || item.path || item.preview || '';
+                                return { preview: url, image: url, caption: item.caption || '' };
+                            });
+                        hasChanges = true;
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (rawValue.trim() !== '' && !rawValue.includes('object Object')) {
+                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+                    newData[field] = values
+                        .filter((v: string) => v && v.trim() !== '')
+                        .map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                    hasChanges = true;
+                }
+            }
+        });
+
+        if (hasChanges) {
+            setFormData(newData);
+        }
+    }, [formData.id, formData.entityType, setFormData]); // Only depend on identity change
+
     const isOtherActivitySelected = String(selectedNaturalFarmingActivity?.activityName || '').trim().toLowerCase() === 'other activity'
 
     return (
@@ -207,13 +349,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                         />
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Images</label>
-                            <input
-                                type="file"
-                                multiple
-                                onChange={(e) => setFormData({ ...formData, images: e.target.files })}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border border-gray-300 rounded-md p-2"
-                            />
+                             {renderPhotoFields('images')}
                         </div>
                     </div>
                         </>
@@ -419,13 +555,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, farmersFeedback: e.target.value })}
                         />
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">Images</label>
-                            <input
-                                type="file"
-                                multiple
-                                onChange={(e) => setFormData({ ...formData, demoImages: e.target.files })}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 border border-gray-300 rounded-md p-2"
-                            />
+                             {renderPhotoFields('images')}
                         </div>
                     </div>
                 </div>

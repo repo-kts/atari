@@ -253,13 +253,49 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
                             placeholder="Resume link"
                         />
-                        <FormInput
-                            label="Photo"
-                            required
-                            value={formData.photoPath || ''}
-                            onChange={(e) => setFormData({ ...formData, photoPath: e.target.value })}
-                            placeholder="Photo link"
-                        />
+                        <div className="space-y-2">
+                             <label className="block text-sm font-semibold text-gray-700">
+                                Staff Photo <span className="text-red-500">*</span>
+                            </label>
+                            
+                            {formData.photoPath && (
+                                <div className="relative group w-20 h-20 mb-2">
+                                    <img
+                                        src={formData.photoPath.startsWith('http') ? formData.photoPath : (formData.photoPath.startsWith('data:') ? formData.photoPath : `${import.meta.env.VITE_API_URL || ''}${formData.photoPath.startsWith('/') ? '' : '/'}${formData.photoPath}`)}
+                                        alt="Staff Preview"
+                                        className="w-full h-full object-cover rounded-xl border-2 border-[#487749]/20 shadow-sm transition-transform group-hover:scale-105"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, photoPath: null })}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            )}
+
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setFormData({ ...formData, photoPath: reader.result as string });
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                                className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2 bg-gray-50/50"
+                            />
+                            <p className="text-[10px] text-gray-400 italic">
+                                Upload 1 photo only. (Max 2MB)
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}

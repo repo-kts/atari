@@ -24,6 +24,8 @@ model KvkBudgetUtilization {
   season                Season?                    @relation(fields: [seasonId], references: [seasonId])
   items                 KvkBudgetUtilizationItem[]
 
+  reportingYearDate     DateTime? @map("reporting_year_date")
+
   @@index([kvkId])
   @@index([year])
   @@index([seasonId])

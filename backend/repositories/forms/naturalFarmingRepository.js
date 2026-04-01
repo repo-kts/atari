@@ -218,7 +218,7 @@ const physicalInfoRepository = {
                 remarks: isOtherActivity ? null : (data.remarks || ''),
                 innovativeProgrammeName: isOtherActivity ? (data.innovativeProgrammeName || '') : null,
                 significanceOfInnovativeProgramme: isOtherActivity ? (data.significanceOfInnovativeProgramme || '') : null,
-                images: isOtherActivity ? null : (data.images || null),
+                images: isOtherActivity ? null : (data.images ? (typeof data.images === 'string' ? data.images : JSON.stringify(data.images)) : null),
             },
             include: { activityMaster: true },
         });
@@ -318,7 +318,7 @@ const physicalInfoRepository = {
                 significanceOfInnovativeProgramme: isOtherActivity
                     ? (data.significanceOfInnovativeProgramme !== undefined ? data.significanceOfInnovativeProgramme : existing.significanceOfInnovativeProgramme)
                     : null,
-                images: isOtherActivity ? null : (data.images !== undefined ? String(data.images) : existing.images),
+                images: isOtherActivity ? null : (data.images !== undefined ? (data.images ? (typeof data.images === 'string' ? data.images : JSON.stringify(data.images)) : null) : existing.images),
             },
             include: { activityMaster: true },
         });
@@ -392,7 +392,7 @@ const demonstrationInfoRepository = {
             anyOtherWithout: (data.without_anyOtherSpecific || data.without_practicing_populationDensity) ? safeFloat(data.without_anyOtherSpecific || data.without_practicing_populationDensity, null) : null,
             anyOtherWith: (data.with_anyOtherSpecific || data.with_practicing_populationDensity) ? safeFloat(data.with_anyOtherSpecific || data.with_practicing_populationDensity, null) : null,
             farmerFeedback: data.farmerFeedback || data.farmersFeedback || '',
-            images: data.images || data.demoImages ? String(data.images || data.demoImages) : null,
+            images: (data.images || data.demoImages) ? (typeof (data.images || data.demoImages) === 'string' ? (data.images || data.demoImages) : JSON.stringify(data.images || data.demoImages)) : null,
         };
         // Farmers Practicing form aliases
         mappedData.croppingPattern = data.normalCropsGrown || mappedData.croppingPattern;
@@ -736,7 +736,7 @@ const demonstrationInfoRepository = {
                 anyOtherWithout: (data.without_practicing_anyOtherSpecific || data.without_anyOtherSpecific || data.without_practicing_populationDensity) !== undefined ? safeFloat(data.without_practicing_anyOtherSpecific || data.without_anyOtherSpecific || data.without_practicing_populationDensity, null) : existing.anyOtherWithout,
                 anyOtherWith: (data.with_practicing_anyOtherSpecific || data.with_anyOtherSpecific || data.with_practicing_populationDensity) !== undefined ? safeFloat(data.with_practicing_anyOtherSpecific || data.with_anyOtherSpecific || data.with_practicing_populationDensity, null) : existing.anyOtherWith,
                 farmerFeedback: (data.farmerFeedback || data.farmersFeedback) !== undefined ? (data.farmerFeedback || data.farmersFeedback) : existing.farmerFeedback,
-                images: (data.images || data.demoImages) !== undefined ? String(data.images || data.demoImages) : existing.images,
+                images: (data.images || data.demoImages) !== undefined ? (data.images || data.demoImages ? (typeof (data.images || data.demoImages) === 'string' ? (data.images || data.demoImages) : JSON.stringify(data.images || data.demoImages)) : null) : existing.images,
             }
         });
     },

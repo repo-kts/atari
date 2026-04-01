@@ -21,12 +21,23 @@ const nicraSoilHealthRepository = {
                 scF: parseInt(data.scFemale || data.scF || 0),
                 stM: parseInt(data.stMale || data.stM || 0),
                 stF: parseInt(data.stFemale || data.stF || 0),
+                photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : '',
             }
         });
     },
 
     _mapResponse: (r) => {
         if (!r) return null;
+        let photos = [];
+        try {
+            if (r.photographs) {
+                photos = typeof r.photographs === 'string' ? JSON.parse(r.photographs) : r.photographs;
+                if (!Array.isArray(photos)) photos = [photos];
+            }
+        } catch (e) {
+            photos = r.photographs ? r.photographs.split(',').filter(Boolean) : [];
+        }
+
         return {
             ...r,
             id: r.nicraSoilHealthCardId,
@@ -40,6 +51,7 @@ const nicraSoilHealthRepository = {
             scFemale: r.scF,
             stMale: r.stM,
             stFemale: r.stF,
+            photographs: photos,
         };
     },
 
@@ -100,6 +112,7 @@ const nicraSoilHealthRepository = {
                 scF: data.scFemale !== undefined ? parseInt(data.scFemale) : (data.scF !== undefined ? parseInt(data.scF) : existing.scF),
                 stM: data.stMale !== undefined ? parseInt(data.stMale) : (data.stM !== undefined ? parseInt(data.stM) : existing.stM),
                 stF: data.stFemale !== undefined ? parseInt(data.stFemale) : (data.stF !== undefined ? parseInt(data.stF) : existing.stF),
+                photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : (existing.photographs || ''),
             }
         });
         return nicraSoilHealthRepository._mapResponse(updated);
