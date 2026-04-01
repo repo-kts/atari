@@ -1,14 +1,37 @@
 const { ValidationError } = require('../utils/errorHandler.js');
 
 function parseDateOnly(dateStr) {
-    if (!dateStr || typeof dateStr !== 'string') return null;
-    // Expect YYYY-MM-DD
-    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!match) return null;
-    const [_, y, m, d] = match;
-    // Use UTC to avoid timezone offsets shifting the date
-    const dt = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
-    return isNaN(dt.getTime()) ? null : dt;
+    if (!dateStr) return null;
+
+    if (dateStr instanceof Date) {
+        if (isNaN(dateStr.getTime())) return null;
+        return new Date(Date.UTC(
+            dateStr.getUTCFullYear(),
+            dateStr.getUTCMonth(),
+            dateStr.getUTCDate()
+        ));
+    }
+
+    if (typeof dateStr !== 'string') return null;
+    const trimmed = dateStr.trim();
+    if (!trimmed) return null;
+
+    // Prefer the explicit date prefix from ISO-like values to avoid timezone drift.
+    const datePrefix = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (datePrefix) {
+        const [, y, m, d] = datePrefix;
+        const dt = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+        return isNaN(dt.getTime()) ? null : dt;
+    }
+
+    // Fallback for other valid date strings.
+    const parsed = new Date(trimmed);
+    if (isNaN(parsed.getTime())) return null;
+    return new Date(Date.UTC(
+        parsed.getUTCFullYear(),
+        parsed.getUTCMonth(),
+        parsed.getUTCDate()
+    ));
 }
 
 function todayDateOnly() {
@@ -74,12 +97,19 @@ function validateNumbers(body) {
 }
 
 function validateDateOrdering(body) {
-    // Generic startDate/endDate ordering validation
-    const startKeys = ['startDate', 'StartDate', 'start_date', 'start_dt'];
-    const endKeys = ['endDate', 'EndDate', 'end_date', 'end_dt'];
+    const keys = Object.keys(body || {});
+    const normalize = (key) => String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isStartKey = (key) => {
+        const k = normalize(key);
+        return k === 'startdate' || k === 'startdt' || (k.includes('start') && k.includes('date'));
+    };
+    const isEndKey = (key) => {
+        const k = normalize(key);
+        return k === 'enddate' || k === 'enddt' || (k.includes('end') && k.includes('date'));
+    };
 
-    const startKey = Object.keys(body || {}).find((k) => startKeys.includes(k));
-    const endKey = Object.keys(body || {}).find((k) => endKeys.includes(k));
+    const startKey = keys.find((k) => isStartKey(k) && !!parseDateOnly(body[k]));
+    const endKey = keys.find((k) => isEndKey(k) && !!parseDateOnly(body[k]));
     if (!startKey || !endKey) return;
 
     const startDt = parseDateOnly(body[startKey]);
@@ -134,4 +164,3 @@ function validateFormRobustness(req, res, next) {
 }
 
 module.exports = { validateFormRobustness };
-

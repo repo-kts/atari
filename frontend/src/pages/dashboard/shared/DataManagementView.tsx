@@ -27,6 +27,7 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
+import { useToast } from '@/hooks/useToast'
 import { useTransferOftToNextYear, useTransferFldToNextYear, useCreateOftResult, useUpdateOftResult, useOftResult, useFldResult, useCreateFldResult, useUpdateFldResult } from '@/hooks/useOftWorkflow'
 import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
 import { OftResultForm, OftResultFormValue } from './forms/achievement/OftResultForm'
@@ -68,6 +69,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Modal hooks
     const { confirm, ConfirmDialog } = useConfirm()
     const { alert, AlertDialog } = useAlert()
+    const { toast, ToastContainer } = useToast()
 
     // Handler hooks
     const { handleMasterDataDelete } = useDeleteHandler({ confirm, alert })
@@ -684,10 +686,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         isBasicMasterEntity: isBasicMasterEntity(entityType) || false,
         onSuccess: closeForm,
         onError: (err: Error) => {
-            alert({
-                title: 'Error',
+            toast({
+                title: 'Save failed',
                 message: err.message || 'Failed to save',
                 variant: 'error',
+                autoCloseDelay: 4500,
             })
         },
     });
@@ -1167,6 +1170,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             {/* Modals */}
             <ConfirmDialog />
             <AlertDialog />
+            <ToastContainer />
         </div>
     )
 }

@@ -24,6 +24,16 @@ export interface TransformationRule {
 
 const STRICT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 const YEAR_PATTERN = /^\d{4}$/;
+const COMMON_READ_ONLY_DERIVED_FIELDS = [
+    // Derived display aliases from backend responses
+    'yearName',
+    'totalBeneficiaries',
+    'numberOfFarmers',
+    'numberOfFarmersUnderExposure',
+    'noOfFarmersAttended',
+    'noOfTotal',
+    'unspentBalance',
+] as const;
 
 function toDateOnlyString(value: any): string | null {
     if (value === null || value === undefined || value === '') return null;
@@ -132,6 +142,10 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return data;
         },
     },
+    [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: {
+        // Derived/read-only fields must never be sent back on save.
+        excludeFields: ['unspentBalance', 'projectName', 'fundingAgency'],
+    },
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
         excludeFields: ['id', 'kvkName'],
     },
@@ -193,6 +207,9 @@ const COMMON_NESTED_OBJECTS = [
     'reportingYear',
     'cropDetails',
     'dignitaryType',
+    // Financial relation objects in list responses
+    'projectName',
+    'fundingAgency',
 ] as const;
 
 // ============================================
@@ -219,6 +236,12 @@ export function removeNestedObjects(
     // This preserves string fields that share names with nested objects (like 'district')
     const nestedObjectsToRemove = [...COMMON_NESTED_OBJECTS, ...additionalExclusions];
     const cleaned: any = { ...restData };
+
+    COMMON_READ_ONLY_DERIVED_FIELDS.forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(cleaned, key)) {
+            delete cleaned[key];
+        }
+    });
 
     nestedObjectsToRemove.forEach((key) => {
         if (cleaned[key] && typeof cleaned[key] === 'object') {

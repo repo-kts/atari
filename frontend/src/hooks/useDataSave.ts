@@ -24,6 +24,55 @@ interface UseDataSaveReturn {
     error: Error | null;
 }
 
+function parseDateOnly(value: any): Date | null {
+    if (!value) return null;
+
+    if (value instanceof Date) {
+        if (Number.isNaN(value.getTime())) return null;
+        return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+    }
+
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    const datePrefix = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (datePrefix) {
+        const [, y, m, d] = datePrefix;
+        const dt = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+        return Number.isNaN(dt.getTime()) ? null : dt;
+    }
+
+    const parsed = new Date(trimmed);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
+}
+
+function validateDateOrdering(formData: any): void {
+    const keys = Object.keys(formData || {});
+    const normalize = (key: string) => String(key || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isStartKey = (key: string) => {
+        const k = normalize(key);
+        return k === 'startdate' || k === 'startdt' || (k.includes('start') && k.includes('date'));
+    };
+    const isEndKey = (key: string) => {
+        const k = normalize(key);
+        return k === 'enddate' || k === 'enddt' || (k.includes('end') && k.includes('date'));
+    };
+
+    const startKey = keys.find((k) => isStartKey(k) && !!parseDateOnly(formData[k]));
+    const endKey = keys.find((k) => isEndKey(k) && !!parseDateOnly(formData[k]));
+    if (!startKey || !endKey) return;
+
+    const startDate = parseDateOnly(formData[startKey]);
+    const endDate = parseDateOnly(formData[endKey]);
+    if (!startDate || !endDate) return;
+
+    if (endDate.getTime() < startDate.getTime()) {
+        throw new Error(`"${endKey}" cannot be before "${startKey}"`);
+    }
+}
+
 /**
  * Custom hook for handling save operations (create/update)
  *
@@ -59,6 +108,7 @@ export function useDataSave({
         try {
             // Pre-process files (recursive Base64 conversion)
             const processedFormData = await processFiles(formData);
+            validateDateOrdering(processedFormData);
 
             if (editingItem) {
                 // Update operation
@@ -66,7 +116,6 @@ export function useDataSave({
                 const updateData = transformDataForUpdate(entityType, idField, processedFormData);
                 // Debug: log final update payload
                 // Note: Remove or guard this in production if noisy
-                // eslint-disable-next-line no-console
                 console.log('[useDataSave] Update payload', {
                     entityType,
                     idField,
@@ -83,7 +132,6 @@ export function useDataSave({
                 // Create operation
                 const createData = transformDataForCreate(entityType, processedFormData);
                 // Debug: log final create payload
-                // eslint-disable-next-line no-console
                 console.log('[useDataSave] Create payload', {
                     entityType,
                     payload: createData,
