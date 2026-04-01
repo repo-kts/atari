@@ -28,6 +28,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     dignitaryTypes = [],
     piTypes = []
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
@@ -130,6 +131,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -137,6 +139,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
@@ -402,6 +406,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -409,6 +414,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
@@ -497,6 +504,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -504,6 +512,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
@@ -588,6 +598,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -595,6 +606,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormSelect
@@ -667,6 +680,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -674,6 +688,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
@@ -963,6 +979,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -970,6 +987,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
@@ -1067,6 +1086,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -1074,6 +1094,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput

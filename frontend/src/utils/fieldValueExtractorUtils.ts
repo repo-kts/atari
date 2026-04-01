@@ -490,6 +490,26 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
         priority: 7,
     },
+    [FIELD_NAMES.WITHIN_STATE_WITHOUT_STATE]: {
+        extractor: (item: any) =>
+            item.withinStateWithoutState ||
+            item.withinStateOrWithoutState ||
+            item.withinState ||
+            item.withinWithoutState ||
+            item.activityName ||
+            item.nameOfExtensionActivities ||
+            item.extensionActivityType ||
+            item.stateScope ||
+            null,
+        priority: 7,
+    },
+    [FIELD_NAMES.EXPOSURE_VISIT_NO]: {
+        extractor: (item: any) => {
+            const val = item.exposureVisitNo ?? item.exposureVisit;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
+        priority: 7,
+    },
     // Display name fallbacks (for backward compatibility)
     'Name of Extension activities': {
         extractor: (item: any) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
@@ -2386,6 +2406,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
         },
         priority: 5,
+    },
+    [FIELD_NAMES.COMPLETED_AT]: {
+        extractor: (item: any) => {
+            if (!item?.completedAt) return null;
+            const date = new Date(item.completedAt);
+            return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-GB');
+        },
+        priority: 8,
     },
 } as any;
 

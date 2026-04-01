@@ -25,6 +25,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     naturalFarmingSoilParameters = [],
     staffCategories = [],
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
         (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
     )
@@ -47,6 +48,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -54,6 +56,8 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
@@ -228,6 +232,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -235,6 +240,8 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput

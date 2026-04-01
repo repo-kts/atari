@@ -17,6 +17,7 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     setFormData,
     aryaEnterprises
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
@@ -103,6 +104,7 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 required
                                 type="date"
                                 value={formData.startDate || ''}
+                                max={todayYmd}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                             />
                             <FormInput
@@ -110,6 +112,8 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 required
                                 type="date"
                                 value={formData.endDate || ''}
+                                min={formData.startDate || undefined}
+                                max={todayYmd}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                             />
                         </div>

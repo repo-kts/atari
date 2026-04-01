@@ -245,44 +245,38 @@ function resolveKvkId(user, data) {
  * @returns {Date} Date object
  */
 function parseMonth(month) {
-    try {
-        if (!month) {
-            return new Date();
-        }
-
-        if (month instanceof Date) {
-            return isNaN(month.getTime()) ? new Date() : month;
-        }
-
-        if (typeof month === 'string') {
-            // Try parsing as ISO date first
-            const isoDate = new Date(month);
-            if (!isNaN(isoDate.getTime())) {
-                return isoDate;
-            }
-
-            // Try parsing as month name
-            const monthNames = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            const monthIdx = monthNames.findIndex(
-                name => name.toLowerCase() === month.trim().toLowerCase()
-            );
-            
-            if (monthIdx !== -1) {
-                const date = new Date();
-                date.setMonth(monthIdx);
-                date.setDate(1); // Set to first day of month for consistency
-                return date;
-            }
-        }
-
-        return new Date();
-    } catch (error) {
-        console.error('Error parsing month:', error);
-        return new Date();
+    if (!month) {
+        throw new ValidationError('Month is required', 'month');
     }
+
+    if (month instanceof Date) {
+        if (Number.isNaN(month.getTime())) {
+            throw new ValidationError('Invalid month value', 'month');
+        }
+        return new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1));
+    }
+
+    if (typeof month !== 'string') {
+        throw new ValidationError('Month must be a string in YYYY-MM format', 'month');
+    }
+
+    const trimmed = month.trim();
+    const monthMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
+    if (monthMatch) {
+        const year = Number(monthMatch[1]);
+        const monthNumber = Number(monthMatch[2]);
+        if (monthNumber >= 1 && monthNumber <= 12) {
+            return new Date(Date.UTC(year, monthNumber - 1, 1));
+        }
+        throw new ValidationError('Invalid month value', 'month');
+    }
+
+    const isoDate = new Date(trimmed);
+    if (!Number.isNaN(isoDate.getTime())) {
+        return new Date(Date.UTC(isoDate.getUTCFullYear(), isoDate.getUTCMonth(), 1));
+    }
+
+    throw new ValidationError('Invalid month format, expected YYYY-MM', 'month');
 }
 
 /**

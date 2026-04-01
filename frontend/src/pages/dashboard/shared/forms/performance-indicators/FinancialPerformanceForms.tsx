@@ -74,6 +74,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     )
 
     if (!entityType) return null
+    const todayYmd = new Date().toISOString().slice(0, 10)
 
     const financialYearNote = (
         <p className="text-xs text-olive-600 mb-2 italic">
@@ -93,6 +94,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -100,6 +102,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -302,6 +306,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -309,6 +314,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -351,6 +358,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -358,6 +366,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -415,6 +425,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -422,6 +433,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>

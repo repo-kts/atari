@@ -90,6 +90,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
             return ''
         }
     }
+    const todayYmd = new Date().toISOString().slice(0, 10)
 
     return (
         <div className="space-y-4">
@@ -102,6 +103,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             required
                             type="date"
                             value={getDateValue(formData.startDate)}
+                            max={todayYmd}
                             onChange={handleDateChange('startDate')}
                         />
 
@@ -110,6 +112,8 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             required
                             type="date"
                             value={getDateValue(formData.endDate)}
+                            min={getDateValue(formData.startDate) || undefined}
+                            max={todayYmd}
                             onChange={handleDateChange('endDate')}
                         />
                     </div>

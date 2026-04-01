@@ -35,6 +35,33 @@ const COMMON_READ_ONLY_DERIVED_FIELDS = [
     'unspentBalance',
 ] as const;
 
+const YEAR_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+
+function toYearMonthFromMonthName(monthValue: any, reportingYearValue: any): string | null {
+    if (monthValue === null || monthValue === undefined || monthValue === '') return null;
+    const raw = String(monthValue).trim();
+    if (!raw) return null;
+
+    if (YEAR_MONTH_PATTERN.test(raw)) {
+        return raw;
+    }
+
+    const monthNames = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december',
+    ];
+    const monthIndex = monthNames.findIndex((m) => m === raw.toLowerCase());
+    if (monthIndex < 0) return null;
+
+    const normalizedReportingDate =
+        toDateOnlyString(reportingYearValue) ||
+        toDateOnlyString(new Date());
+    if (!normalizedReportingDate) return null;
+    const year = normalizedReportingDate.slice(0, 4);
+    const month = String(monthIndex + 1).padStart(2, '0');
+    return `${year}-${month}`;
+}
+
 function toDateOnlyString(value: any): string | null {
     if (value === null || value === undefined || value === '') return null;
 
@@ -145,6 +172,55 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
     [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: {
         // Derived/read-only fields must never be sent back on save.
         excludeFields: ['unspentBalance', 'projectName', 'fundingAgency'],
+    },
+    [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+
+            if (transformed.trainingPhotos && !transformed.trainingPhotoPath) {
+                transformed.trainingPhotoPath = transformed.trainingPhotos;
+            }
+            if (transformed.actionPhotos && !transformed.qualityActionPhotoPath) {
+                transformed.qualityActionPhotoPath = transformed.actionPhotos;
+            }
+            delete transformed.trainingPhotos;
+            delete transformed.actionPhotos;
+
+            if (transformed.yieldMin !== undefined && transformed.demoYieldMin === undefined) {
+                transformed.demoYieldMin = transformed.yieldMin;
+            }
+            if (transformed.yieldMax !== undefined && transformed.demoYieldMax === undefined) {
+                transformed.demoYieldMax = transformed.yieldMax;
+            }
+            if (transformed.yieldAvg !== undefined && transformed.demoYieldAvg === undefined) {
+                transformed.demoYieldAvg = transformed.yieldAvg;
+            }
+            if (transformed.yieldGapDistrict !== undefined && transformed.districtYield === undefined) {
+                transformed.districtYield = transformed.yieldGapDistrict;
+            }
+            if (transformed.yieldGapState !== undefined && transformed.stateYield === undefined) {
+                transformed.stateYield = transformed.yieldGapState;
+            }
+            if (transformed.yieldGapPotential !== undefined && transformed.potentialYield === undefined) {
+                transformed.potentialYield = transformed.yieldGapPotential;
+            }
+            if (transformed.yieldGapMinimisedDistrict !== undefined && transformed.yieldGapDistrictMinimized === undefined) {
+                transformed.yieldGapDistrictMinimized = transformed.yieldGapMinimisedDistrict;
+            }
+            if (transformed.yieldGapMinimisedState !== undefined && transformed.yieldGapStateMinimized === undefined) {
+                transformed.yieldGapStateMinimized = transformed.yieldGapMinimisedState;
+            }
+            if (transformed.yieldGapMinimisedPotential !== undefined && transformed.yieldGapPotentialMinimized === undefined) {
+                transformed.yieldGapPotentialMinimized = transformed.yieldGapMinimisedPotential;
+            }
+
+            const normalizedYearMonth = toYearMonthFromMonthName(transformed.month, transformed.reportingYear);
+            if (normalizedYearMonth) {
+                transformed.month = normalizedYearMonth;
+            }
+
+            return transformed;
+        },
     },
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
         excludeFields: ['id', 'kvkName'],
@@ -523,6 +599,47 @@ export async function processFiles(data: any): Promise<any> {
 }
 
 /**
+ * Enforces common start/end date rules across payloads:
+ * - start/end dates cannot be in the future
+ * - end date cannot be before matching start date
+ */
+export function normalizeStartEndDateRanges(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+    const todayYmd = new Date().toISOString().slice(0, 10);
+
+    Object.keys(normalized).forEach((key) => {
+        const lowerKey = key.toLowerCase();
+        if (!lowerKey.includes('startdate') && !lowerKey.includes('enddate')) return;
+
+        const ymd = toDateOnlyString(normalized[key]);
+        if (!ymd) return;
+
+        if (ymd > todayYmd) {
+            normalized[key] = todayYmd;
+        }
+    });
+
+    Object.keys(normalized).forEach((key) => {
+        if (!key.toLowerCase().includes('enddate')) return;
+
+        const endYmd = toDateOnlyString(normalized[key]);
+        if (!endYmd) return;
+
+        const startKey = key.replace(/enddate/i, 'startDate');
+        const startYmd = toDateOnlyString(normalized[startKey]);
+        if (!startYmd) return;
+
+        if (endYmd < startYmd) {
+            normalized[key] = startYmd;
+        }
+    });
+
+    return normalized;
+}
+
+/**
  * Complete data transformation pipeline for create operations
  */
 export function transformDataForCreate(
@@ -536,6 +653,7 @@ export function transformDataForCreate(
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }
@@ -556,6 +674,7 @@ export function transformDataForUpdate(
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
     return transformed;
 }

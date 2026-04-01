@@ -18,6 +18,7 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
     formData,
     setFormData,
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     const { user } = useAuth()
     const { data: years = [] } = useYears();
     const { data: soilWaterAnalyses = [] } = useSoilWaterAnalyses();
@@ -92,6 +93,7 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             type="date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -99,6 +101,8 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             type="date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <MasterDataDropdown

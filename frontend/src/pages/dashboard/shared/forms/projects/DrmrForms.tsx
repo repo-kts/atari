@@ -1,8 +1,6 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
-import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
-import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface DrmrFormsProps {
     entityType: string
@@ -81,6 +79,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS && (
@@ -210,6 +209,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -217,6 +217,8 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput

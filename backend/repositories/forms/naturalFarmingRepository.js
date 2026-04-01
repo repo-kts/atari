@@ -157,7 +157,6 @@ const geographicalInfoRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true,
             },
             orderBy: { geographicalInfoId: 'desc' }
         });
@@ -181,7 +180,6 @@ const geographicalInfoRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true,
             }
         });
 

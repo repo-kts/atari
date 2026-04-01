@@ -96,6 +96,43 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     formData,
     setFormData,
 }) => {
+    const parseOccupancyData = React.useCallback((): Record<string, string> => {
+        const raw = formData?.occupancyData
+        if (!raw) return {}
+        try {
+            if (typeof raw === 'string') {
+                const parsed = JSON.parse(raw)
+                return parsed && typeof parsed === 'object' ? parsed : {}
+            }
+            if (typeof raw === 'object') {
+                return raw as Record<string, string>
+            }
+        } catch {
+            // ignore malformed JSON
+        }
+        return {}
+    }, [formData?.occupancyData])
+
+    // Hydrate per-cell fields from persisted occupancyData when editing
+    React.useEffect(() => {
+        if (entityType !== ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS) return
+        const data = parseOccupancyData()
+        if (!data || Object.keys(data).length === 0) return
+
+        // Compute only changed keys to avoid unnecessary re-renders
+        const updates: any = {}
+        let hasUpdates = false
+        Object.entries(data).forEach(([key, val]) => {
+            const cur = formData?.[key]
+            if (cur !== val) {
+                updates[key] = val
+                hasUpdates = true
+            }
+        })
+        if (hasUpdates) {
+            setFormData({ ...formData, ...updates })
+        }
+    }, [entityType, formData, setFormData, parseOccupancyData])
     const { data: years = [], isLoading: isLoadingYears } = useYears()
     const { data: seasons = [], isLoading: isLoadingSeasons } = useSeasons()
 
@@ -144,7 +181,24 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     const handleCellChange = useCallback(
         (month: string, quarter: string, value: string) => {
             const cellKey = `occupancy_${month.toLowerCase()}_${quarter.toLowerCase().replace(' ', '_')}`
-            setFormData({ ...formData, [cellKey]: value })
+            // Keep per-cell value for immediate UI binding
+            // Also maintain a normalized occupancyData JSON for persistence
+            let current: Record<string, string>
+            try {
+                current = formData?.occupancyData
+                    ? (typeof formData.occupancyData === 'string'
+                        ? JSON.parse(formData.occupancyData)
+                        : { ...(formData.occupancyData as Record<string, string>) })
+                    : {}
+            } catch {
+                current = {}
+            }
+            const next = { ...current, [cellKey]: value }
+            setFormData({
+                ...formData,
+                [cellKey]: value,
+                occupancyData: JSON.stringify(next),
+            })
         },
         [formData, setFormData]
     )

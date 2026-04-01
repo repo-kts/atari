@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useTechnicalSummary, useTechnicalSummaryFilters } from '@/hooks/useTechnicalAchievementSummary'
 import { useAlert } from '@/hooks/useAlert'
 import { ParticipantAchievement, TechnicalAchievementSummaryData } from '@/services/technicalAchievementSummaryApi'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const SECTION_TH = 'px-2 py-2 border border-[#D6D6D6] text-center font-semibold text-[13px] leading-tight bg-[#EEEEEE]'
 const TH = 'px-1.5 py-1 border border-[#D6D6D6] text-center font-semibold text-[12px] leading-tight'
@@ -231,13 +232,19 @@ export const TechnicalAchievementSummary: React.FC = () => {
     const [isExportingPdf, setIsExportingPdf] = useState(false)
     const [isExportingExcel, setIsExportingExcel] = useState(false)
 
+    const today = useMemo(() => new Date(), [])
+    const todayIso = useMemo(() => {
+        const y = today.getFullYear()
+        const m = String(today.getMonth() + 1).padStart(2, '0')
+        const d = String(today.getDate()).padStart(2, '0')
+        return `${y}-${m}-${d}`
+    }, [today])
+
     useEffect(() => {
         if (!filterOptions) return
         if (appliedYear !== null) return
 
         const defaultYear = filterOptions.defaultReportingYear || new Date().getFullYear()
-        setFromDate(`${defaultYear}-04-01`)
-        setToDate(`${defaultYear + 1}-03-31`)
         setAppliedYear(defaultYear)
     }, [filterOptions, appliedYear])
 
@@ -407,25 +414,31 @@ export const TechnicalAchievementSummary: React.FC = () => {
                     <h2 className="text-[44px] font-semibold text-[#212121] mb-4 leading-tight">Technical Achievement Summary</h2>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end mb-4">
-                        <div>
-                            <label className="block text-sm font-medium text-[#212121] mb-2">From Date</label>
-                            <input
-                                type="date"
+                        <div className={isFilterLoading ? 'opacity-50 pointer-events-none' : ''}>
+                            <DatePicker
+                                label="From Date"
                                 value={fromDate}
-                                onChange={(e) => setFromDate(e.target.value)}
-                                className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
+                                onChange={(v) => {
+                                    setFromDate(v)
+                                    if (toDate && v && new Date(v) > new Date(toDate)) {
+                                        setToDate(v)
+                                    }
+                                }}
+                                max={todayIso}
                                 disabled={isFilterLoading}
+                                placeholder="Select start date"
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-[#212121] mb-2">To Date</label>
-                            <input
-                                type="date"
+                        <div className={isFilterLoading ? 'opacity-50 pointer-events-none' : ''}>
+                            <DatePicker
+                                label="To Date"
                                 value={toDate}
-                                onChange={(e) => setToDate(e.target.value)}
-                                className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white"
+                                onChange={(v) => setToDate(v)}
+                                min={fromDate || undefined}
+                                max={todayIso}
                                 disabled={isFilterLoading}
+                                placeholder="Select end date"
                             />
                         </div>
 

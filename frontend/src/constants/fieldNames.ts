@@ -153,6 +153,7 @@ export const FIELD_NAMES = {
     // Status Fields
     ONGOING_COMPLETED: 'ongoingCompleted',
     STATUS: 'status',
+    COMPLETED_AT: 'completedAt',
     PRESENT_STATUS: 'presentStatus',
 
     // Problem Fields
@@ -804,6 +805,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.STATE_YIELD,
         FIELD_NAMES.POTENTIAL_YIELD,
         FIELD_NAMES.STATUS,
+        FIELD_NAMES.COMPLETED_AT,
     ] as const,
     CFLD_EXTENSION_ACTIVITY: [
         FIELD_NAMES.KVK_NAME,

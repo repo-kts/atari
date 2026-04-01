@@ -28,6 +28,32 @@ export const CraForms: React.FC<CraFormsProps> = ({
     croppingSystemsLoading = false,
     extensionActivityTypes
 }) => {
+    const todayYmd = React.useMemo(() => new Date().toISOString().slice(0, 10), [])
+
+    React.useEffect(() => {
+        // Backfill croppingSystemId during edit for legacy rows that only have text.
+        if (entityType !== ENTITY_TYPES.PROJECT_CRA_DETAILS) return
+        if (!formData?.seasonId) return
+        if (formData?.croppingSystemId) return
+
+        const selectedText = String(formData?.croppingSystem || formData?.cropingSystem || '').trim().toLowerCase()
+        if (!selectedText) return
+
+        const matched = (croppingSystems || []).find((cs: any) => {
+            const csSeasonId = Number(cs.seasonId ?? cs.SeasonId ?? cs.season?.seasonId)
+            if (csSeasonId !== Number(formData.seasonId)) return false
+            const label = String(cs.cropName ?? cs.croppingSystemName ?? cs.name ?? '').trim().toLowerCase()
+            return label === selectedText
+        })
+
+        if (!matched) return
+
+        const matchedId = matched.craCropingSystemId ?? matched.id
+        if (matchedId === undefined || matchedId === null || matchedId === '') return
+
+        setFormData({ ...formData, croppingSystemId: matchedId })
+    }, [entityType, formData, setFormData, croppingSystems])
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS && (
@@ -82,7 +108,19 @@ export const CraForms: React.FC<CraFormsProps> = ({
                                     }))
                             }}
                             cacheKey="cra-cropping-systems-by-season"
-                            onChange={(value) => setFormData({ ...formData, croppingSystemId: value })}
+                            onChange={(value) => {
+                                const selected = (croppingSystems || []).find(
+                                    (cs: any) => Number(cs.craCropingSystemId ?? cs.id) === Number(value)
+                                )
+                                const selectedLabel =
+                                    selected?.cropName ?? selected?.croppingSystemName ?? selected?.name ?? ''
+
+                                setFormData({
+                                    ...formData,
+                                    croppingSystemId: value,
+                                    croppingSystem: selectedLabel,
+                                })
+                            }}
                         />
                         <MasterDataDropdown
                             label="Farming System crop under demonstration"
@@ -174,13 +212,29 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate || ''}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                            max={todayYmd}
+                            onChange={(e) => {
+                                const nextStartDate = e.target.value
+                                const currentEndDate = formData.endDate ? String(formData.endDate) : ''
+
+                                setFormData({
+                                    ...formData,
+                                    startDate: nextStartDate,
+                                    endDate:
+                                        currentEndDate &&
+                                        (currentEndDate < nextStartDate || currentEndDate > todayYmd)
+                                            ? nextStartDate
+                                            : currentEndDate,
+                                })
+                            }}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
                             value={formData.endDate || ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>

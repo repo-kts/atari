@@ -107,10 +107,81 @@ function normalizeActiveSection(data) {
     return 'technical';
 }
 
+function hasValue(value) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    return true;
+}
+
+function calculatePercentIncrease({ farmerYield, demoYieldAvg }) {
+    const farmer = Number(farmerYield);
+    const demoAvg = Number(demoYieldAvg);
+    if (!Number.isFinite(farmer) || !Number.isFinite(demoAvg) || farmer === 0) {
+        return 0;
+    }
+    return Math.round(((demoAvg - farmer) / farmer) * 100);
+}
+
+function validateRequiredTechnicalFields(data) {
+    const required = [
+        ['month', data.month],
+        ['seasonId', data.seasonId],
+        ['crop', data.crop || data.cropId],
+        ['typeId', data.typeId || data.cropTypeId || data.type || data.typeName],
+        ['varietyName', data.varietyName],
+        ['areaInHa', data.areaInHa ?? data.areaHectare],
+        ['technologyDemonstrated', data.technologyDemonstrated],
+        ['existingFarmerPractice', data.existingFarmerPractice],
+        ['farmerYield', data.farmerYield ?? data.yieldFarmerField],
+        ['demoYieldMax', data.yieldMax ?? data.demoYieldMax],
+        ['demoYieldMin', data.yieldMin ?? data.demoYieldMin],
+        ['demoYieldAvg', data.yieldAvg ?? data.demoYieldAvg],
+        ['districtYield', data.districtYield ?? data.yieldGapDistrict],
+        ['stateYield', data.stateYield ?? data.yieldGapState],
+        ['potentialYield', data.potentialYield ?? data.yieldGapPotential],
+        ['yieldGapDistrictMinimized', data.yieldGapDistrictMinimized ?? data.yieldGapMinimisedDistrict],
+        ['yieldGapStateMinimized', data.yieldGapStateMinimized ?? data.yieldGapMinimisedState],
+        ['yieldGapPotentialMinimized', data.yieldGapPotentialMinimized ?? data.yieldGapMinimisedPotential],
+    ];
+    for (const [field, value] of required) {
+        if (!hasValue(value)) {
+            throw new ValidationError(`${field} is required`, field);
+        }
+    }
+}
+
+async function evaluateCfldCompletionStatus(cfldTechId, tx) {
+    const cfldTech = await tx.cfldTechnicalParameter.findUnique({
+        where: { cfldTechId },
+        include: {
+            economicParameters: { select: { status: true } },
+            socioEconomicParameters: { select: { status: true } },
+            farmersPerceptionParameters: { select: { status: true } },
+        },
+    });
+    if (!cfldTech) return null;
+
+    const economicStatus = cfldTech.economicParameters?.[0]?.status || 'ONGOING';
+    const socioStatus = cfldTech.socioEconomicParameters?.[0]?.status || 'ONGOING';
+    const perceptionStatus = cfldTech.farmersPerceptionParameters?.[0]?.status || 'ONGOING';
+    const allCompleted = [economicStatus, socioStatus, perceptionStatus].every((s) => s === 'COMPLETED');
+
+    const nextStatus = allCompleted ? 'COMPLETED' : 'ONGOING';
+    const updatePayload = {
+        status: nextStatus,
+        completedAt: allCompleted ? (cfldTech.completedAt || new Date()) : null,
+    };
+    await tx.cfldTechnicalParameter.update({
+        where: { cfldTechId },
+        data: updatePayload,
+    });
+}
+
 /**
  * Builds create data object from request data
  */
 async function buildCreateData(data, user) {
+    validateRequiredTechnicalFields(data);
     const kvkId = resolveKvkId(user, data);
     const seasonId = data.seasonId ? safeParseInt(data.seasonId) : null;
     const month = parseMonth(data.month);
@@ -152,6 +223,14 @@ async function buildCreateData(data, user) {
         throw new ValidationError('Crop type ID is required', 'typeId');
     }
 
+    const farmerYield = safeParseFloat(data.farmerYield || data.yieldFarmerField, 0);
+    const demoYieldAvg = safeParseFloat(data.yieldAvg || data.demoYieldAvg, 0);
+    const computedPercentIncrease = calculatePercentIncrease({ farmerYield, demoYieldAvg });
+    const percentIncreaseInput = data.percentIncrease ?? data.yieldIncreasePercent;
+    const percentIncrease = hasValue(percentIncreaseInput)
+        ? safeParseInt(percentIncreaseInput, computedPercentIncrease)
+        : computedPercentIncrease;
+
     return {
         kvkId,
         cropId,
@@ -164,11 +243,11 @@ async function buildCreateData(data, user) {
         areaInHa: safeParseFloat(data.areaInHa || data.areaHectare, 0),
         technologyDemonstrated: data.technologyDemonstrated || '',
         existingFarmerPractice: data.existingFarmerPractice || '',
-        farmerYield: safeParseFloat(data.farmerYield || data.yieldFarmerField, 0),
+        farmerYield,
         demoYieldMax: safeParseFloat(data.yieldMax || data.demoYieldMax, 0),
         demoYieldMin: safeParseFloat(data.yieldMin || data.demoYieldMin, 0),
-        demoYieldAvg: safeParseFloat(data.yieldAvg || data.demoYieldAvg, 0),
-        percentIncrease: safeParseFloat(data.percentIncrease || data.yieldIncreasePercent, 0),
+        demoYieldAvg,
+        percentIncrease,
         districtYield: safeParseFloat(data.districtYield || data.yieldGapDistrict, 0),
         stateYield: safeParseFloat(data.stateYield || data.yieldGapState, 0),
         potentialYield: safeParseFloat(data.potentialYield || data.yieldGapPotential, 0),
@@ -370,12 +449,6 @@ async function buildUpdateData(data, existing) {
             existing.demoYieldAvg
         );
     }
-    if (data.percentIncrease !== undefined || data.yieldIncreasePercent !== undefined) {
-        updateData.percentIncrease = safeParseFloat(
-            data.percentIncrease || data.yieldIncreasePercent,
-            existing.percentIncrease
-        );
-    }
     if (data.districtYield !== undefined || data.yieldGapDistrict !== undefined) {
         updateData.districtYield = safeParseFloat(
             data.districtYield || data.yieldGapDistrict,
@@ -437,8 +510,21 @@ async function buildUpdateData(data, existing) {
         updateData.reportingYear = parsed;
     }
 
-    if (data.status !== undefined) {
-        updateData.status = data.status;
+    if (data.percentIncrease !== undefined || data.yieldIncreasePercent !== undefined) {
+        updateData.percentIncrease = safeParseInt(
+            data.percentIncrease ?? data.yieldIncreasePercent,
+            existing.percentIncrease
+        );
+    } else {
+        const hasFarmerYield = updateData.farmerYield !== undefined;
+        const hasDemoAvg = updateData.demoYieldAvg !== undefined;
+        if (!(hasFarmerYield || hasDemoAvg)) {
+            return updateData;
+        }
+        updateData.percentIncrease = calculatePercentIncrease({
+            farmerYield: hasFarmerYield ? updateData.farmerYield : existing.farmerYield,
+            demoYieldAvg: hasDemoAvg ? updateData.demoYieldAvg : existing.demoYieldAvg,
+        });
     }
 
     return updateData;
@@ -465,6 +551,7 @@ const cfldTechnicalParameterRepository = {
                 } else if (activeSection === 'perception') {
                     await upsertFarmersPerceptionParameters(tx, { cfldTechId: created.cfldTechId, data });
                 }
+                await evaluateCfldCompletionStatus(created.cfldTechId, tx);
 
                 // Re-fetch so included relations reflect upserts (UI hydration)
                 return await tx[REPO_CONFIG.model].findUnique({
@@ -559,6 +646,7 @@ const cfldTechnicalParameterRepository = {
                 } else if (activeSection === 'perception') {
                     await upsertFarmersPerceptionParameters(tx, { cfldTechId, data });
                 }
+                await evaluateCfldCompletionStatus(cfldTechId, tx);
 
                 // Re-fetch so included relations reflect upserts (UI hydration)
                 return await tx[REPO_CONFIG.model].findUnique({
@@ -629,6 +717,7 @@ function _mapResponse(r) {
         seasonName: r.season ? r.season.seasonName : undefined,
         reportingYear: formatReportingYear(r.reportingYear),
         status: r.status,
+        completedAt: r.completedAt,
         varietyName: r.varietyName,
         areaInHa: r.areaInHa,
         technologyDemonstrated: r.technologyDemonstrated,
