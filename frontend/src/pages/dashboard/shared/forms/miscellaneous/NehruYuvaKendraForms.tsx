@@ -76,89 +76,92 @@ export const NehruYuvaKendraForms: React.FC<NehruYuvaKendraFormsProps> = ({
                         />
                     </div>
 
-                    <FormSection title="No. of the Participant">
-                        <FormInput
-                            label="General_M"
-                            required
-                            type="number"
-                            value={formData.generalM || ''}
-                            onChange={handleNumberChange('generalM')}
-                            placeholder="Enter number"
-                        />
+                    <FormSection title="No. of the Participant" noGrid>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput
+                                label="General_M"
+                                required
+                                type="number"
+                                value={formData.generalM || ''}
+                                onChange={handleNumberChange('generalM')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="General_F"
-                            required
-                            type="number"
-                            value={formData.generalF || ''}
-                            onChange={handleNumberChange('generalF')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="General_F"
+                                required
+                                type="number"
+                                value={formData.generalF || ''}
+                                onChange={handleNumberChange('generalF')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="OBC_M"
-                            required
-                            type="number"
-                            value={formData.obcM || ''}
-                            onChange={handleNumberChange('obcM')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="OBC_M"
+                                required
+                                type="number"
+                                value={formData.obcM || ''}
+                                onChange={handleNumberChange('obcM')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="OBC_F"
-                            required
-                            type="number"
-                            value={formData.obcF || ''}
-                            onChange={handleNumberChange('obcF')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="OBC_F"
+                                required
+                                type="number"
+                                value={formData.obcF || ''}
+                                onChange={handleNumberChange('obcF')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="SC_M"
-                            required
-                            type="number"
-                            value={formData.scM || ''}
-                            onChange={handleNumberChange('scM')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="SC_M"
+                                required
+                                type="number"
+                                value={formData.scM || ''}
+                                onChange={handleNumberChange('scM')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="SC_F"
-                            required
-                            type="number"
-                            value={formData.scF || ''}
-                            onChange={handleNumberChange('scF')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="SC_F"
+                                required
+                                type="number"
+                                value={formData.scF || ''}
+                                onChange={handleNumberChange('scF')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="ST_M"
-                            required
-                            type="number"
-                            value={formData.stM || ''}
-                            onChange={handleNumberChange('stM')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="ST_M"
+                                required
+                                type="number"
+                                value={formData.stM || ''}
+                                onChange={handleNumberChange('stM')}
+                                placeholder="Enter number"
+                            />
 
-                        <FormInput
-                            label="ST_F"
-                            required
-                            type="number"
-                            value={formData.stF || ''}
-                            onChange={handleNumberChange('stF')}
-                            placeholder="Enter number"
-                        />
+                            <FormInput
+                                label="ST_F"
+                                required
+                                type="number"
+                                value={formData.stF || ''}
+                                onChange={handleNumberChange('stF')}
+                                placeholder="Enter number"
+                            />
+                        </div>
+                        <div className="pt-2 w-full md:w-1/2">
+                            <FormInput
+                                label="Amount of Fund Received (Rs)"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.fundReceived || ''}
+                                onChange={(e) => setFormData({ ...formData, fundReceived: parseFloat(e.target.value) || 0 })}
+                                placeholder="Enter amount"
+                            />
+                        </div>
                     </FormSection>
-
-                    <FormInput
-                        label="Amount of Fund Received (Rs)"
-                        required
-                        type="number"
-                        step="0.01"
-                        value={formData.fundReceived || ''}
-                        onChange={(e) => setFormData({ ...formData, fundReceived: parseFloat(e.target.value) || 0 })}
-                        placeholder="Enter amount"
-                    />
                 </div>
             )}
         </div>

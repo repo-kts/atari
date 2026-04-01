@@ -132,78 +132,80 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         placeholder="Enter resource person"
                     />
 
-                    <FormSection title="No. of the Participant">
-                        <FormInput
-                            label="General_M"
-                            required
-                            type="number"
-                            value={formData.generalM || ''}
-                            onChange={handleNumberChange('generalM')}
-                            placeholder="0"
-                        />
+                    <FormSection title="No. of the Participant" noGrid>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput
+                                label="General_M"
+                                required
+                                type="number"
+                                value={formData.generalM || ''}
+                                onChange={handleNumberChange('generalM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="General_F"
-                            required
-                            type="number"
-                            value={formData.generalF || ''}
-                            onChange={handleNumberChange('generalF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="General_F"
+                                required
+                                type="number"
+                                value={formData.generalF || ''}
+                                onChange={handleNumberChange('generalF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="OBC_M"
-                            required
-                            type="number"
-                            value={formData.obcM || ''}
-                            onChange={handleNumberChange('obcM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="OBC_M"
+                                required
+                                type="number"
+                                value={formData.obcM || ''}
+                                onChange={handleNumberChange('obcM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="OBC_F"
-                            required
-                            type="number"
-                            value={formData.obcF || ''}
-                            onChange={handleNumberChange('obcF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="OBC_F"
+                                required
+                                type="number"
+                                value={formData.obcF || ''}
+                                onChange={handleNumberChange('obcF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="SC_M"
-                            required
-                            type="number"
-                            value={formData.scM || ''}
-                            onChange={handleNumberChange('scM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="SC_M"
+                                required
+                                type="number"
+                                value={formData.scM || ''}
+                                onChange={handleNumberChange('scM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="SC_F"
-                            required
-                            type="number"
-                            value={formData.scF || ''}
-                            onChange={handleNumberChange('scF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="SC_F"
+                                required
+                                type="number"
+                                value={formData.scF || ''}
+                                onChange={handleNumberChange('scF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="ST_M"
-                            required
-                            type="number"
-                            value={formData.stM || ''}
-                            onChange={handleNumberChange('stM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="ST_M"
+                                required
+                                type="number"
+                                value={formData.stM || ''}
+                                onChange={handleNumberChange('stM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="ST_F"
-                            required
-                            type="number"
-                            value={formData.stF || ''}
-                            onChange={handleNumberChange('stF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="ST_F"
+                                required
+                                type="number"
+                                value={formData.stF || ''}
+                                onChange={handleNumberChange('stF')}
+                                placeholder="0"
+                            />
+                        </div>
                     </FormSection>
                 </div>
             )}
