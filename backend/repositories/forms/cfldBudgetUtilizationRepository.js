@@ -14,6 +14,19 @@ const buildDateFromYear = (yearValue) => {
     return year === null ? null : new Date(Date.UTC(year, 0, 1));
 };
 
+const resolveDateFromYearWithFallback = (yearValue, fallbackDate = null) => {
+    const year = parseYearFromInput(yearValue, null);
+    if (year === null) return fallbackDate || null;
+
+    if (fallbackDate instanceof Date && !Number.isNaN(fallbackDate.getTime())) {
+        if (fallbackDate.getUTCFullYear() === year) {
+            return new Date(fallbackDate.getTime());
+        }
+    }
+
+    return new Date(Date.UTC(year, 0, 1));
+};
+
 const resolveReportingYearInput = (rawValue, fallbackYear = null, fallbackDate = null) => {
     if (rawValue === undefined || rawValue === null || rawValue === '') {
         return {
@@ -34,7 +47,9 @@ const resolveReportingYearInput = (rawValue, fallbackYear = null, fallbackDate =
     const parsedYear = parseYearFromInput(rawValue, fallbackYear);
     return {
         year: parsedYear,
-        reportingYearDate: buildDateFromYear(parsedYear) || fallbackDate,
+        // For legacy clients that still send only numeric year during update,
+        // preserve existing exact date when the year did not change.
+        reportingYearDate: resolveDateFromYearWithFallback(parsedYear, fallbackDate),
     };
 };
 
