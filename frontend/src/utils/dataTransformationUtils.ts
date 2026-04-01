@@ -22,6 +22,49 @@ export interface TransformationRule {
     transform?: (data: any) => any;
 }
 
+const STRICT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
+const YEAR_PATTERN = /^\d{4}$/;
+
+function toDateOnlyString(value: any): string | null {
+    if (value === null || value === undefined || value === '') return null;
+
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value.toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 1900 && value <= 3000) {
+        return `${value}-01-01`;
+    }
+
+    if (typeof value === 'object') {
+        if (value.reportingYearDate !== undefined) return toDateOnlyString(value.reportingYearDate);
+        if (value.reportingYear !== undefined) return toDateOnlyString(value.reportingYear);
+        if (value.yearName !== undefined) return toDateOnlyString(value.yearName);
+        if (value.year !== undefined) return toDateOnlyString(value.year);
+        return null;
+    }
+
+    if (typeof value !== 'string') return null;
+
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (YEAR_PATTERN.test(trimmed)) {
+        return `${trimmed}-01-01`;
+    }
+
+    if (!STRICT_DATE_PATTERN.test(trimmed)) {
+        return null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return trimmed;
+    }
+
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+}
+
 // ============================================
 // Configuration: Entity-Specific Rules
 // ============================================
@@ -252,9 +295,7 @@ export function normalizeLegacyReportingYear(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
     const normalized = { ...data };
-    const legacyYear =
-        normalized.reportingYear ??
-        normalized.year;
+    const legacyYear = normalized.reportingYear ?? normalized.year;
 
     if (legacyYear !== undefined && legacyYear !== null && legacyYear !== '') {
         const asString = String(legacyYear).trim();
@@ -263,6 +304,28 @@ export function normalizeLegacyReportingYear(data: any): any {
     }
 
     delete normalized.year;
+
+    return normalized;
+}
+
+/**
+ * Canonicalizes reporting year aliases to a single date string field.
+ * Prefers reportingYearDate (exact date) over legacy integer year.
+ */
+export function normalizeReportingYearDateAlias(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+    const dateFromAlias =
+        toDateOnlyString(normalized.reportingYearDate) ??
+        toDateOnlyString(normalized.reportingYear) ??
+        toDateOnlyString(normalized.year);
+
+    if (dateFromAlias) {
+        normalized.reportingYear = dateFromAlias;
+    }
+
+    delete normalized.reportingYearDate;
 
     return normalized;
 }
@@ -444,6 +507,7 @@ export function transformDataForCreate(
     formData: any
 ): any {
     let transformed = removeNestedObjects(formData);
+    transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
@@ -463,6 +527,7 @@ export function transformDataForUpdate(
 ): any {
     let transformed = removeIdField(entityType, idField, formData);
     transformed = removeNestedObjects(transformed);
+    transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
