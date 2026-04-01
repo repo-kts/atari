@@ -9,6 +9,7 @@ model ModuleImage {
   caption           String?
   imageDate         DateTime  @map("image_date")
   reportingYear     Int       @map("reporting_year")
+  reportingYearDate DateTime? @map("reporting_year_date")
   imageData         Bytes     @map("image_data")
   mimeType          String    @map("mime_type")
   fileName          String?   @map("file_name")
@@ -20,7 +21,9 @@ model ModuleImage {
   uploadedBy        User?     @relation(fields: [uploadedByUserId], references: [userId], onDelete: SetNull)
 
   @@index([kvkId, imageDate])
+  @@index([kvkId, reportingYearDate])
   @@index([reportingYear, imageDate])
+  @@index([reportingYearDate, imageDate])
   @@index([moduleId, imageDate])
   @@index([zoneId, imageDate])
   @@index([stateId, imageDate])

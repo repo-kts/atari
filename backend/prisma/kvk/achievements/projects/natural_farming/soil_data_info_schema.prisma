@@ -2,6 +2,7 @@ model SoilDataInformation {
   soilDataInformationId Int               @id @default(autoincrement()) @map("soil_data_information_id")
   kvkId                 Int
   year                  Int
+  reportingYearDate     DateTime?         @map("reporting_year_date")
   crop                  String
   seasonId              Int?
   soilParameterId       Int?              @map("soil_parameter_id")
@@ -24,6 +25,8 @@ model SoilDataInformation {
   soilParameterMaster   NaturalFarmingSoilParameterMaster? @relation(fields: [soilParameterId], references: [naturalFarmingSoilParameterId], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([kvkId])
+  @@index([reportingYearDate])
+  @@index([kvkId, reportingYearDate])
   @@map("soil_data_information")
 }
 
