@@ -1,7 +1,48 @@
 const prisma = require('../../config/prisma.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
-const { formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { mapCommonRelations } = require('../../utils/responseMapper.js');
+
+const parseYearFromInput = (value, fallback = null) => {
+    if (value === undefined || value === null || value === '') return fallback;
+    const parsed = parseInt(String(value).trim(), 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+const buildDateFromYear = (yearValue) => {
+    const year = parseYearFromInput(yearValue, null);
+    return year === null ? null : new Date(Date.UTC(year, 0, 1));
+};
+
+const resolveReportingYearInput = (rawValue, fallbackYear = null, fallbackDate = null) => {
+    if (rawValue === undefined || rawValue === null || rawValue === '') {
+        return {
+            year: fallbackYear,
+            reportingYearDate: fallbackDate || buildDateFromYear(fallbackYear),
+        };
+    }
+
+    if (rawValue instanceof Date || (typeof rawValue === 'string' && rawValue.trim().includes('-'))) {
+        const parsedDate = parseReportingYearDate(rawValue);
+        ensureNotFutureDate(parsedDate);
+        return {
+            year: parsedDate.getUTCFullYear(),
+            reportingYearDate: parsedDate,
+        };
+    }
+
+    const parsedYear = parseYearFromInput(rawValue, fallbackYear);
+    return {
+        year: parsedYear,
+        reportingYearDate: buildDateFromYear(parsedYear) || fallbackDate,
+    };
+};
+
+const formatBudgetReportingYear = (reportingYearDate, yearValue) => {
+    if (reportingYearDate) return formatReportingYear(reportingYearDate);
+    const fallbackDate = buildDateFromYear(yearValue);
+    return fallbackDate ? formatReportingYear(fallbackDate) : '';
+};
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
@@ -66,22 +107,18 @@ const cfldBudgetUtilizationRepository = {
             { id: getItemIdByPattern('Publication'), r: data.publicationReceived, u: data.publicationUtilized }
         ].filter(item => item.id !== null);
 
-        const rawYear = data.reportingYear || data.year;
-        let numericYear = new Date().getFullYear();
-        if (rawYear) {
-            const parsed = parseInt(String(rawYear).split('-')[0]);
-            numericYear = isNaN(parsed) ? new Date().getFullYear() : parsed;
-        }
+        const yearInfo = resolveReportingYearInput(data.reportingYear ?? data.year, new Date().getUTCFullYear(), null);
+        const numericYear = yearInfo.year ?? new Date().getUTCFullYear();
 
         const insertResult = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_budget_utilization (
-                "kvkId", year, "seasonId", "cropId",
+                "kvkId", year, reporting_year_date, "seasonId", "cropId",
                 overall_crop_wise_fund_allocation,
                 area_ha_allotted, area_ha_achieved,
                 created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING budget_id
-        `, kvkId, numericYear, parseInt(data.seasonId || 1), cropId,
+        `, kvkId, numericYear, yearInfo.reportingYearDate, parseInt(data.seasonId || 1), cropId,
             parseFloat(data.overallFundAllocation || 0),
             parseFloat(data.areaAllotted || 0),
             parseFloat(data.areaAchieved || 0)
@@ -152,10 +189,11 @@ const cfldBudgetUtilizationRepository = {
         }
 
         const updateData = {};
-        const rawYear = data.reportingYear || data.year;
+        const rawYear = data.reportingYear ?? data.year;
         if (rawYear !== undefined) {
-            const parsed = parseInt(String(rawYear).split('-')[0]);
-            if (!isNaN(parsed)) updateData.year = parsed;
+            const yearInfo = resolveReportingYearInput(rawYear, existing.year, existing.reportingYearDate || null);
+            if (yearInfo.year !== null && yearInfo.year !== undefined) updateData.year = yearInfo.year;
+            updateData.reportingYearDate = yearInfo.reportingYearDate || null;
         }
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
 
@@ -259,7 +297,7 @@ function _mapResponse(r) {
         kvkId: r.kvkId,
         ...relations,
         year: r.year,
-        reportingYear: formatReportingYear(r.reportingYear),
+        reportingYear: formatBudgetReportingYear(r.reportingYearDate, r.year),
         overallFundAllocation: r.overallFundAllocation,
         areaAllotted: r.areaAllotted,
         areaAchieved: r.areaAchieved,
