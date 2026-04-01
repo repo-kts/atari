@@ -17,12 +17,18 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         const text = String(input ?? '')
         return text.length > limit ? `${text.slice(0, limit)}...` : text
     }
+    const toSentenceCaseLabel = (raw: string) =>
+        raw
+            .toLowerCase()
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase())
     // Photo/Attachment field
     const isImageValue = typeof value === 'string' && value.startsWith('data:image/') && value.includes('base64,');
     const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath' || field === 'file' || field === 'uploadedFile';
     const imagePath = isImageValue ? value : (item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment || item.uploadedFile || item.file);
     const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
     const isOftStatusField = field === 'ongoingCompleted' || field === 'status'
+    const isAccountTypeField = field === 'accountType' || field === 'account_type'
 
     // Image field
     if ((isImageField || isImageValue) && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
@@ -79,6 +85,29 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         return (
             <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${classMap[rawStatus] || 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
                 {label}
+            </span>
+        )
+    }
+
+    // Account type field (KVK / REVOLVING_FUND / OTHER)
+    if (isAccountTypeField) {
+        const rawType = String(value || item.accountType || item.account_type || '').toUpperCase().trim()
+        if (!rawType) return <span>-</span>
+
+        const labelMap: Record<string, string> = {
+            KVK: 'KVK',
+            REVOLVING_FUND: 'Revolving Fund',
+            OTHER: 'Other',
+        }
+        const classMap: Record<string, string> = {
+            KVK: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+            REVOLVING_FUND: 'bg-violet-100 text-violet-700 border border-violet-200',
+            OTHER: 'bg-amber-100 text-amber-700 border border-amber-200',
+        }
+
+        return (
+            <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${classMap[rawType] || 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
+                {labelMap[rawType] || toSentenceCaseLabel(rawType)}
             </span>
         )
     }

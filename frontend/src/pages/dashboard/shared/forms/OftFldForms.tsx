@@ -34,6 +34,12 @@ interface OftFldFormsProps {
     setFormData: (data: any) => void
 }
 
+const createTechnologyOption = () => ({
+    optionKey: `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    optionName: '',
+    details: '',
+})
+
 export const OftFldForms: React.FC<OftFldFormsProps> = ({
     entityType,
     formData,
@@ -194,6 +200,25 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             })
         }
     }, [entityType, setFormData])
+
+    useEffect(() => {
+        if (entityType !== ENTITY_TYPES.ACHIEVEMENT_OFT) return
+        if (Array.isArray(formData.technologyOptions)) return
+
+        const legacyOptions = Object.keys(formData || {})
+            .filter((key) => key.startsWith('tech_'))
+            .map((key) => ({
+                optionKey: `legacy_${key}`,
+                optionName: key.replace(/^tech_/, '').trim(),
+                details: formData[key] || '',
+            }))
+            .filter((row) => row.optionName)
+
+        setFormData((prev: any) => ({
+            ...prev,
+            technologyOptions: legacyOptions.length > 0 ? legacyOptions : [createTechnologyOption()],
+        }))
+    }, [entityType, formData, setFormData])
 
     // Ensure CropName, seasonId, and typeId are correctly populated for CFLD_CROPS
     useEffect(() => {
@@ -615,23 +640,53 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <h3 className="text-lg font-semibold text-[#487749] pb-2 border-b border-[#E8F5E9]">
                             Details of technologies selected for assessment/refinement:
                         </h3>
-                        <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
-                            <span className="font-medium text-gray-700">Technology Options</span>
-                            <span className="font-medium text-gray-700">Details</span>
-
-                            {['Farmer Practice', 'TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'C1', 'C2'].map((tech) => (
-                                <React.Fragment key={tech}>
-                                    <label className="text-sm font-medium text-gray-600">{tech}</label>
+                        <div className="space-y-3">
+                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => (
+                                <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
                                     <FormInput
-                                        label=""
-                                        placeholder="Description"
-                                        value={formData[`tech_${tech}`] || ''}
-                                        onChange={(e) => setFormData({ ...formData, [`tech_${tech}`]: e.target.value })}
-                                        className="mt-0"
+                                        label={index === 0 ? 'Technology Option Name' : ''}
+                                        placeholder="Enter option name"
+                                        value={tech.optionName || ''}
+                                        onChange={(e) => {
+                                            const next = [...(formData.technologyOptions || [])]
+                                            next[index] = { ...next[index], optionName: e.target.value }
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
                                         required
                                     />
-                                </React.Fragment>
+                                    <FormInput
+                                        label={index === 0 ? 'Details (Optional)' : ''}
+                                        placeholder="Enter details"
+                                        value={tech.details || ''}
+                                        onChange={(e) => {
+                                            const next = [...(formData.technologyOptions || [])]
+                                            next[index] = { ...next[index], details: e.target.value }
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-50"
+                                        disabled={(formData.technologyOptions || []).length <= 1}
+                                        onClick={() => {
+                                            const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             ))}
+                            <button
+                                type="button"
+                                className="px-3 py-2 border border-gray-300 rounded-lg"
+                                onClick={() => {
+                                    const next = [...(formData.technologyOptions || []), createTechnologyOption()]
+                                    setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                }}
+                            >
+                                Add Technology Option
+                            </button>
                         </div>
                     </div>
                 </div>

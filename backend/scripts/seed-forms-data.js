@@ -6,10 +6,14 @@
  *   node scripts/seed-forms-data.js <kvkId1> <kvkId2> ...
  *   or
  *   KVK_IDS=1,2,3 node scripts/seed-forms-data.js
+ *   or (clear existing form rows before reseeding)
+ *   node scripts/seed-forms-data.js --reset <kvkId1> <kvkId2> ...
  * 
  * Run: node scripts/seed-forms-data.js <kvkId>   or   npm run seed:forms
  */
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const prisma = require('../config/prisma');
 
 // Sample data generators
@@ -280,7 +284,7 @@ async function seedStaff(kvkIds) {
       const staffName = `${firstName} ${lastName}`;
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@kvk${kvkId}.gov.in`;
       const mobile = `9${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-      
+
       const existing = await prisma.kvkStaff.findFirst({
         where: { kvkId, email },
       });
@@ -682,13 +686,38 @@ async function seedFarmerAwards(kvkIds) {
 /**
  * Main function to seed all form data
  */
+async function resetExistingFormData(kvkIds) {
+  console.log('🧹 Resetting existing form data for selected KVK IDs...');
+
+  // Delete child/form tables first to avoid FK issues.
+  await prisma.kvkImportantDayCelebration.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkOtherExtensionActivity.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkExtensionActivity.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.trainingAchievement.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.farmerAward.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkBankAccount.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkStaff.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkFarmImplement.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkEquipment.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkVehicle.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkInfrastructure.deleteMany({ where: { kvkId: { in: kvkIds } } });
+
+  console.log('   ✅ Existing form data cleared\n');
+}
+
 async function run() {
+  const args = process.argv.slice(2);
+  const shouldReset = args.includes('--reset');
+
   // Get KVK IDs from command line arguments or environment variable
   let kvkIds = [];
 
-  if (process.argv.length > 2) {
+  if (args.length > 0) {
     // Get from command line arguments
-    kvkIds = process.argv.slice(2).map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    kvkIds = args
+      .filter(arg => arg !== '--reset')
+      .map(id => parseInt(id, 10))
+      .filter(id => !isNaN(id));
   } else if (process.env.KVK_IDS) {
     // Get from environment variable (comma-separated)
     kvkIds = process.env.KVK_IDS.split(',')
@@ -724,6 +753,10 @@ async function run() {
     process.exit(1);
   }
 
+  if (shouldReset) {
+    await resetExistingFormData(existingIds);
+  }
+
   // Seed data for each form type
   await seedInfrastructure(existingIds);
   await seedVehicles(existingIds);
@@ -750,6 +783,7 @@ if (require.main === module) {
 } else {
   module.exports = {
     run,
+    resetExistingFormData,
     seedInfrastructure,
     seedVehicles,
     seedEquipment,

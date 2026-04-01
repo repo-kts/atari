@@ -609,10 +609,14 @@ async function seedKvks() {
         create: [
           {
             oftTechnologyTypeId: techType1.oftTechnologyTypeId,
+            optionKey: `tech-${techType1.oftTechnologyTypeId}`,
+            optionName: techType1.name,
             details: 'Testing new wheat variety HD-3086',
           },
           {
             oftTechnologyTypeId: techType2.oftTechnologyTypeId,
+            optionKey: `tech-${techType2.oftTechnologyTypeId}`,
+            optionName: techType2.name,
             details: 'Integrated nutrient management practices',
           },
         ],

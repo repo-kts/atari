@@ -3,8 +3,7 @@ const { sanitizeString, sanitizeInteger, sanitizeNumber, sanitizeDate, safeGet, 
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus } = require('../../constants/oftStatus.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
-
-const OFT_TECH_KEYS = ['Farmer Practice', 'TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'C1', 'C2'];
+const crypto = require('crypto');
 
 const OFT_INCLUDE = {
     kvk: { select: { kvkName: true } },
@@ -14,9 +13,8 @@ const OFT_INCLUDE = {
     oftThematicArea: { select: { thematicAreaName: true } },
     discipline: { select: { disciplineName: true } },
     technologies: {
-        include: {
-            oftTechnologyType: true
-        }
+        include: { oftTechnologyType: true },
+        orderBy: { kvkOftTechnologyId: 'asc' },
     }
 };
 
@@ -123,8 +121,8 @@ const oftRepository = {
 
         const updateData = _buildOftUpdateData(data, existing);
 
-        // Handle technologies update (delete all and recreate for simplicity, or complex upsert)
-        if (data.hasTechnologiesUpdate || Object.keys(data).some(k => k.startsWith('tech_'))) {
+        // Handle technology options update
+        if (data.hasTechnologiesUpdate || Array.isArray(data.technologyOptions) || Object.keys(data).some(k => k.startsWith('tech_'))) {
             await prisma.kvkoftTechnology.deleteMany({
                 where: { kvkOftId: parseInt(id) }
             });
@@ -223,8 +221,10 @@ const oftRepository = {
                 status: OFT_STATUS.ONGOING,
                 technologies: {
                     create: (sourceOft.technologies || []).map((tech) => ({
-                        oftTechnologyTypeId: tech.oftTechnologyTypeId,
-                        details: tech.details,
+                        oftTechnologyTypeId: tech.oftTechnologyTypeId || null,
+                        optionKey: tech.optionKey || _generateOptionKey(tech.optionName || tech.oftTechnologyType?.name, tech.kvkOftTechnologyId || 0),
+                        optionName: tech.optionName || tech.oftTechnologyType?.name || 'Technology',
+                        details: tech.details || null,
                     })),
                 },
             }, ['kvkOftId', 'id']);
@@ -286,6 +286,20 @@ const oftRepository = {
             where: { kvkOftId: parseInt(kvkOftId) },
             include: _resultInclude(),
         });
+    },
+
+    getTechnologyOptionsByOftId: async (kvkOftId) => {
+        const rows = await prisma.kvkoftTechnology.findMany({
+            where: { kvkOftId: parseInt(kvkOftId) },
+            orderBy: { kvkOftTechnologyId: 'asc' },
+        });
+
+        return rows.map((row, index) => ({
+            optionKey: row.optionKey || _generateOptionKey(row.optionName, row.kvkOftTechnologyId || index),
+            optionName: row.optionName || '',
+            details: row.details || '',
+            sortOrder: index + 1,
+        })).filter((row) => row.optionName);
     }
 };
 
@@ -370,20 +384,13 @@ function _buildOftUpdateData(data, existing) {
 }
 
 async function _buildTechnologiesCreateData(data) {
-    const technologiesData = [];
-    for (const key of OFT_TECH_KEYS) {
-        const detail = sanitizeString(safeGet(data, `tech_${key}`), { allowEmpty: false });
-        if (!detail) continue;
-        let techType = await prisma.oftTechnologyType.findUnique({ where: { name: key } });
-        if (!techType) {
-            techType = await prisma.oftTechnologyType.create({ data: { name: key } });
-        }
-        technologiesData.push({
-            oftTechnologyTypeId: techType.oftTechnologyTypeId,
-            details: detail,
-        });
-    }
-    return technologiesData;
+    const options = _extractTechnologyOptions(data);
+    _validateTechnologyOptions(options);
+    return options.map((option, index) => ({
+        optionKey: option.optionKey || _generateOptionKey(option.optionName, index),
+        optionName: option.optionName,
+        details: option.details || null,
+    }));
 }
 
 function _mapOftResponse(r) {
@@ -430,14 +437,72 @@ function _mapOftResponse(r) {
         status: normalizeOftStatus(r.status),
    };
 
-    // Add technologies
+    const technologyOptions = [];
     if (r.technologies) {
         r.technologies.forEach(t => {
-            mapped[`tech_${t.oftTechnologyType.name}`] = t.details;
+            const optionName = t.optionName || t.oftTechnologyType?.name || '';
+            const optionKey = t.optionKey || _generateOptionKey(optionName, t.kvkOftTechnologyId || 0);
+            technologyOptions.push({
+                optionKey,
+                optionName,
+                details: t.details || '',
+            });
+            if (optionName) {
+                mapped[`tech_${optionName}`] = t.details || '';
+            }
         });
     }
+    mapped.technologyOptions = technologyOptions;
 
     return mapped;
+}
+
+function _extractTechnologyOptions(data = {}) {
+    const directOptions = Array.isArray(data.technologyOptions) ? data.technologyOptions : null;
+    if (directOptions && directOptions.length > 0) {
+        return directOptions.map((item, index) => ({
+            optionKey: sanitizeString(item?.optionKey, { allowEmpty: false }) || '',
+            optionName: sanitizeString(item?.optionName, { allowEmpty: false }) || '',
+            details: sanitizeString(item?.details, { allowEmpty: true }) || '',
+            sortOrder: sanitizeInteger(item?.sortOrder, { defaultValue: index + 1 }),
+        }));
+    }
+
+    const legacyOptions = Object.keys(data)
+        .filter((key) => key.startsWith('tech_'))
+        .map((key, index) => ({
+            optionKey: '',
+            optionName: key.replace(/^tech_/, '').trim(),
+            details: sanitizeString(safeGet(data, key), { allowEmpty: true }) || '',
+            sortOrder: index + 1,
+        }))
+        .filter((item) => item.optionName);
+    return legacyOptions;
+}
+
+function _validateTechnologyOptions(options) {
+    if (!Array.isArray(options) || options.length === 0) {
+        throw new ValidationError('At least one technology option is required', 'technologyOptions');
+    }
+
+    const seen = new Set();
+    options.forEach((item, index) => {
+        const name = sanitizeString(item.optionName, { allowEmpty: false });
+        if (!name) {
+            throw new ValidationError(`technologyOptions[${index}].optionName is required`, `technologyOptions.${index}.optionName`);
+        }
+        const dedupeKey = String(name).trim().toLowerCase();
+        if (seen.has(dedupeKey)) {
+            throw new ValidationError(`Duplicate technology option name: ${name}`, 'technologyOptions');
+        }
+        seen.add(dedupeKey);
+    });
+}
+
+function _generateOptionKey(optionName, seed = 0) {
+    const safeName = String(optionName || '').trim().toLowerCase();
+    const digest = crypto.createHash('sha1').update(`${safeName}:${seed}`).digest('hex').slice(0, 12);
+    return `opt_${digest}`;
 }
 
 function _resultInclude() {
@@ -512,6 +577,7 @@ async function _replaceResultTablesTx(tx, oftResultReportId, tables) {
             const createdRow = await tx.oftResultTableRow.create({
                 data: {
                     oftResultTableId: createdTable.oftResultTableId,
+                    optionKey: sanitizeString(row.optionKey, { allowEmpty: true }) || null,
                     rowLabel: sanitizeString(row.rowLabel, { allowEmpty: true }) || `Row ${rowIndex + 1}`,
                     sortOrder: sanitizeInteger(row.sortOrder, { defaultValue: rowIndex + 1 }),
                 },

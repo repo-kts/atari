@@ -24,6 +24,7 @@ interface OftResultFormProps {
     onClose: () => void
     onSubmit: (value: OftResultFormValue) => Promise<void>
     embedded?: boolean
+    sourceRows?: Array<{ optionKey: string; optionName: string }>
 }
 
 const defaultValue: OftResultFormValue = {
@@ -35,7 +36,10 @@ const defaultValue: OftResultFormValue = {
     tables: [],
 }
 
-function normalizeInitialValue(initialValue?: Partial<OftResultFormValue>): OftResultFormValue {
+function normalizeInitialValue(
+    initialValue?: Partial<OftResultFormValue>,
+    sourceRows: Array<{ optionKey: string; optionName: string }> = []
+): OftResultFormValue {
     const merged: any = { ...defaultValue, ...(initialValue || {}) }
     const rawTables = Array.isArray(merged.tables) ? merged.tables : []
 
@@ -69,6 +73,7 @@ function normalizeInitialValue(initialValue?: Partial<OftResultFormValue>): OftR
                 })
             }
             return {
+                optionKey: row.optionKey ? String(row.optionKey) : undefined,
                 rowLabel: String(row.rowLabel || `Row ${rowIndex + 1}`),
                 sortOrder: Number(row.sortOrder || rowIndex + 1),
                 cells: cellsObject,
@@ -83,21 +88,36 @@ function normalizeInitialValue(initialValue?: Partial<OftResultFormValue>): OftR
         }
     })
 
+    const withRowsReconciled = normalizedTables.map((table: any) => {
+        if (!sourceRows.length) return table
+        const byKey = new Map((table.rows || []).map((row: any) => [String(row.optionKey || ''), row]))
+        const rows = sourceRows.map((src, idx) => {
+            const existing: any = byKey.get(src.optionKey)
+            return {
+                optionKey: src.optionKey,
+                rowLabel: src.optionName,
+                sortOrder: idx + 1,
+                cells: { ...(existing?.cells || {}), tech_option: src.optionName },
+            }
+        })
+        return { ...table, rows }
+    })
+
     return {
         ...merged,
-        tables: normalizedTables,
+        tables: withRowsReconciled,
     }
 }
 
-export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue, onClose, onSubmit, embedded = false }) => {
+export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue, onClose, onSubmit, embedded = false, sourceRows = [] }) => {
     const [submitting, setSubmitting] = useState(false)
-    const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue))
+    const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue, sourceRows))
 
     const title = useMemo(() => mode === 'create' ? 'Add OFT Result' : 'Edit OFT Result', [mode])
 
     useEffect(() => {
-        setValue(normalizeInitialValue(initialValue))
-    }, [initialValue, mode])
+        setValue(normalizeInitialValue(initialValue, sourceRows))
+    }, [initialValue, mode, sourceRows])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -176,7 +196,12 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                 </div>
             </div>
             <FormSection title="Dynamic Result Tables">
-                <DynamicReportTableBuilder tables={value.tables || []} onChange={(tables) => setValue((v) => ({ ...v, tables }))} />
+                <DynamicReportTableBuilder
+                    tables={value.tables || []}
+                    onChange={(tables) => setValue((v) => ({ ...v, tables }))}
+                    sourceRows={sourceRows}
+                    lockSourceRows
+                />
             </FormSection>
 
             <div className="flex justify-end gap-2 pt-2">

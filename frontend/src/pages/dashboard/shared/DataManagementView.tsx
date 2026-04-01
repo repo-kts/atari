@@ -917,6 +917,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     embedded
                                     mode={oftResultMode}
                                     initialValue={(oftResultQuery.data as any)?.data || (oftResultQuery.data as any) || undefined}
+                                    sourceRows={Array.isArray(selectedOftItem?.technologyOptions) ? selectedOftItem.technologyOptions : []}
                                     onClose={() => {
                                         setIsOftResultPageOpen(false)
                                         setSelectedOftId(null)

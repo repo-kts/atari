@@ -17,15 +17,19 @@ model OftTechnologyType {
 model KvkoftTechnology {
   kvkOftTechnologyId  Int               @id @default(autoincrement()) @map("kvk_oft_technology_id")
   kvkOftId            Int
-  oftTechnologyTypeId Int
-  details             String            @map("details")
+  oftTechnologyTypeId Int?
+  optionKey           String            @map("option_key")
+  optionName          String            @map("option_name")
+  details             String?           @map("details")
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
   kvkOft              Kvkoft            @relation(fields: [kvkOftId], references: [kvkOftId], onDelete: Cascade)
-  oftTechnologyType   OftTechnologyType @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
+  oftTechnologyType   OftTechnologyType? @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
 
   @@index([kvkOftId])
   @@index([oftTechnologyTypeId])
+  @@index([optionKey])
+  @@unique([kvkOftId, optionKey])
   @@map("kvk_oft_technology")
 }
 
@@ -144,6 +148,7 @@ model OftResultTableColumn {
 model OftResultTableRow {
   oftResultTableRowId           Int                 @id @default(autoincrement()) @map("oft_result_table_row_id")
   oftResultTableId              Int                 @map("oft_result_table_id")
+  optionKey                     String?             @map("option_key")
   rowLabel                      String              @map("row_label")
   sortOrder                     Int                 @map("sort_order")
   createdAt                     DateTime            @default(now()) @map("created_at")
@@ -152,6 +157,7 @@ model OftResultTableRow {
   cells                         OftResultTableCell[]
 
   @@index([oftResultTableId, sortOrder])
+  @@index([optionKey])
   @@map("oft_result_table_row")
 }
 
