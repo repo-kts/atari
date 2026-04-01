@@ -2,6 +2,7 @@ model BeneficiariesDetails {
   beneficiariesDetailsId  Int    @id @default(autoincrement()) @map("beneficiaries_details_id")
   kvkId                   Int
   year                    Int
+  reportingYearDate       DateTime? @map("reporting_year_date")
   blocksCovered           Int    @map("blocks_covered")
   villagesCovered         Int    @map("villages_covered")
   totalTrainedFarmers     Int    @map("total_trained_practicing_nf_farmers")
@@ -12,5 +13,7 @@ model BeneficiariesDetails {
   kvk                     Kvk    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
   @@index([kvkId])
+  @@index([reportingYearDate])
+  @@index([kvkId, reportingYearDate])
   @@map("beneficiaries_details")
 }
