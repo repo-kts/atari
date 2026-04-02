@@ -110,6 +110,32 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return transformed;
         },
     },
+    [ENTITY_TYPES.KVK_EMPLOYEES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photoPath)) {
+                const photos = data.photoPath.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.photoPath = JSON.stringify(photos);
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.KVK_STAFF_TRANSFERRED]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photoPath)) {
+                const photos = data.photoPath.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.photoPath = JSON.stringify(photos);
+            }
+            return transformed;
+        }
+    },
     [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: {
         transform: (data: any) => {
             const transformed = { ...data };
@@ -166,6 +192,15 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
                 transformed.imagePath = JSON.stringify(photos);
             }
             delete transformed.arya_photos;
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.MISC_MEETINGS_SAC]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(transformed.uploadedFile)) {
+                transformed.uploadedFile = JSON.stringify(transformed.uploadedFile);
+            }
             return transformed;
         }
     },
@@ -414,7 +449,6 @@ export function removeEmptyIdFields(data: any): any {
 
     const cleaned = { ...data };
     Object.keys(cleaned).forEach((key) => {
-        // Remove fields that end with 'Id' and have empty string values
         if (key.endsWith('Id') && cleaned[key] === '') {
             delete cleaned[key];
         }

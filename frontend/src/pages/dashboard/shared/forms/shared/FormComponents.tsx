@@ -20,10 +20,12 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
     const displayLabel = formatFormLabel(label)
 
     return (
-        <div className="relative pt-6">
-            <label className="absolute -top-2 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
-                {displayLabel} {required && <span className="text-red-500">*</span>}
-            </label>
+        <div className={`relative ${displayLabel ? 'pt-2' : ''}`}>
+            {displayLabel && (
+                <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+                    {displayLabel} {required && <span className="text-red-500">*</span>}
+                </label>
+            )}
             {(() => {
                 const type = props.type
                 const lowerLabel = displayLabel.toLowerCase()
@@ -139,8 +141,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
     const displayLabel = formatFormLabel(label)
 
     return (
-        <div className="relative pt-6">
-            <label className="absolute -top-2 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+        <div className="relative pt-2">
+            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <select
@@ -192,8 +194,8 @@ export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, err
     const displayLabel = formatFormLabel(label)
 
     return (
-        <div className="relative pt-6">
-            <label className="absolute -top-2 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+        <div className="relative pt-2">
+            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <textarea

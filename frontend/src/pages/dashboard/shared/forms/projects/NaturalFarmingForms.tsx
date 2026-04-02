@@ -1,7 +1,7 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput, FormSelect } from '../shared/FormComponents'
+import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -77,14 +77,15 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     };
 
     const renderPhotoFields = (field: string) => (
-        <div className="space-y-4">
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
             <FormInput
-                label="Photographs"
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list."
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
             />
 
             {Array.isArray(formData[field]) && formData[field].length > 0 && (
@@ -121,7 +122,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                     })}
                 </div>
             )}
-        </div>
+        </FormSection>
     );
 
     // Normalize incoming photographs data when editing
@@ -348,7 +349,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             value={formData.remarks || ''}
                             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                         />
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
                              {renderPhotoFields('images')}
                         </div>
                     </div>
@@ -554,7 +555,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             value={formData.farmersFeedback || ''}
                             onChange={(e) => setFormData({ ...formData, farmersFeedback: e.target.value })}
                         />
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
                              {renderPhotoFields('images')}
                         </div>
                     </div>

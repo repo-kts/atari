@@ -5,7 +5,7 @@ import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormC
 import { State, District, Organization, University } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, X } from 'lucide-react'
 import {
     useSanctionedPosts,
     useInfraMasters,
@@ -98,7 +98,36 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         }
     }, [entityType, setFormData])
 
+    // Normalize incoming photoPath for KVK Employees/Staff
+    React.useEffect(() => {
+        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+            const field = 'photoPath';
+            if (formData[field] && typeof formData[field] === 'string') {
+                if (formData[field].startsWith('[') || formData[field].startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(formData[field]);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        const normalized = arrayToMap.map((item: any) => {
+                            if (typeof item === 'string') {
+                                return { preview: item, image: item, caption: '' };
+                            }
+                            const url = item.image || item.url || item.path || item.preview || '';
+                            return { preview: url, image: url, caption: item.caption || '' };
+                        });
+                        setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                    } catch (e) {
+                         console.error('Photo parsing error:', e);
+                    }
+                } else if (formData[field].trim() !== '') {
+                    const normalized = [{ preview: formData[field].trim(), image: formData[field].trim(), caption: '' }];
+                    setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                }
+            }
+        }
+    }, [formData.kvkStaffId, formData.id, entityType, setFormData]);
+
     if (!entityType) return null
+
 
     return (
         <div className="space-y-4">
@@ -253,49 +282,91 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
                             placeholder="Resume link"
                         />
-                        <div className="space-y-2">
-                             <label className="block text-sm font-semibold text-gray-700">
-                                Staff Photo <span className="text-red-500">*</span>
-                            </label>
-                            
-                            {formData.photoPath && (
-                                <div className="relative group w-20 h-20 mb-2">
-                                    <img
-                                        src={formData.photoPath.startsWith('http') ? formData.photoPath : (formData.photoPath.startsWith('data:') ? formData.photoPath : `${import.meta.env.VITE_API_URL || ''}${formData.photoPath.startsWith('/') ? '' : '/'}${formData.photoPath}`)}
-                                        alt="Staff Preview"
-                                        className="w-full h-full object-cover rounded-xl border-2 border-[#487749]/20 shadow-sm transition-transform group-hover:scale-105"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData({ ...formData, photoPath: null })}
-                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
+                        <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
+                            <FormInput
+                                label=""
+                                required={!Array.isArray(formData.photoPath) || formData.photoPath.length === 0}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e: any) => {
+                                    const files = e.target.files;
+                                    if (!files || files.length === 0) return;
+                                    const readers: Promise<any>[] = Array.from(files).map((file) => {
+                                        return new Promise((resolve) => {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                resolve({
+                                                    preview: reader.result as string,
+                                                    image: reader.result as string,
+                                                    caption: ''
+                                                });
+                                            };
+                                            reader.readAsDataURL(file as unknown as Blob);
+                                        });
+                                    });
+
+                                    Promise.all(readers).then((newPhotos) => {
+                                        setFormData((prev: any) => {
+                                            const currentPhotos = Array.isArray(prev.photoPath) ? [...prev.photoPath] : [];
+                                            return { ...prev, photoPath: [...currentPhotos, ...newPhotos] };
+                                        });
+                                    });
+                                }}
+                                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 2MB per file)"
+                            />
+
+                            {/* Existing photo gallery rendering */}
+                            {Array.isArray(formData.photoPath) && formData.photoPath.length > 0 && (
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                                    {formData.photoPath.map((item: any, idx: number) => {
+                                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                                        return (
+                                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                                    <img
+                                                        src={src}
+                                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                        alt={`Staff ${idx + 1}`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData((prev: any) => {
+                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
+                                                                photos.splice(idx, 1);
+                                                                return { ...prev, photoPath: photos.length > 0 ? photos : null };
+                                                            });
+                                                        }}
+                                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                                    >
+                                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-1 mt-auto">
+                                                    <textarea
+                                                        placeholder="Caption..."
+                                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                                        value={item.caption || ''}
+                                                        onChange={(e) => {
+                                                            setFormData((prev: any) => {
+                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
+                                                                if (photos[idx]) {
+                                                                    photos[idx] = { ...photos[idx], caption: e.target.value };
+                                                                }
+                                                                return { ...prev, photoPath: photos };
+                                                            });
+                                                        }}
+                                                        rows={3}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
+                        </FormSection>
 
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                            setFormData({ ...formData, photoPath: reader.result as string });
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}
-                                className="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2 bg-gray-50/50"
-                            />
-                            <p className="text-[10px] text-gray-400 italic">
-                                Upload 1 photo only. (Max 2MB)
-                            </p>
-                        </div>
                     </div>
                 </div>
             )}

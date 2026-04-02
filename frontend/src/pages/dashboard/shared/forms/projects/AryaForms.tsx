@@ -1,8 +1,9 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput } from '../shared/FormComponents'
+import { FormInput, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { X } from 'lucide-react'
 
 interface AryaFormsProps {
     entityType: string
@@ -106,54 +107,52 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     }, [entityType, formData.imagePath]);
 
     const renderPhotoFields = () => (
-        <div className="space-y-4">
-            <label className="block text-sm font-medium text-[#212121]">Images</label>
-
-            {Array.isArray(formData.arya_photos) && formData.arya_photos.length > 0 && (
-                <div className="space-y-4 mb-4">
-                    <p className="text-xs font-semibold text-[#487749]">Existing/Selected Image:</p>
-                    <div className="grid grid-cols-2 gap-4">
-                        {formData.arya_photos.map((item: any, idx: number) => (
-                            <div key={idx} className="space-y-2">
-                                <div className="relative group w-32 h-32">
-                                    <img
-                                        src={item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '')}
-                                        className="w-full h-full object-cover rounded-xl border-2 border-[#487749]/20 shadow-sm transition-transform group-hover:scale-105"
-                                        alt={`Preview ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeAryaPhoto(idx)}
-                                        className="absolute -top-2 -right-2 p-1 bg-red-100 text-red-600 rounded-full hover:bg-red-200 shadow-sm transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <FormInput
-                                    label={`Caption ${idx + 1}`}
-                                    value={item.caption || ''}
-                                    onChange={(e) => updateAryaCaption(idx, e.target.value)}
-                                    placeholder="Add caption..."
-                                />
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            <input
+        <FormSection title="Images" className="mt-2" noGrid={true}>
+            <FormInput
+                label=""
+                required={!Array.isArray(formData.arya_photos) || formData.arya_photos.length === 0}
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleAryaFileChange('imagePath')}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-dashed border-[#487749]/30 p-4 rounded-2xl"
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
             />
-            <p className="text-[11px] text-gray-400 italic">
-                Supported formats: JPG, PNG, GIF. Max file size: 5MB.
-            </p>
-        </div>
+
+            {Array.isArray(formData.arya_photos) && formData.arya_photos.length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData.arya_photos.map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`Arya Image ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removeAryaPhoto(idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updateAryaCaption(idx, e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </FormSection>
     );
 
     return (

@@ -26,11 +26,29 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
 
     // Image field
     if ((isImageField || isImageValue) && imagePath && typeof imagePath === 'string' && imagePath !== '-') {
-        // Simple check to see if it might be an image data URL or path that ends in image extension
+        let finalImageSrc = imagePath;
+        if (imagePath.startsWith('[') || imagePath.startsWith('{')) {
+            try {
+                const parsed = JSON.parse(imagePath);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    finalImageSrc = parsed[0].image || parsed[0].preview || parsed[0] || imagePath;
+                } else if (!Array.isArray(parsed) && parsed) {
+                    finalImageSrc = parsed.image || parsed.preview || imagePath;
+                }
+            } catch (e) {
+                // Ignore parse errors
+            }
+        }
+
+        // Apply base URL if it's a relative path from uploads
+        if (!finalImageSrc.startsWith('http') && !finalImageSrc.startsWith('data:')) {
+            finalImageSrc = `${import.meta.env.VITE_API_URL || ''}${finalImageSrc.startsWith('/') ? '' : '/'}${finalImageSrc}`;
+        }
+
         return (
             <div className="flex items-center">
                 <img
-                    src={imagePath}
+                    src={finalImageSrc}
                     alt="Image attachment"
                     className="w-20 h-auto max-h-20 object-contain"
                     onError={(e) => {
@@ -39,7 +57,7 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
                         const fallback = target.nextElementSibling as HTMLElement
                         if (fallback) {
                             fallback.classList.remove('hidden')
-                            fallback.textContent = imagePath // Show the raw path/name if image fails to load
+                            fallback.textContent = finalImageSrc // Show the raw path/name if image fails to load
                         }
                     }}
                 />

@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormTextArea, FormSelect } from '../shared/FormComponents'
+import { FormInput, FormTextArea, FormSelect, FormSection } from '../shared/FormComponents'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { X } from 'lucide-react'
 
 interface MeetingFormsProps {
     entityType: ExtendedEntityType | null
@@ -61,24 +62,153 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
         [formData, setFormData]
     )
 
-    const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0]
-            if (file) {
+    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            const previews: string[] = [];
+            let count = 0;
+
+            newFiles.forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setFormData({
-                        ...formData,
-                        [field]: reader.result as string
-                    })
+                    previews[index] = reader.result as string;
+                    count++;
+                    if (count === newFiles.length) {
+                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                        setFormData({
+                            ...formData,
+                            [field]: [
+                                ...existingPhotos,
+                                ...newFiles.map((f, i) => ({
+                                    file: f,
+                                    preview: previews[i],
+                                    image: previews[i],
+                                    caption: ''
+                                }))
+                            ]
+                        });
+                    }
                 };
                 reader.readAsDataURL(file);
-            } else {
-                setFormData({ ...formData, [field]: null })
+            });
+        }
+    };
+
+    const removePhoto = (field: string, index: number) => {
+        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
+        existingPhotos.splice(index, 1);
+        setFormData({
+            ...formData,
+            [field]: existingPhotos
+        });
+    };
+
+    const updateCaption = (field: string, index: number, caption: string) => {
+        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
+        if (existingPhotos[index]) {
+            existingPhotos[index] = { ...existingPhotos[index], caption };
+            setFormData({
+                ...formData,
+                [field]: existingPhotos
+            });
+        }
+    };
+
+    const renderPhotoFields = (field: string) => (
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
+            <FormInput
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field)}
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
+            />
+
+            {Array.isArray(formData[field]) && formData[field].length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData[field].map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`P ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(field, idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </FormSection>
+    );
+
+    // Normalize incoming photographs data when editing
+    React.useEffect(() => {
+        // SAC Meetings use sacMeetingId
+        if (!formData.id && !formData.sacMeetingId) return;
+
+        const photoFields = ['uploadedFile'];
+        let hasChanges = false;
+        const newData = { ...formData };
+
+        photoFields.forEach(field => {
+            const rawValue = formData[field];
+            if (rawValue && typeof rawValue === 'string') {
+                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawValue);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        newData[field] = arrayToMap
+                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url || item.file))
+                            .map((item: any) => {
+                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
+                                const url = item.image || item.file || item.url || item.path || item.preview || '';
+                                return { preview: url, image: url, caption: item.caption || '' };
+                            });
+                        hasChanges = true;
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (rawValue.trim() !== '') {
+                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+                    newData[field] = values
+                        .filter((v: string) => v && v.trim() !== '')
+                        .map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                    hasChanges = true;
+                }
             }
-        },
-        [formData, setFormData]
-    )
+        });
+
+        if (hasChanges) {
+            setFormData(newData);
+        }
+    }, [formData.id, formData.sacMeetingId, formData.entityType, setFormData]);
 
     if (!entityType) return null
 
@@ -164,56 +294,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 placeholder="Select"
                             />
 
-                            <div className="space-y-2">
-                                <label className="block text-sm font-semibold text-gray-700">
-                                    Upload Photo <span className="text-red-500">*</span>
-                                </label>
-
-                                {(formData.uploadedFile || formData.file) && (
-                                    <div className="mb-2 p-3 bg-[#487749]/5 border border-[#487749]/20 rounded-xl flex items-center justify-between">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            {typeof (formData.uploadedFile || formData.file) === 'string' && (formData.uploadedFile || formData.file).startsWith('data:image') ? (
-                                                <img
-                                                    src={formData.uploadedFile || formData.file}
-                                                    alt="Preview"
-                                                    className="w-10 h-10 object-cover rounded-lg border border-[#E0E0E0]"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 bg-[#487749]/10 rounded-lg flex items-center justify-center text-[#487749]">
-                                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h14a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-semibold text-[#487749]">Existing Photo</span>
-                                                <span className="text-[10px] text-gray-500 truncate max-w-[150px]">
-                                                    {typeof (formData.uploadedFile || formData.file) === 'string' && (formData.uploadedFile || formData.file).length > 30
-                                                        ? 'Current photo attached'
-                                                        : (formData.uploadedFile || formData.file)}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, uploadedFile: null, file: null })}
-                                            className="p-1 px-2 text-xs font-medium bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                )}
-
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileChange('uploadedFile')}
-                                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
-                                />
-                                <p className="text-[10px] text-gray-400 mt-1 italic">
-                                    {formData.uploadedFile || formData.file ? 'Select a new photo to replace the existing one.' : 'Upload meeting photo (1 image only, Max 5MB)'}
-                                </p>
-                            </div>
+                            {renderPhotoFields('uploadedFile')}
                         </div>
                     </div>
                 </div>

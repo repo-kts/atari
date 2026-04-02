@@ -1,7 +1,7 @@
 import React from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput, FormSelect } from '../shared/FormComponents'
+import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -77,14 +77,15 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     };
 
     const renderPhotoFields = (field: string) => (
-        <div className="space-y-4">
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
             <FormInput
-                label="Photographs"
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list."
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
             />
 
             {Array.isArray(formData[field]) && formData[field].length > 0 && (
@@ -110,10 +111,10 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 <div className="space-y-1 mt-auto">
                                     <textarea
                                         placeholder="Caption..."
-                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
+                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
                                         value={item.caption || ''}
                                         onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                        rows={2}
+                                        rows={3}
                                     />
                                 </div>
                             </div>
@@ -121,7 +122,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     })}
                 </div>
             )}
-        </div>
+        </FormSection>
     );
 
     // Normalize incoming photographs data when editing
@@ -1053,7 +1054,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             />
                         </div>
                     </div>
-                    {renderPhotoFields('photographs')}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {renderPhotoFields('photographs')}
+                    </div>
                 </div>
             )}
 
@@ -1141,9 +1144,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.remark || ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
-                        <div className="col-span-full">
-                            {renderPhotoFields('photographs')}
-                        </div>
+                        {renderPhotoFields('photographs')}
                     </div>
                 </div>
             )}

@@ -2,7 +2,7 @@ import React, { useMemo, useCallback, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput } from './shared/FormComponents'
+import { FormInput, FormSection } from './shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useAuth } from '@/contexts/AuthContext'
 import { useYears } from '@/hooks/useOtherMastersData'
@@ -207,14 +207,15 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
     };
 
     const renderPhotoFields = (field: string) => (
-        <div className="space-y-4">
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
             <FormInput
-                label="Photographs"
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list."
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
             />
 
             {Array.isArray(formData[field]) && formData[field].length > 0 && (
@@ -240,10 +241,10 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                                 <div className="space-y-1 mt-auto">
                                     <textarea
                                         placeholder="Caption..."
-                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
                                         value={item.caption || ''}
                                         onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                        rows={3}
+                                        rows={2}
                                     />
                                 </div>
                             </div>
@@ -251,7 +252,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                     })}
                 </div>
             )}
-        </div>
+        </FormSection>
     );
 
     // Normalize incoming photographs data when editing
@@ -459,9 +460,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             value={formData.conferringAuthority || ''}
                             onChange={handleConferringAuthorityChange}
                         />
-                        <div className="md:col-span-2 space-y-4">
-                            {renderPhotoFields('image')}
-                        </div>
+                        {renderPhotoFields('image')}
                     </div>
                 </div>
             )}
