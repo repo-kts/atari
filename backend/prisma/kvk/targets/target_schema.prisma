@@ -20,8 +20,6 @@ model Target {
   kvk       Kvk   @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   createdBy User? @relation("UserTargets", fields: [createdByUserId], references: [userId], onDelete: SetNull)
 
-  reportingYearDate DateTime? @map("reporting_year_date")
-
   @@index([kvkId, reportingYear])
   @@index([reportingYear])
   @@index([kvkId, reportingYearDate])
