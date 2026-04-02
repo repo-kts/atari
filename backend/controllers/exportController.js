@@ -230,7 +230,6 @@ function generateHTML(title, headers, rows) {
     <body>
         <div class="header">
             <h1>${title} Report</h1>
-            <div class="meta">PROJECT ATARI • GENERATEDjjj ON ${date.toUpperCase()}</div>
         </div>
         <table>
             <thead>
@@ -248,9 +247,6 @@ function generateHTML(title, headers, rows) {
                 `).join('')}
             </tbody>
         </table>
-        <div class="footer">
-            Confidential Document • Project Atari System Generated Report • ${date}
-        </div>
     </body>
     </html>
     `;

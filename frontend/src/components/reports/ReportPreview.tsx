@@ -17,6 +17,7 @@ interface ReportPreviewProps {
     onDownload: (format: 'pdf' | 'excel' | 'doc') => void;
     selectedScopeCount: number;
     selectedSectionsCount: number;
+    embedded?: boolean; // when true, render compact body-only content (for single-card layout)
 }
 
 export const ReportPreview: React.FC<ReportPreviewProps> = ({
@@ -27,10 +28,12 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     onDownload,
     selectedScopeCount,
     selectedSectionsCount,
+    embedded = false,
 }) => {
-    return (
-        <Card className="flex-1 min-w-0 flex flex-col min-h-[600px] border-[#E0E0E0] shadow-sm overflow-hidden bg-white">
-            <div className="p-4 sm:p-6 border-b border-[#E0E0E0] bg-[#FAF9F6] flex flex-wrap items-start justify-between gap-4">
+    const Body = (
+        <>
+            {!embedded && (
+                <div className="p-4 sm:p-4 border-b border-[#E0E0E0] bg-[#FAF9F6] flex flex-wrap items-start justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                     <div className="p-3 bg-[#487749]/10 rounded-xl">
                         <FileText className="w-6 h-6 text-[#487749]" />
@@ -43,9 +46,10 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                     </div>
                 </div>
                 <div className="flex w-full flex-wrap items-center gap-1.5 sm:gap-2 lg:w-auto lg:justify-end" />
-            </div>
+                </div>
+            )}
 
-            <CardContent className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-[#F5F5F5] flex flex-col items-center justify-center relative">
+            <CardContent className={`${embedded ? '' : ''} flex-1 overflow-auto bg-[#F5F5F5] flex flex-col items-center justify-center relative`}>
                 {isGenerating ? (
                     <div className="flex flex-col items-center gap-4 text-center">
                         <div className="relative">
@@ -83,11 +87,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                         </div>
                     </div>
                 ) : previewUrl ? (
-                    <div className="w-full h-full min-h-[900px] bg-white border border-[#E0E0E0] rounded-lg overflow-hidden shadow-sm">
+                    <div
+                        className="w-full bg-white border border-[#E0E0E0] rounded-lg overflow-hidden shadow-sm mx-auto"
+                        style={{ aspectRatio: '210 / 297', maxWidth: '100%' }}
+                    >
                         <iframe
                             src={previewUrl}
                             title="Report PDF Preview"
-                            className="w-full h-full min-h-[900px]"
+                            className="w-full h-full"
                         />
                     </div>
                 ) : (
@@ -98,10 +105,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             <div className="space-y-1">
                                 <h1 className="text-xl sm:text-2xl font-black text-[#2d4a2f] uppercase tracking-tighter">KVK COMPREHENSIVE REPORT</h1>
                                 <p className="text-xs sm:text-sm text-[#757575] font-bold uppercase wrap-break-word">Zone: Multizone • State: Kerala • District: Ernakulam</p>
-                            </div>
-                            <div className="text-left sm:text-right">
-                                <p className="text-[11px] text-[#757575] font-bold uppercase tracking-widest">Generated On</p>
-                                <p className="text-sm font-black text-[#212121]">{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                             </div>
                         </div>
 
@@ -133,6 +136,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
             </CardContent>
 
             {/* Action Footer */}
+            {!embedded && (
             <div className="p-4 sm:p-6 border-t border-[#E0E0E0] bg-white flex flex-wrap items-start justify-between gap-4">
                 <div className="flex flex-col min-w-0">
                     <span className="text-xs font-bold text-[#757575] uppercase tracking-wider mb-1">Export Options</span>
@@ -140,10 +144,6 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                          <div className="p-1.5 bg-[#487749]/5 border border-[#487749]/10 rounded flex items-center gap-2">
                              <FileIcon className="w-3 h-3 text-[#487749]" />
                              <span className="text-[10px] font-bold text-[#487749] uppercase">PDF Standard</span>
-                         </div>
-                         <div className="p-1.5 bg-blue-50 border border-blue-100 rounded flex items-center gap-2">
-                             <FileIcon className="w-3 h-3 text-blue-600" />
-                             <span className="text-[10px] font-bold text-blue-600 uppercase">Excel Summary</span>
                          </div>
                     </div>
                 </div>
@@ -168,39 +168,20 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                                 </>
                             )}
                         </Button>
-                        <Button
-                            variant="outline"
-                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
-                            onClick={() => onDownload('excel')}
-                            disabled={isGenerating || !hasData}
-                        >
-                            {downloadingFormat === 'excel' ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
-                                    Excel
-                                </>
-                            ) : (
-                                'Excel'
-                            )}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="border-[#E0E0E0] hover:bg-[#FAF9F6] text-[#212121] font-medium px-2.5 py-1 h-7 rounded-lg transition-colors whitespace-nowrap text-[10px] leading-none"
-                            onClick={() => onDownload('doc')}
-                            disabled={isGenerating || !hasData}
-                        >
-                            {downloadingFormat === 'doc' ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 animate-spin shrink-0" />
-                                    Word
-                                </>
-                            ) : (
-                                'Word'
-                            )}
-                        </Button>
                     </div>
                 </div>
             </div>
+            )}
+        </>
+    );
+
+    if (embedded) {
+        return <div className="flex-1 min-w-0 flex flex-col min-h-[400px] border border-[#E0E0E0] rounded-xl overflow-hidden bg-white">{Body}</div>;
+    }
+
+    return (
+        <Card className="flex-1 min-w-0 flex flex-col min-h-[500px] border-[#E0E0E0] shadow-sm overflow-hidden bg-white">
+            {Body}
         </Card>
     );
 };

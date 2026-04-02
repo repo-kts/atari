@@ -974,6 +974,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     // Main render logic
     if (entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM) {
         const isEditMode = Boolean(formData?.id || formData?.cfldTechId)
+        const isCompletedStatus = String(formData?.status || '').toUpperCase().trim() === 'COMPLETED'
+        const showAdditionalSections = !isCompletedStatus
         const tabButtonClass = (active: boolean) =>
             active
                 ? 'px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all'
@@ -987,44 +989,48 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         return (
             <div className="space-y-6">
                 {/* Desktop tabs */}
-                <div className="hidden sm:flex flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
-                    <button type="button" className={tabButtonClass(cfldSection === 'technical')} onClick={() => setActiveSection('technical')}>
-                        Edit CfldTechnicalParameter
-                    </button>
-                    <button type="button" className={tabButtonClass(cfldSection === 'economic')} onClick={() => setActiveSection('economic')}>
-                        Economic Parameters of CFLD
-                    </button>
-                    <button type="button" className={tabButtonClass(cfldSection === 'socio')} onClick={() => setActiveSection('socio')}>
-                        Update Socio Economic Parameters of CFLD
-                    </button>
-                    <button type="button" className={tabButtonClass(cfldSection === 'perception')} onClick={() => setActiveSection('perception')}>
-                        Farmers Perception parameters of CFLD
-                    </button>
-                </div>
+                {showAdditionalSections && (
+                    <div className="hidden sm:flex flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
+                        <button type="button" className={tabButtonClass(cfldSection === 'technical')} onClick={() => setActiveSection('technical')}>
+                            Edit CfldTechnicalParameter
+                        </button>
+                        <button type="button" className={tabButtonClass(cfldSection === 'economic')} onClick={() => setActiveSection('economic')}>
+                            Economic Parameters of CFLD
+                        </button>
+                        <button type="button" className={tabButtonClass(cfldSection === 'socio')} onClick={() => setActiveSection('socio')}>
+                            Update Socio Economic Parameters of CFLD
+                        </button>
+                        <button type="button" className={tabButtonClass(cfldSection === 'perception')} onClick={() => setActiveSection('perception')}>
+                            Farmers Perception parameters of CFLD
+                        </button>
+                    </div>
+                )}
 
                 {/* Mobile dropdown */}
-                <div className="sm:hidden">
-                    <div className="relative inline-flex max-w-[90vw]">
-                        <select
-                            value={cfldSection}
-                            onChange={(e) => setActiveSection(e.target.value as any)}
-                            className="appearance-none w-full min-w-[240px] pr-10 pl-3 py-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749]"
-                        >
-                            <option value="technical">Edit CfldTechnicalParameter</option>
-                            <option value="economic">Economic Parameters of CFLD</option>
-                            <option value="socio">Update Socio Economic Parameters of CFLD</option>
-                            <option value="perception">Farmers Perception parameters of CFLD</option>
-                        </select>
-                        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#757575]">
-                            <ChevronDown className="w-4 h-4" />
+                {showAdditionalSections && (
+                    <div className="sm:hidden">
+                        <div className="relative inline-flex max-w-[90vw]">
+                            <select
+                                value={cfldSection}
+                                onChange={(e) => setActiveSection(e.target.value as any)}
+                                className="appearance-none w-full min-w-[240px] pr-10 pl-3 py-3 border border-[#E0E0E0] rounded-xl bg-white text-sm text-[#212121] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749]"
+                            >
+                                <option value="technical">Edit CfldTechnicalParameter</option>
+                                <option value="economic">Economic Parameters of CFLD</option>
+                                <option value="socio">Update Socio Economic Parameters of CFLD</option>
+                                <option value="perception">Farmers Perception parameters of CFLD</option>
+                            </select>
+                            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#757575]">
+                                <ChevronDown className="w-4 h-4" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {cfldSection === 'economic' ? renderEconomicParametersForm() : null}
-                {cfldSection === 'socio' ? renderSocioEconomicForm() : null}
-                {cfldSection === 'perception' ? renderFarmersPerceptionForm() : null}
-                {cfldSection === 'technical' ? renderTechnicalParamForm() : null}
+                {showAdditionalSections && cfldSection === 'economic' ? renderEconomicParametersForm() : null}
+                {showAdditionalSections && cfldSection === 'socio' ? renderSocioEconomicForm() : null}
+                {showAdditionalSections && cfldSection === 'perception' ? renderFarmersPerceptionForm() : null}
+                {(!showAdditionalSections || cfldSection === 'technical') ? renderTechnicalParamForm() : null}
             </div>
         )
     }

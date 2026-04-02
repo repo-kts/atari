@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
-import { Card, CardContent } from '../../components/ui/Card';
 import { ReportScopeSelector } from '../../components/reports/ReportScopeSelector';
 import { TimelineFilter } from '../../components/reports/TimelineFilter';
 import { ReportModuleSelector } from '../../components/reports/ReportModuleSelector';
@@ -14,6 +13,7 @@ import { useReportConfig } from '../../hooks/report/useReportScope';
 import { Button } from '../../components/ui/button';
 import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
+import { useToast } from '@/hooks/useToast';
 
 const DEFAULT_LEFT_PANEL_PERCENT = 50;
 const SPLIT_DIVIDER_WIDTH_PX = 12;
@@ -36,11 +36,11 @@ export const KvkReportPage: React.FC = () => {
     const { user } = useAuth();
     const routeConfig = getRouteConfig(location.pathname);
     const breadcrumbs = getBreadcrumbsForPath(location.pathname);
+    const { toast, ToastContainer } = useToast();
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'excel' | 'docx' | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
     const [selectedScope, setSelectedScope] = useState<ReportScope | null>(null);
     const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null);
 
@@ -274,7 +274,7 @@ export const KvkReportPage: React.FC = () => {
         setAppliedEndDate(endDate);
         setAppliedYear(year);
         setError(null);
-        setSuccess('Filters applied successfully.');
+        toast({ title: 'Success', message: 'Filters applied successfully.', variant: 'success', autoCloseDelay: 2000 });
         // Immediately trigger the preview to render in the iframe
         handlePreview(
             Array.from(selectedSections),
@@ -290,24 +290,22 @@ export const KvkReportPage: React.FC = () => {
         );
     };
 
-    const handleGenerate = async (
+    // Note: legacy generate merged into direct download to avoid preview flashing
+
+    // Direct download without disturbing preview state
+    const handleDownload = async (
         sectionIds: string[],
         filters: ReportFilters,
         scope?: ReportScope | null,
         format: 'pdf' | 'excel' | 'docx' = 'pdf'
     ) => {
         try {
-            setIsGenerating(true);
             setDownloadingFormat(format);
             setError(null);
-            setSuccess(null);
-
             const request: any = {
                 sectionIds,
                 filters,
             };
-
-            // If scope is provided, use aggregated report
             if (scope && Object.keys(scope).length > 0) {
                 request.scope = scope;
                 const blob = await reportApi.generateAggregatedReport(request, format);
@@ -326,24 +324,21 @@ export const KvkReportPage: React.FC = () => {
                 document.body.removeChild(link);
                 window.URL.revokeObjectURL(url);
             } else {
-                // Single KVK report
                 const kvkId = user?.kvkId || undefined;
                 request.kvkId = kvkId;
                 const fname =
                     format === 'excel'
-                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}.xlsx`
+                        ? `KVK_Report_${kvkId || 'All'}_${Date.now()}R.xlsx`
                         : format === 'docx'
                         ? `KVK_Report_${kvkId || 'All'}_${Date.now()}.docx`
                         : `KVK_Report_${kvkId || 'All'}_${Date.now()}.pdf`;
                 await reportApi.downloadReport(request, fname, format);
             }
-
-            setSuccess('Report generated and downloaded successfully!');
+            toast({ title: 'Success', message: 'Download started.', variant: 'success', autoCloseDelay: 1500 });
         } catch (err) {
-            console.error('Error generating report:', err);
-            setError(err instanceof Error ? err.message : 'Failed to generate report');
+            console.error('Error downloading report:', err);
+            setError(err instanceof Error ? err.message : 'Failed to download report');
         } finally {
-            setIsGenerating(false);
             setDownloadingFormat(null);
         }
     };
@@ -356,7 +351,6 @@ export const KvkReportPage: React.FC = () => {
         try {
             setIsGenerating(true);
             setError(null);
-            setSuccess(null);
 
             const request: any = {
                 sectionIds,
@@ -382,7 +376,7 @@ export const KvkReportPage: React.FC = () => {
                 });
             }
 
-            setSuccess('Report preview loaded.');
+            toast({ title: 'Success', message: 'Report preview loaded.', variant: 'success', autoCloseDelay: 2000 });
         } catch (err) {
             console.error('Error previewing report:', err);
             setError(err instanceof Error ? err.message : 'Failed to preview report');
@@ -420,20 +414,13 @@ export const KvkReportPage: React.FC = () => {
                 </div>
             </div>
 
-            <Card className="bg-[#FAF9F6] border-none shadow-none">
-                <CardContent className="p-6">
-                    {(error || success) && (
+            <div className="bg-[#FAF9F6] border-none shadow-none rounded-2xl">
+                <div className="p-2 md:p-6">
+                    {error && (
                         <div className="mb-4 space-y-2">
-                            {error && (
-                                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                    {error}
-                                </div>
-                            )}
-                            {success && (
-                                <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-700">
-                                    {success}
-                                </div>
-                            )}
+                            <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {error}
+                            </div>
                         </div>
                     )}
 
@@ -447,7 +434,7 @@ export const KvkReportPage: React.FC = () => {
                     ) : (
                         <div
                             ref={splitPaneRef}
-                            className="relative flex min-h-[700px] flex-col gap-6 lg:grid lg:gap-0 lg:items-start"
+                            className="relative flex h-full flex-col gap-6 lg:grid lg:gap-0 lg:items-start"
                             style={splitPaneStyle}
                         >
                             {/* Left Side: Configuration Sidebar */}
@@ -494,41 +481,63 @@ export const KvkReportPage: React.FC = () => {
                             <div className="min-w-0 w-full overflow-x-hidden transition-all duration-300 ease-in-out lg:pl-5">
                                 <div className="flex flex-col gap-8">
                                     {/* Timeline Filter Area */}
-                                    <TimelineFilter
-                                        filterType={filterType}
-                                        onFilterTypeChange={setFilterType}
-                                        startDate={startDate}
-                                        onStartDateChange={setStartDate}
-                                        endDate={endDate}
-                                        onEndDateChange={setEndDate}
-                                        year={year}
-                                        onYearChange={setYear}
-                                        onApplySelection={handleApplySelection}
-                                        disabled={isGenerating}
-                                    />
-
-                                    <ReportPreview
-                                        isGenerating={isGenerating}
-                                        hasData={selectedSections.size > 0}
-                                        previewUrl={previewBlobUrl}
-                                        downloadingFormat={downloadingFormat === 'docx' ? 'doc' : (downloadingFormat as 'pdf' | 'excel' | null)}
-                                        onDownload={(fmt) => {
-                                            handleGenerate(
-                                                Array.from(selectedSections),
-                                                buildFilters(),
-                                                selectedScope,
-                                                fmt === 'excel' ? 'excel' : fmt === 'doc' ? 'docx' : 'pdf'
-                                            );
-                                        }}
-                                        selectedScopeCount={selectedScopeCount}
-                                        selectedSectionsCount={selectedSections.size}
-                                    />
+                                    <div className="bg-white rounded-2xl border border-[#E0E0E0] p-4 sm:p-5 space-y-4">
+                                        <TimelineFilter
+                                            filterType={filterType}
+                                            onFilterTypeChange={setFilterType}
+                                            startDate={startDate}
+                                            onStartDateChange={setStartDate}
+                                            endDate={endDate}
+                                            onEndDateChange={setEndDate}
+                                            year={year}
+                                            onYearChange={setYear}
+                                            onApplySelection={handleApplySelection}
+                                            disabled={isGenerating}
+                                            onDownloadPdf={() => {
+                                                handleDownload(
+                                                    Array.from(selectedSections),
+                                                    buildFilters(),
+                                                    selectedScope,
+                                                    'pdf'
+                                                );
+                                            }}
+                                            onDownload={(fmt) => {
+                                                handleDownload(
+                                                    Array.from(selectedSections),
+                                                    buildFilters(),
+                                                    selectedScope,
+                                                    fmt === 'excel' ? 'excel' : 'docx'
+                                                );
+                                            }}
+                                            downloadingFormat={downloadingFormat === 'docx' ? 'doc' : (downloadingFormat as 'pdf' | 'excel' | 'doc' | null)}
+                                            hasData={selectedSections.size > 0}
+                                            isGenerating={isGenerating}
+                                        />
+                                        <ReportPreview
+                                            embedded
+                                            isGenerating={isGenerating}
+                                            hasData={selectedSections.size > 0}
+                                            previewUrl={previewBlobUrl}
+                                            downloadingFormat={downloadingFormat === 'docx' ? 'doc' : (downloadingFormat as 'pdf' | 'excel' | null)}
+                                            onDownload={(fmt) => {
+                                                handleDownload(
+                                                    Array.from(selectedSections),
+                                                    buildFilters(),
+                                                    selectedScope,
+                                                    fmt === 'excel' ? 'excel' : fmt === 'doc' ? 'docx' : 'pdf'
+                                                );
+                                            }}
+                                            selectedScopeCount={selectedScopeCount}
+                                            selectedSectionsCount={selectedSections.size}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
+            <ToastContainer />
         </div>
     );
 };

@@ -9,6 +9,15 @@ const reportConfig = {
         version: '1.0.0',
         description: 'Comprehensive report containing all modules for KVK',
     },
+    pdfFooter: {
+        enabled: true,
+        textTemplate: 'Page {current} of {total}',
+        fontSize: 9,
+        color: { r: 90, g: 90, b: 90 },
+        bottomMarginPt: 24,
+        align: 'right',
+        fontName: 'Helvetica',
+    },
 
     sections: [
         {

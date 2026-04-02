@@ -1,5 +1,6 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
+const { generateExcel, generateWord } = require('../../utils/exportHelper.js');
 
 /**
  * Report Controller
@@ -14,6 +15,9 @@ const generateKvkReport = async (req, res) => {
     try {
         const { kvkId, sectionIds, filters } = req.body;
         const user = req.user;
+        let format = String(req.query.format || 'pdf').toLowerCase();
+        if (format === 'doc' || format === 'word') format = 'docx';
+        if (format === 'xls') format = 'excel';
 
         // Validate KVK ID
         if (!kvkId) {
@@ -35,20 +39,47 @@ const generateKvkReport = async (req, res) => {
         const targetKvkId = user.kvkId || kvkId;
         const generatedBy = user.name || user.email || 'Unknown User';
 
-        // Generate report
+        if (format === 'excel' || format === 'docx') {
+            // Build a compact tabular export from report data
+            const data = await reportService.getReportData(targetKvkId, {
+                sectionIds: sectionIds || [],
+                filters: filters || {},
+            });
+            const headers = ['Section', 'Data'];
+            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
+                try {
+                    return [section, JSON.stringify(value)];
+                } catch {
+                    return [section, String(value)];
+                }
+            });
+            if (format === 'excel') {
+                const buffer = await generateExcel(`KVK Report ${targetKvkId}`, headers, rows);
+                const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.xlsx`;
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+                res.setHeader('Content-Length', buffer.length);
+                return res.send(Buffer.from(buffer));
+            } else {
+                const buffer = await generateWord(`KVK Report ${targetKvkId}`, headers, rows);
+                const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.docx`;
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+                res.setHeader('Content-Length', buffer.length);
+                return res.send(Buffer.from(buffer));
+            }
+        }
+
+        // Default: Generate PDF
         const result = await reportService.generateKvkReport(targetKvkId, {
             sectionIds: sectionIds || [],
             filters: filters || {},
             generatedBy,
         });
-
-        // Set response headers for PDF download
         const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Content-Length', result.pdfBuffer.length);
-
-        // Send PDF buffer
         res.send(result.pdfBuffer);
     } catch (error) {
         console.error('Error generating KVK report:', error);
@@ -160,6 +191,9 @@ const generateAggregatedReport = async (req, res) => {
     try {
         const { scope, sectionIds, filters } = req.body;
         const user = req.user;
+        let format = String(req.query.format || 'pdf').toLowerCase();
+        if (format === 'doc' || format === 'word') format = 'docx';
+        if (format === 'xls') format = 'excel';
 
         if (!scope) {
             return res.status(400).json({
@@ -180,20 +214,46 @@ const generateAggregatedReport = async (req, res) => {
 
         const generatedBy = user.name || user.email || 'Unknown User';
 
-        // Generate aggregated report
+        if (format === 'excel' || format === 'docx') {
+            const data = await reportService.getAggregatedReportData(scope, {
+                sectionIds: sectionIds || [],
+                filters: filters || {},
+            });
+            const headers = ['Section', 'Data'];
+            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
+                try {
+                    return [section, JSON.stringify(value)];
+                } catch {
+                    return [section, String(value)];
+                }
+            });
+            if (format === 'excel') {
+                const buffer = await generateExcel('Aggregated Report', headers, rows);
+                const fileName = `Aggregated_Report_${Date.now()}.xlsx`;
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+                res.setHeader('Content-Length', buffer.length);
+                return res.send(Buffer.from(buffer));
+            } else {
+                const buffer = await generateWord('Aggregated Report', headers, rows);
+                const fileName = `Aggregated_Report_${Date.now()}.docx`;
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+                res.setHeader('Content-Length', buffer.length);
+                return res.send(Buffer.from(buffer));
+            }
+        }
+
+        // Default: PDF
         const result = await reportService.generateAggregatedReport(scope, {
             sectionIds: sectionIds || [],
             filters: filters || {},
             generatedBy,
         });
-
-        // Set response headers for PDF download
         const fileName = `Aggregated_Report_${Date.now()}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
         res.setHeader('Content-Length', result.pdfBuffer.length);
-
-        // Send PDF buffer
         res.send(result.pdfBuffer);
     } catch (error) {
         console.error('Error generating aggregated report:', error);

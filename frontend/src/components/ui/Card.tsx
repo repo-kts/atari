@@ -50,5 +50,5 @@ export const CardContent: React.FC<CardContentProps> = ({
     children,
     className = '',
 }) => {
-    return <div className={`px-6 py-4 ${className}`}>{children}</div>
+    return <div className={`px-1 py-1 md:px-6 md:py-6 ${className}`}>{children}</div>
 }

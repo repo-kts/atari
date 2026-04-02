@@ -26,7 +26,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     if (totalItems === 0) return null
 
     return (
-        <div className="flex-none mt-4 flex items-center justify-between">
+        <div className="flex-none mt-2 flex items-center justify-between">
             <div className="text-sm text-[#757575]">
                 Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
             </div>

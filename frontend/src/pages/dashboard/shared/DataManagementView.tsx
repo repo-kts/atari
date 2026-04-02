@@ -656,7 +656,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 key: 'economic-params',
                 label: 'Economic Parameters',
                 onClick: (item: any) => openCfldSectionForm(item, 'economic'),
-                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                isVisible: (item: any) => {
+                    const normalized = normalizeOftStatus(item?.status)
+                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
+                },
                 className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                 icon: FilePenLine,
             },
@@ -664,7 +667,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 key: 'socio-params',
                 label: 'Update Socio Economic Parameters',
                 onClick: (item: any) => openCfldSectionForm(item, 'socio'),
-                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                isVisible: (item: any) => {
+                    const normalized = normalizeOftStatus(item?.status)
+                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
+                },
                 className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                 icon: FilePenLine,
             },
@@ -672,7 +678,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 key: 'perception-params',
                 label: 'Farmers Perception Parameters',
                 onClick: (item: any) => openCfldSectionForm(item, 'perception'),
-                isVisible: (item: any) => item?.status !== 'TRANSFERRED',
+                isVisible: (item: any) => {
+                    const normalized = normalizeOftStatus(item?.status)
+                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
+                },
                 className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                 icon: FilePenLine,
             },
@@ -774,10 +783,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const error = getHookError(activeHook)
 
     return (
-        <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden px-4 md:px-6">
+        <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
             {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && (
-                <div className="flex-none bg-white border-b mb-1 border-[#E0E0E0] relative z-20">
+                <div className="flex-none bg-white relative z-20 px-3 md:px-5">
                     {breadcrumbs.length > 0 && (
                         <div className="flex flex-row items-center gap-3 sm:gap-4 pt-4 pb-4">
                             <button
@@ -874,7 +883,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             )}
 
             {/* Main Content Area - Flexible height */}
-            <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 bg-[#FAF9F6] overflow-hidden rounded-xl px-3 md:px-5 py-3 md:py-2">
                 {/* Show Form Page if open, otherwise show List View */}
                 {isFormPageOpen ? (
                     <div className="flex-1 overflow-y-auto py-4">
@@ -988,8 +997,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
                                                     } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
-                                                <Download className="w-4 h-4" />
-                                                {opt.label}
+                                                {exportLoadingState === opt.value ? (
+                                                    <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                    </svg>
+                                                ) : (
+                                                    <Download className="w-4 h-4" />
+                                                )}
+                                                {exportLoadingState === opt.value ? 'Downloading...' : opt.label}
                                             </button>
                                         ))}
                                     </div>
@@ -1002,7 +1018,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             disabled={exportLoadingState !== null}
                                             className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors disabled:opacity-60"
                                         >
-                                            <Download className="w-4 h-4 text-[#487749]" />
+                                            {exportLoadingState ? (
+                                                <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                </svg>
+                                            ) : (
+                                                <Download className="w-4 h-4 text-[#487749]" />
+                                            )}
                                             {exportLoadingState ? 'Downloading...' : 'Download'}
                                             <ChevronDown className="w-4 h-4 text-[#757575]" />
                                         </button>
@@ -1085,7 +1108,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             {error && <ErrorState message={error} className="my-4" />}
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 pb-6 overflow-hidden">
+                        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                             {loading ? (
                                 <LoadingState />
                             ) : isKvkRoleWithoutKvk ? (
