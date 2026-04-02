@@ -16,7 +16,6 @@ const { run: seedPermissions } = require('./permissions.js');
 const { run: seedUsers } = require('./users.js');
 const { run: seedData } = require('./seed-data.js');
 const { run: seedMasters } = require('./seed-masters.js');
-const { run: seedYears } = require('./seed-years.js');
 const {
   seedInfrastructure,
   seedVehicles,
@@ -48,9 +47,6 @@ async function run() {
   console.log('\n📋 Step 3/6: Additional masters...\n');
   await seedMasters();
   
-  // Step 4: Years
-  console.log('\n📋 Step 4/6: Years...\n');
-  await seedYears();
   
   // Step 5: Forms data (requires KVK IDs)
   console.log('\n📋 Step 5/6: Forms data...\n');

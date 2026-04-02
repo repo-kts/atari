@@ -850,7 +850,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.overallFundAllocation || ''}
+                    value={formData.overallFundAllocation ?? ''}
                     onChange={(e) => handleFieldChange('overallFundAllocation', e.target.value)}
                 />
                 <FormInput
@@ -858,7 +858,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.areaAllotted || ''}
+                    value={formData.areaAllotted ?? ''}
                     onChange={(e) => handleFieldChange('areaAllotted', e.target.value)}
                 />
                 <FormInput
@@ -866,7 +866,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.areaAchieved || ''}
+                    value={formData.areaAchieved ?? ''}
                     onChange={(e) => handleFieldChange('areaAchieved', e.target.value)}
                 />
             </div>
@@ -888,7 +888,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.criticalInputReceived || ''}
+                                    value={formData.criticalInputReceived ?? ''}
                                     onChange={(e) => handleFieldChange('criticalInputReceived', e.target.value)}
                                 />
                             </td>
@@ -897,7 +897,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.criticalInputUtilized || ''}
+                                    value={formData.criticalInputUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('criticalInputUtilized', e.target.value)}
                                 />
                             </td>
@@ -909,7 +909,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.taDaReceived || ''}
+                                    value={formData.taDaReceived ?? ''}
                                     onChange={(e) => handleFieldChange('taDaReceived', e.target.value)}
                                 />
                             </td>
@@ -918,7 +918,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.taDaUtilized || ''}
+                                    value={formData.taDaUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('taDaUtilized', e.target.value)}
                                 />
                             </td>
@@ -930,7 +930,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.extensionActivitiesReceived || ''}
+                                    value={formData.extensionActivitiesReceived ?? ''}
                                     onChange={(e) => handleFieldChange('extensionActivitiesReceived', e.target.value)}
                                 />
                             </td>
@@ -939,7 +939,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.extensionActivitiesUtilized || ''}
+                                    value={formData.extensionActivitiesUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('extensionActivitiesUtilized', e.target.value)}
                                 />
                             </td>
@@ -951,7 +951,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.publicationReceived || ''}
+                                    value={formData.publicationReceived ?? ''}
                                     onChange={(e) => handleFieldChange('publicationReceived', e.target.value)}
                                 />
                             </td>
@@ -960,7 +960,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.publicationUtilized || ''}
+                                    value={formData.publicationUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('publicationUtilized', e.target.value)}
                                 />
                             </td>

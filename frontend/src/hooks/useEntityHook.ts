@@ -75,6 +75,8 @@ import {
     useDignitaryTypes,
     useFinancialProjects,
     useFundingAgencies,
+    useVehiclePresentStatuses,
+    useEquipmentPresentStatuses,
 } from './useOtherMastersData'
 import { useProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
@@ -151,6 +153,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.CROP_TYPE]: () => useCropTypes(),
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: () => useInfrastructureMasters(),
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: () => useSoilWaterAnalyses(),
+    [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: () => useVehiclePresentStatuses(),
+    [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: () => useEquipmentPresentStatuses(),
     [ENTITY_TYPES.NARI_ACTIVITY]: () => useNariActivities(),
     [ENTITY_TYPES.NARI_CROP_CATEGORY]: () => useNariCropCategories(),
     [ENTITY_TYPES.NARI_NUTRITION_GARDEN_TYPE]: () => useNariNutritionGardenTypes(),

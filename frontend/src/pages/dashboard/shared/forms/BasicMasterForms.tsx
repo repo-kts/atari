@@ -118,7 +118,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                 <FormInput
                     label="Zone Name"
                     required
-                    value={formData.zoneName || ''}
+                    value={formData.zoneName ?? ''}
                     onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                         setFormData((prev: any) => ({ ...prev, zoneName: e.target.value }))
                     }, [setFormData])}
@@ -131,7 +131,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormInput
                         label="State Name"
                         required
-                        value={formData.stateName || ''}
+                        value={formData.stateName ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                             setFormData((prev: any) => ({ ...prev, stateName: e.target.value }))
                         }, [setFormData])}
@@ -140,7 +140,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormSelect
                         label="Zone"
                         required
-                        value={formData.zoneId || ''}
+                        value={formData.zoneId ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
                             setFormData((prev: any) => ({ ...prev, zoneId: parseInt(e.target.value) }))
                         }, [setFormData])}
@@ -154,7 +154,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormInput
                         label="District Name"
                         required
-                        value={formData.districtName || ''}
+                        value={formData.districtName ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                             setFormData((prev: any) => ({ ...prev, districtName: e.target.value }))
                         }, [setFormData])}
@@ -163,7 +163,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormSelect
                         label="Zone"
                         required
-                        value={formData.zoneId || ''}
+                        value={formData.zoneId ?? ''}
                         onChange={(e) => {
                             const zoneId = parseInt(e.target.value)
                             setFormData((prev: any) => ({ ...prev, zoneId, stateId: '' }))
@@ -173,7 +173,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="State"
                         required
-                        value={formData.stateId || ''}
+                        value={formData.stateId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, stateId: value }))
                         }}
@@ -201,7 +201,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormSelect
                         label="Organization Name"
                         required
-                        value={formData.orgName || ''}
+                        value={formData.orgName ?? ''}
                         onChange={(e) => setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))}
                         options={[
                             { value: 'ICAR', label: 'ICAR' },
@@ -213,7 +213,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormSelect
                         label="Zone"
                         required
-                        value={formData.zoneId || ''}
+                        value={formData.zoneId ?? ''}
                         onChange={(e) => {
                             const zoneId = parseInt(e.target.value)
                             setFormData((prev: any) => ({ ...prev, zoneId, stateId: '', districtId: '' }))
@@ -223,7 +223,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="State"
                         required
-                        value={formData.stateId || ''}
+                        value={formData.stateId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, stateId: value, districtId: '' }))
                         }}
@@ -246,7 +246,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="District"
                         required
-                        value={formData.districtId || ''}
+                        value={formData.districtId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, districtId: value }))
                         }}
@@ -279,7 +279,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormInput
                         label="University Name"
                         required
-                        value={formData.universityName || ''}
+                        value={formData.universityName ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                             setFormData((prev: any) => ({ ...prev, universityName: e.target.value }))
                         }, [setFormData])}
@@ -288,7 +288,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <FormSelect
                         label="Zone"
                         required
-                        value={formData.zoneId || ''}
+                        value={formData.zoneId ?? ''}
                         onChange={(e) => {
                             const zoneId = parseInt(e.target.value)
                             setFormData((prev: any) => ({ ...prev, zoneId, stateId: '', districtId: '', orgId: '' }))
@@ -298,7 +298,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="State"
                         required
-                        value={formData.stateId || ''}
+                        value={formData.stateId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, stateId: value, districtId: '', orgId: '' }))
                         }}
@@ -321,7 +321,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="District"
                         required
-                        value={formData.districtId || ''}
+                        value={formData.districtId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, districtId: value, orgId: '' }))
                         }}
@@ -349,7 +349,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                     <DependentDropdown
                         label="Organization"
                         required
-                        value={formData.orgId || ''}
+                        value={formData.orgId ?? ''}
                         onChange={(value) => {
                             setFormData((prev: any) => ({ ...prev, orgId: value }))
                         }}

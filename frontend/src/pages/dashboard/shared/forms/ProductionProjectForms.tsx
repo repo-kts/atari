@@ -150,7 +150,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="Product Category Name"
                     required
-                    value={formData.productCategoryName || ''}
+                    value={formData.productCategoryName ?? ''}
                     onChange={(e) => setFormData({ ...formData, productCategoryName: e.target.value })}
                     placeholder="Enter product category name"
                 />
@@ -161,14 +161,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormSelect
                         label="Product Category"
                         required
-                        value={formData.productCategoryId || ''}
+                        value={formData.productCategoryId ?? ''}
                         onChange={(e) => setFormData({ ...formData, productCategoryId: parseInt(e.target.value) })}
                         options={productCategories.map(c => ({ value: c.productCategoryId, label: c.productCategoryName }))}
                     />
                     <FormInput
                         label="Product Type"
                         required
-                        value={formData.productCategoryType || ''}
+                        value={formData.productCategoryType ?? ''}
                         onChange={(e) => setFormData({ ...formData, productCategoryType: e.target.value })}
                         placeholder="Enter product type"
                     />
@@ -180,7 +180,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormSelect
                         label="Product Category"
                         required
-                        value={formData.productCategoryId || ''}
+                        value={formData.productCategoryId ?? ''}
                         onChange={(e) => {
                             const catId = parseInt(e.target.value)
                             setFormData({ ...formData, productCategoryId: catId, productTypeId: '' })
@@ -190,7 +190,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormSelect
                         label="Product Type"
                         required
-                        value={formData.productTypeId || ''}
+                        value={formData.productTypeId ?? ''}
                         onChange={(e) => setFormData({ ...formData, productTypeId: parseInt(e.target.value) })}
                         disabled={!formData.productCategoryId}
                         options={productTypes
@@ -200,7 +200,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormInput
                         label="Product Name"
                         required
-                        value={formData.productName || ''}
+                        value={formData.productName ?? ''}
                         onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
                         placeholder="Enter product name"
                     />
@@ -212,14 +212,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormSelect
                         label="Season"
                         required
-                        value={formData.seasonId || ''}
+                        value={formData.seasonId ?? ''}
                         onChange={(e) => setFormData({ ...formData, seasonId: parseInt(e.target.value) })}
                         options={seasons.map(s => ({ value: s.seasonId, label: s.seasonName }))}
                     />
                     <FormInput
                         label="Crop Name"
                         required
-                        value={formData.cropName || ''}
+                        value={formData.cropName ?? ''}
                         onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         placeholder="Enter crop name"
                     />
@@ -231,14 +231,14 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                     <FormSelect
                         label="Season"
                         required
-                        value={formData.seasonId || ''}
+                        value={formData.seasonId ?? ''}
                         onChange={(e) => setFormData({ ...formData, seasonId: parseInt(e.target.value) })}
                         options={seasons.map(s => ({ value: s.seasonId, label: s.seasonName }))}
                     />
                     <FormInput
                         label="Farming System Name"
                         required
-                        value={formData.farmingSystemName || ''}
+                        value={formData.farmingSystemName ?? ''}
                         onChange={(e) => setFormData({ ...formData, farmingSystemName: e.target.value })}
                         placeholder="Enter farming system name"
                     />
@@ -249,7 +249,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="Enterprise Name"
                     required
-                    value={formData.enterpriseName || ''}
+                    value={formData.enterpriseName ?? ''}
                     onChange={(e) => setFormData({ ...formData, enterpriseName: e.target.value })}
                     placeholder="Enter enterprise name"
                 />
@@ -259,7 +259,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="TSP/SCSP Type"
                     required
-                    value={formData.typeName || ''}
+                    value={formData.typeName ?? ''}
                     onChange={(e) => setFormData({ ...formData, typeName: e.target.value.toUpperCase() })}
                     placeholder="Enter type (TSP or SCSP)"
                 />
@@ -269,7 +269,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="TSP/SCSP Activity Name"
                     required
-                    value={formData.activityName || ''}
+                    value={formData.activityName ?? ''}
                     onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                     placeholder="Enter activity name"
                 />
@@ -279,7 +279,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="Natural Farming Activity Name"
                     required
-                    value={formData.activityName || ''}
+                    value={formData.activityName ?? ''}
                     onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                     placeholder="Enter natural farming activity name"
                 />
@@ -289,7 +289,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="Natural Farming Soil Parameter"
                     required
-                    value={formData.parameterName || ''}
+                    value={formData.parameterName ?? ''}
                     onChange={(e) => setFormData({ ...formData, parameterName: e.target.value })}
                     placeholder="Enter natural farming soil parameter"
                 />
@@ -299,7 +299,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <FormInput
                     label="Demonstrations on"
                     required
-                    value={formData.demonstrationsOnName || ''}
+                    value={formData.demonstrationsOnName ?? ''}
                     onChange={(e) => setFormData({ ...formData, demonstrationsOnName: e.target.value })}
                     placeholder="Enter demonstrations on"
                 />
@@ -312,7 +312,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleReportingYearChange}
                         />
 
@@ -364,7 +364,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                         <FormInput
                             label="Species / Breed / Variety"
                             required
-                            value={formData.speciesName || ''}
+                            value={formData.speciesName ?? ''}
                             onChange={handleSpeciesNameChange}
                         />
 
@@ -373,7 +373,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             <FormSelect
                                 label="Unit"
                                 required
-                                value={formData.unit || ''}
+                                value={formData.unit ?? ''}
                                 onChange={handleUnitChange}
                                 options={unitOptions}
                             />
@@ -381,7 +381,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.quantity || ''}
+                                value={formData.quantity ?? ''}
                                 onChange={handleQuantityChange}
                             />
                         </div>
@@ -391,7 +391,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             label="Value(Rs)"
                             required
                             type="number"
-                            value={formData.value || ''}
+                            value={formData.value ?? ''}
                             onChange={handleValueChange}
                         />
                     </div>
@@ -402,56 +402,56 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.gen_m || ''}
+                                value={formData.gen_m ?? ''}
                                 onChange={handleFarmerFieldChange('gen_m')}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.gen_f || ''}
+                                value={formData.gen_f ?? ''}
                                 onChange={handleFarmerFieldChange('gen_f')}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obc_m || ''}
+                                value={formData.obc_m ?? ''}
                                 onChange={handleFarmerFieldChange('obc_m')}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obc_f || ''}
+                                value={formData.obc_f ?? ''}
                                 onChange={handleFarmerFieldChange('obc_f')}
                             />
                             <FormInput
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.sc_m || ''}
+                                value={formData.sc_m ?? ''}
                                 onChange={handleFarmerFieldChange('sc_m')}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.sc_f || ''}
+                                value={formData.sc_f ?? ''}
                                 onChange={handleFarmerFieldChange('sc_f')}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.st_m || ''}
+                                value={formData.st_m ?? ''}
                                 onChange={handleFarmerFieldChange('st_m')}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.st_f || ''}
+                                value={formData.st_f ?? ''}
                                 onChange={handleFarmerFieldChange('st_f')}
                             />
                         </div>

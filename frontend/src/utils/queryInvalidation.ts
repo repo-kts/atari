@@ -397,6 +397,8 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: ['soil-water-analyses', 'soil-water-analysis-masters'],
+    [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: ['vehicle-present-statuses'],
+    [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: ['equipment-present-statuses'],
     [ENTITY_TYPES.NICRA_CATEGORY]: ['nicra-categories'],
     [ENTITY_TYPES.NICRA_SUB_CATEGORY]: ['nicra-sub-categories'],
     [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: ['nicra-seed-bank-fodder-banks'],

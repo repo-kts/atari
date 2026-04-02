@@ -46,13 +46,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Reporting Year"
                                 required
                                 type="date"
-                                value={formData.reportingYear || ''}
+                                value={formData.reportingYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                             />
                             <MasterDataDropdown
                                 label="Name of enterprises"
                                 required
-                                value={formData.enterpriseId || ''}
+                                value={formData.enterpriseId ?? ''}
                                 onChange={(value) => setFormData({ ...formData, enterpriseId: value })}
                                 options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
                                 emptyMessage="No enterprises available. Please add them in Master Data > ARYA Enterprises first."
@@ -68,42 +68,42 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Male"
                                 required
                                 type="number"
-                                value={formData.unitsMale || ''}
+                                value={formData.unitsMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, unitsMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Female"
                                 required
                                 type="number"
-                                value={formData.unitsFemale || ''}
+                                value={formData.unitsFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, unitsFemale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Viable units"
                                 required
                                 type="number"
-                                value={formData.viableUnits || ''}
+                                value={formData.viableUnits ?? ''}
                                 onChange={(e) => setFormData({ ...formData, viableUnits: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Closed units"
                                 required
                                 type="number"
-                                value={formData.closedUnits || ''}
+                                value={formData.closedUnits ?? ''}
                                 onChange={(e) => setFormData({ ...formData, closedUnits: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of Training conducted"
                                 required
                                 type="number"
-                                value={formData.trainingsConducted || ''}
+                                value={formData.trainingsConducted ?? ''}
                                 onChange={(e) => setFormData({ ...formData, trainingsConducted: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Start Date"
                                 required
                                 type="date"
-                                value={formData.startDate || ''}
+                                value={formData.startDate ?? ''}
                                 max={todayYmd}
                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                             />
@@ -111,7 +111,7 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="End Date"
                                 required
                                 type="date"
-                                value={formData.endDate || ''}
+                                value={formData.endDate ?? ''}
                                 min={formData.startDate || undefined}
                                 max={todayYmd}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
@@ -127,42 +127,42 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Male"
                                 required
                                 type="number"
-                                value={formData.youthMale || ''}
+                                value={formData.youthMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, youthMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Female"
                                 required
                                 type="number"
-                                value={formData.youthFemale || ''}
+                                value={formData.youthFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, youthFemale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of Groups Formed"
                                 required
                                 type="number"
-                                value={formData.groupsFormed || ''}
+                                value={formData.groupsFormed ?? ''}
                                 onChange={(e) => setFormData({ ...formData, groupsFormed: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of Groups active"
                                 required
                                 type="number"
-                                value={formData.groupsActive || ''}
+                                value={formData.groupsActive ?? ''}
                                 onChange={(e) => setFormData({ ...formData, groupsActive: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of person left the group"
                                 required
                                 type="number"
-                                value={formData.personsLeftGroup || ''}
+                                value={formData.personsLeftGroup ?? ''}
                                 onChange={(e) => setFormData({ ...formData, personsLeftGroup: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of Members in each Group"
                                 required
                                 type="number"
-                                value={formData.membersPerGroup || ''}
+                                value={formData.membersPerGroup ?? ''}
                                 onChange={(e) => setFormData({ ...formData, membersPerGroup: parseInt(e.target.value) || 0 })}
                             />
                         </div>
@@ -176,35 +176,35 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Average size of each unit (agro rental unit)"
                                 required
                                 type="number"
-                                value={formData.avgSizeOfUnit || ''}
+                                value={formData.avgSizeOfUnit ?? ''}
                                 onChange={(e) => setFormData({ ...formData, avgSizeOfUnit: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Total Production unit/year"
                                 required
                                 type="number"
-                                value={formData.totalProductionPerYear || ''}
+                                value={formData.totalProductionPerYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, totalProductionPerYear: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Per unit cost of Production"
                                 required
                                 type="number"
-                                value={formData.perUnitCostOfProduction || ''}
+                                value={formData.perUnitCostOfProduction ?? ''}
                                 onChange={(e) => setFormData({ ...formData, perUnitCostOfProduction: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Sale value of Produce"
                                 required
                                 type="number"
-                                value={formData.saleValueOfProduce || ''}
+                                value={formData.saleValueOfProduce ?? ''}
                                 onChange={(e) => setFormData({ ...formData, saleValueOfProduce: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Employment generated (man-days)"
                                 required
                                 type="number"
-                                value={formData.employmentGeneratedMandays || ''}
+                                value={formData.employmentGeneratedMandays ?? ''}
                                 onChange={(e) => setFormData({ ...formData, employmentGeneratedMandays: parseFloat(e.target.value) || 0 })}
                             />
                             <div className="space-y-4">
@@ -265,13 +265,13 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Reporting Year"
                                 required
                                 type="date"
-                                value={formData.reportingYear || ''}
+                                value={formData.reportingYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                             />
                             <MasterDataDropdown
                                 label="Name of enterprises"
                                 required
-                                value={formData.enterpriseId || ''}
+                                value={formData.enterpriseId ?? ''}
                                 onChange={(value) => setFormData({ ...formData, enterpriseId: value })}
                                 options={createMasterDataOptions(aryaEnterprises, 'enterpriseId', 'enterpriseName')}
                                 emptyMessage="No enterprises available. Please add them in Master Data > ARYA Enterprises first."
@@ -287,42 +287,42 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Male"
                                 required
                                 type="number"
-                                value={formData.unitsMale || ''}
+                                value={formData.unitsMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, unitsMale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Female"
                                 required
                                 type="number"
-                                value={formData.unitsFemale || ''}
+                                value={formData.unitsFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, unitsFemale: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of non-functional entrepreneurial unit closed"
                                 required
                                 type="number"
-                                value={formData.nonFunctionalUnitsClosed || ''}
+                                value={formData.nonFunctionalUnitsClosed ?? ''}
                                 onChange={(e) => setFormData({ ...formData, nonFunctionalUnitsClosed: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Date of Closing"
                                 required
                                 type="date"
-                                value={formData.dateOfClosing || ''}
+                                value={formData.dateOfClosing ?? ''}
                                 onChange={(e) => setFormData({ ...formData, dateOfClosing: e.target.value })}
                             />
                             <FormInput
                                 label="No. of non-functional entrepreneurial unit restarted (i.e. Previously closed)"
                                 required
                                 type="number"
-                                value={formData.nonFunctionalUnitsRestarted || ''}
+                                value={formData.nonFunctionalUnitsRestarted ?? ''}
                                 onChange={(e) => setFormData({ ...formData, nonFunctionalUnitsRestarted: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Date of restart"
                                 required
                                 type="date"
-                                value={formData.dateOfRestart || ''}
+                                value={formData.dateOfRestart ?? ''}
                                 onChange={(e) => setFormData({ ...formData, dateOfRestart: e.target.value })}
                             />
                         </div>
@@ -336,14 +336,14 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="No. of unit"
                                 required
                                 type="number"
-                                value={formData.numberOfUnits || ''}
+                                value={formData.numberOfUnits ?? ''}
                                 onChange={(e) => setFormData({ ...formData, numberOfUnits: parseInt(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Unit Capacity"
                                 required
                                 type="number"
-                                value={formData.unitCapacity || ''}
+                                value={formData.unitCapacity ?? ''}
                                 onChange={(e) => setFormData({ ...formData, unitCapacity: parseFloat(e.target.value) || 0 })}
                             />
                         </div>
@@ -357,42 +357,42 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Fixed cost"
                                 required
                                 type="number"
-                                value={formData.fixedCost || ''}
+                                value={formData.fixedCost ?? ''}
                                 onChange={(e) => setFormData({ ...formData, fixedCost: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Variable cost"
                                 required
                                 type="number"
-                                value={formData.variableCost || ''}
+                                value={formData.variableCost ?? ''}
                                 onChange={(e) => setFormData({ ...formData, variableCost: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="total production/unit/year"
                                 required
                                 type="number"
-                                value={formData.totalProductionPerUnitYear || ''}
+                                value={formData.totalProductionPerUnitYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, totalProductionPerUnitYear: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Gross cost of production/unit/ year (Rs.)"
                                 required
                                 type="number"
-                                value={formData.grossCostPerUnitYear || ''}
+                                value={formData.grossCostPerUnitYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, grossCostPerUnitYear: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="gross values of production/unit/ year (Rs.)"
                                 required
                                 type="number"
-                                value={formData.grossReturnPerUnitYear || ''}
+                                value={formData.grossReturnPerUnitYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, grossReturnPerUnitYear: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="net benefit / unit/ year (Rs.)"
                                 required
                                 type="number"
-                                value={formData.netBenefitPerUnitYear || ''}
+                                value={formData.netBenefitPerUnitYear ?? ''}
                                 onChange={(e) => setFormData({ ...formData, netBenefitPerUnitYear: parseFloat(e.target.value) || 0 })}
                             />
                         </div>
@@ -406,21 +406,21 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                                 label="Family"
                                 required
                                 type="number"
-                                value={formData.employmentFamilyMandays || ''}
+                                value={formData.employmentFamilyMandays ?? ''}
                                 onChange={(e) => setFormData({ ...formData, employmentFamilyMandays: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="Other than family"
                                 required
                                 type="number"
-                                value={formData.employmentOtherMandays || ''}
+                                value={formData.employmentOtherMandays ?? ''}
                                 onChange={(e) => setFormData({ ...formData, employmentOtherMandays: parseFloat(e.target.value) || 0 })}
                             />
                             <FormInput
                                 label="No. of persons visited entrepreneur unit"
                                 required
                                 type="number"
-                                value={formData.personsVisitedUnit || ''}
+                                value={formData.personsVisitedUnit ?? ''}
                                 onChange={(e) => setFormData({ ...formData, personsVisitedUnit: parseInt(e.target.value) || 0 })}
                             />
                         </div>

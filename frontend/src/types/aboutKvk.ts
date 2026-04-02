@@ -136,13 +136,6 @@ export interface KvkVehicle {
     registrationNo: string;
     yearOfPurchase: number;
     totalCost: number;
-    totalRun: string;
-    presentStatus: 'WORKING' | 'GOOD_CONDITION' | 'NEW';
-    // New fields
-    reportingYear?: string;
-    sourceOfFunding?: string;
-    repairingCost?: number;
-
     kvk?: { kvkId: number; kvkName: string };
 }
 
@@ -152,9 +145,7 @@ export interface KvkEquipment {
     equipmentName: string;
     yearOfPurchase: number;
     totalCost: number;
-    presentStatus: 'WORKING' | 'GOOD_CONDITION' | 'NEW';
     sourceOfFunding: string;
-    reportingYear: number;
     type: 'EQUIPMENT' | 'FARM_IMPLEMENT';
     kvk?: { kvkId: number; kvkName: string };
 }

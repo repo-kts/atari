@@ -157,7 +157,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             label="No. of Male"
                             required
                             type="number"
-                            value={formData.maleStudents || ''}
+                            value={formData.maleStudents ?? ''}
                             onChange={handleNumberChange('maleStudents')}
                             placeholder="0"
                         />
@@ -166,7 +166,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             label="No. of Female"
                             required
                             type="number"
-                            value={formData.femaleStudents || ''}
+                            value={formData.femaleStudents ?? ''}
                             onChange={handleNumberChange('femaleStudents')}
                             placeholder="0"
                         />

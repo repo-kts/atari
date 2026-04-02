@@ -41,7 +41,7 @@ export const RaweFetForms: React.FC<RaweFetFormsProps> = ({ formData, setFormDat
                     label="Attachment Type"
                     required
                     type="text"
-                    value={formData.attachmentType || ''}
+                    value={formData.attachmentType ?? ''}
                     onChange={(e) => setFormData({ ...formData, attachmentType: e.target.value })}
                 />
                 <FormInput

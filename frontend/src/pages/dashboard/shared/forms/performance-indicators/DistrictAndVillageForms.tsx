@@ -60,7 +60,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -70,7 +70,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Account Type"
                             required
-                            value={formData.items || ''}
+                            value={formData.items ?? ''}
                             onChange={(value) => setFormData({ ...formData, items: value })}
                             options={accountTypeOptions}
                             isLoading={isLoadingAccountTypes}
@@ -81,7 +81,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                     <FormTextArea
                         label="Information"
                         required
-                        value={formData.information || ''}
+                        value={formData.information ?? ''}
                         onChange={handleFieldChange('information')}
                         rows={4}
                         placeholder="Enter information about agriculture, livestock and farming situation"
@@ -96,7 +96,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -106,7 +106,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Taluk"
                             required
-                            value={formData.taluk || ''}
+                            value={formData.taluk ?? ''}
                             onChange={handleFieldChange('taluk')}
                             placeholder=""
                         />
@@ -116,7 +116,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Block"
                             required
-                            value={formData.block || ''}
+                            value={formData.block ?? ''}
                             onChange={handleFieldChange('block')}
                             placeholder=""
                         />
@@ -124,7 +124,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Village"
                             required
-                            value={formData.village || ''}
+                            value={formData.village ?? ''}
                             onChange={handleFieldChange('village')}
                             placeholder=""
                         />
@@ -134,7 +134,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Major crops"
                             required
-                            value={formData.majorCrops || ''}
+                            value={formData.majorCrops ?? ''}
                             onChange={handleFieldChange('majorCrops')}
                             placeholder=""
                         />
@@ -142,7 +142,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Major problems identified (crop-wise)"
                             required
-                            value={formData.majorProblems || ''}
+                            value={formData.majorProblems ?? ''}
                             onChange={handleFieldChange('majorProblems')}
                             placeholder=""
                         />
@@ -152,7 +152,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Identified Thrust Areas"
                             required
-                            value={formData.thrustAreas || ''}
+                            value={formData.thrustAreas ?? ''}
                             onChange={handleFieldChange('thrustAreas')}
                             placeholder=""
                         />
@@ -167,7 +167,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -177,7 +177,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Village"
                             required
-                            value={formData.village || ''}
+                            value={formData.village ?? ''}
                             onChange={handleFieldChange('village')}
                             placeholder=""
                         />
@@ -187,7 +187,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Block"
                             required
-                            value={formData.block || ''}
+                            value={formData.block ?? ''}
                             onChange={handleFieldChange('block')}
                             placeholder=""
                         />
@@ -195,7 +195,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Action taken for development"
                             required
-                            value={formData.actionTaken || ''}
+                            value={formData.actionTaken ?? ''}
                             onChange={handleFieldChange('actionTaken')}
                             placeholder=""
                         />
@@ -210,7 +210,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -220,7 +220,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <FormInput
                             label="Thrust area"
                             required
-                            value={formData.thrustArea || ''}
+                            value={formData.thrustArea ?? ''}
                             onChange={handleFieldChange('thrustArea')}
                             placeholder=""
                         />

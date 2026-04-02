@@ -82,7 +82,7 @@ export const VIPVisitorsForms: React.FC<VIPVisitorsFormsProps> = ({
                     <FormInput
                         label="Name of Hon'ble Minister"
                         required
-                        value={formData.ministerName || ''}
+                        value={formData.ministerName ?? ''}
                         onChange={handleFieldChange('ministerName')}
                         placeholder="Enter minister name"
                     />
