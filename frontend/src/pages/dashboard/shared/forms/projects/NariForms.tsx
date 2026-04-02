@@ -33,13 +33,13 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
@@ -53,7 +53,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Type of Nutritional Garden"
                             required
-                            value={formData.typeOfNutritionalGardenId || ''}
+                            value={formData.typeOfNutritionalGardenId ?? ''}
                             onChange={(value) => setFormData({ ...formData, typeOfNutritionalGardenId: value })}
                             options={createMasterDataOptions(nariNutritionGardenTypes, 'nutritionGardenTypeId', 'name')}
                             placeholder="Select Garden Type"
@@ -62,14 +62,14 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Number"
                             required
                             type="number"
-                            value={formData.number || ''}
+                            value={formData.number ?? ''}
                             onChange={(e) => setFormData({ ...formData, number: parseInt(e.target.value) || 0 })}
                         />
                         <FormInput
                             label="Area (sqm)"
                             required
                             type="number"
-                            value={formData.areaSqm || ''}
+                            value={formData.areaSqm ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaSqm: parseFloat(e.target.value) || 0 })}
                         />
                     </div>
@@ -159,7 +159,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
@@ -171,7 +171,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) => setFormData({ ...formData, seasonId: value })}
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             placeholder="Select Season"
@@ -179,7 +179,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
@@ -187,7 +187,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Category of Crop"
                             required
-                            value={formData.cropCategoryId || ''}
+                            value={formData.cropCategoryId ?? ''}
                             onChange={(value) => setFormData({ ...formData, cropCategoryId: value })}
                             options={createMasterDataOptions(nariCropCategories, 'cropCategoryId', 'name')}
                             placeholder="Select Category"
@@ -201,7 +201,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <FormInput
                             label="Variety"
                             required
-                            value={formData.variety || ''}
+                            value={formData.variety ?? ''}
                             onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
                         />
                         <FormInput
@@ -209,7 +209,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.areaHa || ''}
+                            value={formData.areaHa ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaHa: parseFloat(e.target.value) || 0 })}
                         />
                     </div>
@@ -299,7 +299,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
@@ -317,7 +317,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
@@ -415,7 +415,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
@@ -433,7 +433,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"
@@ -463,7 +463,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <FormSelect
                             label="On Campus/Off Campus"
                             required
-                            value={formData.campusType || ''}
+                            value={formData.campusType ?? ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
                                 { value: 'ON_CAMPUS', label: 'On Campus' },
@@ -474,7 +474,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <FormInput
                             label="Venue"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                         />
                     </div>
@@ -564,7 +564,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
@@ -576,7 +576,7 @@ export const NariForms: React.FC<NariFormsProps> = ({
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(nariActivities, 'nariActivityId', 'activityName')}
                             placeholder="Select Activity"

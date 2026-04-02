@@ -1,4 +1,5 @@
 const targetRepository = require('../repositories/targetRepository.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const TARGET_TYPES = [
   'OFT',
@@ -92,6 +93,31 @@ function parsePositiveInt(value, fieldName) {
   return parsed;
 }
 
+function parseReportingYearInput(value, fieldName = 'Reporting Year') {
+  if (value === undefined || value === null || value === '') {
+    throw new Error(`${fieldName} is required`);
+  }
+
+  if (value instanceof Date || (typeof value === 'string' && value.trim().includes('-'))) {
+    const parsedDate = parseReportingYearDate(value);
+    ensureNotFutureDate(parsedDate);
+    return {
+      year: parsedDate.getUTCFullYear(),
+      reportingYearDate: parsedDate,
+    };
+  }
+
+  const year = parsePositiveInt(value, fieldName);
+  if (year < 1900 || year > 3000) {
+    throw new Error('Invalid reporting year');
+  }
+
+  return {
+    year,
+    reportingYearDate: new Date(Date.UTC(year, 0, 1)),
+  };
+}
+
 const targetService = {
   getTypeOptions: () => {
     return TARGET_TYPES.map((typeName) => ({
@@ -118,11 +144,16 @@ const targetService = {
     const where = { ...scopeFilter };
 
     if (filters.reportingYear !== undefined && filters.reportingYear !== null && filters.reportingYear !== '') {
-      const year = Number(filters.reportingYear);
-      if (!Number.isInteger(year) || year < 1900 || year > 3000) {
-        throw new Error('Invalid reportingYear');
-      }
-      where.reportingYear = year;
+      const reportingYear = parseReportingYearInput(filters.reportingYear, 'reportingYear');
+      const start = new Date(Date.UTC(reportingYear.year, 0, 1));
+      const endExclusive = new Date(Date.UTC(reportingYear.year + 1, 0, 1));
+      if (!Array.isArray(where.AND)) where.AND = [];
+      where.AND.push({
+        OR: [
+          { reportingYearDate: { gte: start, lt: endExclusive } },
+          { reportingYear: reportingYear.year },
+        ],
+      });
     }
 
     if (filters.kvkId !== undefined && filters.kvkId !== null && filters.kvkId !== '') {
@@ -152,7 +183,7 @@ const targetService = {
       where,
       skip,
       take: limit,
-      orderBy: [{ reportingYear: 'desc' }, { targetId: 'desc' }],
+      orderBy: [{ reportingYearDate: 'desc' }, { reportingYear: 'desc' }, { targetId: 'desc' }],
     });
 
     return {
@@ -161,6 +192,7 @@ const targetService = {
         kvkId: row.kvkId,
         kvkName: row.kvk?.kvkName || `KVK ${row.kvkId}`,
         reportingYear: row.reportingYear,
+        reportingYearDate: row.reportingYearDate ? formatReportingYear(row.reportingYearDate) : null,
         typeName: row.typeName,
         target: row.target,
         farmerTarget: row.farmerTarget,
@@ -202,10 +234,7 @@ const targetService = {
     }
 
     const typeName = validateTypeName(payload.typeName);
-    const reportingYear = parsePositiveInt(payload.reportingYear, 'Reporting Year');
-    if (reportingYear < 1900 || reportingYear > 3000) {
-      throw new Error('Invalid reporting year');
-    }
+    const reportingYear = parseReportingYearInput(payload.reportingYear, 'Reporting Year');
 
     const target = parsePositiveInt(payload.target, 'Target');
 
@@ -215,7 +244,8 @@ const targetService = {
       stateId: kvk.stateId,
       districtId: kvk.districtId,
       orgId: kvk.orgId,
-      reportingYear,
+      reportingYear: reportingYear.year,
+      reportingYearDate: reportingYear.reportingYearDate,
       typeName,
       target,
       createdByUserId: actor.userId,
@@ -255,15 +285,13 @@ const targetService = {
     }
 
     const typeName = validateTypeName(payload.typeName);
-    const reportingYear = parsePositiveInt(payload.reportingYear, 'Reporting Year');
-    if (reportingYear < 1900 || reportingYear > 3000) {
-      throw new Error('Invalid reporting year');
-    }
+    const reportingYear = parseReportingYearInput(payload.reportingYear, 'Reporting Year');
 
     const target = parsePositiveInt(payload.target, 'Target');
 
     const data = {
-      reportingYear,
+      reportingYear: reportingYear.year,
+      reportingYearDate: reportingYear.reportingYearDate,
       typeName,
       target,
       farmerTarget: null,

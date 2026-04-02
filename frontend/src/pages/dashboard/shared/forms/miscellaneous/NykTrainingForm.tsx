@@ -17,7 +17,7 @@ export const NykTrainingForm: React.FC<NykTrainingFormProps> = ({ formData, setF
                 <FormInput
                     label="Title of the training programme"
                     required
-                    value={formData.title || ''}
+                    value={formData.title ?? ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Enter title of the training programme"
                 />

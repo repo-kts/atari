@@ -22,6 +22,86 @@ export interface TransformationRule {
     transform?: (data: any) => any;
 }
 
+const STRICT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
+const YEAR_PATTERN = /^\d{4}$/;
+const COMMON_READ_ONLY_DERIVED_FIELDS = [
+    // Derived display aliases from backend responses
+    'yearName',
+    'totalBeneficiaries',
+    'numberOfFarmers',
+    'numberOfFarmersUnderExposure',
+    'noOfFarmersAttended',
+    'noOfTotal',
+    'unspentBalance',
+] as const;
+
+const YEAR_MONTH_PATTERN = /^\d{4}-\d{2}$/;
+
+function toYearMonthFromMonthName(monthValue: any, reportingYearValue: any): string | null {
+    if (monthValue === null || monthValue === undefined || monthValue === '') return null;
+    const raw = String(monthValue).trim();
+    if (!raw) return null;
+
+    if (YEAR_MONTH_PATTERN.test(raw)) {
+        return raw;
+    }
+
+    const monthNames = [
+        'january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december',
+    ];
+    const monthIndex = monthNames.findIndex((m) => m === raw.toLowerCase());
+    if (monthIndex < 0) return null;
+
+    const normalizedReportingDate =
+        toDateOnlyString(reportingYearValue) ||
+        toDateOnlyString(new Date());
+    if (!normalizedReportingDate) return null;
+    const year = normalizedReportingDate.slice(0, 4);
+    const month = String(monthIndex + 1).padStart(2, '0');
+    return `${year}-${month}`;
+}
+
+function toDateOnlyString(value: any): string | null {
+    if (value === null || value === undefined || value === '') return null;
+
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value.toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 1900 && value <= 3000) {
+        return `${value}-01-01`;
+    }
+
+    if (typeof value === 'object') {
+        if (value.reportingYearDate !== undefined) return toDateOnlyString(value.reportingYearDate);
+        if (value.reportingYear !== undefined) return toDateOnlyString(value.reportingYear);
+        if (value.yearName !== undefined) return toDateOnlyString(value.yearName);
+        if (value.year !== undefined) return toDateOnlyString(value.year);
+        return null;
+    }
+
+    if (typeof value !== 'string') return null;
+
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (YEAR_PATTERN.test(trimmed)) {
+        return `${trimmed}-01-01`;
+    }
+
+    if (!STRICT_DATE_PATTERN.test(trimmed)) {
+        return null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return trimmed;
+    }
+
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+}
+
 // ============================================
 // Configuration: Entity-Specific Rules
 // ============================================
@@ -89,6 +169,59 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return data;
         },
     },
+    [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: {
+        // Derived/read-only fields must never be sent back on save.
+        excludeFields: ['unspentBalance', 'projectName', 'fundingAgency'],
+    },
+    [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+
+            if (transformed.trainingPhotos && !transformed.trainingPhotoPath) {
+                transformed.trainingPhotoPath = transformed.trainingPhotos;
+            }
+            if (transformed.actionPhotos && !transformed.qualityActionPhotoPath) {
+                transformed.qualityActionPhotoPath = transformed.actionPhotos;
+            }
+            delete transformed.trainingPhotos;
+            delete transformed.actionPhotos;
+
+            if (transformed.yieldMin !== undefined && transformed.demoYieldMin === undefined) {
+                transformed.demoYieldMin = transformed.yieldMin;
+            }
+            if (transformed.yieldMax !== undefined && transformed.demoYieldMax === undefined) {
+                transformed.demoYieldMax = transformed.yieldMax;
+            }
+            if (transformed.yieldAvg !== undefined && transformed.demoYieldAvg === undefined) {
+                transformed.demoYieldAvg = transformed.yieldAvg;
+            }
+            if (transformed.yieldGapDistrict !== undefined && transformed.districtYield === undefined) {
+                transformed.districtYield = transformed.yieldGapDistrict;
+            }
+            if (transformed.yieldGapState !== undefined && transformed.stateYield === undefined) {
+                transformed.stateYield = transformed.yieldGapState;
+            }
+            if (transformed.yieldGapPotential !== undefined && transformed.potentialYield === undefined) {
+                transformed.potentialYield = transformed.yieldGapPotential;
+            }
+            if (transformed.yieldGapMinimisedDistrict !== undefined && transformed.yieldGapDistrictMinimized === undefined) {
+                transformed.yieldGapDistrictMinimized = transformed.yieldGapMinimisedDistrict;
+            }
+            if (transformed.yieldGapMinimisedState !== undefined && transformed.yieldGapStateMinimized === undefined) {
+                transformed.yieldGapStateMinimized = transformed.yieldGapMinimisedState;
+            }
+            if (transformed.yieldGapMinimisedPotential !== undefined && transformed.yieldGapPotentialMinimized === undefined) {
+                transformed.yieldGapPotentialMinimized = transformed.yieldGapMinimisedPotential;
+            }
+
+            const normalizedYearMonth = toYearMonthFromMonthName(transformed.month, transformed.reportingYear);
+            if (normalizedYearMonth) {
+                transformed.month = normalizedYearMonth;
+            }
+
+            return transformed;
+        },
+    },
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: {
         excludeFields: ['id', 'kvkName'],
     },
@@ -136,37 +269,7 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return transformed;
         }
     },
-    [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]: {
-        transform: (data: any) => {
-            const transformed = { ...data };
 
-            // Map training photos
-            if (transformed.trainingPhotos || transformed.trainingPhotos_caption) {
-                transformed.trainingPhotoPath = JSON.stringify({
-                    image: transformed.trainingPhotos ?? transformed.trainingPhotoPath ?? null,
-                    caption: transformed.trainingPhotos_caption ?? ""
-                });
-            }
-
-            // Map action photos
-            if (transformed.actionPhotos || transformed.actionPhotos_caption) {
-                transformed.qualityActionPhotoPath = JSON.stringify({
-                    image: transformed.actionPhotos ?? transformed.qualityActionPhotoPath ?? null,
-                    caption: transformed.actionPhotos_caption ?? ""
-                });
-            }
-
-            // Clean up temporary frontend fields
-            delete transformed.trainingPhotos;
-            delete transformed.trainingPhotos_preview;
-            delete transformed.trainingPhotos_caption;
-            delete transformed.actionPhotos;
-            delete transformed.actionPhotos_preview;
-            delete transformed.actionPhotos_caption;
-
-            return transformed;
-        }
-    },
     [ENTITY_TYPES.PROJECT_ARYA_CURRENT]: {
         transform: (data: any) => {
             const transformed = { ...data };
@@ -212,6 +315,14 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
                     image: p.image,
                     caption: p.caption || ''
                 })));
+            }
+            // uploadFile is a browser File object — cannot be sent as JSON; strip it
+            if (transformed.uploadFile instanceof File || (typeof File !== 'undefined' && transformed.uploadFile instanceof File)) {
+                delete transformed.uploadFile;
+            }
+            // Also strip if it's a FileList
+            if (typeof FileList !== 'undefined' && transformed.uploadFile instanceof FileList) {
+                delete transformed.uploadFile;
             }
             return transformed;
         }
@@ -364,6 +475,9 @@ const COMMON_NESTED_OBJECTS = [
     'reportingYear',
     'cropDetails',
     'dignitaryType',
+    // Financial relation objects in list responses
+    'projectName',
+    'fundingAgency',
 ] as const;
 
 // ============================================
@@ -390,6 +504,12 @@ export function removeNestedObjects(
     // This preserves string fields that share names with nested objects (like 'district')
     const nestedObjectsToRemove = [...COMMON_NESTED_OBJECTS, ...additionalExclusions];
     const cleaned: any = { ...restData };
+
+    COMMON_READ_ONLY_DERIVED_FIELDS.forEach((key) => {
+        if (Object.prototype.hasOwnProperty.call(cleaned, key)) {
+            delete cleaned[key];
+        }
+    });
 
     nestedObjectsToRemove.forEach((key) => {
         if (cleaned[key] && typeof cleaned[key] === 'object') {
@@ -465,9 +585,7 @@ export function normalizeLegacyReportingYear(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
     const normalized = { ...data };
-    const legacyYear =
-        normalized.reportingYear ??
-        normalized.year;
+    const legacyYear = normalized.reportingYear ?? normalized.year;
 
     if (legacyYear !== undefined && legacyYear !== null && legacyYear !== '') {
         const asString = String(legacyYear).trim();
@@ -476,6 +594,28 @@ export function normalizeLegacyReportingYear(data: any): any {
     }
 
     delete normalized.year;
+
+    return normalized;
+}
+
+/**
+ * Canonicalizes reporting year aliases to a single date string field.
+ * Prefers reportingYearDate (exact date) over legacy integer year.
+ */
+export function normalizeReportingYearDateAlias(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+    const dateFromAlias =
+        toDateOnlyString(normalized.reportingYearDate) ??
+        toDateOnlyString(normalized.reportingYear) ??
+        toDateOnlyString(normalized.year);
+
+    if (dateFromAlias) {
+        normalized.reportingYear = dateFromAlias;
+    }
+
+    delete normalized.reportingYearDate;
 
     return normalized;
 }
@@ -650,6 +790,77 @@ export async function processFiles(data: any): Promise<any> {
 }
 
 /**
+ * Enforces common start/end date rules across payloads:
+ * - start/end dates cannot be in the future
+ * - end date cannot be before matching start date
+ */
+export function normalizeStartEndDateRanges(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+
+    const normalized = { ...data };
+    const todayYmd = new Date().toISOString().slice(0, 10);
+
+    Object.keys(normalized).forEach((key) => {
+        const lowerKey = key.toLowerCase();
+        if (!lowerKey.includes('startdate') && !lowerKey.includes('enddate')) return;
+
+        const ymd = toDateOnlyString(normalized[key]);
+        if (!ymd) return;
+
+        if (ymd > todayYmd) {
+            normalized[key] = todayYmd;
+        }
+    });
+
+    Object.keys(normalized).forEach((key) => {
+        if (!key.toLowerCase().includes('enddate')) return;
+
+        const endYmd = toDateOnlyString(normalized[key]);
+        if (!endYmd) return;
+
+        const startKey = key.replace(/enddate/i, 'startDate');
+        const startYmd = toDateOnlyString(normalized[startKey]);
+        if (!startYmd) return;
+
+        if (endYmd < startYmd) {
+            normalized[key] = startYmd;
+        }
+    });
+
+    return normalized;
+}
+
+/**
+ * Strips raw File and FileList objects from the payload.
+ * These cannot be serialized as JSON and cause internal server errors.
+ */
+function stripFileObjects(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+    const transformed = { ...data };
+    Object.keys(transformed).forEach(key => {
+        const val = transformed[key];
+        if (typeof File !== 'undefined' && val instanceof File) {
+            delete transformed[key];
+        } else if (typeof FileList !== 'undefined' && val instanceof FileList) {
+            delete transformed[key];
+        }
+    });
+
+    // Also check for files inside arrays (like photographs when they are raw Files)
+    if (Array.isArray(transformed.photographs)) {
+        transformed.photographs = transformed.photographs.map(p => {
+            if (p && typeof p === 'object' && 'file' in p && (typeof File !== 'undefined' && p.file instanceof File)) {
+                const { file, ...rest } = p;
+                return rest;
+            }
+            return p;
+        }).filter(p => !(typeof File !== 'undefined' && p instanceof File));
+    }
+
+    return transformed;
+}
+
+/**
  * Complete data transformation pipeline for create operations
  */
 export function transformDataForCreate(
@@ -657,12 +868,15 @@ export function transformDataForCreate(
     formData: any
 ): any {
     let transformed = removeNestedObjects(formData);
+    transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
+    transformed = stripFileObjects(transformed); // STRIP FILES HERE
     return transformed;
 }
 
@@ -676,11 +890,14 @@ export function transformDataForUpdate(
 ): any {
     let transformed = removeIdField(entityType, idField, formData);
     transformed = removeNestedObjects(transformed);
+    transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
+    transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
+    transformed = stripFileObjects(transformed); // STRIP FILES HERE
     return transformed;
 }

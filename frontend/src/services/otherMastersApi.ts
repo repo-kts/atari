@@ -175,6 +175,36 @@ export interface InfrastructureMasterFormData {
     name: string;
 }
 
+export interface VehiclePresentStatus {
+    vehicleStatusId: number;
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear: boolean;
+    isActive: boolean;
+}
+
+export interface EquipmentPresentStatus {
+    equipmentStatusId: number;
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear: boolean;
+    isActive: boolean;
+}
+
+export interface VehiclePresentStatusFormData {
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear?: boolean;
+    isActive?: boolean;
+}
+
+export interface EquipmentPresentStatusFormData {
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear?: boolean;
+    isActive?: boolean;
+}
+
 export interface SoilWaterAnalysis {
     soilWaterAnalysisId: number;
     analysisName: string;
@@ -502,6 +532,24 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<InfrastructureMaster>>(`${BASE_URL}/infrastructure-master/${id}`, data),
     deleteInfrastructureMaster: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/infrastructure-master/${id}`),
+
+    getVehiclePresentStatuses: () =>
+        apiClient.get<PaginatedResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`),
+    createVehiclePresentStatus: (data: VehiclePresentStatusFormData) =>
+        apiClient.post<ApiResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`, data),
+    updateVehiclePresentStatus: (id: number, data: Partial<VehiclePresentStatusFormData>) =>
+        apiClient.put<ApiResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status/${id}`, data),
+    deleteVehiclePresentStatus: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicle-present-status/${id}`),
+
+    getEquipmentPresentStatuses: () =>
+        apiClient.get<PaginatedResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status`),
+    createEquipmentPresentStatus: (data: EquipmentPresentStatusFormData) =>
+        apiClient.post<ApiResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status`, data),
+    updateEquipmentPresentStatus: (id: number, data: Partial<EquipmentPresentStatusFormData>) =>
+        apiClient.put<ApiResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status/${id}`, data),
+    deleteEquipmentPresentStatus: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-present-status/${id}`),
 
     // Soil Water Analysis Masters
     getSoilWaterAnalyses: () =>

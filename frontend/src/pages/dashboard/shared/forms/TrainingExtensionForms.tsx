@@ -253,7 +253,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Training Type Name"
                     required
-                    value={formData.trainingTypeName || ''}
+                    value={formData.trainingTypeName ?? ''}
                     onChange={(e) => setFormData({ ...formData, trainingTypeName: e.target.value })}
                     placeholder="Enter training type name"
                 />
@@ -264,7 +264,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                     <MasterDataDropdown
                         label="Training Type"
                         required
-                        value={formData.trainingTypeId || ''}
+                        value={formData.trainingTypeId ?? ''}
                         onChange={handleTrainingTypeChange}
                         options={createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName')}
                         emptyMessage="No training types available"
@@ -272,7 +272,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                     <FormInput
                         label="Training Area Name"
                         required
-                        value={formData.trainingAreaName || ''}
+                        value={formData.trainingAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, trainingAreaName: e.target.value })}
                         placeholder="Enter training area name"
                     />
@@ -284,7 +284,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                     <MasterDataDropdown
                         label="Training Area"
                         required
-                        value={formData.trainingAreaId || ''}
+                        value={formData.trainingAreaId ?? ''}
                         onChange={handleTrainingAreaChange}
                         options={createMasterDataOptions(trainingAreas, 'trainingAreaId', 'trainingAreaName')}
                         emptyMessage="No training areas available"
@@ -292,7 +292,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                     <FormInput
                         label="Thematic Area Name"
                         required
-                        value={formData.trainingThematicAreaName || ''}
+                        value={formData.trainingThematicAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, trainingThematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
@@ -303,7 +303,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Training Clientele Name"
                     required
-                    value={formData.name || ''}
+                    value={formData.name ?? ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter training clientele name"
                 />
@@ -313,7 +313,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Funding Source Name"
                     required
-                    value={formData.name || ''}
+                    value={formData.name ?? ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter funding source name"
                 />
@@ -323,7 +323,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Extension Activity Name"
                     required
-                    value={formData.extensionName || ''}
+                    value={formData.extensionName ?? ''}
                     onChange={(e) => setFormData({ ...formData, extensionName: e.target.value })}
                     placeholder="Enter extension activity name"
                 />
@@ -333,7 +333,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Other Extension Activity Name"
                     required
-                    value={formData.otherExtensionName || ''}
+                    value={formData.otherExtensionName ?? ''}
                     onChange={(e) => setFormData({ ...formData, otherExtensionName: e.target.value })}
                     placeholder="Enter other extension activity name"
                 />
@@ -343,7 +343,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                 <FormInput
                     label="Event Name"
                     required
-                    value={formData.eventName || ''}
+                    value={formData.eventName ?? ''}
                     onChange={(e) => setFormData({ ...formData, eventName: e.target.value })}
                     placeholder="Enter event name"
                 />
@@ -367,7 +367,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <MasterDataDropdown
                             label="Training Type"
                             required
-                            value={formData.trainingTypeId || ''}
+                            value={formData.trainingTypeId ?? ''}
                             onChange={handleTrainingTypeChange}
                             options={createMasterDataOptions(trainingTypes, 'trainingTypeId', 'trainingTypeName' as any)}
                             emptyMessage="No training types available"
@@ -378,7 +378,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <DependentDropdown
                             label="Training Area"
                             required
-                            value={formData.trainingAreaId || ''}
+                            value={formData.trainingAreaId ?? ''}
                             onChange={handleTrainingAreaChange}
                             options={filterByParentId(trainingAreas, 'trainingTypeId', formData.trainingTypeId)
                                 .map((a: any) => ({
@@ -421,7 +421,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <FormSelect
                             label="On Campus/Off Campus"
                             required
-                            value={formData.campusType || ''}
+                            value={formData.campusType ?? ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
                                 { value: 'On Campus', label: 'On Campus' },
@@ -432,21 +432,21 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <FormInput
                             label="Title of Training"
                             required
-                            value={formData.title || ''}
+                            value={formData.title ?? ''}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
 
@@ -470,7 +470,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                         <FormInput
                             label="Venue"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                         />
 
@@ -485,7 +485,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                         <FormInput
                             label="Funding Agency Name"
-                            value={formData.fundingAgency || ''}
+                            value={formData.fundingAgency ?? ''}
                             onChange={(e) => setFormData({ ...formData, fundingAgency: e.target.value })}
                         />
                     </div>
@@ -550,29 +550,29 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
 
                     <FormSection title="Farmers">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
                     </FormSection>
 
@@ -636,14 +636,14 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
@@ -657,20 +657,20 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Type of activities"
                             required
-                            value={formData.activityType || ''}
+                            value={formData.activityType ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityType: e.target.value })}
                         />
                         <FormInput
@@ -685,7 +685,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput
                                 label="Related crop/livestock technology"
                                 required
-                                value={formData.relatedTechnology || ''}
+                                value={formData.relatedTechnology ?? ''}
                                 onChange={(e) => setFormData({ ...formData, relatedTechnology: e.target.value })}
                             />
                         </div>
@@ -693,15 +693,15 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
                     </FormSection>
                 </div>
@@ -714,7 +714,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             label="Event Date"
                             required
                             type="date"
-                            value={formData.eventDate || ''}
+                            value={formData.eventDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
                         />
                         {/* Important Days - From Important Days Master */}
@@ -731,7 +731,7 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                                 label="No. of activities"
                                 required
                                 type="number"
-                                value={formData.activityCount || ''}
+                                value={formData.activityCount ?? ''}
                                 onChange={(e) => setFormData({ ...formData, activityCount: e.target.value })}
                             />
                         </div>
@@ -739,15 +739,15 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
 
                     <FormSection title="Farmers">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
                     </FormSection>
 

@@ -53,7 +53,7 @@ export const NehruYuvaKendraForms: React.FC<NehruYuvaKendraFormsProps> = ({
                     <FormInput
                         label="Title of the Training Programme"
                         required
-                        value={formData.title || ''}
+                        value={formData.title ?? ''}
                         onChange={handleFieldChange('title')}
                         placeholder="Enter programme title"
                     />

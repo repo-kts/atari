@@ -6,6 +6,7 @@ model Target {
   districtId      Int?     @map("district_id")
   orgId           Int?     @map("org_id")
   reportingYear   Int      @map("reporting_year")
+  reportingYearDate DateTime? @map("reporting_year_date")
   typeName        String   @map("type_name")
   target          Int
   farmerTarget    Int?     @map("farmer_target")
@@ -23,6 +24,8 @@ model Target {
 
   @@index([kvkId, reportingYear])
   @@index([reportingYear])
+  @@index([kvkId, reportingYearDate])
+  @@index([reportingYearDate])
   @@index([typeName])
   @@index([zoneId])
   @@index([stateId])

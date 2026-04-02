@@ -233,6 +233,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
             return ''
         }
     }
+    const todayYmd = new Date().toISOString().slice(0, 10)
 
     return (
         <div className="space-y-4">
@@ -245,6 +246,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             required
                             type="date"
                             value={getDateValue(formData.startDate)}
+                            max={todayYmd}
                             onChange={handleDateChange('startDate')}
                         />
 
@@ -253,6 +255,8 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             required
                             type="date"
                             value={getDateValue(formData.endDate)}
+                            min={getDateValue(formData.startDate) || undefined}
+                            max={todayYmd}
                             onChange={handleDateChange('endDate')}
                         />
                     </div>
@@ -262,7 +266,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             label="No of Participants"
                             required
                             type="number"
-                            value={formData.numberOfParticipants || ''}
+                            value={formData.numberOfParticipants ?? ''}
                             onChange={handleNumberChange('numberOfParticipants')}
                             placeholder="Enter number"
                         />
@@ -271,7 +275,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             label="Total Statutory Members Present (State Line Department)"
                             required
                             type="number"
-                            value={formData.statutoryMembersPresent || ''}
+                            value={formData.statutoryMembersPresent ?? ''}
                             onChange={handleNumberChange('statutoryMembersPresent')}
                             placeholder="Enter number"
                         />
@@ -282,7 +286,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             <FormTextArea
                                 label="Salient Recommendations"
                                 required
-                                value={formData.salientRecommendations || ''}
+                                value={formData.salientRecommendations ?? ''}
                                 onChange={handleFieldChange('salientRecommendations')}
                                 rows={4}
                                 placeholder="Enter recommendations"
@@ -291,7 +295,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             <FormInput
                                 label="Reason"
                                 required
-                                value={formData.reason || ''}
+                                value={formData.reason ?? ''}
                                 onChange={handleFieldChange('reason')}
                                 placeholder="Enter reason"
                             />
@@ -301,7 +305,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                             <FormSelect
                                 label="Action Taken"
                                 required
-                                value={formData.actionTaken || ''}
+                                value={formData.actionTaken ?? ''}
                                 onChange={handleFieldChange('actionTaken')}
                                 options={YES_NO_OPTIONS}
                                 placeholder="Select"
@@ -319,7 +323,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -338,7 +342,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                         <FormInput
                             label="Type of Meeting"
                             required
-                            value={formData.typeOfMeeting || ''}
+                            value={formData.typeOfMeeting ?? ''}
                             onChange={handleFieldChange('typeOfMeeting')}
                             placeholder="Enter meeting type"
                         />
@@ -347,7 +351,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                     <FormInput
                         label="Agenda"
                         required
-                        value={formData.agenda || ''}
+                        value={formData.agenda ?? ''}
                         onChange={handleFieldChange('agenda')}
                         placeholder="Enter agenda"
                     />
@@ -355,7 +359,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                     <FormInput
                         label="Representative from ATARI"
                         required
-                        value={formData.representativeFromAtari || ''}
+                        value={formData.representativeFromAtari ?? ''}
                         onChange={handleFieldChange('representativeFromAtari')}
                         placeholder="Enter representative name"
                     />

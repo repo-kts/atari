@@ -244,7 +244,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -254,7 +254,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <MasterDataDropdown
                             label="Name of Specific Area"
                             required
-                            value={formData.specificArea || ''}
+                            value={formData.specificArea ?? ''}
                             onChange={(value) => setFormData({ ...formData, specificArea: value })}
                             options={specificAreaOptions}
                             isLoading={isLoadingAreas}
@@ -265,7 +265,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormTextArea
                         label="Brief Details of the Area"
                         required
-                        value={formData.briefDetails || ''}
+                        value={formData.briefDetails ?? ''}
                         onChange={handleFieldChange('briefDetails')}
                         rows={2}
                         placeholder="Enter brief details"
@@ -276,7 +276,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="No. of Farmers Benefitted"
                             required
                             type="number"
-                            value={formData.farmersBenefitted || ''}
+                            value={formData.farmersBenefitted ?? ''}
                             onChange={handleNumberChange('farmersBenefitted')}
                             placeholder="Enter number"
                         />
@@ -285,7 +285,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="Horizontal Spread (in area/no.)"
                             required
                             type="text"
-                            value={formData.horizontalSpread || ''}
+                            value={formData.horizontalSpread ?? ''}
                             onChange={handleFieldChange('horizontalSpread')}
                             placeholder="Enter horizontal spread"
                         />
@@ -295,7 +295,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.adoptionPercentage || ''}
+                            value={formData.adoptionPercentage ?? ''}
                             onChange={handleNumberChange('adoptionPercentage')}
                             placeholder="Enter percentage"
                         />
@@ -305,7 +305,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Impact of the Technology in Subjective Terms (Qualitative)"
                             required
-                            value={formData.qualitativeImpact || ''}
+                            value={formData.qualitativeImpact ?? ''}
                             onChange={handleFieldChange('qualitativeImpact')}
                             rows={3}
                             placeholder="Enter qualitative impact"
@@ -314,7 +314,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Impact of the Technology in Objective Terms (Quantitative)"
                             required
-                            value={formData.quantitativeImpact || ''}
+                            value={formData.quantitativeImpact ?? ''}
                             onChange={handleFieldChange('quantitativeImpact')}
                             rows={3}
                             placeholder="Enter quantitative impact"
@@ -328,7 +328,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.incomeBefore || ''}
+                                value={formData.incomeBefore ?? ''}
                                 onChange={handleNumberChange('incomeBefore')}
                                 placeholder="Enter amount"
                             />
@@ -338,7 +338,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.incomeAfter || ''}
+                                value={formData.incomeAfter ?? ''}
                                 onChange={handleNumberChange('incomeAfter')}
                                 placeholder="Enter amount"
                             />
@@ -354,7 +354,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -364,7 +364,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormInput
                             label="Name of the Entrepreneur/Name of the Enterprise/Firm"
                             required
-                            value={formData.entrepreneurName || ''}
+                            value={formData.entrepreneurName ?? ''}
                             onChange={handleFieldChange('entrepreneurName')}
                             placeholder="Enter name"
                         />
@@ -373,7 +373,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormTextArea
                         label="Registered address of the entrepreneur/firm"
                         required
-                        value={formData.registeredAddress || ''}
+                        value={formData.registeredAddress ?? ''}
                         onChange={handleFieldChange('registeredAddress')}
                         rows={2}
                         placeholder="Enter registered address"
@@ -384,7 +384,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="Year of establishment"
                             required
                             type="number"
-                            value={formData.yearOfEstablishment || ''}
+                            value={formData.yearOfEstablishment ?? ''}
                             onChange={handleNumberChange('yearOfEstablishment')}
                             placeholder="Enter year"
                         />
@@ -392,7 +392,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <MasterDataDropdown
                             label="Type of Enterprise"
                             required
-                            value={formData.enterpriseType || ''}
+                            value={formData.enterpriseType ?? ''}
                             onChange={(value) => setFormData({ ...formData, enterpriseType: value })}
                             options={enterpriseTypeOptions}
                             isLoading={isLoadingEnterpriseTypes}
@@ -403,7 +403,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             label="No of Members Associated"
                             required
                             type="number"
-                            value={formData.membersAssociated || ''}
+                            value={formData.membersAssociated ?? ''}
                             onChange={handleNumberChange('membersAssociated')}
                             placeholder="Enter number"
                         />
@@ -412,7 +412,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormInput
                         label="Registration details"
                         required
-                        value={formData.registrationDetails || ''}
+                        value={formData.registrationDetails ?? ''}
                         onChange={handleFieldChange('registrationDetails')}
                         placeholder="Enter registration details"
                     />
@@ -421,7 +421,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Technical Components of the Enterprise (with commodity)"
                             required
-                            value={formData.technicalComponents || ''}
+                            value={formData.technicalComponents ?? ''}
                             onChange={handleFieldChange('technicalComponents')}
                             rows={2}
                             placeholder="Enter technical components"
@@ -430,7 +430,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Role of KVK/Technology Backstopping (Quantitative Data Support)"
                             required
-                            value={formData.kvkRole || ''}
+                            value={formData.kvkRole ?? ''}
                             onChange={handleFieldChange('kvkRole')}
                             rows={2}
                             placeholder="Enter role of KVK"
@@ -443,7 +443,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.annualIncome || ''}
+                            value={formData.annualIncome ?? ''}
                             onChange={handleNumberChange('annualIncome')}
                             placeholder="Enter amount"
                         />
@@ -451,7 +451,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormInput
                             label="Period/Timeline of the Entrepreneurship Development"
                             required
-                            value={formData.developmentTimeline || ''}
+                            value={formData.developmentTimeline ?? ''}
                             onChange={handleFieldChange('developmentTimeline')}
                             placeholder="Enter timeline"
                         />
@@ -460,7 +460,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormTextArea
                         label="Economic and Social Status of Entrepreneur Before and After the Enterprise"
                         required
-                        value={formData.statusBeforeAfter || ''}
+                        value={formData.statusBeforeAfter ?? ''}
                         onChange={handleFieldChange('statusBeforeAfter')}
                         rows={3}
                         placeholder="Enter status details"
@@ -469,7 +469,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                     <FormInput
                         label="Present Working Condition of Enterprise"
                         required
-                        value={formData.presentWorkingCondition || ''}
+                        value={formData.presentWorkingCondition ?? ''}
                         onChange={handleFieldChange('presentWorkingCondition')}
                         placeholder="Enter working condition"
                         helperText="In Terms of Raw Materials Availability, Labour Availability, Consumer Preference, Marketing the Product etc.(Economic Viability of the Enterprise)"
@@ -479,7 +479,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Major Achievements"
                             required
-                            value={formData.majorAchievements || ''}
+                            value={formData.majorAchievements ?? ''}
                             onChange={handleFieldChange('majorAchievements')}
                             rows={3}
                             placeholder="Enter major achievements"
@@ -488,7 +488,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Major constrains"
                             required
-                            value={formData.majorConstraints || ''}
+                            value={formData.majorConstraints ?? ''}
                             onChange={handleFieldChange('majorConstraints')}
                             rows={3}
                             placeholder="Enter major constraints"
@@ -505,7 +505,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <MasterDataDropdown
                                 label="Reporting Year"
                                 required
-                                value={formData.reportingYear || ''}
+                                value={formData.reportingYear ?? ''}
                                 onChange={handleYearChange}
                                 options={yearOptions}
                                 isLoading={isLoadingYears}
@@ -515,7 +515,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Name of the Farmer/Entrepreneur"
                                 required
-                                value={formData.farmerName || ''}
+                                value={formData.farmerName ?? ''}
                                 onChange={handleFieldChange('farmerName')}
                                 placeholder="Enter name"
                             />
@@ -533,7 +533,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Education"
                                 required
-                                value={formData.education || ''}
+                                value={formData.education ?? ''}
                                 onChange={handleFieldChange('education')}
                                 placeholder="Enter education"
                             />
@@ -541,7 +541,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Farming Experience"
                                 required
-                                value={formData.experience || ''}
+                                value={formData.experience ?? ''}
                                 onChange={handleFieldChange('experience')}
                                 placeholder="Enter experience"
                             />
@@ -549,7 +549,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Cell no./E-mail"
                                 required
-                                value={formData.contact || ''}
+                                value={formData.contact ?? ''}
                                 onChange={handleFieldChange('contact')}
                                 placeholder="Enter contact"
                             />
@@ -558,7 +558,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormTextArea
                             label="Full Address"
                             required
-                            value={formData.fullAddress || ''}
+                            value={formData.fullAddress ?? ''}
                             onChange={handleFieldChange('fullAddress')}
                             rows={2}
                             placeholder="Enter full address"
@@ -567,7 +567,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Professional Membership"
-                                value={formData.professionalMembership || ''}
+                                value={formData.professionalMembership ?? ''}
                                 onChange={handleFieldChange('professionalMembership')}
                                 placeholder="Enter membership"
                                 required
@@ -575,7 +575,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                             <FormInput
                                 label="Awards Received"
-                                value={formData.awardsReceived || ''}
+                                value={formData.awardsReceived ?? ''}
                                 onChange={handleFieldChange('awardsReceived')}
                                 placeholder="Enter awards"
                                 required
@@ -584,7 +584,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                         <FormTextArea
                             label="Major Achievement of the Farmers"
-                            value={formData.majorAchievement || ''}
+                            value={formData.majorAchievement ?? ''}
                             onChange={handleFieldChange('majorAchievement')}
                             rows={2}
                             placeholder="Enter achievements"
@@ -598,7 +598,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormInput
                                     label="Title of Success Story/Case Study"
                                     required
-                                    value={formData.storyTitle || ''}
+                                    value={formData.storyTitle ?? ''}
                                     onChange={handleFieldChange('storyTitle')}
                                     placeholder="Enter title"
                                 />
@@ -612,7 +612,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormTextArea
                                     label="Situation Analysis/Problem Statement"
                                     required
-                                    value={formData.problemStatement || ''}
+                                    value={formData.problemStatement ?? ''}
                                     onChange={handleFieldChange('problemStatement')}
                                     rows={4}
                                     placeholder="Enter problem statement"
@@ -621,7 +621,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormTextArea
                                     label="Plan, Implement and Support/KVK Intervention(s)"
                                     required
-                                    value={formData.kvkIntervention || ''}
+                                    value={formData.kvkIntervention ?? ''}
                                     onChange={handleFieldChange('kvkIntervention')}
                                     rows={4}
                                     placeholder="Enter KVK intervention"
@@ -632,7 +632,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormTextArea
                                     label="Details of Practices followed by the farmer"
                                     required
-                                    value={formData.practicesFollowed || ''}
+                                    value={formData.practicesFollowed ?? ''}
                                     onChange={handleFieldChange('practicesFollowed')}
                                     rows={4}
                                     placeholder="Enter practices"
@@ -641,7 +641,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormTextArea
                                     label="Results/Output (Economical/Social Data)"
                                     required
-                                    value={formData.results || ''}
+                                    value={formData.results ?? ''}
                                     onChange={handleFieldChange('results')}
                                     rows={4}
                                     placeholder="Enter results"
@@ -652,7 +652,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 <FormTextArea
                                     label="Impact/Outcome"
                                     required
-                                    value={formData.impact || ''}
+                                    value={formData.impact ?? ''}
                                     onChange={handleFieldChange('impact')}
                                     rows={4}
                                     placeholder="Enter impact"
@@ -660,7 +660,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
 
                                 <FormTextArea
                                     label="Future Plans"
-                                    value={formData.futurePlans || ''}
+                                    value={formData.futurePlans ?? ''}
                                     onChange={handleFieldChange('futurePlans')}
                                     rows={4}
                                     placeholder="Enter future plans"
@@ -675,7 +675,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                             <FormInput
                                 label="Enterprise"
                                 required
-                                value={formData.enterprise || ''}
+                                value={formData.enterprise ?? ''}
                                 onChange={handleFieldChange('enterprise')}
                                 placeholder="Enter enterprise"
                             />
@@ -685,7 +685,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.grossIncome || ''}
+                                value={formData.grossIncome ?? ''}
                                 onChange={handleNumberChange('grossIncome')}
                                 placeholder="Enter amount"
                             />
@@ -695,7 +695,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.netIncome || ''}
+                                value={formData.netIncome ?? ''}
                                 onChange={handleNumberChange('netIncome')}
                                 placeholder="Enter amount"
                             />
@@ -705,7 +705,7 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.costBenefitRatio || ''}
+                                value={formData.costBenefitRatio ?? ''}
                                 onChange={handleNumberChange('costBenefitRatio')}
                                 placeholder="Enter ratio"
                             />

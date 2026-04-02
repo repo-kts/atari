@@ -74,6 +74,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     )
 
     if (!entityType) return null
+    const todayYmd = new Date().toISOString().slice(0, 10)
 
     const financialYearNote = (
         <p className="text-xs text-olive-600 mb-2 italic">
@@ -93,6 +94,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -100,6 +102,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -109,7 +113,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Salary Allocation"
                             required
-                            value={formData.salaryAllocation || ''}
+                            value={formData.salaryAllocation ?? ''}
                             onChange={handleFieldChange('salaryAllocation')}
                             placeholder="0.00"
                         />
@@ -117,7 +121,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Salary Expenditure"
                             required
-                            value={formData.salaryExpenditure || ''}
+                            value={formData.salaryExpenditure ?? ''}
                             onChange={handleFieldChange('salaryExpenditure')}
                             placeholder="0.00"
                         />
@@ -130,7 +134,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="Main Grant Allocation"
                                 required
-                                value={formData.generalMainGrantAllocation || ''}
+                                value={formData.generalMainGrantAllocation ?? ''}
                                 onChange={handleFieldChange('generalMainGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -138,7 +142,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="Main Grant Expenditure"
                                 required
-                                value={formData.generalMainGrantExpenditure || ''}
+                                value={formData.generalMainGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('generalMainGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -148,7 +152,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="TSP Grant Allocation"
                                 required
-                                value={formData.generalTspGrantAllocation || ''}
+                                value={formData.generalTspGrantAllocation ?? ''}
                                 onChange={handleFieldChange('generalTspGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -156,7 +160,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="TSP Grant Expenditure"
                                 required
-                                value={formData.generalTspGrantExpenditure || ''}
+                                value={formData.generalTspGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('generalTspGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -166,7 +170,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="SCSP Grant Allocation"
                                 required
-                                value={formData.generalScspGrantAllocation || ''}
+                                value={formData.generalScspGrantAllocation ?? ''}
                                 onChange={handleFieldChange('generalScspGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -174,7 +178,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="SCSP Grant Expenditure"
                                 required
-                                value={formData.generalScspGrantExpenditure || ''}
+                                value={formData.generalScspGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('generalScspGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -188,7 +192,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="Main Grant Allocation"
                                 required
-                                value={formData.capitalMainGrantAllocation || ''}
+                                value={formData.capitalMainGrantAllocation ?? ''}
                                 onChange={handleFieldChange('capitalMainGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -196,7 +200,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="Main Grant Expenditure"
                                 required
-                                value={formData.capitalMainGrantExpenditure || ''}
+                                value={formData.capitalMainGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('capitalMainGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -206,7 +210,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="TSP Grant Allocation"
                                 required
-                                value={formData.capitalTspGrantAllocation || ''}
+                                value={formData.capitalTspGrantAllocation ?? ''}
                                 onChange={handleFieldChange('capitalTspGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -214,7 +218,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="TSP Grant Expenditure"
                                 required
-                                value={formData.capitalTspGrantExpenditure || ''}
+                                value={formData.capitalTspGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('capitalTspGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -224,7 +228,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="SCSP Grant Allocation"
                                 required
-                                value={formData.capitalScspGrantAllocation || ''}
+                                value={formData.capitalScspGrantAllocation ?? ''}
                                 onChange={handleFieldChange('capitalScspGrantAllocation')}
                                 placeholder="0.00"
                             />
@@ -232,7 +236,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                                 type="number"
                                 label="SCSP Grant Expenditure"
                                 required
-                                value={formData.capitalScspGrantExpenditure || ''}
+                                value={formData.capitalScspGrantExpenditure ?? ''}
                                 onChange={handleFieldChange('capitalScspGrantExpenditure')}
                                 placeholder="0.00"
                             />
@@ -248,7 +252,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -258,7 +262,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Opening balance as on 1st April"
                             required
-                            value={formData.openingBalance || ''}
+                            value={formData.openingBalance ?? ''}
                             onChange={handleFieldChange('openingBalance')}
                             placeholder="0.00"
                         />
@@ -268,7 +272,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Income during the year"
                             required
-                            value={formData.incomeDuringYear || ''}
+                            value={formData.incomeDuringYear ?? ''}
                             onChange={handleFieldChange('incomeDuringYear')}
                             placeholder="0.00"
                         />
@@ -276,7 +280,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Expenditure during the year"
                             required
-                            value={formData.expenditureDuringYear || ''}
+                            value={formData.expenditureDuringYear ?? ''}
                             onChange={handleFieldChange('expenditureDuringYear')}
                             placeholder="0.00"
                         />
@@ -284,7 +288,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormInput
                             label="Kind"
-                            value={formData.kind || ''}
+                            value={formData.kind ?? ''}
                             onChange={handleFieldChange('kind')}
                             placeholder="Enter details..."
                         />
@@ -302,6 +306,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -309,6 +314,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -316,7 +323,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Name of Head"
                             required
-                            value={formData.headName || ''}
+                            value={formData.headName ?? ''}
                             onChange={handleFieldChange('headName')}
                             placeholder="Enter head name..."
                         />
@@ -324,7 +331,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Income (Rs.)"
                             required
-                            value={formData.income || ''}
+                            value={formData.income ?? ''}
                             onChange={handleFieldChange('income')}
                             placeholder="0.00"
                         />
@@ -333,7 +340,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Sponsoring agency"
                             required
-                            value={formData.sponsoringAgency || ''}
+                            value={formData.sponsoringAgency ?? ''}
                             onChange={handleFieldChange('sponsoringAgency')}
                             placeholder="Enter sponsoring agency..."
                         />
@@ -351,6 +358,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -358,6 +366,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -365,14 +375,14 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Name of the programme"
                             required
-                            value={formData.programmeName || ''}
+                            value={formData.programmeName ?? ''}
                             onChange={handleFieldChange('programmeName')}
                             placeholder="Enter programme name..."
                         />
                         <FormInput
                             label="Purpose of the programme"
                             required
-                            value={formData.programmePurpose || ''}
+                            value={formData.programmePurpose ?? ''}
                             onChange={handleFieldChange('programmePurpose')}
                             placeholder="Enter purpose..."
                         />
@@ -381,7 +391,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Sources of fund"
                             required
-                            value={formData.sourcesOfFund || ''}
+                            value={formData.sourcesOfFund ?? ''}
                             onChange={handleFieldChange('sourcesOfFund')}
                             placeholder="Enter sources of fund..."
                         />
@@ -389,7 +399,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Amount (Rs. lakhs)"
                             required
-                            value={formData.amount || ''}
+                            value={formData.amount ?? ''}
                             onChange={handleFieldChange('amount')}
                             placeholder="0.00"
                         />
@@ -398,7 +408,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Infrastructure created"
                             required
-                            value={formData.infrastructureCreated || ''}
+                            value={formData.infrastructureCreated ?? ''}
                             onChange={handleFieldChange('infrastructureCreated')}
                             placeholder="Enter infrastructure details..."
                         />
@@ -415,6 +425,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="Start Date"
                             required
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleFieldChange('startDate')}
                         />
                         <FormInput
@@ -422,6 +433,8 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             label="End Date"
                             required
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleFieldChange('endDate')}
                         />
                     </div>
@@ -429,7 +442,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <MasterDataDropdown
                             label="Name of project"
                             required
-                            value={formData.financialProjectId || ''}
+                            value={formData.financialProjectId ?? ''}
                             onChange={handleProjectChange}
                             options={projectOptions}
                             isLoading={isLoadingProjects}
@@ -439,7 +452,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             <FormInput
                                 label="Specify Project Name"
                                 required
-                                value={formData.specifyProjectName || ''}
+                                value={formData.specifyProjectName ?? ''}
                                 onChange={handleFieldChange('specifyProjectName')}
                                 placeholder="Enter project name..."
                             />
@@ -459,7 +472,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <MasterDataDropdown
                             label="Name of Funding agency"
                             required
-                            value={formData.fundingAgencyId || ''}
+                            value={formData.fundingAgencyId ?? ''}
                             onChange={(value) => {
                                 const id = (typeof value === 'string' && value.trim() !== '') ? parseInt(value) : (typeof value === 'number' ? value : null);
                                 setFormData((prev: any) => ({ ...prev, fundingAgencyId: id }));
@@ -472,7 +485,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             <FormInput
                                 label="Specify Agency Name"
                                 required
-                                value={formData.specifyAgencyName || ''}
+                                value={formData.specifyAgencyName ?? ''}
                                 onChange={handleFieldChange('specifyAgencyName')}
                                 placeholder="Enter agency name..."
                             />
@@ -481,7 +494,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Budget Estimate"
                             required
-                            value={formData.budgetEstimate || ''}
+                            value={formData.budgetEstimate ?? ''}
                             onChange={handleFieldChange('budgetEstimate')}
                             placeholder="0.00"
                         />
@@ -491,7 +504,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Budget Allocated"
                             required
-                            value={formData.budgetAllocated || ''}
+                            value={formData.budgetAllocated ?? ''}
                             onChange={handleFieldChange('budgetAllocated')}
                             placeholder="0.00"
                         />
@@ -499,7 +512,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Budget released"
                             required
-                            value={formData.budgetReleased || ''}
+                            value={formData.budgetReleased ?? ''}
                             onChange={handleFieldChange('budgetReleased')}
                             placeholder="0.00"
                         />
@@ -509,7 +522,7 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                             type="number"
                             label="Expenditure"
                             required
-                            value={formData.expenditure || ''}
+                            value={formData.expenditure ?? ''}
                             onChange={handleFieldChange('expenditure')}
                             placeholder="0.00"
                         />

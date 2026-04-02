@@ -98,7 +98,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <MasterDataDropdown
                             label="Type"
                             required
-                            value={formData.typeId || ''}
+                            value={formData.typeId ?? ''}
                             onChange={(val) => setFormData({ ...formData, typeId: val })}
                             options={trainingTypeOptions}
                             isLoading={isLoadingTypes}
@@ -110,7 +110,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Title"
                             required
-                            value={formData.title || ''}
+                            value={formData.title ?? ''}
                             onChange={handleFieldChange('title')}
                             placeholder="Enter title"
                         />
@@ -118,7 +118,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Venue"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={handleFieldChange('venue')}
                             placeholder="Enter venue"
                         />
@@ -127,7 +127,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="Resource Person"
                         required
-                        value={formData.resourcePerson || ''}
+                        value={formData.resourcePerson ?? ''}
                         onChange={handleFieldChange('resourcePerson')}
                         placeholder="Enter resource person"
                     />
@@ -216,7 +216,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={(val) => {
                             const selectedYear = years.find(y => y.reportingYear === val || y.yearName === val);
                             setFormData({
@@ -233,7 +233,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Name of Crop Registered"
                             required
-                            value={formData.cropName || ''}
+                            value={formData.cropName ?? ''}
                             onChange={handleFieldChange('cropName')}
                             placeholder="Enter crop name"
                         />
@@ -241,7 +241,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Farmer Name"
                             required
-                            value={formData.farmerName || ''}
+                            value={formData.farmerName ?? ''}
                             onChange={handleFieldChange('farmerName')}
                             placeholder="Enter farmer name"
                         />
@@ -251,7 +251,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Mobile No."
                             required
-                            value={formData.mobile || ''}
+                            value={formData.mobile ?? ''}
                             onChange={handleFieldChange('mobile')}
                             placeholder="Enter mobile number"
                         />
@@ -259,7 +259,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Village"
                             required
-                            value={formData.village || ''}
+                            value={formData.village ?? ''}
                             onChange={handleFieldChange('village')}
                             placeholder="Enter village"
                         />
@@ -267,7 +267,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Block"
                             required
-                            value={formData.block || ''}
+                            value={formData.block ?? ''}
                             onChange={handleFieldChange('block')}
                             placeholder="Enter block"
                         />
@@ -276,7 +276,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="District"
                         required
-                        value={formData.district || ''}
+                        value={formData.district ?? ''}
                         onChange={handleFieldChange('district')}
                         placeholder="Enter district"
                     />
@@ -284,7 +284,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="Characteristics"
                         required
-                        value={formData.characteristics || ''}
+                        value={formData.characteristics ?? ''}
                         onChange={handleFieldChange('characteristics')}
                         placeholder="Enter characteristics"
                     />

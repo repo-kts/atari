@@ -69,7 +69,7 @@ const OccupancyTable: React.FC<OccupancyTableProps> = ({ formData, handleCellCha
                                 return (
                                     <td key={`${month}-${quarter}`} className="border border-[#E0E0E0] px-2 py-1">
                                         <select
-                                            value={formData[cellKey] || ''}
+                                            value={formData[cellKey] ?? ''}
                                             onChange={(e) => handleCellChange(month, quarter, e.target.value)}
                                             className="w-full px-2 py-1.5 text-sm border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] bg-white"
                                         >
@@ -96,6 +96,43 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     formData,
     setFormData,
 }) => {
+    const parseOccupancyData = React.useCallback((): Record<string, string> => {
+        const raw = formData?.occupancyData
+        if (!raw) return {}
+        try {
+            if (typeof raw === 'string') {
+                const parsed = JSON.parse(raw)
+                return parsed && typeof parsed === 'object' ? parsed : {}
+            }
+            if (typeof raw === 'object') {
+                return raw as Record<string, string>
+            }
+        } catch {
+            // ignore malformed JSON
+        }
+        return {}
+    }, [formData?.occupancyData])
+
+    // Hydrate per-cell fields from persisted occupancyData when editing
+    React.useEffect(() => {
+        if (entityType !== ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS) return
+        const data = parseOccupancyData()
+        if (!data || Object.keys(data).length === 0) return
+
+        // Compute only changed keys to avoid unnecessary re-renders
+        const updates: any = {}
+        let hasUpdates = false
+        Object.entries(data).forEach(([key, val]) => {
+            const cur = formData?.[key]
+            if (cur !== val) {
+                updates[key] = val
+                hasUpdates = true
+            }
+        })
+        if (hasUpdates) {
+            setFormData({ ...formData, ...updates })
+        }
+    }, [entityType, formData, setFormData, parseOccupancyData])
     const { data: years = [], isLoading: isLoadingYears } = useYears()
     const { data: seasons = [], isLoading: isLoadingSeasons } = useSeasons()
 
@@ -144,7 +181,24 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
     const handleCellChange = useCallback(
         (month: string, quarter: string, value: string) => {
             const cellKey = `occupancy_${month.toLowerCase()}_${quarter.toLowerCase().replace(' ', '_')}`
-            setFormData({ ...formData, [cellKey]: value })
+            // Keep per-cell value for immediate UI binding
+            // Also maintain a normalized occupancyData JSON for persistence
+            let current: Record<string, string>
+            try {
+                current = formData?.occupancyData
+                    ? (typeof formData.occupancyData === 'string'
+                        ? JSON.parse(formData.occupancyData)
+                        : { ...(formData.occupancyData as Record<string, string>) })
+                    : {}
+            } catch {
+                current = {}
+            }
+            const next = { ...current, [cellKey]: value }
+            setFormData({
+                ...formData,
+                [cellKey]: value,
+                occupancyData: JSON.stringify(next),
+            })
         },
         [formData, setFormData]
     )
@@ -160,7 +214,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -170,7 +224,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormInput
                             label="Name of Demo Unit"
                             required
-                            value={formData.demoUnitName || ''}
+                            value={formData.demoUnitName ?? ''}
                             onChange={handleFieldChange('demoUnitName')}
                             placeholder="Enter demo unit name"
                         />
@@ -181,7 +235,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="Year of Establishment"
                             required
                             type="number"
-                            value={formData.yearOfEstablishment || ''}
+                            value={formData.yearOfEstablishment ?? ''}
                             onChange={handleNumberChange('yearOfEstablishment')}
                             placeholder="Enter year"
                         />
@@ -191,7 +245,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             required
                             type="number"
                             step="0.01"
-                            value={formData.area || ''}
+                            value={formData.area ?? ''}
                             onChange={handleNumberChange('area')}
                             placeholder="Enter area"
                         />
@@ -268,7 +322,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -278,7 +332,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) => setFormData({ ...formData, seasonId: value })}
                             options={seasonOptions}
                             isLoading={isLoadingSeasons}
@@ -290,7 +344,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormInput
                             label="Name of the Crop"
                             required
-                            value={formData.cropName || ''}
+                            value={formData.cropName ?? ''}
                             onChange={handleFieldChange('cropName')}
                             placeholder="Enter crop name"
                         />
@@ -300,7 +354,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             required
                             type="number"
                             step="0.01"
-                            value={formData.area || ''}
+                            value={formData.area ?? ''}
                             onChange={handleNumberChange('area')}
                             placeholder="Enter area"
                         />
@@ -377,7 +431,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -387,7 +441,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormInput
                             label="Name of the Product"
                             required
-                            value={formData.productName || ''}
+                            value={formData.productName ?? ''}
                             onChange={handleFieldChange('productName')}
                             placeholder="Enter product name"
                         />
@@ -445,7 +499,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -455,7 +509,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <FormInput
                         label="Name of the Animal/Bird/Aquatics"
                         required
-                        value={formData.animalName || ''}
+                        value={formData.animalName ?? ''}
                         onChange={handleFieldChange('animalName')}
                         placeholder="Enter name"
                     />
@@ -531,7 +585,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -541,7 +595,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormSelect
                             label="Months"
                             required
-                            value={formData.months || ''}
+                            value={formData.months ?? ''}
                             onChange={handleFieldChange('months')}
                             options={MONTH_OPTIONS}
                         />
@@ -552,7 +606,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="No. of Trainees Stayed"
                             required
                             type="number"
-                            value={formData.traineesStayed || ''}
+                            value={formData.traineesStayed ?? ''}
                             onChange={handleNumberChange('traineesStayed')}
                             placeholder="Enter number"
                         />
@@ -561,7 +615,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="Trainee Days (Days Stayed)"
                             required
                             type="number"
-                            value={formData.traineeDays || ''}
+                            value={formData.traineeDays ?? ''}
                             onChange={handleNumberChange('traineeDays')}
                             placeholder="Enter days"
                         />
@@ -570,7 +624,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <FormTextArea
                         label="Reason for Short Fall (if any)"
                         required
-                        value={formData.reasonForShortFall || ''}
+                        value={formData.reasonForShortFall ?? ''}
                         onChange={handleFieldChange('reasonForShortFall')}
                         rows={3}
                         placeholder="Enter reason for short fall"
@@ -593,7 +647,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormSelect
                             label="Whether Staff Quarters have been Completed"
                             required
-                            value={formData.isCompleted || ''}
+                            value={formData.isCompleted ?? ''}
                             onChange={handleFieldChange('isCompleted')}
                             options={YES_NO_OPTIONS}
                         />
@@ -604,7 +658,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="No. of Staff Quarters"
                             required
                             type="number"
-                            value={formData.numberOfQuarters || ''}
+                            value={formData.numberOfQuarters ?? ''}
                             onChange={handleNumberChange('numberOfQuarters')}
                             placeholder="Enter number"
                         />
@@ -612,7 +666,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormInput
                             label="Occupancy Details"
                             required
-                            value={formData.occupancyDetails || ''}
+                            value={formData.occupancyDetails ?? ''}
                             onChange={handleFieldChange('occupancyDetails')}
                             placeholder="Enter occupancy details"
                         />
@@ -629,7 +683,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <FormTextArea
                         label="Remark"
                         required
-                        value={formData.remark || ''}
+                        value={formData.remark ?? ''}
                         onChange={handleFieldChange('remark')}
                         rows={3}
                         placeholder="Enter remark"
@@ -643,7 +697,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -655,7 +709,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="No. of Training Programme Conducted"
                             required
                             type="number"
-                            value={formData.trainingProgrammes || ''}
+                            value={formData.trainingProgrammes ?? ''}
                             onChange={handleNumberChange('trainingProgrammes')}
                             placeholder="Enter number"
                         />
@@ -664,7 +718,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="No. of Demonstrations"
                             required
                             type="number"
-                            value={formData.demonstrations || ''}
+                            value={formData.demonstrations ?? ''}
                             onChange={handleNumberChange('demonstrations')}
                             placeholder="Enter number"
                         />
@@ -673,7 +727,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="No. of Plant Material Produced"
                             required
                             type="number"
-                            value={formData.plantMaterial || ''}
+                            value={formData.plantMaterial ?? ''}
                             onChange={handleNumberChange('plantMaterial')}
                             placeholder="Enter number"
                         />
@@ -684,7 +738,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="Visit by the Farmers (No.)"
                             required
                             type="number"
-                            value={formData.farmerVisits || ''}
+                            value={formData.farmerVisits ?? ''}
                             onChange={handleNumberChange('farmerVisits')}
                             placeholder="Enter number"
                         />
@@ -693,7 +747,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             label="Visit by the Officials (No.)"
                             required
                             type="number"
-                            value={formData.officialVisits || ''}
+                            value={formData.officialVisits ?? ''}
                             onChange={handleNumberChange('officialVisits')}
                             placeholder="Enter number"
                         />

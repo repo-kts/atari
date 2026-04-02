@@ -61,7 +61,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -72,7 +72,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Name of Organization"
                             required
-                            value={formData.organizationName || ''}
+                            value={formData.organizationName ?? ''}
                             onChange={handleFieldChange('organizationName')}
                             placeholder="Enter organization name"
                         />
@@ -80,7 +80,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Nature of Linkage"
                             required
-                            value={formData.natureOfLinkage || ''}
+                            value={formData.natureOfLinkage ?? ''}
                             onChange={handleFieldChange('natureOfLinkage')}
                             placeholder="Enter nature of linkage"
                         />
@@ -94,7 +94,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -105,7 +105,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <MasterDataDropdown
                             label="Programme Type"
                             required
-                            value={formData.programmeType || ''}
+                            value={formData.programmeType ?? ''}
                             onChange={(value) => setFormData({ ...formData, programmeType: value })}
                             options={programmeTypeOptions}
                             isLoading={isLoadingProgrammeTypes}
@@ -115,7 +115,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Name of the Programme/Scheme"
                             required
-                            value={formData.programmeName || ''}
+                            value={formData.programmeName ?? ''}
                             onChange={handleFieldChange('programmeName')}
                             placeholder="Enter programme/scheme name"
                         />
@@ -124,7 +124,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <FormTextArea
                         label="Purpose of Programme"
                         required
-                        value={formData.programmePurpose || ''}
+                        value={formData.programmePurpose ?? ''}
                         onChange={handleFieldChange('programmePurpose')}
                         rows={3}
                         placeholder="Enter purpose of programme"
@@ -155,7 +155,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Funding Agency"
                             required
-                            value={formData.fundingAgency || ''}
+                            value={formData.fundingAgency ?? ''}
                             onChange={handleFieldChange('fundingAgency')}
                             placeholder="Enter funding agency"
                         />
@@ -166,7 +166,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.amount || ''}
+                        value={formData.amount ?? ''}
                         onChange={handleFieldChange('amount')}
                         placeholder="Enter amount"
                     />

@@ -1,4 +1,5 @@
 const moduleImageRepository = require('../repositories/moduleImageRepository.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const ALLOWED_CATEGORY_MENUS = [
   'About KVKs',
@@ -62,6 +63,31 @@ function parseModuleId(value) {
     throw new Error('Invalid category');
   }
   return moduleId;
+}
+
+function parseReportingYearInput(value, fieldName = 'Reporting Year') {
+  if (value === undefined || value === null || value === '') {
+    throw new Error(`${fieldName} is required`);
+  }
+
+  if (value instanceof Date || (typeof value === 'string' && value.trim().includes('-'))) {
+    const parsedDate = parseReportingYearDate(value);
+    ensureNotFutureDate(parsedDate);
+    return {
+      year: parsedDate.getUTCFullYear(),
+      reportingYearDate: parsedDate,
+    };
+  }
+
+  const year = Number(value);
+  if (!Number.isInteger(year) || year < 1900 || year > 3000) {
+    throw new Error(`Invalid ${fieldName}`);
+  }
+
+  return {
+    year,
+    reportingYearDate: new Date(Date.UTC(year, 0, 1)),
+  };
 }
 
 function parseImageDataUrl(imageBase64) {
@@ -129,6 +155,7 @@ function mapListRow(row) {
     caption: row.caption || '',
     imageDate: row.imageDate,
     reportingYear: row.reportingYear,
+    reportingYearDate: row.reportingYearDate ? formatReportingYear(row.reportingYearDate) : null,
     mimeType: row.mimeType,
     fileName: row.fileName || null,
     fileUrl: `/api/admin/module-images/${row.imageId}/file`,
@@ -197,7 +224,9 @@ const moduleImageService = {
 
     const moduleId = parseModuleId(payload?.moduleId);
     const imageDate = parseImageDate(payload?.imageDate);
-    const reportingYear = imageDate.getUTCFullYear();
+    const reportingYear = payload?.reportingYear !== undefined && payload?.reportingYear !== null && payload?.reportingYear !== ''
+      ? parseReportingYearInput(payload.reportingYear, 'reportingYear')
+      : parseReportingYearInput(imageDate, 'reportingYear');
     const caption = String(payload?.caption || '').trim();
     if (!caption) {
       throw new Error('Caption is required');
@@ -230,7 +259,8 @@ const moduleImageService = {
       moduleId,
       caption,
       imageDate,
-      reportingYear,
+      reportingYear: reportingYear.year,
+      reportingYearDate: reportingYear.reportingYearDate,
       imageData,
       mimeType,
       fileName,
@@ -244,6 +274,7 @@ const moduleImageService = {
       caption: created.caption,
       imageDate: created.imageDate,
       reportingYear: created.reportingYear,
+      reportingYearDate: created.reportingYearDate ? formatReportingYear(created.reportingYearDate) : null,
       createdAt: created.createdAt,
     };
   },
@@ -261,11 +292,16 @@ const moduleImageService = {
     const where = { ...scopeFilter };
 
     if (filters.reportingYear !== undefined && filters.reportingYear !== null && filters.reportingYear !== '') {
-      const year = Number(filters.reportingYear);
-      if (!Number.isInteger(year) || year < 1900 || year > 3000) {
-        throw new Error('Invalid reportingYear');
-      }
-      where.reportingYear = year;
+      const reportingYear = parseReportingYearInput(filters.reportingYear, 'reportingYear');
+      const start = new Date(Date.UTC(reportingYear.year, 0, 1));
+      const endExclusive = new Date(Date.UTC(reportingYear.year + 1, 0, 1));
+      if (!Array.isArray(where.AND)) where.AND = [];
+      where.AND.push({
+        OR: [
+          { reportingYearDate: { gte: start, lt: endExclusive } },
+          { reportingYear: reportingYear.year },
+        ],
+      });
     }
 
     if (filters.kvkId !== undefined && filters.kvkId !== null && filters.kvkId !== '') {
@@ -286,12 +322,15 @@ const moduleImageService = {
 
     const search = String(filters.search || '').trim();
     if (search) {
-      where.OR = [
-        { caption: { contains: search, mode: 'insensitive' } },
-        { kvk: { kvkName: { contains: search, mode: 'insensitive' } } },
-        { module: { menuName: { contains: search, mode: 'insensitive' } } },
-        { module: { subMenuName: { contains: search, mode: 'insensitive' } } },
-      ];
+      if (!Array.isArray(where.AND)) where.AND = [];
+      where.AND.push({
+        OR: [
+          { caption: { contains: search, mode: 'insensitive' } },
+          { kvk: { kvkName: { contains: search, mode: 'insensitive' } } },
+          { module: { menuName: { contains: search, mode: 'insensitive' } } },
+          { module: { subMenuName: { contains: search, mode: 'insensitive' } } },
+        ],
+      });
     }
 
     const { rows, total } = await moduleImageRepository.list({

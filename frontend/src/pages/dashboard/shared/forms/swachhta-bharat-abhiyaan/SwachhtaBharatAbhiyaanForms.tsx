@@ -204,7 +204,7 @@ export const SwachhtaBharatAbhiyaanForms: React.FC<SwachhtaBharatAbhiyaanFormsPr
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}

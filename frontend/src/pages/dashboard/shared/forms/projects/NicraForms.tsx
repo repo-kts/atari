@@ -126,6 +126,26 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         </FormSection>
     );
 
+    // Both file pickers on ONE horizontal row — no gallery here, gallery is inlined per section
+    const renderPhotoAndFileRow = (photoField: string, onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput
+                label="Photographs"
+                required={!Array.isArray(formData[photoField]) || formData[photoField].length === 0}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(photoField)}
+                helperText="Only images allowed. Multiple uploads supported. (Max 5MB per file)"
+            />
+            <FormInput
+                label="Upload File"
+                type="file"
+                onChange={onFileChange}
+            />
+        </div>
+    );
+
     // Normalize incoming photographs data when editing
     React.useEffect(() => {
         ['photographs'].forEach(field => {
@@ -195,22 +215,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         }
     }, [formData, setFormData]);
 
-    // Helper to extract photographs array from various potential formats
-    const getPhotographs = (photographs: any) => {
-        if (!photographs) return [];
-        if (photographs instanceof FileList) return Array.from(photographs);
-        if (Array.isArray(photographs)) return photographs;
-        if (typeof photographs === 'string') {
-            try {
-                const parsed = JSON.parse(photographs);
-                if (Array.isArray(parsed)) return parsed;
-            } catch (e) {
-                return photographs.split(',').filter(Boolean);
-            }
-            return photographs.split(',').filter(Boolean);
-        }
-        return [];
-    };
+    const todayYmd = new Date().toISOString().slice(0, 10);
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
@@ -220,7 +225,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Month & Year"
                             required
                             type="month"
-                            value={formData.monthYear || ''}
+                            value={formData.monthYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, monthYear: e.target.value })}
                         />
                         <div /> {/* Empty space for layout matching */}
@@ -233,14 +238,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Normal"
                                 required
                                 type="number"
-                                value={formData.rfMmDistrictNormal || ''}
+                                value={formData.rfMmDistrictNormal ?? ''}
                                 onChange={(e) => setFormData({ ...formData, rfMmDistrictNormal: e.target.value })}
                             />
                             <FormInput
                                 label="Received"
                                 required
                                 type="number"
-                                value={formData.rfMmDistrictReceived || ''}
+                                value={formData.rfMmDistrictReceived ?? ''}
                                 onChange={(e) => setFormData({ ...formData, rfMmDistrictReceived: e.target.value })}
                             />
                         </div>
@@ -253,14 +258,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Max."
                                 required
                                 type="number"
-                                value={formData.maxTemperature || ''}
+                                value={formData.maxTemperature ?? ''}
                                 onChange={(e) => setFormData({ ...formData, maxTemperature: e.target.value })}
                             />
                             <FormInput
                                 label="Min."
                                 required
                                 type="number"
-                                value={formData.minTemperature || ''}
+                                value={formData.minTemperature ?? ''}
                                 onChange={(e) => setFormData({ ...formData, minTemperature: e.target.value })}
                             />
                         </div>
@@ -309,21 +314,24 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Water depth (cm)"
                             required
                             type="number"
-                            value={formData.waterDepth || ''}
+                            value={formData.waterDepth ?? ''}
                             onChange={(e) => setFormData({ ...formData, waterDepth: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
@@ -336,7 +344,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormSelect
@@ -380,19 +388,19 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="FST type"
                             required
-                            value={formData.fstType || ''}
+                            value={formData.fstType ?? ''}
                             onChange={(e) => setFormData({ ...formData, fstType: e.target.value })}
                         />
                         <FormInput
                             label="Crop Name"
                             required
-                            value={formData.cropName || ''}
+                            value={formData.cropName ?? ''}
                             onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) => setFormData({ ...formData, seasonId: value })}
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             emptyMessage="No seasons available"
@@ -400,19 +408,19 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Technology demonstrated"
                             required
-                            value={formData.technologyDemonstrated || ''}
+                            value={formData.technologyDemonstrated ?? ''}
                             onChange={(e) => setFormData({ ...formData, technologyDemonstrated: e.target.value })}
                         />
                         <FormInput
                             label="Area (ha)/ Unit"
                             required
-                            value={formData.areaOrUnit || ''}
+                            value={formData.areaOrUnit ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaOrUnit: e.target.value })}
                         />
                         <FormInput
                             label="Yield (q/ ha)"
                             required
-                            value={formData.yield || ''}
+                            value={formData.yield ?? ''}
                             onChange={(e) => setFormData({ ...formData, yield: e.target.value })}
                         />
                     </div>
@@ -456,28 +464,28 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
@@ -490,14 +498,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Gross Cost"
                                 required
                                 type="number"
-                                value={formData.grossCost || ''}
+                                value={formData.grossCost ?? ''}
                                 onChange={(e) => setFormData({ ...formData, grossCost: e.target.value })}
                             />
                             <FormInput
                                 label="Net return"
                                 required
                                 type="number"
-                                value={formData.netReturn || ''}
+                                value={formData.netReturn ?? ''}
                                 onChange={(e) => setFormData({ ...formData, netReturn: e.target.value })}
                             />
                             <FormInput
@@ -505,20 +513,36 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 required
                                 type="number"
                                 step="0.01"
-                                value={formData.bcrRatio || ''}
+                                value={formData.bcrRatio ?? ''}
                                 onChange={(e) => setFormData({ ...formData, bcrRatio: e.target.value })}
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {renderPhotoFields('photographs')}
-                        <FormInput
-                            label="Upload File"
-                            type="file"
-                            onChange={(e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] })}
-                        />
-                    </div>
+                    {renderPhotoAndFileRow('photographs', (e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] }))}
+                    {Array.isArray(formData.photographs) && formData.photographs.length > 0 && (
+                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
+                            {formData.photographs.map((item: any, idx: number) => {
+                                const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                                return (
+                                    <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                        <div className="relative aspect-square mb-2 overflow-hidden rounded-lg">
+                                            <img src={src} className="w-full h-full object-cover" alt={`P ${idx + 1}`} />
+                                            <button type="button" onClick={() => removePhoto('photographs', idx)}
+                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 z-10">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                        <textarea placeholder="Caption..." rows={2}
+                                            className="w-full text-[11px] bg-gray-50 border border-gray-100 rounded px-2 py-1 outline-none resize-none"
+                                            value={item.caption || ''}
+                                            onChange={(e) => updateCaption('photographs', idx, e.target.value)}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -528,13 +552,13 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Title of the training course"
                             required
-                            value={formData.trainingTitle || ''}
+                            value={formData.trainingTitle ?? ''}
                             onChange={(e) => setFormData({ ...formData, trainingTitle: e.target.value })}
                         />
                         <FormSelect
                             label="Campus Type"
                             required
-                            value={formData.campusType || ''}
+                            value={formData.campusType ?? ''}
                             onChange={(e) => setFormData({ ...formData, campusType: e.target.value })}
                             options={[
                                 { value: 'ON_CAMPUS', label: 'On Campus' },
@@ -546,20 +570,23 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Remark"
                             required
-                            value={formData.remark || ''}
+                            value={formData.remark ?? ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
                     </div>
@@ -603,28 +630,28 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
@@ -638,21 +665,24 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Activity Name"
                             required
-                            value={formData.activityName || ''}
+                            value={formData.activityName ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                     </div>
@@ -660,7 +690,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Venue"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                         />
                     </div>
@@ -704,28 +734,28 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
@@ -740,20 +770,23 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormSelect
                             label="Seed bank/Fodder bank"
                             required
-                            value={formData.seedBankFodderBank || ''}
+                            value={formData.seedBankFodderBank ?? ''}
                             onChange={(e) => setFormData({ ...formData, seedBankFodderBank: e.target.value })}
                             options={seedBankFodderBanks.map((opt: any) => ({
                                 value: opt.name,
@@ -764,20 +797,20 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Crop"
                             required
-                            value={formData.crop || ''}
+                            value={formData.crop ?? ''}
                             onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
                         />
                         <FormInput
                             label="Variety"
                             required
-                            value={formData.variety || ''}
+                            value={formData.variety ?? ''}
                             onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
                         />
                         <FormInput
                             label="Quantity in (q)"
                             required
                             type="number"
-                            value={formData.quantityQ || ''}
+                            value={formData.quantityQ ?? ''}
                             onChange={(e) => setFormData({ ...formData, quantityQ: e.target.value })}
                         />
                     </div>
@@ -791,14 +824,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Revenue"
                             required
                             type="number"
-                            value={formData.revenue || ''}
+                            value={formData.revenue ?? ''}
                             onChange={(e) => setFormData({ ...formData, revenue: e.target.value })}
                         />
                     </div>
@@ -820,6 +853,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate ? formData.startDate.split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
@@ -827,40 +861,42 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate ? formData.endDate.split('T')[0] : ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Name of farm implement/ equipment"
                             required
-                            value={formData.nameOfFarmImplement || ''}
+                            value={formData.nameOfFarmImplement ?? ''}
                             onChange={(e) => setFormData({ ...formData, nameOfFarmImplement: e.target.value })}
                         />
                         <FormInput
                             label="Area covered by Farm Implement"
                             required
                             type="number"
-                            value={formData.areaCovered || ''}
+                            value={formData.areaCovered ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaCovered: e.target.value })}
                         />
                         <FormInput
                             label="Farm Implement used (In Hours)"
                             required
                             type="number"
-                            value={formData.farmImplementUsedHours || ''}
+                            value={formData.farmImplementUsedHours ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmImplementUsedHours: e.target.value })}
                         />
                         <FormInput
                             label="Revenue generated by Farm Implement (Rs.)"
                             required
                             type="number"
-                            value={formData.revenueGeneratedRs || ''}
+                            value={formData.revenueGeneratedRs ?? ''}
                             onChange={(e) => setFormData({ ...formData, revenueGeneratedRs: e.target.value })}
                         />
                         <FormInput
                             label="Expenditure Incurred on repairing (Rs.)"
                             required
                             type="number"
-                            value={formData.expenditureIncurredRepairingRs || ''}
+                            value={formData.expenditureIncurredRepairingRs ?? ''}
                             onChange={(e) => setFormData({ ...formData, expenditureIncurredRepairingRs: e.target.value })}
                         />
                     </div>
@@ -904,28 +940,28 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
@@ -944,52 +980,52 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Village name"
                             required
-                            value={formData.villageName || ''}
+                            value={formData.villageName ?? ''}
                             onChange={(e) => setFormData({ ...formData, villageName: e.target.value })}
                         />
                         <FormInput
                             label="Constitution Date"
                             required
                             type="date"
-                            value={formData.constitutionDate || ''}
+                            value={formData.constitutionDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, constitutionDate: e.target.value })}
                         />
                         <FormInput
                             label="Meetings organized by VCRMC (no.)"
                             required
                             type="number"
-                            value={formData.meetingsOrganized || ''}
+                            value={formData.meetingsOrganized ?? ''}
                             onChange={(e) => setFormData({ ...formData, meetingsOrganized: e.target.value })}
                         />
                         <FormInput
                             label="Meeting Date"
                             required
                             type="date"
-                            value={formData.meetingDate || ''}
+                            value={formData.meetingDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, meetingDate: e.target.value })}
                         />
                         <FormInput
                             label="Name of Secretary"
                             required
-                            value={formData.nameOfSecretary || ''}
+                            value={formData.nameOfSecretary ?? ''}
                             onChange={(e) => setFormData({ ...formData, nameOfSecretary: e.target.value })}
                         />
                         <FormInput
                             label="Name of President"
                             required
-                            value={formData.nameOfPresident || ''}
+                            value={formData.nameOfPresident ?? ''}
                             onChange={(e) => setFormData({ ...formData, nameOfPresident: e.target.value })}
                         />
                         <FormInput
                             label="Major decision taken"
                             required
-                            value={formData.majorDecisionTaken || ''}
+                            value={formData.majorDecisionTaken ?? ''}
                             onChange={(e) => setFormData({ ...formData, majorDecisionTaken: e.target.value })}
                         />
                     </div>
@@ -1001,14 +1037,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="Male"
                                 required
                                 type="number"
-                                value={formData.maleMembers || ''}
+                                value={formData.maleMembers ?? ''}
                                 onChange={(e) => setFormData({ ...formData, maleMembers: e.target.value })}
                             />
                             <FormInput
                                 label="Female"
                                 required
                                 type="number"
-                                value={formData.femaleMembers || ''}
+                                value={formData.femaleMembers ?? ''}
                                 onChange={(e) => setFormData({ ...formData, femaleMembers: e.target.value })}
                             />
                         </div>
@@ -1027,35 +1063,38 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="No. of Soil Samples Collected"
                             required
                             type="number"
-                            value={formData.noOfSoilSamplesCollected || ''}
+                            value={formData.noOfSoilSamplesCollected ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfSoilSamplesCollected: e.target.value })}
                         />
                         <FormInput
                             label="No. of Samples Analysed"
                             required
                             type="number"
-                            value={formData.noOfSamplesAnalysed || ''}
+                            value={formData.noOfSamplesAnalysed ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfSamplesAnalysed: e.target.value })}
                         />
                         <FormInput
                             label="SHC Issued"
                             required
                             type="number"
-                            value={formData.shcIssued || ''}
+                            value={formData.shcIssued ?? ''}
                             onChange={(e) => setFormData({ ...formData, shcIssued: e.target.value })}
                         />
                     </div>
@@ -1099,28 +1138,28 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             {/* <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             /> */}
                         </div>
@@ -1138,33 +1177,36 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Development Scheme/Programme"
                             required
-                            value={formData.developmentSchemeProgramme || ''}
+                            value={formData.developmentSchemeProgramme ?? ''}
                             onChange={(e) => setFormData({ ...formData, developmentSchemeProgramme: e.target.value })}
                         />
                         <FormInput
                             label="Nature of work"
                             required
-                            value={formData.natureOfWork || ''}
+                            value={formData.natureOfWork ?? ''}
                             onChange={(e) => setFormData({ ...formData, natureOfWork: e.target.value })}
                         />
                         <FormInput
                             label="Amount (Rs)"
                             required
                             type="number"
-                            value={formData.amountRs || ''}
+                            value={formData.amountRs ?? ''}
                             onChange={(e) => setFormData({ ...formData, amountRs: e.target.value })}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
@@ -1181,7 +1223,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Date of Visit"
                             required
                             type="date"
-                            value={formData.dateOfVisit || ''}
+                            value={formData.dateOfVisit ?? ''}
                             onChange={(e) => setFormData({ ...formData, dateOfVisit: e.target.value })}
                         />
                         <FormSelect
@@ -1206,13 +1248,13 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Name"
                             required
-                            value={formData.name || ''}
+                            value={formData.name ?? ''}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                         <FormInput
                             label="Remark"
                             required
-                            value={formData.remark || ''}
+                            value={formData.remark ?? ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
                         {renderPhotoFields('photographs')}
@@ -1227,14 +1269,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormSelect
@@ -1259,7 +1301,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         <FormInput
                             label="Name"
                             required
-                            value={formData.name || ''}
+                            value={formData.name ?? ''}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                     </div>

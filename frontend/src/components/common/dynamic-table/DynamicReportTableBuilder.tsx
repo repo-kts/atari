@@ -8,6 +8,7 @@ export interface ResultTableColumn {
 }
 
 export interface ResultTableRow {
+    optionKey?: string
     rowLabel: string
     sortOrder: number
     cells: Record<string, string>
@@ -23,6 +24,8 @@ export interface ResultTable {
 interface DynamicReportTableBuilderProps {
     tables: ResultTable[]
     onChange: (tables: ResultTable[]) => void
+    sourceRows?: Array<{ optionKey: string; optionName: string }>
+    lockSourceRows?: boolean
 }
 
 const FIRST_COLUMN_KEY = 'tech_option'
@@ -35,13 +38,17 @@ const DEFAULT_FIRST_COLUMN = {
     sortOrder: 1,
 }
 
-const defaultRow = (label: string, sortOrder: number): ResultTableRow => ({
+const defaultRow = (label: string, sortOrder: number, optionKey?: string): ResultTableRow => ({
+    optionKey,
     rowLabel: label,
     sortOrder,
     cells: { [FIRST_COLUMN_KEY]: label },
 })
 
-const createDefaultTable = (sortOrder: number): ResultTable => ({
+const createDefaultTable = (
+    sortOrder: number,
+    sourceRows: Array<{ optionKey: string; optionName: string }> = []
+): ResultTable => ({
     tableTitle: `Table ${sortOrder}`,
     sortOrder,
     columns: [
@@ -49,19 +56,45 @@ const createDefaultTable = (sortOrder: number): ResultTable => ({
         { columnKey: PROPOSED_COLUMN_KEY, columnLabel: 'Proposed', isMandatory: false, sortOrder: 2 },
         { columnKey: ACTUAL_COLUMN_KEY, columnLabel: 'Actual', isMandatory: false, sortOrder: 3 },
     ],
-    rows: [defaultRow('Farmer Practice', 1), defaultRow('TO1', 2), defaultRow('TO2', 3)],
+    rows: sourceRows.length > 0
+        ? sourceRows.map((row, idx) => defaultRow(row.optionName, idx + 1, row.optionKey))
+        : [],
 })
 
-export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps> = ({ tables, onChange }) => {
-    const safeTables = tables.length > 0 ? tables : [createDefaultTable(1)]
+function reconcileRows(table: ResultTable, sourceRows: Array<{ optionKey: string; optionName: string }>): ResultTable {
+    const rowByKey = new Map((table.rows || []).map((row) => [String(row.optionKey || ''), row]))
+    const nextRows = sourceRows.map((src, idx) => {
+        const existing = rowByKey.get(src.optionKey)
+        const nextCells = { ...(existing?.cells || {}), [FIRST_COLUMN_KEY]: src.optionName }
+        return {
+            optionKey: src.optionKey,
+            rowLabel: src.optionName,
+            sortOrder: idx + 1,
+            cells: nextCells,
+        }
+    })
+    return { ...table, rows: nextRows }
+}
+
+export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps> = ({
+    tables,
+    onChange,
+    sourceRows = [],
+    lockSourceRows = false,
+}) => {
+    const safeTables = tables.length > 0 ? tables : [createDefaultTable(1, sourceRows)]
+    const effectiveTables = lockSourceRows ? safeTables.map((table) => reconcileRows(table, sourceRows)) : safeTables
 
     const patchTable = (tableIndex: number, updater: (table: ResultTable) => ResultTable) => {
-        const next = safeTables.map((table, idx) => (idx === tableIndex ? updater(table) : table))
+        const next = effectiveTables.map((table, idx) => (idx === tableIndex ? updater(table) : table))
         onChange(next.map((table, idx) => ({ ...table, sortOrder: idx + 1 })))
     }
 
-    const addTable = () => onChange([...safeTables, createDefaultTable(safeTables.length + 1)])
-    const removeTable = (tableIndex: number) => onChange(safeTables.filter((_, idx) => idx !== tableIndex))
+    const addTable = () => onChange([...effectiveTables, createDefaultTable(effectiveTables.length + 1, sourceRows)])
+    const removeTable = (tableIndex: number) => {
+        if (effectiveTables.length <= 1) return
+        onChange(effectiveTables.filter((_, idx) => idx !== tableIndex))
+    }
 
     const addColumn = (tableIndex: number) => {
         patchTable(tableIndex, (table) => {
@@ -94,6 +127,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
     }
 
     const addRow = (tableIndex: number) => {
+        if (lockSourceRows) return
         patchTable(tableIndex, (table) => ({
             ...table,
             rows: [...table.rows, { rowLabel: `Row ${table.rows.length + 1}`, sortOrder: table.rows.length + 1, cells: {} }],
@@ -101,6 +135,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
     }
 
     const removeRow = (tableIndex: number, rowIndex: number) => {
+        if (lockSourceRows) return
         patchTable(tableIndex, (table) => ({
             ...table,
             rows: table.rows.filter((_, idx) => idx !== rowIndex).map((row, idx) => ({ ...row, sortOrder: idx + 1 })),
@@ -109,7 +144,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
 
     return (
         <div className="space-y-6 w-full">
-            {safeTables.map((table, tableIndex) => (
+            {effectiveTables.map((table, tableIndex) => (
                 <div key={`table-${tableIndex}`} className="w-full border border-gray-300 rounded-xl p-4 space-y-3 bg-white">
                     <div className="flex items-center gap-2 w-full">
                         <input
@@ -119,7 +154,9 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                             placeholder="Table title"
                         />
                         <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addColumn(tableIndex)}>Add Column</button>
-                        <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addRow(tableIndex)}>Add Row</button>
+                        {!lockSourceRows && (
+                            <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addRow(tableIndex)}>Add Row</button>
+                        )}
                         <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-red-600" onClick={() => removeTable(tableIndex)}>Remove Table</button>
                     </div>
                     <div className="overflow-x-auto w-full border border-gray-300 rounded-xl">
@@ -143,7 +180,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                             </div>
                                         </th>
                                     ))}
-                                    <th className="border-b border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
+                                    {!lockSourceRows && <th className="border-b border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -154,6 +191,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                                 <input
                                                     className="w-full border border-gray-300 rounded px-2 py-1"
                                                     value={row.cells?.[column.columnKey] || ''}
+                                                    readOnly={lockSourceRows && column.columnKey === FIRST_COLUMN_KEY}
                                                     onChange={(e) => patchTable(tableIndex, (t) => ({
                                                         ...t,
                                                         rows: t.rows.map((r, idx) => idx === rowIndex
@@ -167,9 +205,11 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                                 />
                                             </td>
                                         ))}
-                                        <td className="border-b border-gray-300 px-3 py-2">
-                                            <button type="button" className="text-xs text-red-600" onClick={() => removeRow(tableIndex, rowIndex)}>Remove</button>
-                                        </td>
+                                        {!lockSourceRows && (
+                                            <td className="border-b border-gray-300 px-3 py-2">
+                                                <button type="button" className="text-xs text-red-600" onClick={() => removeRow(tableIndex, rowIndex)}>Remove</button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                             </tbody>

@@ -26,6 +26,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
     naturalFarmingSoilParameters = [],
     staffCategories = [],
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     const selectedNaturalFarmingActivity = naturalFarmingActivities.find(
         (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
     )
@@ -182,45 +183,48 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Agro Climatic Zone of KVK"
                             required
-                            value={formData.agroClimaticZone || ''}
+                            value={formData.agroClimaticZone ?? ''}
                             onChange={(e) => setFormData({ ...formData, agroClimaticZone: e.target.value })}
                         />
                         <FormInput
                             label="Farming Situation of the Selected KVK"
                             required
-                            value={formData.farmingSituation || ''}
+                            value={formData.farmingSituation ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmingSituation: e.target.value })}
                         />
                         <FormInput
                             label="Longitude (E)"
                             required
-                            value={formData.longitude || ''}
+                            value={formData.longitude ?? ''}
                             onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                         />
                         <FormInput
                             label="Latitude (N)"
                             required
-                            value={formData.latitude || ''}
+                            value={formData.latitude ?? ''}
                             onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                         />
                     </div>
@@ -232,7 +236,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({
                                 ...formData,
                                 activityId: value,
@@ -247,13 +251,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             <FormInput
                                 label="Name of the Innovative programme organized"
                                 required
-                                value={formData.innovativeProgrammeName || ''}
+                                value={formData.innovativeProgrammeName ?? ''}
                                 onChange={(e) => setFormData({ ...formData, innovativeProgrammeName: e.target.value })}
                             />
                             <FormInput
                                 label="Significance of innovative programme"
                                 required
-                                value={formData.significanceOfInnovativeProgramme || ''}
+                                value={formData.significanceOfInnovativeProgramme ?? ''}
                                 onChange={(e) => setFormData({ ...formData, significanceOfInnovativeProgramme: e.target.value })}
                             />
                         </div>
@@ -262,20 +266,20 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
                             label="Title of Natural Farming training Programme"
-                            value={formData.trainingTitle || ''}
+                            value={formData.trainingTitle ?? ''}
                             onChange={(e) => setFormData({ ...formData, trainingTitle: e.target.value })}
                         />
                         <FormInput
                             label="Date of Training"
                             required
                             type="date"
-                            value={formData.trainingDate || ''}
+                            value={formData.trainingDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, trainingDate: e.target.value })}
                         />
                         <FormInput
                             label="Venue of programme"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                         />
                     </div>
@@ -287,56 +291,56 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale || ''}
+                                value={formData.genMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale || ''}
+                                value={formData.genFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale || ''}
+                                value={formData.obcMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale || ''}
+                                value={formData.obcFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_M"
                                 required
                                 type="number"
-                                value={formData.scMale || ''}
+                                value={formData.scMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scMale: e.target.value })}
                             />
                             <FormInput
                                 label="SC_F"
                                 required
                                 type="number"
-                                value={formData.scFemale || ''}
+                                value={formData.scFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, scFemale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_M"
                                 required
                                 type="number"
-                                value={formData.stMale || ''}
+                                value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
                             <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
-                                value={formData.stFemale || ''}
+                                value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
@@ -346,7 +350,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Remarks/ Observation/Feedback Recorded"
                             required
-                            value={formData.remarks || ''}
+                            value={formData.remarks ?? ''}
                             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
@@ -364,38 +368,41 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Farmer Name"
                             required
-                            value={formData.farmerName || ''}
+                            value={formData.farmerName ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
                         />
                         <FormInput
                             label="Village Name"
                             required
-                            value={formData.villageName || ''}
+                            value={formData.villageName ?? ''}
                             onChange={(e) => setFormData({ ...formData, villageName: e.target.value })}
                         />
                         <FormInput
                             label="Address"
                             required
-                            value={formData.address || ''}
+                            value={formData.address ?? ''}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         />
                         <FormInput
                             label="Contact Number"
                             required
-                            value={formData.contactNumber || ''}
+                            value={formData.contactNumber ?? ''}
                             onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
                         />
                         <FormSelect
@@ -409,7 +416,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormSelect
                             label="Category"
                             required
-                            value={formData.staffCategoryId || ''}
+                            value={formData.staffCategoryId ?? ''}
                             onChange={(e) => setFormData({ ...formData, staffCategoryId: e.target.value })}
                             options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
                             placeholder="Select"
@@ -426,7 +433,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Farming Situation of the selected KVK/Farmer"
                             required
-                            value={formData.farmingSituation || ''}
+                            value={formData.farmingSituation ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmingSituation: e.target.value })}
                         />
                         <FormInput
@@ -447,25 +454,25 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Name of Activity"
                             required
-                            value={formData.activityName || ''}
+                            value={formData.activityName ?? ''}
                             onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                         />
                         <FormInput
                             label="Crop"
                             required
-                            value={formData.crop || ''}
+                            value={formData.crop ?? ''}
                             onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
                         />
                         <FormInput
                             label="Variety"
                             required
-                            value={formData.variety || ''}
+                            value={formData.variety ?? ''}
                             onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
                         />
                         <FormSelect
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
                             options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
                             placeholder="Select"
@@ -476,20 +483,20 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Technology Demonstrated"
                             required
-                            value={formData.technologyDemonstrated || ''}
+                            value={formData.technologyDemonstrated ?? ''}
                             onChange={(e) => setFormData({ ...formData, technologyDemonstrated: e.target.value })}
                         />
                         <FormInput
                             label="Area (ha) of natural farming practice"
                             required
                             type="number"
-                            value={formData.area || ''}
+                            value={formData.area ?? ''}
                             onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                         />
                         <FormInput
                             label="Motivation Factors potential"
                             required
-                            value={formData.motivationFactors || ''}
+                            value={formData.motivationFactors ?? ''}
                             onChange={(e) => setFormData({ ...formData, motivationFactors: e.target.value })}
                         />
                     </div>
@@ -552,7 +559,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Farmers Feedback"
                             required
-                            value={formData.farmersFeedback || ''}
+                            value={formData.farmersFeedback ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersFeedback: e.target.value })}
                         />
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
@@ -568,52 +575,52 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Farmer Name"
                             required
-                            value={formData.farmerName || ''}
+                            value={formData.farmerName ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
                         />
                         <FormInput
                             label="Contact Number"
                             required
-                            value={formData.contactNumber || ''}
+                            value={formData.contactNumber ?? ''}
                             onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
                         />
                         <FormInput
                             label="Village Name"
                             required
-                            value={formData.villageName || ''}
+                            value={formData.villageName ?? ''}
                             onChange={(e) => setFormData({ ...formData, villageName: e.target.value })}
                         />
                         <FormInput
                             label="Address"
                             required
-                            value={formData.address || ''}
+                            value={formData.address ?? ''}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                         />
                         <FormInput
                             label="No. of indigenous(Desi Cows)"
                             required
                             type="number"
-                            value={formData.noOfIndigenousCows || ''}
+                            value={formData.noOfIndigenousCows ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfIndigenousCows: e.target.value })}
                         />
                         <FormInput
                             label="Land Holding (ha)"
                             required
                             type="number"
-                            value={formData.landHolding || ''}
+                            value={formData.landHolding ?? ''}
                             onChange={(e) => setFormData({ ...formData, landHolding: e.target.value })}
                         />
                         <FormInput
                             label="Normal Crops Grown"
                             required
                             type="number"
-                            value={formData.normalCropsGrown || ''}
+                            value={formData.normalCropsGrown ?? ''}
                             onChange={(e) => setFormData({ ...formData, normalCropsGrown: e.target.value })}
                         />
                     </div>
@@ -623,14 +630,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="No. of Years practicing in Natural Farming"
                             required
                             type="number"
-                            value={formData.practicingYearOfNaturalFarming || ''}
+                            value={formData.practicingYearOfNaturalFarming ?? ''}
                             onChange={(e) => setFormData({ ...formData, practicingYearOfNaturalFarming: e.target.value })}
                         />
                         <FormInput
                             label="Area covered (ha) under Natural Farming"
                             required
                             type="number"
-                            value={formData.areaCoveredUnderNaturalFarming || ''}
+                            value={formData.areaCoveredUnderNaturalFarming ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaCoveredUnderNaturalFarming: e.target.value })}
                         />
                     </div>
@@ -639,13 +646,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Crop Grown under Natural Farming"
                             required
-                            value={formData.cropGrownUnderNaturalFarming || ''}
+                            value={formData.cropGrownUnderNaturalFarming ?? ''}
                             onChange={(e) => setFormData({ ...formData, cropGrownUnderNaturalFarming: e.target.value })}
                         />
                         <FormInput
                             label="Natural Farming Technology practicing/ adopted"
                             required
-                            value={formData.naturalFarmingTechnologyPracticingAdopted || ''}
+                            value={formData.naturalFarmingTechnologyPracticingAdopted ?? ''}
                             onChange={(e) => setFormData({ ...formData, naturalFarmingTechnologyPracticingAdopted: e.target.value })}
                         />
                     </div>
@@ -708,7 +715,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Farmers Feedback"
                             required
-                            value={formData.farmersFeedback || ''}
+                            value={formData.farmersFeedback ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersFeedback: e.target.value })}
                         />
                     </div>
@@ -721,21 +728,21 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="No. of blocks covered"
                             required
                             type="number"
-                            value={formData.noOfBlocks || ''}
+                            value={formData.noOfBlocks ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfBlocks: e.target.value })}
                         />
                         <FormInput
                             label="No. of village covered"
                             required
                             type="number"
-                            value={formData.noOfVillages || ''}
+                            value={formData.noOfVillages ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfVillages: e.target.value })}
                         />
                     </div>
@@ -745,14 +752,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Total no. of Trained/Practicing NF Farmer"
                             required
                             type="number"
-                            value={formData.totalTrainedFarmers || ''}
+                            value={formData.totalTrainedFarmers ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalTrainedFarmers: e.target.value })}
                         />
                         <FormInput
                             label="No. of farmers influenced to adopt NF"
                             required
                             type="number"
-                            value={formData.farmersInfluenced || ''}
+                            value={formData.farmersInfluenced ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersInfluenced: e.target.value })}
                         />
                     </div>
@@ -762,14 +769,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="No. of farmers with whom the NF farmer can engaged all season"
                             required
                             type="number"
-                            value={formData.farmersEngagedAllSeason || ''}
+                            value={formData.farmersEngagedAllSeason ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersEngagedAllSeason: e.target.value })}
                         />
                         <FormInput
                             label="No. of farmers with whom the NF farmer can engage in 1 season"
                             required
                             type="number"
-                            value={formData.farmersEngagedOneSeason || ''}
+                            value={formData.farmersEngagedOneSeason ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersEngagedOneSeason: e.target.value })}
                         />
                     </div>
@@ -778,7 +785,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Any Remarks (in less than 50 words)"
                             required
-                            value={formData.remarks || ''}
+                            value={formData.remarks ?? ''}
                             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                         />
                     </div>
@@ -791,13 +798,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Soil Parameter"
                             required
-                            value={formData.soilParameterId || ''}
+                            value={formData.soilParameterId ?? ''}
                             onChange={(value) => setFormData({ ...formData, soilParameterId: value })}
                             options={createMasterDataOptions(naturalFarmingSoilParameters, 'naturalFarmingSoilParameterId', 'parameterName')}
                             emptyMessage="No soil parameters available"
@@ -805,7 +812,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormSelect
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
                             options={seasons.map((s: any) => ({ value: s.seasonId || s.id, label: s.seasonName }))}
                             placeholder="Select"
@@ -815,7 +822,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                         <FormInput
                             label="Crop"
                             required
-                            value={formData.crop || ''}
+                            value={formData.crop ?? ''}
                             onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
                         />
                     </div>
@@ -826,43 +833,43 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             <FormInput
                                 label="pH"
                                 required
-                                value={formData.beforePh || ''}
+                                value={formData.beforePh ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforePh: e.target.value })}
                             />
                             <FormInput
                                 label="EC (dS/m)"
                                 required
-                                value={formData.beforeEc || ''}
+                                value={formData.beforeEc ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeEc: e.target.value })}
                             />
                             <FormInput
                                 label="OC (%)"
                                 required
-                                value={formData.beforeOc || ''}
+                                value={formData.beforeOc ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeOc: e.target.value })}
                             />
                             <FormInput
                                 label="N (Kg/ha)"
                                 required
-                                value={formData.beforeN || ''}
+                                value={formData.beforeN ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeN: e.target.value })}
                             />
                             <FormInput
                                 label="P (Kg/ha)"
                                 required
-                                value={formData.beforeP || ''}
+                                value={formData.beforeP ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeP: e.target.value })}
                             />
                             <FormInput
                                 label="K (Kg/ha)"
                                 required
-                                value={formData.beforeK || ''}
+                                value={formData.beforeK ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeK: e.target.value })}
                             />
                             <FormInput
                                 label="Soil Microbes (cfu)"
                                 required
-                                value={formData.beforeMicrobes || ''}
+                                value={formData.beforeMicrobes ?? ''}
                                 onChange={(e) => setFormData({ ...formData, beforeMicrobes: e.target.value })}
                             />
                         </div>
@@ -874,25 +881,25 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             <FormInput
                                 label="pH"
                                 required
-                                value={formData.afterPh || ''}
+                                value={formData.afterPh ?? ''}
                                 onChange={(e) => setFormData({ ...formData, afterPh: e.target.value })}
                             />
                             <FormInput
                                 label="EC (dS/m)"
                                 required
-                                value={formData.afterEc || ''}
+                                value={formData.afterEc ?? ''}
                                 onChange={(e) => setFormData({ ...formData, afterEc: e.target.value })}
                             />
                             <FormInput
                                 label="OC (%)"
                                 required
-                                value={formData.afterOc || ''}
+                                value={formData.afterOc ?? ''}
                                 onChange={(e) => setFormData({ ...formData, afterOc: e.target.value })}
                             />
                             <FormInput
                                 label="N (Kg/ha)"
                                 required
-                                value={formData.afterN || ''}
+                                value={formData.afterN ?? ''}
                                 onChange={(e) => setFormData({ ...formData, afterN: e.target.value })}
                             />
                             <FormInput
@@ -924,13 +931,13 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Name of activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => setFormData({ ...formData, activityId: value })}
                             options={createMasterDataOptions(naturalFarmingActivities, 'naturalFarmingActivityId', 'activityName')}
                             emptyMessage="No activities available"
@@ -939,28 +946,28 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Number of activities organized"
                             required
                             type="number"
-                            value={formData.noOfActivities || ''}
+                            value={formData.noOfActivities ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfActivities: e.target.value })}
                         />
                         <FormInput
                             label="Budget sanction (Rs)"
                             required
                             type="number"
-                            value={formData.budgetSanction || ''}
+                            value={formData.budgetSanction ?? ''}
                             onChange={(e) => setFormData({ ...formData, budgetSanction: e.target.value })}
                         />
                         <FormInput
                             label="Budget expenditure (Rs)"
                             required
                             type="number"
-                            value={formData.budgetExpenditure || ''}
+                            value={formData.budgetExpenditure ?? ''}
                             onChange={(e) => setFormData({ ...formData, budgetExpenditure: e.target.value })}
                         />
                         <FormInput
                             label="Total Budget Expenditure (Rs)"
                             required
                             type="number"
-                            value={formData.totalBudgetExpenditure || ''}
+                            value={formData.totalBudgetExpenditure ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalBudgetExpenditure: e.target.value })}
                         />
                     </div>

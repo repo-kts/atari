@@ -346,6 +346,28 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'vehicle-present-status': {
+        model: 'vehiclePresentStatusMaster',
+        idField: 'vehicleStatusId',
+        nameField: 'statusLabel',
+        extraFields: ['statusCode', 'hideInNextYear', 'isActive'],
+        includes: {
+            _count: {
+                select: { vehicleDetails: true },
+            },
+        },
+    },
+    'equipment-present-status': {
+        model: 'equipmentPresentStatusMaster',
+        idField: 'equipmentStatusId',
+        nameField: 'statusLabel',
+        extraFields: ['statusCode', 'hideInNextYear', 'isActive'],
+        includes: {
+            _count: {
+                select: { equipmentDetails: true },
+            },
+        },
+    },
 };
 
 /**
@@ -495,6 +517,14 @@ const create = async (entityType, data) => {
         sanitizedData[config.nameField] = nameValue;
     } else {
         throw new Error(`${config.nameField} is required`);
+    }
+
+    if (config.extraFields) {
+        for (const field of config.extraFields) {
+            if (data[field] !== undefined) {
+                sanitizedData[field] = data[field];
+            }
+        }
     }
 
     // Optional parent field support (for dependent masters like NICRA sub-category)
@@ -682,6 +712,14 @@ const update = async (entityType, id, data) => {
             throw new Error(`${config.nameField} cannot be empty`);
         }
         sanitizedData[config.nameField] = nameValue;
+    }
+
+    if (config.extraFields) {
+        for (const field of config.extraFields) {
+            if (data[field] !== undefined) {
+                sanitizedData[field] = data[field];
+            }
+        }
     }
 
     if (config.parentField && data[config.parentField] !== undefined) {

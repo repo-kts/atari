@@ -267,6 +267,36 @@ exports.getStaffForDropdown = async (req, res) => {
     }
 };
 
+exports.getVehiclesForDropdown = async (req, res) => {
+    try {
+        const { reportingYear } = req.query;
+        const resolvedKvkId = req.query.kvkId || req.user?.kvkId;
+        if (!resolvedKvkId) {
+            return res.status(400).json({ success: false, error: 'kvkId is required' });
+        }
+        const data = await aboutKvkService.getVehiclesForDropdown(parseInt(resolvedKvkId, 10), reportingYear);
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching vehicles for dropdown:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.getEquipmentsForDropdown = async (req, res) => {
+    try {
+        const { reportingYear } = req.query;
+        const resolvedKvkId = req.query.kvkId || req.user?.kvkId;
+        if (!resolvedKvkId) {
+            return res.status(400).json({ success: false, error: 'kvkId is required' });
+        }
+        const data = await aboutKvkService.getEquipmentsForDropdown(parseInt(resolvedKvkId, 10), reportingYear);
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('Error fetching equipments for dropdown:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 // Get all KVKs for dropdown (without user filtering)
 exports.getAllKvksForDropdown = async (req, res) => {
     try {

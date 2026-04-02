@@ -11,10 +11,10 @@ import {
     useInfraMasters,
     useKvkVehiclesForDropdown,
     useKvkEquipmentsForDropdown,
+    useVehiclePresentStatuses,
+    useEquipmentPresentStatuses,
     enumToOptions,
     AccountTypeEnum,
-    VehiclePresentStatusEnum,
-    EquipmentPresentStatusEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
 import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
@@ -45,8 +45,11 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: payLevels = [] } = usePayLevels()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
-    const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId)
-    const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId)
+    const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
+    const { data: vehicles = [] } = useKvkVehiclesForDropdown(activeKvkId, reportingYear)
+    const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId, reportingYear)
+    const { data: vehicleStatuses = [] } = useVehiclePresentStatuses()
+    const { data: equipmentStatuses = [] } = useEquipmentPresentStatuses()
 
     // Sync kvkId from user when KVK role - use functional update to avoid dependency on formData
     React.useEffect(() => {
@@ -60,10 +63,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     React.useEffect(() => {
         if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
             setFormData((prev: any) => {
-            const updates: any = {}
+                const updates: any = {}
                 if (prev.sanctionedPost?.sanctionedPostId && !prev.sanctionedPostId) {
                     updates.sanctionedPostId = prev.sanctionedPost.sanctionedPostId
-            }
+                }
                 if (prev.discipline?.disciplineId && !prev.disciplineId) {
                     updates.disciplineId = prev.discipline.disciplineId
                 }
@@ -91,7 +94,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                 }
                 if (prev.university?.universityId && !prev.universityId) {
                     updates.universityId = prev.university.universityId
-            }
+                }
                 if (Object.keys(updates).length === 0) return prev
                 return { ...prev, ...updates }
             })
@@ -116,7 +119,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         });
                         setFormData((prev: any) => ({ ...prev, [field]: normalized }));
                     } catch (e) {
-                         console.error('Photo parsing error:', e);
+                        console.error('Photo parsing error:', e);
                     }
                 } else if (formData[field].trim() !== '') {
                     const normalized = [{ preview: formData[field].trim(), image: formData[field].trim(), caption: '' }];
@@ -136,35 +139,35 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Account Type"
                         required
-                        value={formData.accountType || ''}
+                        value={formData.accountType ?? ''}
                         onChange={(e) => setFormData({ ...formData, accountType: e.target.value })}
                         options={enumToOptions(AccountTypeEnum)}
                     />
                     <FormInput
                         label="Account Name"
                         required
-                        value={formData.accountName || ''}
+                        value={formData.accountName ?? ''}
                         onChange={(e) => setFormData({ ...formData, accountName: e.target.value })}
                         placeholder="Enter account name"
                     />
                     <FormInput
                         label="Bank Name"
                         required
-                        value={formData.bankName || ''}
+                        value={formData.bankName ?? ''}
                         onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
                         placeholder="Enter bank name"
                     />
                     <FormInput
                         label="Account Number"
                         required
-                        value={formData.accountNumber || ''}
+                        value={formData.accountNumber ?? ''}
                         onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
                         placeholder="Enter account number"
                     />
                     <FormInput
                         label="Location"
                         required
-                        value={formData.location || ''}
+                        value={formData.location ?? ''}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         placeholder="Enter branch location"
                     />
@@ -177,14 +180,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSelect
                             label="Sanctioned Post"
                             required
-                            value={formData.sanctionedPostId || ''}
+                            value={formData.sanctionedPostId ?? ''}
                             onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
                             options={sanctionedPosts.map((p: any) => ({ value: p.sanctionedPostId, label: p.postName }))}
                         />
                         <FormInput
                             label="Staff Name"
                             required
-                            value={formData.staffName || ''}
+                            value={formData.staffName ?? ''}
                             onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
                             placeholder="Enter staff name"
                         />
@@ -193,14 +196,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormInput
                             label="Position Order"
                             required
-                            value={formData.positionOrder || ''}
+                            value={formData.positionOrder ?? ''}
                             onChange={(e) => setFormData({ ...formData, positionOrder: parseInt(e.target.value) })}
                             placeholder="Position Order"
                         />
                         <FormInput
                             label="Mobile"
                             required
-                            value={formData.mobile || ''}
+                            value={formData.mobile ?? ''}
                             onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                             placeholder="Mobile number"
                         />
@@ -209,13 +212,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormInput
                             label="Email"
                             type="email"
-                            value={formData.email || ''}
+                            value={formData.email ?? ''}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             placeholder="Email address"
                         />
                         <FormSelect
                             label="Pay Level"
-                            value={formData.payLevelId || ''}
+                            value={formData.payLevelId ?? ''}
                             onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
                             options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
                         />
@@ -223,14 +226,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
                             label="Pay Scale"
-                            value={formData.payScale || ''}
+                            value={formData.payScale ?? ''}
                             onChange={(e) => setFormData({ ...formData, payScale: e.target.value })}
                             placeholder="e.g., 15600-39100"
                         />
                         <FormSelect
                             label="Discipline"
                             required
-                            value={formData.disciplineId || ''}
+                            value={formData.disciplineId ?? ''}
                             onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
                             options={disciplines.map((d: any) => ({ value: d.disciplineId, label: d.disciplineName }))}
                         />
@@ -254,7 +257,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
                             label="Job Type"
-                            value={formData.jobType || ''}
+                            value={formData.jobType ?? ''}
                             onChange={(e) => setFormData({ ...formData, jobType: e.target.value || '' })}
                             options={[
                                 { value: 'PERMANENT', label: 'Permanent' },
@@ -263,7 +266,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         />
                         <FormInput
                             label="Details of Allowances"
-                            value={formData.allowances || ''}
+                            value={formData.allowances ?? ''}
                             onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
                             placeholder="Allowances"
                         />
@@ -272,13 +275,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSelect
                             label="Category"
                             required
-                            value={formData.staffCategoryId || ''}
+                            value={formData.staffCategoryId ?? ''}
                             onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
                             options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
                         />
                         <FormInput
                             label="Resume"
-                            value={formData.resumePath || ''}
+                            value={formData.resumePath ?? ''}
                             onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
                             placeholder="Resume link"
                         />
@@ -376,7 +379,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Name of Infrastructure"
                         required
-                        value={formData.infraMasterId || ''}
+                        value={formData.infraMasterId ?? ''}
                         onChange={(e) => setFormData({ ...formData, infraMasterId: parseInt(e.target.value) })}
                         options={infraMasters.map((i: any) => ({ value: i.infraMasterId, label: i.name }))}
                     />
@@ -440,7 +443,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.plinthAreaSqM || ''}
+                            value={formData.plinthAreaSqM ?? ''}
                             onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
                         />
                     </div>
@@ -458,7 +461,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormInput
                             label="Source of Funding"
                             required
-                            value={formData.sourceOfFunding || ''}
+                            value={formData.sourceOfFunding ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
                             placeholder="Enter source of funding"
                         />
@@ -471,14 +474,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormInput
                         label="Vehicle Name"
                         required
-                        value={formData.vehicleName || ''}
+                        value={formData.vehicleName ?? ''}
                         onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
                         placeholder="Enter vehicle name"
                     />
                     <FormInput
                         label="Registration No."
                         required
-                        value={formData.registrationNo || ''}
+                        value={formData.registrationNo ?? ''}
                         onChange={(e) => setFormData({ ...formData, registrationNo: e.target.value })}
                         placeholder="Enter registration number"
                     />
@@ -487,31 +490,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Purchase Year"
                             required
                             type="number"
-                            value={formData.yearOfPurchase || ''}
+                            value={formData.yearOfPurchase ?? ''}
                             onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
                         />
                         <FormInput
                             label="Total Cost (Rs.)"
                             type="number"
-                            value={formData.totalCost || ''}
+                            value={formData.totalCost ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
                             required
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Total Run (Kms)"
-                            type="number"
-                            value={formData.totalRun || ''}
-                            onChange= {(e) => setFormData({ ...formData, totalRun: e.target.value })}
-                            required
-                        />
-                        <FormSelect
-                            label="Present Status"
-                            required
-                            value={formData.presentStatus || ''}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
-                            options={enumToOptions(VehiclePresentStatusEnum)}
                         />
                     </div>
                 </div>
@@ -522,7 +509,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormInput
                         label={"Equipment Name"}
                         required
-                        value={formData.equipmentName || ''}
+                        value={formData.equipmentName ?? ''}
                         onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
                         placeholder="Enter name"
                     />
@@ -531,29 +518,22 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Purchase Year"
                             required
                             type="number"
-                            value={formData.yearOfPurchase || ''}
+                            value={formData.yearOfPurchase ?? ''}
                             onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
                         />
                         <FormInput
                             label="Total Cost (Rs.)"
                             required
                             type="number"
-                            value={formData.totalCost || ''}
+                            value={formData.totalCost ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Present Status"
-                            required
-                            value={formData.presentStatus || ''}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
-                            options={enumToOptions(EquipmentPresentStatusEnum)}
-                        />
                         <FormInput
                             label="Source of Funding"
                             required
-                            value={formData.sourceOfFunding || ''}
+                            value={formData.sourceOfFunding ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
                             placeholder="Enter source"
                         />
@@ -579,32 +559,39 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Vehicle"
                         required
-                        value={formData.vehicleId || ''}
+                        value={formData.vehicleId ?? ''}
                         onChange={(e) => setFormData({ ...formData, vehicleId: parseInt(e.target.value) })}
+                        disabled={!formData.reportingYear}
                         options={vehicles.map((v: any) => ({ value: v.vehicleId, label: v.vehicleName }))}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
                             label="Total Run (km)"
                             required
-                            value={formData.totalRun || ''}
+                            value={formData.totalRun ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
                             placeholder="Enter total run"
                         />
                         <FormSelect
                             label="Present Status"
                             required
-                            value={formData.presentStatus || ''}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
-                            options={enumToOptions(VehiclePresentStatusEnum)}
+                            value={formData.vehicleStatusId ?? ''}
+                            onChange={(e) => setFormData({ ...formData, vehicleStatusId: parseInt(e.target.value) })}
+                            options={vehicleStatuses.map((status: any) => ({ value: status.vehicleStatusId, label: status.statusLabel }))}
                         />
                     </div>
                     <FormInput
                         label="Repairing Cost (Rs.)"
                         type="number"
-                        value={formData.repairingCost || ''}
+                        value={formData.repairingCost ?? ''}
                         onChange={(e) => setFormData({ ...formData, repairingCost: parseFloat(e.target.value) })}
                         placeholder="Enter repairing cost (optional)"
+                    />
+                    <FormInput
+                        label="Source of Funding"
+                        value={formData.sourceOfFunding ?? ''}
+                        onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
+                        placeholder="Enter source of funding"
                     />
                 </div>
             )}
@@ -626,16 +613,23 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormSelect
                         label="Equipment"
                         required
-                        value={formData.equipmentId || ''}
+                        value={formData.equipmentId ?? ''}
                         onChange={(e) => setFormData({ ...formData, equipmentId: parseInt(e.target.value) })}
+                        disabled={!formData.reportingYear}
                         options={equipments.map((eq: any) => ({ value: eq.equipmentId, label: eq.equipmentName }))}
                     />
                     <FormSelect
                         label="Present Status"
                         required
-                        value={formData.presentStatus || ''}
-                        onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
-                        options={enumToOptions(EquipmentPresentStatusEnum)}
+                        value={formData.equipmentStatusId ?? ''}
+                        onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
+                        options={equipmentStatuses.map((status: any) => ({ value: status.equipmentStatusId, label: status.statusLabel }))}
+                    />
+                    <FormInput
+                        label="Source of Funding"
+                        value={formData.sourceOfFunding ?? ''}
+                        onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
+                        placeholder="Enter source of funding"
                     />
                 </div>
             )}
@@ -646,7 +640,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     <FormInput
                         label="Name of Implement"
                         required
-                        value={formData.implementName || ''}
+                        value={formData.implementName ?? ''}
                         onChange={(e) => setFormData({ ...formData, implementName: e.target.value })}
                         placeholder="Enter implement name"
                     />
@@ -655,14 +649,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Year of Purchase"
                             required
                             type="number"
-                            value={formData.yearOfPurchase || ''}
+                            value={formData.yearOfPurchase ?? ''}
                             onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
                         />
                         <FormInput
                             label="Total Cost (Rs.)"
                             required
                             type="number"
-                            value={formData.totalCost || ''}
+                            value={formData.totalCost ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
                         />
                     </div>
@@ -670,14 +664,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSelect
                             label="Present Status"
                             required
-                            value={formData.presentStatus || ''}
+                            value={formData.presentStatus ?? ''}
                             onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
                             options={enumToOptions(ImplementPresentStatusEnum)}
                         />
                         <FormInput
                             label="Source of Fund"
                             required
-                            value={formData.sourceOfFund || ''}
+                            value={formData.sourceOfFund ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfFund: e.target.value })}
                             placeholder="Enter source of fund"
                         />
@@ -692,7 +686,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormInput
                                     label="Name of KVK"
                                     required
-                                    value={formData.kvkName || ''}
+                                    value={formData.kvkName ?? ''}
                                     onChange={(e) => setFormData({ ...formData, kvkName: e.target.value })}
                                     placeholder="Enter KVK name"
                                 />
@@ -700,19 +694,19 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormInput
                                 label="Mobile Number"
                                 required
-                                value={formData.mobile || ''}
+                                value={formData.mobile ?? ''}
                                 onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                                 placeholder="+91"
                             />
                             <FormInput
                                 label="Landline"
-                                value={formData.landline || ''}
+                                value={formData.landline ?? ''}
                                 onChange={(e) => setFormData({ ...formData, landline: e.target.value })}
                                 placeholder="Enter landline"
                             />
                             <FormInput
                                 label="Fax"
-                                value={formData.fax || ''}
+                                value={formData.fax ?? ''}
                                 onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
                                 placeholder="Enter fax"
                             />
@@ -721,7 +715,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     label="E-mail"
                                     type="email"
                                     required
-                                    value={formData.email || ''}
+                                    value={formData.email ?? ''}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="Enter email address"
                                 />
@@ -730,7 +724,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Year of Sanction"
                                 required
                                 type="number"
-                                value={formData.yearOfSanction || ''}
+                                value={formData.yearOfSanction ?? ''}
                                 onChange={(e) => setFormData({ ...formData, yearOfSanction: parseInt(e.target.value) })}
                                 placeholder="e.g. 2004"
                             />
@@ -740,7 +734,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormSelect
                                 label="Zone"
                                 required
-                                value={formData.zoneId || ''}
+                                value={formData.zoneId ?? ''}
                                 onChange={(e) => setFormData({
                                     ...formData,
                                     zoneId: parseInt(e.target.value),
@@ -754,7 +748,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <DependentDropdown
                                 label="State"
                                 required
-                                value={formData.stateId || ''}
+                                value={formData.stateId ?? ''}
                                 onChange={(value) => setFormData({
                                     ...formData,
                                     stateId: value === '' ? '' : Number(value),
@@ -776,7 +770,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <DependentDropdown
                                 label="District"
                                 required
-                                value={formData.districtId || ''}
+                                value={formData.districtId ?? ''}
                                 onChange={(value) => {
                                     const districtId = value === '' ? '' : Number(value)
                                     setFormData({ ...formData, districtId, orgId: '', universityId: '' })
@@ -802,7 +796,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <DependentDropdown
                                 label="Organization"
                                 required
-                                value={formData.orgId || ''}
+                                value={formData.orgId ?? ''}
                                 onChange={(value) => {
                                     const orgId = value === '' ? '' : Number(value)
                                     setFormData((prev: any) => ({
@@ -835,7 +829,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <DependentDropdown
                                 label="University"
                                 required
-                                value={formData.universityId || ''}
+                                value={formData.universityId ?? ''}
                                 onChange={(value) => setFormData((prev: any) => ({
                                     ...prev,
                                     universityId: value === '' ? '' : Number(value),
@@ -868,7 +862,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormTextArea
                                 label="KVK Address"
                                 required
-                                value={formData.address || ''}
+                                value={formData.address ?? ''}
                                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                 rows={2}
                                 placeholder="Enter complete address"
@@ -882,26 +876,26 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormInput
                                     label="Host Organization Name"
                                     required
-                                    value={formData.hostOrg || ''}
+                                    value={formData.hostOrg ?? ''}
                                     onChange={(e) => setFormData({ ...formData, hostOrg: e.target.value })}
                                     placeholder="Enter host organization name"
                                 />
                             </div>
                             <FormInput
                                 label="Mobile Number"
-                                value={formData.hostMobile || ''}
+                                value={formData.hostMobile ?? ''}
                                 onChange={(e) => setFormData({ ...formData, hostMobile: e.target.value })}
                                 placeholder="+91"
                             />
                             <FormInput
                                 label="Landline"
-                                value={formData.hostLandline || ''}
+                                value={formData.hostLandline ?? ''}
                                 onChange={(e) => setFormData({ ...formData, hostLandline: e.target.value })}
                                 placeholder="Enter landline"
                             />
                             <FormInput
                                 label="Fax"
-                                value={formData.hostFax || ''}
+                                value={formData.hostFax ?? ''}
                                 onChange={(e) => setFormData({ ...formData, hostFax: e.target.value })}
                                 placeholder="Enter fax"
                             />
@@ -909,7 +903,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormInput
                                     label="E-mail"
                                     type="email"
-                                    value={formData.hostEmail || ''}
+                                    value={formData.hostEmail ?? ''}
                                     onChange={(e) => setFormData({ ...formData, hostEmail: e.target.value })}
                                     placeholder="Enter email address"
                                 />
@@ -917,7 +911,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <div className="md:col-span-3">
                                 <FormTextArea
                                     label="Host Address"
-                                    value={formData.hostAddress || ''}
+                                    value={formData.hostAddress ?? ''}
                                     onChange={(e) => setFormData({ ...formData, hostAddress: e.target.value })}
                                     rows={2}
                                     placeholder="Enter complete address"
@@ -933,7 +927,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     <div className="flex-1">
                                         <FormInput
                                             label={`Item ${index + 1}`}
-                                            value={item.item || ''}
+                                            value={item.item ?? ''}
                                             onChange={(e) => {
                                                 const newList = [...formData.landDetails];
                                                 newList[index].item = e.target.value;
@@ -947,7 +941,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                             label="Area (Ha)"
                                             type="number"
                                             step="any"
-                                            value={item.areaHa || ''}
+                                            value={item.areaHa ?? ''}
                                             onChange={(e) => {
                                                 const newList = [...formData.landDetails];
                                                 newList[index].areaHa = e.target.value;

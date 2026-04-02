@@ -82,6 +82,8 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'NARI Activity Master', moduleCode: 'all_masters_nari_activity_master' },
   { menuName: 'All Masters', subMenuName: 'NARI Nutrition Garden Type Master', moduleCode: 'all_masters_nari_garden_type_master' },
   { menuName: 'All Masters', subMenuName: 'NICRA Master', moduleCode: 'all_masters_nicra_master' },
+  { menuName: 'All Masters', subMenuName: 'Vehicle Present Status Master', moduleCode: 'all_masters_vehicle_present_status_master' },
+  { menuName: 'All Masters', subMenuName: 'Equipment Present Status Master', moduleCode: 'all_masters_equipment_present_status_master' },
   { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'form_management_success_stories' },
   // wip wtf is this
   { menuName: 'Module Images', subMenuName: '뿯ν뿯½뿯½', moduleCode: 'module_images' },

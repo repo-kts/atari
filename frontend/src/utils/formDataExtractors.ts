@@ -6,6 +6,49 @@
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
 
+const STRICT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
+const YEAR_PATTERN = /^\d{4}$/;
+
+function toDateInputValue(value: any): string | null {
+    if (value === null || value === undefined || value === '') return null;
+
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime()) ? null : value.toISOString().split('T')[0];
+    }
+
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 1900 && value <= 3000) {
+        return `${value}-01-01`;
+    }
+
+    if (typeof value === 'object') {
+        if (value.reportingYearDate !== undefined) return toDateInputValue(value.reportingYearDate);
+        if (value.reportingYear !== undefined) return toDateInputValue(value.reportingYear);
+        if (value.yearName !== undefined) return toDateInputValue(value.yearName);
+        if (value.year !== undefined) return toDateInputValue(value.year);
+        return null;
+    }
+
+    if (typeof value !== 'string') return null;
+
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (YEAR_PATTERN.test(trimmed)) {
+        return `${trimmed}-01-01`;
+    }
+
+    if (!STRICT_DATE_PATTERN.test(trimmed)) {
+        return null;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        return trimmed;
+    }
+
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+}
+
 /**
  * Common nested field extractors that apply to multiple entity types
  */
@@ -23,6 +66,16 @@ const COMMON_EXTRACTORS = {
     kvkId: (item: any, formData: any) => {
         if (item.kvk?.kvkId) {
             formData.kvkId = item.kvk.kvkId;
+        }
+    },
+    reportingYear: (item: any, formData: any) => {
+        const dateValue =
+            toDateInputValue(item.reportingYearDate) ??
+            toDateInputValue(item.reportingYear) ??
+            toDateInputValue(item.year) ??
+            toDateInputValue(item.yearName);
+        if (dateValue) {
+            formData.reportingYear = dateValue;
         }
     },
 };
@@ -304,7 +357,8 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: (item: any, formData: any) => {
         if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
         if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
-        if (item.reportingYear) formData.reportingYear = new Date(item.reportingYear).toISOString().split('T')[0];
+        const reportingYear = toDateInputValue(item.reportingYearDate ?? item.reportingYear ?? item.year);
+        if (reportingYear) formData.reportingYear = reportingYear;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: (item: any, formData: any) => {
         if (item.trainingDate) formData.trainingDate = new Date(item.trainingDate).toISOString().split('T')[0];
@@ -335,16 +389,14 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]: (item: any, formData: any) => {
-        if (item.reportingYear !== undefined) {
-            formData.reportingYear = String(item.reportingYear).slice(0, 10);
-        }
+        const reportingYear = toDateInputValue(item.reportingYearDate ?? item.reportingYear ?? item.year);
+        if (reportingYear) formData.reportingYear = reportingYear;
         if (item.blocksCovered !== undefined) formData.noOfBlocks = item.blocksCovered;
         if (item.villagesCovered !== undefined) formData.noOfVillages = item.villagesCovered;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL]: (item: any, formData: any) => {
-        if (item.reportingYear !== undefined) {
-            formData.reportingYear = String(item.reportingYear).slice(0, 10);
-        }
+        const reportingYear = toDateInputValue(item.reportingYearDate ?? item.reportingYear ?? item.year);
+        if (reportingYear) formData.reportingYear = reportingYear;
         if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
         else if (item.seasonId) formData.seasonId = item.seasonId;
         if (item.phBefore !== undefined) formData.beforePh = item.phBefore;
@@ -363,9 +415,8 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.soilMicrobesAfter !== undefined) formData.afterMicrobes = item.soilMicrobesAfter;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET]: (item: any, formData: any) => {
-        if (item.reportingYear !== undefined) {
-            formData.reportingYear = String(item.reportingYear).slice(0, 10);
-        }
+        const reportingYear = toDateInputValue(item.reportingYearDate ?? item.reportingYear ?? item.year);
+        if (reportingYear) formData.reportingYear = reportingYear;
         if (item.activity) formData.activityName = item.activity;
         if (item.numberOfActivities !== undefined) formData.noOfActivities = item.numberOfActivities;
     },

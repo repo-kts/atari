@@ -402,9 +402,7 @@ async function seedKvks() {
         equipmentName: 'Tractor',
         yearOfPurchase: 2020,
         totalCost: 500000,
-        presentStatus: 'WORKING',
         sourceOfFunding: 'ICAR',
-        reportingYear: new Date('2024-01-01'),
         type: 'EQUIPMENT',
       },
       {
@@ -412,9 +410,7 @@ async function seedKvks() {
         equipmentName: 'Harvester',
         yearOfPurchase: 2021,
         totalCost: 800000,
-        presentStatus: 'WORKING',
         sourceOfFunding: 'State Government',
-        reportingYear: new Date('2024-01-01'),
         type: 'EQUIPMENT',
       },
     ];
@@ -488,11 +484,6 @@ async function seedKvks() {
         registrationNo: `PB${kvk.kvkId}1234`,
         yearOfPurchase: 2020,
         totalCost: 800000,
-        totalRun: '50000',
-        presentStatus: 'WORKING',
-        reportingYear: new Date('2024-01-01'),
-        sourceOfFunding: 'ICAR',
-        repairingCost: 50000,
       },
     ];
 
@@ -609,10 +600,14 @@ async function seedKvks() {
         create: [
           {
             oftTechnologyTypeId: techType1.oftTechnologyTypeId,
+            optionKey: `tech-${techType1.oftTechnologyTypeId}`,
+            optionName: techType1.name,
             details: 'Testing new wheat variety HD-3086',
           },
           {
             oftTechnologyTypeId: techType2.oftTechnologyTypeId,
+            optionKey: `tech-${techType2.oftTechnologyTypeId}`,
+            optionName: techType2.name,
             details: 'Integrated nutrient management practices',
           },
         ],

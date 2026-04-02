@@ -33,19 +33,19 @@ const PpvFraTrainingForm: React.FC<PpvFraTrainingFormProps> = ({ formData, setFo
                 <FormInput
                     label="Title"
                     required
-                    value={formData.title || ''}
+                    value={formData.title ?? ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 />
                 <FormInput
                     label="Venue"
                     required
-                    value={formData.venue || ''}
+                    value={formData.venue ?? ''}
                     onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
                 />
                 <FormInput
                     label="Resource Person"
                     required
-                    value={formData.resourcePerson || ''}
+                    value={formData.resourcePerson ?? ''}
                     onChange={(e) => setFormData({ ...formData, resourcePerson: e.target.value })}
                 />
             </div>
@@ -159,44 +159,44 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                     label="Reporting Year"
                     required
                     options={[{ value: '', label: 'Select' }, ...yearOptions]}
-                    value={formData.reportingYear || ''}
+                    value={formData.reportingYear ?? ''}
                     onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                 />
                 <FormInput
                     label="Name of Crop Registered"
                     required
-                    value={formData.cropName || ''}
+                    value={formData.cropName ?? ''}
                     onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                 />
                 <FormInput
                     label="Farmer Name"
                     required
-                    value={formData.farmerName || ''}
+                    value={formData.farmerName ?? ''}
                     onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
                 />
                 <FormInput
                     label="Mobile No."
                     required
-                    value={formData.mobile || ''}
+                    value={formData.mobile ?? ''}
                     onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                 />
                 <FormInput
                     label="Village"
                     required
-                    value={formData.village || ''}
+                    value={formData.village ?? ''}
                     onChange={(e) => setFormData({ ...formData, village: e.target.value })}
                 />
                 <FormInput
                     label="Block"
                     required
-                    value={formData.block || ''}
+                    value={formData.block ?? ''}
                     onChange={(e) => setFormData({ ...formData, block: e.target.value })}
                 />
                 <FormSelect
                     label="District"
                     required
                     options={districtOptions}
-                    value={formData.district || ''}
+                    value={formData.district ?? ''}
                     onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                     placeholder={districtsLoading ? 'Loading districts...' : 'Select District'}
                 />
@@ -206,7 +206,7 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                 label="Characteristics"
                 required
                 rows={4}
-                value={formData.characteristics || ''}
+                value={formData.characteristics ?? ''}
                 onChange={(e) => setFormData({ ...formData, characteristics: e.target.value })}
             />
 

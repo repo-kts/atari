@@ -24,62 +24,62 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="No. of blocks allocated"
                             required
                             type="number"
-                            value={formData.blocksAllocated || ''}
+                            value={formData.blocksAllocated ?? ''}
                             onChange={(e) => setFormData({ ...formData, blocksAllocated: e.target.value })}
                         />
                         <FormInput
                             label="No. of FPOs registered as CBBO"
                             required
                             type="number"
-                            value={formData.fposRegisteredAsCbbo || ''}
+                            value={formData.fposRegisteredAsCbbo ?? ''}
                             onChange={(e) => setFormData({ ...formData, fposRegisteredAsCbbo: e.target.value })}
                         />
                         <FormInput
                             label="Average no of members per FPO"
                             required
                             type="number"
-                            value={formData.avgMembersPerFpo || ''}
+                            value={formData.avgMembersPerFpo ?? ''}
                             onChange={(e) => setFormData({ ...formData, avgMembersPerFpo: e.target.value })}
                         />
                         <FormInput
                             label="No. of FPO received Management cost"
                             required
                             type="number"
-                            value={formData.fposReceivedMgmtCost || ''}
+                            value={formData.fposReceivedMgmtCost ?? ''}
                             onChange={(e) => setFormData({ ...formData, fposReceivedMgmtCost: e.target.value })}
                         />
                         <FormInput
                             label="No. of FPO received Equitys Grant"
                             required
                             type="number"
-                            value={formData.fposReceivedEquityGrant || ''}
+                            value={formData.fposReceivedEquityGrant ?? ''}
                             onChange={(e) => setFormData({ ...formData, fposReceivedEquityGrant: e.target.value })}
                         />
                         <FormInput
                             label="Tech. backstopping provided to no. of FPOs"
                             required
                             type="number"
-                            value={formData.techBackstoppingFpos || ''}
+                            value={formData.techBackstoppingFpos ?? ''}
                             onChange={(e) => setFormData({ ...formData, techBackstoppingFpos: e.target.value })}
                         />
                         <FormInput
                             label="No. of training programme organized for FPOs for Technology backstopping as CBBO"
                             required
                             type="number"
-                            value={formData.trainingProgsOrganized || ''}
+                            value={formData.trainingProgsOrganized ?? ''}
                             onChange={(e) => setFormData({ ...formData, trainingProgsOrganized: e.target.value })}
                         />
                         <FormSelect
                             label="Training received by FPO members"
                             required
-                            value={formData.trainingReceivedByMembers || ''}
+                            value={formData.trainingReceivedByMembers ?? ''}
                             onChange={(e) => setFormData({ ...formData, trainingReceivedByMembers: e.target.value })}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
@@ -90,13 +90,13 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             label="Assistance to no. of FPOs in economic activities"
                             required
                             type="number"
-                            value={formData.assistanceEconomicActivities || ''}
+                            value={formData.assistanceEconomicActivities ?? ''}
                             onChange={(e) => setFormData({ ...formData, assistanceEconomicActivities: e.target.value })}
                         />
                         <FormSelect
                             label="Is Business plan prepared for FPOs as CBBOs"
                             required
-                            value={formData.businessPlanCbbo || ''}
+                            value={formData.businessPlanCbbo ?? ''}
                             onChange={(e) => setFormData({ ...formData, businessPlanCbbo: e.target.value })}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
@@ -106,7 +106,7 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                         <FormSelect
                             label="Is Business plan prepared for FPOs as without CBBOs"
                             required
-                            value={formData.businessPlanWithoutCbbo || ''}
+                            value={formData.businessPlanWithoutCbbo ?? ''}
                             onChange={(e) => setFormData({ ...formData, businessPlanWithoutCbbo: e.target.value })}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
@@ -117,7 +117,7 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             label="No. Of FPOs doing business"
                             required
                             type="number"
-                            value={formData.fposDoingBusiness || ''}
+                            value={formData.fposDoingBusiness ?? ''}
                             onChange={(e) => setFormData({ ...formData, fposDoingBusiness: e.target.value })}
                         />
                     </div>
@@ -130,71 +130,71 @@ export const FpoForms: React.FC<FpoFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of the FPO"
                             required
-                            value={formData.fpoName || ''}
+                            value={formData.fpoName ?? ''}
                             onChange={(e) => setFormData({ ...formData, fpoName: e.target.value })}
                         />
                         <FormInput
                             label="Address of FPO"
                             required
-                            value={formData.fpoAddress || ''}
+                            value={formData.fpoAddress ?? ''}
                             onChange={(e) => setFormData({ ...formData, fpoAddress: e.target.value })}
                         />
                         <FormInput
                             label="Registration No"
                             required
-                            value={formData.registrationNo || ''}
+                            value={formData.registrationNo ?? ''}
                             onChange={(e) => setFormData({ ...formData, registrationNo: e.target.value })}
                         />
                         <FormInput
                             label="Date of Registration"
                             required
                             type="date"
-                            value={formData.registrationDate || ''}
+                            value={formData.registrationDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, registrationDate: e.target.value })}
                         />
                         <FormInput
                             label="Proposed Activity"
                             required
-                            value={formData.proposedActivity || ''}
+                            value={formData.proposedActivity ?? ''}
                             onChange={(e) => setFormData({ ...formData, proposedActivity: e.target.value })}
                         />
                         <FormInput
                             label="Commodity Identified"
                             required
-                            value={formData.commodityIdentified || ''}
+                            value={formData.commodityIdentified ?? ''}
                             onChange={(e) => setFormData({ ...formData, commodityIdentified: e.target.value })}
                         />
                         <FormInput
                             label="Total No. of BOM Members"
                             required
                             type="number"
-                            value={formData.bomMembersCount || ''}
+                            value={formData.bomMembersCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, bomMembersCount: e.target.value })}
                         />
                         <FormInput
                             label="Total no of farmers attached"
                             required
                             type="number"
-                            value={formData.farmersAttachedCount || ''}
+                            value={formData.farmersAttachedCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmersAttachedCount: e.target.value })}
                         />
                         <FormInput
                             label="Financial position (Rupees in lakh)"
                             required
                             type="number"
-                            value={formData.financialPosition || ''}
+                            value={formData.financialPosition ?? ''}
                             onChange={(e) => setFormData({ ...formData, financialPosition: e.target.value })}
                         />
                         <FormInput
                             label="Success indicator"
                             required
-                            value={formData.successIndicator || ''}
+                            value={formData.successIndicator ?? ''}
                             onChange={(e) => setFormData({ ...formData, successIndicator: e.target.value })}
                         />
                     </div>

@@ -186,12 +186,18 @@ export const aboutKvkApi = {
     // ============================================
     // Dropdown helpers for vehicle/equipment details
     // ============================================
-    getVehiclesDropdown: (kvkId?: number) => {
-        const url = buildUrlWithQuery(`${BASE_URL}/vehicles`, kvkId ? { kvkId } : undefined);
+    getVehiclesDropdown: (kvkId?: number, reportingYear?: string) => {
+        const url = buildUrlWithQuery(
+            `${BASE_URL}/vehicles-dropdown`,
+            kvkId ? { kvkId, ...(reportingYear ? { reportingYear } : {}) } : undefined
+        );
         return apiClient.get<ApiResponse<any[]>>(url);
     },
-    getEquipmentsDropdown: (kvkId?: number) => {
-        const url = buildUrlWithQuery(`${BASE_URL}/equipments`, kvkId ? { kvkId } : undefined);
+    getEquipmentsDropdown: (kvkId?: number, reportingYear?: string) => {
+        const url = buildUrlWithQuery(
+            `${BASE_URL}/equipments-dropdown`,
+            kvkId ? { kvkId, ...(reportingYear ? { reportingYear } : {}) } : undefined
+        );
         return apiClient.get<ApiResponse<any[]>>(url);
     },
 

@@ -32,6 +32,8 @@ import type {
     DignitaryTypeFormData,
     FinancialProjectFormData,
     FundingAgencyFormData,
+    VehiclePresentStatusFormData,
+    EquipmentPresentStatusFormData,
 } from '../services/otherMastersApi';
 
 // ============================================
@@ -1412,4 +1414,50 @@ export function useFundingAgencies() {
         isUpdating: updateMutation.isPending,
         isDeleting: deleteMutation.isPending,
     };
+}
+
+export function useVehiclePresentStatuses() {
+    const queryClient = useQueryClient();
+    const query = useQuery({
+        queryKey: ['vehicle-present-statuses'],
+        queryFn: () => otherMastersApi.getVehiclePresentStatuses().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    const createMutation = useMutation({
+        mutationFn: (data: VehiclePresentStatusFormData) => otherMastersApi.createVehiclePresentStatus(data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehicle-present-statuses'] }),
+    });
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<VehiclePresentStatusFormData> }) =>
+            otherMastersApi.updateVehiclePresentStatus(id, data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehicle-present-statuses'] }),
+    });
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteVehiclePresentStatus(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['vehicle-present-statuses'] }),
+    });
+    return { data: query.data || [], isLoading: query.isLoading, error: query.error, create: createMutation.mutateAsync, update: updateMutation.mutateAsync, remove: deleteMutation.mutateAsync };
+}
+
+export function useEquipmentPresentStatuses() {
+    const queryClient = useQueryClient();
+    const query = useQuery({
+        queryKey: ['equipment-present-statuses'],
+        queryFn: () => otherMastersApi.getEquipmentPresentStatuses().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    const createMutation = useMutation({
+        mutationFn: (data: EquipmentPresentStatusFormData) => otherMastersApi.createEquipmentPresentStatus(data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipment-present-statuses'] }),
+    });
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<EquipmentPresentStatusFormData> }) =>
+            otherMastersApi.updateEquipmentPresentStatus(id, data),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipment-present-statuses'] }),
+    });
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteEquipmentPresentStatus(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipment-present-statuses'] }),
+    });
+    return { data: query.data || [], isLoading: query.isLoading, error: query.error, create: createMutation.mutateAsync, update: updateMutation.mutateAsync, remove: deleteMutation.mutateAsync };
 }

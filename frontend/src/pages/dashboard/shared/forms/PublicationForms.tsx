@@ -109,7 +109,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                 <FormInput
                     label="Publication Item"
                     required
-                    value={formData.publicationName || ''}
+                    value={formData.publicationName ?? ''}
                     onChange={handlePublicationNameChange}
                     placeholder="Enter publication item"
                 />
@@ -122,7 +122,7 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                         <MasterDataDropdown
                             label="Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -140,19 +140,19 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                         <FormInput
                             label="Title"
                             required
-                            value={formData.title || ''}
+                            value={formData.title ?? ''}
                             onChange={handleTitleChange}
                         />
                         <FormInput
                             label="Author Name"
                             required
-                            value={formData.authorName || ''}
+                            value={formData.authorName ?? ''}
                             onChange={handleAuthorNameChange}
                         />
                         <FormInput
                             label="Journal Name"
                             required
-                            value={formData.journalName || ''}
+                            value={formData.journalName ?? ''}
                             onChange={handleJournalNameChange}
                         />
                     </div>

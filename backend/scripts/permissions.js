@@ -94,6 +94,8 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Dignitary Type Master', moduleCode: 'all_masters_dignitary_type_master' },
   { menuName: 'All Masters', subMenuName: 'Financial Performance Project Master', moduleCode: 'all_masters_financial_project_master' },
   { menuName: 'All Masters', subMenuName: 'Funding Agency Master', moduleCode: 'all_masters_funding_agency_master' },
+  { menuName: 'All Masters', subMenuName: 'Vehicle Present Status Master', moduleCode: 'all_masters_vehicle_present_status_master' },
+  { menuName: 'All Masters', subMenuName: 'Equipment Present Status Master', moduleCode: 'all_masters_equipment_present_status_master' },
   { menuName: 'Form Management', subMenuName: 'Success Stories', moduleCode: 'form_management_success_stories' },
   { menuName: 'Module Images', subMenuName: '—', moduleCode: 'module_images' },
   { menuName: 'Targets', subMenuName: '—', moduleCode: 'targets' },

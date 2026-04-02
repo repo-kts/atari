@@ -2,6 +2,7 @@ model FinancialInformation {
   financialInformationId Int                    @id @default(autoincrement()) @map("financial_information_id")
   kvkId                  Int
   year                   Int
+  reportingYearDate      DateTime?              @map("reporting_year_date")
   activityId             Int?                   @map("activity_id")
   numberOfActivities     Int                    @map("number_of_activities")
   budgetSanction         Float                  @map("budget_sanction")
@@ -13,5 +14,7 @@ model FinancialInformation {
   reportingYearDate       DateTime? @map("reporting_year_date")
 
   @@index([kvkId])
+  @@index([reportingYearDate])
+  @@index([kvkId, reportingYearDate])
   @@map("financial_information")
 }

@@ -8,6 +8,7 @@ import { DependentDropdown } from '@/components/common/DependentDropdown';
 import { createMasterDataOptions } from '@/utils/formHelpers';
 import { useSeasons, useCropTypes, useCfldExtensionActivityTypes } from '@/hooks/useOtherMastersData';
 import { useCfldCrops } from '@/hooks/useOftFldData';
+import { calculatePercentIncrease } from '@/utils/cfldCalculations';
 
 interface CfldFormsProps {
     entityType: string;
@@ -29,6 +30,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 }) => {
     type CfldSection = 'technical' | 'economic' | 'socio' | 'perception'
     const [cfldSection, setCfldSection] = useState<CfldSection>('technical')
+    const [isPercentIncreaseManuallyEdited, setIsPercentIncreaseManuallyEdited] = useState(false)
 
     useEffect(() => {
         const active = (formData?.cfldActiveSection || '').toString().toLowerCase()
@@ -37,6 +39,10 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         else if (active === 'perception') setCfldSection('perception')
         else setCfldSection('technical')
     }, [formData?.cfldActiveSection])
+
+    useEffect(() => {
+        setIsPercentIncreaseManuallyEdited(false)
+    }, [formData?.id, formData?.cfldTechId])
 
     // Normalize incoming formData when editing so that all alias fields are populated
     useEffect(() => {
@@ -51,7 +57,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
             const next: any = { ...prev };
             let changed = false;
 
-            // Month: convert stored value (Date or ISO string) to month name once for the select
+            // Month: normalize to month name for dropdown selection
             if (next.month) {
                 if (next.month instanceof Date) {
                     const monthName = next.month.toLocaleString('default', { month: 'long' });
@@ -60,7 +66,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         changed = true;
                     }
                 } else if (typeof next.month === 'string') {
-                    // If it's already a month name, keep as is
                     const lower = next.month.toLowerCase();
                     const monthNames = MONTHS.map((m) => m.label.toLowerCase());
                     if (!monthNames.includes(lower)) {
@@ -124,6 +129,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
             // Crop: backend sends cropName, form uses crop
             if (next.crop == null && next.cropName != null) {
                 next.crop = next.cropName;
+                changed = true;
+            }
+
+            // Extension activity date alias
+            if (next.date == null && next.activityDate != null) {
+                next.date = next.activityDate;
                 changed = true;
             }
 
@@ -218,6 +229,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
             setFormData(newData);
         }
     }, [formData.id, formData.cfldProgId, formData.cfldTechnicalParamId, setFormData]);
+
+    useEffect(() => {
+        if (!entityType.includes('cfld') || cfldSection !== 'technical') return;
+        if (isPercentIncreaseManuallyEdited) return;
+        const nextPercent = calculatePercentIncrease({
+            farmerYield: formData?.farmerYield,
+            demoYieldAvg: formData?.yieldAvg ?? formData?.demoYieldAvg,
+        });
+        if (Number(formData?.percentIncrease) !== nextPercent) {
+            setFormData((prev: any) => ({ ...prev, percentIncrease: nextPercent }));
+        }
+    }, [entityType, cfldSection, isPercentIncreaseManuallyEdited, formData?.farmerYield, formData?.yieldAvg, formData?.demoYieldAvg, formData?.percentIncrease, setFormData]);
     // Data fetching hooks - only fetch when needed
     const { data: seasons = [] } = useSeasons();
     const { data: cropTypes = [] } = useCropTypes();
@@ -684,9 +707,12 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         label="% increase in yield"
                         required
                         type="number"
-                        step="0.01"
+                        step="1"
                         value={formData.percentIncrease ?? ''}
-                        onChange={(e) => handleFieldChange('percentIncrease', e.target.value)}
+                        onChange={(e) => {
+                            setIsPercentIncreaseManuallyEdited(true)
+                            handleFieldChange('percentIncrease', e.target.value)
+                        }}
                     />
                 </div>
             </FormSection>
@@ -812,6 +838,40 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     {renderPhotoFields('trainingPhotos', "Farmers' training photographs")}
                     {renderPhotoFields('actionPhotos', "Quality Action Photographs of field visits/field days and technology demonstrated")}
                 </div>
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    {formData.trainingPhotoPath ? (
+                        typeof formData.trainingPhotoPath === 'string' ? (
+                            <a
+                                href={formData.trainingPhotoPath}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-[#487749] underline break-all"
+                            >
+                                View training photo
+                            </a>
+                        ) : (
+                            <span className="text-sm text-[#487749] break-all">
+                                {formData.trainingPhotoPath?.name || 'New training photo selected'}
+                            </span>
+                        )
+                    ) : null}
+                    {formData.qualityActionPhotoPath ? (
+                        typeof formData.qualityActionPhotoPath === 'string' ? (
+                            <a
+                                href={formData.qualityActionPhotoPath}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-[#487749] underline break-all"
+                            >
+                                View quality action photo
+                            </a>
+                        ) : (
+                            <span className="text-sm text-[#487749] break-all">
+                                {formData.qualityActionPhotoPath?.name || 'New quality action photo selected'}
+                            </span>
+                        )
+                    ) : null}
+                </div>
             </FormSection>
         </div>
     );
@@ -839,8 +899,14 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     label="Date"
                     required
                     type="date"
-                    value={formData.date ?? ''}
-                    onChange={(e) => handleFieldChange('date', e.target.value)}
+                    value={formData.activityDate ?? formData.date ?? ''}
+                    onChange={(e) =>
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            date: e.target.value,
+                            activityDate: e.target.value,
+                        }))
+                    }
                 />
                 <FormInput
                     label="Place of activity"
@@ -950,7 +1016,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.overallFundAllocation || ''}
+                    value={formData.overallFundAllocation ?? ''}
                     onChange={(e) => handleFieldChange('overallFundAllocation', e.target.value)}
                 />
                 <FormInput
@@ -958,7 +1024,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.areaAllotted || ''}
+                    value={formData.areaAllotted ?? ''}
                     onChange={(e) => handleFieldChange('areaAllotted', e.target.value)}
                 />
                 <FormInput
@@ -966,7 +1032,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                     required
                     type="number"
                     step="0.01"
-                    value={formData.areaAchieved || ''}
+                    value={formData.areaAchieved ?? ''}
                     onChange={(e) => handleFieldChange('areaAchieved', e.target.value)}
                 />
             </div>
@@ -988,7 +1054,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.criticalInputReceived || ''}
+                                    value={formData.criticalInputReceived ?? ''}
                                     onChange={(e) => handleFieldChange('criticalInputReceived', e.target.value)}
                                 />
                             </td>
@@ -997,7 +1063,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.criticalInputUtilized || ''}
+                                    value={formData.criticalInputUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('criticalInputUtilized', e.target.value)}
                                 />
                             </td>
@@ -1009,7 +1075,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.taDaReceived || ''}
+                                    value={formData.taDaReceived ?? ''}
                                     onChange={(e) => handleFieldChange('taDaReceived', e.target.value)}
                                 />
                             </td>
@@ -1018,7 +1084,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.taDaUtilized || ''}
+                                    value={formData.taDaUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('taDaUtilized', e.target.value)}
                                 />
                             </td>
@@ -1030,7 +1096,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.extensionActivitiesReceived || ''}
+                                    value={formData.extensionActivitiesReceived ?? ''}
                                     onChange={(e) => handleFieldChange('extensionActivitiesReceived', e.target.value)}
                                 />
                             </td>
@@ -1039,7 +1105,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.extensionActivitiesUtilized || ''}
+                                    value={formData.extensionActivitiesUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('extensionActivitiesUtilized', e.target.value)}
                                 />
                             </td>
@@ -1051,7 +1117,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.publicationReceived || ''}
+                                    value={formData.publicationReceived ?? ''}
                                     onChange={(e) => handleFieldChange('publicationReceived', e.target.value)}
                                 />
                             </td>
@@ -1060,7 +1126,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                                     label=""
                                     type="number"
                                     step="0.01"
-                                    value={formData.publicationUtilized || ''}
+                                    value={formData.publicationUtilized ?? ''}
                                     onChange={(e) => handleFieldChange('publicationUtilized', e.target.value)}
                                 />
                             </td>

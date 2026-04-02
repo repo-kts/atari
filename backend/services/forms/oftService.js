@@ -59,7 +59,8 @@ const oftService = {
             throw new ValidationError('Result can only be added for ONGOING OFT records');
         }
 
-        _validateResultPayload(payload);
+        const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
+        _validateResultPayload(payload, sourceRows);
 
         const result = await oftRepository.createResultReportTx(id, payload);
         await oftRepository.updateStatus(id, OFT_STATUS.COMPLETED);
@@ -75,7 +76,8 @@ const oftService = {
             throw new ValidationError('Result can only be edited for COMPLETED OFT records');
         }
 
-        _validateResultPayload(payload);
+        const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
+        _validateResultPayload(payload, sourceRows);
         return oftRepository.updateResultReportTx(id, payload);
     },
 
@@ -92,7 +94,7 @@ const oftService = {
     },
 };
 
-function _validateResultPayload(payload) {
+function _validateResultPayload(payload, sourceRows = []) {
     if (!payload || typeof payload !== 'object') {
         throw new ValidationError('Result payload is required');
     }
@@ -110,6 +112,34 @@ function _validateResultPayload(payload) {
     if (!Array.isArray(payload.tables) || payload.tables.length === 0) {
         throw new ValidationError('At least one result table is required', 'tables');
     }
+    const sourceByKey = new Map(
+        (sourceRows || []).map((row) => [String(row.optionKey), String(row.optionName)])
+    );
+    if (sourceByKey.size === 0) {
+        throw new ValidationError('At least one OFT technology option is required before adding result', 'technologyOptions');
+    }
+
+    payload.tables.forEach((table, tableIndex) => {
+        const rows = Array.isArray(table?.rows) ? table.rows : [];
+        const tableKeys = new Set();
+        rows.forEach((row, rowIndex) => {
+            const optionKey = String(row?.optionKey || '').trim();
+            if (!optionKey || !sourceByKey.has(optionKey)) {
+                throw new ValidationError(
+                    `Invalid source row at table ${tableIndex + 1}, row ${rowIndex + 1}`,
+                    `tables.${tableIndex}.rows.${rowIndex}.optionKey`
+                );
+            }
+            tableKeys.add(optionKey);
+        });
+
+        if (tableKeys.size !== sourceByKey.size) {
+            throw new ValidationError(
+                `Result table ${tableIndex + 1} must contain all source technology rows`,
+                `tables.${tableIndex}.rows`
+            );
+        }
+    });
 
     validateFileSize({ size: payload.supplementaryDatasheetSize }, 2 * 1024 * 1024, 'Supplementary Datasheet');
     validateFileSize({ size: payload.photographSize }, 1 * 1024 * 1024, 'Photograph');

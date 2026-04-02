@@ -34,6 +34,12 @@ interface OftFldFormsProps {
     setFormData: (data: any) => void
 }
 
+const createTechnologyOption = () => ({
+    optionKey: `tmp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    optionName: '',
+    details: '',
+})
+
 export const OftFldForms: React.FC<OftFldFormsProps> = ({
     entityType,
     formData,
@@ -90,6 +96,10 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             return kvkMatch && yearMatch
         })
     }, [fldList, activeKvkId, selectedReportingYear])
+    const selectedReportingYearNumber = useMemo(
+        () => getYearValue(selectedReportingYear),
+        [selectedReportingYear]
+    )
     const selectedFldForTechnicalFeedback = useMemo(
         () => fldOptionsByKvkAndYear.find((f: any) => Number(f.kvkFldId || f.id) === Number(formData.fldId)),
         [fldOptionsByKvkAndYear, formData.fldId]
@@ -195,6 +205,25 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         }
     }, [entityType, setFormData])
 
+    useEffect(() => {
+        if (entityType !== ENTITY_TYPES.ACHIEVEMENT_OFT) return
+        if (Array.isArray(formData.technologyOptions)) return
+
+        const legacyOptions = Object.keys(formData || {})
+            .filter((key) => key.startsWith('tech_'))
+            .map((key) => ({
+                optionKey: `legacy_${key}`,
+                optionName: key.replace(/^tech_/, '').trim(),
+                details: formData[key] || '',
+            }))
+            .filter((row) => row.optionName)
+
+        setFormData((prev: any) => ({
+            ...prev,
+            technologyOptions: legacyOptions.length > 0 ? legacyOptions : [createTechnologyOption()],
+        }))
+    }, [entityType, formData, setFormData])
+
     // Ensure CropName, seasonId, and typeId are correctly populated for CFLD_CROPS
     useEffect(() => {
         if (entityType === ENTITY_TYPES.CFLD_CROPS) {
@@ -235,7 +264,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <FormInput
                     label="Subject Name"
                     required
-                    value={formData.subjectName || ''}
+                    value={formData.subjectName ?? ''}
                     onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })}
                     placeholder="Enter subject name"
                 />
@@ -246,14 +275,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Subject"
                         required
-                        value={formData.oftSubjectId || ''}
+                        value={formData.oftSubjectId ?? ''}
                         onChange={(e) => setFormData({ ...formData, oftSubjectId: parseInt(e.target.value) })}
                         options={oftSubjects.map(s => ({ value: s.oftSubjectId, label: s.subjectName }))}
                     />
                     <FormInput
                         label="Thematic Area Name"
                         required
-                        value={formData.thematicAreaName || ''}
+                        value={formData.thematicAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
@@ -264,7 +293,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <FormInput
                     label="Sector Name"
                     required
-                    value={formData.sectorName || ''}
+                    value={formData.sectorName ?? ''}
                     onChange={(e) => setFormData({ ...formData, sectorName: e.target.value })}
                     placeholder="Enter sector name"
                 />
@@ -275,14 +304,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Sector"
                         required
-                        value={formData.sectorId || ''}
+                        value={formData.sectorId ?? ''}
                         onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
                         options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
                     />
                     <FormInput
                         label="Thematic Area Name"
                         required
-                        value={formData.thematicAreaName || ''}
+                        value={formData.thematicAreaName ?? ''}
                         onChange={(e) => setFormData({ ...formData, thematicAreaName: e.target.value })}
                         placeholder="Enter thematic area name"
                     />
@@ -294,14 +323,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Sector"
                         required
-                        value={formData.sectorId || ''}
+                        value={formData.sectorId ?? ''}
                         onChange={(e) => setFormData({ ...formData, sectorId: parseInt(e.target.value) })}
                         options={fldSectors.map(s => ({ value: s.sectorId, label: s.sectorName }))}
                     />
                     <FormInput
                         label="Category Name"
                         required
-                        value={formData.categoryName || ''}
+                        value={formData.categoryName ?? ''}
                         onChange={(e) => setFormData({ ...formData, categoryName: e.target.value })}
                         placeholder="Enter category name"
                     />
@@ -313,7 +342,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Sector"
                         required
-                        value={formData.sectorId || ''}
+                        value={formData.sectorId ?? ''}
                         onChange={(e) => {
                             const sectorId = parseInt(e.target.value)
                             setFormData({ ...formData, sectorId, categoryId: '' })
@@ -323,7 +352,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Category"
                         required
-                        value={formData.categoryId || ''}
+                        value={formData.categoryId ?? ''}
                         onChange={(e) => setFormData({ ...formData, categoryId: parseInt(e.target.value) })}
                         disabled={!formData.sectorId}
                         options={fldCategories
@@ -333,7 +362,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormInput
                         label="Subcategory Name"
                         required
-                        value={formData.subCategoryName || ''}
+                        value={formData.subCategoryName ?? ''}
                         onChange={(e) => setFormData({ ...formData, subCategoryName: e.target.value })}
                         placeholder="Enter subcategory name"
                     />
@@ -345,7 +374,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Sector"
                         required
-                        value={formData.sectorId || ''}
+                        value={formData.sectorId ?? ''}
                         onChange={(e) => {
                             const sectorId = parseInt(e.target.value)
                             setFormData({ ...formData, sectorId, categoryId: '', subCategoryId: '' })
@@ -355,7 +384,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Category"
                         required
-                        value={formData.categoryId || ''}
+                        value={formData.categoryId ?? ''}
                         onChange={(e) => {
                             const categoryId = parseInt(e.target.value)
                             setFormData({ ...formData, categoryId, subCategoryId: '' })
@@ -368,7 +397,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Subcategory"
                         required
-                        value={formData.subCategoryId || ''}
+                        value={formData.subCategoryId ?? ''}
                         onChange={(e) => setFormData({ ...formData, subCategoryId: parseInt(e.target.value) })}
                         disabled={!formData.categoryId}
                         options={fldSubcategories
@@ -378,7 +407,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormInput
                         label="Crop Name"
                         required
-                        value={formData.cropName || ''}
+                        value={formData.cropName ?? ''}
                         onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         placeholder="Enter crop name"
                     />
@@ -389,7 +418,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <FormInput
                     label="Activity Name"
                     required
-                    value={formData.activityName || ''}
+                    value={formData.activityName ?? ''}
                     onChange={(e) => setFormData({ ...formData, activityName: e.target.value })}
                     placeholder="Enter activity name"
                 />
@@ -400,7 +429,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <MasterDataDropdown
                         label="Season"
                         required
-                        value={formData.seasonId || ''}
+                        value={formData.seasonId ?? ''}
                         onChange={(value) => setFormData({ ...formData, seasonId: value as number })}
                         options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                         emptyMessage="No seasons available"
@@ -408,14 +437,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     <FormSelect
                         label="Type"
                         required
-                        value={formData.typeId || ''}
+                        value={formData.typeId ?? ''}
                         onChange={(e) => setFormData({ ...formData, typeId: parseInt(e.target.value) })}
                         options={cropTypes.map(t => ({ value: t.typeId, label: t.typeName }))}
                     />
                     <FormInput
                         label="Crop Name"
                         required
-                        value={formData.CropName || ''}
+                        value={formData.CropName ?? ''}
                         onChange={(e) => setFormData({ ...formData, CropName: e.target.value })}
                         placeholder="Enter crop name"
                     />
@@ -431,7 +460,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
@@ -457,7 +486,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) => setFormData({ ...formData, seasonId: value as number })}
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             emptyMessage="No seasons available"
@@ -467,7 +496,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="OFT Subject"
                             required
-                            value={formData.oftSubjectId || ''}
+                            value={formData.oftSubjectId ?? ''}
                             onChange={(value) => {
                                 setFormData({
                                     ...formData,
@@ -528,69 +557,69 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <FormInput
                             label="Title of On Farm Trial (OFT)"
                             required
-                            value={formData.title || ''}
+                            value={formData.title ?? ''}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         />
                         <FormTextArea
                             label="Problem diagnosted"
                             required
-                            value={formData.problemDiagnosed || ''}
+                            value={formData.problemDiagnosed ?? ''}
                             onChange={(e) => setFormData({ ...formData, problemDiagnosed: e.target.value })}
                         />
                         <FormInput
                             label="Source of Technology (ICAR/ SAU/Other, please specify)"
                             required
-                            value={formData.sourceOfTechnology || ''}
+                            value={formData.sourceOfTechnology ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfTechnology: e.target.value })}
                         />
                         <FormInput
                             label="Production system and thematic area"
                             required
-                            value={formData.productionSystem || ''}
+                            value={formData.productionSystem ?? ''}
                             onChange={(e) => setFormData({ ...formData, productionSystem: e.target.value })}
                         />
                         <FormInput
                             label="Performance indicators of the technology"
                             required
-                            value={formData.performanceIndicators || ''}
+                            value={formData.performanceIndicators ?? ''}
                             onChange={(e) => setFormData({ ...formData, performanceIndicators: e.target.value })}
                         />
                         <FormInput
                             label="Area(ha)/Number"
                             required
-                            value={formData.area || ''}
+                            value={formData.area ?? ''}
                             onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                         />
                         <FormInput
                             label="No. of location"
                             required
-                            value={formData.locations || ''}
+                            value={formData.locations ?? ''}
                             onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
                         />
                         <FormInput
                             label="No. of Trial/Replication"
                             required
-                            value={formData.replications || ''}
+                            value={formData.replications ?? ''}
                             onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
                         />
                         <FormInput
                             label="OFT Start Date"
                             required
                             type="date"
-                            value={formData.duration || ''}
+                            value={formData.duration ?? ''}
                             onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         />
                         <FormInput
                             label="Critical Input"
                             required
-                            value={formData.criticalInput || ''}
+                            value={formData.criticalInput ?? ''}
                             onChange={(e) => setFormData({ ...formData, criticalInput: e.target.value })}
                         />
                         <FormInput
                             label="Cost of OFT"
                             required
                             type="number"
-                            value={formData.cost || ''}
+                            value={formData.cost ?? ''}
                             onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
                         />
                     </div>
@@ -598,15 +627,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
-                            <FormInput label="General_F" type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
-                            <FormInput label="OBC_M" type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
-                            <FormInput label="OBC_F" type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
+                            <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
+                            <FormInput label="General_F" type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
+                            <FormInput label="OBC_M" type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
+                            <FormInput label="OBC_F" type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
 
-                            <FormInput label="SC_M" type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
-                            <FormInput label="SC_F" type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
-                            <FormInput label="ST_M" type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
-                            <FormInput label="ST_F" type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
+                            <FormInput label="SC_M" type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
+                            <FormInput label="SC_F" type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
+                            <FormInput label="ST_M" type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
+                            <FormInput label="ST_F" type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
                         </div>
                     </FormSection>
 
@@ -615,23 +644,53 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <h3 className="text-lg font-semibold text-[#487749] pb-2 border-b border-[#E8F5E9]">
                             Details of technologies selected for assessment/refinement:
                         </h3>
-                        <div className="grid grid-cols-[200px_1fr] gap-4 items-center">
-                            <span className="font-medium text-gray-700">Technology Options</span>
-                            <span className="font-medium text-gray-700">Details</span>
-
-                            {['Farmer Practice', 'TO1', 'TO2', 'TO3', 'TO4', 'TO5', 'C1', 'C2'].map((tech) => (
-                                <React.Fragment key={tech}>
-                                    <label className="text-sm font-medium text-gray-600">{tech}</label>
+                        <div className="space-y-3">
+                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => (
+                                <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
                                     <FormInput
-                                        label=""
-                                        placeholder="Description"
-                                        value={formData[`tech_${tech}`] || ''}
-                                        onChange={(e) => setFormData({ ...formData, [`tech_${tech}`]: e.target.value })}
-                                        className="mt-0"
+                                        label={index === 0 ? 'Technology Option Name' : ''}
+                                        placeholder="Enter option name"
+                                        value={tech.optionName ?? ''}
+                                        onChange={(e) => {
+                                            const next = [...(formData.technologyOptions || [])]
+                                            next[index] = { ...next[index], optionName: e.target.value }
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
                                         required
                                     />
-                                </React.Fragment>
+                                    <FormInput
+                                        label={index === 0 ? 'Details (Optional)' : ''}
+                                        placeholder="Enter details"
+                                        value={tech.details ?? ''}
+                                        onChange={(e) => {
+                                            const next = [...(formData.technologyOptions || [])]
+                                            next[index] = { ...next[index], details: e.target.value }
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-50"
+                                        disabled={(formData.technologyOptions || []).length <= 1}
+                                        onClick={() => {
+                                            const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
+                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             ))}
+                            <button
+                                type="button"
+                                className="px-3 py-2 border border-gray-300 rounded-lg"
+                                onClick={() => {
+                                    const next = [...(formData.technologyOptions || []), createTechnologyOption()]
+                                    setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                }}
+                            >
+                                Add Technology Option
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -646,7 +705,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
@@ -673,7 +732,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) => setFormData({ ...formData, seasonId: value as number })}
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             emptyMessage="No seasons available"
@@ -682,7 +741,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <MasterDataDropdown
                             label="Sector"
                             required
-                            value={formData.sectorId || ''}
+                            value={formData.sectorId ?? ''}
                             onChange={(value) => {
                                 setFormData({
                                     ...formData,
@@ -746,7 +805,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Category"
                             required
-                            value={formData.categoryId || ''}
+                            value={formData.categoryId ?? ''}
                             onChange={(value) => {
                                 setFormData({
                                     ...formData,
@@ -770,7 +829,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Sub Category"
                             required
-                            value={formData.subCategoryId || ''}
+                            value={formData.subCategoryId ?? ''}
                             onChange={(value) => {
                                 setFormData({
                                     ...formData,
@@ -794,7 +853,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <DependentDropdown
                             label="Crop"
                             required
-                            value={formData.cropId || ''}
+                            value={formData.cropId ?? ''}
                             onChange={(value) => {
                                 // Ensure value is a number (ID), not a string
                                 const numericValue = value === '' || value === null || value === undefined
@@ -828,28 +887,28 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         <FormInput
                             label="Name of Technology Demonstrated (FLD Name)"
                             required
-                            value={formData.technologyName || ''}
+                            value={formData.technologyName ?? ''}
                             onChange={(e) => setFormData({ ...formData, technologyName: e.target.value })}
                         />
                         <FormInput
                             label="No of demonstration"
                             required
                             type="number"
-                            value={formData.demoCount || ''}
+                            value={formData.demoCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoCount: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="Area(ha)"
                             required
                             type="number"
-                            value={formData.area || ''}
+                            value={formData.area ?? ''}
                             onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                         />
                     </div>
@@ -857,15 +916,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
                     </FormSection>
                 </div>
@@ -879,14 +938,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <DependentDropdown
                             label="FLD"
                             required
-                            value={formData.fldId || ''}
+                            value={formData.fldId ?? ''}
                             onChange={(value) => {
                                 const selectedFld = fldOptionsByKvkAndYear.find((f: any) => f.kvkFldId === value || f.id === value)
                                 setFormData({
@@ -902,19 +961,23 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId && selectedReportingYear ? `${activeKvkId}-${getYearValue(selectedReportingYear)}` : '',
+                                value: activeKvkId && selectedReportingYearNumber ? `${activeKvkId}-${selectedReportingYearNumber}` : '',
                                 field: 'kvkIdReportingYearId',
                             }}
                             onOptionsLoad={loadFldByKvkAndYear}
                             cacheKey="fld-by-kvk-year-extension-training"
-                            emptyMessage="No FLD available for selected KVK and year"
+                            emptyMessage={
+                                selectedReportingYearNumber
+                                    ? `No FLD available for reporting year ${selectedReportingYearNumber}`
+                                    : 'Select reporting year to load FLD'
+                            }
                             loadingMessage="Loading FLD..."
                         />
 
                         <MasterDataDropdown
                             label="Activity"
                             required
-                            value={formData.activityId || ''}
+                            value={formData.activityId ?? ''}
                             onChange={(value) => {
                                 const selectedActivity = activityList.find((a: any) => a.activityId === value)
                                 setFormData({
@@ -958,15 +1021,15 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
                     <FormSection title="Participants">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M*" required type="number" value={formData.gen_m || formData.generalM || ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value, generalM: e.target.value })} />
-                            <FormInput label="General_F*" required type="number" value={formData.gen_f || formData.generalF || ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value, generalF: e.target.value })} />
-                            <FormInput label="OBC_M*" required type="number" value={formData.obc_m || formData.obcM || ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value, obcM: e.target.value })} />
-                            <FormInput label="OBC_F*" required type="number" value={formData.obc_f || formData.obcF || ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value, obcF: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={(formData.gen_m ?? formData.generalM) ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value, generalM: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={(formData.gen_f ?? formData.generalF) ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value, generalF: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={(formData.obc_m ?? formData.obcM) ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={(formData.obc_f ?? formData.obcF) ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value, obcF: e.target.value })} />
 
-                            <FormInput label="SC_M*" required type="number" value={formData.sc_m || formData.scM || ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value, scM: e.target.value })} />
-                            <FormInput label="SC_F*" required type="number" value={formData.sc_f || formData.scF || ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value, scF: e.target.value })} />
-                            <FormInput label="ST_M*" required type="number" value={formData.st_m || formData.stM || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value, stM: e.target.value })} />
-                            <FormInput label="ST_F*" required type="number" value={formData.st_f || formData.stF || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value, stF: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={(formData.sc_m ?? formData.scM) ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value, scM: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={(formData.sc_f ?? formData.scF) ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value, scF: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={(formData.st_m ?? formData.stM) ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value, stM: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={(formData.st_f ?? formData.stF) ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value, stF: e.target.value })} />
                         </div>
                     </FormSection>
                 </div>
@@ -980,14 +1043,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <DependentDropdown
                             label="FLD"
                             required
-                            value={formData.fldId || ''}
+                            value={formData.fldId ?? ''}
                             onChange={(value) => {
                                 const selectedFld = fldOptionsByKvkAndYear.find((f: any) => f.kvkFldId === value || f.id === value)
                                 setFormData({
@@ -1001,19 +1064,23 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 label: f.fldName || f.technologyName || `FLD ${f.kvkFldId || f.id}`
                             }))}
                             dependsOn={{
-                                value: activeKvkId && selectedReportingYear ? `${activeKvkId}-${getYearValue(selectedReportingYear)}` : '',
+                                value: activeKvkId && selectedReportingYearNumber ? `${activeKvkId}-${selectedReportingYearNumber}` : '',
                                 field: 'kvkIdReportingYearId',
                             }}
                             onOptionsLoad={loadFldByKvkAndYear}
                             cacheKey="fld-by-kvk-year-technical-feedback"
-                            emptyMessage="No FLD available for selected KVK and year"
+                            emptyMessage={
+                                selectedReportingYearNumber
+                                    ? `No FLD available for reporting year ${selectedReportingYearNumber}`
+                                    : 'Select reporting year to load FLD'
+                            }
                             loadingMessage="Loading FLD..."
                         />
 
                         <DependentDropdown
                             label="Crop"
                             required
-                            value={formData.cropId || ''}
+                            value={formData.cropId ?? ''}
                             onChange={(value) => {
                                 const selectedCrop = cropOptionsForSelectedFld.find((c: any) => Number(c.value) === Number(value))
                                 setFormData({

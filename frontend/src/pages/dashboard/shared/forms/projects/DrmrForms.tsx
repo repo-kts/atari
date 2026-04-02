@@ -1,8 +1,6 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
-import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
-import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface DrmrFormsProps {
     entityType: string
@@ -81,6 +79,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
     formData,
     setFormData,
 }) => {
+    const todayYmd = new Date().toISOString().slice(0, 10)
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS && (
@@ -90,88 +89,88 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Varieties/Technology Demonstrated in Improved Practice"
                             required
-                            value={formData.varietiesTechImproved || ''}
+                            value={formData.varietiesTechImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, varietiesTechImproved: e.target.value })}
                         />
                         <FormInput
                             label="Situations (Irrigated/Rainfed)"
                             required
-                            value={formData.situations || ''}
+                            value={formData.situations ?? ''}
                             onChange={(e) => setFormData({ ...formData, situations: e.target.value })}
                         />
                         <FormInput
                             label="Varieties used in Farmer Practise"
                             required
-                            value={formData.varietiesFarmerPractise || ''}
+                            value={formData.varietiesFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, varietiesFarmerPractise: e.target.value })}
                         />
                         <FormInput
                             label="Yield Improved Practice(Kg/ha)"
                             required
                             type="number"
-                            value={formData.yieldImproved || ''}
+                            value={formData.yieldImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, yieldImproved: e.target.value })}
                         />
                         <FormInput
                             label="Yield Farmer Practise(Kg/ha)"
                             required
                             type="number"
-                            value={formData.yieldFarmerPractise || ''}
+                            value={formData.yieldFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, yieldFarmerPractise: e.target.value })}
                         />
                         <FormInput
                             label="Yield Increase(%)"
                             required
                             type="number"
-                            value={formData.yieldIncreasePercent || ''}
+                            value={formData.yieldIncreasePercent ?? ''}
                             onChange={(e) => setFormData({ ...formData, yieldIncreasePercent: e.target.value })}
                         />
                         <FormInput
                             label="Cost of Cultivation Improved Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.costImproved || ''}
+                            value={formData.costImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, costImproved: e.target.value })}
                         />
                         <FormInput
                             label="Cost of Cultivation Farmer Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.costFarmerPractise || ''}
+                            value={formData.costFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, costFarmerPractise: e.target.value })}
                         />
                         <FormInput
                             label="Gross Return Improved Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.grossReturnImproved || ''}
+                            value={formData.grossReturnImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, grossReturnImproved: e.target.value })}
                         />
                         <FormInput
                             label="Gross Return Farmer Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.grossReturnFarmerPractise || ''}
+                            value={formData.grossReturnFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, grossReturnFarmerPractise: e.target.value })}
                         />
                         <FormInput
                             label="Net Return Improved Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.netReturnImproved || ''}
+                            value={formData.netReturnImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, netReturnImproved: e.target.value })}
                         />
                         <FormInput
                             label="Net Return Farmer Practice(Rs./ha)"
                             required
                             type="number"
-                            value={formData.netReturnFarmerPractise || ''}
+                            value={formData.netReturnFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, netReturnFarmerPractise: e.target.value })}
                         />
                         <FormInput
@@ -179,7 +178,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.bcRatioImproved || ''}
+                            value={formData.bcRatioImproved ?? ''}
                             onChange={(e) => setFormData({ ...formData, bcRatioImproved: e.target.value })}
                         />
                         <FormInput
@@ -187,7 +186,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.bcRatioFarmerPractise || ''}
+                            value={formData.bcRatioFarmerPractise ?? ''}
                             onChange={(e) => setFormData({ ...formData, bcRatioFarmerPractise: e.target.value })}
                         />
                     </div>
@@ -202,28 +201,31 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
                         <FormInput
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
+                            min={formData.startDate || undefined}
+                            max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                         />
                         <FormInput
                             label="Total Budget Utilized"
                             required
                             type="number"
-                            value={formData.totalBudget || ''}
+                            value={formData.totalBudget ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalBudget: e.target.value })}
                         />
                     </div>
@@ -236,7 +238,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Days"
                                 required
                                 type="number"
-                                value={formData.training_count || ''}
+                                value={formData.training_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, training_count: e.target.value })}
                             />
                             <FormInput
@@ -257,7 +259,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Area under FLDs(Hectare)"
                                 required
-                                value={formData.fld_count || ''}
+                                value={formData.fld_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, fld_count: e.target.value })}
                             />
                             <FormInput
@@ -278,7 +280,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Names"
                                 required
-                                value={formData.awareness_count || ''}
+                                value={formData.awareness_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, awareness_count: e.target.value })}
                             />
                             <FormInput
@@ -305,7 +307,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.seeds_qty || ''}
+                                value={formData.seeds_qty ?? ''}
                                 onChange={(e) => setFormData({ ...formData, seeds_qty: e.target.value })}
                             />
                             <FormInput
@@ -327,7 +329,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.small_equip_qty || ''}
+                                value={formData.small_equip_qty ?? ''}
                                 onChange={(e) => setFormData({ ...formData, small_equip_qty: e.target.value })}
                             />
                             <FormInput
@@ -349,7 +351,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.large_equip_qty || ''}
+                                value={formData.large_equip_qty ?? ''}
                                 onChange={(e) => setFormData({ ...formData, large_equip_qty: e.target.value })}
                             />
                             <FormInput
@@ -371,7 +373,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.fertilizer_qty || ''}
+                                value={formData.fertilizer_qty ?? ''}
                                 onChange={(e) => setFormData({ ...formData, fertilizer_qty: e.target.value })}
                             />
                             <FormInput
@@ -393,7 +395,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Quantity"
                                 required
                                 type="number"
-                                value={formData.pp_chemicals_qty || ''}
+                                value={formData.pp_chemicals_qty ?? ''}
                                 onChange={(e) => setFormData({ ...formData, pp_chemicals_qty: e.target.value })}
                             />
                             <FormInput
@@ -415,7 +417,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Count"
                                 required
                                 type="number"
-                                value={formData.lecture_count || ''}
+                                value={formData.lecture_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, lecture_count: e.target.value })}
                             />
                             <FormInput
@@ -437,7 +439,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                                 label="Count"
                                 required
                                 type="number"
-                                value={formData.kisan_mela_count || ''}
+                                value={formData.kisan_mela_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, kisan_mela_count: e.target.value })}
                             />
                             <FormInput
@@ -458,7 +460,7 @@ export const DrmrForms: React.FC<DrmrFormsProps> = ({
                             <FormInput
                                 label="Specification"
                                 required
-                                value={formData.any_other_count || ''}
+                                value={formData.any_other_count ?? ''}
                                 onChange={(e) => setFormData({ ...formData, any_other_count: e.target.value })}
                             />
                             <FormInput

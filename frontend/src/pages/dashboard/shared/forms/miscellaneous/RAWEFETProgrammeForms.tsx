@@ -67,6 +67,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
     )
 
     if (!entityType) return null
+    const todayYmd = new Date().toISOString().slice(0, 10)
 
     return (
         <div className="space-y-4">
@@ -78,6 +79,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ''}
+                            max={todayYmd}
                             onChange={handleDateChange('startDate')}
                         />
 
@@ -86,6 +88,8 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             required
                             type="date"
                             value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
+                            min={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : undefined}
+                            max={todayYmd}
                             onChange={handleDateChange('endDate')}
                         />
                     </div>
@@ -153,7 +157,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             label="No. of Male"
                             required
                             type="number"
-                            value={formData.maleStudents || ''}
+                            value={formData.maleStudents ?? ''}
                             onChange={handleNumberChange('maleStudents')}
                             placeholder="0"
                         />
@@ -162,7 +166,7 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             label="No. of Female"
                             required
                             type="number"
-                            value={formData.femaleStudents || ''}
+                            value={formData.femaleStudents ?? ''}
                             onChange={handleNumberChange('femaleStudents')}
                             placeholder="0"
                         />
