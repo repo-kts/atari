@@ -49,6 +49,7 @@ model Kvk {
   bankAccounts                  KvkBankAccount[]
   kvkBudgetUtilizations         KvkBudgetUtilization[]
   equipments                    KvkEquipment[]
+  equipmentDetails              KvkEquipmentDetail[]
   kvkExtensionActivities        KvkExtensionActivity[]
   farmImplements                KvkFarmImplement[]
   kvkFldIntroductions           KvkFldIntroduction[]
@@ -66,6 +67,7 @@ model Kvk {
   originalStaff                 KvkStaff[]                     @relation("OriginalKvk")
   kvkTechnologyWeekCelebrations KvkTechnologyWeekCelebration[]
   vehicles                      KvkVehicle[]
+  vehicleDetails                KvkVehicleDetail[]
   worldSoilCelebrations         KkvWorldSoilCelebration[]
   nicraBasicInfo                NicraBasicInfo[]
   nicraDetails                  NicraDetails[]

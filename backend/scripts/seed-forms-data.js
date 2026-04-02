@@ -41,11 +41,6 @@ const generateVehicleData = (kvkId, index) => {
     registrationNo: `BR${Math.floor(Math.random() * 100)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 10000)}`,
     yearOfPurchase: year,
     totalCost: Math.floor(Math.random() * 500000) + 200000, // 200k-700k
-    totalRun: `${Math.floor(Math.random() * 50000) + 10000} km`,
-    presentStatus: ['WORKING', 'GOOD_CONDITION', 'NEW'][Math.floor(Math.random() * 3)],
-    reportingYear: new Date('2024-01-01'),
-    sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds'][Math.floor(Math.random() * 3)],
-    repairingCost: Math.random() > 0.5 ? Math.floor(Math.random() * 50000) + 5000 : null,
   };
 };
 
@@ -62,9 +57,7 @@ const generateEquipmentData = (kvkId, index) => {
     equipmentName,
     yearOfPurchase: year,
     totalCost: Math.floor(Math.random() * 200000) + 10000, // 10k-210k
-    presentStatus: ['WORKING', 'NOT_WORKING', 'CONDEMED', 'AUCTION'][Math.floor(Math.random() * 4)],
     sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds', 'Donation'][Math.floor(Math.random() * 4)],
-    reportingYear: new Date('2024-01-01'),
     type: 'EQUIPMENT',
   };
 };

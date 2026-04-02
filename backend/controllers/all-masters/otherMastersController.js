@@ -367,3 +367,15 @@ exports.getFundingAgencyById = getById('funding-agency');
 exports.createFundingAgency = create('funding-agency');
 exports.updateFundingAgency = update('funding-agency');
 exports.deleteFundingAgency = deleteEntity('funding-agency');
+
+exports.getAllVehiclePresentStatuses = getAll('vehicle-present-status');
+exports.getVehiclePresentStatusById = getById('vehicle-present-status');
+exports.createVehiclePresentStatus = create('vehicle-present-status');
+exports.updateVehiclePresentStatus = update('vehicle-present-status');
+exports.deleteVehiclePresentStatus = deleteEntity('vehicle-present-status');
+
+exports.getAllEquipmentPresentStatuses = getAll('equipment-present-status');
+exports.getEquipmentPresentStatusById = getById('equipment-present-status');
+exports.createEquipmentPresentStatus = create('equipment-present-status');
+exports.updateEquipmentPresentStatus = update('equipment-present-status');
+exports.deleteEquipmentPresentStatus = deleteEntity('equipment-present-status');

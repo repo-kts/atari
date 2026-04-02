@@ -30,66 +30,66 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Name of the project implementing centre (PIC)"
                             required
-                            value={formData.projectImplementingCentre || ''}
+                            value={formData.projectImplementingCentre ?? ''}
                             onChange={(e) => setFormData({ ...formData, projectImplementingCentre: e.target.value })}
                         />
                         <FormInput
                             label="No. of Agri Drones Sanctioned"
                             required
                             type="number"
-                            value={formData.dronesSanctioned || ''}
+                            value={formData.dronesSanctioned ?? ''}
                             onChange={(e) => setFormData({ ...formData, dronesSanctioned: e.target.value })}
                         />
                         <FormInput
                             label="No. of Agri Drones Purchased"
                             required
                             type="number"
-                            value={formData.dronesPurchased || ''}
+                            value={formData.dronesPurchased ?? ''}
                             onChange={(e) => setFormData({ ...formData, dronesPurchased: e.target.value })}
                         />
                         <FormInput
                             label="Amount sanctioned (Rs)"
                             required
                             type="number"
-                            value={formData.amountSanctioned || ''}
+                            value={formData.amountSanctioned ?? ''}
                             onChange={(e) => setFormData({ ...formData, amountSanctioned: e.target.value })}
                         />
                         <FormInput
                             label="Purchased cost of each Drone (Rs.)"
                             required
                             type="number"
-                            value={formData.costPerDrone || ''}
+                            value={formData.costPerDrone ?? ''}
                             onChange={(e) => setFormData({ ...formData, costPerDrone: e.target.value })}
                         />
                         <FormInput
                             label="Company of Drone"
                             required
-                            value={formData.droneCompany || ''}
+                            value={formData.droneCompany ?? ''}
                             onChange={(e) => setFormData({ ...formData, droneCompany: e.target.value })}
                         />
                         <FormInput
                             label="Model of Drone"
                             required
-                            value={formData.droneModel || ''}
+                            value={formData.droneModel ?? ''}
                             onChange={(e) => setFormData({ ...formData, droneModel: e.target.value })}
                         />
                         <FormInput
                             label="Name Agri Drone Pilot"
                             required
-                            value={formData.pilotName || ''}
+                            value={formData.pilotName ?? ''}
                             onChange={(e) => setFormData({ ...formData, pilotName: e.target.value })}
                         />
                         <FormInput
                             label="Contact No of Agri Drone Pilot"
                             required
                             placeholder="Mobile number"
-                            value={formData.pilotContact || ''}
+                            value={formData.pilotContact ?? ''}
                             onChange={(e) => setFormData({ ...formData, pilotContact: e.target.value })}
                         />
                     </div>
@@ -99,7 +99,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Target Area for Agri Drone Demonstration (ha) (1 demo = 1 ha area)"
                             required
                             type="number"
-                            value={formData.targetAreaHa || ''}
+                            value={formData.targetAreaHa ?? ''}
                             onChange={(e) => setFormData({ ...formData, targetAreaHa: e.target.value })}
                         />
                     </div>
@@ -109,14 +109,14 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Amount sanctioned for Agri Drone Demonstrations (Rs.)"
                             required
                             type="number"
-                            value={formData.demoAmountSanctioned || ''}
+                            value={formData.demoAmountSanctioned ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoAmountSanctioned: e.target.value })}
                         />
                         <FormInput
                             label="Amount utilised for Agri Drone Demonstrations (Rs.)"
                             required
                             type="number"
-                            value={formData.demoAmountUtilised || ''}
+                            value={formData.demoAmountUtilised ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoAmountUtilised: e.target.value })}
                         />
                     </div>
@@ -125,14 +125,14 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormTextArea
                             label="Operation carried out (Pesticide/Weedicide/Nutrient application) in demonstration organised"
                             required
-                            value={formData.operationType || ''}
+                            value={formData.operationType ?? ''}
                             onChange={(e) => setFormData({ ...formData, operationType: e.target.value })}
                             rows={3}
                         />
                         <FormTextArea
                             label="Advantages of using Agri Drones as observed during the demonstrations"
                             required
-                            value={formData.advantagesObserved || ''}
+                            value={formData.advantagesObserved ?? ''}
                             onChange={(e) => setFormData({ ...formData, advantagesObserved: e.target.value })}
                             rows={3}
                         />
@@ -147,14 +147,14 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
 
                         <MasterDataDropdown
                             label="Demonstrations on"
                             required
-                            value={formData.demonstrationsOnId || ''}
+                            value={formData.demonstrationsOnId ?? ''}
                             onChange={(value) => setFormData({ ...formData, demonstrationsOnId: value })}
                             options={createMasterDataOptions(
                                 demonstrationsOnMasters,
@@ -167,7 +167,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormSelect
                             label="Name of the project implementing centre (PIC)"
                             required
-                            value={formData.agriDroneId || ''}
+                            value={formData.agriDroneId ?? ''}
                             onChange={(e) => {
                                 const selectedId = parseInt(e.target.value)
                                 if (!Number.isFinite(selectedId)) {
@@ -201,7 +201,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormSelect
                             label="Name of district"
                             required
-                            value={formData.districtId || ''}
+                            value={formData.districtId ?? ''}
                             onChange={(e) => setFormData({ ...formData, districtId: parseInt(e.target.value) })}
                             options={districts.map((d: any) => ({
                                 value: d.id || d.districtId,
@@ -232,7 +232,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormInput
                             label="Crop Name"
                             required
-                            value={formData.cropName || ''}
+                            value={formData.cropName ?? ''}
                             onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
                         />
 
@@ -240,7 +240,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="No. of demos"
                             required
                             type="number"
-                            value={formData.noOfDemos || ''}
+                            value={formData.noOfDemos ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfDemos: e.target.value })}
                         />
 
@@ -248,7 +248,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                             label="Area covered under demos (area in ha)"
                             required
                             type="number"
-                            value={formData.areaCoveredUnderDemos || ''}
+                            value={formData.areaCoveredUnderDemos ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaCoveredUnderDemos: e.target.value })}
                         />
 
@@ -264,14 +264,14 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput label="General_M" required type="number" value={formData.generalM || ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
-                        <FormInput label="General_F" required type="number" value={formData.generalF || ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
-                        <FormInput label="OBC_M" required type="number" value={formData.obcM || ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
-                        <FormInput label="OBC_F" required type="number" value={formData.obcF || ''} onChange={(e) => setFormData({ ...formData, obcF: e.target.value })} />
-                        <FormInput label="SC_M" required type="number" value={formData.scM || ''} onChange={(e) => setFormData({ ...formData, scM: e.target.value })} />
-                        <FormInput label="SC_F" required type="number" value={formData.scF || ''} onChange={(e) => setFormData({ ...formData, scF: e.target.value })} />
-                        <FormInput label="ST_M" required type="number" value={formData.stM || ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
-                        <FormInput label="ST_F" required type="number" value={formData.stF || ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
+                        <FormInput label="General_M" required type="number" value={formData.generalM ?? ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
+                        <FormInput label="General_F" required type="number" value={formData.generalF ?? ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
+                        <FormInput label="OBC_M" required type="number" value={formData.obcM ?? ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
+                        <FormInput label="OBC_F" required type="number" value={formData.obcF ?? ''} onChange={(e) => setFormData({ ...formData, obcF: e.target.value })} />
+                        <FormInput label="SC_M" required type="number" value={formData.scM ?? ''} onChange={(e) => setFormData({ ...formData, scM: e.target.value })} />
+                        <FormInput label="SC_F" required type="number" value={formData.scF ?? ''} onChange={(e) => setFormData({ ...formData, scF: e.target.value })} />
+                        <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
+                        <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                     </div>
                 </div>
             )}

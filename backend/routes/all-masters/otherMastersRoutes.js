@@ -268,4 +268,16 @@ router.post('/funding-agency', requirePermission('all_masters_funding_agency_mas
 router.put('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'EDIT'), otherMastersController.updateFundingAgency);
 router.delete('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'DELETE'), otherMastersController.deleteFundingAgency);
 
+router.get('/vehicle-present-status', otherMastersController.getAllVehiclePresentStatuses);
+router.get('/vehicle-present-status/:id', otherMastersController.getVehiclePresentStatusById);
+router.post('/vehicle-present-status', requirePermission('all_masters_vehicle_present_status_master', 'ADD'), otherMastersController.createVehiclePresentStatus);
+router.put('/vehicle-present-status/:id', requirePermission('all_masters_vehicle_present_status_master', 'EDIT'), otherMastersController.updateVehiclePresentStatus);
+router.delete('/vehicle-present-status/:id', requirePermission('all_masters_vehicle_present_status_master', 'DELETE'), otherMastersController.deleteVehiclePresentStatus);
+
+router.get('/equipment-present-status', otherMastersController.getAllEquipmentPresentStatuses);
+router.get('/equipment-present-status/:id', otherMastersController.getEquipmentPresentStatusById);
+router.post('/equipment-present-status', requirePermission('all_masters_equipment_present_status_master', 'ADD'), otherMastersController.createEquipmentPresentStatus);
+router.put('/equipment-present-status/:id', requirePermission('all_masters_equipment_present_status_master', 'EDIT'), otherMastersController.updateEquipmentPresentStatus);
+router.delete('/equipment-present-status/:id', requirePermission('all_masters_equipment_present_status_master', 'DELETE'), otherMastersController.deleteEquipmentPresentStatus);
+
 module.exports = router;

@@ -50,6 +50,8 @@ export const ENTITY_TYPES = {
     CROP_TYPE: 'crop-type',
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
+    VEHICLE_PRESENT_STATUS: 'vehicle-present-status',
+    EQUIPMENT_PRESENT_STATUS: 'equipment-present-status',
 
     // NARI Masters
     NARI_ACTIVITY: 'nari-activity',
@@ -327,6 +329,8 @@ export const ENTITY_PATHS = {
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
     SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',
+    VEHICLE_PRESENT_STATUS: '/all-master/vehicle-present-status',
+    EQUIPMENT_PRESENT_STATUS: '/all-master/equipment-present-status',
     NARI_ACTIVITY: '/all-master/nari-activity',
     NARI_CROP_CATEGORY: '/all-master/nari-crop-category',
     NARI_NUTRITION_GARDEN_TYPE: '/all-master/nari-nutrition-garden-type',

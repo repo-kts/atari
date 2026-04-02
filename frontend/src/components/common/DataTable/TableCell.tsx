@@ -70,7 +70,7 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
 
     // OFT status field (ONGOING / COMPLETED / TRANSFERRED_TO_NEXT_YEAR)
     if (isOftStatusField) {
-        const rawStatus = String(value || item.status || item.ongoingCompleted || '').toUpperCase().trim()
+        const rawStatus = String(value ?? item.status ?? item.ongoingCompleted ?? '').toUpperCase().trim()
         const labelMap: Record<string, string> = {
             ONGOING: 'Ongoing',
             COMPLETED: 'Completed',
@@ -91,7 +91,7 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
 
     // Account type field (KVK / REVOLVING_FUND / OTHER)
     if (isAccountTypeField) {
-        const rawType = String(value || item.accountType || item.account_type || '').toUpperCase().trim()
+        const rawType = String(value ?? item.accountType ?? item.account_type ?? '').toUpperCase().trim()
         if (!rawType) return <span>-</span>
 
         const labelMap: Record<string, string> = {
@@ -117,6 +117,11 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         return <span>{JSON.stringify(value)}</span>
     }
 
+    // Boolean field
+    if (typeof value === 'boolean') {
+        return <span>{value ? 'Yes' : 'No'}</span>
+    }
+
     // Default: text value
     if (typeof value === 'string' || typeof value === 'number') {
         const full = String(value)
@@ -124,5 +129,5 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
         return <span title={full}>{short || '-'}</span>
     }
 
-    return <span>{value || '-'}</span>
+    return <span>{value ?? '-'}</span>
 }

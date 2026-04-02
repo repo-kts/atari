@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { aboutKvkApi } from '@/services/aboutKvkApi';
+import { otherMastersApi } from '@/services/otherMastersApi';
 import { useAuth } from '@/contexts/AuthContext';
 import type {
     KvkFormData,
@@ -538,11 +539,11 @@ export function useInfraMasters() {
 }
 
 // Fetch Vehicles for dropdown (for vehicle details form)
-export function useKvkVehiclesForDropdown(kvkId?: number) {
+export function useKvkVehiclesForDropdown(kvkId?: number, reportingYear?: string) {
     return useQuery({
-        queryKey: ['kvk-vehicles-dropdown', kvkId],
+        queryKey: ['kvk-vehicles-dropdown', kvkId, reportingYear],
         queryFn: async () => {
-            const response = await aboutKvkApi.getVehiclesDropdown(kvkId);
+            const response = await aboutKvkApi.getVehiclesDropdown(kvkId, reportingYear);
             return response.data || []
         },
         enabled: !!kvkId,
@@ -551,11 +552,11 @@ export function useKvkVehiclesForDropdown(kvkId?: number) {
 }
 
 // Fetch Equipments for dropdown (for equipment details form)
-export function useKvkEquipmentsForDropdown(kvkId?: number) {
+export function useKvkEquipmentsForDropdown(kvkId?: number, reportingYear?: string) {
     return useQuery({
-        queryKey: ['kvk-equipments-dropdown', kvkId],
+        queryKey: ['kvk-equipments-dropdown', kvkId, reportingYear],
         queryFn: async () => {
-            const response = await aboutKvkApi.getEquipmentsDropdown(kvkId);
+            const response = await aboutKvkApi.getEquipmentsDropdown(kvkId, reportingYear);
             return response.data || []
         },
         enabled: !!kvkId,
@@ -612,17 +613,26 @@ export const StaffCategoryEnum = {
     GENERAL: 'General'
 }
 
-export const VehiclePresentStatusEnum = {
-    WORKING: 'Working',
-    GOOD_CONDITION: 'Good Condition',
-    NEW: 'New'
+export function useVehiclePresentStatuses() {
+    return useQuery({
+        queryKey: ['vehicle-present-statuses-dropdown'],
+        queryFn: async () => {
+            const response = await otherMastersApi.getVehiclePresentStatuses();
+            return (response.data || []).filter((status: any) => status.isActive !== false);
+        },
+        staleTime: 5 * 60 * 1000,
+    });
 }
 
-export const EquipmentPresentStatusEnum = {
-    WORKING: 'Working',
-    NOT_WORKING: 'Not Working',
-    CONDEMED: 'Condemned',
-    AUCTION: 'Auction'
+export function useEquipmentPresentStatuses() {
+    return useQuery({
+        queryKey: ['equipment-present-statuses-dropdown'],
+        queryFn: async () => {
+            const response = await otherMastersApi.getEquipmentPresentStatuses();
+            return (response.data || []).filter((status: any) => status.isActive !== false);
+        },
+        staleTime: 5 * 60 * 1000,
+    });
 }
 
 export const ImplementPresentStatusEnum = {

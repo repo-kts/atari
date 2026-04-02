@@ -184,7 +184,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -194,25 +194,25 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <FormInput
                             label="Name of the Award"
                             required
-                            value={formData.awardName || ''}
+                            value={formData.awardName ?? ''}
                             onChange={handleAwardNameChange}
                         />
                         <FormInput
                             label="Amount"
                             required
-                            value={formData.amount || ''}
+                            value={formData.amount ?? ''}
                             onChange={handleAmountChange}
                         />
                         <FormInput
                             label="Achievement"
                             required
-                            value={formData.achievement || ''}
+                            value={formData.achievement ?? ''}
                             onChange={handleAchievementChange}
                         />
                         <FormInput
                             label="Conferring Authority"
                             required
-                            value={formData.conferringAuthority || ''}
+                            value={formData.conferringAuthority ?? ''}
                             onChange={handleConferringAuthorityChange}
                             className="md:col-span-2"
                         />
@@ -228,7 +228,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -249,25 +249,25 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <FormInput
                             label="Name of the Award"
                             required
-                            value={formData.awardName || ''}
+                            value={formData.awardName ?? ''}
                             onChange={handleAwardNameChange}
                         />
                         <FormInput
                             label="Amount"
                             required
-                            value={formData.amount || ''}
+                            value={formData.amount ?? ''}
                             onChange={handleAmountChange}
                         />
                         <FormInput
                             label="Achievement"
                             required
-                            value={formData.achievement || ''}
+                            value={formData.achievement ?? ''}
                             onChange={handleAchievementChange}
                         />
                         <FormInput
                             label="Conferring Authority"
                             required
-                            value={formData.conferringAuthority || ''}
+                            value={formData.conferringAuthority ?? ''}
                             onChange={handleConferringAuthorityChange}
                         />
                     </div>
@@ -282,7 +282,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -292,43 +292,43 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                         <FormInput
                             label="Name of the Award"
                             required
-                            value={formData.awardName || ''}
+                            value={formData.awardName ?? ''}
                             onChange={handleAwardNameChange}
                         />
                         <FormInput
                             label="Name of the Farmer"
                             required
-                            value={formData.farmerName || ''}
+                            value={formData.farmerName ?? ''}
                             onChange={handleFarmerNameChange}
                         />
                         <FormInput
                             label="Address"
                             required
-                            value={formData.address || ''}
+                            value={formData.address ?? ''}
                             onChange={handleAddressChange}
                         />
                         <FormInput
                             label="Contact No."
                             required
-                            value={formData.contactNo || ''}
+                            value={formData.contactNo ?? ''}
                             onChange={handleContactNoChange}
                         />
                         <FormInput
                             label="Amount"
                             required
-                            value={formData.amount || ''}
+                            value={formData.amount ?? ''}
                             onChange={handleAmountChange}
                         />
                         <FormInput
                             label="Achievement"
                             required
-                            value={formData.achievement || ''}
+                            value={formData.achievement ?? ''}
                             onChange={handleAchievementChange}
                         />
                         <FormInput
                             label="Conferring Authority"
                             required
-                            value={formData.conferringAuthority || ''}
+                            value={formData.conferringAuthority ?? ''}
                             onChange={handleConferringAuthorityChange}
                         />
                         <div className="md:col-span-2 space-y-4">

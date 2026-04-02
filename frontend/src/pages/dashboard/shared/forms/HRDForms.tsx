@@ -118,7 +118,7 @@ export const HRDForms: React.FC<HRDProps> = ({
                         <FormInput
                             label="Course Name"
                             required
-                            value={formData.courseName || ''}
+                            value={formData.courseName ?? ''}
                             onChange={handleCourseNameChange}
                         />
                     </div>
@@ -142,7 +142,7 @@ export const HRDForms: React.FC<HRDProps> = ({
                         <FormInput
                             label="Organizer/Venue"
                             required
-                            value={formData.organizerVenue || ''}
+                            value={formData.organizerVenue ?? ''}
                             onChange={handleOrganizerVenueChange}
                         />
                     </div>

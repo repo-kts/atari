@@ -63,13 +63,13 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <MasterDataDropdown
                             label="Season"
                             required
-                            value={formData.seasonId || ''}
+                            value={formData.seasonId ?? ''}
                             onChange={(value) =>
                                 setFormData({
                                     ...formData,
@@ -85,13 +85,13 @@ export const CraForms: React.FC<CraFormsProps> = ({
                         <FormInput
                             label="Technology demonstrated/ interventions"
                             required
-                            value={formData.interventions || ''}
+                            value={formData.interventions ?? ''}
                             onChange={(e) => setFormData({ ...formData, interventions: e.target.value })}
                         />
                         <DependentDropdown
                             label="Croping system"
                             required
-                            value={formData.croppingSystemId || ''}
+                            value={formData.croppingSystemId ?? ''}
                             options={[]}
                             dependsOn={{ value: formData.seasonId || '', field: 'seasonId' }}
                             isLoading={croppingSystemsLoading}
@@ -125,7 +125,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                         <MasterDataDropdown
                             label="Farming System crop under demonstration"
                             required
-                            value={formData.farmingSystemId || ''}
+                            value={formData.farmingSystemId ?? ''}
                             onChange={(value) => setFormData({ ...formData, farmingSystemId: value })}
                             isLoading={farmingSystemsLoading}
                             options={createMasterDataOptions(
@@ -141,22 +141,22 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.areaInAcre || ''}
+                            value={formData.areaInAcre ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaInAcre: e.target.value })}
                         />
                     </div>
 
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.genM || ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.genF || ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obcM || ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obcF || ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.genM ?? ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.genF ?? ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obcM ?? ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obcF ?? ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.scM || ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.scF || ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.stM || ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.stF || ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.scM ?? ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.scF ?? ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
                     </FormSection>
 
@@ -166,7 +166,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.cropYield || ''}
+                            value={formData.cropYield ?? ''}
                             onChange={(e) => setFormData({ ...formData, cropYield: e.target.value })}
                         />
                         <FormInput
@@ -174,7 +174,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.systemProductivity || ''}
+                            value={formData.systemProductivity ?? ''}
                             onChange={(e) => setFormData({ ...formData, systemProductivity: e.target.value })}
                         />
                         <FormInput
@@ -182,7 +182,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.totalReturn || ''}
+                            value={formData.totalReturn ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalReturn: e.target.value })}
                         />
                         <FormInput
@@ -190,7 +190,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.farmerPracticeYield || ''}
+                            value={formData.farmerPracticeYield ?? ''}
                             onChange={(e) => setFormData({ ...formData, farmerPracticeYield: e.target.value })}
                         />
                     </div>
@@ -203,7 +203,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                         <FormSelect
                             label="Extension Activity"
                             required
-                            value={formData.extensionActivityId || ''}
+                            value={formData.extensionActivityId ?? ''}
                             onChange={(e) => setFormData({ ...formData, extensionActivityId: parseInt(e.target.value) })}
                             options={extensionActivityTypes.map((ext: any) => ({ value: ext.activityId, label: ext.activityName }))}
                         />
@@ -211,7 +211,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate || ''}
+                            value={formData.startDate ?? ''}
                             max={todayYmd}
                             onChange={(e) => {
                                 const nextStartDate = e.target.value
@@ -232,7 +232,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.endDate ?? ''}
                             min={formData.startDate || undefined}
                             max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
@@ -241,15 +241,15 @@ export const CraForms: React.FC<CraFormsProps> = ({
 
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.genM || ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.genF || ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obcM || ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obcF || ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
+                            <FormInput label="General_M" required type="number" value={formData.genM ?? ''} onChange={e => setFormData({ ...formData, genM: e.target.value })} />
+                            <FormInput label="General_F" required type="number" value={formData.genF ?? ''} onChange={e => setFormData({ ...formData, genF: e.target.value })} />
+                            <FormInput label="OBC_M" required type="number" value={formData.obcM ?? ''} onChange={e => setFormData({ ...formData, obcM: e.target.value })} />
+                            <FormInput label="OBC_F" required type="number" value={formData.obcF ?? ''} onChange={e => setFormData({ ...formData, obcF: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.scM || ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.scF || ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.stM || ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.stF || ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
+                            <FormInput label="SC_M" required type="number" value={formData.scM ?? ''} onChange={e => setFormData({ ...formData, scM: e.target.value })} />
+                            <FormInput label="SC_F" required type="number" value={formData.scF ?? ''} onChange={e => setFormData({ ...formData, scF: e.target.value })} />
+                            <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
+                            <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
                     </FormSection>
 
@@ -258,7 +258,7 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             label="Exposure visit (no.)"
                             required
                             type="number"
-                            value={formData.exposureVisit || ''}
+                            value={formData.exposureVisit ?? ''}
                             onChange={(e) => setFormData({ ...formData, exposureVisit: e.target.value })}
                         />
                     </div>

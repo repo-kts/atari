@@ -1,5 +1,5 @@
 import React from 'react'
-import { Calendar, IndianRupee, Users } from 'lucide-react'
+import { IndianRupee, Landmark, ShieldCheck, Sprout, TrendingUp, Users, Wrench } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
 const sections: FeatureSection[] = [
@@ -15,7 +15,7 @@ const sections: FeatureSection[] = [
     },
     {
         title: 'Calendar & Context Masters',
-        icon: <Calendar className="w-5 h-5" />,
+        icon: <Landmark className="w-5 h-5" />,
         items: [
             { label: 'Season Master', path: '/all-master/season' },
             { label: 'Crop Type Master', path: '/all-master/crop-type' },
@@ -24,15 +24,17 @@ const sections: FeatureSection[] = [
     },
     {
         title: 'Resource Masters',
-        icon: <Calendar className="w-5 h-5" />,
+        icon: <Wrench className="w-5 h-5" />,
         items: [
             { label: 'Infrastructure Master', path: '/all-master/infrastructure-master' },
             { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
+            { label: 'Vehicle Present Status Master', path: '/all-master/vehicle-present-status' },
+            { label: 'Equipment Present Status Master', path: '/all-master/equipment-present-status' },
         ],
     },
     {
         title: 'NARI Masters',
-        icon: <Calendar className="w-5 h-5" />,
+        icon: <Sprout className="w-5 h-5" />,
         items: [
             { label: 'NARI Activity Master', path: '/all-master/nari-activity' },
             { label: 'NARI Nutrition Garden Type Master', path: '/all-master/nari-nutrition-garden-type' },
@@ -41,7 +43,7 @@ const sections: FeatureSection[] = [
     },
     {
         title: 'NICRA Masters',
-        icon: <Calendar className="w-5 h-5" />,
+        icon: <ShieldCheck className="w-5 h-5" />,
         items: [
             { label: 'NICRA Category Master', path: '/all-master/nicra-category' },
             { label: 'NICRA Sub-category Master', path: '/all-master/nicra-sub-category' },
@@ -52,7 +54,7 @@ const sections: FeatureSection[] = [
     },
     {
         title: 'Performance Indicator Masters',
-        icon: <Calendar className="w-5 h-5" />,
+        icon: <TrendingUp className="w-5 h-5" />,
         items: [
             { label: 'Impact Specific Area Master', path: '/all-master/impact-specific-area' },
             { label: 'Type of Enterprise Master', path: '/all-master/enterprise-type' },

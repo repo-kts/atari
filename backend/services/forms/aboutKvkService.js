@@ -165,11 +165,6 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
-        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
-        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
-            finalData.totalRun = String(finalData.totalRun);
-        }
-
         return await aboutKvkRepository.create(entityName, finalData);
     }
 
@@ -201,11 +196,6 @@ class AboutKvkService {
 
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
-
-        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
-        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
-            finalData.totalRun = String(finalData.totalRun);
-        }
 
         return await aboutKvkRepository.update(entityName, id, finalData);
     }
@@ -355,10 +345,10 @@ class AboutKvkService {
             'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
-            'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
-            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'presentStatus'],
-            'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFunding'],
-            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'presentStatus'],
+            'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
+            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'vehicleStatusId'],
+            'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding'],
+            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'equipmentStatusId'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
         };
 
@@ -404,6 +394,20 @@ class AboutKvkService {
      */
     async getStaffForDropdown(kvkId) {
         return await aboutKvkRepository.getStaffForDropdown(kvkId);
+    }
+
+    async getVehiclesForDropdown(kvkId, reportingYear) {
+        if (!kvkId) {
+            throw new ValidationError('kvkId is required');
+        }
+        return aboutKvkRepository.getVehiclesForDropdown(kvkId, reportingYear);
+    }
+
+    async getEquipmentsForDropdown(kvkId, reportingYear) {
+        if (!kvkId) {
+            throw new ValidationError('kvkId is required');
+        }
+        return aboutKvkRepository.getEquipmentsForDropdown(kvkId, reportingYear);
     }
 
     /**

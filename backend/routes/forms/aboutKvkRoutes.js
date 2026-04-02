@@ -119,6 +119,8 @@ router.get('/disciplines', aboutKvkController.getAllDisciplines);
 router.get('/infra-masters', aboutKvkController.getAllInfraMasters);
 router.get('/kvks-dropdown', aboutKvkController.getAllKvksForDropdown);
 router.get('/staff-dropdown', aboutKvkController.getStaffForDropdown);
+router.get('/vehicles-dropdown', requirePermission('about_kvks_vehicle_details', 'VIEW'), aboutKvkController.getVehiclesForDropdown);
+router.get('/equipments-dropdown', requirePermission('about_kvks_equipment_details', 'VIEW'), aboutKvkController.getEquipmentsForDropdown);
 
 // ============================================
 // Transfer History & Export

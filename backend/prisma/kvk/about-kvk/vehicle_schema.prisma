@@ -5,23 +5,34 @@ model KvkVehicle {
   registrationNo  String               @map("registration_no")
   yearOfPurchase  Int                  @map("year_of_purchase")
   totalCost       Float                @map("total_cost")
-  totalRun        String               @map("total_run")
-  presentStatus   VehiclePresentStatus @map("present_status")
-  sourceOfFunding String?              @map("source_of_funding")
-  repairingCost   Float?               @map("repairing_cost")
   createdAt       DateTime             @default(now()) @map("created_at")
   updatedAt       DateTime             @updatedAt @map("updated_at")
-  reportingYear   DateTime?            @map("reporting_year")
   kvk             Kvk                  @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  vehicleDetails  KvkVehicleDetail[]
 
   @@index([kvkId])
   @@index([vehicleName])
-  @@index([reportingYear])
   @@map("kvk_vehicle")
 }
 
-enum VehiclePresentStatus {
-  WORKING
-  GOOD_CONDITION
-  NEW
+model KvkVehicleDetail {
+  vehicleDetailId  Int                        @id @default(autoincrement()) @map("vehicle_detail_id")
+  kvkId            Int
+  vehicleId        Int                        @map("vehicle_id")
+  reportingYear    DateTime                   @map("reporting_year")
+  totalRun         String                     @map("total_run")
+  repairingCost    Float?                     @map("repairing_cost")
+  sourceOfFunding  String?                    @map("source_of_funding")
+  vehicleStatusId  Int                        @map("vehicle_status_id")
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+  kvk              Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  vehicle          KvkVehicle                 @relation(fields: [vehicleId], references: [vehicleId], onDelete: Cascade)
+  vehicleStatus    VehiclePresentStatusMaster @relation(fields: [vehicleStatusId], references: [vehicleStatusId])
+
+  @@unique([vehicleId, reportingYear])
+  @@index([kvkId, reportingYear])
+  @@index([vehicleId, reportingYear])
+  @@index([vehicleStatusId])
+  @@map("kvk_vehicle_detail")
 }
