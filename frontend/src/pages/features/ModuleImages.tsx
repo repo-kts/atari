@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Plus, Search } from 'lucide-react'
+import { ChevronLeft, Plus, Search, X } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
@@ -83,6 +83,13 @@ function fileToDataUrl(file: File): Promise<string> {
   })
 }
 
+interface UploadImage {
+  id: string
+  file: File
+  previewBase64: string
+  caption: string
+}
+
 export const ModuleImages: React.FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -109,8 +116,7 @@ export const ModuleImages: React.FC = () => {
   // create form state
   const [createDate, setCreateDate] = useState('')
   const [createModuleId, setCreateModuleId] = useState('')
-  const [createCaption, setCreateCaption] = useState('')
-  const [createFile, setCreateFile] = useState<File | null>(null)
+  const [uploadImages, setUploadImages] = useState<UploadImage[]>([])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -142,6 +148,44 @@ export const ModuleImages: React.FC = () => {
   })
 
   const createMutation = useCreateModuleImage()
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const newImagesArr: UploadImage[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (file.size > 5 * 1024 * 1024) {
+        alert({ title: 'File Too Large', message: `File ${file.name} is larger than 5MB.`, variant: 'error' })
+        continue
+      }
+      try {
+        const b64 = await fileToDataUrl(file)
+        newImagesArr.push({
+          id: Math.random().toString(36).substring(7),
+          file,
+          previewBase64: b64,
+          caption: '',
+        })
+      } catch (err) {
+        console.error('Failed to read file', err)
+      }
+    }
+
+    setUploadImages((prev) => [...prev, ...newImagesArr])
+    e.target.value = ''
+  }
+
+  const removeUploadImage = (id: string) => {
+    setUploadImages((prev) => prev.filter((img) => img.id !== id))
+  }
+
+  const updateUploadCaption = (id: string, caption: string) => {
+    setUploadImages((prev) =>
+      prev.map((img) => (img.id === id ? { ...img, caption } : img))
+    )
+  }
 
   const rows = listResponse?.data ?? []
   const meta = listResponse?.meta ?? {
@@ -189,28 +233,25 @@ export const ModuleImages: React.FC = () => {
       alert({ title: 'Validation Error', message: 'Category is required', variant: 'error' })
       return
     }
-    if (!createCaption.trim()) {
-      alert({ title: 'Validation Error', message: 'Caption is required', variant: 'error' })
-      return
-    }
-    if (!createFile) {
-      alert({ title: 'Validation Error', message: 'Photograph is required', variant: 'error' })
+    if (uploadImages.length === 0) {
+      alert({ title: 'Validation Error', message: 'At least one photograph is required', variant: 'error' })
       return
     }
 
     try {
-      const imageBase64 = await fileToDataUrl(createFile)
-      await createMutation.mutateAsync({
-        imageDate: createDate,
-        moduleId: Number(createModuleId),
-        caption: createCaption.trim(),
-        imageBase64,
-        fileName: createFile.name,
-      })
+      for (const img of uploadImages) {
+        await createMutation.mutateAsync({
+          imageDate: createDate,
+          moduleId: Number(createModuleId),
+          caption: img.caption.trim(),
+          imageBase64: img.previewBase64,
+          fileName: img.file.name,
+        })
+      }
 
       alert({
         title: 'Upload Successful',
-        message: 'Photograph uploaded successfully',
+        message: 'Photographs uploaded successfully',
         variant: 'success',
         autoClose: true,
       })
@@ -218,7 +259,7 @@ export const ModuleImages: React.FC = () => {
     } catch (error) {
       alert({
         title: 'Upload Failed',
-        message: error instanceof Error ? error.message : 'Failed to upload photograph',
+        message: error instanceof Error ? error.message : 'Failed to upload photographs',
         variant: 'error',
       })
     }
@@ -285,28 +326,49 @@ export const ModuleImages: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-[#212121] mb-2">Caption *</label>
-                  <input
-                    type="text"
-                    value={createCaption}
-                    onChange={(e) => setCreateCaption(e.target.value)}
-                    className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
-                    placeholder="Enter caption"
-                    maxLength={1000}
-                    disabled={createMutation.isPending}
-                  />
-                </div>
-
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-[#212121] mb-2">Photograph *</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setCreateFile(e.target.files?.[0] || null)}
-                    className="w-full px-3 py-2 border border-[#E0E0E0] rounded-lg bg-white file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-[#F1F5EF] file:text-[#212121]"
-                    disabled={createMutation.isPending}
-                  />
+                  <div className="border border-[#7D9E77] rounded-xl overflow-hidden mb-6">
+                    <div className="p-4 bg-white border-b border-[#7D9E77]">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                        className="w-full text-[15px] text-[#212121] bg-transparent cursor-pointer"
+                        disabled={createMutation.isPending}
+                      />
+                    </div>
+                    <div className="bg-[#F8F9FA] p-3 text-[14px] text-[#5c6873]">
+                      Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)
+                    </div>
+                  </div>
+
+                  {uploadImages.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                      {uploadImages.map((img) => (
+                        <div key={img.id} className="bg-white border text-center border-[#E0E0E0] rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 mb-3 border border-[#E0E0E0]">
+                            <img src={img.previewBase64} alt="preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeUploadImage(img.id)}
+                              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Caption..."
+                            value={img.caption}
+                            onChange={(e) => updateUploadCaption(img.id, e.target.value)}
+                            className="w-full text-sm font-semibold border-none bg-transparent focus:outline-none focus:ring-0 placeholder:text-[#bdbdbd] placeholder:font-bold text-[#424242]"
+                            disabled={createMutation.isPending}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex justify-center">
@@ -535,11 +597,10 @@ export const ModuleImages: React.FC = () => {
                     <button
                       key={item}
                       onClick={() => setCurrentPage(item)}
-                      className={`px-3 py-1.5 text-sm border rounded-md ${
-                        item === meta.page
+                      className={`px-3 py-1.5 text-sm border rounded-md ${item === meta.page
                           ? 'bg-[#7D9E77] text-white border-[#7D9E77]'
                           : 'border-[#E0E0E0] hover:bg-[#F5F5F5]'
-                      }`}
+                        }`}
                     >
                       {item}
                     </button>

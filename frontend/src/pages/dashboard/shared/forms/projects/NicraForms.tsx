@@ -1045,18 +1045,18 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 value={formData.stMale || ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
-                            <FormInput
+                            {/* <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 value={formData.stFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
-                            />
+                            /> */}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {renderPhotoFields('photographs')}
-                    </div>
+                    </div> */}
                 </div>
             )}
 
