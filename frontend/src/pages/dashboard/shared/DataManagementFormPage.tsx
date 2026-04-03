@@ -52,15 +52,7 @@ export function DataManagementFormPage({
     onClose,
     isSaving = false,
 }: DataManagementFormPageProps) {
-    // Clear photo/file state when switching entity types to prevent data bleeding
-    useEffect(() => {
-        setFormData((prev: any) => ({
-            ...prev,
-            photographs: [],
-            uploadFile: null,
-            photographs_previews: []
-        }));
-    }, [entityType, setFormData]);
+
 
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault()
