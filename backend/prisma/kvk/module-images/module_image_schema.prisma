@@ -20,6 +20,8 @@ model ModuleImage {
   module            Module    @relation(fields: [moduleId], references: [moduleId], onDelete: Restrict)
   uploadedBy        User?     @relation(fields: [uploadedByUserId], references: [userId], onDelete: SetNull)
 
+  reportingYearDate DateTime? @map("reporting_year_date")
+
   @@index([kvkId, imageDate])
   @@index([kvkId, reportingYearDate])
   @@index([reportingYear, imageDate])

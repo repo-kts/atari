@@ -77,6 +77,45 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         }
     };
 
+    const renderGallery = (field: string) => {
+        if (!Array.isArray(formData[field]) || formData[field].length === 0) return null;
+
+        return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                {formData[field].map((item: any, idx: number) => {
+                    const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                    return (
+                        <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                            <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                <img
+                                    src={src}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                    alt={`P ${idx + 1}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removePhoto(field, idx)}
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                >
+                                    <X className="w-3 h-3 stroke-[2.5]" />
+                                </button>
+                            </div>
+                            <div className="space-y-1 mt-auto">
+                                <textarea
+                                    placeholder="Caption..."
+                                    className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                    value={item.caption || ''}
+                                    onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const renderPhotoFields = (field: string) => (
         <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
             <FormInput
@@ -88,60 +127,29 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                 onChange={handleFileChange(field)}
                 helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
             />
-
-            {Array.isArray(formData[field]) && formData[field].length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    {formData[field].map((item: any, idx: number) => {
-                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                        return (
-                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                    <img
-                                        src={src}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                        alt={`P ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removePhoto(field, idx)}
-                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                    >
-                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                    </button>
-                                </div>
-                                <div className="space-y-1 mt-auto">
-                                    <textarea
-                                        placeholder="Caption..."
-                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
-                                        value={item.caption || ''}
-                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+            {renderGallery(field)}
         </FormSection>
     );
 
-    // Both file pickers on ONE horizontal row — no gallery here, gallery is inlined per section
     const renderPhotoAndFileRow = (photoField: string, onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void) => (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormInput
-                label="Photographs"
-                required={!Array.isArray(formData[photoField]) || formData[photoField].length === 0}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange(photoField)}
-                helperText="Only images allowed. Multiple uploads supported. (Max 5MB per file)"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="space-y-2">
+                <FormInput
+                    label="Photographs"
+                    required={!Array.isArray(formData[photoField]) || formData[photoField].length === 0}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange(photoField)}
+                    helperText="Only images allowed. Multiple uploads supported. (Max 5MB per file)"
+                />
+                {renderGallery(photoField)}
+            </div>
             <FormInput
                 label="Upload File"
                 type="file"
                 onChange={onFileChange}
+                helperText="Upload supporting document (PDF, DOCX, etc.)"
             />
         </div>
     );
@@ -520,29 +528,6 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     {renderPhotoAndFileRow('photographs', (e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] }))}
-                    {Array.isArray(formData.photographs) && formData.photographs.length > 0 && (
-                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-4">
-                            {formData.photographs.map((item: any, idx: number) => {
-                                const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                                return (
-                                    <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                        <div className="relative aspect-square mb-2 overflow-hidden rounded-lg">
-                                            <img src={src} className="w-full h-full object-cover" alt={`P ${idx + 1}`} />
-                                            <button type="button" onClick={() => removePhoto('photographs', idx)}
-                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 z-10">
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                        <textarea placeholder="Caption..." rows={2}
-                                            className="w-full text-[11px] bg-gray-50 border border-gray-100 rounded px-2 py-1 outline-none resize-none"
-                                            value={item.caption || ''}
-                                            onChange={(e) => updateCaption('photographs', idx, e.target.value)}
-                                        />
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -1164,9 +1149,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             /> */}
                         </div>
                     </div>
-                    {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {renderPhotoFields('photographs')}
-                    </div> */}
+                    </div>
                 </div>
             )}
 
@@ -1209,7 +1194,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.amountRs ?? ''}
                             onChange={(e) => setFormData({ ...formData, amountRs: e.target.value })}
                         />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                        <div className="pt-2">
                             {renderPhotoFields('photographs')}
                         </div>
                     </div>
