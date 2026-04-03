@@ -12,7 +12,7 @@ model BeneficiariesDetails {
   remarks                 String @map("remarks")
   kvk                     Kvk    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
-  reportingYearDate       DateTime? @map("reporting_year_date")
+
 
   @@index([kvkId])
   @@index([reportingYearDate])

@@ -10,7 +10,7 @@ interface NicraFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any | ((prev: any) => any)) => void
-    years: any[]
+    years?: any[]
     seasons?: any[]
     categories?: any[]
     subCategories?: any[]
