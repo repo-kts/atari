@@ -856,13 +856,13 @@ function stripFileObjects(data: any): any {
 
     // Also check for files inside arrays (like photographs when they are raw Files)
     if (Array.isArray(transformed.photographs)) {
-        transformed.photographs = transformed.photographs.map(p => {
+        transformed.photographs = transformed.photographs.map((p: any) => {
             if (p && typeof p === 'object' && 'file' in p && (typeof File !== 'undefined' && p.file instanceof File)) {
                 const { file, ...rest } = p;
                 return rest;
             }
             return p;
-        }).filter(p => !(typeof File !== 'undefined' && p instanceof File));
+        }).filter((p: any) => !(typeof File !== 'undefined' && p instanceof File));
     }
 
     return transformed;
