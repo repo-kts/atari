@@ -22,6 +22,118 @@ import type {
 
 const BASE_URL = '/forms/about-kvk';
 
+const KVK_ALLOWED_KEYS = [
+    'kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId',
+    'mobile', 'landline', 'fax', 'email', 'address',
+    'hostOrg', 'hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'hostAddress',
+    'yearOfSanction', 'landDetails',
+] as const;
+
+const BANK_ACCOUNT_ALLOWED_KEYS = [
+    'kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber',
+] as const;
+
+const STAFF_ALLOWED_KEYS = [
+    'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
+    'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScale', 'dateOfJoining',
+    'jobType', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
+    'staffCategoryId', 'payLevelId',
+] as const;
+
+const INFRASTRUCTURE_ALLOWED_KEYS = [
+    'kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
+    'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding',
+] as const;
+
+const VEHICLE_ALLOWED_KEYS = [
+    'kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost',
+] as const;
+
+const VEHICLE_DETAIL_ALLOWED_KEYS = [
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'sourceOfFunding', 'vehicleStatusId',
+] as const;
+
+const EQUIPMENT_ALLOWED_KEYS = [
+    'kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding', 'type',
+] as const;
+
+const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
+    'kvkId', 'equipmentId', 'reportingYear', 'sourceOfFunding', 'equipmentStatusId',
+] as const;
+
+const FARM_IMPLEMENT_ALLOWED_KEYS = [
+    'kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund',
+] as const;
+
+function normalizeBankAccountType(value: unknown): 'KVK' | 'REVOLVING_FUND' | 'OTHER' {
+    const normalized = String(value ?? '')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '_');
+
+    if (normalized === 'REVOLVING_FUND') return 'REVOLVING_FUND';
+    if (normalized === 'OTHER') return 'OTHER';
+    return 'KVK';
+}
+
+function pickAllowedFields<TData>(
+    data: Partial<TData>,
+    allowedKeys: readonly string[]
+): Record<string, unknown> {
+    const payload: Record<string, unknown> = {};
+
+    for (const key of allowedKeys) {
+        const value = (data as Record<string, unknown>)[key];
+        if (value !== undefined) {
+            payload[key] = value;
+        }
+    }
+
+    return payload;
+}
+
+function createSanitizedPostEndpoint<TData, TResponse = TData>(
+    path: string,
+    allowedKeys: readonly string[],
+    normalize?: (payload: Record<string, unknown>) => Record<string, unknown>
+) {
+    return (data: TData) => {
+        const basePayload = pickAllowedFields(data as Partial<TData>, allowedKeys);
+        const payload = normalize ? normalize(basePayload) : basePayload;
+        return apiClient.post<ApiResponse<TResponse>>(`${BASE_URL}${path}`, payload);
+    };
+}
+
+function createSanitizedPutEndpoint<TData, TResponse = TData>(
+    path: string,
+    allowedKeys: readonly string[],
+    normalize?: (payload: Record<string, unknown>) => Record<string, unknown>
+) {
+    return (id: number, data: Partial<TData>) => {
+        const basePayload = pickAllowedFields(data, allowedKeys);
+        const payload = normalize ? normalize(basePayload) : basePayload;
+        return apiClient.put<ApiResponse<TResponse>>(`${BASE_URL}${path}/${id}`, payload);
+    };
+}
+
+function normalizeBankAccountPayload(payload: Record<string, unknown>): Record<string, unknown> {
+    const normalized = { ...payload };
+    if (normalized.accountType !== undefined) {
+        normalized.accountType = normalizeBankAccountType(normalized.accountType);
+    }
+    return normalized;
+}
+
+function normalizeCommonStringFields(payload: Record<string, unknown>): Record<string, unknown> {
+    const normalized = { ...payload };
+    for (const [key, value] of Object.entries(normalized)) {
+        if (typeof value === 'string') {
+            normalized[key] = value.trim();
+        }
+    }
+    return normalized;
+}
+
 // ============================================
 // Generic Helper Functions
 // ============================================
@@ -46,24 +158,6 @@ function createGetByIdEndpoint<T>(path: string) {
 }
 
 /**
- * Creates a generic POST endpoint
- */
-function createPostEndpoint<TData, TResponse = TData>(path: string) {
-    return (data: TData) => {
-        return apiClient.post<ApiResponse<TResponse>>(`${BASE_URL}${path}`, data);
-    };
-}
-
-/**
- * Creates a generic PUT endpoint
- */
-function createPutEndpoint<TData, TResponse = TData>(path: string) {
-    return (id: number, data: Partial<TData>) => {
-        return apiClient.put<ApiResponse<TResponse>>(`${BASE_URL}${path}/${id}`, data);
-    };
-}
-
-/**
  * Creates a generic DELETE endpoint
  */
 function createDeleteEndpoint(path: string) {
@@ -79,8 +173,8 @@ export const aboutKvkApi = {
     getKvks: createGetEndpoint<Kvk>('/kvks'),
     getAllKvksForDropdown: createGetEndpoint<Kvk>('/kvks-dropdown'),
     getKvkById: createGetByIdEndpoint<Kvk>('/kvks'),
-    createKvk: createPostEndpoint<KvkFormData, Kvk>('/kvks'),
-    updateKvk: createPutEndpoint<KvkFormData, Kvk>('/kvks'),
+    createKvk: createSanitizedPostEndpoint<KvkFormData, Kvk>('/kvks', KVK_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvk: createSanitizedPutEndpoint<KvkFormData, Kvk>('/kvks', KVK_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvk: createDeleteEndpoint('/kvks'),
 
     // ============================================
@@ -88,8 +182,16 @@ export const aboutKvkApi = {
     // ============================================
     getKvkBankAccounts: createGetEndpoint<KvkBankAccount>('/bank-accounts'),
     getKvkBankAccountById: createGetByIdEndpoint<KvkBankAccount>('/bank-accounts'),
-    createKvkBankAccount: createPostEndpoint<KvkBankAccountFormData, KvkBankAccount>('/bank-accounts'),
-    updateKvkBankAccount: createPutEndpoint<KvkBankAccountFormData, KvkBankAccount>('/bank-accounts'),
+    createKvkBankAccount: createSanitizedPostEndpoint<KvkBankAccountFormData, KvkBankAccount>(
+        '/bank-accounts',
+        BANK_ACCOUNT_ALLOWED_KEYS,
+        normalizeBankAccountPayload
+    ),
+    updateKvkBankAccount: createSanitizedPutEndpoint<KvkBankAccountFormData, KvkBankAccount>(
+        '/bank-accounts',
+        BANK_ACCOUNT_ALLOWED_KEYS,
+        normalizeBankAccountPayload
+    ),
     deleteKvkBankAccount: createDeleteEndpoint('/bank-accounts'),
 
     // ============================================
@@ -97,8 +199,8 @@ export const aboutKvkApi = {
     // ============================================
     getKvkEmployees: createGetEndpoint<KvkEmployee>('/employees'),
     getKvkEmployeeById: createGetByIdEndpoint<KvkEmployee>('/employees'),
-    createKvkEmployee: createPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees'),
-    updateKvkEmployee: createPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees'),
+    createKvkEmployee: createSanitizedPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees', STAFF_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkEmployee: createSanitizedPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees', STAFF_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkEmployee: createDeleteEndpoint('/employees'),
 
     transferKvkEmployee: (id: number, targetKvkId: number, transferReason?: string, notes?: string, transferDate?: string) =>
@@ -120,8 +222,8 @@ export const aboutKvkApi = {
     // Staff Transferred
     // ============================================
     getKvkStaffTransferred: createGetEndpoint<KvkEmployee>('/staff-transferred'),
-    createKvkStaffTransferred: createPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred'),
-    updateKvkStaffTransferred: createPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred'),
+    createKvkStaffTransferred: createSanitizedPostEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred', STAFF_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkStaffTransferred: createSanitizedPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/staff-transferred', STAFF_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkStaffTransferred: createDeleteEndpoint('/staff-transferred'),
 
     // ============================================
@@ -129,8 +231,8 @@ export const aboutKvkApi = {
     // ============================================
     getKvkInfrastructure: createGetEndpoint<KvkInfrastructure>('/infrastructure'),
     getKvkInfrastructureById: createGetByIdEndpoint<KvkInfrastructure>('/infrastructure'),
-    createKvkInfrastructure: createPostEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure'),
-    updateKvkInfrastructure: createPutEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure'),
+    createKvkInfrastructure: createSanitizedPostEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure', INFRASTRUCTURE_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkInfrastructure: createSanitizedPutEndpoint<KvkInfrastructureFormData, KvkInfrastructure>('/infrastructure', INFRASTRUCTURE_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkInfrastructure: createDeleteEndpoint('/infrastructure'),
 
     // ============================================
@@ -138,14 +240,14 @@ export const aboutKvkApi = {
     // ============================================
     getKvkVehicles: createGetEndpoint<KvkVehicle>('/vehicles'),
     getKvkVehicleById: createGetByIdEndpoint<KvkVehicle>('/vehicles'),
-    createKvkVehicle: createPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles'),
-    updateKvkVehicle: createPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles'),
+    createKvkVehicle: createSanitizedPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles', VEHICLE_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkVehicle: createSanitizedPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicles', VEHICLE_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkVehicle: createDeleteEndpoint('/vehicles'),
 
     // Vehicle Details (Alias)
     getKvkVehicleDetails: createGetEndpoint<KvkVehicle>('/vehicle-details'),
-    createKvkVehicleDetails: createPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details'),
-    updateKvkVehicleDetails: createPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details'),
+    createKvkVehicleDetails: createSanitizedPostEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details', VEHICLE_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkVehicleDetails: createSanitizedPutEndpoint<KvkVehicleFormData, KvkVehicle>('/vehicle-details', VEHICLE_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkVehicleDetails: createDeleteEndpoint('/vehicle-details'),
 
     // ============================================
@@ -153,14 +255,14 @@ export const aboutKvkApi = {
     // ============================================
     getKvkEquipments: createGetEndpoint<KvkEquipment>('/equipments'),
     getKvkEquipmentById: createGetByIdEndpoint<KvkEquipment>('/equipments'),
-    createKvkEquipment: createPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments'),
-    updateKvkEquipment: createPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments'),
+    createKvkEquipment: createSanitizedPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments', EQUIPMENT_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkEquipment: createSanitizedPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipments', EQUIPMENT_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkEquipment: createDeleteEndpoint('/equipments'),
 
     // Equipment Details (Alias)
     getKvkEquipmentDetails: createGetEndpoint<KvkEquipment>('/equipment-details'),
-    createKvkEquipmentDetails: createPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details'),
-    updateKvkEquipmentDetails: createPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details'),
+    createKvkEquipmentDetails: createSanitizedPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details', EQUIPMENT_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkEquipmentDetails: createSanitizedPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details', EQUIPMENT_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkEquipmentDetails: createDeleteEndpoint('/equipment-details'),
 
     // ============================================
@@ -168,8 +270,8 @@ export const aboutKvkApi = {
     // ============================================
     getKvkFarmImplements: createGetEndpoint<KvkFarmImplement>('/farm-implements'),
     getKvkFarmImplementById: createGetByIdEndpoint<KvkFarmImplement>('/farm-implements'),
-    createKvkFarmImplement: createPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements'),
-    updateKvkFarmImplement: createPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements'),
+    createKvkFarmImplement: createSanitizedPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkFarmImplement: createSanitizedPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkFarmImplement: createDeleteEndpoint('/farm-implements'),
 
     // ============================================

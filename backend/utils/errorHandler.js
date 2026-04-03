@@ -179,6 +179,11 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
         }
         
         if (error.message.includes('Invalid') && error.message.includes('invocation')) {
+            const unknownArgMatch = error.message.match(/Unknown argument `(\w+)`/);
+            if (unknownArgMatch) {
+                return new ValidationError(`Unsupported field: ${unknownArgMatch[1]}`, unknownArgMatch[1]);
+            }
+
             const match = error.message.match(/Argument `(\w+)` is missing/);
             if (match) {
                 return new ValidationError(`Missing required field: ${match[1]}`);
