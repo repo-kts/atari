@@ -232,7 +232,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         // Sub Total row
         html += `
             <tr style="font-weight:bold;">
-                <td>Sub Total</td>`;
+                <td>Sub Total (${sector.key})</td>`;
 
         if (isMultiState) {
             for (const st of stateKeys) {
@@ -262,7 +262,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     // Grand Total row
     html += `
             <tr style="font-weight:bold;">
-                <td>Grand Total</td>`;
+                <td>Grand Total (F)</td>`;
 
     if (isMultiState) {
         for (const st of stateKeys) {
