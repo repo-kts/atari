@@ -119,7 +119,16 @@ const ENTITY_CONFIG = {
         nameField: 'universityName',
         tableName: '"universityMaster"',
         idColumn: 'university_id',
-        allowedFields: ['universityName', 'orgId'],
+        allowedFields: [
+            'universityName',
+            'orgId',
+            'hostOrg',
+            'hostMobile',
+            'hostLandline',
+            'hostFax',
+            'hostEmail',
+            'hostAddress',
+        ],
         includes: {
             organization: {
                 select: {
@@ -327,8 +336,27 @@ function sanitizeAndValidateData(entityName, data) {
             if (!data.orgId) {
                 throw new Error('orgId is required');
             }
+            // Optionals
+            const hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { maxLength: 30 });
+            const hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { maxLength: 30 });
+            const hostFax = sanitizeString(safeGet(data, 'hostFax'), { maxLength: 30 });
+            const hostEmail = sanitizeString(safeGet(data, 'hostEmail'), { maxLength: 200 });
+            const hostAddress = sanitizeString(safeGet(data, 'hostAddress'), { maxLength: 1000 });
+            if (hostEmail) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(hostEmail)) {
+                    throw new Error('hostEmail must be a valid email address');
+                }
+            }
             sanitized.universityName = String(data.universityName).trim();
             sanitized.orgId = parseInt(data.orgId);
+            // Derive hostOrg from universityName to avoid duplicate input
+            sanitized.hostOrg = sanitized.universityName;
+            sanitized.hostMobile = hostMobile;
+            sanitized.hostLandline = hostLandline;
+            sanitized.hostFax = hostFax;
+            sanitized.hostEmail = hostEmail;
+            sanitized.hostAddress = hostAddress;
             break;
 
         default:
@@ -454,9 +482,35 @@ function sanitizeUpdateData(entityName, data) {
                     throw new Error('universityName cannot be empty');
                 }
                 sanitized.universityName = String(sanitized.universityName).trim();
+                // Keep hostOrg in sync with universityName
+                sanitized.hostOrg = sanitized.universityName;
             }
             if (sanitized.orgId !== undefined) {
                 sanitized.orgId = parseInt(sanitized.orgId);
+            }
+            // Ignore direct hostOrg updates from clients; it mirrors universityName
+            if (sanitized.hostOrg !== undefined) delete sanitized.hostOrg;
+            if (sanitized.hostMobile !== undefined) {
+                sanitized.hostMobile = sanitizeString(sanitized.hostMobile, { maxLength: 30 });
+            }
+            if (sanitized.hostLandline !== undefined) {
+                sanitized.hostLandline = sanitizeString(sanitized.hostLandline, { maxLength: 30 });
+            }
+            if (sanitized.hostFax !== undefined) {
+                sanitized.hostFax = sanitizeString(sanitized.hostFax, { maxLength: 30 });
+            }
+            if (sanitized.hostEmail !== undefined) {
+                const email = sanitizeString(sanitized.hostEmail, { maxLength: 200 });
+                if (email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        throw new Error('hostEmail must be a valid email address');
+                    }
+                }
+                sanitized.hostEmail = email;
+            }
+            if (sanitized.hostAddress !== undefined) {
+                sanitized.hostAddress = sanitizeString(sanitized.hostAddress, { maxLength: 1000 });
             }
             break;
 

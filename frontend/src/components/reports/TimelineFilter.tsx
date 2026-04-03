@@ -15,6 +15,7 @@ interface TimelineFilterProps {
     year: number;
     onYearChange: (year: number) => void;
     onApplySelection?: () => void;
+    onBeforePreviewApply?: () => void;
     disabled?: boolean;
     // Optional export controls shown inline with the filter for compact layout
     onDownload?: (format: 'excel' | 'doc') => void;
@@ -41,6 +42,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
     year,
     onYearChange,
     onApplySelection,
+    onBeforePreviewApply,
     disabled = false,
     onDownload,
     downloadingFormat = null,
@@ -137,7 +139,10 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                                 type="button"
                                 variant="primary"
                                 size="sm"
-                                onClick={onApplySelection}
+                                onClick={() => {
+                                    onBeforePreviewApply?.();
+                                    onApplySelection?.();
+                                }}
                                 disabled={disabled}
                                 className="rounded-lg px-3 h-8 font-semibold uppercase tracking-[0.12em] text-[10px] inline-flex items-center justify-center gap-1.5 shrink-0 leading-none"
                             >

@@ -113,7 +113,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         max={computedMax}
                         onChange={handleChange}
                         inputMode={type === 'number' ? (isInteger ? 'numeric' : 'decimal') : props.inputMode}
-                        className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${className}`}
+                        className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
                     />
                 )
             })()}
@@ -199,7 +199,7 @@ export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, err
             <textarea
                 {...props}
                 required={required}
-                className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none text-base placeholder:text-gray-400 ${className}`}
+                className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
             />
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>

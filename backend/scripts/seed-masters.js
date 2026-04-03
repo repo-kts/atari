@@ -425,10 +425,22 @@ async function seedUniversities() {
       update: {
         universityName: universities[i],
         orgId: org.orgId,
+        hostOrg: universities[i],
+        hostMobile: null,
+        hostLandline: null,
+        hostFax: null,
+        hostEmail: null,
+        hostAddress: null,
       },
       create: {
         universityName: universities[i],
         orgId: org.orgId,
+        hostOrg: universities[i],
+        hostMobile: null,
+        hostLandline: null,
+        hostFax: null,
+        hostEmail: null,
+        hostAddress: null,
       },
     });
   }

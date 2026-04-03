@@ -4,6 +4,7 @@ import { useAllKvksForDropdown, useTransferEmployee } from '../../hooks/forms/us
 import { KvkEmployee } from '../../types/aboutKvk';
 import { Loader2 } from 'lucide-react';
 import { LoadingButton } from '../common/LoadingButton';
+import { FormInput } from '@/pages/dashboard/shared/forms/shared/FormComponents';
 
 interface TransferModalProps {
     open: boolean;
@@ -19,6 +20,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
     onTransferSuccess,
 }) => {
     const [targetKvkId, setTargetKvkId] = useState<number | ''>('');
+    const [transferDate, setTransferDate] = useState<string>('');
     const [transferReason, setTransferReason] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -37,6 +39,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
         if (!open) {
             // Reset form when modal closes
             setTargetKvkId('');
+            setTransferDate('');
             setTransferReason('');
             setNotes('');
             setError(null);
@@ -48,6 +51,10 @@ export const TransferModal: React.FC<TransferModalProps> = ({
             setError('Please select a target KVK');
             return;
         }
+        if (!transferDate) {
+            setError('Please select a transfer date');
+            return;
+        }
 
         setError(null);
 
@@ -56,7 +63,8 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                 staffId: staff.kvkStaffId,
                 targetKvkId: targetKvkId as number,
                 reason: transferReason || undefined,
-                notes: notes || undefined
+                notes: notes || undefined,
+                transferDate,
             });
             onTransferSuccess();
             onClose();
@@ -79,6 +87,17 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                         <p className="text-[#212121]">{staff.kvk?.kvkName || `KVK ${staff.kvkId}`}</p>
                     </div>
                 </div>
+
+                <FormInput
+                    label="Transfer Date"
+                    required
+                    type="date"
+                    value={transferDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setTransferDate(e.target.value)}
+                    placeholder="Select transfer date"
+                    disabled={loading}
+                />
 
                 {/* Error Message */}
                 {error && (
@@ -157,7 +176,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                         onClick={handleTransfer}
                         isLoading={loading}
                         loadingText="Transferring..."
-                        disabled={!targetKvkId || loadingKvks}
+                        disabled={!targetKvkId || !transferDate || loadingKvks}
                         variant="primary"
                         size="md"
                     >

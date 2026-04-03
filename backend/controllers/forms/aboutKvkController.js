@@ -1,4 +1,5 @@
 const aboutKvkService = require('../../services/forms/aboutKvkService.js');
+const { sanitizeDate } = require('../../utils/dataSanitizer.js');
 
 /**
  * About KVK Controller
@@ -332,7 +333,7 @@ exports.getAllKvksForDropdown = async (req, res) => {
 exports.transferEmployee = async (req, res) => {
     try {
         const { id } = req.params;
-        const { targetKvkId, transferReason, notes } = req.body;
+        const { targetKvkId, transferReason, notes, transferDate } = req.body;
 
         if (!id || id === 'undefined' || id === 'null') {
             return res.status(400).json({
@@ -348,12 +349,27 @@ exports.transferEmployee = async (req, res) => {
             });
         }
 
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Transfer date is required',
+            });
+        }
+        if (parsedTransferDate > new Date()) {
+            return res.status(400).json({
+                success: false,
+                error: 'Transfer date cannot be in the future',
+            });
+        }
+
         const result = await aboutKvkService.transferEmployee(
             parseInt(id), 
             parseInt(targetKvkId), 
             req.user,
             transferReason,
-            notes
+            notes,
+            transferDate
         );
         res.json({
             success: true,
@@ -449,7 +465,7 @@ exports.getStaffTransferHistory = async (req, res) => {
 exports.revertTransfer = async (req, res) => {
     try {
         const { id } = req.params;
-        const { targetKvkId, reason, notes } = req.body;
+        const { targetKvkId, reason, notes, transferDate } = req.body;
 
         if (!req.user || req.user.roleName !== 'super_admin') {
             return res.status(403).json({
@@ -458,12 +474,27 @@ exports.revertTransfer = async (req, res) => {
             });
         }
 
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'Transfer date is required',
+            });
+        }
+        if (parsedTransferDate > new Date()) {
+            return res.status(400).json({
+                success: false,
+                error: 'Transfer date cannot be in the future',
+            });
+        }
+
         const result = await aboutKvkService.revertTransfer(
             parseInt(id),
             targetKvkId ? parseInt(targetKvkId) : null,
             req.user,
             reason,
-            notes
+            notes,
+            transferDate
         );
 
         res.json({

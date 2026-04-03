@@ -305,6 +305,8 @@ export const ENTITY_PATHS = {
     KVK_VIEW_EMPLOYEES: '/forms/about-kvk/view-kvks/:id/employees',
     KVK_VIEW_VEHICLES: '/forms/about-kvk/view-kvks/:id/vehicles',
     KVK_VIEW_EQUIPMENTS: '/forms/about-kvk/view-kvks/:id/equipments',
+    // Basic Masters view for KVKs
+    KVK_MASTER: '/all-master/kvks',
 
     // Other Masters
     SEASON: '/all-master/season',

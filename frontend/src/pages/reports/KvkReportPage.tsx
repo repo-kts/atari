@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/button';
 import type { ReportFilters } from '../../types/reports';
 import type { ReportScope } from '../../types/reportScope';
 import { useToast } from '@/hooks/useToast';
+import { useLayoutUI } from '@/contexts/LayoutUIContext';
 
 const DEFAULT_LEFT_PANEL_PERCENT = 50;
 const SPLIT_DIVIDER_WIDTH_PX = 12;
@@ -37,6 +38,7 @@ export const KvkReportPage: React.FC = () => {
     const routeConfig = getRouteConfig(location.pathname);
     const breadcrumbs = getBreadcrumbsForPath(location.pathname);
     const { toast, ToastContainer } = useToast();
+    const { collapseSidebar } = useLayoutUI();
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'excel' | 'docx' | null>(null);
@@ -234,6 +236,11 @@ export const KvkReportPage: React.FC = () => {
         const delta = event.key === 'ArrowLeft' ? -2 : 2;
         setLeftPanelPercent(current => clampSplitPercent(current + delta));
     };
+
+    const applyPreviewFocusLayout = useCallback(() => {
+        collapseSidebar();
+        setLeftPanelPercent(clampSplitPercent(0));
+    }, [collapseSidebar, clampSplitPercent]);
 
     const handleApplySelection = () => {
         if (filterType === 'dateRange') {
@@ -492,6 +499,7 @@ export const KvkReportPage: React.FC = () => {
                                             year={year}
                                             onYearChange={setYear}
                                             onApplySelection={handleApplySelection}
+                                            onBeforePreviewApply={applyPreviewFocusLayout}
                                             disabled={isGenerating}
                                             onDownloadPdf={() => {
                                                 handleDownload(

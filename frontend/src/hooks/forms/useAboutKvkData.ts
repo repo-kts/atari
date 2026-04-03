@@ -418,13 +418,15 @@ export function useTransferEmployee() {
             staffId,
             targetKvkId,
             reason,
-            notes
+            notes,
+            transferDate,
         }: {
             staffId: number;
             targetKvkId: number;
             reason?: string;
-            notes?: string
-        }) => aboutKvkApi.transferKvkEmployee(staffId, targetKvkId, reason, notes),
+            notes?: string;
+            transferDate: string;
+        }) => aboutKvkApi.transferKvkEmployee(staffId, targetKvkId, reason, notes, transferDate),
         onSuccess: () => {
             // Invalidate employee queries to refetch
             queryClient.invalidateQueries({ queryKey: buildQueryKey('kvk-employees', undefined, user) });

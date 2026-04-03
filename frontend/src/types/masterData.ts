@@ -79,6 +79,12 @@ export interface University {
     universityId: number;
     universityName: string;
     orgId: number;
+    hostOrg: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
     organization?: {
         orgId: number;
         orgName: string;
@@ -275,11 +281,23 @@ export interface UpdateOrganizationDto {
 export interface CreateUniversityDto {
     universityName: string;
     orgId: number;
+    hostOrg: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
 }
 
 export interface UpdateUniversityDto {
     universityName?: string;
     orgId?: number;
+    hostOrg?: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
 }
 
 // ============ Table Types ============

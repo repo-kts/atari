@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSelect } from './shared/FormComponents'
+import { FormInput, FormSelect, FormTextArea } from './shared/FormComponents'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { Zone, State, District, Organization } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
@@ -374,6 +374,40 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         cacheKey="organizations-by-district"
                         emptyMessage="No organizations available for this district"
                         loadingMessage="Loading organizations..."
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormInput
+                            label="Mobile Number"
+                            value={formData.hostMobile ?? ''}
+                            onChange={(e) => setFormData((prev: any) => ({ ...prev, hostMobile: e.target.value }))}
+                            placeholder="Enter mobile number"
+                        />
+                        <FormInput
+                            label="Landline"
+                            value={formData.hostLandline ?? ''}
+                            onChange={(e) => setFormData((prev: any) => ({ ...prev, hostLandline: e.target.value }))}
+                            placeholder="Enter landline number"
+                        />
+                        <FormInput
+                            label="Fax"
+                            value={formData.hostFax ?? ''}
+                            onChange={(e) => setFormData((prev: any) => ({ ...prev, hostFax: e.target.value }))}
+                            placeholder="Enter fax number"
+                        />
+                        <FormInput
+                            label="E-mail"
+                            type="email"
+                            value={formData.hostEmail ?? ''}
+                            onChange={(e) => setFormData((prev: any) => ({ ...prev, hostEmail: e.target.value }))}
+                            placeholder="Enter email address"
+                        />
+                    </div>
+                    <FormTextArea
+                        label="Host Address"
+                        rows={3}
+                        value={formData.hostAddress ?? ''}
+                        onChange={(e) => setFormData((prev: any) => ({ ...prev, hostAddress: e.target.value }))}
+                        placeholder="Enter host address"
                     />
                 </div>
             )}

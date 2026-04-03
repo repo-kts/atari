@@ -125,7 +125,15 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
         },
     },
     [ENTITY_TYPES.UNIVERSITIES]: {
-        includeFields: ['universityName', 'orgId'],
+        includeFields: [
+            'universityName',
+            'orgId',
+            'hostMobile',
+            'hostLandline',
+            'hostFax',
+            'hostEmail',
+            'hostAddress',
+        ],
     },
     [ENTITY_TYPES.ORGANIZATIONS]: {
         excludeFields: ['zoneId', 'stateId'],

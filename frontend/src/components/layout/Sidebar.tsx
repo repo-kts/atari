@@ -55,7 +55,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Basic Masters',
                 path: '/all-master/basic',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master'],
+                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'about_kvks_view_kvks'],
             },
             {
                 label: 'OFT & FLD Masters',
@@ -197,7 +197,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const location = useLocation()
-    const { hasPermission } = useAuth()
+    const { user, hasPermission } = useAuth()
     const [expandedItems, setExpandedItems] = useState<string[]>([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -210,8 +210,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // All roles use the full menu set — permission filtering (below) controls visibility
     // based on the Role Permission Editor assignments
     const rawMenuItems = React.useMemo(() => {
-        return superAdminMenuItems
-    }, [])
+        const role = user?.role?.toLowerCase()
+        const isKvkAdminRole = role === 'kvk_admin' || role === 'kvk_amdin'
+
+        if (!isKvkAdminRole) return superAdminMenuItems
+
+        return superAdminMenuItems.filter(item => item.path !== '/all-master')
+    }, [user?.role])
 
     // Filter menu items based on VIEW permission where moduleCode is defined
     const menuItems = React.useMemo(() => {
@@ -385,7 +390,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     // Mapping of route patterns to their parent dropdown paths
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
-        { pattern: /^\/all-master\/(zones|states|organizations|universities|districts)/, parentPath: '/all-master/basic' },
+        { pattern: /^\/all-master\/(zones|states|organizations|universities|districts|kvks)/, parentPath: '/all-master/basic' },
         { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },

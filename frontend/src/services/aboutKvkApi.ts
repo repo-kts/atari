@@ -101,19 +101,19 @@ export const aboutKvkApi = {
     updateKvkEmployee: createPutEndpoint<KvkEmployeeFormData, KvkEmployee>('/employees'),
     deleteKvkEmployee: createDeleteEndpoint('/employees'),
 
-    transferKvkEmployee: (id: number, targetKvkId: number, transferReason?: string, notes?: string) =>
+    transferKvkEmployee: (id: number, targetKvkId: number, transferReason?: string, notes?: string, transferDate?: string) =>
         apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
             `${BASE_URL}/employees/${id}/transfer`,
-            { targetKvkId, transferReason, notes }
+            { targetKvkId, transferReason, notes, transferDate }
         ),
     getStaffTransferHistory: (staffId: number, params?: QueryParams) => {
         const url = buildUrlWithQuery(`${BASE_URL}/employees/${staffId}/transfer-history`, params);
         return apiClient.get<PaginatedResponse<StaffTransferHistory>>(url);
     },
-    revertTransfer: (transferId: number, targetKvkId?: number, reason?: string, notes?: string) =>
+    revertTransfer: (transferId: number, targetKvkId?: number, reason?: string, notes?: string, transferDate?: string) =>
         apiClient.post<ApiResponse<{ employee: KvkEmployee; transferHistory: StaffTransferHistory }>>(
             `${BASE_URL}/employees/${transferId}/transfer/revert`,
-            { targetKvkId, reason, notes }
+            { targetKvkId, reason, notes, transferDate }
         ),
 
     // ============================================
