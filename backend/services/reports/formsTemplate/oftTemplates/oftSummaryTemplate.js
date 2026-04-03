@@ -144,9 +144,14 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     // ── Header row ──────────────────────────────────────────────
     const valueColCount = isMultiState ? states.length * 3 + 3 : 3;
 
+    // Title changes based on scope
+    const sectionTitle = isMultiState
+        ? 'State wise details of On Farm Trials (OFTs) conducted by KVKs'
+        : 'OFT Summary';
+
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h1 class="section-title">${section.id} ${this._escapeHtml(sectionTitle)}</h1>
     <table class="data-table">
         <thead>`;
 

@@ -1,17 +1,16 @@
 /**
  * OFT Detail Cards Template (Section 2.2)
  *
- * Renders individual OFT trial cards with 16 labeled fields and dynamic
- * result tables. Supports both single-KVK and multi-KVK (superadmin) views.
+ * Renders individual OFT trial cards matching the original ATARI website layout:
+ *   - Card header: "2.2.N. OFT (Discipline)" with bullet-style thematic area
+ *     and problem definition lines
+ *   - 16 fields in a 2-column table (# + label | value), no header row
+ *   - Result tables with "Tehcnology Options | Proposed | Actual | …" columns
+ *   - Superadmin: cards grouped under large centered KVK name headings
  *
- * Bound to reportTemplateService instance — uses this._escapeHtml(),
- * this._generateEmptySection(), this._toDisplayValue().
+ * Bound to reportTemplateService (`this`).
  */
 
-/**
- * Format a date value as "Mon YYYY" (e.g., "Feb 2024").
- * Returns '-' when the input is falsy or unparseable.
- */
 function _formatMonthYear(dateValue) {
     if (!dateValue) return '-'
     const d = new Date(dateValue)
@@ -23,41 +22,26 @@ function _formatMonthYear(dateValue) {
     return `${months[d.getMonth()]} ${d.getFullYear()}`
 }
 
-/**
- * Build the "Details of technologies selected" display string from the
- * technologies array.  FP → "Farmer Practice", everything else keeps its
- * optionName (TO1, TO2, …).
- */
 function _formatTechnologies(technologies) {
     if (!Array.isArray(technologies) || technologies.length === 0) return '-'
-
-    const lines = technologies.map(tech => {
-        const label = tech.optionKey === 'FP' ? 'Farmer Practice' : (tech.optionName || tech.optionKey || '-')
-        const details = tech.details || '-'
-        return `${label}: ${details}`
-    })
-
-    return lines.join('\n')
+    return technologies.map(tech => {
+        const label = tech.optionKey === 'FP'
+            ? 'Farmer Practice'
+            : (tech.optionName || tech.optionKey || '-')
+        return `${label}:${tech.details || '-'}`
+    }).join('\n')
 }
 
-/**
- * Group an array of records by kvk.kvkName, preserving insertion order.
- */
 function _groupByKvk(records) {
     const map = new Map()
-    for (const record of records) {
-        const kvkName = (record.kvk && record.kvk.kvkName) || 'Unknown KVK'
-        if (!map.has(kvkName)) {
-            map.set(kvkName, [])
-        }
-        map.get(kvkName).push(record)
+    for (const r of records) {
+        const name = (r.kvk && r.kvk.kvkName) || 'Unknown KVK'
+        if (!map.has(name)) map.set(name, [])
+        map.get(name).push(r)
     }
     return map
 }
 
-/**
- * Determine whether the dataset spans multiple KVKs (superadmin scope).
- */
 function _isMultiKvk(records) {
     const names = new Set()
     for (const r of records) {
@@ -68,7 +52,7 @@ function _isMultiKvk(records) {
     return false
 }
 
-// ─── Main renderer ───────────────────────────────────────────────────────────
+// ─── Main renderer ──────────────────────────────────────────────────────────
 
 function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
@@ -86,7 +70,7 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>`
+    <h1 class="section-title">${section.id} OFT</h1>`
 
     const multiKvk = _isMultiKvk(records)
     let cardIndex = 0
@@ -95,9 +79,9 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
         const grouped = _groupByKvk(records)
         for (const [kvkName, kvkRecords] of grouped) {
             html += `
-    <h2 style="margin-top:24px;margin-bottom:12px;font-size:14px;font-weight:bold;color:#1a1a1a;">
-        KVK ${this._escapeHtml(kvkName)}
-    </h2>`
+    <div style="text-align:center;margin:32px 0 20px 0;">
+        <h2 style="font-size:16px;font-weight:bold;color:#000;margin:0;">${this._escapeHtml(kvkName)}</h2>
+    </div>`
             for (const record of kvkRecords) {
                 cardIndex++
                 html += _renderCard.call(this, record, cardIndex)
@@ -116,46 +100,43 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
     return html
 }
 
-// ─── Single card renderer ────────────────────────────────────────────────────
+// ─── Single card ────────────────────────────────────────────────────────────
 
 function _renderCard(record, cardNumber) {
-    const esc = (v) => this._escapeHtml(this._toDisplayValue(v))
+    const esc = (v) => this._escapeHtml(v != null && v !== '' ? String(v) : '-')
     const resultReport = record.resultReport || {}
 
     const disciplineName = (record.discipline && record.discipline.disciplineName) || '-'
     const thematicAreaName = (record.oftThematicArea && record.oftThematicArea.thematicAreaName) || '-'
     const title = record.title || '-'
 
-    // Card header
+    // Card header — matches original: bold numbered title, bullet-style sub-lines
     let html = `
-    <div style="page-break-inside:avoid;margin-bottom:28px;border:1px solid #ccc;border-radius:4px;padding:16px;">
-        <h3 style="margin:0 0 4px 0;font-size:13px;font-weight:bold;color:#333;">
-            2.2.${cardNumber}. OFT (${esc(disciplineName)})
-        </h3>
-        <p style="margin:0 0 2px 0;font-size:12px;color:#555;">
-            Thematic area: ${esc(thematicAreaName)}
+    <div style="margin-bottom:28px;">
+        <p style="margin:0 0 6px 0;font-size:11px;font-weight:bold;">
+            ${section_id(cardNumber)} OFT (${esc(disciplineName)})
         </p>
-        <p style="margin:0 0 12px 0;font-size:12px;color:#555;">
-            Problem definition/Name of OFT: ${esc(title)}
+        <p style="margin:0 0 2px 0;font-size:10px;">
+            &bull; <strong>Thematic area:</strong> ${esc(thematicAreaName)}
+        </p>
+        <p style="margin:0 0 12px 0;font-size:10px;">
+            &bull; <strong>Problem definition/Name of OFT:</strong> ${esc(title)}
         </p>`
 
-    // 16-field key-value table
+    // 16-field table — 2 columns, no header row, number inline with label
     const techDetails = _formatTechnologies(record.technologies)
 
     const fields = [
         ['Title of On farm Trial', record.title],
         ['Problem diagnosed', record.problemDiagnosed],
-        [
-            'Details of technologies selected for assessment/refinement (Mention either Assessed)',
-            techDetails,
-        ],
+        ['Details of technologies selected for assessment/refinement (Mention either Assessed)', techDetails],
         ['Source of Technology (ICAR/ AICRP/SAU/other, please specify)', record.sourceOfTechnology],
         ['Production system', record.productionSystem],
         ['Thematic area', thematicAreaName],
         ['Performance indicators of the technology', record.performanceIndicators],
-        ['Final recommendation for micro level situation', resultReport.finalRecommendation || '-'],
-        ['Constraints identified and feedback for research', resultReport.constraintsFeedback || '-'],
-        ['Process of farmers participation and their reaction', resultReport.farmersParticipationProcess || '-'],
+        ['Final recommendation for micro level situation', resultReport.finalRecommendation],
+        ['Constraints identified and feedback for research', resultReport.constraintsFeedback],
+        ['Process of farmers participation and their reaction', resultReport.farmersParticipationProcess],
         ['Area (ha)/ No of units', record.areaHaNumber],
         ['No. of Trial/Replication', record.numberOfTrialReplication],
         ['OFT Start on', _formatMonthYear(record.oftStartDate)],
@@ -166,28 +147,18 @@ function _renderCard(record, cardNumber) {
 
     html += `
         <table class="data-table" style="width:100%;margin-bottom:16px;">
-            <thead>
-                <tr>
-                    <th style="width:30px;text-align:center;">Sl.</th>
-                    <th style="width:40%;">Particulars</th>
-                    <th>Details</th>
-                </tr>
-            </thead>
             <tbody>`
 
     fields.forEach(([label, value], idx) => {
-        const rowClass = idx % 2 === 0 ? 'even' : 'odd'
-        const displayValue = (value !== null && value !== undefined && value !== '')
-            ? String(value)
-            : '-'
-        // Preserve newlines in the technology details field
+        const displayValue = (value != null && value !== '') ? String(value) : '-'
         const escapedValue = this._escapeHtml(displayValue).replace(/\n/g, '<br/>')
 
         html += `
-                <tr class="${rowClass}">
-                    <td style="text-align:center;">${idx + 1}.</td>
-                    <td>${this._escapeHtml(label)}</td>
-                    <td>${escapedValue}</td>
+                <tr class="${idx % 2 === 0 ? 'even' : 'odd'}">
+                    <td style="width:45%;vertical-align:top;padding:5px 6px;">
+                        <strong>${idx + 1}.</strong>&nbsp;&nbsp;${this._escapeHtml(label)}
+                    </td>
+                    <td style="vertical-align:top;padding:5px 6px;">${escapedValue}</td>
                 </tr>`
     })
 
@@ -204,31 +175,36 @@ function _renderCard(record, cardNumber) {
     return html
 }
 
-// ─── Results section (tables + result text) ──────────────────────────────────
+function section_id(n) {
+    return `2.2.${n}.`
+}
+
+// ─── Results section ────────────────────────────────────────────────────────
 
 function _renderResultsSection(resultReport) {
     if (!resultReport) return ''
 
+    const tables = resultReport.tables
+    const hasContent = (Array.isArray(tables) && tables.length > 0) || resultReport.resultText
+
+    if (!hasContent) return ''
+
     let html = `
         <div style="margin-top:12px;">
-            <h4 style="margin:0 0 8px 0;font-size:12px;font-weight:bold;">
+            <p style="margin:0 0 8px 0;font-size:11px;font-weight:bold;">
                 B. Results with Table and good quality photographs in jpg.
-            </h4>`
+            </p>`
 
-    const tables = resultReport.tables
     if (Array.isArray(tables) && tables.length > 0) {
-        // Sort tables by sortOrder if available
         const sorted = [...tables].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
-
         sorted.forEach((table, tIdx) => {
             html += _renderResultTable.call(this, table, tIdx + 1)
         })
     }
 
-    // Result text
     if (resultReport.resultText) {
         html += `
-            <p style="margin:8px 0 0 0;font-size:11px;">
+            <p style="margin:8px 0 0 0;font-size:10px;">
                 <strong>Result:</strong> ${this._escapeHtml(resultReport.resultText)}
             </p>`
     }
@@ -245,24 +221,41 @@ function _renderResultTable(table, tableNumber) {
 
     if (columns.length === 0 && rows.length === 0) return ''
 
-    // Sort columns and rows by sortOrder
     columns.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
     rows.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+
+    // Separate "Proposed" and "Actual" columns from the rest
+    const proposedCol = columns.find(c =>
+        (c.columnLabel || '').toLowerCase() === 'proposed' ||
+        (c.columnKey || '').toLowerCase() === 'proposed'
+    )
+    const actualCol = columns.find(c =>
+        (c.columnLabel || '').toLowerCase() === 'actual' ||
+        (c.columnKey || '').toLowerCase() === 'actual'
+    )
+    const dataColumns = columns.filter(c => c !== proposedCol && c !== actualCol)
 
     const tableTitle = table.tableTitle || ''
 
     let html = `
-            <p style="margin:12px 0 4px 0;font-size:11px;font-weight:bold;">
+            <p style="margin:12px 0 4px 0;font-size:10px;font-weight:bold;">
                 Table ${tableNumber} : ${this._escapeHtml(tableTitle)}
             </p>
-            <table class="data-table" style="width:100%;margin-bottom:12px;">
+            <table class="data-table" style="width:100%;margin-bottom:12px;font-size:8pt;">
                 <thead>
                     <tr>
-                        <th>Technology Options</th>`
+                        <th>Tehcnology Options</th>`
 
-    for (const col of columns) {
-        html += `
-                        <th>${this._escapeHtml(col.columnLabel || col.columnKey || '-')}</th>`
+    // "Proposed" and "Actual" columns come right after Technology Options
+    if (proposedCol) {
+        html += `<th>${this._escapeHtml(proposedCol.columnLabel || 'Proposed')}</th>`
+    }
+    if (actualCol) {
+        html += `<th>${this._escapeHtml(actualCol.columnLabel || 'Actual')}</th>`
+    }
+
+    for (const col of dataColumns) {
+        html += `<th>${this._escapeHtml(col.columnLabel || col.columnKey || '-')}</th>`
     }
 
     html += `
@@ -270,15 +263,15 @@ function _renderResultTable(table, tableNumber) {
                 </thead>
                 <tbody>`
 
+    // Build ordered column list for cell rendering
+    const orderedColumns = []
+    if (proposedCol) orderedColumns.push(proposedCol)
+    if (actualCol) orderedColumns.push(actualCol)
+    orderedColumns.push(...dataColumns)
+
     rows.forEach((row, rIdx) => {
-        const rowClass = rIdx % 2 === 0 ? 'even' : 'odd'
         const rowLabel = row.rowLabel || row.optionKey || '-'
 
-        html += `
-                    <tr class="${rowClass}">
-                        <td>${this._escapeHtml(rowLabel)}</td>`
-
-        // Build a map from column ID to cell value for fast lookup
         const cellMap = new Map()
         if (Array.isArray(row.cells)) {
             for (const cell of row.cells) {
@@ -288,17 +281,17 @@ function _renderResultTable(table, tableNumber) {
             }
         }
 
-        for (const col of columns) {
+        html += `
+                    <tr class="${rIdx % 2 === 0 ? 'even' : 'odd'}">
+                        <td>${this._escapeHtml(rowLabel)}</td>`
+
+        for (const col of orderedColumns) {
             const cellValue = cellMap.get(col.oftResultTableColumnId)
-            const display = (cellValue !== null && cellValue !== undefined && cellValue !== '')
-                ? String(cellValue)
-                : '-'
-            html += `
-                        <td>${this._escapeHtml(display)}</td>`
+            const display = (cellValue != null && cellValue !== '') ? String(cellValue) : '-'
+            html += `<td>${this._escapeHtml(display)}</td>`
         }
 
-        html += `
-                    </tr>`
+        html += `</tr>`
     })
 
     html += `
