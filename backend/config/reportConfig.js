@@ -248,6 +248,35 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
+        // ── OFT (On-Farm Testing) ───────────────────────────────────
+        {
+            id: '2.1',
+            title: 'OFT Summary',
+            description: 'Technology Assessed by KVK - sector-wise thematic area summary',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'oftSummary',
+            format: 'custom',
+            customTemplate: 'oft-summary',
+            filters: {
+                dateFields: ['createdAt'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.2',
+            title: 'OFT Details',
+            description: 'Individual OFT trial detail cards with results',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'oftDetailCards',
+            format: 'custom',
+            customTemplate: 'oft-detail-cards',
+            filters: {
+                dateFields: ['createdAt'],
+            },
+            fields: [],
+        },
     ],
 };
 
