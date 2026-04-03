@@ -122,13 +122,17 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     const colCount = isMultiState ? 1 + (states.length * 3) + 3 : 4;
 
     let html = `
-<div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="border-bottom:none;margin-bottom:4px;">2. ACHIEVEMENTS ON TECHNOLOGIES ASSESSED AND REFINED (OFT)</h1>
-    <p style="font-size:10px;font-weight:bold;margin-bottom:10px;">2.1. Technology Assessed by KVK (Discipline wise)</p>`;
+<div id="${sectionId}" class="${pageClass}">`;
 
     if (isMultiState) {
+        // Superadmin: full heading hierarchy matching original
         html += `
-    <p style="font-size:9px;font-weight:bold;margin-bottom:8px;">2.1. State wise details of On Farm Trials (OFTs) conducted by KVKs</p>`;
+    <h1 class="section-title" style="border-bottom:none;margin-bottom:6px;font-size:12px;">2. ACHIEVEMENTS ON TECHNOLOGIES ASSESSED AND REFINED (OFT)</h1>
+    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">2.1. Technology Assessed by KVK (Discipline wise)</p>`;
+    } else {
+        // KVK side: simple heading
+        html += `
+    <h1 class="section-title" style="margin-bottom:10px;">2.1. OFT Summary</h1>`;
     }
 
     html += `
@@ -136,6 +140,13 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         <thead>`;
 
     if (isMultiState) {
+        // Row 0: "State wise details..." caption row spanning full width
+        html += `
+            <tr>
+                <th colspan="${colCount}" style="text-align:left;font-weight:bold;font-size:9pt;padding:8px;">
+                    2.1. State wise details of On Farm Trials (OFTs) conducted by KVKs
+                </th>
+            </tr>`;
         // Row 1: state name spans + Total span
         html += `
             <tr>
@@ -232,7 +243,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         // Sub Total row
         html += `
             <tr style="font-weight:bold;">
-                <td>Sub Total (${sector.key})</td>`;
+                <td>${isMultiState ? `Sub Total (${sector.key})` : 'Sub Total'}</td>`;
 
         if (isMultiState) {
             for (const st of stateKeys) {
@@ -262,7 +273,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     // Grand Total row
     html += `
             <tr style="font-weight:bold;">
-                <td>Grand Total (F)</td>`;
+                <td>${isMultiState ? 'Grand Total (F)' : 'Grand Total'}</td>`;
 
     if (isMultiState) {
         for (const st of stateKeys) {
