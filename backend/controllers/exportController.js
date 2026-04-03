@@ -7,16 +7,6 @@ const {
     formatStatusValue,
 } = require('../services/reports/formsTemplate/aboutkvkTemplates/farmImplementsFormatters.js');
 
-const FARM_IMPLEMENTS_TEMPLATE_KEY = 'about-kvk-farm-implements';
-const FARM_IMPLEMENTS_FIELD_PATHS = {
-    'kvk.kvkName': ['kvk.kvkName', 'kvkName', 'KVK'],
-    implementName: ['implementName', 'Name of equipment'],
-    yearOfPurchase: ['yearOfPurchase', 'Year', 'Year of purchase'],
-    totalCost: ['totalCost', 'Cost (Rs.)'],
-    presentStatus: ['presentStatus', 'Present status'],
-    sourceOfFund: ['sourceOfFund', 'sourceOfFunding', 'Source of fund', 'Source of Funding'],
-};
-
 const exportData = async (req, res) => {
     try {
         const {
@@ -122,25 +112,25 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     const mappedHeaders = section.fields.map(field => field.displayName);
     const mappedRows = normalizedData.map(record => {
         return section.fields.map(field => {
-            const value = resolveTemplateFieldValue(templateKey, record, field.dbField);
-            return templateKey === FARM_IMPLEMENTS_TEMPLATE_KEY
-                ? formatFarmImplementsExportValue(field.dbField, value, format)
-                : formatExportValue(value, format);
+            const value = resolveFieldValue(record, field);
+            return formatFieldByType(field, value, format);
         });
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
 }
 
-function resolveTemplateFieldValue(templateKey, record, dbFieldPath) {
-    if (templateKey === FARM_IMPLEMENTS_TEMPLATE_KEY) {
-        const fallbackPaths = FARM_IMPLEMENTS_FIELD_PATHS[dbFieldPath];
-        if (Array.isArray(fallbackPaths) && fallbackPaths.length > 0) {
-            return pickFirstValue(record, fallbackPaths);
-        }
+function resolveFieldValue(record, field) {
+    if (Array.isArray(field.lookupPaths) && field.lookupPaths.length > 0) {
+        return pickFirstValue(record, field.lookupPaths);
     }
+    return getNestedValue(record, field.dbField);
+}
 
-    return getNestedValue(record, dbFieldPath);
+function formatFieldByType(field, value, format = 'csv') {
+    if (field.type === 'currency') return formatCostValue(value);
+    if (field.type === 'status') return formatStatusValue(value);
+    return formatExportValue(value, format);
 }
 
 function pickFirstValue(record, candidatePaths = []) {
@@ -383,12 +373,6 @@ function getNestedValue(obj, path) {
         if (acc === null || acc === undefined) return null;
         return acc[key] !== undefined ? acc[key] : null;
     }, obj);
-}
-
-function formatFarmImplementsExportValue(dbFieldPath, value, format = 'csv') {
-    if (dbFieldPath === 'totalCost') return formatCostValue(value);
-    if (dbFieldPath === 'presentStatus') return formatStatusValue(value);
-    return formatExportValue(value, format);
 }
 
 function formatExportValue(value, format = 'csv') {

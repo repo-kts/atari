@@ -27,24 +27,17 @@ function renderFarmImplementsSection(section, data, sectionId, isFirstSection) {
         <tbody>`;
 
     rows.forEach((row, index) => {
-        const kvkName = this._formatFieldValue(this._pickValue(row, ['kvk.kvkName', 'kvkName', 'KVK']));
-        const implementName = this._formatFieldValue(this._pickValue(row, ['implementName', 'Name of equipment']));
-        const yearOfPurchase = this._formatFieldValue(this._pickValue(row, ['yearOfPurchase', 'Year', 'Year of purchase']));
-        const totalCost = formatCostValue(this._pickValue(row, ['totalCost', 'Cost (Rs.)']));
-        const presentStatus = formatStatusValue(this._pickValue(row, ['presentStatus', 'Present status']));
-        const sourceOfFund = this._formatFieldValue(
-            this._pickValue(row, ['sourceOfFund', 'sourceOfFunding', 'Source of fund', 'Source of Funding'])
-        );
+        const cells = fields.map(field => {
+            const raw = this._pickValue(row, field.lookupPaths || [field.dbField]);
+            if (field.type === 'currency') return formatCostValue(raw);
+            if (field.type === 'status') return formatStatusValue(raw);
+            return this._formatFieldValue(raw);
+        });
 
         html += `
             <tr class="${index % 2 === 0 ? 'even' : 'odd'}">
                 <td class="s-no">${index + 1}.</td>
-                <td>${this._escapeHtml(kvkName)}</td>
-                <td>${this._escapeHtml(implementName)}</td>
-                <td>${this._escapeHtml(yearOfPurchase)}</td>
-                <td>${this._escapeHtml(totalCost)}</td>
-                <td>${this._escapeHtml(presentStatus)}</td>
-                <td>${this._escapeHtml(sourceOfFund)}</td>
+                ${cells.map(cell => `<td>${this._escapeHtml(cell)}</td>`).join('')}
             </tr>`;
     });
 

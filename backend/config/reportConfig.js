@@ -196,12 +196,12 @@ const reportConfig = {
                 dateFields: ['createdAt'],
             },
             fields: [
-                { dbField: 'kvk.kvkName', displayName: 'KVK' },
-                { dbField: 'implementName', displayName: 'Name of equipment' },
-                { dbField: 'yearOfPurchase', displayName: 'Year' },
-                { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
-                { dbField: 'presentStatus', displayName: 'Present status' },
-                { dbField: 'sourceOfFund', displayName: 'Source of fund' },
+                { dbField: 'kvk.kvkName', displayName: 'KVK', lookupPaths: ['kvk.kvkName', 'kvkName', 'KVK'] },
+                { dbField: 'implementName', displayName: 'Name of equipment', lookupPaths: ['implementName', 'Name of equipment'] },
+                { dbField: 'yearOfPurchase', displayName: 'Year', lookupPaths: ['yearOfPurchase', 'Year of purchase', 'Year'] },
+                { dbField: 'totalCost', displayName: 'Cost (Rs.)', type: 'currency', lookupPaths: ['totalCost', 'Cost (Rs.)'] },
+                { dbField: 'presentStatus', displayName: 'Present status', type: 'status', lookupPaths: ['presentStatus', 'Present status'] },
+                { dbField: 'sourceOfFund', displayName: 'Source of fund', lookupPaths: ['sourceOfFund', 'sourceOfFunding', 'Source of fund', 'Source of Funding'] },
             ],
         },
         {
