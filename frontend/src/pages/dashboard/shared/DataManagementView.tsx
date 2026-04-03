@@ -731,7 +731,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
                 ? 'about-kvk-equipment-records'
                 : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
-                ? 'oft-detail-cards'
+                ? 'oft-combined'
                 : undefined;
         await handleExportData(format, {
             title,

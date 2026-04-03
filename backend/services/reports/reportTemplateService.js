@@ -8,6 +8,7 @@ const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTempl
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
+const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
 
 /**
  * Report Template Service
@@ -27,6 +28,7 @@ class ReportTemplateService {
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
+            'oft-combined': renderOftCombinedSection.bind(this),
         };
     }
 
