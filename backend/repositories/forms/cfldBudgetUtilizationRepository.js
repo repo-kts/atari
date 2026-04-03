@@ -61,7 +61,7 @@ const formatBudgetReportingYear = (reportingYearDate, yearValue) => {
 
 const cfldBudgetUtilizationRepository = {
     create: async (data, opts, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
         const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
 
@@ -153,7 +153,7 @@ const cfldBudgetUtilizationRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -199,7 +199,7 @@ const cfldBudgetUtilizationRepository = {
             include: { items: true }
         });
         if (!existing) throw new Error('Record not found');
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
 

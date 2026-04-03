@@ -66,7 +66,7 @@ const techWeekRepository = {
 
     update: async (id, data, user) => {
         const where = { techWeekId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

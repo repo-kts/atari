@@ -1,7 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
-const KVK_ROLES = ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'];
+const KVK_ROLES = ['kvk_admin', 'kvk_user'];
 const isKvkUser = (user) => user && (KVK_ROLES.includes(user.roleName) || user.kvkId);
 
 // ─── Helper ─────────────────────────────────────────────────────────────────

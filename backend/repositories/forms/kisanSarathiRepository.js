@@ -49,7 +49,7 @@ const kisanSarathiRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         } else if (filters.kvkId) {
             where.kvkId = parseInteger(filters.kvkId, 'kvkId', false);
@@ -66,7 +66,7 @@ const kisanSarathiRepository = {
     findById: async (id, user) => {
         const kisanSarathiId = parseInteger(id, 'id', false);
         const where = { kisanSarathiId };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -81,7 +81,7 @@ const kisanSarathiRepository = {
     update: async (id, data, user) => {
         const kisanSarathiId = parseInteger(id, 'id', false);
         const where = { kisanSarathiId };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
 
@@ -116,7 +116,7 @@ const kisanSarathiRepository = {
     delete: async (id, user) => {
         const kisanSarathiId = parseInteger(id, 'id', false);
         const where = { kisanSarathiId };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
         }
         const existing = await prisma.kisanSarathi.findFirst({ where });

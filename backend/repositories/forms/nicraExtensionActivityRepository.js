@@ -26,7 +26,7 @@ const nicraExtensionActivityRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -41,7 +41,7 @@ const nicraExtensionActivityRepository = {
 
     findById: async (id, user) => {
         const where = { nicraExtensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.nicraExtensionActivity.findFirst({
@@ -52,7 +52,7 @@ const nicraExtensionActivityRepository = {
 
     update: async (id, data, user) => {
         const where = { nicraExtensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -80,7 +80,7 @@ const nicraExtensionActivityRepository = {
 
     delete: async (id, user) => {
         const where = { nicraExtensionActivityId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.nicraExtensionActivity.findFirst({ where });

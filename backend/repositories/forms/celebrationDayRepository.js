@@ -53,7 +53,7 @@ const celebrationDayRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -73,7 +73,7 @@ const celebrationDayRepository = {
 
     findById: async (id, user) => {
         const where = { celebrationId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -89,7 +89,7 @@ const celebrationDayRepository = {
 
     update: async (id, data, user) => {
         const where = { celebrationId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -155,7 +155,7 @@ const celebrationDayRepository = {
             let sql = `UPDATE kvk_important_day_celebration SET ${updates.join(', ')} WHERE celebration_id = $${index++}`;
             const params = [...values, parseInt(id)];
 
-            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 sql += ` AND "kvkId" = $${index++}`;
                 params.push(parseInt(user.kvkId));
             }
@@ -169,7 +169,7 @@ const celebrationDayRepository = {
 
     delete: async (id, user) => {
         const where = { celebrationId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 

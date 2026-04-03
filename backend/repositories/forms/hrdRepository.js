@@ -176,7 +176,7 @@ const hrdRepository = {
             const where = {};
 
             // Strict isolation for KVK-scoped users
-            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             } else if (filters.kvkId) {
@@ -217,7 +217,7 @@ const hrdRepository = {
             const where = { hrdProgramId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }
@@ -257,7 +257,7 @@ const hrdRepository = {
             const where = { hrdProgramId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }
@@ -343,7 +343,7 @@ const hrdRepository = {
             const where = { hrdProgramId };
 
             // Check authorization
-            if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 const kvkId = parseInteger(user.kvkId, 'user.kvkId', false);
                 where.kvkId = kvkId;
             }

@@ -26,7 +26,7 @@ const operationalAreaRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -43,7 +43,7 @@ const operationalAreaRepository = {
 
     findById: async (id, user) => {
         const where = { operationalAreaId: id };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         return await prisma.operationalArea.findFirst({
@@ -56,7 +56,7 @@ const operationalAreaRepository = {
 
     update: async (id, data, user) => {
         const where = { operationalAreaId: id };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
 
@@ -85,7 +85,7 @@ const operationalAreaRepository = {
 
     delete: async (id, user) => {
         const where = { operationalAreaId: id };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
         const existing = await prisma.operationalArea.findFirst({ where });

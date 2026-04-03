@@ -3,7 +3,7 @@ const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = req
 
 const csisaRepository = {
     create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName);
+        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
         const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
         const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
 
@@ -96,7 +96,7 @@ const csisaRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
@@ -137,7 +137,7 @@ const csisaRepository = {
 
     findById: async (id, user) => {
         const where = { csisaId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
 
@@ -156,7 +156,7 @@ const csisaRepository = {
     update: async (id, data, user) => {
         const csisaId = parseInt(id);
         const whereSpec = { csisaId };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereSpec.kvkId = parseInt(user.kvkId);
         }
 
@@ -268,7 +268,7 @@ const csisaRepository = {
     delete: async (id, user) => {
         const csisaId = parseInt(id);
         const whereSpec = { csisaId };
-        if (user && ['kvk_admin', 'kvk_user', 'kvk_expert', 'kvk_report', 'link_report'].includes(user.roleName)) {
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             whereSpec.kvkId = parseInt(user.kvkId);
         }
 
