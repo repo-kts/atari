@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback, useEffect } from 'react'
+import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput } from './shared/FormComponents'
+import { FormInput, FormSection } from './shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useAuth } from '@/contexts/AuthContext'
 import { useYears } from '@/hooks/useOtherMastersData'
@@ -158,19 +159,147 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
         [setFormData]
     )
 
-    const handleImageChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const file = e.target.files?.[0]
-            if (file) {
-                const reader = new FileReader()
+    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            const previews: string[] = [];
+            let count = 0;
+
+            newFiles.forEach((file, index) => {
+                const reader = new FileReader();
                 reader.onloadend = () => {
-                    setFormData((prev: any) => ({ ...prev, image: reader.result as string }))
+                    previews[index] = reader.result as string;
+                    count++;
+                    if (count === newFiles.length) {
+                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            [field]: [
+                                ...existingPhotos,
+                                ...newFiles.map((f, i) => ({
+                                    file: f,
+                                    preview: previews[i],
+                                    image: previews[i],
+                                    caption: ''
+                                }))
+                            ]
+                        }));
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removePhoto = (field: string, index: number) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        photos.splice(index, 1);
+        setFormData((prev: any) => ({ ...prev, [field]: photos }));
+    };
+
+    const updateCaption = (field: string, index: number, caption: string) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        if (photos[index]) {
+            photos[index] = { ...photos[index], caption };
+            setFormData((prev: any) => ({ ...prev, [field]: photos }));
+        }
+    };
+
+    const renderPhotoFields = (field: string) => (
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
+            <FormInput
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field)}
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
+            />
+
+            {Array.isArray(formData[field]) && formData[field].length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData[field].map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`P ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(field, idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </FormSection>
+    );
+
+    // Normalize incoming photographs data when editing
+    useEffect(() => {
+        // Only normalize if we are editing an existing record and have an ID
+        if (!formData.id) return;
+
+        const photoFields = ['photographs', 'image'];
+        let hasChanges = false;
+        const newData = { ...formData };
+
+        photoFields.forEach(field => {
+            const rawValue = formData[field];
+            if (rawValue && typeof rawValue === 'string') {
+                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawValue);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        newData[field] = arrayToMap
+                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url))
+                            .map((item: any) => {
+                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
+                                const url = item.image || item.url || item.path || item.preview || '';
+                                return { preview: url, image: url, caption: item.caption || '' };
+                            });
+                        hasChanges = true;
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (rawValue.trim() !== '' && !rawValue.includes('object Object')) {
+                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+                    newData[field] = values
+                        .filter((v: string) => v && v.trim() !== '')
+                        .map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                    hasChanges = true;
                 }
-                reader.readAsDataURL(file)
             }
-        },
-        [setFormData]
-    )
+        });
+
+        if (hasChanges) {
+            setFormData(newData);
+        }
+    }, [formData.id, formData.entityType, setFormData]); // Only depend on identity change
 
     if (!entityType) return null
 
@@ -331,34 +460,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             value={formData.conferringAuthority ?? ''}
                             onChange={handleConferringAuthorityChange}
                         />
-                        <div className="md:col-span-2 space-y-4">
-                            {/* Display existing image if available */}
-                            {formData.image && typeof formData.image === 'string' && (
-                                <div className="p-4 border border-[#E0E0E0] rounded-xl bg-gray-50">
-                                    <p className="text-sm font-semibold text-gray-700 mb-2">Current Image:</p>
-                                    <div className="relative w-full max-w-xs h-40 overflow-hidden rounded-lg border border-gray-200">
-                                        <img
-                                            src={formData.image}
-                                            alt="Achievement"
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
-                                            }}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-gray-500 mt-2 italic">Uploading a new file will replace this image.</p>
-                                </div>
-                            )}
-
-                            <FormInput
-                                label="Image"
-                                type="file"
-                                required={!formData.image} // Required only if no image exists (new record or no image set)
-                                onChange={handleImageChange}
-                                accept="image/*"
-                                className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20"
-                            />
-                        </div>
+                        {renderPhotoFields('image')}
                     </div>
                 </div>
             )}

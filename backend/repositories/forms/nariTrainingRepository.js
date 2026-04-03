@@ -80,9 +80,14 @@ const nariTrainingRepository = {
         return results.map(_mapResponse);
     },
 
-    findById: async (id) => {
-        const result = await prisma.nariTrainingProgramme.findUnique({
-            where: { nariTrainingProgrammeId: parseInt(id) },
+    findById: async (id, user) => {
+        const where = { nariTrainingProgrammeId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = user.kvkId;
+        }
+
+        const result = await prisma.nariTrainingProgramme.findFirst({
+            where,
             include: {
                 kvk: { select: { kvkName: true } },
                 activity: { select: { activityName: true } },
@@ -91,7 +96,15 @@ const nariTrainingRepository = {
         return result ? _mapResponse(result) : null;
     },
 
-    update: async (id, data) => {
+    update: async (id, data, user) => {
+        const where = { nariTrainingProgrammeId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = user.kvkId;
+        }
+
+        const existing = await prisma.nariTrainingProgramme.findFirst({ where });
+        if (!existing) throw new Error('Record not found or unauthorized');
+
         const result = await prisma.nariTrainingProgramme.update({
             where: { nariTrainingProgrammeId: parseInt(id) },
             data: {
@@ -127,7 +140,15 @@ const nariTrainingRepository = {
         return _mapResponse(result);
     },
 
-    delete: async (id) => {
+    delete: async (id, user) => {
+        const where = { nariTrainingProgrammeId: parseInt(id) };
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = user.kvkId;
+        }
+
+        const existing = await prisma.nariTrainingProgramme.findFirst({ where });
+        if (!existing) throw new Error('Record not found or unauthorized');
+
         return await prisma.nariTrainingProgramme.delete({
             where: { nariTrainingProgrammeId: parseInt(id) }
         });

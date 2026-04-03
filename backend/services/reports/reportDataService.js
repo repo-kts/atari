@@ -253,6 +253,15 @@ class ReportDataService {
                 return value ? 'Yes' : 'No';
 
             case 'image':
+                // Handle JSON-encoded image and caption
+                if (typeof value === 'string' && value.startsWith('{"image":')) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        return parsed.image || null;
+                    } catch (e) {
+                        // Not valid JSON, return as is
+                    }
+                }
                 // Return image path or placeholder
                 return value || null;
 

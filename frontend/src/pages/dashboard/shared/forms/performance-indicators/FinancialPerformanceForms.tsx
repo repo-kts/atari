@@ -460,8 +460,11 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                         <FormInput
                             label="Account Number"
                             required
-                            value={formData.accountNumber ?? ''}
-                            onChange={handleFieldChange('accountNumber')}
+                            value={formData.accountNumber || ''}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setFormData((prev: any) => ({ ...prev, accountNumber: val }));
+                            }}
                             placeholder="Enter account number..."
                         />
                     </div>

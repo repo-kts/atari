@@ -251,6 +251,198 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return transformed;
         },
     },
+    [ENTITY_TYPES.KVK_EMPLOYEES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photoPath)) {
+                const photos = data.photoPath.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.photoPath = JSON.stringify(photos);
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.KVK_STAFF_TRANSFERRED]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photoPath)) {
+                const photos = data.photoPath.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.photoPath = JSON.stringify(photos);
+            }
+            return transformed;
+        }
+    },
+
+    [ENTITY_TYPES.PROJECT_ARYA_CURRENT]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.arya_photos)) {
+                const photos = data.arya_photos.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.imagePath = JSON.stringify(photos);
+            }
+            delete transformed.arya_photos;
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.arya_photos)) {
+                const photos = data.arya_photos.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                }));
+                transformed.imagePath = JSON.stringify(photos);
+            }
+            delete transformed.arya_photos;
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.MISC_MEETINGS_SAC]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(transformed.uploadedFile)) {
+                transformed.uploadedFile = JSON.stringify(transformed.uploadedFile);
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            // uploadFile is a browser File object — cannot be sent as JSON; strip it
+            if (transformed.uploadFile instanceof File || (typeof File !== 'undefined' && transformed.uploadFile instanceof File)) {
+                delete transformed.uploadFile;
+            }
+            // Also strip if it's a FileList
+            if (typeof FileList !== 'undefined' && transformed.uploadFile instanceof FileList) {
+                delete transformed.uploadFile;
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_VCRMC]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.photographs)) {
+                transformed.photographs = JSON.stringify(data.photographs.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.images)) {
+                transformed.images = JSON.stringify(data.images.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.images)) {
+                transformed.images = JSON.stringify(data.images.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.image)) {
+                transformed.image = JSON.stringify(data.image.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
+    [ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.supportingImages)) {
+                transformed.supportingImages = JSON.stringify(data.supportingImages.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
 };
 
 // ============================================
@@ -385,7 +577,6 @@ export function removeEmptyIdFields(data: any): any {
 
     const cleaned = { ...data };
     Object.keys(cleaned).forEach((key) => {
-        // Remove fields that end with 'Id' and have empty string values
         if (key.endsWith('Id') && cleaned[key] === '') {
             delete cleaned[key];
         }
@@ -648,6 +839,36 @@ export function normalizeStartEndDateRanges(data: any): any {
 }
 
 /**
+ * Strips raw File and FileList objects from the payload.
+ * These cannot be serialized as JSON and cause internal server errors.
+ */
+function stripFileObjects(data: any): any {
+    if (!data || typeof data !== 'object') return data;
+    const transformed = { ...data };
+    Object.keys(transformed).forEach(key => {
+        const val = transformed[key];
+        if (typeof File !== 'undefined' && val instanceof File) {
+            delete transformed[key];
+        } else if (typeof FileList !== 'undefined' && val instanceof FileList) {
+            delete transformed[key];
+        }
+    });
+
+    // Also check for files inside arrays (like photographs when they are raw Files)
+    if (Array.isArray(transformed.photographs)) {
+        transformed.photographs = transformed.photographs.map(p => {
+            if (p && typeof p === 'object' && 'file' in p && (typeof File !== 'undefined' && p.file instanceof File)) {
+                const { file, ...rest } = p;
+                return rest;
+            }
+            return p;
+        }).filter(p => !(typeof File !== 'undefined' && p instanceof File));
+    }
+
+    return transformed;
+}
+
+/**
  * Complete data transformation pipeline for create operations
  */
 export function transformDataForCreate(
@@ -663,6 +884,7 @@ export function transformDataForCreate(
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
+    transformed = stripFileObjects(transformed); // STRIP FILES HERE
     return transformed;
 }
 
@@ -684,5 +906,6 @@ export function transformDataForUpdate(
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = normalizeStartEndDateRanges(transformed);
     transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
+    transformed = stripFileObjects(transformed); // STRIP FILES HERE
     return transformed;
 }

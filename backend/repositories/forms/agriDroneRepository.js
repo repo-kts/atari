@@ -68,11 +68,7 @@ const agriDroneRepository = {
     },
 
     findById: async (id, user) => {
-        const agriDroneId = parseInt(id);
-        if (!Number.isFinite(agriDroneId)) {
-            throw new Error('Valid agriDroneId is required');
-        }
-        const where = { agriDroneId };
+        const where = { agriDroneId: parseInt(id) };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -87,11 +83,7 @@ const agriDroneRepository = {
     },
 
     update: async (id, data, user) => {
-        const agriDroneId = parseInt(id);
-        if (!Number.isFinite(agriDroneId)) {
-            throw new Error('Valid agriDroneId is required');
-        }
-        const where = { agriDroneId };
+        const where = { agriDroneId: parseInt(id) };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }
@@ -141,7 +133,7 @@ const agriDroneRepository = {
         if (updates.length > 0) {
             updates.push(`updated_at = CURRENT_TIMESTAMP`);
             let sql = `UPDATE kvk_agri_drone SET ${updates.join(', ')} WHERE agri_drone_id = $${index++}`;
-            const params = [...values, parseInt(id)];
+            const params = [...values, agriDroneId];
 
             if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
                 sql += ` AND "kvkId" = $${index++}`;
@@ -156,11 +148,7 @@ const agriDroneRepository = {
     },
 
     delete: async (id, user) => {
-        const agriDroneId = parseInt(id);
-        if (!Number.isFinite(agriDroneId)) {
-            throw new Error('Valid agriDroneId is required');
-        }
-        const where = { agriDroneId };
+        const where = { agriDroneId: parseInt(id) };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = parseInt(user.kvkId);
         }

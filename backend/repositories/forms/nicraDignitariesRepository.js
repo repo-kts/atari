@@ -25,12 +25,33 @@ async function resolveNicraDignitaryTypeId(rawValue) {
 }
 
 const nicraDignitariesRepository = {
+    _mapResponse: (r) => {
+        if (!r) return null;
+        let photos = [];
+        try {
+            if (r.photographs) {
+                photos = typeof r.photographs === 'string' ? JSON.parse(r.photographs) : r.photographs;
+                if (!Array.isArray(photos)) photos = [photos];
+            }
+        } catch (e) {
+            photos = r.photographs ? r.photographs.split(',').filter(Boolean) : [];
+        }
+
+        return {
+            ...r,
+            id: r.nicraDignitariesVisitedId,
+            dateOfVisit: r.dateOfVisit && r.dateOfVisit instanceof Date ? r.dateOfVisit.toISOString().split('T')[0] : (r.dateOfVisit || ''),
+            type: r.dignitaryType?.name || r.type || null,
+            photographs: photos,
+        };
+    },
+
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
         const dignitaryTypeId = await resolveNicraDignitaryTypeId(data.dignitaryTypeId ?? data.type);
 
-        return await prisma.nicraDignitariesVisited.create({
+        const result = await prisma.nicraDignitariesVisited.create({
             data: {
                 kvkId,
                 dateOfVisit: new Date(data.dateOfVisit),
@@ -43,6 +64,7 @@ const nicraDignitariesRepository = {
                 dignitaryType: true,
             }
         });
+        return nicraDignitariesRepository._mapResponse(result);
     },
 
     findAll: async (filters = {}, user) => {
@@ -61,10 +83,7 @@ const nicraDignitariesRepository = {
             },
             orderBy: { nicraDignitariesVisitedId: 'desc' }
         });
-        return results.map(r => ({
-            ...r,
-            type: r.dignitaryType?.name || null,
-        }));
+        return results.map(r => nicraDignitariesRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
@@ -79,11 +98,7 @@ const nicraDignitariesRepository = {
                 dignitaryType: true,
             }
         });
-        if (!result) return null;
-        return {
-            ...result,
-            type: result.dignitaryType?.name || null,
-        };
+        return nicraDignitariesRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
@@ -111,10 +126,7 @@ const nicraDignitariesRepository = {
                 dignitaryType: true,
             }
         });
-        return {
-            ...updated,
-            type: updated.dignitaryType?.name || null,
-        };
+        return nicraDignitariesRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

@@ -16,10 +16,11 @@ const seedHubRepository = {
     findAll: async (filters = {}, user) => {
         const where = {};
 
+        // Role-based filtering
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId, 10);
+            where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
-            where.kvkId = parseInt(filters.kvkId, 10);
+            where.kvkId = parseInt(filters.kvkId);
         }
 
         if (filters.reportingYearFrom || filters.reportingYearTo) {

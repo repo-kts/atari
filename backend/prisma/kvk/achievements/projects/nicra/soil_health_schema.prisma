@@ -18,6 +18,8 @@ model NicraSoilHealthCard {
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
 
+  photographs String? @map("photographs") @db.Text
+
   @@index([kvkId])
   @@map("nicra_soil_health_card")
 }

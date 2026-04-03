@@ -251,64 +251,67 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         />
                     </div>
 
-                    <FormSection title="Details of Production">
-                        <FormInput
-                            label="Variety/Breed"
-                            required
-                            value={formData.varietyBreed ?? ''}
-                            onChange={handleFieldChange('varietyBreed')}
-                            placeholder="Enter variety/breed"
-                        />
+                    <FormSection title="Details of Production" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Variety/Breed"
+                                required
+                                value={formData.varietyBreed || ''}
+                                onChange={handleFieldChange('varietyBreed')}
+                                placeholder="Enter variety/breed"
+                            />
 
-                        <FormInput
-                            label="Produce"
-                            required
-                            value={formData.produce ?? ''}
-                            onChange={handleFieldChange('produce')}
-                            placeholder="Enter produce"
-                        />
+                            <FormInput
+                                label="Produce"
+                                required
+                                value={formData.produce || ''}
+                                onChange={handleFieldChange('produce')}
+                                placeholder="Enter produce"
+                            />
 
-                        <FormInput
-                            label="Quantity"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.quantity ?? ''}
-                            onChange={handleNumberChange('quantity')}
-                            placeholder="Enter quantity"
-                        />
+                            <FormInput
+                                label="Quantity"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.quantity || ''}
+                                onChange={handleNumberChange('quantity')}
+                                placeholder="Enter quantity"
+                            />
+                        </div>
                     </FormSection>
 
-                    <FormSection title="Amount (Rs.)">
-                        <FormInput
-                            label="Cost of Inputs"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.costOfInputs ?? ''}
-                            onChange={handleNumberChange('costOfInputs')}
-                            placeholder="Enter cost"
-                        />
+                    <FormSection title="Amount (Rs.)" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Cost of Inputs"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.costOfInputs || ''}
+                                onChange={handleNumberChange('costOfInputs')}
+                                placeholder="Enter cost"
+                            />
 
-                        <FormInput
-                            label="Gross Income"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.grossIncome ?? ''}
-                            onChange={handleNumberChange('grossIncome')}
-                            placeholder="Enter gross income"
-                        />
+                            <FormInput
+                                label="Gross Income"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.grossIncome || ''}
+                                onChange={handleNumberChange('grossIncome')}
+                                placeholder="Enter gross income"
+                            />
+
+                            <FormInput
+                                label="Remarks"
+                                required
+                                value={formData.remarks || ''}
+                                onChange={handleFieldChange('remarks')}
+                                placeholder="Enter remarks"
+                            />
+                        </div>
                     </FormSection>
-
-                    <FormTextArea
-                        label="Remarks"
-                        required
-                        value={formData.remarks ?? ''}
-                        onChange={handleFieldChange('remarks')}
-                        rows={3}
-                        placeholder="Enter remarks"
-                    />
                 </div>
             )}
 
@@ -357,64 +360,67 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         />
                     </div>
 
-                    <FormSection title="Details of Production">
-                        <FormInput
-                            label="Variety"
-                            required
-                            value={formData.variety ?? ''}
-                            onChange={handleFieldChange('variety')}
-                            placeholder="Enter variety"
-                        />
+                    <FormSection title="Details of Production" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Variety"
+                                required
+                                value={formData.variety || ''}
+                                onChange={handleFieldChange('variety')}
+                                placeholder="Enter variety"
+                            />
 
-                        <FormInput
-                            label="Type of Produce"
-                            required
-                            value={formData.typeOfProduce ?? ''}
-                            onChange={handleFieldChange('typeOfProduce')}
-                            placeholder="Enter type of produce"
-                        />
+                            <FormInput
+                                label="Type of Produce"
+                                required
+                                value={formData.typeOfProduce || ''}
+                                onChange={handleFieldChange('typeOfProduce')}
+                                placeholder="Enter type of produce"
+                            />
 
-                        <FormInput
-                            label="Quantity (q)"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.quantity ?? ''}
-                            onChange={handleNumberChange('quantity')}
-                            placeholder="Enter quantity"
-                        />
+                            <FormInput
+                                label="Quantity (q)"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.quantity || ''}
+                                onChange={handleNumberChange('quantity')}
+                                placeholder="Enter quantity"
+                            />
+                        </div>
                     </FormSection>
 
-                    <FormSection title="Amount (Rs.)">
-                        <FormInput
-                            label="Cost of Inputs"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.costOfInputs ?? ''}
-                            onChange={handleNumberChange('costOfInputs')}
-                            placeholder="Enter cost"
-                        />
+                    <FormSection title="Amount (Rs.)" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Cost of Inputs"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.costOfInputs || ''}
+                                onChange={handleNumberChange('costOfInputs')}
+                                placeholder="Enter cost"
+                            />
 
-                        <FormInput
-                            label="Gross Income"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.grossIncome ?? ''}
-                            onChange={handleNumberChange('grossIncome')}
-                            placeholder="Enter gross income"
-                        />
+                            <FormInput
+                                label="Gross Income"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.grossIncome || ''}
+                                onChange={handleNumberChange('grossIncome')}
+                                placeholder="Enter gross income"
+                            />
+
+                            <FormInput
+                                label="Remarks"
+                                required
+                                value={formData.remarks || ''}
+                                onChange={handleFieldChange('remarks')}
+                                placeholder="Enter remarks"
+                            />
+                        </div>
                     </FormSection>
-
-                    <FormTextArea
-                        label="Remarks"
-                        required
-                        value={formData.remarks ?? ''}
-                        onChange={handleFieldChange('remarks')}
-                        rows={3}
-                        placeholder="Enter remarks"
-                    />
                 </div>
             )}
 
@@ -441,46 +447,49 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         />
                     </div>
 
-                    <FormInput
-                        label="Quantity (Kg)"
-                        required
-                        type="number"
-                        step="0.01"
-                        value={formData.quantity ?? ''}
-                        onChange={handleNumberChange('quantity')}
-                        placeholder="Enter quantity"
-                    />
-
-                    <FormSection title="Amount (Rs.)">
+                    <div className="grid grid-cols-3 gap-4">
                         <FormInput
-                            label="Cost of Inputs"
+                            label="Quantity (Kg)"
                             required
                             type="number"
                             step="0.01"
-                            value={formData.costOfInputs ?? ''}
-                            onChange={handleNumberChange('costOfInputs')}
-                            placeholder="Enter cost"
+                            value={formData.quantity || ''}
+                            onChange={handleNumberChange('quantity')}
+                            placeholder="Enter quantity"
                         />
+                    </div>
 
-                        <FormInput
-                            label="Gross Income"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.grossIncome ?? ''}
-                            onChange={handleNumberChange('grossIncome')}
-                            placeholder="Enter gross income"
-                        />
+                    <FormSection title="Amount (Rs.)" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Cost of Inputs"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.costOfInputs || ''}
+                                onChange={handleNumberChange('costOfInputs')}
+                                placeholder="Enter cost"
+                            />
+
+                            <FormInput
+                                label="Gross Income"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.grossIncome || ''}
+                                onChange={handleNumberChange('grossIncome')}
+                                placeholder="Enter gross income"
+                            />
+
+                            <FormInput
+                                label="Remarks"
+                                required
+                                value={formData.remarks || ''}
+                                onChange={handleFieldChange('remarks')}
+                                placeholder="Enter remarks"
+                            />
+                        </div>
                     </FormSection>
-
-                    <FormTextArea
-                        label="Remarks"
-                        required
-                        value={formData.remarks ?? ''}
-                        onChange={handleFieldChange('remarks')}
-                        rows={3}
-                        placeholder="Enter remarks"
-                    />
                 </div>
             )}
 
@@ -505,64 +514,67 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         placeholder="Enter name"
                     />
 
-                    <FormSection title="Details of Production">
-                        <FormInput
-                            label="Species / Breed / Variety"
-                            required
-                            value={formData.speciesBreed ?? ''}
-                            onChange={handleFieldChange('speciesBreed')}
-                            placeholder="Enter species/breed/variety"
-                        />
+                    <FormSection title="Details of Production" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Variety"
+                                required
+                                value={formData.speciesBreed || ''}
+                                onChange={handleFieldChange('speciesBreed')}
+                                placeholder="Enter variety"
+                            />
 
-                        <FormInput
-                            label="Type of Produce"
-                            required
-                            value={formData.typeOfProduce ?? ''}
-                            onChange={handleFieldChange('typeOfProduce')}
-                            placeholder="Enter type of produce"
-                        />
+                            <FormInput
+                                label="Type of Produce"
+                                required
+                                value={formData.typeOfProduce || ''}
+                                onChange={handleFieldChange('typeOfProduce')}
+                                placeholder="Enter type of produce"
+                            />
 
-                        <FormInput
-                            label="Quantity"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.quantity ?? ''}
-                            onChange={handleNumberChange('quantity')}
-                            placeholder="Enter quantity"
-                        />
+                            <FormInput
+                                label="Qty. (q)"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.quantity || ''}
+                                onChange={handleNumberChange('quantity')}
+                                placeholder="Enter quantity"
+                            />
+                        </div>
                     </FormSection>
 
-                    <FormSection title="Amount (Rs.)">
-                        <FormInput
-                            label="Cost of Inputs"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.costOfInputs ?? ''}
-                            onChange={handleNumberChange('costOfInputs')}
-                            placeholder="Enter cost"
-                        />
+                    <FormSection title="Amount (Rs.)" noGrid>
+                        <div className="grid grid-cols-3 gap-4">
+                            <FormInput
+                                label="Cost of Inputs"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.costOfInputs || ''}
+                                onChange={handleNumberChange('costOfInputs')}
+                                placeholder="Enter cost"
+                            />
 
-                        <FormInput
-                            label="Gross Income"
-                            required
-                            type="number"
-                            step="0.01"
-                            value={formData.grossIncome ?? ''}
-                            onChange={handleNumberChange('grossIncome')}
-                            placeholder="Enter gross income"
-                        />
+                            <FormInput
+                                label="Gross Income"
+                                required
+                                type="number"
+                                step="0.01"
+                                value={formData.grossIncome || ''}
+                                onChange={handleNumberChange('grossIncome')}
+                                placeholder="Enter gross income"
+                            />
+
+                            <FormInput
+                                label="Remarks"
+                                required
+                                value={formData.remarks || ''}
+                                onChange={handleFieldChange('remarks')}
+                                placeholder="Enter remarks"
+                            />
+                        </div>
                     </FormSection>
-
-                    <FormTextArea
-                        label="Remarks"
-                        required
-                        value={formData.remarks ?? ''}
-                        onChange={handleFieldChange('remarks')}
-                        rows={3}
-                        placeholder="Enter remarks"
-                    />
                 </div>
             )}
 
@@ -658,7 +670,7 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                             onChange={handleFieldChange('occupancyDetails')}
                             placeholder="Enter occupancy details"
                         />
-                        </div>
+                    </div>
 
 
                     <div className="space-y-2">

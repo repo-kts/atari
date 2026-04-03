@@ -11,6 +11,8 @@ model FinancialInformation {
   kvk                    Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   activityMaster         NaturalFarmingActivityMaster? @relation(fields: [activityId], references: [naturalFarmingActivityId], onDelete: SetNull, onUpdate: Cascade)
 
+
+
   @@index([kvkId])
   @@index([reportingYearDate])
   @@index([kvkId, reportingYearDate])

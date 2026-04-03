@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput, FormSelect } from '../shared/FormComponents'
+import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -8,7 +9,8 @@ import { createMasterDataOptions } from '@/utils/formHelpers'
 interface NicraFormsProps {
     entityType: string
     formData: any
-    setFormData: (data: any) => void
+    setFormData: (data: any | ((prev: any) => any)) => void
+    years?: any[]
     seasons?: any[]
     categories?: any[]
     subCategories?: any[]
@@ -28,7 +30,200 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     dignitaryTypes = [],
     piTypes = []
 }) => {
-    const todayYmd = new Date().toISOString().slice(0, 10)
+    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            const newFiles = Array.from(files);
+            const previews: string[] = [];
+            let count = 0;
+
+            newFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    previews[index] = reader.result as string;
+                    count++;
+                    if (count === newFiles.length) {
+                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                        setFormData({
+                            ...formData,
+                            [field]: [
+                                ...existingPhotos,
+                                ...newFiles.map((f, i) => ({
+                                    file: f,
+                                    preview: previews[i],
+                                    image: previews[i],
+                                    caption: ''
+                                }))
+                            ]
+                        });
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removePhoto = (field: string, index: number) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        photos.splice(index, 1);
+        setFormData({ ...formData, [field]: photos });
+    };
+
+    const updateCaption = (field: string, index: number, caption: string) => {
+        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
+        if (photos[index]) {
+            photos[index] = { ...photos[index], caption };
+            setFormData({ ...formData, [field]: photos });
+        }
+    };
+
+    const renderGallery = (field: string) => {
+        if (!Array.isArray(formData[field]) || formData[field].length === 0) return null;
+
+        return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                {formData[field].map((item: any, idx: number) => {
+                    const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                    return (
+                        <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                            <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                <img
+                                    src={src}
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                    alt={`P ${idx + 1}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removePhoto(field, idx)}
+                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                >
+                                    <X className="w-3 h-3 stroke-[2.5]" />
+                                </button>
+                            </div>
+                            <div className="space-y-1 mt-auto">
+                                <textarea
+                                    placeholder="Caption..."
+                                    className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                    value={item.caption || ''}
+                                    onChange={(e) => updateCaption(field, idx, e.target.value)}
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderPhotoFields = (field: string) => (
+        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
+            <FormInput
+                label=""
+                required={!Array.isArray(formData[field]) || formData[field].length === 0}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field)}
+                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
+            />
+            {renderGallery(field)}
+        </FormSection>
+    );
+
+    const renderPhotoAndFileRow = (photoField: string, onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="space-y-2">
+                <FormInput
+                    label="Photographs"
+                    required={!Array.isArray(formData[photoField]) || formData[photoField].length === 0}
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange(photoField)}
+                    helperText="Only images allowed. Multiple uploads supported. (Max 5MB per file)"
+                />
+                {renderGallery(photoField)}
+            </div>
+            <FormInput
+                label="Upload File"
+                type="file"
+                onChange={onFileChange}
+                helperText="Upload supporting document (PDF, DOCX, etc.)"
+            />
+        </div>
+    );
+
+    // Normalize incoming photographs data when editing
+    React.useEffect(() => {
+        ['photographs'].forEach(field => {
+            if (formData[field]) {
+                if (typeof formData[field] === 'string') {
+                    if (formData[field].startsWith('[') || formData[field].startsWith('{')) {
+                        try {
+                            const parsed = JSON.parse(formData[field]);
+                            const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                            const normalized = arrayToMap.map((item: any) => {
+                                if (typeof item === 'string') {
+                                    return { preview: item, image: item, caption: '' };
+                                }
+                                const url = item.image || item.url || item.path || item.preview || '';
+                                return {
+                                    preview: url,
+                                    image: url,
+                                    caption: item.caption || ''
+                                };
+                            });
+                            setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                        } catch (e) {
+                            console.error('Photo parsing error:', e);
+                        }
+                    } else if (formData[field].trim() !== '') {
+                        // Handle raw comma separated or single URL
+                        const values = formData[field].includes(',') ? formData[field].split(',') : [formData[field]];
+                        const normalized = values.filter((v: string) => v.trim() !== '').map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                        setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                    }
+                }
+            }
+        });
+    }, [formData.photographs, setFormData]);
+
+    // Format dates received from backend to YYYY-MM-DD for date inputs
+    useEffect(() => {
+        const dateFields = ['startDate', 'endDate', 'dateOfVisit', 'constitutionDate', 'meetingDate'];
+        let updates: any = {};
+        let hasChanges = false;
+
+        dateFields.forEach(field => {
+            if (formData[field] && typeof formData[field] === 'string' && formData[field].includes('T')) {
+                const formattedDate = formData[field].split('T')[0];
+                if (formData[field] !== formattedDate) {
+                    updates[field] = formattedDate;
+                    hasChanges = true;
+                }
+            }
+        });
+
+        // Special handling for type="month" inputs
+        if (formData.monthYear && typeof formData.monthYear === 'string' && formData.monthYear.includes('-')) {
+            const formattedMonth = formData.monthYear.substring(0, 7); // YYYY-MM
+            if (formData.monthYear !== formattedMonth) {
+                updates.monthYear = formattedMonth;
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            setFormData((prev: any) => ({ ...prev, ...updates }));
+        }
+    }, [formData, setFormData]);
+
+    const todayYmd = new Date().toISOString().slice(0, 10);
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
@@ -91,28 +286,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="> 10 days"
                                 required
                                 type="number"
-                                value={formData.dry10 ?? ''}
+                                wholeNumberOnly
+                                value={formData.dry10 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry10: e.target.value })}
                             />
                             <FormInput
                                 label="> 15 days"
                                 required
                                 type="number"
-                                value={formData.dry15 ?? ''}
+                                wholeNumberOnly
+                                value={formData.dry15 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry15: e.target.value })}
                             />
                             <FormInput
                                 label="> 20 days"
                                 required
                                 type="number"
-                                value={formData.dry20 ?? ''}
+                                wholeNumberOnly
+                                value={formData.dry20 || ''}
                                 onChange={(e) => setFormData({ ...formData, dry20: e.target.value })}
                             />
                             <FormInput
                                 label="Intensive rain > 60 mm"
                                 required
                                 type="number"
-                                value={formData.intensiveRain ?? ''}
+                                wholeNumberOnly
+                                value={formData.intensiveRain || ''}
                                 onChange={(e) => setFormData({ ...formData, intensiveRain: e.target.value })}
                             />
                         </div>
@@ -241,28 +440,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -324,60 +527,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <FormInput
-                                label="Photographs"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                                helperText="Only images allowed. Uploading new files will replace existing ones."
-                            />
-                            {formData.photographs && (
-                                <div className="mt-2 text-sm">
-                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
-                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
-                                            .map((item: any, idx: number) => {
-                                                let src = '';
-                                                if (typeof item === 'string') {
-                                                    if (item.startsWith('data:') || item.startsWith('http')) {
-                                                        src = item;
-                                                    } else {
-                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
-                                                    }
-                                                } else if (item instanceof File) {
-                                                    src = URL.createObjectURL(item);
-                                                }
-
-                                                if (!src || src === 'undefined') return null;
-
-                                                return (
-                                                    <div key={idx} className="relative group">
-                                                        <img
-                                                            src={src}
-                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
-                                                            alt={`Photo ${idx + 1}`}
-                                                            onError={(e) => {
-                                                                const img = e.target as HTMLImageElement;
-                                                                img.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                        <FormInput
-                            label="Upload File"
-                            type="file"
-                            onChange={(e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] })}
-                        />
-                    </div>
+                    {renderPhotoAndFileRow('photographs', (e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] }))}
                 </div>
             )}
 
@@ -433,28 +583,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -533,28 +687,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -672,14 +830,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="Reporting Year"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
+                            value={formData.reportingYear ? formData.reportingYear.split('T')[0] : ''}
                             onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
                         <FormInput
                             label="Start Date"
                             required
                             type="date"
-                            value={formData.startDate ?? ''}
+                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
                             max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                         />
@@ -687,7 +845,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             label="End Date"
                             required
                             type="date"
-                            value={formData.endDate ?? ''}
+                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
                             min={formData.startDate || undefined}
                             max={todayYmd}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
@@ -735,28 +893,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -791,53 +953,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <FormInput
-                                label="Photographs"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                                helperText="Only images allowed. Uploading new files will replace existing ones."
-                            />
-                            {formData.photographs && (
-                                <div className="mt-2 text-sm">
-                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
-                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
-                                            .map((item: any, idx: number) => {
-                                                let src = '';
-                                                if (typeof item === 'string') {
-                                                    if (item.startsWith('data:') || item.startsWith('http')) {
-                                                        src = item;
-                                                    } else {
-                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
-                                                    }
-                                                } else if (item instanceof File) {
-                                                    src = URL.createObjectURL(item);
-                                                }
-
-                                                if (!src || src === 'undefined') return null;
-
-                                                return (
-                                                    <div key={idx} className="relative group">
-                                                        <img
-                                                            src={src}
-                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
-                                                            alt={`Photo ${idx + 1}`}
-                                                            onError={(e) => {
-                                                                const img = e.target as HTMLImageElement;
-                                                                img.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {renderPhotoFields('photographs')}
                     </div>
                 </div>
             )}
@@ -920,53 +1036,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <FormInput
-                                label="Photographs"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                                helperText="Only images allowed. Uploading new files will replace existing ones."
-                            />
-                            {formData.photographs && (
-                                <div className="mt-2 text-sm">
-                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
-                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
-                                            .map((item: any, idx: number) => {
-                                                let src = '';
-                                                if (typeof item === 'string') {
-                                                    if (item.startsWith('data:') || item.startsWith('http')) {
-                                                        src = item;
-                                                    } else {
-                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
-                                                    }
-                                                } else if (item instanceof File) {
-                                                    src = URL.createObjectURL(item);
-                                                }
-
-                                                if (!src || src === 'undefined') return null;
-
-                                                return (
-                                                    <div key={idx} className="relative group">
-                                                        <img
-                                                            src={src}
-                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
-                                                            alt={`Photo ${idx + 1}`}
-                                                            onError={(e) => {
-                                                                const img = e.target as HTMLImageElement;
-                                                                img.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {renderPhotoFields('photographs')}
                     </div>
                 </div>
             )}
@@ -1021,28 +1091,32 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 label="General_M"
                                 required
                                 type="number"
-                                value={formData.genMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genMale || ''}
                                 onChange={(e) => setFormData({ ...formData, genMale: e.target.value })}
                             />
                             <FormInput
                                 label="General_F"
                                 required
                                 type="number"
-                                value={formData.genFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.genFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, genFemale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_M"
                                 required
                                 type="number"
-                                value={formData.obcMale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcMale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcMale: e.target.value })}
                             />
                             <FormInput
                                 label="OBC_F"
                                 required
                                 type="number"
-                                value={formData.obcFemale ?? ''}
+                                wholeNumberOnly
+                                value={formData.obcFemale || ''}
                                 onChange={(e) => setFormData({ ...formData, obcFemale: e.target.value })}
                             />
                             <FormInput
@@ -1066,14 +1140,17 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
-                            <FormInput
+                            {/* <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
-                            />
+                            /> */}
                         </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {renderPhotoFields('photographs')}
                     </div>
                 </div>
             )}
@@ -1117,52 +1194,8 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.amountRs ?? ''}
                             onChange={(e) => setFormData({ ...formData, amountRs: e.target.value })}
                         />
-                        <div className="space-y-4">
-                            <FormInput
-                                label="Photographs"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                                helperText="Only images allowed. Uploading new files will replace existing ones."
-                            />
-                            {formData.photographs && (
-                                <div className="mt-2 text-sm">
-                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
-                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
-                                            .map((item: any, idx: number) => {
-                                                let src = '';
-                                                if (typeof item === 'string') {
-                                                    if (item.startsWith('data:') || item.startsWith('http')) {
-                                                        src = item;
-                                                    } else {
-                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
-                                                    }
-                                                } else if (item instanceof File) {
-                                                    src = URL.createObjectURL(item);
-                                                }
-
-                                                if (!src || src === 'undefined') return null;
-
-                                                return (
-                                                    <div key={idx} className="relative group">
-                                                        <img
-                                                            src={src}
-                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
-                                                            alt={`Photo ${idx + 1}`}
-                                                            onError={(e) => {
-                                                                const img = e.target as HTMLImageElement;
-                                                                img.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
+                        <div className="pt-2">
+                            {renderPhotoFields('photographs')}
                         </div>
                     </div>
                 </div>
@@ -1209,53 +1242,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.remark ?? ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
-                        <div className="space-y-4">
-                            <FormInput
-                                label="Photographs"
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => setFormData({ ...formData, photographs: e.target.files })}
-                                helperText="Only images allowed. Uploading new files will replace existing ones."
-                            />
-                            {formData.photographs && (
-                                <div className="mt-2 text-sm">
-                                    <p className="font-medium text-gray-700 mb-2">Selected/Current Photographs:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(Array.isArray(formData.photographs) ? Array.from(formData.photographs) :
-                                            (typeof formData.photographs === 'string' ? formData.photographs.split(',').filter(Boolean) : []))
-                                            .map((item: any, idx: number) => {
-                                                let src = '';
-                                                if (typeof item === 'string') {
-                                                    if (item.startsWith('data:') || item.startsWith('http')) {
-                                                        src = item;
-                                                    } else {
-                                                        src = `${import.meta.env.VITE_API_URL || ''}${item.startsWith('/') ? '' : '/'}${item}`;
-                                                    }
-                                                } else if (item instanceof File) {
-                                                    src = URL.createObjectURL(item);
-                                                }
-
-                                                if (!src || src === 'undefined') return null;
-
-                                                return (
-                                                    <div key={idx} className="relative group">
-                                                        <img
-                                                            src={src}
-                                                            className="w-24 h-24 object-cover rounded-xl border-2 border-[#487749]/20 shadow-md hover:scale-105 transition-transform"
-                                                            alt={`Photo ${idx + 1}`}
-                                                            onError={(e) => {
-                                                                const img = e.target as HTMLImageElement;
-                                                                img.style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                        {renderPhotoFields('photographs')}
                     </div>
                 </div>
             )}

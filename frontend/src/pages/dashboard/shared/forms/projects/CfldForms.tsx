@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 import { MONTHS } from '@/constants/monthConstants';
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
@@ -150,9 +150,85 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
             // Keep OBC / SC / ST as-is (field names already match backend)
 
+            // Image and Caption normalization
+            if (next.trainingPhotoPath && typeof next.trainingPhotoPath === 'string' && next.trainingPhotoPath.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(next.trainingPhotoPath);
+                    next.trainingPhotoPath = parsed.image;
+                    next.trainingPhotos_caption = parsed.caption;
+                    changed = true;
+                } catch (e) {
+                    // Not valid JSON, treat as regular path/base64
+                }
+            }
+
+            if (next.qualityActionPhotoPath && typeof next.qualityActionPhotoPath === 'string' && next.qualityActionPhotoPath.startsWith('{')) {
+                try {
+                    const parsed = JSON.parse(next.qualityActionPhotoPath);
+                    next.qualityActionPhotoPath = parsed.image;
+                    next.actionPhotos_caption = parsed.caption;
+                    changed = true;
+                } catch (e) {
+                    // Not valid JSON, treat as regular path/base64
+                }
+            }
+
             return changed ? next : prev;
         });
     }, [entityType, formData, setFormData]);
+
+    // Handle photo normalization for EDITING
+    useEffect(() => {
+        // Success record IDs for CFLD
+        const hasId = formData.id || formData.cfldProgId || formData.cfldTechnicalParamId || formData.cfldExtensionActivityId;
+        if (!hasId) return;
+
+        const photoFields = ['trainingPhotos', 'actionPhotos'];
+        let hasChanges = false;
+        const newData = { ...formData };
+
+        photoFields.forEach(field => {
+            // Map legacy field names to new standardized array fields if needed
+            let rawValue = formData[field];
+            
+            // Handle cross-mapping for Cfld technical parameters specifically
+            if (!rawValue && field === 'trainingPhotos') rawValue = formData.trainingPhotoPath;
+            if (!rawValue && field === 'actionPhotos') rawValue = formData.qualityActionPhotoPath;
+
+            if (rawValue && typeof rawValue === 'string') {
+                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(rawValue);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        newData[field] = arrayToMap
+                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url))
+                            .map((item: any) => {
+                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
+                                const url = item.image || item.url || item.path || item.preview || '';
+                                return { preview: url, image: url, caption: item.caption || '' };
+                            });
+                        hasChanges = true;
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (rawValue.trim() !== '' && !rawValue.includes('object Object')) {
+                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
+                    newData[field] = values
+                        .filter((v: string) => v && v.trim() !== '')
+                        .map((s: string) => ({
+                            preview: s.trim(),
+                            image: s.trim(),
+                            caption: ''
+                        }));
+                    hasChanges = true;
+                }
+            }
+        });
+
+        if (hasChanges) {
+            setFormData(newData);
+        }
+    }, [formData.id, formData.cfldProgId, formData.cfldTechnicalParamId, setFormData]);
 
     useEffect(() => {
         if (!entityType.includes('cfld') || cfldSection !== 'technical') return;
@@ -298,6 +374,72 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [handleFieldChange]
     );
 
+    const removePhoto = (field: string, index: number) => {
+        setFormData((prev: any) => {
+            const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : []
+            existingPhotos.splice(index, 1)
+            return { ...prev, [field]: existingPhotos }
+        })
+    }
+
+    const updatePhotoCaption = (field: string, index: number, caption: string) => {
+        setFormData((prev: any) => {
+            const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : []
+            if (existingPhotos[index]) {
+                existingPhotos[index] = { ...existingPhotos[index], caption }
+            }
+            return { ...prev, [field]: existingPhotos }
+        })
+    }
+
+    const renderPhotoFields = (field: string, label: string) => (
+        <div className="space-y-4">
+            <FormInput
+                label={label}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange(field, true)}
+                helperText="Only images allowed. Multiple uploads supported."
+            />
+
+            {Array.isArray(formData[field]) && formData[field].length > 0 && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    {formData[field].map((item: any, idx: number) => {
+                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                        return (
+                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                    <img
+                                        src={src}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                        alt={`${label} ${idx + 1}`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(field, idx)}
+                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                    >
+                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                    </button>
+                                </div>
+                                <div className="space-y-1 mt-auto">
+                                    <textarea
+                                        placeholder="Caption..."
+                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                        value={item.caption || ''}
+                                        onChange={(e) => updatePhotoCaption(field, idx, e.target.value)}
+                                        rows={3}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+
     const setActiveSection = useCallback(
         (next: CfldSection) => {
             setCfldSection(next)
@@ -311,10 +453,44 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
     // File upload handlers
     const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            handleFieldChange(field, e.target.files?.[0]);
+        (field: string, multiple: boolean = false) => async (e: React.ChangeEvent<HTMLInputElement>) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+
+            const convertToBase64 = (file: File): Promise<string> => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = error => reject(error);
+                });
+            };
+
+            try {
+                if (multiple) {
+                    const base64Files = await Promise.all(Array.from(files).map(convertToBase64));
+                    const newPhotos = base64Files.map(base64 => ({
+                        preview: base64,
+                        image: base64,
+                        caption: ''
+                    }));
+
+                    setFormData((prev: any) => {
+                        const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : [];
+                        return { 
+                            ...prev, 
+                            [field]: [...existingPhotos, ...newPhotos] 
+                        };
+                    });
+                } else {
+                    const base64 = await convertToBase64(files[0]);
+                    setFormData((prev: any) => ({ ...prev, [field]: base64 }));
+                }
+            } catch (error) {
+                console.error("Error converting files down to base64:", error);
+            }
         },
-        [handleFieldChange]
+        [setFormData]
     );
 
     const renderEconomicParametersForm = () => (
@@ -658,19 +834,9 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
                 </div>
-                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <FormInput
-                        label="Farmers' training photographs"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange('trainingPhotoPath')}
-                    />
-                    <FormInput
-                        label="Quality Action Photographs of field visits/field days and technology demonstrated"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange('qualityActionPhotoPath')}
-                    />
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    {renderPhotoFields('trainingPhotos', "Farmers' training photographs")}
+                    {renderPhotoFields('actionPhotos', "Quality Action Photographs of field visits/field days and technology demonstrated")}
                 </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     {formData.trainingPhotoPath ? (

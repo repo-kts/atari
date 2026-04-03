@@ -12,6 +12,8 @@ model BeneficiariesDetails {
   remarks                 String @map("remarks")
   kvk                     Kvk    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
 
+
+
   @@index([kvkId])
   @@index([reportingYearDate])
   @@index([kvkId, reportingYearDate])

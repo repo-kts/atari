@@ -14,69 +14,79 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     required?: boolean
     error?: string
     helperText?: string
+    wholeNumberOnly?: boolean
 }
 
-export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, className = '', ...props }) => {
+export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, wholeNumberOnly, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (wholeNumberOnly && (e.key === '-' || e.key === '.' || e.key === 'e')) {
+            e.preventDefault()
+        }
+        props.onKeyDown?.(e)
+    }
+
     return (
-        <div className="relative pt-2">
-            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
-                {displayLabel} {required && <span className="text-red-500">*</span>}
-            </label>
+        <div className={`relative ${displayLabel ? 'pt-2' : ''}`}>
+            {displayLabel && (
+                <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+                    {displayLabel} {required && <span className="text-red-500">*</span>}
+                </label>
+            )}
             {(() => {
                 const type = props.type
                 const lowerLabel = displayLabel.toLowerCase()
                 const today = new Date()
                 const todayStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
 
-            const stepFromProps = props.step
-            const isInteger =
-                type === 'number' &&
-                (lowerLabel.includes('no of') ||
-                 lowerLabel.includes('number of') ||
-                 lowerLabel.includes('count') ||
-                 lowerLabel.includes('beneficiar') ||
-                 lowerLabel.includes('farmer') ||
-                 lowerLabel.includes('village') ||
-                 lowerLabel.includes('training') ||
-                 lowerLabel.includes('trainee') ||
-                 lowerLabel.includes('demonstration') ||
-                 lowerLabel.includes('days') ||
-                 lowerLabel.includes('year') ||
-                 lowerLabel.includes('id'));
+                const stepFromProps = props.step
+                const isInteger =
+                    type === 'number' &&
+                    (lowerLabel.includes('no of') ||
+                        lowerLabel.includes('number of') ||
+                        lowerLabel.includes('count') ||
+                        lowerLabel.includes('beneficiar') ||
+                        lowerLabel.includes('farmer') ||
+                        lowerLabel.includes('village') ||
+                        lowerLabel.includes('training') ||
+                        lowerLabel.includes('trainee') ||
+                        lowerLabel.includes('demonstration') ||
+                        lowerLabel.includes('days') ||
+                        lowerLabel.includes('year') ||
+                        lowerLabel.includes('id'));
 
-            const computedStep =
-                type === 'number'
-                    ? (stepFromProps !== undefined && stepFromProps !== null && String(stepFromProps).length > 0
-                        ? stepFromProps
-                        : (isInteger ? '1' : 'any'))
-                    : stepFromProps
+                const computedStep =
+                    type === 'number'
+                        ? (stepFromProps !== undefined && stepFromProps !== null && String(stepFromProps).length > 0
+                            ? stepFromProps
+                            : (isInteger ? '1' : 'any'))
+                        : stepFromProps
 
-            const computedMin =
-                type === 'number'
-                    ? (props.min ?? 0)
-                    : props.min
+                const computedMin =
+                    type === 'number'
+                        ? (props.min ?? 0)
+                        : props.min
 
-            const computedMax =
-                type === 'date' && !lowerLabel.includes('target')
-                    ? props.max ?? todayStr
-                    : props.max
+                const computedMax =
+                    type === 'date' && !lowerLabel.includes('target')
+                        ? props.max ?? todayStr
+                        : props.max
 
-            const originalOnChange = props.onChange
-            const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                if (type === 'number' && computedStep === '1') {
-                    const v = e.target.value
-                    if (v && v.includes('.')) {
-                        // Enforce whole numbers client-side for integer inputs.
-                        e.target.value = v.split('.')[0]
+                const originalOnChange = props.onChange
+                const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (type === 'number' && (computedStep === '1' || wholeNumberOnly)) {
+                        const v = e.target.value
+                        if (v && v.includes('.')) {
+                            // Enforce whole numbers client-side for integer inputs.
+                            e.target.value = v.split('.')[0]
+                        }
                     }
+                    originalOnChange?.(e)
                 }
-                originalOnChange?.(e)
-            }
 
-            // Ensure 0 is shown instead of empty string by handling it specifically
-            const inputValue = (type === 'number' && props.value === 0) ? '0' : (props.value ?? '');
+                // Ensure 0 is shown instead of empty string by handling it specifically
+                const inputValue = (type === 'number' && props.value === 0) ? '0' : (props.value ?? '');
 
                 if (type === 'date') {
                     const dateValue = String(props.value ?? '')
@@ -108,11 +118,12 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         {...props}
                         value={inputValue}
                         required={required}
-                        step={computedStep}
-                        min={computedMin}
+                        step={wholeNumberOnly ? 1 : computedStep}
+                        min={wholeNumberOnly ? 0 : computedMin}
                         max={computedMax}
                         onChange={handleChange}
-                        inputMode={type === 'number' ? (isInteger ? 'numeric' : 'decimal') : props.inputMode}
+                        onKeyDown={wholeNumberOnly ? handleKeyDown : props.onKeyDown}
+                        inputMode={type === 'number' ? (isInteger || wholeNumberOnly ? 'numeric' : 'decimal') : props.inputMode}
                         className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
                     />
                 )
@@ -140,7 +151,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required
 
     return (
         <div className="relative pt-2">
-            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
+            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <select
@@ -193,7 +204,7 @@ export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, err
 
     return (
         <div className="relative pt-2">
-            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
+            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <textarea

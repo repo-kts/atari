@@ -47,7 +47,14 @@ const _parseInteger = (value, fieldName, allowNull = true) => {
         if (allowNull) return null;
         return 0; // Default to 0 for required fields if empty string provided
     }
-    const parsed = parseInt(value);
+    
+    // Normalize string value by removing commas and other non-digit decorators
+    let normalized = value;
+    if (typeof value === 'string') {
+        normalized = value.replace(/,/g, '').trim();
+    }
+    
+    const parsed = parseInt(normalized);
     if (isNaN(parsed) || parsed < 0) {
         throw new RepositoryError(`Invalid ${fieldName}: must be a non-negative integer`, 'VALIDATION_ERROR', 400);
     }
@@ -176,7 +183,7 @@ const farmerAwardRepository = {
                 amount,
                 achievement,
                 conferringAuthority,
-                image,
+                image: data.image ? (typeof data.image === 'string' ? data.image : JSON.stringify(data.image)) : null,
             };
 
             // Create the record using Prisma
@@ -335,6 +342,9 @@ const farmerAwardRepository = {
             }
             if (data.contactNumber !== undefined || data.contactNo !== undefined) {
                 updateData.contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
+            }
+            if (data.image !== undefined) {
+                updateData.image = data.image ? (typeof data.image === 'string' ? data.image : JSON.stringify(data.image)) : null;
             }
             if (data.address !== undefined) {
                 updateData.address = _normalizeString(data.address, 'Address', false);

@@ -24,6 +24,8 @@ model SoilDataInformation {
   season                Season?           @relation(fields: [seasonId], references: [seasonId])
   soilParameterMaster   NaturalFarmingSoilParameterMaster? @relation(fields: [soilParameterId], references: [naturalFarmingSoilParameterId], onDelete: SetNull, onUpdate: Cascade)
 
+
+
   @@index([kvkId])
   @@index([reportingYearDate])
   @@index([kvkId, reportingYearDate])

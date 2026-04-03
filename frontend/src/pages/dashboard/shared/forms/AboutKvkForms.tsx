@@ -5,7 +5,7 @@ import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormC
 import { State, District, Organization, University } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, X } from 'lucide-react'
 import {
     useSanctionedPosts,
     useInfraMasters,
@@ -64,10 +64,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     React.useEffect(() => {
         if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
             setFormData((prev: any) => {
-            const updates: any = {}
+                const updates: any = {}
                 if (prev.sanctionedPost?.sanctionedPostId && !prev.sanctionedPostId) {
                     updates.sanctionedPostId = prev.sanctionedPost.sanctionedPostId
-            }
+                }
                 if (prev.discipline?.disciplineId && !prev.disciplineId) {
                     updates.disciplineId = prev.discipline.disciplineId
                 }
@@ -95,13 +95,40 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                 }
                 if (prev.university?.universityId && !prev.universityId) {
                     updates.universityId = prev.university.universityId
-            }
+                }
                 if (Object.keys(updates).length === 0) return prev
                 return { ...prev, ...updates }
             })
         }
     }, [entityType, setFormData])
 
+    // Normalize incoming photoPath for KVK Employees/Staff
+    React.useEffect(() => {
+        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
+            const field = 'photoPath';
+            if (formData[field] && typeof formData[field] === 'string') {
+                if (formData[field].startsWith('[') || formData[field].startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(formData[field]);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        const normalized = arrayToMap.map((item: any) => {
+                            if (typeof item === 'string') {
+                                return { preview: item, image: item, caption: '' };
+                            }
+                            const url = item.image || item.url || item.path || item.preview || '';
+                            return { preview: url, image: url, caption: item.caption || '' };
+                        });
+                        setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
+                    }
+                } else if (formData[field].trim() !== '') {
+                    const normalized = [{ preview: formData[field].trim(), image: formData[field].trim(), caption: '' }];
+                    setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                }
+            }
+        }
+    }, [formData.kvkStaffId, formData.id, entityType, setFormData]);
     // Autofill host fields from selected University
     const selectedUniversityId = typeof formData.universityId === 'number' ? formData.universityId : undefined
     const { data: uniHost, loading: uniLoading } = useUniversityHostFields(selectedUniversityId)
@@ -133,6 +160,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     }, [selectedUniversityId, uniHost?.universityName, uniHost?.hostOrg, uniHost?.hostMobile, uniHost?.hostLandline, uniHost?.hostFax, uniHost?.hostEmail, uniHost?.hostAddress, setFormData])
 
     if (!entityType) return null
+
 
     return (
         <div className="space-y-4">
@@ -287,13 +315,91 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
                             placeholder="Resume link"
                         />
-                        <FormInput
-                            label="Photo"
-                            required
-                            value={formData.photoPath ?? ''}
-                            onChange={(e) => setFormData({ ...formData, photoPath: e.target.value })}
-                            placeholder="Photo link"
-                        />
+                        <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
+                            <FormInput
+                                label=""
+                                required={!Array.isArray(formData.photoPath) || formData.photoPath.length === 0}
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e: any) => {
+                                    const files = e.target.files;
+                                    if (!files || files.length === 0) return;
+                                    const readers: Promise<any>[] = Array.from(files).map((file) => {
+                                        return new Promise((resolve) => {
+                                            const reader = new FileReader();
+                                            reader.onloadend = () => {
+                                                resolve({
+                                                    preview: reader.result as string,
+                                                    image: reader.result as string,
+                                                    caption: ''
+                                                });
+                                            };
+                                            reader.readAsDataURL(file as unknown as Blob);
+                                        });
+                                    });
+
+                                    Promise.all(readers).then((newPhotos) => {
+                                        setFormData((prev: any) => {
+                                            const currentPhotos = Array.isArray(prev.photoPath) ? [...prev.photoPath] : [];
+                                            return { ...prev, photoPath: [...currentPhotos, ...newPhotos] };
+                                        });
+                                    });
+                                }}
+                                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 2MB per file)"
+                            />
+
+                            {/* Existing photo gallery rendering */}
+                            {Array.isArray(formData.photoPath) && formData.photoPath.length > 0 && (
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                                    {formData.photoPath.map((item: any, idx: number) => {
+                                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
+                                        return (
+                                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+                                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
+                                                    <img
+                                                        src={src}
+                                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                                        alt={`Staff ${idx + 1}`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData((prev: any) => {
+                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
+                                                                photos.splice(idx, 1);
+                                                                return { ...prev, photoPath: photos.length > 0 ? photos : null };
+                                                            });
+                                                        }}
+                                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
+                                                    >
+                                                        <X className="w-3 h-3 stroke-[2.5]" />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-1 mt-auto">
+                                                    <textarea
+                                                        placeholder="Caption..."
+                                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
+                                                        value={item.caption || ''}
+                                                        onChange={(e) => {
+                                                            setFormData((prev: any) => {
+                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
+                                                                if (photos[idx]) {
+                                                                    photos[idx] = { ...photos[idx], caption: e.target.value };
+                                                                }
+                                                                return { ...prev, photoPath: photos };
+                                                            });
+                                                        }}
+                                                        rows={3}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </FormSection>
+
                     </div>
                 </div>
             )}

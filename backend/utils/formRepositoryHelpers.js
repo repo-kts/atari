@@ -370,10 +370,11 @@ function validateFarmerCounts(data, fieldMapping, options = {}) {
             continue;
         }
         
-        const value = sanitizeInteger(
+        // Ensure value is a whole positive number for farmer/people counts
+        let value = Math.max(0, sanitizeInteger(
             rawValue,
             defaultValue !== undefined ? { defaultValue } : {}
-        );
+        ) || 0);
 
         if (value === null || value === undefined || isNaN(value)) {
             if (required) {
@@ -383,9 +384,8 @@ function validateFarmerCounts(data, fieldMapping, options = {}) {
             continue;
         }
 
-        if (validateNonNegative && value < 0) {
-            throw new ValidationError(`${frontendKey} must be a non-negative integer`, frontendKey);
-        }
+        // Strictly enforce whole positive numbers: floors decimal and sets negative to 0
+        value = Math.max(0, Math.floor(value));
 
         farmerCounts[backendKey] = value;
     }
