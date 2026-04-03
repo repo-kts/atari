@@ -194,11 +194,11 @@ export const ReportScopeSelector: React.FC<ReportScopeSelectorProps> = ({
 
     if (scopeOptions.defaultKvkId && !scopeOptions.canSelectKvks) {
         const kvkName = scopeOptions.availableKvks.find(k => k.id === scopeOptions.defaultKvkId)?.name || 'Your KVK';
-        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0] shadow-sm"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
+        return <div className="p-4 bg-white rounded-2xl border border-[#E0E0E0]"><h3 className="text-sm font-semibold text-[#487749] mb-2 flex items-center gap-2"><MapPin className="w-4 h-4" />Report Scope</h3><p className="text-[11px] text-[#757575] font-medium uppercase tracking-tight mb-1">Your assigned KVK:</p><p className="font-medium text-[#212121] text-xs underline decoration-[#487749]/30">{kvkName}</p></div>;
     }
 
     return (
-        <div ref={containerRef} className="relative space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+        <div ref={containerRef} className="relative space-y-1 bg-white p-3 rounded-2xl border border-[#E0E0E0] animate-in fade-in duration-500">
             <div
                 className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
                 onClick={onToggleCollapse}

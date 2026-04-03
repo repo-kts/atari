@@ -119,7 +119,7 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true, sourceOfFunding: true } },
+			vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
         }
     },
@@ -1096,15 +1096,19 @@ async function getStaffForDropdown(kvkId) {
 }
 
 /**
- * Create transfer history record
+ * Create transfer history record.
+ * Caller must supply a valid transferDate (Date object or parseable date value).
+ * @param {object} transferData
+ * @param {import('@prisma/client').PrismaClient|import('@prisma/client').Prisma.TransactionClient} [dbClient]
  */
-async function createTransferHistory(transferData) {
-    return await prisma.staffTransferHistory.create({
+async function createTransferHistory(transferData, dbClient = prisma) {
+    return await dbClient.staffTransferHistory.create({
         data: {
             kvkStaffId: transferData.kvkStaffId,
             fromKvkId: transferData.fromKvkId,
             toKvkId: transferData.toKvkId,
             transferredBy: transferData.transferredBy,
+            transferDate: transferData.transferDate,
             transferReason: transferData.transferReason,
             notes: transferData.notes,
             isReversal: transferData.isReversal || false,
@@ -1137,6 +1141,23 @@ async function createTransferHistory(transferData) {
                 }
             }
         }
+    });
+}
+
+/**
+ * Returns the most-recent non-reversal transfer record for a staff member.
+ * Used by duplicate-consecutive-transfer guard in service layer.
+ */
+async function getLastTransferRecord(staffId) {
+    return prisma.staffTransferHistory.findFirst({
+        where: { kvkStaffId: staffId, isReversal: false },
+        orderBy: { transferDate: 'desc' },
+        select: {
+            transferId: true,
+            fromKvkId: true,
+            toKvkId: true,
+            transferDate: true,
+        },
     });
 }
 
@@ -1224,6 +1245,7 @@ module.exports = {
     getAllInfraMasters,
     getStaffForDropdown,
     createTransferHistory,
+    getLastTransferRecord,
     filterAssetsForReportingYear,
     getVehiclesForDropdown,
     getEquipmentsForDropdown,

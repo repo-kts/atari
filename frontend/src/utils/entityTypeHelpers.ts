@@ -217,6 +217,7 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/all-master/districts': ENTITY_TYPES.DISTRICTS,
         '/all-master/organizations': ENTITY_TYPES.ORGANIZATIONS,
         '/all-master/universities': ENTITY_TYPES.UNIVERSITIES,
+        '/all-master/kvks': ENTITY_TYPES.KVKS,
 
         // OFT/FLD Masters
         '/all-master/oft/subject': ENTITY_TYPES.OFT_SUBJECTS,

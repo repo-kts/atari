@@ -123,7 +123,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     }, [sections]);
 
     return (
-        <div ref={containerRef} className="bg-white p-3 rounded-2xl border border-[#E0E0E0] shadow-sm animate-in fade-in duration-500">
+        <div ref={containerRef} className="bg-white p-3 rounded-2xl border border-[#E0E0E0] animate-in fade-in duration-500">
             <div className="p-0">
                 <div
                     className={`flex items-center justify-between px-1 cursor-pointer group/header transition-all ${collapsed ? 'mb-0' : 'mb-4'}`}
@@ -176,7 +176,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         }`}
                 >
                     {/* Green Tab Bar Header - synchronized with ReportScopeSelector style */}
-                    <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 shadow-sm mb-2">
+                    <div className="bg-[#487749] p-1 rounded-[12px] flex items-stretch gap-0 mb-2">
                         {categoryMapping.map(category => {
                             const isActive = activeTab === category.id;
                             return (
@@ -185,7 +185,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                     onClick={() => handleTabChange(category.id)}
                                     title={category.label}
                                     className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-2 py-2 rounded-[10px] text-[11px] font-medium whitespace-nowrap transition-all duration-300 text-center
-                                    ${isActive ? 'bg-white text-[#487749] shadow-sm' : 'text-white hover:bg-white/10'}`}
+                                    ${isActive ? 'bg-white text-[#487749]' : 'text-white hover:bg-white/10'}`}
                                 >
                                     <span className={`shrink-0 text-center ${isActive ? 'text-[#487749]' : 'text-white'}`}>{category.icon}</span>
                                     <span className={`truncate ${isNarrow ? 'hidden' : 'block'}`}>{category.label}</span>
@@ -226,7 +226,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                     </div>
 
                                     {/* Single Column Vertical List - Matches Picture Style */}
-                                    <div className="max-h-[450px] overflow-y-auto custom-scrollbar bg-white">
+                                    <div className="max-h-[1050px] overflow-y-auto custom-scrollbar bg-white">
                                         {mainSections.map(parent => {
                                             const children = subSections[parent.id] || [];
 
@@ -242,7 +242,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                         <div
                                                             key={child.id}
                                                             onClick={() => onSectionToggle(child.id)}
-                                                            className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
+                                                            className="px-4 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                         >
                                                             <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
                                                                 {child.title}
@@ -264,7 +264,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                     <div
                                                         key={parent.id}
                                                         onClick={() => onSectionToggle(parent.id)}
-                                                        className="px-6 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
+                                                        className="px-4 py-4 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
                                                     >
                                                         <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
                                                             {parent.title}

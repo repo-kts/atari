@@ -4,7 +4,7 @@ model StaffTransferHistory {
   fromKvkId          Int      @map("from_kvk_id")
   toKvkId            Int      @map("to_kvk_id")
   transferredBy      Int?     @map("transferred_by")
-  transferDate       DateTime @default(now()) @map("transfer_date")
+  transferDate       DateTime @map("transfer_date")
   transferReason     String?  @map("transfer_reason")
   notes              String?  @map("notes")
   isReversal         Boolean  @default(false) @map("is_reversal")

@@ -265,6 +265,19 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.universityName || null,
         priority: 6,
     },
+    [FIELD_NAMES.HOST_ORG]: {
+        extractor: (item: any) => {
+            // Prefer university.hostOrg if available
+            if (item.university?.hostOrg) return item.university.hostOrg;
+            // Some APIs may flatten this onto the item
+            if (item.hostOrg) return item.hostOrg;
+            // Fallback to universityName if hostOrg is not set
+            if (item.university?.universityName) return item.university.universityName;
+            if (item.universityName) return item.universityName;
+            return null;
+        },
+        priority: 7,
+    },
 
     // OFT/FLD fields
     [FIELD_NAMES.SUBJECT_NAME]: {
