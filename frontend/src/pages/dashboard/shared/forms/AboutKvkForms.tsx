@@ -318,7 +318,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
                             <FormInput
                                 label=""
-                                required={!Array.isArray(formData.photoPath) || formData.photoPath.length === 0}
                                 type="file"
                                 multiple
                                 accept="image/*"
