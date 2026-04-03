@@ -14,6 +14,7 @@ import { TrainingExtensionTab } from './masters/TrainingExtensionTab'
 import { ProductionProjectsTab } from './masters/ProductionProjectsTab'
 import { PublicationsTab } from './masters/PublicationsTab'
 import { OtherMastersTab } from './masters/OtherMastersTab'
+import { NicraMastersTab } from './masters/NicraMastersTab'
 import { SidebarLayout } from '../../components/common/SidebarLayout'
 
 interface Tab {
@@ -67,6 +68,13 @@ const tabs: Tab[] = [
         icon: <Calendar className="w-4 h-4" />,
         component: <OtherMastersTab />,
     },
+    {
+        id: 'nicra-masters',
+        label: 'NICRA Masters',
+        path: '/all-master/nicra',
+        icon: <Calendar className="w-4 h-4" />,
+        component: <NicraMastersTab />,
+    },
 ]
 
 export const AllMasters: React.FC = () => {
@@ -104,9 +112,13 @@ export const AllMasters: React.FC = () => {
             currentPath.startsWith('/all-master/cfld-crop')) {
             return 'oft-fld'
         }
+        if (currentPath.startsWith('/all-master/nicra')) {
+            return 'nicra-masters'
+        }
         if (currentPath.startsWith('/all-master/season') ||
             currentPath.startsWith('/all-master/sanctioned-post') ||
-            currentPath.startsWith('/all-master/year') ||
+            currentPath.startsWith('/all-master/enterprise-type') ||
+            currentPath.startsWith('/all-master/dignitary-type') ||
             currentPath.startsWith('/all-master/other-masters')) {
             return 'other-masters'
         }
@@ -118,7 +130,10 @@ export const AllMasters: React.FC = () => {
         }
         if (currentPath.startsWith('/all-master/product') ||
             currentPath.startsWith('/all-master/cra') ||
-            currentPath.startsWith('/all-master/arya-enterprise')) {
+            currentPath.startsWith('/all-master/arya-enterprise') ||
+            currentPath.startsWith('/all-master/natural-farming-activity') ||
+            currentPath.startsWith('/all-master/natural-farming-soil-parameter') ||
+            currentPath.startsWith('/all-master/agri-drone-demonstrations-on')) {
             return 'production-projects'
         }
         if (currentPath.startsWith('/all-master/publication')) {

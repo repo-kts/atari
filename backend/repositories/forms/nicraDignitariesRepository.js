@@ -1,20 +1,70 @@
 const prisma = require('../../config/prisma.js');
 
+async function resolveNicraDignitaryTypeId(rawValue) {
+    if (rawValue === undefined || rawValue === null || rawValue === '') return null;
+    const parsedId = parseInt(rawValue, 10);
+    if (!isNaN(parsedId)) {
+        const byId = await prisma.nicraDignitaryTypeMaster.findUnique({
+            where: { nicraDignitaryTypeId: parsedId },
+            select: { nicraDignitaryTypeId: true },
+        });
+        if (byId) return byId.nicraDignitaryTypeId;
+    }
+    const name = String(rawValue).trim();
+    if (!name) return null;
+    const existing = await prisma.nicraDignitaryTypeMaster.findFirst({
+        where: { name: { equals: name, mode: 'insensitive' } },
+        select: { nicraDignitaryTypeId: true },
+    });
+    if (existing) return existing.nicraDignitaryTypeId;
+    const created = await prisma.nicraDignitaryTypeMaster.create({
+        data: { name },
+        select: { nicraDignitaryTypeId: true },
+    });
+    return created.nicraDignitaryTypeId;
+}
+
 const nicraDignitariesRepository = {
+    _mapResponse: (r) => {
+        if (!r) return null;
+        let photos = [];
+        try {
+            if (r.photographs) {
+                photos = typeof r.photographs === 'string' ? JSON.parse(r.photographs) : r.photographs;
+                if (!Array.isArray(photos)) photos = [photos];
+            }
+        } catch (e) {
+            photos = r.photographs ? r.photographs.split(',').filter(Boolean) : [];
+        }
+
+        return {
+            ...r,
+            id: r.nicraDignitariesVisitedId,
+            dateOfVisit: r.dateOfVisit && r.dateOfVisit instanceof Date ? r.dateOfVisit.toISOString().split('T')[0] : (r.dateOfVisit || ''),
+            type: r.dignitaryType?.name || r.type || null,
+            photographs: photos,
+        };
+    },
+
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
+        const dignitaryTypeId = await resolveNicraDignitaryTypeId(data.dignitaryTypeId ?? data.type);
 
-        return await prisma.nicraDignitariesVisited.create({
+        const result = await prisma.nicraDignitariesVisited.create({
             data: {
                 kvkId,
                 dateOfVisit: new Date(data.dateOfVisit),
-                type: data.type,
+                dignitaryTypeId,
                 name: data.name,
                 remark: data.remark,
                 photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : null,
+            },
+            include: {
+                dignitaryType: true,
             }
         });
+        return nicraDignitariesRepository._mapResponse(result);
     },
 
     findAll: async (filters = {}, user) => {
@@ -25,13 +75,15 @@ const nicraDignitariesRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        return await prisma.nicraDignitariesVisited.findMany({
+        const results = await prisma.nicraDignitariesVisited.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                dignitaryType: true,
             },
             orderBy: { nicraDignitariesVisitedId: 'desc' }
         });
+        return results.map(r => nicraDignitariesRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
@@ -39,12 +91,14 @@ const nicraDignitariesRepository = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraDignitariesVisited.findFirst({
+        const result = await prisma.nicraDignitariesVisited.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } }
+                kvk: { select: { kvkName: true } },
+                dignitaryType: true,
             }
         });
+        return nicraDignitariesRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
@@ -55,17 +109,24 @@ const nicraDignitariesRepository = {
 
         const existing = await prisma.nicraDignitariesVisited.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
+        const dignitaryTypeId = (data.dignitaryTypeId !== undefined || data.type !== undefined)
+            ? await resolveNicraDignitaryTypeId(data.dignitaryTypeId ?? data.type)
+            : existing.dignitaryTypeId;
 
-        return await prisma.nicraDignitariesVisited.update({
+        const updated = await prisma.nicraDignitariesVisited.update({
             where: { nicraDignitariesVisitedId: parseInt(id) },
             data: {
                 dateOfVisit: data.dateOfVisit ? new Date(data.dateOfVisit) : existing.dateOfVisit,
-                type: data.type !== undefined ? data.type : existing.type,
+                dignitaryTypeId,
                 name: data.name !== undefined ? data.name : existing.name,
                 remark: data.remark !== undefined ? data.remark : existing.remark,
                 photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : existing.photographs,
+            },
+            include: {
+                dignitaryType: true,
             }
         });
+        return nicraDignitariesRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

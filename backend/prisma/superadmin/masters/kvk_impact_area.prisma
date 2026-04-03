@@ -1,0 +1,8 @@
+model ImpactSpecificAreaMaster {
+  specificAreaId   Int      @id @default(autoincrement())
+  specificAreaName String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@map("impact_specific_area_master")
+}

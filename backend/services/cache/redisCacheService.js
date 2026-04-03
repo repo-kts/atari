@@ -140,7 +140,7 @@ class RedisCacheService {
     }
 
     /**
-     * Delete keys matching a pattern
+     * Delete keys matching a pattern using SCAN (non-blocking) instead of KEYS.
      */
     async delPattern(pattern) {
         if (!this.enabled || !this.client) {
@@ -148,11 +148,17 @@ class RedisCacheService {
         }
 
         try {
-            const keys = await this.client.keys(pattern);
-            if (keys.length === 0) {
-                return 0;
-            }
-            const deleted = await this.client.del(...keys);
+            let deleted = 0;
+            let cursor = '0';
+
+            do {
+                const [nextCursor, keys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+                cursor = nextCursor;
+                if (keys.length > 0) {
+                    deleted += await this.client.del(...keys);
+                }
+            } while (cursor !== '0');
+
             return deleted;
         } catch (error) {
             console.error(`Cache delete pattern error for ${pattern}:`, error.message);

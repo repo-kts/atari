@@ -32,7 +32,6 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.SEASONS]: 'seasonId',
     [ENTITY_TYPES.SEASON]: 'seasonId',
     [ENTITY_TYPES.SANCTIONED_POST]: 'sanctionedPostId',
-    [ENTITY_TYPES.YEAR]: 'yearId',
 
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: 'staffCategoryId',
@@ -48,6 +47,14 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.CROP_TYPE]: 'typeId',
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: 'infraMasterId',
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: 'soilWaterAnalysisId',
+    [ENTITY_TYPES.NARI_ACTIVITY]: 'nariActivityId',
+    [ENTITY_TYPES.NARI_CROP_CATEGORY]: 'cropCategoryId',
+    [ENTITY_TYPES.NARI_NUTRITION_GARDEN_TYPE]: 'nutritionGardenTypeId',
+    [ENTITY_TYPES.NICRA_CATEGORY]: 'nicraCategoryId',
+    [ENTITY_TYPES.NICRA_SUB_CATEGORY]: 'nicraSubCategoryId',
+    [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: 'nicraSeedBankFodderBankId',
+    [ENTITY_TYPES.FINANCIAL_PROJECT]: 'financialProjectId',
+    [ENTITY_TYPES.FUNDING_AGENCY]: 'fundingAgencyId',
 
     // Training, Extension & Events
     [ENTITY_TYPES.TRAINING_TYPES]: 'trainingTypeId',
@@ -66,6 +73,10 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: 'craCropingSystemId',
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: 'craFarmingSystemId',
     [ENTITY_TYPES.ARYA_ENTERPRISES]: 'enterpriseId',
+    [ENTITY_TYPES.TSP_SCSP_TYPES]: 'tspScspTypeId',
+    [ENTITY_TYPES.TSP_SCSP_ACTIVITIES]: 'tspScspActivityId',
+    [ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES]: 'naturalFarmingActivityId',
+    [ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS]: 'naturalFarmingSoilParameterId',
 
     // Publications
     [ENTITY_TYPES.PUBLICATION_ITEMS]: 'publicationId',
@@ -203,6 +214,11 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]: 'resourceGenerationId',
     [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: 'functionalLinkageId',
     [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: 'specialProgrammeId',
+    [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: 'specificAreaId',
+    [ENTITY_TYPES.ENTERPRISE_TYPE]: 'enterpriseTypeId',
+    [ENTITY_TYPES.ACCOUNT_TYPE]: 'accountTypeId',
+    [ENTITY_TYPES.PROGRAMME_TYPE]: 'programmeTypeId',
+    [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: 'typeId',
 };
 
 /**

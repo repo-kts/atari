@@ -139,42 +139,25 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     // Vehicle field mappings
     [FIELD_NAMES.REGISTRATION_NUMBER]: {
-        extractor: (item: any) => item.registrationNo || null,
+        extractor: (item: any) => item.registrationNo || item.vehicle?.registrationNo || null,
         priority: 9,
     },
-    'totalCost (Rs.)': {
-        extractor: (item: any) => {
-            if (item.totalCost === undefined || item.totalCost === null) return null;
-            return `₹${item.totalCost.toLocaleString('en-IN')}`;
-        },
-        priority: 9,
-    },
-    'totalCost (Rs)': {
-        extractor: (item: any) => {
-            if (item.totalCost === undefined || item.totalCost === null) return null;
-            return `₹${item.totalCost.toLocaleString('en-IN')}`;
-        },
-        priority: 9,
-    },
-    'totalRun (Kms)': {
-        extractor: (item: any) => item.totalRun ? `${item.totalRun} Kms` : null,
-        priority: 9,
-    },
-    // Vehicle/Equipment fields - using FIELD_NAMES constants
     [FIELD_NAMES.VEHICLE_NAME]: {
-        extractor: (item: any) => item.vehicleName || null,
+        extractor: (item: any) => item.vehicleName || item.vehicle?.vehicleName || null,
         priority: 8,
     },
     [FIELD_NAMES.EQUIPMENT_NAME]: {
-        extractor: (item: any) => item.equipmentName || null,
+        extractor: (item: any) => item.equipmentName || item.equipment?.equipmentName || null,
         priority: 8,
     },
     [FIELD_NAMES.IMPLEMENT_NAME]: {
         extractor: (item: any) => item.implementName || null,
         priority: 8,
     },
-    presentStatus: {
+    [FIELD_NAMES.PRESENT_STATUS]: {
         extractor: (item: any) => {
+            if (item.vehicleStatus?.statusLabel) return item.vehicleStatus.statusLabel;
+            if (item.equipmentStatus?.statusLabel) return item.equipmentStatus.statusLabel;
             if (!item.presentStatus) return null;
             return item.presentStatus
                 .replace(/_/g, ' ')
@@ -182,8 +165,40 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 8,
     },
+    [FIELD_NAMES.TOTAL_RUN_KMS]: {
+        extractor: (item: any) => {
+            const run = item.totalRun ?? item.vehicle?.totalRun ?? item.equipment?.totalRun;
+            if (run === undefined || run === null || run === '') return null;
+            return `${run} Kms`;
+        },
+        priority: 9,
+    },
+    [FIELD_NAMES.TOTAL_COST_RS]: {
+        extractor: (item: any) => {
+            const cost = item.totalCost ?? item.vehicle?.totalCost ?? item.equipment?.totalCost;
+            if (cost === undefined || cost === null) return null;
+            return `₹${Number(cost).toLocaleString('en-IN')}`;
+        },
+        priority: 9,
+    },
+    [FIELD_NAMES.TOTAL_COST_RS_DOT]: {
+        extractor: (item: any) => {
+            const cost = item.totalCost ?? item.vehicle?.totalCost ?? item.equipment?.totalCost;
+            if (cost === undefined || cost === null) return null;
+            return `₹${Number(cost).toLocaleString('en-IN')}`;
+        },
+        priority: 9,
+    },
+    [FIELD_NAMES.YEAR_OF_PURCHASE]: {
+        extractor: (item: any) => {
+            if (item.yearOfPurchase !== undefined && item.yearOfPurchase !== null) return item.yearOfPurchase;
+            if (item.vehicle?.yearOfPurchase !== undefined && item.vehicle?.yearOfPurchase !== null) return item.vehicle.yearOfPurchase;
+            if (item.equipment?.yearOfPurchase !== undefined && item.equipment?.yearOfPurchase !== null) return item.equipment.yearOfPurchase;
 
-    // Nested hierarchy fields
+            return null;
+        },
+        priority: 8,
+    },
     [FIELD_NAMES.ZONE_NAME]: {
         extractor: (item: any) => {
             if (item.zone?.zoneName) return item.zone.zoneName;
@@ -250,6 +265,19 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.universityName || null,
         priority: 6,
     },
+    [FIELD_NAMES.HOST_ORG]: {
+        extractor: (item: any) => {
+            // Prefer university.hostOrg if available
+            if (item.university?.hostOrg) return item.university.hostOrg;
+            // Some APIs may flatten this onto the item
+            if (item.hostOrg) return item.hostOrg;
+            // Fallback to universityName if hostOrg is not set
+            if (item.university?.universityName) return item.university.universityName;
+            if (item.universityName) return item.universityName;
+            return null;
+        },
+        priority: 7,
+    },
 
     // OFT/FLD fields
     [FIELD_NAMES.SUBJECT_NAME]: {
@@ -265,11 +293,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.CATEGORY_NAME]: {
-        extractor: (item: any) => item.category?.categoryName || null,
+        extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
         priority: 5,
     },
     [FIELD_NAMES.SUB_CATEGORY_NAME]: {
-        extractor: (item: any) => item.subCategory?.subCategoryName || null,
+        extractor: (item: any) => item.subCategory?.subCategoryName || item.subCategoryName || null,
         priority: 5,
     },
     // Sub Category (for FLD table display)
@@ -293,6 +321,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
+    [FIELD_NAMES.SEED_BANK_FODDER_BANK]: {
+        extractor: (item: any) => item.seedBankFodderBank || item.name || null,
+        priority: 5,
+    },
     [FIELD_NAMES.SANCTIONED_POST]: {
         extractor: (item: any) => {
             if (item.postName) return item.postName;
@@ -311,6 +343,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             if (item.reportingYear) {
                 if (typeof item.reportingYear === 'object' && item.reportingYear.yearName) {
                     return item.reportingYear.yearName;
+                }
+                const reportingYearDate = new Date(item.reportingYear);
+                if (!Number.isNaN(reportingYearDate.getTime())) {
+                    return String(reportingYearDate.getUTCFullYear());
                 }
                 return item.reportingYear;
             }
@@ -350,6 +386,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             // Handle nested object first (for master tables)
             if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.typeName) return item.trainingType.typeName;
                 if (item.trainingType.name) return item.trainingType.name;
                 if (item.trainingType.trainingTypeName) return item.trainingType.trainingTypeName;
             }
@@ -481,13 +518,24 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
         priority: 7,
     },
-    // Display name fallbacks (for backward compatibility)
-    'Name of Extension activities': {
-        extractor: (item: any) => item.nameOfExtensionActivities || item['Name of Extension activities'] || item['Name of Extension Activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+    [FIELD_NAMES.WITHIN_STATE_WITHOUT_STATE]: {
+        extractor: (item: any) =>
+            item.withinStateWithoutState ||
+            item.withinStateOrWithoutState ||
+            item.withinState ||
+            item.withinWithoutState ||
+            item.activityName ||
+            item.nameOfExtensionActivities ||
+            item.extensionActivityType ||
+            item.stateScope ||
+            null,
         priority: 7,
     },
-    'Name of Extension Activities': {
-        extractor: (item: any) => item.nameOfExtensionActivities || item['Name of Extension Activities'] || item['Name of Extension activities'] || item.activityName || item.extensionActivityType || item.extension_activity_type || (item.activity?.activityName) || item.activity_name || null,
+    [FIELD_NAMES.EXPOSURE_VISIT_NO]: {
+        extractor: (item: any) => {
+            const val = item.exposureVisitNo ?? item.exposureVisit;
+            return val !== undefined && val !== null ? String(val) : null;
+        },
         priority: 7,
     },
     [FIELD_NAMES.NATURE_OF_EXTENSION_ACTIVITY]: {
@@ -503,17 +551,28 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.natureOfExtensionActivity || item['Nature of Extension activity'] || item['Nature of Extension Activity'] || item.extensionActivityType || item.extensionActivityName || item.activity_name || (item.activity?.activityName) || null,
         priority: 7,
     },
+    [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
+        extractor: (item: any) => item.placeOfActivity || item.venue || item.PlaceOfActivity || null,
+        priority: 7,
+    },
+    [FIELD_NAMES.NO_OF_FARMERS_ATTENDED]: {
+        extractor: (item: any) => {
+            const sum = (
+                (item.generalM || 0) + (item.generalF || 0) +
+                (item.obcM || 0) + (item.obcF || 0) +
+                (item.scM || 0) + (item.scF || 0) +
+                (item.stM || 0) + (item.stF || 0) +
+                (item.genMale || 0) + (item.genFemale || 0) +
+                (item.obcMale || 0) + (item.obcFemale || 0) +
+                (item.scMale || 0) + (item.scFemale || 0) +
+                (item.stMale || 0) + (item.stFemale || 0)
+            );
+            return sum > 0 ? String(sum) : (item.noOfFarmersAttended || item.totalFarmers || null);
+        },
+        priority: 7,
+    },
     [FIELD_NAMES.IMPORTANT_DAYS]: {
         extractor: (item: any) => item.importantDays || item['Important Days'] || item['Important days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
-        priority: 7,
-    },
-    // Display name fallbacks (for backward compatibility)
-    'Important Days': {
-        extractor: (item: any) => item.importantDays || item['Important Days'] || item['Important days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
-        priority: 7,
-    },
-    'Important days': {
-        extractor: (item: any) => item.importantDays || item['Important days'] || item['Important Days'] || (item.importantDay?.dayName) || item.importantDay || item.dayName || item.day_name || null,
         priority: 7,
     },
     [FIELD_NAMES.NO_OF_ACTIVITIES]: {
@@ -523,37 +582,13 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    // Display name fallbacks (for backward compatibility)
-    'No. of Activities': {
-        extractor: (item: any) => {
-            const val = item.noOfActivities || item.numberOfActivities || item.activityCount || item.number_of_activities || item['No. of Activities'] || item['No. of activities'];
-            return val !== undefined && val !== null ? String(val) : null;
-        },
-        priority: 5,
-    },
-    'No. of activities': {
-        extractor: (item: any) => {
-            const val = item.noOfActivities || item.numberOfActivities || item.activityCount || item.number_of_activities || item['No. of activities'] || item['No. of Activities'];
-            return val !== undefined && val !== null ? String(val) : null;
-        },
-        priority: 5,
-    },
     [FIELD_NAMES.TYPE_OF_ACTIVITIES]: {
         extractor: (item: any) => item.typeOfActivities || item.activityType || item['Type Of Activities'] || item['Type of activities'] || null,
         priority: 5,
     },
-    // Display name fallbacks (for backward compatibility)
-    'Type Of Activities': {
-        extractor: (item: any) => item.typeOfActivities || item.activityType || item['Type Of Activities'] || item['Type of activities'] || null,
-        priority: 5,
-    },
-    'Type of activities': {
-        extractor: (item: any) => item.typeOfActivities || item.activityType || item['Type of activities'] || item['Type Of Activities'] || null,
-        priority: 5,
-    },
 
     // Production & Projects fields
-    productCategoryName: {
+    [FIELD_NAMES.PRODUCT_CATEGORY_NAME]: {
         extractor: (item: any) => {
             if (item.productCategoryName) return item.productCategoryName;
             if (item.productCategory?.productCategoryName) return item.productCategory.productCategoryName;
@@ -561,7 +596,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    productCategoryType: {
+    [FIELD_NAMES.PRODUCT_CATEGORY_TYPE]: {
         extractor: (item: any) => {
             if (item.productCategoryType) return item.productCategoryType;
             if (item.productType?.productCategoryType) return item.productType.productCategoryType;
@@ -569,16 +604,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-    productName: {
+    [FIELD_NAMES.PRODUCT_NAME]: {
         extractor: (item: any) => item.productName || null,
         priority: 5,
     },
-    farmingSystemName: {
+    [FIELD_NAMES.FARMING_SYSTEM_NAME]: {
         extractor: (item: any) => item.farmingSystemName || null,
         priority: 5,
     },
-    enterpriseName: {
+    [FIELD_NAMES.ENTERPRISE_NAME]: {
         extractor: (item: any) => item.enterpriseName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.SPECIFIC_AREA_NAME]: {
+        extractor: (item: any) => item.specificAreaName || null,
         priority: 5,
     },
 
@@ -591,7 +630,24 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    kvkName: {
+    [FIELD_NAMES.PROJECT_NAME]: {
+        extractor: (item: any) => {
+            const masterName = item.projectName?.projectName || item.projectName;
+            const specifyName = item.specifyProjectName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            if (typeof masterName === 'string') return masterName;
+            // Fallback for budget where projectName is the relation
+            return item.projectName?.projectName || null;
+        },
+        priority: 7,
+    },
+    [FIELD_NAMES.SPECIFY_PROJECT_NAME]: {
+        extractor: (item: any) => item.specifyProjectName || null,
+        priority: 7,
+    },
+    [FIELD_NAMES.KVK_NAME]: {
         extractor: (item: any) => {
             if (item.kvk?.kvkName) return item.kvk.kvkName;
             if (item.kvkName) return item.kvkName;
@@ -601,7 +657,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // Employee/Staff specific fields
-    position: {
+    [FIELD_NAMES.POSITION]: {
         extractor: (item: any) => {
             if (item.positionOrder !== undefined && item.positionOrder !== null) {
                 return String(item.positionOrder);
@@ -610,7 +666,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
-    positionOrder: {
+    [FIELD_NAMES.POSITION_ORDER]: {
         extractor: (item: any) => {
             if (item.positionOrder !== undefined && item.positionOrder !== null) {
                 return String(item.positionOrder);
@@ -619,7 +675,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
-    postName: {
+    [FIELD_NAMES.POST_NAME]: {
         extractor: (item: any) => {
             if (item.sanctionedPost?.postName) return item.sanctionedPost.postName;
             if (item.postName) return item.postName;
@@ -629,14 +685,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    allowances: {
+    [FIELD_NAMES.ALLOWANCES]: {
         extractor: (item: any) => {
             if (item.allowances) return item.allowances;
             return null;
         },
         priority: 6,
     },
-    detailsOfAllowences: {
+    [FIELD_NAMES.DETAILS_OF_ALLOWENCES]: {
         extractor: (item: any) => {
             if (item.allowances) return item.allowances;
             if (item.detailsOfAllowences) return item.detailsOfAllowences;
@@ -658,7 +714,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    resume: {
+    [FIELD_NAMES.RESUME]: {
         extractor: (item: any) => {
             // Handle resumePath - show value even if it's "NA" or empty string
             if (item.resumePath !== null && item.resumePath !== undefined && item.resumePath !== '') {
@@ -671,7 +727,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
-    resumePath: {
+    [FIELD_NAMES.RESUME_PATH]: {
         extractor: (item: any) => {
             // Handle resumePath - show value even if it's "NA" or empty string
             if (item.resumePath !== null && item.resumePath !== undefined && item.resumePath !== '') {
@@ -686,7 +742,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
 
     // Staff Transferred specific fields
-    kvkNameBeforeTransfer: {
+    [FIELD_NAMES.KVK_NAME_BEFORE_TRANSFER]: {
         extractor: (item: any) => {
             // Show original KVK name (where staff was first created)
             if (item.originalKvk?.kvkName) return item.originalKvk.kvkName;
@@ -696,7 +752,7 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    latestKvkName: {
+    [FIELD_NAMES.LATEST_KVK_NAME]: {
         extractor: (item: any) => {
             // Show current/latest KVK name (where staff is now)
             if (item.kvk?.kvkName) return item.kvk.kvkName;
@@ -706,7 +762,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 7,
     },
 
-    // Infrastructure specific fields - using camelCase
     [FIELD_NAMES.INFRA_MASTER_NAME]: {
         extractor: (item: any) => {
             if (item.infraMaster?.name) return item.infraMaster.name;
@@ -782,6 +837,8 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             // Map sourceOfFund to sourceOfFunding (for equipment and farm implements)
             if (item.sourceOfFunding) return item.sourceOfFunding;
+            if (item.vehicle?.sourceOfFunding) return item.vehicle.sourceOfFunding;
+            if (item.equipment?.sourceOfFunding) return item.equipment.sourceOfFunding;
             if (item.sourceOfFund) return item.sourceOfFund;
             return null;
         },
@@ -802,7 +859,16 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
     },
     [FIELD_NAMES.TYPE]: {
-        extractor: (item: any) => item.type || item.typeName || null,
+        extractor: (item: any) => {
+            // Handle relation first (Master tables)
+            if (item.trainingType && typeof item.trainingType === 'object') {
+                if (item.trainingType.typeName) return item.trainingType.typeName;
+                if (item.trainingType.name) return item.trainingType.name;
+            }
+            // Direct field evaluation
+            return item.type || item.typeName || item.name || item.parameterName || item.activityName || null;
+        },
+        priority: 7,
     },
     [FIELD_NAMES.SEASON]: {
         extractor: (item: any) => item.seasonName || (item.season?.seasonName) || null,
@@ -822,27 +888,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 7,
     },
-    'Name of Variety': {
-        extractor: (item: any) => item.varietyName || null,
-    },
     [FIELD_NAMES.AREA]: {
         extractor: (item: any) => item.areaHectare !== undefined ? String(item.areaHectare) : (item.areaInHa !== undefined ? String(item.areaInHa) : null),
-    },
-    'Area (in ha)': {
-        extractor: (item: any) => item.areaHectare !== undefined ? String(item.areaHectare) : (item.areaInHa !== undefined ? String(item.areaInHa) : null),
-    },
-    'Demo Yield (Avg)': {
-        extractor: (item: any) => item.yieldAvg !== undefined ? String(item.yieldAvg) : (item.demoYieldAvg !== undefined ? String(item.demoYieldAvg) : null),
     },
     [FIELD_NAMES.PERCENT_INCREASE]: {
         extractor: (item: any) => item.yieldIncreasePercent !== undefined ? `${item.yieldIncreasePercent}%` : (item.percentIncrease !== undefined ? `${item.percentIncrease}%` : null),
     },
-
-    // ARYA fields - using camelCase
     [FIELD_NAMES.YEAR]: {
         extractor: (item: any) => {
             const val = item.reportingYear || item.year;
-            if (val !== undefined && val !== null) return String(val);
+            if (val !== undefined && val !== null) {
+                const dt = new Date(val);
+                if (!Number.isNaN(dt.getTime())) return String(dt.getUTCFullYear());
+                return String(val);
+            }
             return item.yearName || item.year?.yearName || item.reportingYear?.yearName || null;
         },
     },
@@ -870,17 +929,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     Entrepreneurs: {
         extractor: (item: any) => item.noOfEntrepreneurs !== undefined ? String(item.noOfEntrepreneurs) : null,
     },
-    'Income Before': {
-        extractor: (item: any) => item.incomeBefore !== undefined ? `Rs. ${item.incomeBefore}` : null,
-    },
-    'Income After': {
-        extractor: (item: any) => item.incomeAfter !== undefined ? `Rs. ${item.incomeAfter}` : null,
-    },
-    '% Functional': {
-        extractor: (item: any) => item.functionalPercentage !== undefined ? `${item.functionalPercentage}%` : null,
-    },
-
-    // CRA & NARI & FPO & NICRA fields - using camelCase
     [FIELD_NAMES.VILLAGES]: {
         extractor: (item: any) => item.noOfVillages !== undefined ? String(item.noOfVillages) : null,
     },
@@ -893,9 +941,53 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.HOUSEHOLDS]: {
         extractor: (item: any) => item.noOfHouseholds !== undefined ? String(item.noOfHouseholds) : null,
     },
-    // Activity fields - using camelCase
-    'Activity Type': {
-        extractor: (item: any) => item.activityType || null,
+    [FIELD_NAMES.TRAINING_RECEIVED_BY_FPO_MEMBERS]: {
+        extractor: (item: any) => {
+            if (item.trainingReceivedByFpoMembers !== undefined && item.trainingReceivedByFpoMembers !== null) {
+                return String(item.trainingReceivedByFpoMembers)
+            }
+            if (item.trainingReceivedByMembers !== undefined && item.trainingReceivedByMembers !== null) {
+                // Backend returns 'Yes'/'No' for trainingReceivedByMembers
+                return String(item.trainingReceivedByMembers)
+            }
+            return null
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.IS_BUSINESS_PLAN_PREPARED]: {
+        extractor: (item: any) => {
+            if (item.isBusinessPlanPrepared !== undefined && item.isBusinessPlanPrepared !== null) {
+                return String(item.isBusinessPlanPrepared)
+            }
+
+            // Backend provides businessPlanPreparedWithCbbo/WithoutCbbo (bool) and businessPlanCbbo/WithoutCbbo ('Yes'/'No')
+            const withCbbo = item.businessPlanPreparedWithCbbo ?? item.businessPlanCbbo
+            const withoutCbbo = item.businessPlanPreparedWithoutCbbo ?? item.businessPlanWithoutCbbo
+
+            const normalize = (v: any) => {
+                if (v === true || v === 'true' || v === 1 || v === '1') return true
+                if (v === 'Yes' || v === 'YES' || v === 'Y') return true
+                return false
+            }
+
+            return normalize(withCbbo) || normalize(withoutCbbo) ? 'Yes' : 'No'
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NO_OF_FPO_RECEIVED_MANAGEMENT_COST]: {
+        extractor: (item: any) => {
+            if (item.noOfFpoReceivedManagementCost !== undefined && item.noOfFpoReceivedManagementCost !== null) {
+                return String(item.noOfFpoReceivedManagementCost)
+            }
+            if (item.fposReceivedManagementCost !== undefined && item.fposReceivedManagementCost !== null) {
+                return String(item.fposReceivedManagementCost)
+            }
+            if (item.fposReceivedMgmtCost !== undefined && item.fposReceivedMgmtCost !== null) {
+                return String(item.fposReceivedMgmtCost)
+            }
+            return null
+        },
+        priority: 6,
     },
     [FIELD_NAMES.ACTIVITY]: {
         extractor: (item: any) => item.activity || item.activityName || item['Activity'] || null,
@@ -903,11 +995,9 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     Activities: {
         extractor: (item: any) => item.noOfActivities !== undefined ? String(item.noOfActivities) : null,
     },
-    // FLD Extension Training Fields - using FIELD_NAMES constants (camelCase first, then fallback)
     [FIELD_NAMES.FLD_NAME]: {
         extractor: (item: any) => item.fldName || item['FLD Name'] || item.fld?.fldName || item['FLD'] || null,
     },
-    // Name of Technology Demonstrated (for FLD base table display)
     [FIELD_NAMES.NAME_OF_TECHNOLOGY_DEMONSTRATED]: {
         extractor: (item: any) => {
             if (item.nameOfTechnologyDemonstrated) return item.nameOfTechnologyDemonstrated;
@@ -950,13 +1040,20 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.NO_OF_DAYS_STAYED]: {
         extractor: (item: any) => {
-            if (!item.startDate || !item.endDate) return null;
+            const startRaw = item.startDate || item.start_date;
+            const endRaw = item.endDate || item.end_date;
+            if (!startRaw || !endRaw) return null;
             try {
-                const start = new Date(item.startDate);
-                const end = new Date(item.endDate);
+                const start = new Date(startRaw);
+                const end = new Date(endRaw);
                 if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
-                const diffTime = Math.abs(end.getTime() - start.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // Normalize to UTC midnight to avoid timezone drift.
+                const startUtc = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate());
+                const endUtc = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+                if (endUtc < startUtc) return null;
+
+                const diffDays = Math.floor((endUtc - startUtc) / (1000 * 60 * 60 * 24)) + 1;
                 return String(diffDays);
             } catch {
                 return null;
@@ -971,38 +1068,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => {
             // Check display name first (as it exists in the response)
             const value = item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'] || item.relatedTechnology || item.relatedCropLivestockTechnology;
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
-    // Display name fallbacks for Related Crop Livestock Technology
-    'Related Crop/Live Stock Technology': {
-        extractor: (item: any) => {
-            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
-    'Related crop/livestock technology': {
-        extractor: (item: any) => {
-            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
-    'Related Crop Livestock Technology': {
-        extractor: (item: any) => {
-            const value = item.relatedTechnology || item.relatedCropLivestockTechnology || item['Related Crop/Live Stock Technology'] || item['Related crop/livestock technology'] || item['Related Crop Livestock Technology'];
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
-    // Display name fallbacks for No Of Participants
-    'No. of Participants': {
-        extractor: (item: any) => {
-            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
-            return value !== undefined && value !== null ? String(value) : null;
-        },
-    },
-    'No Of Participants': {
-        extractor: (item: any) => {
-            const value = item.numberOfParticipants || item.noOfParticipants || item.totalParticipants || item.participants || item['No. of Participant'] || item['No. of Participants'] || item['No Of Participants'];
             return value !== undefined && value !== null ? String(value) : null;
         },
     },
@@ -1033,10 +1098,33 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             return total > 0 ? String(total) : (item.noOfParticipants || item.numberOfParticipants || null);
         }
     },
+    [FIELD_NAMES.NO_OF_FARMERS_ATTENDED]: {
+        extractor: (item: any) => {
+            const counts = [
+                item.generalM, item.generalF,
+                item.obcM, item.obcF,
+                item.scM, item.scF,
+                item.stM, item.stF,
+                item.genMale, item.genFemale,
+                item.obcMale, item.obcFemale,
+                item.scMale, item.scFemale,
+                item.stMale, item.stFemale,
+                item.participants,
+            ].map(v => Number(v || 0));
+
+            const total = counts.reduce((sum, val) => sum + val, 0);
+            if (total > 0) return String(total);
+
+            const value = item.noOfFarmersAttended || item.numberOfFarmersAttended || item.noOfParticipants || item.numberOfParticipants;
+            return value !== undefined && value !== null ? String(value) : null;
+        }
+    },
+    [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
+        extractor: (item: any) => item.placeOfActivity || item.venue || item.place || null,
+    },
     [FIELD_NAMES.REMARK]: {
         extractor: (item: any) => item.remark || item.remarks || item['Remark'] || null,
     },
-    // FLD Technical Feedback Fields - using FIELD_NAMES constants (camelCase only - table labels removed from backend)
     [FIELD_NAMES.FLD]: {
         extractor: (item: any) => item.fldName || (item.fld?.fldName) || item.fld || null,
     },
@@ -1046,7 +1134,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.FEEDBACK]: {
         extractor: (item: any) => item.feedback || item.feedBack || null,
     },
-    // NARI fields - using camelCase
     [FIELD_NAMES.GARDENS]: {
         extractor: (item: any) => item.noOfGardens !== undefined ? String(item.noOfGardens) : null,
     },
@@ -1063,40 +1150,28 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.typeOfNutritionalGarden?.name || item.typeOfNutritionalGardenName || null,
     },
     [FIELD_NAMES.ACTIVITY_NAME]: {
-        extractor: (item: any) => item.nameOfActivity || item.activityName || null,
+        extractor: (item: any) => item.nameOfActivity || item.activityName || item.activityMaster?.activityName || null,
     },
-    // Other fields (keeping display names for backward compatibility where no camelCase equivalent exists)
-    'Name of FPO': {
-        extractor: (item: any) => item.fpoName || null,
+    [FIELD_NAMES.TITLE_OF_NATURAL_FARMING_TRAINING_PROGRAMME]: {
+        extractor: (item: any) => item.titleOfNaturalFarmingTrainingProgramme || item.trainingTitle || null,
     },
-    'Crop/Enterprise': {
-        extractor: (item: any) => item.cropOrEnterprise || null,
+    [FIELD_NAMES.DATE_OF_TRAINING]: {
+        extractor: (item: any) => item.dateOfTraining || item.trainingDate || null,
     },
-    Intervention: {
-        extractor: (item: any) => item.intervention || null,
+    [FIELD_NAMES.VENUE_OF_PROGRAMME]: {
+        extractor: (item: any) => item.venueOfProgramme || item.venue || null,
     },
-    Theme: {
-        extractor: (item: any) => item.theme || null,
+    [FIELD_NAMES.NORMAL_CROPS_GROWN]: {
+        extractor: (item: any) => item.normalCropsGrown || item.croppingPattern || null,
     },
-    // Note: 'FLD' extractor is defined above using FIELD_NAMES.FLD constant
-    Courses: {
-        extractor: (item: any) => item.noOfCourses !== undefined ? String(item.noOfCourses) : null,
+    [FIELD_NAMES.PRACTICING_YEAR_OF_NATURAL_FARMING]: {
+        extractor: (item: any) => item.practicingYearOfNaturalFarming || item.farmerPracticeDetails || null,
     },
-    // KVK Name extractors (using camelCase fields only - table labels removed from backend)
-    'KVK NAME': {
-        extractor: (item: any) => item.kvkName || item.kvk?.kvkName || null,
-        priority: 7,
+    [FIELD_NAMES.NAME_OF_INNOVATIVE_PROGRAMME]: {
+        extractor: (item: any) => item.innovativeProgrammeName || item.nameOfInnovativeProgramme || null,
     },
-    'KVK Name': {
-        extractor: (item: any) => item.kvkName || item.kvk?.kvkName || null,
-        priority: 7,
-    },
-    'KVK': {
-        extractor: (item: any) => item.kvk?.kvkName || item.kvkName || null,
-        priority: 7,
-    },
-    'Equipment Name': {
-        extractor: (item: any) => item.equipmentName || null,
+    [FIELD_NAMES.SIGNIFICANCE_OF_INNOVATIVE_PROGRAMME]: {
+        extractor: (item: any) => item.significanceOfInnovativeProgramme || null,
     },
     [FIELD_NAMES.QUANTITY]: {
         extractor: (item: any) => item.quantity !== undefined ? String(item.quantity) : null,
@@ -1128,8 +1203,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.NO_OF_VIPS]: {
         extractor: (item: any) => item.vipNames ? String(item.vipNames.split(',').length) : '0',
     },
-
-    // Award Fields - using camelCase
     [FIELD_NAMES.AWARD]: {
         extractor: (item: any) => item.awardName || item.award_name || null,
         priority: 5,
@@ -1180,10 +1253,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.ORGANIZER]: {
         extractor: (item: any) => item.organizerVenue || item.organizer_venue || null,
     },
-    // FPO Management mappings - using camelCase
-    'Registration No': {
-        extractor: (item: any) => item.registrationNumber || null,
-    },
     [FIELD_NAMES.DATE_OF_REGISTRATION]: {
         extractor: (item: any) => {
             if (!item.registrationDate) return null;
@@ -1205,7 +1274,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.FINANCIAL_POSITION]: {
         extractor: (item: any) => item.financialPositionLakh !== undefined ? `Rs. ${item.financialPositionLakh} Lakh` : null,
     },
-    // FPO Details mappings - using camelCase
     [FIELD_NAMES.NO_OF_BLOCKS_ALLOCATED]: {
         extractor: (item: any) => item.blocksAllocated !== undefined ? String(item.blocksAllocated) : null,
     },
@@ -1215,179 +1283,63 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.AVERAGE_MEMBERS_PER_FPO]: {
         extractor: (item: any) => item.avgMembersPerFpo !== undefined ? String(item.avgMembersPerFpo) : null,
     },
-    // Seed Hub mappings - using camelCase (CROP_NAME already defined above)
     [FIELD_NAMES.AREA_HA]: {
-        extractor: (item: any) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
+        extractor: (item: any) => {
+            if (item.areaCoveredHa !== undefined) return String(item.areaCoveredHa);
+            if (item.areaInHa !== undefined) return String(item.areaInHa);
+            if (item.area !== undefined) return String(item.area);
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
     },
-    'Area(ha)': {
-        extractor: (item: any) => item.areaCoveredHa !== undefined ? String(item.areaCoveredHa) : (item.area !== undefined ? String(item.area) : null),
-    },
-    'Yield (ha)': {
-        extractor: (item: any) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
-    },
-    'Yield(ha)': {
-        extractor: (item: any) => item.yieldQPerHa !== undefined ? String(item.yieldQPerHa) : (item.yield !== undefined ? String(item.yield) : null),
+    [FIELD_NAMES.AREA_IN_ACRE]: {
+        extractor: (item: any) => {
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
     },
     [FIELD_NAMES.FARMERS_INFLUENCED]: {
         extractor: (item: any) => item.farmersPurchased !== undefined ? String(item.farmersPurchased) : null,
     },
-
-    // NICRA specific fields
-    'RF(mm) district Normal': {
+    [FIELD_NAMES.RF_MM_DISTRICT_NORMAL]: {
         extractor: (item: any) => item.rfNormal !== undefined ? String(item.rfNormal) : null,
     },
-    'RF(mm) district Received': {
+    [FIELD_NAMES.RF_MM_DISTRICT_RECEIVED]: {
         extractor: (item: any) => item.rfReceived !== undefined ? String(item.rfReceived) : null,
     },
-    'Max temperature 0C': {
+    [FIELD_NAMES.MAX_TEMPERATURE]: {
         extractor: (item: any) => item.tempMax !== undefined ? String(item.tempMax) : null,
     },
-    'Min temperature 0C': {
+    [FIELD_NAMES.MIN_TEMPERATURE]: {
         extractor: (item: any) => item.tempMin !== undefined ? String(item.tempMin) : null,
     },
-    'Title': {
-        extractor: (item: any) => item.titleOfTraining || item.title || null,
-    },
-    'Activity Name': {
-        extractor: (item: any) => item.activityName || item.activity || null,
-    },
-    'Places': {
-        extractor: (item: any) => item.venue || item.place || null,
-    },
-    'Number of farmers attended': {
+    [FIELD_NAMES.NO_OF_TRAINING]: {
         extractor: (item: any) => {
-            const sum = (item.generalM || 0) + (item.generalF || 0) +
-                (item.obcM || 0) + (item.obcF || 0) +
-                (item.scM || 0) + (item.scF || 0) +
-                (item.stM || 0) + (item.stF || 0) +
-                (item.participants || 0); // fallback to participants if exists
-            return sum > 0 ? String(sum) : '0';
-        }
+            if (item.noOfTrainings !== undefined && item.noOfTrainings !== null) return String(item.noOfTrainings);
+            if (item.noOfTraining !== undefined && item.noOfTraining !== null) return String(item.noOfTraining);
+            return null;
+        },
     },
-    'Category': {
-        extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
-    },
-    'Sub Category': {
-        extractor: (item: any) => item.subCategory?.subCategoryName || item.subCategoryName || null,
-    },
-    'Technology Demonstrated': {
-        extractor: (item: any) => item.technologyDemonstrated || null,
-    },
-    'Area (ha)/ Unit': {
-        extractor: (item: any) => item.areaOrUnit !== undefined ? String(item.areaOrUnit) : null,
-    },
-
-    'Blocks Covered': {
-        extractor: (item: any) => item.blocksCovered !== undefined ? String(item.blocksCovered) : (item.noOfBlocks !== undefined ? String(item.noOfBlocks) : null),
-    },
-    'Villages Covered': {
-        extractor: (item: any) => item.villagesCovered !== undefined ? String(item.villagesCovered) : (item.noOfVillages !== undefined ? String(item.noOfVillages) : null),
-    },
-    'Total Trained Farmers': {
-        extractor: (item: any) => item.totalTrainedFarmers !== undefined ? String(item.totalTrainedFarmers) : null,
-    },
-    'Farmers Influenced': {
-        extractor: (item: any) => item.farmersInfluenced !== undefined ? String(item.farmersInfluenced) : (item.farmersPurchased !== undefined ? String(item.farmersPurchased) : null),
-    },
-    'Normal Crops grown': {
-        extractor: (item: any) => item.croppingPattern || null,
-    },
-    'Practicing year of natural farming': {
-        extractor: (item: any) => item.farmerPracticeDetails || null,
-    },
-    'Farming Situation of selected farmer': {
-        extractor: (item: any) => item.farmingSituation || null,
-    },
-    'Latitude': {
-        extractor: (item: any) => item.latitude !== undefined ? String(item.latitude) : null,
-    },
-    'Longitude': {
-        extractor: (item: any) => item.longitude !== undefined ? String(item.longitude) : null,
-    },
-    'Name of activity': {
-        extractor: (item: any) => item.activityName || null,
-    },
-    'Crop': {
-        extractor: (item: any) => item.crop || null,
-    },
-    'Variety': {
-        extractor: (item: any) => item.variety || null,
-    },
-    'Season': {
-        extractor: (item: any) => item.season?.seasonName || item.seasonName || item.season?.name || item.season_name || item.Season || null,
-    },
-    'Type': {
-        extractor: (item: any) => item.soilParameter || item.type || null,
-    },
-    'Before pH': {
-        extractor: (item: any) => item.phBefore !== undefined ? String(item.phBefore) : null,
-    },
-    'Before EC (ds/m)': {
-        extractor: (item: any) => item.ecBefore !== undefined ? String(item.ecBefore) : null,
-    },
-    'Before EC OC(%)': {
-        extractor: (item: any) => item.ocBefore !== undefined ? String(item.ocBefore) : null,
-    },
-    'After pH': {
-        extractor: (item: any) => item.phAfter !== undefined ? String(item.phAfter) : null,
-    },
-    'After EC (ds/m)': {
-        extractor: (item: any) => item.ecAfter !== undefined ? String(item.ecAfter) : null,
-    },
-    'After EC OC(%)': {
-        extractor: (item: any) => item.ocAfter !== undefined ? String(item.ocAfter) : null,
-    },
-    'Number of Activities Organised': {
-        extractor: (item: any) => item.numberOfActivities !== undefined ? String(item.numberOfActivities) : null,
-    },
-    'Budget Sanctioned(Rs)': {
-        extractor: (item: any) => item.budgetSanction !== undefined ? String(item.budgetSanction) : null,
-    },
-    'Budget Expenditure(Rs)': {
-        extractor: (item: any) => item.budgetExpenditure !== undefined ? String(item.budgetExpenditure) : null,
-    },
-    'Total Budget Expenditure(Rs)': {
-        extractor: (item: any) => item.totalBudgetExpenditure !== undefined ? String(item.totalBudgetExpenditure) : null,
-    },
-    'Agro Climatic Zone': {
-        extractor: (item: any) => item.agroClimaticZone || null,
-    },
-    'Name of the programme': {
-        extractor: (item: any) => item.programmeName || item.name_of_programme || null,
-    },
-    'Date of the programme': {
+    [FIELD_NAMES.TECHNOLOGY_DEMONSTRATED]: {
         extractor: (item: any) => {
-            const dateVal = item.programmeDate || item.programme_date;
-            if (!dateVal) return null;
-            try {
-                const date = new Date(dateVal);
-                return date.toLocaleDateString('en-GB');
-            } catch { return null; }
-        }
+            if (item.technologyDemonstrated) return item.technologyDemonstrated;
+            if (item.interventions) return item.interventions;
+            return null;
+        },
+        priority: 5,
     },
-    'Venue': {
-        extractor: (item: any) => item.venue || null,
-        priority: 7,
+    [FIELD_NAMES.DISTRICT_YIELD]: {
+        extractor: (item: any) => item.districtYield !== undefined && item.districtYield !== null ? String(item.districtYield) : null,
+        priority: 5,
     },
-    'Purpose': {
-        extractor: (item: any) => item.purpose || null,
+    [FIELD_NAMES.STATE_YIELD]: {
+        extractor: (item: any) => item.stateYield !== undefined && item.stateYield !== null ? String(item.stateYield) : null,
+        priority: 5,
     },
-    'No. of participants': {
-        extractor: (item: any) => {
-            const sum = (item.farmersGeneralM || 0) + (item.farmersGeneralF || 0) +
-                (item.farmersObcM || 0) + (item.farmersObcF || 0) +
-                (item.farmersScM || 0) + (item.farmersScF || 0) +
-                (item.farmersStM || 0) + (item.farmersStF || 0) +
-                (item.gen_m || 0) + (item.gen_f || 0) +
-                (item.obc_m || 0) + (item.obc_f || 0) +
-                (item.sc_m || 0) + (item.sc_f || 0) +
-                (item.st_m || 0) + (item.st_f || 0) +
-                (item.participants || 0);
-            return sum > 0 ? String(sum) : '0';
-        }
+    [FIELD_NAMES.POTENTIAL_YIELD]: {
+        extractor: (item: any) => item.potentialYield !== undefined && item.potentialYield !== null ? String(item.potentialYield) : null,
+        priority: 5,
     },
-
-    // Prevalent Diseases fields
     [FIELD_NAMES.NAME_OF_THE_DISEASE]: {
         extractor: (item: any) => item.nameOfTheDisease || item.diseaseName || null,
     },
@@ -1520,7 +1472,49 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_FARMERS]: {
-        extractor: (item: any) => String(item.farmerCount ?? item.noOfFarmers ?? 0),
+        extractor: (item: any) => {
+            // Calculate from farmer category counts if available
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            // Fallback to direct field
+            return String(item.farmerCount ?? item.noOfFarmers ?? item.numberOfFarmers ?? 0);
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NUMBER_OF_FARMERS]: {
+        extractor: (item: any) => {
+            // Prioritize the calculated field from backend if available
+            if (item.numberOfFarmers !== undefined && item.numberOfFarmers !== null) {
+                return String(item.numberOfFarmers);
+            }
+            // Calculate from farmer category counts if available
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            // Fallback to other field names
+            return String(item.farmerCount ?? item.noOfFarmers ?? 0);
+        },
+        priority: 6,
+    },
+    [FIELD_NAMES.NUMBER_OF_FARMERS_UNDER_EXPOSURE]: {
+        extractor: (item: any) => {
+            // Prefer explicit backend field if present
+            if (item.numberOfFarmersUnderExposure !== undefined && item.numberOfFarmersUnderExposure !== null) {
+                return String(item.numberOfFarmersUnderExposure);
+            }
+            // Otherwise calculate from category counts (same as NUMBER_OF_FARMERS)
+            const sum = (Number(item.generalM || 0)) + (Number(item.generalF || 0)) +
+                (Number(item.obcM || 0)) + (Number(item.obcF || 0)) +
+                (Number(item.scM || 0)) + (Number(item.scF || 0)) +
+                (Number(item.stM || 0)) + (Number(item.stF || 0));
+            if (sum > 0) return String(sum);
+            return String(item.farmerCount ?? item.noOfFarmers ?? 0);
+        },
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_OTHERS]: {
@@ -1731,7 +1725,21 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
 
     // Performance Infrastructure - Rainwater Harvesting
     [FIELD_NAMES.NO_OF_TRAINING_PROGRAMME_CONDUCTED]: {
-        extractor: (item: any) => item.trainingProgrammes !== undefined && item.trainingProgrammes !== null ? String(item.trainingProgrammes) : null,
+        extractor: (item: any) => {
+            if (item.trainingProgrammes !== undefined && item.trainingProgrammes !== null) {
+                return String(item.trainingProgrammes);
+            }
+            if (item.noOfTrainingProgrammeConducted !== undefined && item.noOfTrainingProgrammeConducted !== null) {
+                return String(item.noOfTrainingProgrammeConducted);
+            }
+            if (item.noOfTrainings) {
+                return String(item.noOfTrainings);
+            }
+            if (item.noOfTraining !== undefined && item.noOfTraining !== null) {
+                return String(item.noOfTraining);
+            }
+            return null;
+        },
         priority: 6,
     },
     [FIELD_NAMES.NO_OF_DEMONSTRATIONS]: {
@@ -1777,10 +1785,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
                 return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             } catch { return null; }
         },
-        priority: 6,
-    },
-    [FIELD_NAMES.FUNDING_AGENCY]: {
-        extractor: (item: any) => item.fundingAgency || null,
         priority: 6,
     },
     // Performance - District & Village
@@ -2017,6 +2021,31 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.DEMONSTRATIONS_ON]: {
+        extractor: (item: any) =>
+            item.demonstrationsOnName ||
+            item.demonstrationsOn ||
+            item.demonstrationsOnMaster?.demonstrationsOnName ||
+            item.demonstrationsOnMaster?.name ||
+            null,
+        priority: 5,
+    },
+    [FIELD_NAMES.NO_OF_DEMOS]: {
+        extractor: (item: any) => {
+            const val = item.noOfDemos ?? item.demoCount ?? item['No. of demos'] ?? item['No. of Demos'];
+            return val !== undefined && val !== null && val !== '' ? String(val) : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.AREA_COVERED_UNDER_DEMOS]: {
+        extractor: (item: any) => {
+            const val = item.areaCoveredUnderDemos ?? item.areaHa ?? item.area ?? item['Area covered under demos'] ?? item['Area covered under demos.'];
+            if (val === undefined || val === null || val === '') return null;
+            const num = Number(val);
+            return Number.isFinite(num) ? `${num} ha` : String(val);
+        },
+        priority: 5,
+    },
     [FIELD_NAMES.DEMO_AMOUNT_SANCTIONED]: {
         extractor: (item: any) => {
             const val = item.demoAmountSanctioned;
@@ -2040,7 +2069,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.TARGET_AREA_HA]: {
-        extractor: (item: any) => item.targetAreaHa !== undefined && item.targetAreaHa !== null ? `${item.targetAreaHa} ha` : null,
+        extractor: (item: any) => {
+            if (item.targetAreaHa) return `${item.targetAreaHa} ha`;
+            if (item.targetArea) return `${item.targetArea} ha`;
+            if (item.areaInAcre) return `${item.areaInAcre} acre`;
+            return null;
+        },
         priority: 5,
     },
     [FIELD_NAMES.OPERATION_TYPE]: {
@@ -2068,7 +2102,75 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 5,
     },
-
+    [FIELD_NAMES.FUNDING_AGENCY_NAME]: {
+        extractor: (item: any) => {
+            const masterName = item.fundingAgency?.agencyName || item.agencyName;
+            const specifyName = item.specifyAgencyName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            return masterName || null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.FUNDING_AGENCY]: {
+        extractor: (item: any) => {
+            const masterName = item.fundingAgency?.agencyName || item.agencyName;
+            const specifyName = item.specifyAgencyName;
+            if (masterName === 'Others' && specifyName) {
+                return specifyName;
+            }
+            return masterName || null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.SPECIFY_AGENCY_NAME]: {
+        extractor: (item: any) => item.specifyAgencyName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.BUDGET_ESTIMATE]: {
+        extractor: (item: any) => {
+            const val = item.budgetEstimate;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.BUDGET_ALLOCATED]: {
+        extractor: (item: any) => {
+            const val = item.budgetAllocated;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.BUDGET_RELEASED]: {
+        extractor: (item: any) => {
+            const val = item.budgetReleased;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.EXPENDITURE]: {
+        extractor: (item: any) => {
+            const val = item.expenditure;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.UNSPENT_BALANCE]: {
+        extractor: (item: any) => {
+            const val = item.unspentBalance;
+            return (val !== undefined && val !== null) ? `₹${Number(val).toLocaleString('en-IN')}` : null;
+        },
+        priority: 5,
+    },
+    [FIELD_NAMES.COMPLETED_AT]: {
+        extractor: (item: any) => {
+            if (!item?.completedAt) return null;
+            const date = new Date(item.completedAt);
+            return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-GB');
+        },
+        priority: 8,
+    },
 } as any;
 
 // ============================================

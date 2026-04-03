@@ -4,10 +4,11 @@ const {
     parseInteger,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {
     if (!r) return null;
-    return { ...r, id: r.kmasId };
+    return { ...r, id: r.kmasId, yearName: formatReportingYear(r.reportingYear) };
 };
 
 const kmasRepository = {
@@ -22,7 +23,11 @@ const kmasRepository = {
             const result = await prisma.kmas.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInteger(data.reportingYearId, 'reportingYearId') : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     noOfFarmersCovered: parseInteger(data.noOfFarmersCovered || 0, 'noOfFarmersCovered'),
                     noOfAdvisoriesSent: parseInteger(data.noOfAdvisoriesSent || 0, 'noOfAdvisoriesSent'),
                     crop: String(data.crop || ''),
@@ -33,7 +38,7 @@ const kmasRepository = {
                     otherEnterprises: String(data.otherEnterprises || ''),
                     anyOther: String(data.anyOther || ''),
                 },
-                include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+                include: { kvk: { select: { kvkName: true } } }
             });
             return _mapResponse(result);
         } catch (error) {
@@ -52,7 +57,7 @@ const kmasRepository = {
 
         const records = await prisma.kmas.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
             orderBy: { kmasId: 'desc' },
         });
         return records.map(_mapResponse);
@@ -67,7 +72,7 @@ const kmasRepository = {
 
         const record = await prisma.kmas.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
         });
         if (!record) throw new RepositoryError('KMAS record not found', 'NOT_FOUND', 404);
         return _mapResponse(record);
@@ -86,7 +91,13 @@ const kmasRepository = {
         const result = await prisma.kmas.update({
             where: { kmasId },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? parseInteger(data.reportingYearId, 'reportingYearId') : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 noOfFarmersCovered: data.noOfFarmersCovered !== undefined ? parseInteger(data.noOfFarmersCovered, 'noOfFarmersCovered') : existing.noOfFarmersCovered,
                 noOfAdvisoriesSent: data.noOfAdvisoriesSent !== undefined ? parseInteger(data.noOfAdvisoriesSent, 'noOfAdvisoriesSent') : existing.noOfAdvisoriesSent,
                 crop: data.crop !== undefined ? String(data.crop) : existing.crop,
@@ -97,7 +108,7 @@ const kmasRepository = {
                 otherEnterprises: data.otherEnterprises !== undefined ? String(data.otherEnterprises) : existing.otherEnterprises,
                 anyOther: data.anyOther !== undefined ? String(data.anyOther) : existing.anyOther,
             },
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+            include: { kvk: { select: { kvkName: true } } }
         });
         return _mapResponse(result);
     },

@@ -32,7 +32,8 @@ export const FIELD_NAMES = {
     ORG_NAME: 'orgName',
     ORGANIZATION_NAME: 'organizationName',
     UNIVERSITY_NAME: 'universityName',
-    ORGANIZATION_ORG_NAME: 'organization.orgName',
+    ORGANIZATION_ORG_NAME: 'organizationName',
+    HOST_ORG: 'hostOrg',
 
     // OFT/FLD Master Fields
     SUBJECT_NAME: 'subjectName',
@@ -53,6 +54,7 @@ export const FIELD_NAMES = {
     TRAINING_TYPE: 'trainingType',
     TRAINING_AREA_NAME: 'trainingAreaName',
     TRAINING_THEMATIC_AREA: 'trainingThematicArea',
+    SPECIFIC_AREA_NAME: 'specificAreaName',
 
     // Product Master Fields
     PRODUCT_CATEGORY_NAME: 'productCategoryName',
@@ -64,6 +66,7 @@ export const FIELD_NAMES = {
 
     // ARYA Master Fields
     ENTERPRISE_NAME: 'enterpriseName',
+    ENTERPRISE_TYPE_NAME: 'enterpriseTypeName',
 
     // Publication Master Fields
     PUBLICATION_ITEM: 'publicationItem',
@@ -110,7 +113,6 @@ export const FIELD_NAMES = {
 
     // Reporting Fields
     REPORTING_YEAR: 'reportingYear',
-    REPORTING_YEAR_ID: 'reportingYearId',
 
     // Date Fields
     START_DATE: 'startDate',
@@ -138,9 +140,11 @@ export const FIELD_NAMES = {
     STAFF_NAME: 'staffName',
     STAFF_ID: 'staffId',
     POSITION: 'position',
+    POSITION_ORDER: 'positionOrder',
     SANCTIONED_POST: 'sanctionedPost',
     PAY_SCALE: 'payScale',
     JOB_TYPE: 'jobType',
+    ALLOWANCES: 'allowances',
     DETAILS_OF_ALLOWENCES: 'detailsOfAllowences',
     TRANSFER_STATUS: 'transferStatus',
 
@@ -152,7 +156,12 @@ export const FIELD_NAMES = {
     // Status Fields
     ONGOING_COMPLETED: 'ongoingCompleted',
     STATUS: 'status',
+    COMPLETED_AT: 'completedAt',
     PRESENT_STATUS: 'presentStatus',
+    STATUS_CODE: 'statusCode',
+    STATUS_LABEL: 'statusLabel',
+    HIDE_IN_NEXT_YEAR: 'hideInNextYear',
+    IS_ACTIVE: 'isActive',
 
     // Problem Fields
     PROBLEM_DIAGNOSED: 'problemDiagnosed',
@@ -163,6 +172,7 @@ export const FIELD_NAMES = {
     // Area Fields
     AREA: 'area',
     AREA_HA: 'areaHa',
+    AREA_IN_ACRE: 'areaInAcre',
     AREA_PRACTICING: 'areaPracticing',
     PLINTH_AREA_SQ_M: 'plinthAreaSqM',
 
@@ -186,6 +196,7 @@ export const FIELD_NAMES = {
     SOURCE_OF_FUND: 'sourceOfFund',
     BUDGET_SANCTION: 'budgetSanction',
     BUDGET_EXPENDITURE: 'budgetExpenditure',
+    EXPENDITURE: 'expenditure',
     COST_SANCTIONED: 'costSanctioned',
     FUNDS: 'funds',
     AMOUNT: 'amount',
@@ -328,6 +339,7 @@ export const FIELD_NAMES = {
     // Photo/Resume Fields
     PHOTO: 'photo',
     RESUME: 'resume',
+    RESUME_PATH: 'resumePath',
 
     // CFLD Fields
     TECHNOLOGY_DEMONSTRATED: 'technologyDemonstrated',
@@ -406,6 +418,13 @@ export const FIELD_NAMES = {
     MEETING_DATE: 'meetingDate',
     AMOUNT_RS: 'amountRs',
     QUANTITY_Q: 'quantityQ',
+    REPORTING_DATE: 'reportingDate',
+    MONTH_YEAR: 'monthYear',
+    DRY_SPELL_10_DAYS: 'dry10',
+    DRY_SPELL_15_DAYS: 'dry15',
+    DRY_SPELL_20_DAYS: 'dry20',
+    INTENSIVE_RAIN_60MM: 'intensiveRain',
+    WATER_DEPTH: 'waterDepth',
 
     // Natural Farming Fields
     AGRO_CLIMATIC_ZONE: 'agroClimaticZone',
@@ -415,12 +434,14 @@ export const FIELD_NAMES = {
     TITLE_OF_NATURAL_FARMING_TRAINING_PROGRAMME: 'titleOfNaturalFarmingTrainingProgramme',
     DATE_OF_TRAINING: 'dateOfTraining',
     VENUE_OF_PROGRAMME: 'venueOfProgramme',
+    NAME_OF_INNOVATIVE_PROGRAMME: 'innovativeProgrammeName',
+    SIGNIFICANCE_OF_INNOVATIVE_PROGRAMME: 'significanceOfInnovativeProgramme',
     NORMAL_CROPS_GROWN: 'normalCropsGrown',
     PRACTICING_YEAR_OF_NATURAL_FARMING: 'practicingYearOfNaturalFarming',
-    NUMBER_OF_BLOCK: 'numberOfBlock',
-    NUMBER_OF_VILLAGE: 'numberOfVillage',
-    NUMBER_OF_TRAINING: 'numberOfTraining',
-    NO_OF_FARMERS_INFLUENCED_TO_ADOPT_NATURAL_FARMING: 'noOfFarmersInfluencedToAdoptNaturalFarming',
+    NUMBER_OF_BLOCK: 'noOfBlocks',
+    NUMBER_OF_VILLAGE: 'noOfVillages',
+    NUMBER_OF_TRAINING: 'totalTrainedFarmers',
+    NO_OF_FARMERS_INFLUENCED_TO_ADOPT_NATURAL_FARMING: 'farmersInfluenced',
     BEFORE_PH: 'beforePh',
     BEFORE_EC: 'beforeEc',
     BEFORE_OC: 'beforeOc',
@@ -431,6 +452,9 @@ export const FIELD_NAMES = {
 
     // Agri-Drone Fields
     DISTRICT: 'district',
+    DEMONSTRATIONS_ON: 'demonstrationsOn',
+    DEMONSTRATIONS_ON_NAME: 'demonstrationsOnName',
+    PARAMETER_NAME: 'parameterName',
     DATE_OF_DEMONS: 'dateOfDemons',
     PLACE_OF_DEMONS: 'placeOfDemons',
     NO_OF_DEMOS: 'noOfDemos',
@@ -504,6 +528,10 @@ export const FIELD_NAMES = {
     CAPITAL_MAIN_GRANT_ALLOCATION: 'capitalMainGrantAllocation',
     CAPITAL_MAIN_GRANT_EXPENDITURE: 'capitalMainGrantExpenditure',
     PROJECT_NAME: 'projectName',
+    FUNDING_AGENCY_NAME: 'agencyName',
+    FUNDING_AGENCY_ID: 'fundingAgencyId',
+    SPECIFY_PROJECT_NAME: 'specifyProjectName',
+    SPECIFY_AGENCY_NAME: 'specifyAgencyName',
     FUNDING_AGENCY: 'fundingAgency',
     BUDGET_ESTIMATE: 'budgetEstimate',
     BUDGET_ALLOCATED: 'budgetAllocated',
@@ -612,7 +640,7 @@ export const FIELD_GROUPS = {
     STATE_MASTER: [FIELD_NAMES.ZONE_NAME, FIELD_NAMES.STATE_NAME] as const,
     DISTRICT_MASTER: [FIELD_NAMES.ZONE_NAME, FIELD_NAMES.STATE_NAME, FIELD_NAMES.DISTRICT_NAME] as const,
     ORGANIZATION_MASTER: [FIELD_NAMES.ZONE_NAME, FIELD_NAMES.STATE_NAME, FIELD_NAMES.DISTRICT_NAME, FIELD_NAMES.ORG_NAME] as const,
-    UNIVERSITY_MASTER: ['organization.orgName', FIELD_NAMES.UNIVERSITY_NAME] as const,
+    UNIVERSITY_MASTER: [FIELD_NAMES.ORGANIZATION_ORG_NAME, FIELD_NAMES.UNIVERSITY_NAME] as const,
 
     // All Masters - OFT Masters
     OFT_SUBJECT_MASTER: [FIELD_NAMES.SUBJECT_NAME, FIELD_NAMES.THEMATIC_AREAS_COUNT] as const,
@@ -662,17 +690,28 @@ export const FIELD_GROUPS = {
     DISCIPLINE_MASTER: [FIELD_NAMES.DISCIPLINE_NAME] as const,
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,
-    YEAR_MASTER: [FIELD_NAMES.YEAR_NAME] as const,
     CROP_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
     INFRASTRUCTURE_MASTER: [FIELD_NAMES.NAME] as const,
     IMPORTANT_DAY_MASTER: [FIELD_NAMES.DAY_NAME] as const,
     SOIL_WATER_ANALYSIS_MASTER: [FIELD_NAMES.ANALYSIS_NAME] as const,
+    VEHICLE_PRESENT_STATUS_MASTER: [FIELD_NAMES.STATUS_CODE, FIELD_NAMES.STATUS_LABEL, FIELD_NAMES.HIDE_IN_NEXT_YEAR, FIELD_NAMES.IS_ACTIVE] as const,
+    EQUIPMENT_PRESENT_STATUS_MASTER: [FIELD_NAMES.STATUS_CODE, FIELD_NAMES.STATUS_LABEL, FIELD_NAMES.HIDE_IN_NEXT_YEAR, FIELD_NAMES.IS_ACTIVE] as const,
+    NICRA_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
+    NICRA_SUB_CATEGORY_MASTER: [FIELD_NAMES.SUB_CATEGORY_NAME, FIELD_NAMES.CATEGORY_NAME] as const,
+    NICRA_SEED_BANK_FODDER_BANK_MASTER: [FIELD_NAMES.SEED_BANK_FODDER_BANK] as const,
+    IMPACT_SPECIFIC_AREA_MASTER: [FIELD_NAMES.SPECIFIC_AREA_NAME] as const,
+    ENTERPRISE_TYPE_MASTER: [FIELD_NAMES.ENTERPRISE_TYPE_NAME] as const,
+    ACCOUNT_TYPE_MASTER: [FIELD_NAMES.ACCOUNT_TYPE] as const,
+    PROGRAMME_TYPE_MASTER: [FIELD_NAMES.PROGRAMME_TYPE] as const,
+    PPV_FRA_TRAINING_TYPE_MASTER: [FIELD_NAMES.TYPE_NAME] as const,
+    FINANCIAL_PROJECT_MASTER: [FIELD_NAMES.PROJECT_NAME, FIELD_NAMES.FUNDING_AGENCY_NAME] as const,
+    FUNDING_AGENCY_MASTER: [FIELD_NAMES.FUNDING_AGENCY_NAME] as const,
 
     // About KVK Routes
     VIEW_KVKS: [
         FIELD_NAMES.ZONE_NAME,
         FIELD_NAMES.STATE_NAME,
-        FIELD_NAMES.ORGANIZATION_NAME,
+        FIELD_NAMES.HOST_ORG,
         FIELD_NAMES.DISTRICT_NAME,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.MOBILE,
@@ -726,17 +765,13 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.REGISTRATION_NO,
         FIELD_NAMES.YEAR_OF_PURCHASE,
         FIELD_NAMES.TOTAL_COST,
-        FIELD_NAMES.TOTAL_RUN,
-        FIELD_NAMES.PRESENT_STATUS,
     ] as const,
     VEHICLE_DETAILS: [
+        FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.VEHICLE_NAME,
         FIELD_NAMES.REGISTRATION_NUMBER,
-        FIELD_NAMES.YEAR_OF_PURCHASE,
-        FIELD_NAMES.TOTAL_COST_RS_DOT,
         FIELD_NAMES.TOTAL_RUN_KMS,
-        FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.PRESENT_STATUS,
     ] as const,
     VIEW_EQUIPMENTS: [
@@ -744,17 +779,14 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.EQUIPMENT_NAME,
         FIELD_NAMES.YEAR_OF_PURCHASE,
         FIELD_NAMES.TOTAL_COST_RS,
-        FIELD_NAMES.PRESENT_STATUS,
         FIELD_NAMES.SOURCE_OF_FUND,
     ] as const,
     EQUIPMENT_DETAILS: [
+        FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.EQUIPMENT_NAME,
-        FIELD_NAMES.YEAR_OF_PURCHASE,
-        FIELD_NAMES.TOTAL_COST_RS,
-        FIELD_NAMES.REPORTING_YEAR,
-        FIELD_NAMES.PRESENT_STATUS,
         FIELD_NAMES.SOURCE_OF_FUND,
+        FIELD_NAMES.PRESENT_STATUS,
     ] as const,
     FARM_IMPLEMENT_DETAILS: [
         FIELD_NAMES.KVK_NAME,
@@ -776,6 +808,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.STATE_YIELD,
         FIELD_NAMES.POTENTIAL_YIELD,
         FIELD_NAMES.STATUS,
+        FIELD_NAMES.COMPLETED_AT,
     ] as const,
     CFLD_EXTENSION_ACTIVITY: [
         FIELD_NAMES.KVK_NAME,
@@ -797,7 +830,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.SEASON,
         FIELD_NAMES.TECHNOLOGY_DEMONSTRATED,
-        FIELD_NAMES.AREA_HA,
+        FIELD_NAMES.AREA_IN_ACRE,
         FIELD_NAMES.NUMBER_OF_FARMERS,
     ] as const,
     CRA_EXTENSION_ACTIVITY: [
@@ -1092,14 +1125,14 @@ export const FIELD_GROUPS = {
     ] as const,
     AGRI_DRONE_DEMONSTRATION: [
         FIELD_NAMES.KVK_NAME,
-        FIELD_NAMES.YEAR,
-        FIELD_NAMES.PILOT_NAME,
-        FIELD_NAMES.PILOT_CONTACT,
-        FIELD_NAMES.TARGET_AREA_HA,
-        FIELD_NAMES.DEMO_AMOUNT_SANCTIONED,
-        FIELD_NAMES.DEMO_AMOUNT_UTILISED,
-        FIELD_NAMES.OPERATION_TYPE,
-        FIELD_NAMES.ADVANTAGES_OBSERVED,
+        FIELD_NAMES.PROJECT_IMPLEMENTING_CENTRE_NAME,
+        FIELD_NAMES.DISTRICT,
+        FIELD_NAMES.DATE_OF_DEMONS,
+        FIELD_NAMES.PLACE_OF_DEMONS,
+        FIELD_NAMES.CROP_NAME,
+        FIELD_NAMES.NO_OF_DEMOS,
+        FIELD_NAMES.AREA_COVERED_UNDER_DEMOS,
+        FIELD_NAMES.NO_OF_FARMERS,
     ] as const,
 
     // Projects Routes - Seed Hub
@@ -1402,10 +1435,11 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.KVK,
         FIELD_NAMES.PROJECT_NAME,
         FIELD_NAMES.FUNDING_AGENCY,
+        FIELD_NAMES.ACCOUNT_NUMBER,
         FIELD_NAMES.BUDGET_ESTIMATE,
         FIELD_NAMES.BUDGET_ALLOCATED,
         FIELD_NAMES.BUDGET_RELEASED,
-        FIELD_NAMES.BUDGET_EXPENDITURE,
+        FIELD_NAMES.EXPENDITURE,
         FIELD_NAMES.UNSPENT_BALANCE,
     ] as const,
     PERFORMANCE_REVOLVING_FUND: [

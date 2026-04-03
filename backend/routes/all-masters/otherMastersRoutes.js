@@ -46,12 +46,6 @@ router.delete('/sanctioned-posts/:id', requirePermission('all_masters_sanctioned
 // Year Routes
 // ============================================
 
-router.get('/years',     otherMastersController.getAllYears);
-router.get('/years/:id', otherMastersController.getYearById);
-router.post('/years',    requirePermission('all_masters_year_master', 'ADD'),  otherMastersController.createYear);
-router.put('/years/:id', requirePermission('all_masters_year_master', 'EDIT'), otherMastersController.updateYear);
-router.delete('/years/:id', requirePermission('all_masters_year_master', 'DELETE'), otherMastersController.deleteYear);
-
 // ============================================
 // Employee Masters Routes
 // ============================================
@@ -151,6 +145,139 @@ router.delete('/soil-water-analysis/:id', requirePermission('all_masters_soil_wa
 // ============================================
 
 router.get('/nari-crop-category', otherMastersController.getAllNariCropCategories);
+router.get('/nari-activity', otherMastersController.getAllNariActivities);
+router.get('/nari-activity/:id', otherMastersController.getNariActivityById);
+router.post('/nari-activity', requirePermission('all_masters_nari_activity_master', 'ADD'), otherMastersController.createNariActivity);
+router.put('/nari-activity/:id', requirePermission('all_masters_nari_activity_master', 'EDIT'), otherMastersController.updateNariActivity);
+router.delete('/nari-activity/:id', requirePermission('all_masters_nari_activity_master', 'DELETE'), otherMastersController.deleteNariActivity);
+
 router.get('/nari-nutrition-garden-type', otherMastersController.getAllNariNutritionGardenTypes);
+router.get('/nari-nutrition-garden-type/:id', otherMastersController.getNariNutritionGardenTypeById);
+router.post('/nari-nutrition-garden-type', requirePermission('all_masters_nari_garden_type_master', 'ADD'), otherMastersController.createNariNutritionGardenType);
+router.put('/nari-nutrition-garden-type/:id', requirePermission('all_masters_nari_garden_type_master', 'EDIT'), otherMastersController.updateNariNutritionGardenType);
+router.delete('/nari-nutrition-garden-type/:id', requirePermission('all_masters_nari_garden_type_master', 'DELETE'), otherMastersController.deleteNariNutritionGardenType);
+
+// NICRA Category/Sub-category are grouped under one NICRA module
+router.get('/nicra-category', otherMastersController.getAllNicraCategories);
+router.get('/nicra-category/:id', otherMastersController.getNicraCategoryById);
+router.post('/nicra-category', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraCategory);
+router.put('/nicra-category/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraCategory);
+router.delete('/nicra-category/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraCategory);
+
+router.get('/nicra-sub-category', otherMastersController.getAllNicraSubCategories);
+router.get('/nicra-sub-category/:id', otherMastersController.getNicraSubCategoryById);
+router.post('/nicra-sub-category', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraSubCategory);
+router.put('/nicra-sub-category/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraSubCategory);
+router.delete('/nicra-sub-category/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraSubCategory);
+
+router.get('/nicra-seed-bank-fodder-bank', otherMastersController.getAllNicraSeedBankFodderBank);
+router.get('/nicra-seed-bank-fodder-bank/:id', otherMastersController.getNicraSeedBankFodderBankById);
+router.post('/nicra-seed-bank-fodder-bank', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraSeedBankFodderBank);
+router.put('/nicra-seed-bank-fodder-bank/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraSeedBankFodderBank);
+router.delete('/nicra-seed-bank-fodder-bank/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraSeedBankFodderBank);
+
+router.get('/nicra-dignitary-type', otherMastersController.getAllNicraDignitaryTypes);
+router.get('/nicra-dignitary-type/:id', otherMastersController.getNicraDignitaryTypeById);
+router.post('/nicra-dignitary-type', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraDignitaryType);
+router.put('/nicra-dignitary-type/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraDignitaryType);
+router.delete('/nicra-dignitary-type/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraDignitaryType);
+
+router.get('/nicra-pi-type', otherMastersController.getAllNicraPiTypes);
+router.get('/nicra-pi-type/:id', otherMastersController.getNicraPiTypeById);
+router.post('/nicra-pi-type', requirePermission('all_masters_nicra_master', 'ADD'), otherMastersController.createNicraPiType);
+router.put('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'EDIT'), otherMastersController.updateNicraPiType);
+router.delete('/nicra-pi-type/:id', requirePermission('all_masters_nicra_master', 'DELETE'), otherMastersController.deleteNicraPiType);
+
+// ============================================
+// Impact Specific Area Master Routes
+// ============================================
+
+router.get('/impact-specific-area-master', otherMastersController.getAllImpactSpecificAreas);
+router.get('/impact-specific-area-master/:id', otherMastersController.getImpactSpecificAreaById);
+router.post('/impact-specific-area-master', requirePermission('all_masters_impact_area_master', 'ADD'), otherMastersController.createImpactSpecificArea);
+router.put('/impact-specific-area-master/:id', requirePermission('all_masters_impact_area_master', 'EDIT'), otherMastersController.updateImpactSpecificArea);
+router.delete('/impact-specific-area-master/:id', requirePermission('all_masters_impact_area_master', 'DELETE'), otherMastersController.deleteImpactSpecificArea);
+
+// ============================================
+// Enterprise Type Master Routes
+// ============================================
+
+router.get('/enterprise-type', otherMastersController.getAllEnterpriseTypes);
+router.get('/enterprise-type/:id', otherMastersController.getEnterpriseTypeById);
+router.post('/enterprise-type', requirePermission('all_masters_enterprise_type_master', 'ADD'), otherMastersController.createEnterpriseType);
+router.put('/enterprise-type/:id', requirePermission('all_masters_enterprise_type_master', 'EDIT'), otherMastersController.updateEnterpriseType);
+router.delete('/enterprise-type/:id', requirePermission('all_masters_enterprise_type_master', 'DELETE'), otherMastersController.deleteEnterpriseType);
+
+// ============================================
+// Account Type Master Routes
+// ============================================
+
+router.get('/account-type', otherMastersController.getAllAccountTypes);
+router.get('/account-type/:id', otherMastersController.getAccountTypeById);
+router.post('/account-type', requirePermission('all_masters_account_type_master', 'ADD'), otherMastersController.createAccountType);
+router.put('/account-type/:id', requirePermission('all_masters_account_type_master', 'EDIT'), otherMastersController.updateAccountType);
+router.delete('/account-type/:id', requirePermission('all_masters_account_type_master', 'DELETE'), otherMastersController.deleteAccountType);
+
+// ============================================
+// Programme Type Master Routes
+// ============================================
+
+router.get('/programme-type', otherMastersController.getAllProgrammeTypes);
+router.get('/programme-type/:id', otherMastersController.getProgrammeTypeById);
+router.post('/programme-type', requirePermission('all_masters_programme_type_master', 'ADD'), otherMastersController.createProgrammeType);
+router.put('/programme-type/:id', requirePermission('all_masters_programme_type_master', 'EDIT'), otherMastersController.updateProgrammeType);
+router.delete('/programme-type/:id', requirePermission('all_masters_programme_type_master', 'DELETE'), otherMastersController.deleteProgrammeType);
+
+// ============================================
+// PPV & FRA Training Type Master Routes
+// ============================================
+
+router.get('/ppv-fra-training-type', otherMastersController.getAllPpvFraTrainingTypes);
+router.get('/ppv-fra-training-type/:id', otherMastersController.getPpvFraTrainingTypeById);
+router.post('/ppv-fra-training-type', requirePermission('all_masters_ppv_fra_training_type_master', 'ADD'), otherMastersController.createPpvFraTrainingType);
+router.put('/ppv-fra-training-type/:id', requirePermission('all_masters_ppv_fra_training_type_master', 'EDIT'), otherMastersController.updatePpvFraTrainingType);
+router.delete('/ppv-fra-training-type/:id', requirePermission('all_masters_ppv_fra_training_type_master', 'DELETE'), otherMastersController.deletePpvFraTrainingType);
+
+// ============================================
+// Dignitary Type Master Routes
+// ============================================
+
+router.get('/dignitary-type', otherMastersController.getAllDignitaryTypes);
+router.get('/dignitary-type/:id', otherMastersController.getDignitaryTypeById);
+router.post('/dignitary-type', requirePermission('all_masters_dignitary_type_master', 'ADD'), otherMastersController.createDignitaryType);
+router.put('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'EDIT'), otherMastersController.updateDignitaryType);
+router.delete('/dignitary-type/:id', requirePermission('all_masters_dignitary_type_master', 'DELETE'), otherMastersController.deleteDignitaryType);
+
+// ============================================
+// Financial Project Master Routes
+// ============================================
+
+router.get('/financial-project', otherMastersController.getAllFinancialProjects);
+router.get('/financial-project/:id', otherMastersController.getFinancialProjectById);
+router.post('/financial-project', requirePermission('all_masters_financial_project_master', 'ADD'), otherMastersController.createFinancialProject);
+router.put('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'EDIT'), otherMastersController.updateFinancialProject);
+router.delete('/financial-project/:id', requirePermission('all_masters_financial_project_master', 'DELETE'), otherMastersController.deleteFinancialProject);
+
+// ============================================
+// Funding Agency Master Routes
+// ============================================
+
+router.get('/funding-agency', otherMastersController.getAllFundingAgencies);
+router.get('/funding-agency/:id', otherMastersController.getFundingAgencyById);
+router.post('/funding-agency', requirePermission('all_masters_funding_agency_master', 'ADD'), otherMastersController.createFundingAgency);
+router.put('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'EDIT'), otherMastersController.updateFundingAgency);
+router.delete('/funding-agency/:id', requirePermission('all_masters_funding_agency_master', 'DELETE'), otherMastersController.deleteFundingAgency);
+
+router.get('/vehicle-present-status', otherMastersController.getAllVehiclePresentStatuses);
+router.get('/vehicle-present-status/:id', otherMastersController.getVehiclePresentStatusById);
+router.post('/vehicle-present-status', requirePermission('all_masters_vehicle_present_status_master', 'ADD'), otherMastersController.createVehiclePresentStatus);
+router.put('/vehicle-present-status/:id', requirePermission('all_masters_vehicle_present_status_master', 'EDIT'), otherMastersController.updateVehiclePresentStatus);
+router.delete('/vehicle-present-status/:id', requirePermission('all_masters_vehicle_present_status_master', 'DELETE'), otherMastersController.deleteVehiclePresentStatus);
+
+router.get('/equipment-present-status', otherMastersController.getAllEquipmentPresentStatuses);
+router.get('/equipment-present-status/:id', otherMastersController.getEquipmentPresentStatusById);
+router.post('/equipment-present-status', requirePermission('all_masters_equipment_present_status_master', 'ADD'), otherMastersController.createEquipmentPresentStatus);
+router.put('/equipment-present-status/:id', requirePermission('all_masters_equipment_present_status_master', 'EDIT'), otherMastersController.updateEquipmentPresentStatus);
+router.delete('/equipment-present-status/:id', requirePermission('all_masters_equipment_present_status_master', 'DELETE'), otherMastersController.deleteEquipmentPresentStatus);
 
 module.exports = router;

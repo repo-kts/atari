@@ -71,7 +71,7 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
             ENTITY_TYPES.KVKS,
         ],
         dependencyField: 'universityId',
-        relatedQueryPatterns: [],
+        relatedQueryPatterns: ['universities-by-organization'],
     },
 
     // KVKs: Depend on Zones, States, Districts, Organizations, Universities
@@ -217,16 +217,6 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
         relatedQueryPatterns: [],
     },
 
-    // Year Master Dependencies
-    [ENTITY_TYPES.YEAR]: {
-        dependents: [
-            ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
-            ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS,
-        ],
-        dependencyField: 'yearId',
-        relatedQueryPatterns: [],
-    },
-
     // Soil Water Analysis Master Dependencies
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: {
         dependents: [
@@ -365,7 +355,6 @@ function invalidateQueryKey(
 const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.SEASON]: ['seasons'], // Other Masters - singular
     [ENTITY_TYPES.SANCTIONED_POST]: ['sanctioned-posts'],
-    [ENTITY_TYPES.YEAR]: ['years'],
     [ENTITY_TYPES.SEASONS]: ['seasons'], // OFT/FLD - plural
     [ENTITY_TYPES.OFT_SUBJECTS]: ['oft-subjects'],
     [ENTITY_TYPES.OFT_THEMATIC_AREAS]: ['oft-thematic-areas'],
@@ -391,6 +380,8 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CRA_CROPPING_SYSTEMS]: ['cra-cropping-systems'],
     [ENTITY_TYPES.CRA_FARMING_SYSTEMS]: ['cra-farming-systems'],
     [ENTITY_TYPES.ARYA_ENTERPRISES]: ['arya-enterprises'],
+    [ENTITY_TYPES.NATURAL_FARMING_ACTIVITIES]: ['natural-farming-activities'],
+    [ENTITY_TYPES.NATURAL_FARMING_SOIL_PARAMETERS]: ['natural-farming-soil-parameters'],
     // Achievement Forms
     [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]: ['production-supplies', 'production-supply', 'project-data'],
     // Employee Masters
@@ -406,6 +397,19 @@ const ENTITY_TO_QUERY_KEY_MAP: Record<string, string[]> = {
     [ENTITY_TYPES.CROP_TYPE]: ['crop-types'],
     [ENTITY_TYPES.INFRASTRUCTURE_MASTER]: ['infrastructure-masters'],
     [ENTITY_TYPES.SOIL_WATER_ANALYSIS]: ['soil-water-analyses', 'soil-water-analysis-masters'],
+    [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: ['vehicle-present-statuses'],
+    [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: ['equipment-present-statuses'],
+    [ENTITY_TYPES.NICRA_CATEGORY]: ['nicra-categories'],
+    [ENTITY_TYPES.NICRA_SUB_CATEGORY]: ['nicra-sub-categories'],
+    [ENTITY_TYPES.NICRA_SEED_BANK_FODDER_BANK]: ['nicra-seed-bank-fodder-banks'],
+    [ENTITY_TYPES.NICRA_DIGNITARY_TYPE]: ['nicra-dignitary-types'],
+    [ENTITY_TYPES.NICRA_PI_TYPE]: ['nicra-pi-types'],
+    [ENTITY_TYPES.ENTERPRISE_TYPE]: ['enterprise-types'],
+    [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: ['impact-specific-areas'],
+    [ENTITY_TYPES.ACCOUNT_TYPE]: ['account-types'],
+    [ENTITY_TYPES.PROGRAMME_TYPE]: ['programme-types'],
+    [ENTITY_TYPES.PPV_FRA_TRAINING_TYPE]: ['ppv-fra-training-types'],
+    [ENTITY_TYPES.DIGNITARY_TYPE]: ['dignitary-types'],
 };
 
 /**

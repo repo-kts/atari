@@ -31,7 +31,6 @@ export const ENTITY_TYPES = {
     // Other Masters
     SEASON: 'season',
     SANCTIONED_POST: 'sanctioned-post',
-    YEAR: 'year',
 
     // Employee Masters
     STAFF_CATEGORY: 'staff-category',
@@ -51,10 +50,19 @@ export const ENTITY_TYPES = {
     CROP_TYPE: 'crop-type',
     INFRASTRUCTURE_MASTER: 'infrastructure-master',
     SOIL_WATER_ANALYSIS: 'soil-water-analysis',
+    VEHICLE_PRESENT_STATUS: 'vehicle-present-status',
+    EQUIPMENT_PRESENT_STATUS: 'equipment-present-status',
 
     // NARI Masters
+    NARI_ACTIVITY: 'nari-activity',
     NARI_CROP_CATEGORY: 'nari-crop-category',
     NARI_NUTRITION_GARDEN_TYPE: 'nari-nutrition-garden-type',
+    NICRA_CATEGORY: 'nicra-category',
+    NICRA_SUB_CATEGORY: 'nicra-sub-category',
+    NICRA_SEED_BANK_FODDER_BANK: 'nicra-seed-bank-fodder-bank',
+    NICRA_DIGNITARY_TYPE: 'nicra-dignitary-type',
+    DIGNITARY_TYPE: 'dignitary-type',
+    NICRA_PI_TYPE: 'nicra-pi-type',
 
     // Training, Extension & Events
     TRAINING_TYPES: 'training-types',
@@ -71,6 +79,11 @@ export const ENTITY_TYPES = {
     CRA_CROPPING_SYSTEMS: 'cra-cropping-systems',
     CRA_FARMING_SYSTEMS: 'cra-farming-systems',
     ARYA_ENTERPRISES: 'arya-enterprises',
+    TSP_SCSP_TYPES: 'tsp-scsp-types',
+    TSP_SCSP_ACTIVITIES: 'tsp-scsp-activities',
+    NATURAL_FARMING_ACTIVITIES: 'natural-farming-activities',
+    NATURAL_FARMING_SOIL_PARAMETERS: 'natural-farming-soil-parameters',
+    AGRI_DRONE_DEMONSTRATIONS_ON: 'agri-drone-demonstrations-on',
 
     // Publications
     PUBLICATION_ITEMS: 'publication-items',
@@ -216,6 +229,13 @@ export const ENTITY_TYPES = {
     // Meetings
     MISC_MEETINGS_SAC: 'misc-meetings-sac',
     MISC_MEETINGS_OTHER: 'misc-meetings-other',
+    IMPACT_SPECIFIC_AREA: 'impact-specific-area-master',
+    ENTERPRISE_TYPE: 'enterprise-type',
+    ACCOUNT_TYPE: 'account-type',
+    PROGRAMME_TYPE: 'programme-type',
+    PPV_FRA_TRAINING_TYPE: 'misc-ppv-fra-training-type',
+    FINANCIAL_PROJECT: 'financial-project',
+    FUNDING_AGENCY: 'funding-agency',
 } as const;
 
 export type EntityTypeConstant = typeof ENTITY_TYPES[keyof typeof ENTITY_TYPES];
@@ -254,6 +274,16 @@ export const ENTITY_PATHS = {
     CRA_CROPPING_SYSTEM: '/all-master/cra-croping-system',
     CRA_FARMING_SYSTEM: '/all-master/cra-farming-system',
     ARYA_ENTERPRISE: '/all-master/arya-enterprise',
+    TSP_SCSP_TYPE: '/all-master/tsp-scsp-type',
+    TSP_SCSP_ACTIVITY: '/all-master/tsp-scsp-activity',
+    NATURAL_FARMING_ACTIVITY: '/all-master/natural-farming-activity',
+    NATURAL_FARMING_SOIL_PARAMETER: '/all-master/natural-farming-soil-parameter',
+    AGRI_DRONE_DEMONSTRATIONS_ON: '/all-master/agri-drone-demonstrations-on',
+    IMPACT_SPECIFIC_AREA: '/all-master/impact-specific-area',
+    ENTERPRISE_TYPE: '/all-master/enterprise-type',
+    ACCOUNT_TYPE: '/all-master/account-type',
+    PROGRAMME_TYPE: '/all-master/programme-type',
+    PPV_FRA_TRAINING_TYPE: '/all-master/ppv-fra-training-type',
 
     // Publications
     PUBLICATION_ITEM: '/all-master/publication-item',
@@ -275,11 +305,12 @@ export const ENTITY_PATHS = {
     KVK_VIEW_EMPLOYEES: '/forms/about-kvk/view-kvks/:id/employees',
     KVK_VIEW_VEHICLES: '/forms/about-kvk/view-kvks/:id/vehicles',
     KVK_VIEW_EQUIPMENTS: '/forms/about-kvk/view-kvks/:id/equipments',
+    // Basic Masters view for KVKs
+    KVK_MASTER: '/all-master/kvks',
 
     // Other Masters
     SEASON: '/all-master/season',
     SANCTIONED_POST: '/all-master/sanctioned-post',
-    YEAR: '/all-master/year',
     OTHER_MASTERS: '/all-master/other-masters',
 
     // Employee Masters
@@ -300,6 +331,17 @@ export const ENTITY_PATHS = {
     CROP_TYPE: '/all-master/crop-type',
     INFRASTRUCTURE_MASTER: '/all-master/infrastructure-master',
     SOIL_WATER_ANALYSIS: '/all-master/soil-water-analysis',
+    VEHICLE_PRESENT_STATUS: '/all-master/vehicle-present-status',
+    EQUIPMENT_PRESENT_STATUS: '/all-master/equipment-present-status',
+    NARI_ACTIVITY: '/all-master/nari-activity',
+    NARI_CROP_CATEGORY: '/all-master/nari-crop-category',
+    NARI_NUTRITION_GARDEN_TYPE: '/all-master/nari-nutrition-garden-type',
+    NICRA_CATEGORY: '/all-master/nicra-category',
+    NICRA_SUB_CATEGORY: '/all-master/nicra-sub-category',
+    NICRA_SEED_BANK_FODDER_BANK: '/all-master/nicra-seed-bank-fodder-bank',
+    NICRA_DIGNITARY_TYPE: '/all-master/nicra-dignitary-type',
+    NICRA_PI_TYPE: '/all-master/nicra-pi-type',
+    DIGNITARY_TYPE: '/all-master/dignitary-type',
 
     // Subcategory paths (for navigation)
     BASIC_MASTERS: '/all-master/basic',
@@ -310,4 +352,6 @@ export const ENTITY_PATHS = {
     EMPLOYEE_MASTERS: '/all-master/employee-masters',
     PRODUCTION_PROJECTS_MASTERS: '/all-master/production-projects',
     PUBLICATIONS_MASTERS: '/all-master/publications',
+    FINANCIAL_PROJECT: '/all-master/financial-project',
+    FUNDING_AGENCY: '/all-master/funding-agency',
 } as const;

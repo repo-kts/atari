@@ -1,257 +1,709 @@
+/**
+ * CFLD Technical Parameter Repository
+ * Uses Prisma ORM instead of raw queries for better type safety and maintainability
+ */
+
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const {
+    resolveCropTypeId,
+    resolveOrCreateCfldCrop,
+    resolveKvkId,
+    parseMonth,
+    buildKvkScopedWhere,
+} = require('../../utils/cfldHelpers.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
 
-const cfldTechnicalParameterRepository = {
-    create: async (data, opts, user) => {
-        const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : parseInt(data.kvkId || 1);
-        let cropId = data.cropId ? parseInt(data.cropId) : null;
-        if (data.crop && (!cropId || cropId < 100)) {
-            let crop = await prisma.fldCrop.findFirst({
-                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
-            });
-            if (!crop) {
-                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
-                if (!category) {
-                    category = await prisma.fldCategory.create({
-                        data: { categoryName: 'CFLD', sectorId: 1 }
-                    }).catch(() => prisma.fldCategory.findFirst());
-                }
-                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
-                if (!subcategory) {
-                    subcategory = await prisma.fldSubcategory.create({
-                        data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
-                    }).catch(() => prisma.fldSubcategory.findFirst());
-                }
-                crop = await prisma.fldCrop.create({
-                    data: {
-                        cropName: data.crop,
-                        categoryId: category.categoryId,
-                        subCategoryId: subcategory.subCategoryId
-                    }
-                });
-            }
-            cropId = crop.cropId;
-        }
-        const seasonId = data.seasonId ? parseInt(data.seasonId) : null;
-
-        // Handle month conversion if it's a string like "January"
-        let monthDate = new Date();
-        if (data.month) {
-            if (typeof data.month === 'string' && isNaN(Date.parse(data.month))) {
-                // It might be a month name, try to parse it
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                const monthIdx = monthNames.indexOf(data.month);
-                if (monthIdx !== -1) {
-                    monthDate.setMonth(monthIdx);
-                }
-            } else {
-                monthDate = new Date(data.month);
-            }
-        }
-
-        const query = `
-            INSERT INTO "cfl cfld_technical_parameter" (
-                "kvkId", "cropId", month, type, "seasonId", 
-                variety_name, area_in_ha, technology_demonstrated, 
-                existing_farmer_practice, farmer_yield, demo_yield_max, 
-                demo_yield_min, demo_yield_avg, percent_increase, 
-                district_yield, state_yield, potential_yield, 
-                yield_gap_district_minimized, yield_gap_state_minimized, 
-                yield_gap_potential_minimized, general_m, general_f, 
-                obc_m, obc_f, sc_m, sc_f, st_m, st_f, 
-                training_photo_path, quality_action_photo_path,
-                created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `;
-
-        await prisma.$executeRawUnsafe(query,
-            kvkId, cropId, monthDate, data.type || data.typeName || 'OILSEED', seasonId,
-            data.varietyName || '', parseFloat(data.areaHectare || data.areaInHa || 0),
-            data.technologyDemonstrated || '', data.existingFarmerPractice || '',
-            parseFloat(data.yieldFarmerField || data.farmerYield || 0),
-            parseFloat(data.yieldMax || data.demoYieldMax || 0),
-            parseFloat(data.yieldMin || data.demoYieldMin || 0),
-            parseFloat(data.yieldAvg || data.demoYieldAvg || 0),
-            parseFloat(data.yieldIncreasePercent || data.percentIncrease || 0),
-            parseFloat(data.yieldGapDistrict || data.districtYield || 0),
-            parseFloat(data.yieldGapState || data.stateYield || 0),
-            parseFloat(data.yieldGapPotential || data.potentialYield || 0),
-            parseFloat(data.yieldGapMinimisedDistrict || data.yieldGapDistrictMinimized || 0),
-            parseFloat(data.yieldGapMinimisedState || data.yieldGapStateMinimized || 0),
-            parseFloat(data.yieldGapMinimisedPotential || data.yieldGapPotentialMinimized || 0),
-            parseInt(data.genM || data.generalM || 0),
-            parseInt(data.genF || data.generalF || 0),
-            parseInt(data.obcM || 0),
-            parseInt(data.obcF || 0),
-            parseInt(data.scM || 0),
-            parseInt(data.scF || 0),
-            parseInt(data.stM || 0),
-            parseInt(data.stF || 0),
-            data.trainingPhotoPath || null,
-            data.qualityActionPhotoPath || null
-        );
-
-        const result = await prisma.cfldTechnicalParameter.findFirst({
-            where: {
-                kvkId,
-                cropId,
-                type: data.type || data.typeName || 'OILSEED',
-                seasonId
-            },
-            include: {
-                kvk: { select: { kvkName: true } },
-                crop: { select: { cropName: true } },
-                season: { select: { seasonName: true } },
-            },
-            orderBy: { cfldTechId: 'desc' }
-        });
-        return _mapResponse(result);
-        return _mapResponse(result);
-    },
-
-    findAll: async (filters = {}, user) => {
-        const where = {};
-        // Strict isolation for KVK roles
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId);
-        } else if (filters.kvkId) {
-            where.kvkId = parseInt(filters.kvkId);
-        }
-
-        const results = await prisma.cfldTechnicalParameter.findMany({
-            where,
-            include: {
-                kvk: { select: { kvkName: true } },
-                crop: { select: { cropName: true } },
-                season: { select: { seasonName: true } },
-            },
-            orderBy: { cfldTechId: 'desc' }
-        });
-        return results.map(_mapResponse);
-    },
-
-    findById: async (id) => {
-        const result = await prisma.cfldTechnicalParameter.findUnique({
-            where: { cfldTechId: parseInt(id) },
-            include: {
-                kvk: { select: { kvkName: true } },
-                crop: { select: { cropName: true } },
-                season: { select: { seasonName: true } },
-            }
-        });
-        return result ? _mapResponse(result) : null;
-    },
-
-    update: async (id, data) => {
-        const cfldTechId = parseInt(id);
-        const existing = await prisma.cfldTechnicalParameter.findUnique({
-            where: { cfldTechId }
-        });
-        if (!existing) throw new Error("Record not found");
-
-        const updateData = {};
-        if (data.crop) {
-            let crop = await prisma.fldCrop.findFirst({
-                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
-            });
-            if (!crop) {
-                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
-                if (!category) {
-                    category = await prisma.fldCategory.create({
-                        data: { categoryName: 'CFLD', sectorId: 1 }
-                    }).catch(() => prisma.fldCategory.findFirst());
-                }
-                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
-                if (!subcategory) {
-                    subcategory = await prisma.fldSubcategory.create({
-                        data: { subCategoryName: 'CFLD', categoryId: category.categoryId, sectorId: 1 }
-                    }).catch(() => prisma.fldSubcategory.findFirst());
-                }
-                crop = await prisma.fldCrop.create({
-                    data: {
-                        cropName: data.crop,
-                        categoryId: category.categoryId,
-                        subCategoryId: subcategory.subCategoryId
-                    }
-                });
-            }
-            updateData.cropId = crop.cropId;
-        } else if (data.cropId) {
-            updateData.cropId = parseInt(data.cropId);
-        }
-
-        if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
-        if (data.month) updateData.month = new Date(data.month);
-        if (data.type || data.typeName) updateData.type = data.type || data.typeName;
-
-        const merge = (val, exist) => val !== undefined ? val : exist;
-
-        await prisma.$executeRawUnsafe(`
-            UPDATE "cfl cfld_technical_parameter"
-            SET 
-                "cropId" = $1, "seasonId" = $2, month = $3, type = $4,
-                variety_name = $5, area_in_ha = $6, technology_demonstrated = $7,
-                existing_farmer_practice = $8, farmer_yield = $9, demo_yield_max = $10,
-                demo_yield_min = $11, demo_yield_avg = $12, percent_increase = $13,
-                district_yield = $14, state_yield = $15, potential_yield = $16,
-                yield_gap_district_minimized = $17, yield_gap_state_minimized = $18,
-                yield_gap_potential_minimized = $19, general_m = $20, general_f = $21,
-                obc_m = $22, obc_f = $23, sc_m = $24, sc_f = $25, st_m = $26, st_f = $27,
-                training_photo_path = $28, quality_action_photo_path = $29,
-                updated_at = CURRENT_TIMESTAMP
-            WHERE cfl_cfld_tech_id = $30
-        `,
-            updateData.cropId ?? existing.cropId,
-            updateData.seasonId ?? existing.seasonId,
-            updateData.month ?? existing.month,
-            updateData.type ?? existing.type,
-            data.varietyName ?? existing.varietyName,
-            parseFloat(data.areaHectare ?? data.areaInHa ?? existing.areaInHa),
-            data.technologyDemonstrated ?? existing.technologyDemonstrated,
-            data.existingFarmerPractice ?? existing.existingFarmerPractice,
-            parseFloat(data.yieldFarmerField ?? data.farmerYield ?? existing.farmerYield),
-            parseFloat(data.yieldMax ?? data.demoYieldMax ?? existing.demoYieldMax),
-            parseFloat(data.yieldMin ?? data.demoYieldMin ?? existing.demoYieldMin),
-            parseFloat(data.yieldAvg ?? data.demoYieldAvg ?? existing.demoYieldAvg),
-            parseFloat(data.yieldIncreasePercent ?? data.percentIncrease ?? existing.percentIncrease),
-            parseFloat(data.yieldGapDistrict ?? data.districtYield ?? existing.districtYield),
-            parseFloat(data.yieldGapState ?? data.stateYield ?? existing.stateYield),
-            parseFloat(data.yieldGapPotential ?? data.potentialYield ?? existing.potentialYield),
-            parseFloat(data.yieldGapMinimisedDistrict ?? data.yieldGapDistrictMinimized ?? existing.yieldGapDistrictMinimized),
-            parseFloat(data.yieldGapMinimisedState ?? data.yieldGapStateMinimized ?? existing.yieldGapStateMinimized),
-            parseFloat(data.yieldGapMinimisedPotential ?? data.yieldGapPotentialMinimized ?? existing.yieldGapPotentialMinimized),
-            parseInt(data.genM ?? data.generalM ?? existing.generalM),
-            parseInt(data.genF ?? data.generalF ?? existing.generalF),
-            parseInt(data.obcM ?? existing.obcM),
-            parseInt(data.obcF ?? existing.obcF),
-            parseInt(data.scM ?? existing.scM),
-            parseInt(data.scF ?? existing.scF),
-            parseInt(data.stM ?? existing.stM),
-            parseInt(data.stF ?? existing.stF),
-            data.trainingPhotoPath ?? existing.trainingPhotoPath,
-            data.qualityActionPhotoPath ?? existing.qualityActionPhotoPath,
-            cfldTechId
-        );
-
-        const result = await prisma.cfldTechnicalParameter.findUnique({
-            where: { cfldTechId },
-            include: {
-                kvk: { select: { kvkName: true } },
-                crop: { select: { cropName: true } },
-                season: { select: { seasonName: true } },
-            }
-        });
-        return _mapResponse(result);
-    },
-
-    delete: async (id) => {
-        return await prisma.cfldTechnicalParameter.delete({
-            where: { cfldTechId: parseInt(id) }
-        });
-    }
+const TRANSACTION_OPTIONS = {
+    maxWait: 5000,
+    timeout: 12000,
 };
 
+// Repository configuration for reusability
+const REPO_CONFIG = {
+    model: 'cfldTechnicalParameter',
+    idField: 'cfldTechId',
+    include: {
+        kvk: { select: { kvkName: true } },
+        crop: { select: { cropName: true } },
+        cropType: { select: { typeId: true, typeName: true } },
+        season: { select: { seasonName: true } },
+        economicParameters: {
+            select: {
+                status: true,
+                existingPlotGrossCost: true,
+                existingPlotGrossReturn: true,
+                existingPlotNetReturn: true,
+                existingPlotBcr: true,
+                demonstrationPlotGrossCost: true,
+                demonstrationPlotGrossReturn: true,
+                demonstrationPlotNetReturn: true,
+                demonstrationPlotBcr: true,
+                additionalIncome: true,
+            },
+        },
+        socioEconomicParameters: {
+            select: {
+                status: true,
+                totalProduceObtainedKg: true,
+                produceSoldKgPerHousehold: true,
+                sellingRateRsPerKg: true,
+                produceUsedForOwnSowingKg: true,
+                produceDistributedToOtherFarmersKg: true,
+                incomeUtilizationPurpose: true,
+                employmentGeneratedMandaysPerHousehold: true,
+            },
+        },
+        farmersPerceptionParameters: {
+            select: {
+                status: true,
+                suitabilityToFarmingSystem: true,
+                likingPreference: true,
+                affordability: true,
+                anyNegativeEffect: true,
+                technologyAcceptableToAllGroupVillage: true,
+                suggestionsForChangeOrImprovementIfAny: true,
+                farmerFeedback: true,
+            },
+        },
+    },
+    orderBy: { cfldTechId: 'desc' },
+};
+
+/**
+ * Safely parses a numeric value with fallback
+ */
+function safeParseFloat(value, fallback = 0) {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? fallback : parsed;
+}
+
+/**
+ * Safely parses an integer value with fallback
+ */
+function safeParseInt(value, fallback = 0) {
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? fallback : parsed;
+}
+
+function safeMaybeFloat(value) {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'string' && value.trim() === '') return null;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+}
+
+function safeMaybeText(value) {
+    if (value === null || value === undefined) return null;
+    const text = String(value).trim();
+    return text ? text : null;
+}
+
+function normalizeActiveSection(data) {
+    const raw = (data?.cfldActiveSection || data?.activeCfldSection || data?.section || '').toString().toLowerCase();
+    if (raw.includes('economic')) return 'economic';
+    if (raw.includes('socio')) return 'socio';
+    if (raw.includes('perception')) return 'perception';
+    return 'technical';
+}
+
+function hasValue(value) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    return true;
+}
+
+function calculatePercentIncrease({ farmerYield, demoYieldAvg }) {
+    const farmer = Number(farmerYield);
+    const demoAvg = Number(demoYieldAvg);
+    if (!Number.isFinite(farmer) || !Number.isFinite(demoAvg) || farmer === 0) {
+        return 0;
+    }
+    return Math.round(((demoAvg - farmer) / farmer) * 100);
+}
+
+function validateRequiredTechnicalFields(data) {
+    const required = [
+        ['month', data.month],
+        ['seasonId', data.seasonId],
+        ['crop', data.crop || data.cropId],
+        ['typeId', data.typeId || data.cropTypeId || data.type || data.typeName],
+        ['varietyName', data.varietyName],
+        ['areaInHa', data.areaInHa ?? data.areaHectare],
+        ['technologyDemonstrated', data.technologyDemonstrated],
+        ['existingFarmerPractice', data.existingFarmerPractice],
+        ['farmerYield', data.farmerYield ?? data.yieldFarmerField],
+        ['demoYieldMax', data.yieldMax ?? data.demoYieldMax],
+        ['demoYieldMin', data.yieldMin ?? data.demoYieldMin],
+        ['demoYieldAvg', data.yieldAvg ?? data.demoYieldAvg],
+        ['districtYield', data.districtYield ?? data.yieldGapDistrict],
+        ['stateYield', data.stateYield ?? data.yieldGapState],
+        ['potentialYield', data.potentialYield ?? data.yieldGapPotential],
+        ['yieldGapDistrictMinimized', data.yieldGapDistrictMinimized ?? data.yieldGapMinimisedDistrict],
+        ['yieldGapStateMinimized', data.yieldGapStateMinimized ?? data.yieldGapMinimisedState],
+        ['yieldGapPotentialMinimized', data.yieldGapPotentialMinimized ?? data.yieldGapMinimisedPotential],
+    ];
+    for (const [field, value] of required) {
+        if (!hasValue(value)) {
+            throw new ValidationError(`${field} is required`, field);
+        }
+    }
+}
+
+async function evaluateCfldCompletionStatus(cfldTechId, tx) {
+    const cfldTech = await tx.cfldTechnicalParameter.findUnique({
+        where: { cfldTechId },
+        include: {
+            economicParameters: { select: { status: true } },
+            socioEconomicParameters: { select: { status: true } },
+            farmersPerceptionParameters: { select: { status: true } },
+        },
+    });
+    if (!cfldTech) return null;
+
+    const economicStatus = cfldTech.economicParameters?.[0]?.status || 'ONGOING';
+    const socioStatus = cfldTech.socioEconomicParameters?.[0]?.status || 'ONGOING';
+    const perceptionStatus = cfldTech.farmersPerceptionParameters?.[0]?.status || 'ONGOING';
+    const allCompleted = [economicStatus, socioStatus, perceptionStatus].every((s) => s === 'COMPLETED');
+
+    const nextStatus = allCompleted ? 'COMPLETED' : 'ONGOING';
+    const updatePayload = {
+        status: nextStatus,
+        completedAt: allCompleted ? (cfldTech.completedAt || new Date()) : null,
+    };
+    await tx.cfldTechnicalParameter.update({
+        where: { cfldTechId },
+        data: updatePayload,
+    });
+}
+
+/**
+ * Builds create data object from request data
+ */
+async function buildCreateData(data, user) {
+    validateRequiredTechnicalFields(data);
+    const kvkId = resolveKvkId(user, data);
+    const seasonId = data.seasonId ? safeParseInt(data.seasonId) : null;
+    const month = parseMonth(data.month);
+    const reportingYear = parseReportingYearDate(data.reportingYear);
+    ensureNotFutureDate(reportingYear);
+
+    // Resolve CFLD crop ID
+    let cropId = null;
+    if (data.cropId) {
+        cropId = safeParseInt(data.cropId);
+    } else if (data.crop && data.cropTypeId) {
+        // Frontend sends crop name and cropTypeId - resolve CFLD crop
+        try {
+            cropId = await resolveOrCreateCfldCrop(
+                data.crop,
+                data.cropTypeId,
+                seasonId || 1 // Default to season 1 if not provided
+            );
+        } catch (error) {
+            throw new ValidationError(
+                `Failed to resolve CFLD crop: ${error.message}`,
+                'crop'
+            );
+        }
+    }
+
+    if (!cropId) {
+        throw new ValidationError('Crop ID or crop name with type ID is required', 'crop');
+    }
+
+    // Resolve crop type ID from various input formats
+    let typeId = null;
+    if (data.typeId || data.cropTypeId) {
+        typeId = await resolveCropTypeId(data.typeId || data.cropTypeId);
+    } else if (data.type || data.typeName) {
+        // Try to resolve by name if typeId not provided
+        typeId = await resolveCropTypeId(data.type || data.typeName);
+    } else {
+        throw new ValidationError('Crop type ID is required', 'typeId');
+    }
+
+    const farmerYield = safeParseFloat(data.farmerYield || data.yieldFarmerField, 0);
+    const demoYieldAvg = safeParseFloat(data.yieldAvg || data.demoYieldAvg, 0);
+    const computedPercentIncrease = calculatePercentIncrease({ farmerYield, demoYieldAvg });
+    const percentIncreaseInput = data.percentIncrease ?? data.yieldIncreasePercent;
+    const percentIncrease = hasValue(percentIncreaseInput)
+        ? safeParseInt(percentIncreaseInput, computedPercentIncrease)
+        : computedPercentIncrease;
+
+    return {
+        kvkId,
+        cropId,
+        seasonId,
+        month,
+        typeId,
+        ...(reportingYear ? { reportingYear } : {}),
+        ...(data.status ? { status: data.status } : {}),
+        varietyName: data.varietyName || '',
+        areaInHa: safeParseFloat(data.areaInHa || data.areaHectare, 0),
+        technologyDemonstrated: data.technologyDemonstrated || '',
+        existingFarmerPractice: data.existingFarmerPractice || '',
+        farmerYield,
+        demoYieldMax: safeParseFloat(data.yieldMax || data.demoYieldMax, 0),
+        demoYieldMin: safeParseFloat(data.yieldMin || data.demoYieldMin, 0),
+        demoYieldAvg,
+        percentIncrease,
+        districtYield: safeParseFloat(data.districtYield || data.yieldGapDistrict, 0),
+        stateYield: safeParseFloat(data.stateYield || data.yieldGapState, 0),
+        potentialYield: safeParseFloat(data.potentialYield || data.yieldGapPotential, 0),
+        yieldGapDistrictMinimized: safeParseFloat(
+            data.yieldGapDistrictMinimized || data.yieldGapMinimisedDistrict,
+            0
+        ),
+        yieldGapStateMinimized: safeParseFloat(
+            data.yieldGapStateMinimized || data.yieldGapMinimisedState,
+            0
+        ),
+        yieldGapPotentialMinimized: safeParseFloat(
+            data.yieldGapPotentialMinimized || data.yieldGapMinimisedPotential,
+            0
+        ),
+        generalM: safeParseInt(data.genM || data.generalM, 0),
+        generalF: safeParseInt(data.genF || data.generalF, 0),
+        obcM: safeParseInt(data.obcM, 0),
+        obcF: safeParseInt(data.obcF, 0),
+        scM: safeParseInt(data.scM, 0),
+        scF: safeParseInt(data.scF, 0),
+        stM: safeParseInt(data.stM, 0),
+        stF: safeParseInt(data.stF, 0),
+        trainingPhotoPath: data.trainingPhotoPath || null,
+        qualityActionPhotoPath: data.qualityActionPhotoPath || null,
+    };
+}
+
+async function upsertEconomicParameters(tx, { cfldTechId, data }) {
+    await tx.cfldEconomicParameters.upsert({
+        where: {
+            cfldTechId,
+        },
+        update: {
+            status: 'COMPLETED',
+            existingPlotGrossCost: safeMaybeFloat(data.existingPlotGrossCost),
+            existingPlotGrossReturn: safeMaybeFloat(data.existingPlotGrossReturn),
+            existingPlotNetReturn: safeMaybeFloat(data.existingPlotNetReturn),
+            existingPlotBcr: safeMaybeFloat(data.existingPlotBcr),
+            demonstrationPlotGrossCost: safeMaybeFloat(data.demonstrationPlotGrossCost),
+            demonstrationPlotGrossReturn: safeMaybeFloat(data.demonstrationPlotGrossReturn),
+            demonstrationPlotNetReturn: safeMaybeFloat(data.demonstrationPlotNetReturn),
+            demonstrationPlotBcr: safeMaybeFloat(data.demonstrationPlotBcr),
+            additionalIncome: safeMaybeFloat(data.additionalIncome),
+        },
+        create: {
+            cfldTechId,
+            status: 'COMPLETED',
+            existingPlotGrossCost: safeMaybeFloat(data.existingPlotGrossCost),
+            existingPlotGrossReturn: safeMaybeFloat(data.existingPlotGrossReturn),
+            existingPlotNetReturn: safeMaybeFloat(data.existingPlotNetReturn),
+            existingPlotBcr: safeMaybeFloat(data.existingPlotBcr),
+            demonstrationPlotGrossCost: safeMaybeFloat(data.demonstrationPlotGrossCost),
+            demonstrationPlotGrossReturn: safeMaybeFloat(data.demonstrationPlotGrossReturn),
+            demonstrationPlotNetReturn: safeMaybeFloat(data.demonstrationPlotNetReturn),
+            demonstrationPlotBcr: safeMaybeFloat(data.demonstrationPlotBcr),
+            additionalIncome: safeMaybeFloat(data.additionalIncome),
+        },
+    });
+}
+
+async function upsertSocioEconomicParameters(tx, { cfldTechId, data }) {
+    // Don't rely on ON CONFLICT / Prisma upsert: the DB may not have a unique constraint on cfldTechId.
+    const existing = await tx.cfldSocioEconomicParameters.findFirst({
+        where: { cfldTechId },
+        orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+        select: { cfldSocioEconomicId: true },
+    });
+
+    const payload = {
+        status: 'COMPLETED',
+        totalProduceObtainedKg: safeMaybeFloat(data.totalProduceObtainedKg),
+        produceSoldKgPerHousehold: safeMaybeFloat(data.produceSoldKgPerHousehold),
+        sellingRateRsPerKg: safeMaybeFloat(data.sellingRateRsPerKg),
+        produceUsedForOwnSowingKg: safeMaybeFloat(data.produceUsedForOwnSowingKg),
+        produceDistributedToOtherFarmersKg: safeMaybeFloat(data.produceDistributedToOtherFarmersKg),
+        incomeUtilizationPurpose: safeMaybeText(data.incomeUtilizationPurpose),
+        employmentGeneratedMandaysPerHousehold: safeMaybeFloat(data.employmentGeneratedMandaysPerHousehold),
+    };
+
+    if (existing?.cfldSocioEconomicId) {
+        await tx.cfldSocioEconomicParameters.update({
+            where: { cfldSocioEconomicId: existing.cfldSocioEconomicId },
+            data: payload,
+        });
+        return;
+    }
+
+    await tx.cfldSocioEconomicParameters.create({
+        data: { cfldTechId, ...payload },
+    });
+}
+
+async function upsertFarmersPerceptionParameters(tx, { cfldTechId, data }) {
+    // Don't rely on ON CONFLICT / Prisma upsert: the DB may not have a unique constraint on cfldTechId.
+    const existing = await tx.cfldFarmersPerceptionParameters.findFirst({
+        where: { cfldTechId },
+        orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+        select: { cfldPerceptionId: true },
+    });
+
+    const payload = {
+        status: 'COMPLETED',
+        suitabilityToFarmingSystem: safeMaybeText(data.suitabilityToFarmingSystem),
+        likingPreference: safeMaybeText(data.likingPreference),
+        affordability: safeMaybeText(data.affordability),
+        anyNegativeEffect: safeMaybeText(data.anyNegativeEffect),
+        technologyAcceptableToAllGroupVillage: safeMaybeText(data.technologyAcceptableToAllGroupVillage),
+        suggestionsForChangeOrImprovementIfAny: safeMaybeText(data.suggestionsForChangeOrImprovementIfAny),
+        farmerFeedback: safeMaybeText(data.farmerFeedback),
+    };
+
+    if (existing?.cfldPerceptionId) {
+        await tx.cfldFarmersPerceptionParameters.update({
+            where: { cfldPerceptionId: existing.cfldPerceptionId },
+            data: payload,
+        });
+        return;
+    }
+
+    await tx.cfldFarmersPerceptionParameters.create({
+        data: { cfldTechId, ...payload },
+    });
+}
+
+/**
+ * Builds update data object from request data
+ */
+async function buildUpdateData(data, existing) {
+    const updateData = {};
+
+    // Resolve CFLD crop if crop name is provided
+    if (data.crop && data.cropTypeId) {
+        try {
+            const cropId = await resolveOrCreateCfldCrop(
+                data.crop,
+                data.cropTypeId,
+                data.seasonId || existing.seasonId || 1
+            );
+            updateData.cropId = cropId;
+        } catch (error) {
+            throw new ValidationError(
+                `Failed to resolve CFLD crop: ${error.message}`,
+                'crop'
+            );
+        }
+    } else if (data.cropId) {
+        updateData.cropId = safeParseInt(data.cropId);
+    }
+
+    // Resolve crop type ID if provided
+    if (data.typeId !== undefined || data.cropTypeId !== undefined) {
+        updateData.typeId = await resolveCropTypeId(data.typeId || data.cropTypeId);
+    } else if (data.type !== undefined || data.typeName !== undefined) {
+        // Try to resolve by name if typeId not provided
+        updateData.typeId = await resolveCropTypeId(data.type || data.typeName);
+    }
+
+    // Update other fields
+    if (data.seasonId !== undefined) {
+        updateData.seasonId = safeParseInt(data.seasonId);
+    }
+
+    if (data.month !== undefined) {
+        updateData.month = parseMonth(data.month);
+    }
+
+    if (data.varietyName !== undefined) updateData.varietyName = data.varietyName;
+    if (data.areaInHa !== undefined || data.areaHectare !== undefined) {
+        updateData.areaInHa = safeParseFloat(data.areaInHa || data.areaHectare, existing.areaInHa);
+    }
+    if (data.technologyDemonstrated !== undefined) {
+        updateData.technologyDemonstrated = data.technologyDemonstrated;
+    }
+    if (data.existingFarmerPractice !== undefined) {
+        updateData.existingFarmerPractice = data.existingFarmerPractice;
+    }
+    if (data.farmerYield !== undefined || data.yieldFarmerField !== undefined) {
+        updateData.farmerYield = safeParseFloat(
+            data.farmerYield || data.yieldFarmerField,
+            existing.farmerYield
+        );
+    }
+    if (data.yieldMax !== undefined || data.demoYieldMax !== undefined) {
+        updateData.demoYieldMax = safeParseFloat(
+            data.yieldMax || data.demoYieldMax,
+            existing.demoYieldMax
+        );
+    }
+    if (data.yieldMin !== undefined || data.demoYieldMin !== undefined) {
+        updateData.demoYieldMin = safeParseFloat(
+            data.yieldMin || data.demoYieldMin,
+            existing.demoYieldMin
+        );
+    }
+    if (data.yieldAvg !== undefined || data.demoYieldAvg !== undefined) {
+        updateData.demoYieldAvg = safeParseFloat(
+            data.yieldAvg || data.demoYieldAvg,
+            existing.demoYieldAvg
+        );
+    }
+    if (data.districtYield !== undefined || data.yieldGapDistrict !== undefined) {
+        updateData.districtYield = safeParseFloat(
+            data.districtYield || data.yieldGapDistrict,
+            existing.districtYield
+        );
+    }
+    if (data.stateYield !== undefined || data.yieldGapState !== undefined) {
+        updateData.stateYield = safeParseFloat(
+            data.stateYield || data.yieldGapState,
+            existing.stateYield
+        );
+    }
+    if (data.potentialYield !== undefined || data.yieldGapPotential !== undefined) {
+        updateData.potentialYield = safeParseFloat(
+            data.potentialYield || data.yieldGapPotential,
+            existing.potentialYield
+        );
+    }
+    if (data.yieldGapDistrictMinimized !== undefined || data.yieldGapMinimisedDistrict !== undefined) {
+        updateData.yieldGapDistrictMinimized = safeParseFloat(
+            data.yieldGapDistrictMinimized || data.yieldGapMinimisedDistrict,
+            existing.yieldGapDistrictMinimized
+        );
+    }
+    if (data.yieldGapStateMinimized !== undefined || data.yieldGapMinimisedState !== undefined) {
+        updateData.yieldGapStateMinimized = safeParseFloat(
+            data.yieldGapStateMinimized || data.yieldGapMinimisedState,
+            existing.yieldGapStateMinimized
+        );
+    }
+    if (data.yieldGapPotentialMinimized !== undefined || data.yieldGapMinimisedPotential !== undefined) {
+        updateData.yieldGapPotentialMinimized = safeParseFloat(
+            data.yieldGapPotentialMinimized || data.yieldGapMinimisedPotential,
+            existing.yieldGapPotentialMinimized
+        );
+    }
+    if (data.genM !== undefined || data.generalM !== undefined) {
+        updateData.generalM = safeParseInt(data.genM || data.generalM, existing.generalM);
+    }
+    if (data.genF !== undefined || data.generalF !== undefined) {
+        updateData.generalF = safeParseInt(data.genF || data.generalF, existing.generalF);
+    }
+    if (data.obcM !== undefined) updateData.obcM = safeParseInt(data.obcM, existing.obcM);
+    if (data.obcF !== undefined) updateData.obcF = safeParseInt(data.obcF, existing.obcF);
+    if (data.scM !== undefined) updateData.scM = safeParseInt(data.scM, existing.scM);
+    if (data.scF !== undefined) updateData.scF = safeParseInt(data.scF, existing.scF);
+    if (data.stM !== undefined) updateData.stM = safeParseInt(data.stM, existing.stM);
+    if (data.stF !== undefined) updateData.stF = safeParseInt(data.stF, existing.stF);
+    if (data.trainingPhotoPath !== undefined) {
+        updateData.trainingPhotoPath = data.trainingPhotoPath;
+    }
+    if (data.qualityActionPhotoPath !== undefined) {
+        updateData.qualityActionPhotoPath = data.qualityActionPhotoPath;
+    }
+
+    if (data.reportingYear !== undefined) {
+        const parsed = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(parsed);
+        updateData.reportingYear = parsed;
+    }
+
+    if (data.percentIncrease !== undefined || data.yieldIncreasePercent !== undefined) {
+        updateData.percentIncrease = safeParseInt(
+            data.percentIncrease ?? data.yieldIncreasePercent,
+            existing.percentIncrease
+        );
+    } else {
+        const hasFarmerYield = updateData.farmerYield !== undefined;
+        const hasDemoAvg = updateData.demoYieldAvg !== undefined;
+        if (!(hasFarmerYield || hasDemoAvg)) {
+            return updateData;
+        }
+        updateData.percentIncrease = calculatePercentIncrease({
+            farmerYield: hasFarmerYield ? updateData.farmerYield : existing.farmerYield,
+            demoYieldAvg: hasDemoAvg ? updateData.demoYieldAvg : existing.demoYieldAvg,
+        });
+    }
+
+    return updateData;
+}
+
+const cfldTechnicalParameterRepository = {
+    /**
+     * Create a new CFLD Technical Parameter record
+     */
+    create: async (data, opts, user) => {
+        try {
+            const createData = await buildCreateData(data, user);
+            const activeSection = normalizeActiveSection(data);
+
+            const result = await prisma.$transaction(async (tx) => {
+                const created = await tx[REPO_CONFIG.model].create({
+                    data: createData,
+                });
+
+                if (activeSection === 'economic') {
+                    await upsertEconomicParameters(tx, { cfldTechId: created.cfldTechId, data });
+                } else if (activeSection === 'socio') {
+                    await upsertSocioEconomicParameters(tx, { cfldTechId: created.cfldTechId, data });
+                } else if (activeSection === 'perception') {
+                    await upsertFarmersPerceptionParameters(tx, { cfldTechId: created.cfldTechId, data });
+                }
+                await evaluateCfldCompletionStatus(created.cfldTechId, tx);
+
+                // Re-fetch so included relations reflect upserts (UI hydration)
+                return await tx[REPO_CONFIG.model].findUnique({
+                    where: { [REPO_CONFIG.idField]: created.cfldTechId },
+                    include: REPO_CONFIG.include,
+                });
+            }, TRANSACTION_OPTIONS);
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            console.error('Error creating CFLD technical parameter:', error);
+            throw new ValidationError(
+                `Failed to create CFLD technical parameter: ${error.message}`,
+                'create'
+            );
+        }
+    },
+
+    /**
+     * Find all CFLD Technical Parameter records with filtering
+     */
+    findAll: async (filters = {}, user) => {
+        try {
+            const where = buildKvkScopedWhere(user, filters);
+
+            const results = await prisma[REPO_CONFIG.model].findMany({
+                where,
+                include: REPO_CONFIG.include,
+                orderBy: REPO_CONFIG.orderBy,
+            });
+
+            return results.map(_mapResponse);
+        } catch (error) {
+            console.error('Error finding CFLD technical parameters:', error);
+            throw new ValidationError(
+                `Failed to fetch CFLD technical parameters: ${error.message}`,
+                'findAll'
+            );
+        }
+    },
+
+    /**
+     * Find a single CFLD Technical Parameter by ID
+     */
+    findById: async (id) => {
+        try {
+            const result = await prisma[REPO_CONFIG.model].findUnique({
+                where: { [REPO_CONFIG.idField]: safeParseInt(id) },
+                include: REPO_CONFIG.include,
+            });
+
+            return result ? _mapResponse(result) : null;
+        } catch (error) {
+            console.error('Error finding CFLD technical parameter by ID:', error);
+            throw new ValidationError(
+                `Failed to fetch CFLD technical parameter: ${error.message}`,
+                'findById'
+            );
+        }
+    },
+
+    /**
+     * Update an existing CFLD Technical Parameter record
+     */
+    update: async (id, data) => {
+        try {
+            const cfldTechId = safeParseInt(id);
+            const existing = await prisma[REPO_CONFIG.model].findUnique({
+                where: { [REPO_CONFIG.idField]: cfldTechId },
+            });
+
+            if (!existing) {
+                throw new ValidationError('CFLD technical parameter not found', 'id');
+            }
+
+            const updateData = await buildUpdateData(data, existing);
+            const activeSection = normalizeActiveSection(data);
+
+            const result = await prisma.$transaction(async (tx) => {
+                await tx[REPO_CONFIG.model].update({
+                    where: { [REPO_CONFIG.idField]: cfldTechId },
+                    data: updateData,
+                });
+
+                if (activeSection === 'economic') {
+                    await upsertEconomicParameters(tx, { cfldTechId, data });
+                } else if (activeSection === 'socio') {
+                    await upsertSocioEconomicParameters(tx, { cfldTechId, data });
+                } else if (activeSection === 'perception') {
+                    await upsertFarmersPerceptionParameters(tx, { cfldTechId, data });
+                }
+                await evaluateCfldCompletionStatus(cfldTechId, tx);
+
+                // Re-fetch so included relations reflect upserts (UI hydration)
+                return await tx[REPO_CONFIG.model].findUnique({
+                    where: { [REPO_CONFIG.idField]: cfldTechId },
+                    include: REPO_CONFIG.include,
+                });
+            }, TRANSACTION_OPTIONS);
+
+            return _mapResponse(result);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                throw error;
+            }
+            console.error('Error updating CFLD technical parameter:', error);
+            throw new ValidationError(
+                `Failed to update CFLD technical parameter: ${error.message}`,
+                'update'
+            );
+        }
+    },
+
+    /**
+     * Delete a CFLD Technical Parameter record
+     */
+    delete: async (id) => {
+        try {
+            return await prisma[REPO_CONFIG.model].delete({
+                where: { [REPO_CONFIG.idField]: safeParseInt(id) },
+            });
+        } catch (error) {
+            console.error('Error deleting CFLD technical parameter:', error);
+            throw new ValidationError(
+                `Failed to delete CFLD technical parameter: ${error.message}`,
+                'delete'
+            );
+        }
+    },
+};
+
+/**
+ * Maps Prisma response to API response format
+ * Removed duplicate keys - keeping only one version of each field
+ * Includes fields expected by frontend table display
+ */
 function _mapResponse(r) {
     if (!r) return null;
+    
+    const economic = Array.isArray(r.economicParameters) ? (r.economicParameters[0] || null) : null;
+    const socio = Array.isArray(r.socioEconomicParameters) ? (r.socioEconomicParameters[0] || null) : null;
+    const perception = Array.isArray(r.farmersPerceptionParameters) ? (r.farmersPerceptionParameters[0] || null) : null;
+
+    // Calculate total number of farmers
+    const numberOfFarmers = (r.generalM || 0) + (r.generalF || 0) + 
+                          (r.obcM || 0) + (r.obcF || 0) + 
+                          (r.scM || 0) + (r.scF || 0) + 
+                          (r.stM || 0) + (r.stF || 0);
+    
     return {
         id: r.cfldTechId,
         kvkId: r.kvkId,
@@ -259,26 +711,30 @@ function _mapResponse(r) {
         cropId: r.cropId,
         cropName: r.crop ? r.crop.cropName : undefined,
         month: r.month,
-        type: r.type,
+        cropTypeId: r.typeId,
+        typeName: r.cropType ? r.cropType.typeName : undefined,
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
+        reportingYear: formatReportingYear(r.reportingYear),
+        status: r.status,
+        completedAt: r.completedAt,
         varietyName: r.varietyName,
-        areaHectare: r.areaInHa,
+        areaInHa: r.areaInHa,
         technologyDemonstrated: r.technologyDemonstrated,
         existingFarmerPractice: r.existingFarmerPractice,
-        yieldFarmerField: r.farmerYield,
-        yieldMax: r.demoYieldMax,
-        yieldMin: r.demoYieldMin,
-        yieldAvg: r.demoYieldAvg,
-        yieldIncreasePercent: r.percentIncrease,
-        yieldGapDistrict: r.districtYield,
-        yieldGapState: r.stateYield,
-        yieldGapPotential: r.potentialYield,
-        yieldGapMinimisedDistrict: r.yieldGapDistrictMinimized,
-        yieldGapMinimisedState: r.yieldGapStateMinimized,
-        yieldGapMinimisedPotential: r.yieldGapPotentialMinimized,
-        genM: r.generalM,
-        genF: r.generalF,
+        farmerYield: r.farmerYield,
+        demoYieldMax: r.demoYieldMax,
+        demoYieldMin: r.demoYieldMin,
+        demoYieldAvg: r.demoYieldAvg,
+        percentIncrease: r.percentIncrease,
+        districtYield: r.districtYield,
+        stateYield: r.stateYield,
+        potentialYield: r.potentialYield,
+        yieldGapDistrictMinimized: r.yieldGapDistrictMinimized,
+        yieldGapStateMinimized: r.yieldGapStateMinimized,
+        yieldGapPotentialMinimized: r.yieldGapPotentialMinimized,
+        generalM: r.generalM,
+        generalF: r.generalF,
         obcM: r.obcM,
         obcF: r.obcF,
         scM: r.scM,
@@ -287,6 +743,35 @@ function _mapResponse(r) {
         stF: r.stF,
         trainingPhotoPath: r.trainingPhotoPath,
         qualityActionPhotoPath: r.qualityActionPhotoPath,
+        existingPlotGrossCost: economic?.existingPlotGrossCost,
+        existingPlotGrossReturn: economic?.existingPlotGrossReturn,
+        existingPlotNetReturn: economic?.existingPlotNetReturn,
+        existingPlotBcr: economic?.existingPlotBcr,
+        demonstrationPlotGrossCost: economic?.demonstrationPlotGrossCost,
+        demonstrationPlotGrossReturn: economic?.demonstrationPlotGrossReturn,
+        demonstrationPlotNetReturn: economic?.demonstrationPlotNetReturn,
+        demonstrationPlotBcr: economic?.demonstrationPlotBcr,
+        additionalIncome: economic?.additionalIncome,
+        economicStatus: economic?.status,
+
+        totalProduceObtainedKg: socio?.totalProduceObtainedKg,
+        produceSoldKgPerHousehold: socio?.produceSoldKgPerHousehold,
+        sellingRateRsPerKg: socio?.sellingRateRsPerKg,
+        produceUsedForOwnSowingKg: socio?.produceUsedForOwnSowingKg,
+        produceDistributedToOtherFarmersKg: socio?.produceDistributedToOtherFarmersKg,
+        incomeUtilizationPurpose: socio?.incomeUtilizationPurpose,
+        employmentGeneratedMandaysPerHousehold: socio?.employmentGeneratedMandaysPerHousehold,
+        socioStatus: socio?.status,
+
+        suitabilityToFarmingSystem: perception?.suitabilityToFarmingSystem,
+        likingPreference: perception?.likingPreference,
+        affordability: perception?.affordability,
+        anyNegativeEffect: perception?.anyNegativeEffect,
+        technologyAcceptableToAllGroupVillage: perception?.technologyAcceptableToAllGroupVillage,
+        suggestionsForChangeOrImprovementIfAny: perception?.suggestionsForChangeOrImprovementIfAny,
+        farmerFeedback: perception?.farmerFeedback,
+        perceptionStatus: perception?.status,
+        numberOfFarmers: numberOfFarmers,
     };
 }
 

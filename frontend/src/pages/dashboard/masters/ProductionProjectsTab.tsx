@@ -1,5 +1,5 @@
 import React from 'react'
-import { Package, CloudRain, Briefcase } from 'lucide-react'
+import { Package, CloudRain, Briefcase, ListTree, Sprout, Plane } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
 const sections: FeatureSection[] = [
@@ -25,6 +25,29 @@ const sections: FeatureSection[] = [
         icon: <Briefcase className="w-5 h-5" />,
         items: [
             { label: 'ARYA Enterprise Master', path: '/all-master/arya-enterprise' },
+        ],
+    },
+    {
+        title: 'TSP/SCSP',
+        icon: <ListTree className="w-5 h-5" />,
+        items: [
+            { label: 'TSP/SCSP Type Master', path: '/all-master/tsp-scsp-type' },
+            { label: 'TSP/SCSP Activity Master', path: '/all-master/tsp-scsp-activity' },
+        ],
+    },
+    {
+        title: 'Natural Farming',
+        icon: <Sprout className="w-5 h-5" />,
+        items: [
+            { label: 'Natural Farming Activity Master', path: '/all-master/natural-farming-activity' },
+            { label: 'Natural Farming Soil Parameter Master', path: '/all-master/natural-farming-soil-parameter' },
+        ],
+    },
+    {
+        title: 'Agri-Drone',
+        icon: <Plane className="w-5 h-5" />,
+        items: [
+            { label: 'Demonstrations On Master', path: '/all-master/agri-drone-demonstrations-on' },
         ],
     },
 ]

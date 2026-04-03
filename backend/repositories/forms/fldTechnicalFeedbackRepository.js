@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const {
@@ -25,9 +26,9 @@ const FLD_TECHNICAL_FEEDBACK_CONFIG = {
         kvk: { select: { kvkId: true, kvkName: true } },
         fld: { select: { kvkFldId: true, fldName: true } },
         crop: { select: { cropId: true, cropName: true } },
-        reportingYear: { select: { yearId: true, yearName: true } },
+        
     },
-    filterableFields: ['kvkId', 'fldId', 'cropId', 'reportingYearId'],
+    filterableFields: ['kvkId', 'fldId', 'cropId'],
 };
 
 /**
@@ -56,10 +57,10 @@ const CREATE_FIELD_DEFINITIONS = {
         errorField: 'feedback',
         type: 'string',
     },
-    reportingYearId: {
-        fieldNames: ['reportingYearId', 'reportingYear'],
+    reportingYear: {
+        fieldNames: ['reportingYear'],
         errorMessage: 'Reporting Year is required',
-        errorField: 'reportingYearId',
+        errorField: 'reportingYear',
         optional: true,
     },
 };
@@ -93,14 +94,7 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorField: 'feedback',
         options: { required: false }, // Allow updates without changing feedback
     },
-    {
-        fieldNames: ['reportingYearId', 'reportingYear'],
-        type: 'integer',
-        backendField: 'reportingYearId',
-        errorMessage: 'Valid Reporting Year ID is required',
-        errorField: 'reportingYearId',
-        options: { required: false }, // Optional field
-    },
+    
 ];
 
 const fldTechnicalFeedbackRepository = {
@@ -114,7 +108,8 @@ const fldTechnicalFeedbackRepository = {
         const fldId = validateRequiredInteger(data, CREATE_FIELD_DEFINITIONS.fldId);
         const cropId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.cropId);
         const feedback = validateRequiredString(data, CREATE_FIELD_DEFINITIONS.feedback);
-        const reportingYearId = validateOptionalInteger(data, CREATE_FIELD_DEFINITIONS.reportingYearId);
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
 
         // Verify FLD exists and belongs to the same KVK
         const fld = await prisma.kvkFldIntroduction.findFirst({
@@ -138,22 +133,12 @@ const fldTechnicalFeedbackRepository = {
             }
         }
 
-        // Verify reporting year if provided
-        if (reportingYearId) {
-            const year = await prisma.yearMaster.findFirst({
-                where: { yearId: reportingYearId },
-            });
-            if (!year) {
-                throw new ValidationError('Reporting Year not found', 'reportingYearId');
-            }
-        }
-
         const createData = {
             kvkId,
             fldId,
             cropId,
             feedback,
-            reportingYearId,
+            reportingYear,
         };
 
         try {
@@ -186,6 +171,25 @@ const fldTechnicalFeedbackRepository = {
         
         // Apply filters to the where clause
         const where = applyFilters(baseWhere, filters, FLD_TECHNICAL_FEEDBACK_CONFIG.filterableFields);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
+        }
 
         const results = await prisma[FLD_TECHNICAL_FEEDBACK_CONFIG.model].findMany({
             where,
@@ -236,6 +240,10 @@ const fldTechnicalFeedbackRepository = {
         );
 
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
+        }
 
         // Verify FLD exists and belongs to the same KVK if fldId is being updated
         if (updateData.fldId !== undefined) {
@@ -261,16 +269,6 @@ const fldTechnicalFeedbackRepository = {
 
             if (!crop) {
                 throw new ValidationError('Crop not found', 'cropId');
-            }
-        }
-
-        // Verify reporting year if provided
-        if (updateData.reportingYearId !== undefined && updateData.reportingYearId !== null) {
-            const year = await prisma.yearMaster.findFirst({
-                where: { yearId: updateData.reportingYearId },
-            });
-            if (!year) {
-                throw new ValidationError('Reporting Year not found', 'reportingYearId');
             }
         }
 
@@ -343,8 +341,7 @@ function _mapResponse(r) {
         crop: r.crop?.cropName,
         feedback: r.feedback,
         feedBack: r.feedback,
-        reportingYearId: r.reportingYearId,
-        reportingYear: r.reportingYear?.yearName,
+        reportingYear: formatReportingYear(r.reportingYear),
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
     };

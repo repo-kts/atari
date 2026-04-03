@@ -73,10 +73,18 @@ export interface Organization {
     };
 }
 
+import type { ReactNode } from 'react'
+
 export interface University {
     universityId: number;
     universityName: string;
     orgId: number;
+    hostOrg: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
     organization?: {
         orgId: number;
         orgName: string;
@@ -273,11 +281,23 @@ export interface UpdateOrganizationDto {
 export interface CreateUniversityDto {
     universityName: string;
     orgId: number;
+    hostOrg: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
 }
 
 export interface UpdateUniversityDto {
     universityName?: string;
     orgId?: number;
+    hostOrg?: string;
+    hostMobile?: string | null;
+    hostLandline?: string | null;
+    hostFax?: string | null;
+    hostEmail?: string | null;
+    hostAddress?: string | null;
 }
 
 // ============ Table Types ============
@@ -286,12 +306,12 @@ export interface TableColumn<T> {
     key: keyof T | string;
     label: string;
     sortable?: boolean;
-    render?: (value: any, row: T) => React.ReactNode;
+    render?: (value: any, row: T) => ReactNode;
 }
 
 export interface TableAction<T> {
     label: string;
-    icon?: React.ReactNode;
+    icon?: ReactNode;
     onClick: (row: T) => void;
     variant?: 'primary' | 'danger' | 'secondary';
 }

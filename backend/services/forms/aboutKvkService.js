@@ -1,5 +1,8 @@
 const aboutKvkRepository = require('../../repositories/forms/aboutKvkRepository.js');
 const prisma = require('../../config/prisma.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { sanitizeDate, sanitizeString } = require('../../utils/dataSanitizer.js');
 
 /** Roles scoped to a specific KVK */
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
@@ -59,7 +62,7 @@ class AboutKvkService {
     async getById(entityName, id, user = null) {
         const entity = await aboutKvkRepository.findById(entityName, id);
         if (!entity) {
-            throw new Error(`${entityName} with ID ${id} not found`);
+            throw new ValidationError(`${entityName} with ID ${id} not found`);
         }
 
         // If user has kvkId (KVK role), ensure they can only access their own data
@@ -98,7 +101,7 @@ class AboutKvkService {
         if (entityName === 'kvks') {
             // Only super_admin can create KVKs
             if (!user || user.roleName !== 'super_admin') {
-                throw new Error('Only super admin can create KVKs');
+                throw new ValidationError('Only super admin can create KVKs');
             }
         } else {
             // For other entities, permission is enforced by route middleware (requirePermission).
@@ -113,7 +116,7 @@ class AboutKvkService {
                 // Admin users without kvkId: validate that data.kvkId is within their geographic scope
                 const requestedKvkId = data.kvkId ? Number(data.kvkId) : null;
                 if (!Number.isInteger(requestedKvkId)) {
-                    throw new Error('KVK ID is required');
+                    throw new ValidationError('KVK ID is required');
                 }
                 const scopedKvkIds = await this._getScopedKvkIds(user);
                 if (!scopedKvkIds.includes(requestedKvkId)) {
@@ -163,11 +166,6 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
-        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
-        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
-            finalData.totalRun = String(finalData.totalRun);
-        }
-
         return await aboutKvkRepository.create(entityName, finalData);
     }
 
@@ -199,11 +197,6 @@ class AboutKvkService {
 
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
-
-        // Ensure totalRun is a string for kvk-vehicles (Prisma schema expects String)
-        if (entityName === 'kvk-vehicles' && finalData.totalRun !== undefined && finalData.totalRun !== null) {
-            finalData.totalRun = String(finalData.totalRun);
-        }
 
         return await aboutKvkRepository.update(entityName, id, finalData);
     }
@@ -252,7 +245,14 @@ class AboutKvkService {
             'sanctionedPost', 'discipline', 'infraMaster', 'staffCategory', 'payLevel',
             'vehicle', 'equipment'
         ];
-        
+        // Allow updating geo/org fields for KVK entity itself
+        // Note: universityId should also be updatable
+        let effectiveReadOnly = [...readOnlyFields];
+        if (entityName === 'kvks') {
+            effectiveReadOnly = readOnlyFields.filter(
+                (f) => !['zoneId', 'stateId', 'districtId', 'orgId', 'universityId'].includes(f)
+            );
+        }
         // For employee updates, allow updating foreign key IDs but not the relation objects
         // Note: sanctionedPostId, disciplineId, staffCategoryId, and payLevelId are updatable
         // They are foreign keys that users should be able to change
@@ -261,7 +261,7 @@ class AboutKvkService {
         const sanitized = {};
         for (const [key, value] of Object.entries(data)) {
             // Skip read-only fields
-            if (readOnlyFields.includes(key)) {
+            if (effectiveReadOnly.includes(key)) {
                 continue;
             }
             // Skip nested objects (relations)
@@ -307,9 +307,7 @@ class AboutKvkService {
 
         // Fields that should be integers (convert from string if needed)
         // Note: vehicle-details uses String for reportingYear, only equipment-details uses Int
-        const integerFields = {
-            'kvk-equipment-details': ['reportingYear'],
-        };
+        const integerFields = {};
 
         const fieldsToConvert = integerFields[entityName] || [];
 
@@ -328,6 +326,12 @@ class AboutKvkService {
             }
         }
 
+        if ((entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') && 'reportingYear' in sanitized) {
+            const parsedDate = parseReportingYearDate(sanitized.reportingYear);
+            ensureNotFutureDate(parsedDate);
+            sanitized.reportingYear = parsedDate ? parsedDate.toISOString() : null;
+        }
+
         return sanitized;
     }
 
@@ -336,16 +340,16 @@ class AboutKvkService {
      */
     validateRequiredFields(entityName, data) {
         const requiredFields = {
-            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
-            // Note: universityId is optional (can be required based on business rules)
+            'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
+            // Note: universityId is required as per the newest form requirements
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
             'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
-            'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'presentStatus'],
-            'kvk-vehicle-details': ['kvkId', 'reportingYearId', 'vehicleId', 'totalRun', 'presentStatus'],
-            'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFunding'],
-            'kvk-equipment-details': ['kvkId', 'reportingYearId', 'equipmentId', 'presentStatus'],
+            'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
+            'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'vehicleStatusId'],
+            'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding'],
+            'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'equipmentStatusId'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
         };
 
@@ -359,7 +363,7 @@ class AboutKvkService {
         });
 
         if (missing.length > 0) {
-            throw new Error(`Missing required fields: ${missing.join(', ')}. Received: ${Object.keys(data).join(', ')}`);
+            throw new ValidationError(`Missing required fields: ${missing.join(', ')}`);
         }
     }
 
@@ -393,6 +397,20 @@ class AboutKvkService {
         return await aboutKvkRepository.getStaffForDropdown(kvkId);
     }
 
+    async getVehiclesForDropdown(kvkId, reportingYear) {
+        if (!kvkId) {
+            throw new ValidationError('kvkId is required');
+        }
+        return aboutKvkRepository.getVehiclesForDropdown(kvkId, reportingYear);
+    }
+
+    async getEquipmentsForDropdown(kvkId, reportingYear) {
+        if (!kvkId) {
+            throw new ValidationError('kvkId is required');
+        }
+        return aboutKvkRepository.getEquipmentsForDropdown(kvkId, reportingYear);
+    }
+
     /**
      * Get all KVKs for dropdowns (e.g. transfer target selection).
      * Scoped by user's geographic area; super_admin sees all.
@@ -424,7 +442,7 @@ class AboutKvkService {
      * @param {string} notes - Optional notes
      * @returns {Promise<object>} Updated employee record with transfer history
      */
-    async transferEmployee(employeeId, targetKvkId, user = null, transferReason = null, notes = null) {
+    async transferEmployee(employeeId, targetKvkId, user = null, transferReason = null, notes = null, transferDate = null) {
         if (!user) {
             throw new Error('User is required for transfer');
         }
@@ -453,7 +471,29 @@ class AboutKvkService {
 
         // Prevent transferring to the same KVK
         if (employee.kvkId === targetKvkId) {
-            throw new Error('Cannot transfer employee to the same KVK');
+            throw new Error('Staff is already at this KVK');
+        }
+
+        // --- Transfer Date Validation ---
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            throw new Error('Transfer date is required');
+        }
+        if (parsedTransferDate > new Date()) {
+            throw new Error('Transfer date cannot be in the future');
+        }
+
+        // --- Consecutive-Duplicate Guard ---
+        // Prevent immediate repeat of identical FROM->TO transfer for same staff.
+        const lastTransfer = await aboutKvkRepository.getLastTransferRecord(employeeId);
+        if (
+            lastTransfer &&
+            lastTransfer.fromKvkId === employee.kvkId &&
+            lastTransfer.toKvkId === targetKvkId
+        ) {
+            throw new Error(
+                'Cannot transfer: this staff member was already transferred away from this KVK in the most recent operation. Use the Revert option if the previous transfer was a mistake.'
+            );
         }
 
         // Track source KVK(s) - add current KVK to the source list
@@ -488,7 +528,7 @@ class AboutKvkService {
                     sourceKvkIds: sourceKvkIds,
                     originalKvkId: originalKvkId,
                     transferCount: (employee.transferCount || 0) + 1,
-                    lastTransferDate: new Date(),
+                    lastTransferDate: parsedTransferDate,
                 },
                 include: {
                     kvk: {
@@ -509,10 +549,11 @@ class AboutKvkService {
                 fromKvkId: currentKvkId,
                 toKvkId: targetKvkId,
                 transferredBy: user.userId,
-                transferReason: transferReason,
-                notes: notes,
+                transferDate: parsedTransferDate,
+                transferReason: sanitizeString(transferReason, { allowEmpty: false }),
+                notes: sanitizeString(notes, { allowEmpty: false }),
                 isReversal: false,
-            });
+            }, tx);
 
             return { employee: updatedEmployee, transferHistory };
         });
@@ -612,9 +653,17 @@ class AboutKvkService {
     /**
      * Revert a transfer (Super Admin only)
      */
-    async revertTransfer(transferId, targetKvkId, user = null, reason = null, notes = null) {
+    async revertTransfer(transferId, targetKvkId, user = null, reason = null, notes = null, transferDate = null) {
         if (!user || user.roleName !== 'super_admin') {
             throw new Error('Only Super Admins can revert transfers');
+        }
+
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            throw new Error('Transfer date is required');
+        }
+        if (parsedTransferDate > new Date()) {
+            throw new Error('Transfer date cannot be in the future');
         }
 
         // Get the transfer record
@@ -652,7 +701,7 @@ class AboutKvkService {
                 data: {
                     kvkId: revertToKvkId,
                     transferStatus: revertToKvkId === employee.originalKvkId ? 'ACTIVE' : 'TRANSFERRED',
-                    lastTransferDate: new Date(),
+                    lastTransferDate: parsedTransferDate,
                 },
                 include: {
                     kvk: {
@@ -673,11 +722,12 @@ class AboutKvkService {
                 fromKvkId: employee.kvkId,
                 toKvkId: revertToKvkId,
                 transferredBy: user.userId,
-                transferReason: reason || 'Transfer reversal',
-                notes: notes,
+                transferDate: parsedTransferDate,
+                transferReason: sanitizeString(reason || 'Transfer reversal', { allowEmpty: false }),
+                notes: sanitizeString(notes, { allowEmpty: false }),
                 isReversal: true,
                 reversedTransferId: transferId,
-            });
+            }, tx);
 
             return { employee: updatedEmployee, transferHistory: reversalHistory };
         });

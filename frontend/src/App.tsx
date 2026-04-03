@@ -23,6 +23,7 @@ import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
+import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 import {
     projectsRoutes,
@@ -41,6 +42,7 @@ import { ENTITY_PATHS } from './constants/entityConstants'
 import { ADMIN_ROLES as _ADMIN_ROLES } from './constants/roleHierarchy'
 
 const ADMIN_ROLES: UserRole[] = [..._ADMIN_ROLES]
+const ALL_MASTER_BLOCKED_ROLES = ['kvk_admin', 'kvk_amdin']
 
 function AppRoutes() {
     const queryClient = useQueryClient()
@@ -74,7 +76,7 @@ function AppRoutes() {
                             key={route.path}
                             path={route.path}
                             element={
-                                <ProtectedRoute requiredModuleCode={route.moduleCode}>
+                                <ProtectedRoute requiredModuleCode={route.moduleCode} deniedRoles={ALL_MASTER_BLOCKED_ROLES}>
                                     <DataManagementView
                                         key={route.path}
                                         title={route.title}
@@ -88,7 +90,7 @@ function AppRoutes() {
                     <Route
                         path="/all-master/*"
                         element={
-                            <ProtectedRoute requiredRole={ADMIN_ROLES}>
+                            <ProtectedRoute requiredRole={ADMIN_ROLES} deniedRoles={ALL_MASTER_BLOCKED_ROLES}>
                                 <AllMasters />
                             </ProtectedRoute>
                         }
@@ -146,7 +148,23 @@ function AppRoutes() {
                         }
                     />
                     <Route
+                        path="/module-images/create"
+                        element={
+                            <ProtectedRoute requiredModuleCode="module_images">
+                                <ModuleImages />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
                         path="/targets"
+                        element={
+                            <ProtectedRoute requiredModuleCode="targets">
+                                <Targets />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/targets/create"
                         element={
                             <ProtectedRoute requiredModuleCode="targets">
                                 <Targets />
@@ -164,6 +182,14 @@ function AppRoutes() {
 
                     {/* Form Management */}
                     <Route path="/forms" element={<FormManagement />} />
+                    <Route
+                        path="/forms/achievements/technical-summary"
+                        element={
+                            <ProtectedRoute requiredModuleCode="achievements_technical_achievement_summary">
+                                <TechnicalAchievementSummary />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Dynamic Project Form Routes - All rendered by DynamicFormPage */}
                     {projectsRoutes.map(route => (

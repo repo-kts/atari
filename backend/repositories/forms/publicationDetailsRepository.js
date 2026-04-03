@@ -6,6 +6,7 @@ const {
     validateKvkExists,
     validateUUID,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 /**
  * Publication Details Repository
@@ -79,8 +80,7 @@ const _validateForeignKey = async (id, modelName, idField, displayName, required
 const _mapResponse = (r) => {
     if (!r) return null;
 
-    // Calculate reporting year from yearId if available
-    const reportingYear = r.reportingYear?.yearName || r.reportingYearId || null;
+    const reportingYear = formatReportingYear(r.reportingYear);
 
     return {
         ...r,
@@ -88,7 +88,6 @@ const _mapResponse = (r) => {
         reportingYear,
         publicationDetailsId: r.publicationDetailsId,
         kvkId: r.kvkId,
-        reportingYearId: r.reportingYearId,
         publicationId: r.publicationId,
         title: r.title,
         authorName: r.authorName,
@@ -101,7 +100,6 @@ const _mapResponse = (r) => {
         journalName: r.journalName,
         publicationId: r.publicationId,
         year: reportingYear,
-        yearId: r.reportingYearId,
         publication: r.publication?.publicationName || r.publicationId,
     };
 };
@@ -125,11 +123,8 @@ const publicationDetailsRepository = {
             // Validate KVK exists
             await validateKvkExists(kvkId);
 
-            // Validate and resolve foreign keys
-            const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-            if (reportingYearId) {
-                await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-            }
+            const reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(reportingYear);
 
             const publicationId = data.publicationId || data.publication;
             if (publicationId) {
@@ -144,7 +139,7 @@ const publicationDetailsRepository = {
             // Prepare create data
             const createData = {
                 kvkId,
-                reportingYearId: reportingYearId ? parseInteger(reportingYearId, 'reportingYearId', false) : null,
+                reportingYear,
                 publicationId: publicationId ? parseInteger(publicationId, 'publicationId', false) : null,
                 title,
                 authorName,
@@ -156,7 +151,6 @@ const publicationDetailsRepository = {
                 data: createData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     publication: { select: { publicationName: true } },
                 }
             });
@@ -192,8 +186,24 @@ const publicationDetailsRepository = {
             }
 
             // Additional filters
-            if (filters.reportingYearId) {
-                where.reportingYearId = parseInteger(filters.reportingYearId, 'reportingYearId', false);
+            if (filters.reportingYearFrom || filters.reportingYearTo) {
+                where.reportingYear = {};
+                if (filters.reportingYearFrom) {
+                    const from = parseReportingYearDate(filters.reportingYearFrom);
+                    ensureNotFutureDate(from);
+                    if (from) {
+                        from.setHours(0, 0, 0, 0);
+                        where.reportingYear.gte = from;
+                    }
+                }
+                if (filters.reportingYearTo) {
+                    const to = parseReportingYearDate(filters.reportingYearTo);
+                    ensureNotFutureDate(to);
+                    if (to) {
+                        to.setHours(23, 59, 59, 999);
+                        where.reportingYear.lte = to;
+                    }
+                }
             }
             if (filters.publicationId) {
                 where.publicationId = parseInteger(filters.publicationId, 'publicationId', false);
@@ -204,7 +214,6 @@ const publicationDetailsRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     publication: { select: { publicationName: true } },
                 },
                 orderBy: { createdAt: 'desc' },
@@ -238,7 +247,6 @@ const publicationDetailsRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     publication: { select: { publicationName: true } },
                 },
             });
@@ -288,14 +296,10 @@ const publicationDetailsRepository = {
             // Validate and resolve foreign keys if provided
             const updateData = {};
 
-            if (data.reportingYearId !== undefined || data.reportingYear !== undefined || data.yearId !== undefined) {
-                const reportingYearId = data.reportingYearId || data.reportingYear || data.yearId;
-                if (reportingYearId) {
-                    await _validateForeignKey(reportingYearId, 'yearMaster', 'yearId', 'Reporting Year', false);
-                    updateData.reportingYearId = parseInteger(reportingYearId, 'reportingYearId', false);
-                } else {
-                    updateData.reportingYearId = null;
-                }
+            if (data.reportingYear !== undefined) {
+                const d = parseReportingYearDate(data.reportingYear);
+                ensureNotFutureDate(d);
+                updateData.reportingYear = d;
             }
 
             if (data.publicationId !== undefined || data.publication !== undefined) {
@@ -325,7 +329,6 @@ const publicationDetailsRepository = {
                 data: updateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    reportingYear: { select: { yearName: true } },
                     publication: { select: { publicationName: true } },
                 },
             });

@@ -1,5 +1,5 @@
-const { verifyToken, decodePermissions } = require('../utils/jwt.js');
-const prisma = require('../config/prisma.js');
+const { verifyToken } = require('../utils/jwt.js');
+const permissionResolverService = require('../services/auth/permissionResolverService.js');
 
 /**
  * Middleware to authenticate JWT token from HTTP-only cookie
@@ -17,31 +17,32 @@ async function authenticateToken(req, res, next) {
     // Verify token
     const decoded = verifyToken(token, 'access');
 
-    // Fetch user from database to ensure they still exist and are active.
-    // roleName and permissionsByModule come from the token (embedded at login/refresh).
-    const user = await prisma.user.findUnique({
-      where: { userId: decoded.userId },
-    });
+    // Fetch user profile (Redis-cached, DB fallback).
+    const user = await permissionResolverService.getUserProfile(decoded.userId);
 
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    // Check if user is soft-deleted
     if (user.deletedAt) {
       return res.status(401).json({ error: 'User account has been deleted' });
     }
 
+    // Resolve effective permissions (Redis-cached, DB fallback).
+    const permissionsByModule = await permissionResolverService.getEffectivePermissions({
+      userId: user.userId,
+      roleId: decoded.roleId,
+      roleName: decoded.roleName,
+    });
+
     // Attach user info to request object.
-    // Decode bitmask permissions back to string arrays so requirePermission
-    // and all downstream consumers see the familiar { moduleCode: ['VIEW', ...] } format.
     req.user = {
       userId: user.userId,
       email: user.email,
       name: user.name,
       roleId: decoded.roleId,
       roleName: decoded.roleName,
-      permissionsByModule: decodePermissions(decoded.permissions),
+      permissionsByModule,
       zoneId: user.zoneId,
       stateId: user.stateId,
       districtId: user.districtId,
@@ -89,7 +90,7 @@ function requireRole(allowedRoles) {
 
 /**
  * Middleware to require specific permission.
- * Permissions are embedded in the JWT at login/refresh — no DB query needed.
+ * Permissions are resolved server-side and attached to req.user by authenticateToken.
  * @param {string} moduleCode - Module code (e.g., 'user_management_users')
  * @param {string} action - Permission action (VIEW, ADD, EDIT, DELETE)
  * @returns {Function} Express middleware function
@@ -102,8 +103,9 @@ function requirePermission(moduleCode, action) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // super_admin has unrestricted access to every module
-    if (req.user.roleName === 'super_admin') return next();
+    if (req.user.roleName === 'super_admin') {
+      return next();
+    }
 
     const modulePerms = req.user.permissionsByModule?.[moduleCode];
     if (!modulePerms?.includes(normalizedAction)) {
@@ -132,7 +134,9 @@ function requireAnyPermission(moduleCodes, action) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (req.user.roleName === 'super_admin') return next();
+    if (req.user.roleName === 'super_admin') {
+      return next();
+    }
 
     const hasAny = moduleCodes.some((code) =>
       req.user.permissionsByModule?.[code]?.includes(normalizedAction)

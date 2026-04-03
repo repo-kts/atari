@@ -192,7 +192,7 @@ export function useFilteredOrgs(
  */
 export function useReportConfig() {
     return useQuery({
-        queryKey: ['report-config'],
+        queryKey: ['report-config-updated'],
         queryFn: async () => {
             const config = await reportApi.getReportConfig();
             return config;

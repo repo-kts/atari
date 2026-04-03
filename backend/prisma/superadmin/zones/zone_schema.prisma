@@ -42,6 +42,7 @@ model DistrictMaster {
   orgs         OrgMaster[]
   users        User[]
   tspScsps     TspScsp[]
+  agriDroneDemonstrations KvkAgriDroneDemonstration[]
 
   @@index([districtId])
   @@index([stateId])
@@ -71,6 +72,12 @@ model UniversityMaster {
   universityId   Int       @id @default(autoincrement()) @map("university_id")
   universityName String    @map("university_name")
   orgId          Int       @map("org_id")
+  hostMobile     String?   @map("host_mobile")
+  hostLandline   String?   @map("host_landline")
+  hostFax        String?   @map("host_fax")
+  hostEmail      String?   @map("host_email")
+  hostAddress    String?   @map("host_address")
+  hostOrg        String    @map("host_org")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   kvks           Kvk[]

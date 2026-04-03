@@ -1,10 +1,11 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const fpoManagementRepository = {
     create: async (data, user) => {
         const kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : 1);
-        // Accept reportingYearId (yearId from YearMaster) from frontend
-        const reportingYearId = data.reportingYearId || data.yearId ? parseInt(data.reportingYearId || data.yearId) : null;
+        const reportingYear = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYear);
         const fpoName = data.fpoName || '';
         const address = data.fpoAddress ?? data.address ?? '';
         const registrationNumber = data.registrationNo ?? data.registrationNumber ?? '';
@@ -28,13 +29,13 @@ const fpoManagementRepository = {
 
         const [insertResult] = await prisma.$queryRawUnsafe(`
             INSERT INTO fpo_management (
-                "kvkId", reporting_year_id, fpo_name, address, registration_number, 
+                "kvkId", reporting_year, fpo_name, address, registration_number, 
                 registration_date, proposed_activity, commodity_identified, 
                 total_bom_members, total_farmers_attached, financial_position_lakh, 
                 success_indicator, created_at, updated_at
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING fpo_management_id
-        `, kvkId, reportingYearId, fpoName, address, registrationNumber, registrationDate,
+        `, kvkId, reportingYear, fpoName, address, registrationNumber, registrationDate,
             proposedActivity, commodityIdentified, totalBomMembers, totalFarmersAttached,
             financialPositionLakh, successIndicator);
 
@@ -51,18 +52,30 @@ const fpoManagementRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
-        } else if (filters.reportingYear) {
-            // Backward compatibility: if reportingYear is provided, try to find yearId
-            where.reportingYearId = parseInt(filters.reportingYear);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         const results = await prisma.fpoManagement.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             },
             orderBy: { fpoManagementId: 'desc' }
         });
@@ -75,7 +88,6 @@ const fpoManagementRepository = {
             where: { fpoManagementId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -90,11 +102,9 @@ const fpoManagementRepository = {
 
         const updateData = {};
 
-        if (data.reportingYearId !== undefined || data.yearId !== undefined) {
-            updateData.reportingYearId = parseInt(data.reportingYearId || data.yearId);
-        } else if (data.reportingYear !== undefined) {
-            // Backward compatibility
-            updateData.reportingYearId = parseInt(data.reportingYear);
+        if (data.reportingYear !== undefined) {
+            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(updateData.reportingYear);
         }
         if (data.fpoName !== undefined) updateData.fpoName = data.fpoName || '';
         if (data.fpoAddress !== undefined || data.address !== undefined) updateData.address = data.fpoAddress ?? data.address ?? '';
@@ -118,7 +128,7 @@ const fpoManagementRepository = {
         await prisma.$executeRawUnsafe(`
             UPDATE fpo_management 
             SET 
-                reporting_year_id = $1, fpo_name = $2, address = $3, 
+                reporting_year = $1, fpo_name = $2, address = $3, 
                 registration_number = $4, registration_date = $5, 
                 proposed_activity = $6, commodity_identified = $7, 
                 total_bom_members = $8, total_farmers_attached = $9, 
@@ -126,7 +136,7 @@ const fpoManagementRepository = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE fpo_management_id = $12
         `,
-            updateData.reportingYearId ?? existing.reportingYearId,
+            updateData.reportingYear ?? existing.reportingYear,
             updateData.fpoName ?? existing.fpoName,
             updateData.address ?? existing.address,
             updateData.registrationNumber ?? existing.registrationNumber,
@@ -144,7 +154,6 @@ const fpoManagementRepository = {
             where: { fpoManagementId: parseInt(id) },
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearId: true, yearName: true } }
             }
         });
 
@@ -163,10 +172,8 @@ function _mapResponse(r) {
     return {
         id: r.fpoManagementId,
         kvkId: r.kvkId,
-        reportingYearId: r.reportingYearId,
-        yearId: r.reportingYearId, // Frontend alias
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: r.reportingYear ? r.reportingYear.yearName : undefined, // Display year name
+        reportingYear: formatReportingYear(r.reportingYear),
         fpoName: r.fpoName,
         address: r.address,
         fpoAddress: r.address, // Frontend alias

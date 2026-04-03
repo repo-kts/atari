@@ -53,6 +53,7 @@ model CraCropingSystem {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
   season             Season   @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+  craDetails         CraDetails[]
 
   @@index([craCropingSystemId])
   @@index([cropName])
@@ -67,6 +68,7 @@ model CraFarmingSystem {
   createdAt          DateTime @default(now()) @map("created_at")
   updatedAt          DateTime @updatedAt @map("updated_at")
   season             Season   @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+  craDetails         CraDetails[]
 
   @@index([craFarmingSystemId])
   @@index([farmingSystemName])
@@ -83,4 +85,20 @@ model AryaEnterprise {
   @@index([aryaEnterpriseId])
   @@index([enterpriseName])
   @@map("arya_enterprise")
+}
+
+// ============================================
+// Agri Drone Masters
+// ============================================
+
+model AgriDroneDemonstrationsOnMaster {
+  agriDroneDemonstrationsOnId Int      @id @default(autoincrement()) @map("agri_drone_demonstrations_on_id")
+  demonstrationsOnName        String   @unique @map("demonstrations_on_name")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+  agriDroneDemonstrations    KvkAgriDroneDemonstration[]
+
+  @@index([agriDroneDemonstrationsOnId])
+  @@index([demonstrationsOnName])
+  @@map("agri_drone_demonstrations_on_master")
 }

@@ -3,6 +3,7 @@
  * Provides reusable functions for mapping database responses to frontend-friendly formats
  * Removes redundant fields and table labels to optimize response size
  */
+const { formatReportingYearLabel } = require('./reportingYearUtils.js');
 
 /**
  * Extract participant counts from database record with fallback support
@@ -71,10 +72,27 @@ function mapCommonRelations(record, options = {}) {
         mapped.season = record.season.seasonName; // Alias for backward compatibility
     }
     
-    if (includeYear && record.reportingYear) {
-        mapped.reportingYearId = record.reportingYearId;
-        mapped.yearId = record.reportingYearId; // Alias
-        mapped.reportingYear = record.reportingYear.yearName;
+    if (includeYear) {
+        const reportingYearId =
+            record.reportingYearId ??
+            record.yearId ??
+            record.reportingYear?.yearId ??
+            null;
+
+        if (reportingYearId !== null && reportingYearId !== undefined) {
+            mapped.reportingYearId = reportingYearId;
+            mapped.yearId = reportingYearId; // Alias
+        }
+
+        const rawReportingYearValue =
+            record.reportingYear && typeof record.reportingYear === 'object' && !(record.reportingYear instanceof Date)
+                ? record.reportingYear.yearName
+                : record.reportingYear;
+
+        const formattedReportingYear = formatReportingYearLabel(rawReportingYearValue);
+        if (formattedReportingYear) {
+            mapped.reportingYear = formattedReportingYear;
+        }
     }
     
     if (includeStaff && record.kvkStaff) {

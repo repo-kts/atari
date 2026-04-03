@@ -4,25 +4,35 @@ model KvkEquipment {
   equipmentName   String                 @map("equipment_name")
   yearOfPurchase  Int                    @map("year_of_purchase")
   totalCost       Float                  @map("total_cost")
-  presentStatus   EquipmentPresentStatus @map("present_status")
   sourceOfFunding String                 @map("source_of_funding")
   type            EquipmentType          @default(EQUIPMENT) @map("type")
   createdAt       DateTime               @default(now()) @map("created_at")
   updatedAt       DateTime               @updatedAt @map("updated_at")
-  reportingYearId Int?                   @map("reporting_year_id")
   kvk             Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear   YearMaster?            @relation(fields: [reportingYearId], references: [yearId])
+  equipmentDetails KvkEquipmentDetail[]
 
   @@index([kvkId])
-  @@index([reportingYearId])
   @@map("kvk_equipment")
 }
 
-enum EquipmentPresentStatus {
-  WORKING
-  NOT_WORKING
-  CONDEMED
-  AUCTION
+model KvkEquipmentDetail {
+  equipmentDetailId Int                          @id @default(autoincrement()) @map("equipment_detail_id")
+  kvkId             Int
+  equipmentId       Int                          @map("equipment_id")
+  reportingYear     DateTime                     @map("reporting_year")
+  sourceOfFunding   String?                      @map("source_of_funding")
+  equipmentStatusId Int                          @map("equipment_status_id")
+  createdAt         DateTime                     @default(now()) @map("created_at")
+  updatedAt         DateTime                     @updatedAt @map("updated_at")
+  kvk               Kvk                          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  equipment         KvkEquipment                 @relation(fields: [equipmentId], references: [equipmentId], onDelete: Cascade)
+  equipmentStatus   EquipmentPresentStatusMaster @relation(fields: [equipmentStatusId], references: [equipmentStatusId])
+
+  @@unique([equipmentId, reportingYear])
+  @@index([kvkId, reportingYear])
+  @@index([equipmentId, reportingYear])
+  @@index([equipmentStatusId])
+  @@map("kvk_equipment_detail")
 }
 
 enum EquipmentType {

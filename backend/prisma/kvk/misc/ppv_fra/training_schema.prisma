@@ -10,7 +10,12 @@ model PpvFraTraining {
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
   programmeDate  DateTime           @map("programme_date")
-  type           PpvFraTrainingType
+  typeId         Int?               @map("type_id")
+  trainingType   PpvFraTrainingTypeMaster? @relation(fields: [typeId], references: [typeId])
+  
+  // Keep the old type field to ensure NO DATA LOSS
+  type           PpvFraTrainingType @default(TRAINING)
+
   title          String
   venue          String
   resourcePerson String             @map("resource_person")

@@ -1,3 +1,9 @@
+enum OftStatus {
+  ONGOING
+  COMPLETED
+  TRANSFERRED_TO_NEXT_YEAR
+}
+
 model OftTechnologyType {
   oftTechnologyTypeId Int                @id @default(autoincrement()) @map("oft_technology_type_id")
   name                String             @unique @map("name")
@@ -11,15 +17,19 @@ model OftTechnologyType {
 model KvkoftTechnology {
   kvkOftTechnologyId  Int               @id @default(autoincrement()) @map("kvk_oft_technology_id")
   kvkOftId            Int
-  oftTechnologyTypeId Int
-  details             String            @map("details")
+  oftTechnologyTypeId Int?
+  optionKey           String            @map("option_key")
+  optionName          String            @map("option_name")
+  details             String?           @map("details")
   createdAt           DateTime          @default(now()) @map("created_at")
   updatedAt           DateTime          @updatedAt @map("updated_at")
   kvkOft              Kvkoft            @relation(fields: [kvkOftId], references: [kvkOftId], onDelete: Cascade)
-  oftTechnologyType   OftTechnologyType @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
+  oftTechnologyType   OftTechnologyType? @relation(fields: [oftTechnologyTypeId], references: [oftTechnologyTypeId])
 
   @@index([kvkOftId])
   @@index([oftTechnologyTypeId])
+  @@index([optionKey])
+  @@unique([kvkOftId, optionKey])
   @@map("kvk_oft_technology")
 }
 
@@ -50,18 +60,21 @@ model Kvkoft {
   farmersScF               Int                @map("farmers_sc_f")
   farmersStM               Int                @map("farmers_st_m")
   farmersStF               Int                @map("farmers_st_f")
-  status                   String?            @map("ongoing_completed")
+  status                   OftStatus          @default(ONGOING) @map("ongoing_completed")
+  transferredFromOftId     Int?               @map("transferred_from_oft_id")
   createdAt                DateTime           @default(now()) @map("created_at")
   updatedAt                DateTime           @updatedAt @map("updated_at")
-  reportingYearId          Int?               @map("reporting_year_id")
-  discipline               Discipline?        @relation(fields: [disciplineId], references: [disciplineId])
+  reportingYear DateTime? @map("reporting_year")
+discipline               Discipline?        @relation(fields: [disciplineId], references: [disciplineId])
   kvk                      Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   oftSubject               OftSubject?        @relation(fields: [oftSubjectId], references: [oftSubjectId])
   oftThematicArea          OftThematicArea?   @relation(fields: [oftThematicAreaId], references: [oftThematicAreaId])
-  reportingYear            YearMaster?        @relation(fields: [reportingYearId], references: [yearId])
-  season                   Season?            @relation(fields: [seasonId], references: [seasonId])
+season                   Season?            @relation(fields: [seasonId], references: [seasonId])
   staff                    KvkStaff           @relation(fields: [staffId], references: [kvkStaffId])
   technologies             KvkoftTechnology[]
+  resultReport             OftResultReport?
+  transferredFrom          Kvkoft?            @relation("OftTransferChain", fields: [transferredFromOftId], references: [kvkOftId])
+  transferredToChildren    Kvkoft[]           @relation("OftTransferChain")
 
   @@index([kvkId])
   @@index([seasonId])
@@ -69,6 +82,97 @@ model Kvkoft {
   @@index([disciplineId])
   @@index([oftSubjectId])
   @@index([oftThematicAreaId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
+  @@index([status])
+  @@index([transferredFromOftId])
   @@map("kvk_oft")
+}
+
+model OftResultReport {
+  oftResultReportId             Int                 @id @default(autoincrement()) @map("oft_result_report_id")
+  kvkOftId                      Int                 @unique @map("kvk_oft_id")
+  finalRecommendation           String              @map("final_recommendation")
+  constraintsFeedback           String              @map("constraints_feedback")
+  farmersParticipationProcess   String              @map("farmers_participation_process")
+  resultText                    String              @map("result_text")
+  remark                        String              @map("remark")
+  supplementaryDatasheetPath    String?             @map("supplementary_datasheet_path")
+  supplementaryDatasheetName    String?             @map("supplementary_datasheet_name")
+  supplementaryDatasheetSize    Int?                @map("supplementary_datasheet_size")
+  supplementaryDatasheetMime    String?             @map("supplementary_datasheet_mime")
+  photographPath                String?             @map("photograph_path")
+  photographName                String?             @map("photograph_name")
+  photographSize                Int?                @map("photograph_size")
+  photographMime                String?             @map("photograph_mime")
+  createdAt                     DateTime            @default(now()) @map("created_at")
+  updatedAt                     DateTime            @updatedAt @map("updated_at")
+  kvkOft                        Kvkoft              @relation(fields: [kvkOftId], references: [kvkOftId], onDelete: Cascade)
+  tables                        OftResultTable[]
+
+  @@index([kvkOftId])
+  @@map("oft_result_report")
+}
+
+model OftResultTable {
+  oftResultTableId              Int                 @id @default(autoincrement()) @map("oft_result_table_id")
+  oftResultReportId             Int                 @map("oft_result_report_id")
+  tableTitle                    String              @map("table_title")
+  sortOrder                     Int                 @map("sort_order")
+  createdAt                     DateTime            @default(now()) @map("created_at")
+  updatedAt                     DateTime            @updatedAt @map("updated_at")
+  report                        OftResultReport     @relation(fields: [oftResultReportId], references: [oftResultReportId], onDelete: Cascade)
+  columns                       OftResultTableColumn[]
+  rows                          OftResultTableRow[]
+
+  @@index([oftResultReportId, sortOrder])
+  @@map("oft_result_table")
+}
+
+model OftResultTableColumn {
+  oftResultTableColumnId        Int                 @id @default(autoincrement()) @map("oft_result_table_column_id")
+  oftResultTableId              Int                 @map("oft_result_table_id")
+  columnKey                     String              @map("column_key")
+  columnLabel                   String              @map("column_label")
+  isMandatory                   Boolean             @default(false) @map("is_mandatory")
+  sortOrder                     Int                 @map("sort_order")
+  createdAt                     DateTime            @default(now()) @map("created_at")
+  updatedAt                     DateTime            @updatedAt @map("updated_at")
+  table                         OftResultTable      @relation(fields: [oftResultTableId], references: [oftResultTableId], onDelete: Cascade)
+  cells                         OftResultTableCell[]
+
+  @@index([oftResultTableId, sortOrder])
+  @@unique([oftResultTableId, columnKey])
+  @@map("oft_result_table_column")
+}
+
+model OftResultTableRow {
+  oftResultTableRowId           Int                 @id @default(autoincrement()) @map("oft_result_table_row_id")
+  oftResultTableId              Int                 @map("oft_result_table_id")
+  optionKey                     String?             @map("option_key")
+  rowLabel                      String              @map("row_label")
+  sortOrder                     Int                 @map("sort_order")
+  createdAt                     DateTime            @default(now()) @map("created_at")
+  updatedAt                     DateTime            @updatedAt @map("updated_at")
+  table                         OftResultTable      @relation(fields: [oftResultTableId], references: [oftResultTableId], onDelete: Cascade)
+  cells                         OftResultTableCell[]
+
+  @@index([oftResultTableId, sortOrder])
+  @@index([optionKey])
+  @@map("oft_result_table_row")
+}
+
+model OftResultTableCell {
+  oftResultTableCellId          Int                 @id @default(autoincrement()) @map("oft_result_table_cell_id")
+  oftResultTableRowId           Int                 @map("oft_result_table_row_id")
+  oftResultTableColumnId        Int                 @map("oft_result_table_column_id")
+  value                         String?             @db.Text
+  createdAt                     DateTime            @default(now()) @map("created_at")
+  updatedAt                     DateTime            @updatedAt @map("updated_at")
+  row                           OftResultTableRow   @relation(fields: [oftResultTableRowId], references: [oftResultTableRowId], onDelete: Cascade)
+  column                        OftResultTableColumn @relation(fields: [oftResultTableColumnId], references: [oftResultTableColumnId], onDelete: Cascade)
+
+  @@index([oftResultTableRowId])
+  @@index([oftResultTableColumnId])
+  @@unique([oftResultTableRowId, oftResultTableColumnId])
+  @@map("oft_result_table_cell")
 }

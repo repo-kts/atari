@@ -1,0 +1,33 @@
+model Target {
+  targetId        Int      @id @default(autoincrement()) @map("target_id")
+  kvkId           Int      @map("kvk_id")
+  zoneId          Int?     @map("zone_id")
+  stateId         Int?     @map("state_id")
+  districtId      Int?     @map("district_id")
+  orgId           Int?     @map("org_id")
+  reportingYear   Int      @map("reporting_year")
+  reportingYearDate DateTime? @map("reporting_year_date")
+  typeName        String   @map("type_name")
+  target          Int
+  farmerTarget    Int?     @map("farmer_target")
+  season          String?
+  cropName        String?  @map("crop_name")
+  areaTarget      Int?     @map("area_target")
+  createdByUserId Int?     @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  kvk       Kvk   @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  createdBy User? @relation("UserTargets", fields: [createdByUserId], references: [userId], onDelete: SetNull)
+
+
+
+  @@index([kvkId, reportingYear])
+  @@index([reportingYear])
+  @@index([kvkId, reportingYearDate])
+  @@index([reportingYearDate])
+  @@index([typeName])
+  @@index([zoneId])
+  @@index([stateId])
+  @@map("targets")
+}

@@ -6,10 +6,14 @@
  *   node scripts/seed-forms-data.js <kvkId1> <kvkId2> ...
  *   or
  *   KVK_IDS=1,2,3 node scripts/seed-forms-data.js
+ *   or (clear existing form rows before reseeding)
+ *   node scripts/seed-forms-data.js --reset <kvkId1> <kvkId2> ...
  * 
  * Run: node scripts/seed-forms-data.js <kvkId>   or   npm run seed:forms
  */
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 const prisma = require('../config/prisma');
 
 // Sample data generators
@@ -26,7 +30,7 @@ const generateInfrastructureData = (kvkId, infraMasterId) => ({
   sourceOfFunding: ['ICAR', 'State Government', 'Central Government', 'KVK Funds'][Math.floor(Math.random() * 4)],
 });
 
-const generateVehicleData = (kvkId, index, yearId2024) => {
+const generateVehicleData = (kvkId, index) => {
   const vehicleTypes = ['Tractor', 'Car', 'Jeep', 'Motorcycle', 'Van', 'Pickup Truck'];
   const vehicleType = vehicleTypes[index % vehicleTypes.length];
   const year = 2020 + (index % 5); // Years between 2020-2024
@@ -37,15 +41,10 @@ const generateVehicleData = (kvkId, index, yearId2024) => {
     registrationNo: `BR${Math.floor(Math.random() * 100)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 10000)}`,
     yearOfPurchase: year,
     totalCost: Math.floor(Math.random() * 500000) + 200000, // 200k-700k
-    totalRun: `${Math.floor(Math.random() * 50000) + 10000} km`,
-    presentStatus: ['WORKING', 'GOOD_CONDITION', 'NEW'][Math.floor(Math.random() * 3)],
-    reportingYearId: yearId2024,
-    sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds'][Math.floor(Math.random() * 3)],
-    repairingCost: Math.random() > 0.5 ? Math.floor(Math.random() * 50000) + 5000 : null,
   };
 };
 
-const generateEquipmentData = (kvkId, index, yearId2024) => {
+const generateEquipmentData = (kvkId, index) => {
   const equipmentTypes = [
     'Computer System', 'Printer', 'Projector', 'Soil Testing Kit', 'Moisture Meter',
     'pH Meter', 'Microscope', 'Weighing Scale', 'Generator', 'Water Pump'
@@ -58,9 +57,7 @@ const generateEquipmentData = (kvkId, index, yearId2024) => {
     equipmentName,
     yearOfPurchase: year,
     totalCost: Math.floor(Math.random() * 200000) + 10000, // 10k-210k
-    presentStatus: ['WORKING', 'NOT_WORKING', 'CONDEMED', 'AUCTION'][Math.floor(Math.random() * 4)],
     sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds', 'Donation'][Math.floor(Math.random() * 4)],
-    reportingYearId: yearId2024,
     type: 'EQUIPMENT',
   };
 };
@@ -136,16 +133,6 @@ async function seedInfrastructure(kvkIds) {
 async function seedVehicles(kvkIds) {
   console.log('🌱 Seeding vehicles data...');
 
-  // Get yearId for 2024-25
-  const year2024 = await prisma.yearMaster.findFirst({
-    where: { yearName: '2024-25' }
-  });
-  if (!year2024) {
-    console.log('   ⚠️  Year 2024-25 not found. Please run seed-years.js first.');
-    return;
-  }
-  const yearId2024 = year2024.yearId;
-
   let totalCreated = 0;
   for (const kvkId of kvkIds) {
     // Verify KVK exists
@@ -159,7 +146,7 @@ async function seedVehicles(kvkIds) {
     const count = Math.floor(Math.random() * 3) + 2; // 2-4 vehicles
 
     for (let i = 0; i < count; i++) {
-      const vehicleData = generateVehicleData(kvkId, i, yearId2024);
+      const vehicleData = generateVehicleData(kvkId, i);
 
       // Check if vehicle with same registration already exists
       const existing = await prisma.kvkVehicle.findFirst({
@@ -182,16 +169,6 @@ async function seedVehicles(kvkIds) {
 async function seedEquipment(kvkIds) {
   console.log('🌱 Seeding equipment data...');
 
-  // Get yearId for 2024-25
-  const year2024 = await prisma.yearMaster.findFirst({
-    where: { yearName: '2024-25' }
-  });
-  if (!year2024) {
-    console.log('   ⚠️  Year 2024-25 not found. Please run seed-years.js first.');
-    return;
-  }
-  const yearId2024 = year2024.yearId;
-
   let totalCreated = 0;
   for (const kvkId of kvkIds) {
     // Verify KVK exists
@@ -205,7 +182,7 @@ async function seedEquipment(kvkIds) {
     const count = Math.floor(Math.random() * 4) + 5; // 5-8 items
 
     for (let i = 0; i < count; i++) {
-      const equipmentData = generateEquipmentData(kvkId, i, yearId2024);
+      const equipmentData = generateEquipmentData(kvkId, i);
 
       // Check if equipment with same name and year already exists
       const existing = await prisma.kvkEquipment.findFirst({
@@ -300,7 +277,7 @@ async function seedStaff(kvkIds) {
       const staffName = `${firstName} ${lastName}`;
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@kvk${kvkId}.gov.in`;
       const mobile = `9${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-      
+
       const existing = await prisma.kvkStaff.findFirst({
         where: { kvkId, email },
       });
@@ -702,13 +679,38 @@ async function seedFarmerAwards(kvkIds) {
 /**
  * Main function to seed all form data
  */
+async function resetExistingFormData(kvkIds) {
+  console.log('🧹 Resetting existing form data for selected KVK IDs...');
+
+  // Delete child/form tables first to avoid FK issues.
+  await prisma.kvkImportantDayCelebration.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkOtherExtensionActivity.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkExtensionActivity.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.trainingAchievement.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.farmerAward.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkBankAccount.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkStaff.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkFarmImplement.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkEquipment.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkVehicle.deleteMany({ where: { kvkId: { in: kvkIds } } });
+  await prisma.kvkInfrastructure.deleteMany({ where: { kvkId: { in: kvkIds } } });
+
+  console.log('   ✅ Existing form data cleared\n');
+}
+
 async function run() {
+  const args = process.argv.slice(2);
+  const shouldReset = args.includes('--reset');
+
   // Get KVK IDs from command line arguments or environment variable
   let kvkIds = [];
 
-  if (process.argv.length > 2) {
+  if (args.length > 0) {
     // Get from command line arguments
-    kvkIds = process.argv.slice(2).map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    kvkIds = args
+      .filter(arg => arg !== '--reset')
+      .map(id => parseInt(id, 10))
+      .filter(id => !isNaN(id));
   } else if (process.env.KVK_IDS) {
     // Get from environment variable (comma-separated)
     kvkIds = process.env.KVK_IDS.split(',')
@@ -744,6 +746,10 @@ async function run() {
     process.exit(1);
   }
 
+  if (shouldReset) {
+    await resetExistingFormData(existingIds);
+  }
+
   // Seed data for each form type
   await seedInfrastructure(existingIds);
   await seedVehicles(existingIds);
@@ -770,6 +776,7 @@ if (require.main === module) {
 } else {
   module.exports = {
     run,
+    resetExistingFormData,
     seedInfrastructure,
     seedVehicles,
     seedEquipment,

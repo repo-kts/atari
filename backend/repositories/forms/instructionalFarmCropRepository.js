@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const instructionalFarmCropRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const instructionalFarmCropRepository = {
         return await prisma.instructionalFarmCrop.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
                 cropName: data.cropName,
                 area: parseFloat(data.area || 0),
@@ -34,7 +39,6 @@ const instructionalFarmCropRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } }
             },
             orderBy: { createdAt: 'desc' }
@@ -50,7 +54,6 @@ const instructionalFarmCropRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } },
                 season: { select: { seasonName: true } }
             }
         });
@@ -68,7 +71,13 @@ const instructionalFarmCropRepository = {
         return await prisma.instructionalFarmCrop.update({
             where: { instructionalFarmCropId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 seasonId: data.seasonId !== undefined ? (data.seasonId ? parseInt(data.seasonId) : null) : existing.seasonId,
                 cropName: data.cropName !== undefined ? data.cropName : existing.cropName,
                 area: data.area !== undefined ? parseFloat(data.area || 0) : existing.area,

@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const successStoryRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const successStoryRepository = {
         return await prisma.successStory.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 farmerName: data.farmerName,
                 dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
                 education: data.education,
@@ -25,7 +30,7 @@ const successStoryRepository = {
                 results: data.results,
                 impact: data.impact,
                 futurePlans: data.futurePlans,
-                supportingImages: data.supportingImages,
+                supportingImages: data.supportingImages ? (typeof data.supportingImages === 'string' ? data.supportingImages : JSON.stringify(data.supportingImages)) : null,
                 enterprise: data.enterprise,
                 grossIncome: parseFloat(data.grossIncome || 0),
                 netIncome: parseFloat(data.netIncome || 0),
@@ -46,7 +51,6 @@ const successStoryRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -61,7 +65,6 @@ const successStoryRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -78,7 +81,13 @@ const successStoryRepository = {
         return await prisma.successStory.update({
             where: { successStoryId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 farmerName: data.farmerName !== undefined ? data.farmerName : existing.farmerName,
                 dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : existing.dateOfBirth,
                 education: data.education !== undefined ? data.education : existing.education,
@@ -95,7 +104,7 @@ const successStoryRepository = {
                 results: data.results !== undefined ? data.results : existing.results,
                 impact: data.impact !== undefined ? data.impact : existing.impact,
                 futurePlans: data.futurePlans !== undefined ? data.futurePlans : existing.futurePlans,
-                supportingImages: data.supportingImages !== undefined ? data.supportingImages : existing.supportingImages,
+                supportingImages: data.supportingImages !== undefined ? (data.supportingImages ? (typeof data.supportingImages === 'string' ? data.supportingImages : JSON.stringify(data.supportingImages)) : null) : existing.supportingImages,
                 enterprise: data.enterprise !== undefined ? data.enterprise : existing.enterprise,
                 grossIncome: data.grossIncome !== undefined ? parseFloat(data.grossIncome || 0) : existing.grossIncome,
                 netIncome: data.netIncome !== undefined ? parseFloat(data.netIncome || 0) : existing.netIncome,

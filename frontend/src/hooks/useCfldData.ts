@@ -12,7 +12,24 @@ export function useCfldTechnicalParameters() {
 
     const query = useQuery({
         queryKey: ['cfld-technical-parameters'],
-        queryFn: () => cfldApi.getTechnicalParameters().then((res) => res.data),
+        queryFn: async () => {
+            const res = await cfldApi.getTechnicalParameters();
+            // Backend returns { success: true, data: [...] }
+            // axios wraps it in { data: { success: true, data: [...] } }
+            const responseData = res.data;
+            if (responseData?.success && Array.isArray(responseData.data)) {
+                return responseData.data;
+            }
+            // Fallback: if data is directly an array
+            if (Array.isArray(responseData)) {
+                return responseData;
+            }
+            // Fallback: if data.data exists
+            if (Array.isArray(responseData?.data)) {
+                return responseData.data;
+            }
+            return EMPTY_ARRAY;
+        },
     });
 
     const createMutation = useMutation({
@@ -38,7 +55,7 @@ export function useCfldTechnicalParameters() {
     });
 
     return {
-        data: query.data?.data || EMPTY_ARRAY,
+        data: Array.isArray(query.data) ? query.data : EMPTY_ARRAY,
         isLoading: query.isLoading,
         error: query.error,
         create: createMutation.mutateAsync,

@@ -28,6 +28,7 @@ export interface ExportOptions {
     fields: readonly string[] | string[];
     data: any[];
     pathname: string;
+    templateKey?: string;
 }
 
 /**
@@ -66,7 +67,7 @@ export function useExportHandler(): UseExportHandlerReturn {
      */
     const handleServerExport = useCallback(
         async (format: ExportFormat, options: ExportOptions) => {
-            const { title, fields, data, pathname } = options;
+            const { title, fields, data, pathname, templateKey } = options;
             const headerLabels = fields.map(formatHeaderLabel);
             const rows = data.map(item => fields.map(field => getFieldValue(item, field)));
 
@@ -77,6 +78,8 @@ export function useExportHandler(): UseExportHandlerReturn {
                         headers: headerLabels,
                         rows,
                         format: format as 'pdf' | 'excel' | 'word',
+                        templateKey,
+                        rawData: templateKey ? data : undefined,
                     },
                     pathname
                 );

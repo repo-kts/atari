@@ -3,7 +3,6 @@ import { apiClient, ApiError } from './api';
 export interface FpoManagementData {
     id?: number;
     kvkId?: number;
-    yearId?: number; // Frontend key
     kvkName?: string;
     reportingYear: number;
     fpoName: string;
@@ -26,7 +25,6 @@ export interface FpoManagementData {
 export interface FpoDetailsData {
     id?: number;
     kvkId?: number;
-    yearId?: number; // Frontend key
     kvkName?: string;
     reportingYear: number;
     blocksAllocated: number;

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSection } from '../shared/FormComponents'
+import { FormInput } from '../shared/FormComponents'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -20,7 +20,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
     const { data: years = [], isLoading: isLoadingYears } = useYears()
 
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
     )
 
@@ -42,7 +42,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
@@ -57,7 +57,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -68,7 +68,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="Number of Mobile Apps developed by KVK"
                         required
                         type="number"
-                        value={formData.numberOfAppsDeveloped || ''}
+                        value={formData.numberOfAppsDeveloped ?? ''}
                         onChange={handleNumberChange('numberOfAppsDeveloped')}
                         placeholder="Enter number"
                     />
@@ -76,7 +76,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <FormInput
                         label="Name of the Apps"
                         required
-                        value={formData.nameOfApp || ''}
+                        value={formData.nameOfApp ?? ''}
                         onChange={handleFieldChange('nameOfApp')}
                         placeholder="Enter app name"
                     />
@@ -84,7 +84,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <FormInput
                         label="Language of the Apps"
                         required
-                        value={formData.languageOfApp || ''}
+                        value={formData.languageOfApp ?? ''}
                         onChange={handleFieldChange('languageOfApp')}
                         placeholder="Enter language"
                     />
@@ -92,7 +92,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <FormInput
                         label="Meant for crop/livestock/fishery/others"
                         required
-                        value={formData.meantFor || ''}
+                        value={formData.meantFor ?? ''}
                         onChange={handleFieldChange('meantFor')}
                         placeholder="Enter category"
                     />
@@ -101,7 +101,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of times downloaded"
                         required
                         type="number"
-                        value={formData.numberOfTimesDownloaded || ''}
+                        value={formData.numberOfTimesDownloaded ?? ''}
                         onChange={handleNumberChange('numberOfTimesDownloaded')}
                         placeholder="Enter number"
                     />
@@ -114,7 +114,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -125,7 +125,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of visitors visited the portal"
                         required
                         type="number"
-                        value={formData.noOfVisitors || ''}
+                        value={formData.noOfVisitors ?? ''}
                         onChange={handleNumberChange('noOfVisitors')}
                         placeholder="Enter number"
                     />
@@ -134,7 +134,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         label="No. of farmers registered on the portal"
                         required
                         type="number"
-                        value={formData.noOfFarmersRegistered || ''}
+                        value={formData.noOfFarmersRegistered ?? ''}
                         onChange={handleNumberChange('noOfFarmersRegistered')}
                         placeholder="Enter number"
                     />
@@ -148,7 +148,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -159,7 +159,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No. of farmers registered on KSP portal"
                             required
                             type="number"
-                            value={formData.noOfFarmersRegisteredOnKspPortal || ''}
+                            value={formData.noOfFarmersRegisteredOnKspPortal ?? ''}
                             onChange={handleNumberChange('noOfFarmersRegisteredOnKspPortal')}
                             placeholder="Enter number"
                         />
@@ -168,7 +168,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="Phone call addressed"
                             required
                             type="number"
-                            value={formData.phoneCallAddressed || ''}
+                            value={formData.phoneCallAddressed ?? ''}
                             onChange={handleNumberChange('phoneCallAddressed')}
                             placeholder="Enter number"
                         />
@@ -177,7 +177,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="Phone call Answered"
                             required
                             type="number"
-                            value={formData.phoneCallAnswered || ''}
+                            value={formData.phoneCallAnswered ?? ''}
                             onChange={handleNumberChange('phoneCallAnswered')}
                             placeholder="Enter number"
                         />
@@ -189,7 +189,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Crop"
                                 required
-                                value={formData.crop || ''}
+                                value={formData.crop ?? ''}
                                 onChange={handleFieldChange('crop')}
                                 placeholder="Enter details"
                             />
@@ -197,7 +197,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Livestocks"
                                 required
-                                value={formData.livestock || ''}
+                                value={formData.livestock ?? ''}
                                 onChange={handleFieldChange('livestock')}
                                 placeholder="Enter details"
                             />
@@ -205,7 +205,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Weather"
                                 required
-                                value={formData.weather || ''}
+                                value={formData.weather ?? ''}
                                 onChange={handleFieldChange('weather')}
                                 placeholder="Enter details"
                             />
@@ -213,7 +213,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Marketing"
                                 required
-                                value={formData.marketing || ''}
+                                value={formData.marketing ?? ''}
                                 onChange={handleFieldChange('marketing')}
                                 placeholder="Enter details"
                             />
@@ -221,7 +221,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Awareness"
                                 required
-                                value={formData.awareness || ''}
+                                value={formData.awareness ?? ''}
                                 onChange={handleFieldChange('awareness')}
                                 placeholder="Enter details"
                             />
@@ -229,7 +229,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Other Enterprises"
                                 required
-                                value={formData.otherEnterprises || ''}
+                                value={formData.otherEnterprises ?? ''}
                                 onChange={handleFieldChange('otherEnterprises')}
                                 placeholder="Enter details"
                             />
@@ -245,7 +245,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                         <MasterDataDropdown
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                            value={formData.reportingYear ?? ''}
                             onChange={handleYearChange}
                             options={yearOptions}
                             isLoading={isLoadingYears}
@@ -256,7 +256,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No. of farmers covered"
                             required
                             type="number"
-                            value={formData.noOfFarmersCovered || ''}
+                            value={formData.noOfFarmersCovered ?? ''}
                             onChange={handleNumberChange('noOfFarmersCovered')}
                             placeholder="Enter number"
                         />
@@ -265,7 +265,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             label="No of advisories sent"
                             required
                             type="number"
-                            value={formData.noOfAdvisoriesSent || ''}
+                            value={formData.noOfAdvisoriesSent ?? ''}
                             onChange={handleNumberChange('noOfAdvisoriesSent')}
                             placeholder="Enter number"
                         />
@@ -277,7 +277,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Crop"
                                 required
-                                value={formData.crop || ''}
+                                value={formData.crop ?? ''}
                                 onChange={handleFieldChange('crop')}
                                 placeholder="Enter details"
                             />
@@ -285,7 +285,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Livestock"
                                 required
-                                value={formData.livestock || ''}
+                                value={formData.livestock ?? ''}
                                 onChange={handleFieldChange('livestock')}
                                 placeholder="Enter details"
                             />
@@ -293,7 +293,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Weather"
                                 required
-                                value={formData.weather || ''}
+                                value={formData.weather ?? ''}
                                 onChange={handleFieldChange('weather')}
                                 placeholder="Enter details"
                             />
@@ -301,7 +301,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Marketing"
                                 required
-                                value={formData.marketing || ''}
+                                value={formData.marketing ?? ''}
                                 onChange={handleFieldChange('marketing')}
                                 placeholder="Enter details"
                             />
@@ -309,7 +309,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Awareness"
                                 required
-                                value={formData.awareness || ''}
+                                value={formData.awareness ?? ''}
                                 onChange={handleFieldChange('awareness')}
                                 placeholder="Enter details"
                             />
@@ -317,7 +317,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Other Enterprises"
                                 required
-                                value={formData.otherEnterprises || ''}
+                                value={formData.otherEnterprises ?? ''}
                                 onChange={handleFieldChange('otherEnterprises')}
                                 placeholder="Enter details"
                             />
@@ -325,7 +325,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                             <FormInput
                                 label="Any Other"
                                 required
-                                value={formData.anyOther || ''}
+                                value={formData.anyOther ?? ''}
                                 onChange={handleFieldChange('anyOther')}
                                 placeholder="Enter details"
                             />
@@ -340,7 +340,7 @@ export const DigitalInformationForms: React.FC<DigitalInformationFormsProps> = (
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}

@@ -26,7 +26,8 @@ if (isServerless) {
 }
 
 const ExcelJS = require('exceljs');
-const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType } = require('docx');
+const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, PageOrientation } = require('docx');
+const { reportConfig } = require('../config/reportConfig');
 
 /**
  * Generates a PDF buffer from HTML using Puppeteer
@@ -75,12 +76,43 @@ async function generatePDF(html) {
             waitUntil: 'networkidle0',
             timeout: 30000 // 30 second timeout
         });
+        // Ensure print media so header/footer render consistently
+        try {
+            await page.emulateMediaType('print');
+        } catch (_) {}
         
+        const pdfFooterCfg = reportConfig?.pdfFooter || {};
+        const footerTextTemplate = pdfFooterCfg.textTemplate || 'Page {current} of {total}';
+        const footerFontSizePx = Number(pdfFooterCfg.fontSize || 9);
+        const footerAlign = pdfFooterCfg.align || 'center';
+        const footerColor = pdfFooterCfg.color || { r: 90, g: 90, b: 90 };
+        const footerColorCss = `rgb(${footerColor.r ?? 90}, ${footerColor.g ?? 90}, ${footerColor.b ?? 90})`;
+        const justify = footerAlign === 'left' ? 'flex-start' : (footerAlign === 'right' ? 'flex-end' : 'center');
+        // bottom margin should account for footer height; default to 16mm as before
+        const bottomMarginMm = Math.max(12, Number((reportConfig?.pdfFooter?.bottomMarginPt || 24) / 2.835)) || 16;
+
+        // Map template to puppeteer footer placeholders
+        // Supports common templates like "Page {current} of {total}"
+        const footerHtmlSafe = footerTextTemplate
+            .replace('{current}', '<span class="pageNumber"></span>')
+            .replace('{total}', '<span class="totalPages"></span>');
+
         const pdfBuffer = await page.pdf({
             format: 'A4',
-            margin: { top: '15mm', right: '15mm', bottom: '15mm', left: '15mm' },
             printBackground: true,
             preferCSSPageSize: false,
+            displayHeaderFooter: true,
+            headerTemplate: `
+                <div style="font-size:0;"></div>
+            `,
+            footerTemplate: `
+                <div style="font-size:${footerFontSizePx}px; width:100%; padding:0 10mm 4mm 10mm; box-sizing:border-box;">
+                  <div style="width:100%; color:${footerColorCss}; display:flex; justify-content:${justify};">
+                    ${footerHtmlSafe}
+                  </div>
+                </div>
+            `,
+            margin: { top: '6mm', right: '6mm', bottom: `${bottomMarginMm}mm`, left: '6mm' },
             timeout: 30000
         });
         
@@ -202,7 +234,13 @@ async function generateWord(title, headers, rows) {
 
     const doc = new Document({
         sections: [{
-            properties: {},
+            properties: {
+                page: {
+                    size: {
+                        orientation: PageOrientation.LANDSCAPE,
+                    },
+                },
+            },
             children: [
                 new Paragraph({
                     text: title,

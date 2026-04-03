@@ -16,7 +16,7 @@ const PAGE_SIZE = 10
 export const RoleManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { user: currentUser, hasPermission } = useAuth()
+    const { hasPermission } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [page, setPage] = useState(1)
     const [openActionId, setOpenActionId] = useState<number | null>(null)
@@ -177,7 +177,7 @@ export const RoleManagement: React.FC = () => {
                                     setPage(1)
                                 }}
                                 placeholder="Search by role name..."
-                                className="w-full pl-10 pr-4 py-2.5 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
+                                className="w-full pl-10 pr-4 py-2 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
                             />
                         </div>
                     </div>

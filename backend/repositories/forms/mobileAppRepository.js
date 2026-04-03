@@ -5,12 +5,14 @@ const {
     parseInteger,
     validateKvkExists,
 } = require('../../utils/repositoryHelpers');
+const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {
     if (!r) return null;
     return {
         ...r,
         id: r.mobileAppId,
+        yearName: formatReportingYear(r.reportingYear),
     };
 };
 
@@ -26,14 +28,18 @@ const mobileAppRepository = {
             const result = await prisma.mobileApp.create({
                 data: {
                     kvkId,
-                    reportingYearId: data.reportingYearId ? parseInteger(data.reportingYearId, 'reportingYearId') : null,
+                    reportingYear: (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })(),
                     nameOfApp: String(data.nameOfApp || ''),
                     meantFor: String(data.meantFor || ''),
                     numberOfAppsDeveloped: parseInteger(data.numberOfAppsDeveloped || 0, 'numberOfAppsDeveloped'),
                     languageOfApp: String(data.languageOfApp || ''),
                     numberOfTimesDownloaded: parseInteger(data.numberOfTimesDownloaded || 0, 'numberOfTimesDownloaded'),
                 },
-                include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+                include: { kvk: { select: { kvkName: true } } }
             });
             return _mapResponse(result);
         } catch (error) {
@@ -52,7 +58,7 @@ const mobileAppRepository = {
 
         const records = await prisma.mobileApp.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
             orderBy: { mobileAppId: 'desc' },
         });
         return records.map(_mapResponse);
@@ -67,7 +73,7 @@ const mobileAppRepository = {
 
         const record = await prisma.mobileApp.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true },
+            include: { kvk: { select: { kvkName: true } } },
         });
         if (!record) throw new RepositoryError('Mobile App record not found', 'NOT_FOUND', 404);
         return _mapResponse(record);
@@ -86,14 +92,20 @@ const mobileAppRepository = {
         const result = await prisma.mobileApp.update({
             where: { mobileAppId },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? parseInteger(data.reportingYearId, 'reportingYearId') : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 nameOfApp: data.nameOfApp !== undefined ? String(data.nameOfApp) : existing.nameOfApp,
                 meantFor: data.meantFor !== undefined ? String(data.meantFor) : existing.meantFor,
                 numberOfAppsDeveloped: data.numberOfAppsDeveloped !== undefined ? parseInteger(data.numberOfAppsDeveloped, 'numberOfAppsDeveloped') : existing.numberOfAppsDeveloped,
                 languageOfApp: data.languageOfApp !== undefined ? String(data.languageOfApp) : existing.languageOfApp,
                 numberOfTimesDownloaded: data.numberOfTimesDownloaded !== undefined ? parseInteger(data.numberOfTimesDownloaded, 'numberOfTimesDownloaded') : existing.numberOfTimesDownloaded,
             },
-            include: { kvk: { select: { kvkName: true } }, reportingYear: true }
+            include: { kvk: { select: { kvkName: true } } }
         });
         return _mapResponse(result);
     },

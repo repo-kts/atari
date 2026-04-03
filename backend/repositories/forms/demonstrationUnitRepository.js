@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const demonstrationUnitRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const demonstrationUnitRepository = {
         return await prisma.demonstrationUnit.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 demoUnitName: data.demoUnitName,
                 yearOfEstablishment: parseInt(data.yearOfEstablishment || 0),
                 area: parseFloat(data.area || 0),
@@ -34,7 +39,6 @@ const demonstrationUnitRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -49,7 +53,6 @@ const demonstrationUnitRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -66,7 +69,13 @@ const demonstrationUnitRepository = {
         return await prisma.demonstrationUnit.update({
             where: { demonstrationUnitId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 demoUnitName: data.demoUnitName !== undefined ? data.demoUnitName : existing.demoUnitName,
                 yearOfEstablishment: data.yearOfEstablishment !== undefined ? parseInt(data.yearOfEstablishment || 0) : existing.yearOfEstablishment,
                 area: data.area !== undefined ? parseFloat(data.area || 0) : existing.area,

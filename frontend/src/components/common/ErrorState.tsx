@@ -16,7 +16,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
     className = ''
 }) => {
     return (
-        <div className={`p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm ${className}`}>
+        <div className={`p-2 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm ${className}`}>
             {message}
         </div>
     )

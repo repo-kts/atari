@@ -1,14 +1,19 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const nicraFarmImplementRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.nicraFarmImplement.create({
+        const result = await prisma.nicraFarmImplement.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 nameOfFarmImplement: data.nameOfFarmImplement,
@@ -27,6 +32,47 @@ const nicraFarmImplementRepository = {
                 photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : '',
             }
         });
+        return nicraFarmImplementRepository._mapResponse(result);
+    },
+
+    _mapResponse: (r) => {
+        if (!r) return null;
+        let photos = [];
+        try {
+            if (r.photographs) {
+                photos = typeof r.photographs === 'string' ? JSON.parse(r.photographs) : r.photographs;
+                if (!Array.isArray(photos)) photos = [photos];
+            }
+        } catch (e) {
+            photos = r.photographs ? r.photographs.split(',').filter(Boolean) : [];
+        }
+
+        // Calculate total farmers
+        const totalFarmers = (r.generalM || 0) + (r.generalF || 0) + (r.obcM || 0) + (r.obcF || 0) + (r.scM || 0) + (r.scF || 0) + (r.stM || 0) + (r.stF || 0);
+
+        return {
+            ...r,
+            id: r.nicraFarmImplementId,
+            startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
+            endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || ''),
+            // Frontend generic field names
+            genMale: r.generalM,
+            genFemale: r.generalF,
+            obcMale: r.obcM,
+            obcFemale: r.obcF,
+            scMale: r.scM,
+            scFemale: r.scF,
+            stMale: r.stM,
+            stFemale: r.stF,
+            photographs: photos,
+            // Table specific field names (from NICRA_OTHERS_CUSTOM_HIRING field group)
+            nameOfFarmImplementEquipment: r.nameOfFarmImplement,
+            noOfFarmersUsedImplement: totalFarmers,
+            areaCoveredByFarmImplement: r.areaCovered,
+            farmImplementUsedInHours: r.farmImplementUsedHours,
+            revenueGeneratedByFarmImplement: r.revenueGeneratedRs,
+            expenditureIncurredOnRepairing: r.expenditureIncurredRepairingRs
+        };
     },
 
     findAll: async (filters = {}, user) => {
@@ -37,18 +83,34 @@ const nicraFarmImplementRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
-        return await prisma.nicraFarmImplement.findMany({
+        const results = await prisma.nicraFarmImplement.findMany({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             },
             orderBy: { nicraFarmImplementId: 'desc' }
         });
+        return results.map(r => nicraFarmImplementRepository._mapResponse(r));
     },
 
     findById: async (id, user) => {
@@ -56,13 +118,13 @@ const nicraFarmImplementRepository = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
             where.kvkId = user.kvkId;
         }
-        return await prisma.nicraFarmImplement.findFirst({
+        const result = await prisma.nicraFarmImplement.findFirst({
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: true
             }
         });
+        return nicraFarmImplementRepository._mapResponse(result);
     },
 
     update: async (id, data, user) => {
@@ -74,10 +136,16 @@ const nicraFarmImplementRepository = {
         const existing = await prisma.nicraFarmImplement.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.nicraFarmImplement.update({
+        const updated = await prisma.nicraFarmImplement.update({
             where: { nicraFarmImplementId: parseInt(id) },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 nameOfFarmImplement: data.nameOfFarmImplement !== undefined ? data.nameOfFarmImplement : existing.nameOfFarmImplement,
@@ -96,6 +164,7 @@ const nicraFarmImplementRepository = {
                 photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : (existing.photographs || ''),
             }
         });
+        return nicraFarmImplementRepository._mapResponse(updated);
     },
 
     delete: async (id, user) => {

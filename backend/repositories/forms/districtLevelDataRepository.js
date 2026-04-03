@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const districtLevelDataRepository = {
     create: async (data, user) => {
@@ -8,8 +9,12 @@ const districtLevelDataRepository = {
         return await prisma.districtLevelData.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
-                accountType: data.accountType,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
+                items: data.items,
                 information: data.information,
             }
         });
@@ -27,7 +32,6 @@ const districtLevelDataRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -42,7 +46,6 @@ const districtLevelDataRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -59,8 +62,14 @@ const districtLevelDataRepository = {
         return await prisma.districtLevelData.update({
             where: { districtLevelDataId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
-                accountType: data.accountType !== undefined ? data.accountType : existing.accountType,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
+                items: data.items !== undefined ? data.items : existing.items,
                 information: data.information !== undefined ? data.information : existing.information,
             }
         });

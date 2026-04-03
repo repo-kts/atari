@@ -9,7 +9,7 @@ const authService = require('../services/authService.js');
 function getCookieOptions(maxAge) {
   const isProduction = process.env.NODE_ENV === 'production';
   const isDevelopment = !isProduction;
-  
+
   // In production (cross-origin), need SameSite=None + Secure
   // In development (same-origin), use SameSite=Lax for better compatibility
   const cookieOptions = {
@@ -55,6 +55,52 @@ function getClearCookieOptions() {
   return options;
 }
 
+function normalizeIp(rawIp) {
+  if (!rawIp) return null;
+
+  let ip = String(rawIp).trim();
+  if (!ip) return null;
+
+  // x-forwarded-for may contain multiple comma-separated IPs (client, proxy1, proxy2...)
+  if (ip.includes(',')) {
+    ip = ip.split(',')[0].trim();
+  }
+
+  // Convert IPv4-mapped IPv6 to plain IPv4
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.slice(7);
+  }
+
+  // Normalize local IPv6 loopback for easier readability in logs
+  if (ip === '::1') {
+    return '127.0.0.1';
+  }
+
+  return ip;
+}
+
+function getClientIp(req) {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor.trim()) {
+    return normalizeIp(forwardedFor);
+  }
+  if (Array.isArray(forwardedFor) && forwardedFor.length > 0) {
+    return normalizeIp(forwardedFor[0]);
+  }
+
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.trim()) {
+    return normalizeIp(realIp);
+  }
+
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (typeof cfIp === 'string' && cfIp.trim()) {
+    return normalizeIp(cfIp);
+  }
+
+  return normalizeIp(req.ip || req.socket?.remoteAddress || null);
+}
+
 const authController = {
   /**
    * POST /api/auth/login
@@ -68,7 +114,10 @@ const authController = {
         return res.status(400).json({ error: 'Email and password are required' });
       }
 
-      const result = await authService.login(email, password);
+      const result = await authService.login(email, password, {
+        ipAddress: getClientIp(req),
+        userAgent: req.get('user-agent') || null,
+      });
 
       // Set HTTP-only cookies for tokens
       const accessCookieOptions = getCookieOptions(60 * 60 * 1000); // 1 hour
@@ -132,7 +181,10 @@ const authController = {
       const refreshToken = req.cookies?.refreshToken;
 
       if (refreshToken) {
-        await authService.logout(refreshToken);
+        await authService.logout(refreshToken, {
+          ipAddress: getClientIp(req),
+          userAgent: req.get('user-agent') || null,
+        });
       }
 
       // Clear cookies (must match set options for browser to remove them)

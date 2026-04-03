@@ -4,8 +4,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import {
     LayoutDashboard,
     FileText,
-    ChevronLeft,
-    ChevronRight,
     Menu,
     X,
     ChevronDown,
@@ -23,6 +21,8 @@ import {
     Building2,
     Briefcase,
     FileCheck,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react'
 
 interface MenuItem {
@@ -35,6 +35,7 @@ interface MenuItem {
     moduleCodes?: string[]
     children?: MenuItem[]
     dropdown?: boolean // If true, show children as dropdown in sidebar and hide tabs on page
+    target?: string
 }
 
 // Super Admin menu items with dropdown support
@@ -54,7 +55,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Basic Masters',
                 path: '/all-master/basic',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master'],
+                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'about_kvks_view_kvks'],
             },
             {
                 label: 'OFT & FLD Masters',
@@ -72,7 +73,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Production Masters',
                 path: '/all-master/production-projects',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master'],
+                moduleCodes: ['all_masters_products_master', 'all_masters_agri_drone_master', 'all_masters_climate_master', 'all_masters_arya_master'],
             },
             {
                 label: 'Publication Masters',
@@ -84,7 +85,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Other Masters',
                 path: '/all-master/other-masters',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_year_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_events_master'],
+                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_vehicle_present_status_master', 'all_masters_equipment_present_status_master', 'all_masters_events_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master'],
             },
         ],
     },
@@ -196,7 +197,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const location = useLocation()
-    const { hasPermission } = useAuth()
+    const { user, hasPermission } = useAuth()
     const [expandedItems, setExpandedItems] = useState<string[]>([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -209,8 +210,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     // All roles use the full menu set — permission filtering (below) controls visibility
     // based on the Role Permission Editor assignments
     const rawMenuItems = React.useMemo(() => {
-        return superAdminMenuItems
-    }, [])
+        const role = user?.role?.toLowerCase()
+        const isKvkAdminRole = role === 'kvk_admin' || role === 'kvk_amdin'
+
+        if (!isKvkAdminRole) return superAdminMenuItems
+
+        return superAdminMenuItems.filter(item => item.path !== '/all-master')
+    }, [user?.role])
 
     // Filter menu items based on VIEW permission where moduleCode is defined
     const menuItems = React.useMemo(() => {
@@ -250,7 +256,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     }, [rawMenuItems, hasPermission])
 
     const menuItemsRef = useRef(menuItems)
-    menuItemsRef.current = menuItems
+    useEffect(() => {
+        menuItemsRef.current = menuItems
+    }, [menuItems])
 
     // Debounce search query
     useEffect(() => {
@@ -303,7 +311,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
         // 1. Expand active section
         items.forEach(item => {
-            if (item.children && item.dropdown && isSectionActive(item)) {
+            const sectionActive =
+                location.pathname === item.path ||
+                location.pathname.startsWith(item.path + '/') ||
+                !!item.children?.some(
+                    child =>
+                        location.pathname === child.path ||
+                        location.pathname.startsWith(child.path + '/')
+                )
+
+            if (item.children && item.dropdown && sectionActive) {
                 itemsToExpand.push(item.path)
             }
         })
@@ -373,13 +390,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
 
     // Mapping of route patterns to their parent dropdown paths
     const routeToParentMap: { pattern: RegExp; parentPath: string }[] = [
-        { pattern: /^\/all-master\/(zones|states|organizations|universities|districts)/, parentPath: '/all-master/basic' },
+        { pattern: /^\/all-master\/(zones|states|organizations|universities|districts|kvks)/, parentPath: '/all-master/basic' },
         { pattern: /^\/all-master\/(oft|fld|cfld-crop)/, parentPath: '/all-master/oft-fld' },
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
-        { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise)/, parentPath: '/all-master/production-projects' },
+        { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|important-day|soil-water-analysis)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project|funding-agency)/, parentPath: '/all-master/other-masters' },
     ]
 
     const getEffectiveParent = (pathname: string): string | null => {
@@ -450,7 +469,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             {!isFormOpen && (
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md border border-[#E0E0E0] focus:outline-none focus:ring-2 focus:ring-[#487749] transition-all duration-200"
+                    className={`lg:hidden fixed top-4 ${isMobileMenuOpen ? 'right-4' : 'left-4'} z-50 p-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#487749] transition-all duration-200 rounded-xl`}
                     aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
                     aria-expanded={isMobileMenuOpen}
                 >
@@ -626,6 +645,7 @@ const SidebarDropdownItem: React.FC<{
                                     <Link
                                         key={child.path}
                                         to={child.path}
+                                        target={child.target}
                                         onClick={() => onMobileClose()}
                                         className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
                                             ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
@@ -672,6 +692,7 @@ const SidebarItem: React.FC<{
         <div className="mx-2 my-0.5">
             <Link
                 to={props.item.path}
+                target={props.item.target}
                 onClick={props.onMobileClose}
                 className={`flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 ${active
                     ? 'bg-[#3d6540] text-white font-medium'
@@ -691,4 +712,3 @@ const SidebarItem: React.FC<{
         </div>
     )
 }
-

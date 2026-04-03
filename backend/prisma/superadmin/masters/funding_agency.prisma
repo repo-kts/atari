@@ -1,0 +1,12 @@
+model FundingAgency {
+  fundingAgencyId   Int                @id @default(autoincrement()) @map("funding_agency_id")
+  agencyName        String             @unique @map("agency_name")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  financialProjects FinancialProject[]
+  projectBudgets    ProjectBudget[]
+
+  @@index([fundingAgencyId])
+  @@index([agencyName])
+  @@map("funding_agency")
+}

@@ -188,8 +188,8 @@ const _resolveActivityId = async (value, required = false) => {
     if (!isNaN(parseInt(value))) {
         const activityId = parseInt(value);
         try {
-            const activity = await prisma.extensionActivity.findUnique({
-                where: { extensionActivityId: activityId }
+            const activity = await prisma.fldActivity.findUnique({
+                where: { activityId: activityId }
             });
             if (!activity) {
                 if (required) {
@@ -214,15 +214,15 @@ const _resolveActivityId = async (value, required = false) => {
     }
 
     try {
-        const activity = await prisma.extensionActivity.findFirst({
-            where: { extensionName: { equals: activityName, mode: 'insensitive' } }
+        const activity = await prisma.fldActivity.findFirst({
+            where: { activityName: { equals: activityName, mode: 'insensitive' } }
         });
 
         if (!activity && required) {
             throw new RepositoryError(`Extension Activity with name "${activityName}" does not exist in master data`, 'NOT_FOUND', 404);
         }
 
-        return activity ? activity.extensionActivityId : null;
+        return activity ? activity.activityId : null;
     } catch (error) {
         if (error instanceof RepositoryError) throw error;
         throw new RepositoryError(`Error resolving extension activity: ${error.message}`, 'DATABASE_ERROR', 500);
@@ -341,7 +341,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    extensionActivity: { select: { extensionName: true } },
+                    fldActivity: { select: { activityName: true } },
                 }
             });
 
@@ -380,7 +380,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    extensionActivity: { select: { extensionName: true } },
+                    fldActivity: { select: { activityName: true } },
                 },
                 orderBy: { extensionActivityId: 'desc' },
             });
@@ -412,7 +412,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    extensionActivity: { select: { extensionName: true } },
+                    fldActivity: { select: { activityName: true } },
                 },
             });
 
@@ -526,7 +526,7 @@ const extensionActivityRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     staff: { select: { staffName: true } },
-                    extensionActivity: { select: { extensionName: true } },
+                    fldActivity: { select: { activityName: true } },
                 },
             }));
         } catch (error) {
@@ -603,7 +603,7 @@ function _mapResponse(r) {
         reportingYear = String(startYear);
     }
 
-    const activityName = r.extensionActivity ? r.extensionActivity.extensionName : undefined;
+    const activityName = r.fldActivity ? r.fldActivity.activityName : undefined;
     const farmersSum = (r.farmersGeneralM || 0) + (r.farmersGeneralF || 0) + (r.farmersObcM || 0) + (r.farmersObcF || 0) + (r.farmersScM || 0) + (r.farmersScF || 0) + (r.farmersStM || 0) + (r.farmersStF || 0);
     const officialsSum = (r.officialsGeneralM || 0) + (r.officialsGeneralF || 0) + (r.officialsObcM || 0) + (r.officialsObcF || 0) + (r.officialsScM || 0) + (r.officialsScF || 0) + (r.officialsStM || 0) + (r.officialsStF || 0);
     const totalParticipants = farmersSum + officialsSum;

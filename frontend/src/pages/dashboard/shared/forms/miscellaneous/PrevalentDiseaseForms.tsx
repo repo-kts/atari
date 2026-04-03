@@ -50,7 +50,7 @@ export const PrevalentDiseaseForms: React.FC<PrevalentDiseaseFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.areaAffected || ''}
+                        value={formData.areaAffected ?? ''}
                         onChange={(e) => setFormData({ ...formData, areaAffected: e.target.value })}
                         placeholder="0.00"
                     />

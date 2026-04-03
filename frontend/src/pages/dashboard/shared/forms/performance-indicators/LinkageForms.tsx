@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormTextArea } from '../shared/FormComponents'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { useYears, useProgrammeTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -12,13 +12,7 @@ interface LinkageFormsProps {
     setFormData: (data: any) => void
 }
 
-// Dummy programme type options (can be wired to a master later)
-const PROGRAMME_TYPE_OPTIONS = [
-    { value: 'INFRASTRUCTURE', label: 'Infrastructure Development' },
-    { value: 'TRAINING', label: 'Training and Capacity Building' },
-    { value: 'DEMONSTRATION', label: 'Demonstration' },
-    { value: 'OTHERS', label: 'Others' },
-]
+
 
 export const LinkageForms: React.FC<LinkageFormsProps> = ({
     entityType,
@@ -26,11 +20,17 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
     setFormData,
 }) => {
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: programmeTypes = [], isLoading: isLoadingProgrammeTypes } = useProgrammeTypes()
 
     // Memoize year options
     const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'yearId', 'yearName'),
+        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
         [years]
+    )
+
+    const programmeTypeOptions = useMemo(
+        () => createMasterDataOptions(programmeTypes, 'programmeType', 'programmeType'),
+        [programmeTypes]
     )
 
     // Optimized onChange handlers using useCallback
@@ -44,17 +44,12 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
 
     const handleYearChange = useCallback(
         (value: string | number) => {
-            setFormData({ ...formData, reportingYearId: value, yearId: value, reportingYear: value })
+            setFormData({ ...formData, reportingYear: value })
         },
         [formData, setFormData]
     )
 
-    const handleProgrammeTypeChange = useCallback(
-        (e: React.ChangeEvent<HTMLSelectElement>) => {
-            setFormData({ ...formData, programmeType: e.target.value })
-        },
-        [formData, setFormData]
-    )
+
 
     if (!entityType) return null
 
@@ -66,7 +61,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -77,7 +72,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Name of Organization"
                             required
-                            value={formData.organizationName || ''}
+                            value={formData.organizationName ?? ''}
                             onChange={handleFieldChange('organizationName')}
                             placeholder="Enter organization name"
                         />
@@ -85,7 +80,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Nature of Linkage"
                             required
-                            value={formData.natureOfLinkage || ''}
+                            value={formData.natureOfLinkage ?? ''}
                             onChange={handleFieldChange('natureOfLinkage')}
                             placeholder="Enter nature of linkage"
                         />
@@ -99,7 +94,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={handleYearChange}
                         options={yearOptions}
                         isLoading={isLoadingYears}
@@ -107,29 +102,20 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="relative pt-2">
-                            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10">
-                                Programme Type <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                required
-                                value={formData.programmeType || ''}
-                                onChange={handleProgrammeTypeChange}
-                                className="w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base h-[48px]"
-                            >
-                                <option value="">Select Programme Type</option>
-                                {PROGRAMME_TYPE_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        <MasterDataDropdown
+                            label="Programme Type"
+                            required
+                            value={formData.programmeType ?? ''}
+                            onChange={(value) => setFormData({ ...formData, programmeType: value })}
+                            options={programmeTypeOptions}
+                            isLoading={isLoadingProgrammeTypes}
+                            emptyMessage="No programme types available"
+                        />
 
                         <FormInput
                             label="Name of the Programme/Scheme"
                             required
-                            value={formData.programmeName || ''}
+                            value={formData.programmeName ?? ''}
                             onChange={handleFieldChange('programmeName')}
                             placeholder="Enter programme/scheme name"
                         />
@@ -138,7 +124,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                     <FormTextArea
                         label="Purpose of Programme"
                         required
-                        value={formData.programmePurpose || ''}
+                        value={formData.programmePurpose ?? ''}
                         onChange={handleFieldChange('programmePurpose')}
                         rows={3}
                         placeholder="Enter purpose of programme"
@@ -169,7 +155,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         <FormInput
                             label="Funding Agency"
                             required
-                            value={formData.fundingAgency || ''}
+                            value={formData.fundingAgency ?? ''}
                             onChange={handleFieldChange('fundingAgency')}
                             placeholder="Enter funding agency"
                         />
@@ -180,7 +166,7 @@ export const LinkageForms: React.FC<LinkageFormsProps> = ({
                         required
                         type="number"
                         step="0.01"
-                        value={formData.amount || ''}
+                        value={formData.amount ?? ''}
                         onChange={handleFieldChange('amount')}
                         placeholder="Enter amount"
                     />

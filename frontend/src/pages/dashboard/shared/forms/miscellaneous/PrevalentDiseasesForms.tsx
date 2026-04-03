@@ -48,7 +48,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         <FormInput
                             label="Name of the Disease"
                             required
-                            value={formData.diseaseName || ''}
+                            value={formData.diseaseName ?? ''}
                             onChange={handleFieldChange('diseaseName')}
                             placeholder="Enter disease name"
                         />
@@ -56,7 +56,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         <FormInput
                             label="Crop"
                             required
-                            value={formData.crop || ''}
+                            value={formData.crop ?? ''}
                             onChange={handleFieldChange('crop')}
                             placeholder="Enter crop name"
                         />
@@ -76,7 +76,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.areaAffected || ''}
+                            value={formData.areaAffected ?? ''}
                             onChange={handleNumberChange('areaAffected')}
                             placeholder="Enter area"
                         />
@@ -86,7 +86,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.commodityLossPercent || ''}
+                            value={formData.commodityLossPercent ?? ''}
                             onChange={handleNumberChange('commodityLossPercent')}
                             placeholder="Enter percentage"
                         />
@@ -96,7 +96,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.preventiveMeasuresArea || ''}
+                            value={formData.preventiveMeasuresArea ?? ''}
                             onChange={handleNumberChange('preventiveMeasuresArea')}
                             placeholder="Enter area"
                         />
@@ -111,7 +111,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         <FormInput
                             label="Name of the Disease"
                             required
-                            value={formData.diseaseName || ''}
+                            value={formData.diseaseName ?? ''}
                             onChange={handleFieldChange('diseaseName')}
                             placeholder="Enter disease name"
                         />
@@ -119,7 +119,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         <FormInput
                             label="Livestock Type"
                             required
-                            value={formData.livestockType || ''}
+                            value={formData.livestockType ?? ''}
                             onChange={handleFieldChange('livestockType')}
                             placeholder="Enter species/type"
                         />
@@ -139,7 +139,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.mortalityCount || ''}
+                            value={formData.mortalityCount ?? ''}
                             onChange={handleNumberChange('mortalityCount')}
                             placeholder="Enter count"
                         />
@@ -148,7 +148,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                             label="Animals Treated"
                             required
                             type="number"
-                            value={formData.animalsTreated || ''}
+                            value={formData.animalsTreated ?? ''}
                             onChange={handleNumberChange('animalsTreated')}
                             placeholder="Enter number"
                         />
@@ -156,7 +156,7 @@ export const PrevalentDiseasesForms: React.FC<PrevalentDiseasesFormsProps> = ({
                         <FormInput
                             label="Preventive Measures Taken"
                             required
-                            value={formData.preventiveMeasures || ''}
+                            value={formData.preventiveMeasures ?? ''}
                             onChange={handleFieldChange('preventiveMeasures')}
                             placeholder="Enter measures"
                         />

@@ -2,13 +2,19 @@ model FinancialInformation {
   financialInformationId Int                    @id @default(autoincrement()) @map("financial_information_id")
   kvkId                  Int
   year                   Int
-  activity               NaturalFarmingActivity
+  reportingYearDate      DateTime?              @map("reporting_year_date")
+  activityId             Int?                   @map("activity_id")
   numberOfActivities     Int                    @map("number_of_activities")
   budgetSanction         Float                  @map("budget_sanction")
   budgetExpenditure      Float                  @map("budget_expenditure")
   totalBudgetExpenditure Float                  @map("total_budget_expenditure")
   kvk                    Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  activityMaster         NaturalFarmingActivityMaster? @relation(fields: [activityId], references: [naturalFarmingActivityId], onDelete: SetNull, onUpdate: Cascade)
+
+
 
   @@index([kvkId])
+  @@index([reportingYearDate])
+  @@index([kvkId, reportingYearDate])
   @@map("financial_information")
 }

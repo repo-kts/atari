@@ -1,0 +1,29 @@
+model VehiclePresentStatusMaster {
+  vehicleStatusId Int                @id @default(autoincrement()) @map("vehicle_status_id")
+  statusCode      String             @unique @map("status_code")
+  statusLabel     String             @map("status_label")
+  hideInNextYear  Boolean            @default(false) @map("hide_in_next_year")
+  isActive        Boolean            @default(true) @map("is_active")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  vehicleDetails  KvkVehicleDetail[]
+
+  @@index([statusCode])
+  @@index([isActive])
+  @@map("vehicle_present_status_master")
+}
+
+model EquipmentPresentStatusMaster {
+  equipmentStatusId Int                 @id @default(autoincrement()) @map("equipment_status_id")
+  statusCode        String              @unique @map("status_code")
+  statusLabel       String              @map("status_label")
+  hideInNextYear    Boolean             @default(false) @map("hide_in_next_year")
+  isActive          Boolean             @default(true) @map("is_active")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  equipmentDetails  KvkEquipmentDetail[]
+
+  @@index([statusCode])
+  @@index([isActive])
+  @@map("equipment_present_status_master")
+}

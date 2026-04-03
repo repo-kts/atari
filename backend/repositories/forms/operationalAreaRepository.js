@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const operationalAreaRepository = {
     create: async (data, user) => {
@@ -8,7 +9,11 @@ const operationalAreaRepository = {
         return await prisma.operationalArea.create({
             data: {
                 kvkId,
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 taluk: data.taluk,
                 block: data.block,
                 village: data.village,
@@ -31,7 +36,6 @@ const operationalAreaRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -46,7 +50,6 @@ const operationalAreaRepository = {
             where,
             include: {
                 kvk: { select: { kvkName: true } },
-                reportingYear: { select: { yearName: true } }
             }
         });
     },
@@ -63,7 +66,13 @@ const operationalAreaRepository = {
         return await prisma.operationalArea.update({
             where: { operationalAreaId: id },
             data: {
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 taluk: data.taluk !== undefined ? data.taluk : existing.taluk,
                 block: data.block !== undefined ? data.block : existing.block,
                 village: data.village !== undefined ? data.village : existing.village,

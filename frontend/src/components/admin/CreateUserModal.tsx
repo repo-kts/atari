@@ -3,8 +3,8 @@ import { userApi, CreateUserData, PermissionAction, getRoleLabel } from '../../s
 import { masterDataApi } from '../../services/masterDataApi'
 import { aboutKvkApi } from '../../services/aboutKvkApi'
 import { useAuth } from '../../contexts/AuthContext'
-import { getRoleLevel, isAdminRole, getCreatableRoles } from '../../constants/roleHierarchy'
-import { Button } from '../ui/Button'
+import { getRoleLevel, getCreatableRoles } from '../../constants/roleHierarchy'
+import { Button } from '../ui/button'
 import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
@@ -901,6 +901,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     <Button
                         type="button"
                         variant="secondary"
+                        size="md"
                         onClick={onClose}
                         disabled={isSubmitting || submitSuccess}
                     >

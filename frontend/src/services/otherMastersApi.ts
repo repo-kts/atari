@@ -40,11 +40,6 @@ export interface SanctionedPost {
     };
 }
 
-export interface Year {
-    yearId: number;
-    yearName: string;
-}
-
 // Form Data Types
 export interface SeasonFormData {
     seasonName: string;
@@ -52,10 +47,6 @@ export interface SeasonFormData {
 
 export interface SanctionedPostFormData {
     postName: string;
-}
-
-export interface YearFormData {
-    yearName: string;
 }
 
 // Employee Masters
@@ -184,6 +175,36 @@ export interface InfrastructureMasterFormData {
     name: string;
 }
 
+export interface VehiclePresentStatus {
+    vehicleStatusId: number;
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear: boolean;
+    isActive: boolean;
+}
+
+export interface EquipmentPresentStatus {
+    equipmentStatusId: number;
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear: boolean;
+    isActive: boolean;
+}
+
+export interface VehiclePresentStatusFormData {
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear?: boolean;
+    isActive?: boolean;
+}
+
+export interface EquipmentPresentStatusFormData {
+    statusCode: string;
+    statusLabel: string;
+    hideInNextYear?: boolean;
+    isActive?: boolean;
+}
+
 export interface SoilWaterAnalysis {
     soilWaterAnalysisId: number;
     analysisName: string;
@@ -205,9 +226,160 @@ export interface NariCropCategory {
     name: string;
 }
 
+export interface NariCropCategoryFormData {
+    name: string;
+}
+
+export interface NariActivity {
+    nariActivityId: number;
+    activityName: string;
+}
+
 export interface NariNutritionGardenType {
     nutritionGardenTypeId: number;
     name: string;
+}
+
+export interface NariActivityFormData {
+    activityName: string;
+}
+
+export interface NariNutritionGardenTypeFormData {
+    name: string;
+}
+
+export interface NicraCategory {
+    nicraCategoryId: number;
+    categoryName: string;
+    _count?: {
+        nicraDetails: number;
+        subCategories: number;
+    };
+}
+
+export interface NicraSubCategory {
+    nicraSubCategoryId: number;
+    nicraCategoryId: number;
+    subCategoryName: string;
+    category?: {
+        nicraCategoryId: number;
+        categoryName: string;
+    };
+    _count?: {
+        nicraDetails: number;
+    };
+}
+
+export interface NicraCategoryFormData {
+    categoryName: string;
+}
+
+export interface NicraSubCategoryFormData {
+    subCategoryName: string;
+    nicraCategoryId: number;
+}
+
+export interface NicraSeedBankFodderBank {
+    nicraSeedBankFodderBankId: number;
+    name: string;
+}
+
+export interface NicraSeedBankFodderBankFormData {
+    name: string;
+}
+
+export interface NicraDignitaryType {
+    nicraDignitaryTypeId: number;
+    name: string;
+}
+
+export interface NicraDignitaryTypeFormData {
+    name: string;
+}
+
+export interface NicraPiType {
+    nicraPiTypeId: number;
+    name: string;
+}
+
+export interface NicraPiTypeFormData {
+    name: string;
+}
+
+export interface ImpactSpecificArea {
+    specificAreaId: number;
+    specificAreaName: string;
+}
+
+export interface ImpactSpecificAreaFormData {
+    specificAreaName: string;
+}
+
+export interface EnterpriseType {
+    enterpriseTypeId: number;
+    enterpriseTypeName: string;
+}
+
+export interface EnterpriseTypeFormData {
+    enterpriseTypeName: string;
+}
+
+export interface AccountType {
+    accountTypeId: number;
+    accountType: string;
+}
+
+export interface AccountTypeFormData {
+    accountType: string;
+}
+
+export interface ProgrammeType {
+    programmeTypeId: number;
+    programmeType: string;
+}
+
+export interface ProgrammeTypeFormData {
+    programmeType: string;
+}
+
+export interface PpvFraTrainingTypeFormData {
+    typeName: string;
+}
+
+export interface DignitaryType {
+    dignitaryTypeId: number;
+    name: string;
+    _count?: {
+        visitors: number;
+    };
+}
+
+export interface DignitaryTypeFormData {
+    name: string;
+}
+
+export interface FinancialProject {
+    financialProjectId: number;
+    projectName: string;
+    fundingAgencyId?: number;
+    fundingAgency?: {
+        fundingAgencyId: number;
+        agencyName: string;
+    };
+}
+
+export interface FinancialProjectFormData {
+    projectName: string;
+    fundingAgencyId?: number;
+}
+
+export interface FundingAgency {
+    fundingAgencyId: number;
+    agencyName: string;
+}
+
+export interface FundingAgencyFormData {
+    agencyName: string;
 }
 
 // ============================================
@@ -246,22 +418,6 @@ export const otherMastersApi = {
 
     deleteSanctionedPost: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/sanctioned-posts/${id}`),
-
-    // Years
-    getYears: () =>
-        apiClient.get<PaginatedResponse<Year>>(`${BASE_URL}/years`),
-
-    getYearById: (id: number) =>
-        apiClient.get<ApiResponse<Year>>(`${BASE_URL}/years/${id}`),
-
-    createYear: (data: YearFormData) =>
-        apiClient.post<ApiResponse<Year>>(`${BASE_URL}/years`, data),
-
-    updateYear: (id: number, data: Partial<YearFormData>) =>
-        apiClient.put<ApiResponse<Year>>(`${BASE_URL}/years/${id}`, data),
-
-    deleteYear: (id: number) =>
-        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/years/${id}`),
 
     // Employee Masters
     getStaffCategories: () =>
@@ -377,6 +533,24 @@ export const otherMastersApi = {
     deleteInfrastructureMaster: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/infrastructure-master/${id}`),
 
+    getVehiclePresentStatuses: () =>
+        apiClient.get<PaginatedResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`),
+    createVehiclePresentStatus: (data: VehiclePresentStatusFormData) =>
+        apiClient.post<ApiResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status`, data),
+    updateVehiclePresentStatus: (id: number, data: Partial<VehiclePresentStatusFormData>) =>
+        apiClient.put<ApiResponse<VehiclePresentStatus>>(`${BASE_URL}/vehicle-present-status/${id}`, data),
+    deleteVehiclePresentStatus: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/vehicle-present-status/${id}`),
+
+    getEquipmentPresentStatuses: () =>
+        apiClient.get<PaginatedResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status`),
+    createEquipmentPresentStatus: (data: EquipmentPresentStatusFormData) =>
+        apiClient.post<ApiResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status`, data),
+    updateEquipmentPresentStatus: (id: number, data: Partial<EquipmentPresentStatusFormData>) =>
+        apiClient.put<ApiResponse<EquipmentPresentStatus>>(`${BASE_URL}/equipment-present-status/${id}`, data),
+    deleteEquipmentPresentStatus: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-present-status/${id}`),
+
     // Soil Water Analysis Masters
     getSoilWaterAnalyses: () =>
         apiClient.get<PaginatedResponse<SoilWaterAnalysis>>(`${BASE_URL}/soil-water-analysis`),
@@ -392,6 +566,192 @@ export const otherMastersApi = {
     // NARI Masters
     getNariCropCategories: () =>
         apiClient.get<PaginatedResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category`),
+    getNariCropCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category/${id}`),
+    createNariCropCategory: (data: NariCropCategoryFormData) =>
+        apiClient.post<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category`, data),
+    updateNariCropCategory: (id: number, data: Partial<NariCropCategoryFormData>) =>
+        apiClient.put<ApiResponse<NariCropCategory>>(`${BASE_URL}/nari-crop-category/${id}`, data),
+    deleteNariCropCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-crop-category/${id}`),
+    getNariActivities: () =>
+        apiClient.get<PaginatedResponse<NariActivity>>(`${BASE_URL}/nari-activity`),
+    getNariActivityById: (id: number) =>
+        apiClient.get<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity/${id}`),
+    createNariActivity: (data: NariActivityFormData) =>
+        apiClient.post<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity`, data),
+    updateNariActivity: (id: number, data: Partial<NariActivityFormData>) =>
+        apiClient.put<ApiResponse<NariActivity>>(`${BASE_URL}/nari-activity/${id}`, data),
+    deleteNariActivity: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-activity/${id}`),
+
     getNariNutritionGardenTypes: () =>
         apiClient.get<PaginatedResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type`),
+    getNariNutritionGardenTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`),
+    createNariNutritionGardenType: (data: NariNutritionGardenTypeFormData) =>
+        apiClient.post<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type`, data),
+    updateNariNutritionGardenType: (id: number, data: Partial<NariNutritionGardenTypeFormData>) =>
+        apiClient.put<ApiResponse<NariNutritionGardenType>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`, data),
+    deleteNariNutritionGardenType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nari-nutrition-garden-type/${id}`),
+
+    // NICRA Masters
+    getNicraCategories: () =>
+        apiClient.get<PaginatedResponse<NicraCategory>>(`${BASE_URL}/nicra-category`),
+    getNicraCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category/${id}`),
+    createNicraCategory: (data: NicraCategoryFormData) =>
+        apiClient.post<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category`, data),
+    updateNicraCategory: (id: number, data: Partial<NicraCategoryFormData>) =>
+        apiClient.put<ApiResponse<NicraCategory>>(`${BASE_URL}/nicra-category/${id}`, data),
+    deleteNicraCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-category/${id}`),
+
+    getNicraSubCategories: () =>
+        apiClient.get<PaginatedResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category`),
+    getNicraSubCategoryById: (id: number) =>
+        apiClient.get<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category/${id}`),
+    createNicraSubCategory: (data: NicraSubCategoryFormData) =>
+        apiClient.post<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category`, data),
+    updateNicraSubCategory: (id: number, data: Partial<NicraSubCategoryFormData>) =>
+        apiClient.put<ApiResponse<NicraSubCategory>>(`${BASE_URL}/nicra-sub-category/${id}`, data),
+    deleteNicraSubCategory: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-sub-category/${id}`),
+
+    getNicraSeedBankFodderBanks: () =>
+        apiClient.get<PaginatedResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank`),
+    getNicraSeedBankFodderBankById: (id: number) =>
+        apiClient.get<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`),
+    createNicraSeedBankFodderBank: (data: NicraSeedBankFodderBankFormData) =>
+        apiClient.post<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank`, data),
+    updateNicraSeedBankFodderBank: (id: number, data: Partial<NicraSeedBankFodderBankFormData>) =>
+        apiClient.put<ApiResponse<NicraSeedBankFodderBank>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`, data),
+    deleteNicraSeedBankFodderBank: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-seed-bank-fodder-bank/${id}`),
+
+    getNicraDignitaryTypes: () =>
+        apiClient.get<PaginatedResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type`),
+    getNicraDignitaryTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type/${id}`),
+    createNicraDignitaryType: (data: NicraDignitaryTypeFormData) =>
+        apiClient.post<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type`, data),
+    updateNicraDignitaryType: (id: number, data: Partial<NicraDignitaryTypeFormData>) =>
+        apiClient.put<ApiResponse<NicraDignitaryType>>(`${BASE_URL}/nicra-dignitary-type/${id}`, data),
+    deleteNicraDignitaryType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-dignitary-type/${id}`),
+
+    getNicraPiTypes: () =>
+        apiClient.get<PaginatedResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type`),
+    getNicraPiTypeById: (id: number) =>
+        apiClient.get<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type/${id}`),
+    createNicraPiType: (data: NicraPiTypeFormData) =>
+        apiClient.post<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type`, data),
+    updateNicraPiType: (id: number, data: Partial<NicraPiTypeFormData>) =>
+        apiClient.put<ApiResponse<NicraPiType>>(`${BASE_URL}/nicra-pi-type/${id}`, data),
+    deleteNicraPiType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/nicra-pi-type/${id}`),
+
+    // Impact Specific Areas
+    getImpactSpecificAreas: () =>
+        apiClient.get<PaginatedResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master`),
+    getImpactSpecificAreaById: (id: number) =>
+        apiClient.get<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master/${id}`),
+    createImpactSpecificArea: (data: ImpactSpecificAreaFormData) =>
+        apiClient.post<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master`, data),
+    updateImpactSpecificArea: (id: number, data: Partial<ImpactSpecificAreaFormData>) =>
+        apiClient.put<ApiResponse<ImpactSpecificArea>>(`${BASE_URL}/impact-specific-area-master/${id}`, data),
+    deleteImpactSpecificArea: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/impact-specific-area-master/${id}`),
+
+    // Enterprise Types
+    getEnterpriseTypes: () =>
+        apiClient.get<PaginatedResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type`),
+    getEnterpriseTypeById: (id: number) =>
+        apiClient.get<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type/${id}`),
+    createEnterpriseType: (data: EnterpriseTypeFormData) =>
+        apiClient.post<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type`, data),
+    updateEnterpriseType: (id: number, data: Partial<EnterpriseTypeFormData>) =>
+        apiClient.put<ApiResponse<EnterpriseType>>(`${BASE_URL}/enterprise-type/${id}`, data),
+    deleteEnterpriseType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/enterprise-type/${id}`),
+
+    // Account Types
+    getAccountTypes: () =>
+        apiClient.get<PaginatedResponse<AccountType>>(`${BASE_URL}/account-type`),
+    getAccountTypeById: (id: number) =>
+        apiClient.get<ApiResponse<AccountType>>(`${BASE_URL}/account-type/${id}`),
+    createAccountType: (data: AccountTypeFormData) =>
+        apiClient.post<ApiResponse<AccountType>>(`${BASE_URL}/account-type`, data),
+    updateAccountType: (id: number, data: Partial<AccountTypeFormData>) =>
+        apiClient.put<ApiResponse<AccountType>>(`${BASE_URL}/account-type/${id}`, data),
+    deleteAccountType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/account-type/${id}`),
+
+    // Programme Types
+    getProgrammeTypes: () =>
+        apiClient.get<PaginatedResponse<ProgrammeType>>(`${BASE_URL}/programme-type`),
+    getProgrammeTypeById: (id: number) =>
+        apiClient.get<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type/${id}`),
+    createProgrammeType: (data: ProgrammeTypeFormData) =>
+        apiClient.post<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type`, data),
+    updateProgrammeType: (id: number, data: Partial<ProgrammeTypeFormData>) =>
+        apiClient.put<ApiResponse<ProgrammeType>>(`${BASE_URL}/programme-type/${id}`, data),
+    deleteProgrammeType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/programme-type/${id}`),
+
+    // ============================================
+    // PPV & FRA Training Type Master
+    // ============================================
+    getPpvFraTrainingTypes: () =>
+        apiClient.get<ApiResponse<any[]>>(`${BASE_URL}/ppv-fra-training-type`),
+
+    createPpvFraTrainingType: (data: PpvFraTrainingTypeFormData) =>
+        apiClient.post<ApiResponse<any>>(`${BASE_URL}/ppv-fra-training-type`, data),
+
+    updatePpvFraTrainingType: (id: number, data: Partial<PpvFraTrainingTypeFormData>) =>
+        apiClient.put<ApiResponse<any>>(`${BASE_URL}/ppv-fra-training-type/${id}`, data),
+
+    deletePpvFraTrainingType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/ppv-fra-training-type/${id}`),
+
+    // Dignitary Types
+    getDignitaryTypes: () =>
+        apiClient.get<PaginatedResponse<DignitaryType>>(`${BASE_URL}/dignitary-type`),
+
+    getDignitaryTypeById: (id: number) =>
+        apiClient.get<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type/${id}`),
+
+    createDignitaryType: (data: DignitaryTypeFormData) =>
+        apiClient.post<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type`, data),
+
+    updateDignitaryType: (id: number, data: Partial<DignitaryTypeFormData>) =>
+        apiClient.put<ApiResponse<DignitaryType>>(`${BASE_URL}/dignitary-type/${id}`, data),
+
+    deleteDignitaryType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/dignitary-type/${id}`),
+
+    // Financial Projects
+    getFinancialProjects: () =>
+        apiClient.get<PaginatedResponse<FinancialProject>>(`${BASE_URL}/financial-project`),
+    getFinancialProjectById: (id: number) =>
+        apiClient.get<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project/${id}`),
+    createFinancialProject: (data: FinancialProjectFormData) =>
+        apiClient.post<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project`, data),
+    updateFinancialProject: (id: number, data: Partial<FinancialProjectFormData>) =>
+        apiClient.put<ApiResponse<FinancialProject>>(`${BASE_URL}/financial-project/${id}`, data),
+    deleteFinancialProject: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/financial-project/${id}`),
+
+    // Funding Agencies
+    getFundingAgencies: () =>
+        apiClient.get<PaginatedResponse<FundingAgency>>(`${BASE_URL}/funding-agency`),
+    getFundingAgencyById: (id: number) =>
+        apiClient.get<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`),
+    createFundingAgency: (data: FundingAgencyFormData) =>
+        apiClient.post<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency`, data),
+    updateFundingAgency: (id: number, data: Partial<FundingAgencyFormData>) =>
+        apiClient.put<ApiResponse<FundingAgency>>(`${BASE_URL}/funding-agency/${id}`, data),
+    deleteFundingAgency: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-agency/${id}`),
 };

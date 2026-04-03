@@ -22,8 +22,8 @@ model NicraSubCategory {
 model NicraDetails {
   nicraDetailsId         Int              @id @default(autoincrement()) @map("nicra_details_id")
   kvkId                  Int
-  nicraCategoryId        Int
-  nicraSubCategoryId     Int
+  nicraCategoryId        Int?
+  nicraSubCategoryId     Int?
   fstType                String           @map("fst_type")
   cropName               String           @map("crop_name")
   seasonId               Int?
@@ -46,17 +46,16 @@ model NicraDetails {
   bcrRatio               Float            @map("bcr_ratio")
   photographs            String?          @map("photographs")
   uploadFile             String?          @map("upload_file")
-  reportingYearId        Int?             @map("reporting_year_id")
-  kvk                    Kvk              @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  category               NicraCategory    @relation(fields: [nicraCategoryId], references: [nicraCategoryId])
-  subCategory            NicraSubCategory @relation(fields: [nicraSubCategoryId], references: [nicraSubCategoryId])
-  reportingYear          YearMaster?      @relation(fields: [reportingYearId], references: [yearId])
-  season                 Season?          @relation(fields: [seasonId], references: [seasonId])
+  reportingYear DateTime? @map("reporting_year")
+kvk                    Kvk              @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  category               NicraCategory?   @relation(fields: [nicraCategoryId], references: [nicraCategoryId], onDelete: SetNull)
+  subCategory            NicraSubCategory? @relation(fields: [nicraSubCategoryId], references: [nicraSubCategoryId], onDelete: SetNull)
+season                 Season?          @relation(fields: [seasonId], references: [seasonId])
 
   @@index([kvkId])
   @@index([nicraCategoryId])
   @@index([nicraSubCategoryId])
-  @@index([reportingYearId])
+  @@index([reportingYear])
   @@map("nicra_details")
 }
 

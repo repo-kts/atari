@@ -1,8 +1,8 @@
 model DemonstrationUnit {
   demonstrationUnitId String      @id @default(uuid()) @map("demonstration_unit_id")
   kvkId               Int
-  reportingYearId     Int?        @map("reporting_year_id")
-  demoUnitName        String      @map("demo_unit_name")
+  reportingYear DateTime? @map("reporting_year")
+demoUnitName        String      @map("demo_unit_name")
   yearOfEstablishment Int         @map("year_of_establishment")
   area                Float       @map("area")
   varietyBreed        String      @map("variety_breed")
@@ -14,10 +14,8 @@ model DemonstrationUnit {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
   kvk                 Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  reportingYear       YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
-
-  @@index([kvkId])
-  @@index([reportingYearId])
+@@index([kvkId])
+  @@index([reportingYear])
   @@index([demoUnitName])
   @@index([createdAt])
   @@map("demonstration_unit")

@@ -5,6 +5,7 @@ const { validateEmail, validatePassword, validateRoleId, sanitizeInput, validate
 const prisma = require('../config/prisma.js');
 const authRepository = require('../repositories/authRepository.js');
 const { isAdminRole, outranksOrEqual, getManageableRoles, getRoleLevel, getCreatableRoles } = require('../constants/roleHierarchy.js');
+const permissionResolverService = require('./auth/permissionResolverService.js');
 
 const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
@@ -239,6 +240,13 @@ const userManagementService = {
       }
       return created;
     });
+
+    // Best-effort cache invalidation in case any permission cache entry exists.
+    try {
+      await permissionResolverService.invalidateUserPermissions(user.userId);
+    } catch (error) {
+      console.error('Permission cache invalidation failed after user creation:', error.message);
+    }
 
     return {
       userId: user.userId,
@@ -730,6 +738,13 @@ const userManagementService = {
       permissionActions = await userPermissionRepository.getUserPermissionActions(userId);
     }
 
+    // Best-effort cache invalidation (covers role changes and user-level permission changes).
+    try {
+      await permissionResolverService.invalidateUserPermissions(userId);
+    } catch (error) {
+      console.error('Permission cache invalidation failed after user update:', error.message);
+    }
+
     return {
       userId: updatedUser.userId,
       name: updatedUser.name,
@@ -777,6 +792,13 @@ const userManagementService = {
 
     // Revoke all refresh tokens for the user
     await authRepository.revokeAllUserTokens(userId);
+
+    // Best-effort cache invalidation
+    try {
+      await permissionResolverService.invalidateUserPermissions(userId);
+    } catch (error) {
+      console.error('Permission cache invalidation failed after user deletion:', error.message);
+    }
 
     return true;
   },

@@ -2,7 +2,8 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
-import { useYears } from '@/hooks/useOtherMastersData'
+import { useFileHandling } from '@/hooks/useFileHandling'
+import { useYears, usePpvFraTrainingTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
@@ -17,15 +18,22 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     formData,
     setFormData,
 }) => {
+    const { handleFileChange } = useFileHandling(formData, setFormData)
     const { data: years = [], isLoading: isLoadingYears } = useYears()
+    const { data: trainingTypes = [], isLoading: isLoadingTypes } = usePpvFraTrainingTypes()
 
     const yearOptions = useMemo(
         () => {
             // For Plant Varieties, we might want the year name/value if the backend expects an Int (parseInt will handle "2023-24" as 2023)
             // But usually IDs are preferred if relations exist. Since no relation here, let's keep IDs but be mindful.
-            return createMasterDataOptions(years, 'yearId', 'yearName')
+            return createMasterDataOptions(years, 'reportingYear', 'yearName')
         },
         [years]
+    )
+
+    const trainingTypeOptions = useMemo(
+        () => createMasterDataOptions(trainingTypes, 'typeId', 'typeName'),
+        [trainingTypes]
     )
 
     const handleFieldChange = useCallback(
@@ -53,11 +61,22 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
     )
 
 
-    const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData({ ...formData, [field]: e.target.files })
+    const handleFileChangeLocal = useCallback(
+        (field: string, multiple: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
+            handleFileChange(field, multiple)(e)
+            // If the field is 'image', also update the 'image' property which is used in the repository
+            if (field === 'images') {
+                const file = e.target.files?.[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setFormData({ ...formData, image: reader.result as string });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
         },
-        [formData, setFormData]
+        [handleFileChange, formData, setFormData]
     )
 
     if (!entityType) return null
@@ -76,26 +95,22 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             onChange={handleDateChange('programmeDate')}
                         />
 
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-semibold text-gray-700">Type <span className="text-red-500">*</span></label>
-                            <select
-                                className="w-full px-4 py-2 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white"
-                                value={formData.type || ''}
-                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                required
-                            >
-                                <option value="">Select Type</option>
-                                <option value="TRAINING">TRAINING</option>
-                                <option value="AWARENESS">AWARENESS</option>
-                            </select>
-                        </div>
+                        <MasterDataDropdown
+                            label="Type"
+                            required
+                            value={formData.typeId ?? ''}
+                            onChange={(val) => setFormData({ ...formData, typeId: val })}
+                            options={trainingTypeOptions}
+                            isLoading={isLoadingTypes}
+                            emptyMessage="No training types available"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput
                             label="Title"
                             required
-                            value={formData.title || ''}
+                            value={formData.title ?? ''}
                             onChange={handleFieldChange('title')}
                             placeholder="Enter title"
                         />
@@ -103,7 +118,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Venue"
                             required
-                            value={formData.venue || ''}
+                            value={formData.venue ?? ''}
                             onChange={handleFieldChange('venue')}
                             placeholder="Enter venue"
                         />
@@ -112,83 +127,85 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="Resource Person"
                         required
-                        value={formData.resourcePerson || ''}
+                        value={formData.resourcePerson ?? ''}
                         onChange={handleFieldChange('resourcePerson')}
                         placeholder="Enter resource person"
                     />
 
-                    <FormSection title="No. of the Participant">
-                        <FormInput
-                            label="General_M"
-                            required
-                            type="number"
-                            value={formData.generalM || ''}
-                            onChange={handleNumberChange('generalM')}
-                            placeholder="0"
-                        />
+                    <FormSection title="No. of the Participant" noGrid>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormInput
+                                label="General_M"
+                                required
+                                type="number"
+                                value={formData.generalM || ''}
+                                onChange={handleNumberChange('generalM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="General_F"
-                            required
-                            type="number"
-                            value={formData.generalF || ''}
-                            onChange={handleNumberChange('generalF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="General_F"
+                                required
+                                type="number"
+                                value={formData.generalF || ''}
+                                onChange={handleNumberChange('generalF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="OBC_M"
-                            required
-                            type="number"
-                            value={formData.obcM || ''}
-                            onChange={handleNumberChange('obcM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="OBC_M"
+                                required
+                                type="number"
+                                value={formData.obcM || ''}
+                                onChange={handleNumberChange('obcM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="OBC_F"
-                            required
-                            type="number"
-                            value={formData.obcF || ''}
-                            onChange={handleNumberChange('obcF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="OBC_F"
+                                required
+                                type="number"
+                                value={formData.obcF || ''}
+                                onChange={handleNumberChange('obcF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="SC_M"
-                            required
-                            type="number"
-                            value={formData.scM || ''}
-                            onChange={handleNumberChange('scM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="SC_M"
+                                required
+                                type="number"
+                                value={formData.scM || ''}
+                                onChange={handleNumberChange('scM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="SC_F"
-                            required
-                            type="number"
-                            value={formData.scF || ''}
-                            onChange={handleNumberChange('scF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="SC_F"
+                                required
+                                type="number"
+                                value={formData.scF || ''}
+                                onChange={handleNumberChange('scF')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="ST_M"
-                            required
-                            type="number"
-                            value={formData.stM || ''}
-                            onChange={handleNumberChange('stM')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="ST_M"
+                                required
+                                type="number"
+                                value={formData.stM || ''}
+                                onChange={handleNumberChange('stM')}
+                                placeholder="0"
+                            />
 
-                        <FormInput
-                            label="ST_F"
-                            required
-                            type="number"
-                            value={formData.stF || ''}
-                            onChange={handleNumberChange('stF')}
-                            placeholder="0"
-                        />
+                            <FormInput
+                                label="ST_F"
+                                required
+                                type="number"
+                                value={formData.stF || ''}
+                                onChange={handleNumberChange('stF')}
+                                placeholder="0"
+                            />
+                        </div>
                     </FormSection>
                 </div>
             )}
@@ -199,14 +216,12 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <MasterDataDropdown
                         label="Reporting Year"
                         required
-                        value={formData.reportingYearId || formData.yearId || formData.reportingYear || ''}
+                        value={formData.reportingYear ?? ''}
                         onChange={(val) => {
-                            const selectedYear = years.find(y => y.yearId === val || y.yearName === val);
+                            const selectedYear = years.find(y => y.reportingYear === val || y.yearName === val);
                             setFormData({
                                 ...formData,
-                                reportingYearId: val,
-                                yearId: val,
-                                reportingYear: selectedYear ? (parseInt(selectedYear.yearName) || val) : val
+                                reportingYear: selectedYear ? (selectedYear.reportingYear || val) : val
                             });
                         }}
                         options={yearOptions}
@@ -218,7 +233,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Name of Crop Registered"
                             required
-                            value={formData.cropName || ''}
+                            value={formData.cropName ?? ''}
                             onChange={handleFieldChange('cropName')}
                             placeholder="Enter crop name"
                         />
@@ -226,7 +241,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Farmer Name"
                             required
-                            value={formData.farmerName || ''}
+                            value={formData.farmerName ?? ''}
                             onChange={handleFieldChange('farmerName')}
                             placeholder="Enter farmer name"
                         />
@@ -236,7 +251,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Mobile No."
                             required
-                            value={formData.mobile || ''}
+                            value={formData.mobile ?? ''}
                             onChange={handleFieldChange('mobile')}
                             placeholder="Enter mobile number"
                         />
@@ -244,7 +259,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Village"
                             required
-                            value={formData.village || ''}
+                            value={formData.village ?? ''}
                             onChange={handleFieldChange('village')}
                             placeholder="Enter village"
                         />
@@ -252,7 +267,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         <FormInput
                             label="Block"
                             required
-                            value={formData.block || ''}
+                            value={formData.block ?? ''}
                             onChange={handleFieldChange('block')}
                             placeholder="Enter block"
                         />
@@ -261,7 +276,7 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="District"
                         required
-                        value={formData.district || ''}
+                        value={formData.district ?? ''}
                         onChange={handleFieldChange('district')}
                         placeholder="Enter district"
                     />
@@ -269,22 +284,67 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                     <FormInput
                         label="Characteristics"
                         required
-                        value={formData.characteristics || ''}
+                        value={formData.characteristics ?? ''}
                         onChange={handleFieldChange('characteristics')}
                         placeholder="Enter characteristics"
                     />
 
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <label className="block text-sm font-semibold text-gray-700">
                             Images
                         </label>
-                        <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleFileChange('images')}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-[#487749]/10 file:text-[#487749] hover:file:bg-[#487749]/20 transition-all border border-[#E0E0E0] rounded-xl p-2"
-                        />
+
+                        {(formData.image || formData.images) && (
+                            <div className="flex flex-wrap gap-3 mb-4 p-4 border border-dashed border-[#487749]/30 rounded-2xl bg-[#487749]/5">
+                                {(() => {
+                                    try {
+                                        const imageData = formData.image || formData.images;
+                                        const images = typeof imageData === 'string'
+                                            ? (imageData.startsWith('[') ? JSON.parse(imageData) : [imageData])
+                                            : [];
+                                        return images.map((img: string, idx: number) => (
+                                            <div key={idx} className="relative group">
+                                                <img
+                                                    src={img}
+                                                    className="h-24 w-auto object-cover rounded-xl shadow-md border-2 border-white hover:scale-105 transition-transform duration-300"
+                                                    alt={`Preview ${idx + 1}`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newImages = images.filter((_: any, i: number) => i !== idx);
+                                                        const newValue = newImages.length === 0 ? null : (newImages.length === 1 ? newImages[0] : JSON.stringify(newImages));
+                                                        setFormData({
+                                                            ...formData,
+                                                            image: newValue,
+                                                            images: null // Clear the file objects
+                                                        });
+                                                    }}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        ));
+                                    } catch { return null; }
+                                })()}
+                            </div>
+                        )}
+
+                        <div className="relative group">
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleFileChangeLocal('images', true)}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#487749] file:text-white hover:file:bg-[#3d633e] transition-all border-2 border-dashed border-[#E0E0E0] group-hover:border-[#487749]/50 rounded-2xl p-2 bg-gray-50/50"
+                            />
+                            <p className="mt-2 text-[10px] text-gray-500">
+                                Max 2MB per file. (Optional)
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}

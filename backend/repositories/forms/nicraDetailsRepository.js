@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
 const nicraDetailsRepository = {
     create: async (data, user) => {
@@ -30,7 +31,11 @@ const nicraDetailsRepository = {
                 grossReturn: parseFloat(data.grossReturn || 0),
                 netReturn: parseFloat(data.netReturn || 0),
                 bcrRatio: parseFloat(data.bcrRatio || 0),
-                reportingYearId: data.reportingYearId ? parseInt(data.reportingYearId) : null,
+                reportingYear: (() => {
+                    const d = parseReportingYearDate(data.reportingYear);
+                    ensureNotFutureDate(d);
+                    return d;
+                })(),
                 photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : null,
                 uploadFile: data.uploadFile || null,
             }
@@ -45,8 +50,24 @@ const nicraDetailsRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearId) {
-            where.reportingYearId = parseInt(filters.reportingYearId);
+        if (filters.reportingYearFrom || filters.reportingYearTo) {
+            where.reportingYear = {};
+            if (filters.reportingYearFrom) {
+                const from = parseReportingYearDate(filters.reportingYearFrom);
+                ensureNotFutureDate(from);
+                if (from) {
+                    from.setHours(0, 0, 0, 0);
+                    where.reportingYear.gte = from;
+                }
+            }
+            if (filters.reportingYearTo) {
+                const to = parseReportingYearDate(filters.reportingYearTo);
+                ensureNotFutureDate(to);
+                if (to) {
+                    to.setHours(23, 59, 59, 999);
+                    where.reportingYear.lte = to;
+                }
+            }
         }
 
         return await prisma.nicraDetails.findMany({
@@ -55,7 +76,6 @@ const nicraDetailsRepository = {
                 kvk: { select: { kvkName: true } },
                 category: true,
                 subCategory: true,
-                reportingYear: true,
                 season: true
             },
             orderBy: { nicraDetailsId: 'desc' }
@@ -73,7 +93,6 @@ const nicraDetailsRepository = {
                 kvk: { select: { kvkName: true } },
                 category: true,
                 subCategory: true,
-                reportingYear: true,
                 season: true
             }
         });
@@ -113,7 +132,13 @@ const nicraDetailsRepository = {
                 grossReturn: data.grossReturn !== undefined ? parseFloat(data.grossReturn) : existing.grossReturn,
                 netReturn: data.netReturn !== undefined ? parseFloat(data.netReturn) : existing.netReturn,
                 bcrRatio: data.bcrRatio !== undefined ? parseFloat(data.bcrRatio) : existing.bcrRatio,
-                reportingYearId: data.reportingYearId !== undefined ? (data.reportingYearId ? parseInt(data.reportingYearId) : null) : existing.reportingYearId,
+                reportingYear: data.reportingYear !== undefined
+                    ? (() => {
+                        const d = parseReportingYearDate(data.reportingYear);
+                        ensureNotFutureDate(d);
+                        return d;
+                    })()
+                    : existing.reportingYear,
                 photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : existing.photographs,
                 uploadFile: data.uploadFile !== undefined ? data.uploadFile : existing.uploadFile,
             }

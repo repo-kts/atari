@@ -12,6 +12,7 @@ const sections: FeatureSection[] = [
             { label: 'Districts Master', path: '/all-master/districts' },
             { label: 'Organization Master', path: '/all-master/organizations' },
             { label: 'University Master', path: '/all-master/universities' },
+            { label: 'KVKs', path: '/all-master/kvks' },
         ],
     },
 ]

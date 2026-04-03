@@ -242,4 +242,140 @@ exports.deleteSoilWaterAnalysis = deleteEntity('soil-water-analysis');
 // ============================================
 
 exports.getAllNariCropCategories = getAll('nari-crop-category');
+exports.getAllNariActivities = getAll('nari-activity');
+exports.getNariActivityById = getById('nari-activity');
+exports.createNariActivity = create('nari-activity');
+exports.updateNariActivity = update('nari-activity');
+exports.deleteNariActivity = deleteEntity('nari-activity');
+
 exports.getAllNariNutritionGardenTypes = getAll('nari-nutrition-garden-type');
+exports.getNariNutritionGardenTypeById = getById('nari-nutrition-garden-type');
+exports.createNariNutritionGardenType = create('nari-nutrition-garden-type');
+exports.updateNariNutritionGardenType = update('nari-nutrition-garden-type');
+exports.deleteNariNutritionGardenType = deleteEntity('nari-nutrition-garden-type');
+
+// ============================================
+// NICRA Masters Controllers
+// ============================================
+
+exports.getAllNicraCategories = getAll('nicra-category');
+exports.getNicraCategoryById = getById('nicra-category');
+exports.createNicraCategory = create('nicra-category');
+exports.updateNicraCategory = update('nicra-category');
+exports.deleteNicraCategory = deleteEntity('nicra-category');
+
+exports.getAllNicraSubCategories = getAll('nicra-sub-category');
+exports.getNicraSubCategoryById = getById('nicra-sub-category');
+exports.createNicraSubCategory = create('nicra-sub-category');
+exports.updateNicraSubCategory = update('nicra-sub-category');
+exports.deleteNicraSubCategory = deleteEntity('nicra-sub-category');
+
+exports.getAllNicraSeedBankFodderBank = getAll('nicra-seed-bank-fodder-bank');
+exports.getNicraSeedBankFodderBankById = getById('nicra-seed-bank-fodder-bank');
+exports.createNicraSeedBankFodderBank = create('nicra-seed-bank-fodder-bank');
+exports.updateNicraSeedBankFodderBank = update('nicra-seed-bank-fodder-bank');
+exports.deleteNicraSeedBankFodderBank = deleteEntity('nicra-seed-bank-fodder-bank');
+
+exports.getAllNicraDignitaryTypes = getAll('nicra-dignitary-type');
+exports.getNicraDignitaryTypeById = getById('nicra-dignitary-type');
+exports.createNicraDignitaryType = create('nicra-dignitary-type');
+exports.updateNicraDignitaryType = update('nicra-dignitary-type');
+exports.deleteNicraDignitaryType = deleteEntity('nicra-dignitary-type');
+
+exports.getAllNicraPiTypes = getAll('nicra-pi-type');
+exports.getNicraPiTypeById = getById('nicra-pi-type');
+exports.createNicraPiType = create('nicra-pi-type');
+exports.updateNicraPiType = update('nicra-pi-type');
+exports.deleteNicraPiType = deleteEntity('nicra-pi-type');
+
+// ============================================
+// Impact Specific Area Master Controllers
+// ============================================
+
+exports.getAllImpactSpecificAreas = getAll('impact-specific-area-master');
+exports.getImpactSpecificAreaById = getById('impact-specific-area-master');
+exports.createImpactSpecificArea = create('impact-specific-area-master');
+exports.updateImpactSpecificArea = update('impact-specific-area-master');
+exports.deleteImpactSpecificArea = deleteEntity('impact-specific-area-master');
+
+// ============================================
+// Enterprise Type Master Controllers
+// ============================================
+
+exports.getAllEnterpriseTypes = getAll('enterprise-type');
+exports.getEnterpriseTypeById = getById('enterprise-type');
+exports.createEnterpriseType = create('enterprise-type');
+exports.updateEnterpriseType = update('enterprise-type');
+exports.deleteEnterpriseType = deleteEntity('enterprise-type');
+
+// ============================================
+// Account Type Master Controllers
+// ============================================
+
+exports.getAllAccountTypes = getAll('account-type');
+exports.getAccountTypeById = getById('account-type');
+exports.createAccountType = create('account-type');
+exports.updateAccountType = update('account-type');
+exports.deleteAccountType = deleteEntity('account-type');
+
+// ============================================
+// Programme Type Master Controllers
+// ============================================
+
+exports.getAllProgrammeTypes = getAll('programme-type');
+exports.getProgrammeTypeById = getById('programme-type');
+exports.createProgrammeType = create('programme-type');
+exports.updateProgrammeType = update('programme-type');
+exports.deleteProgrammeType = deleteEntity('programme-type');
+
+// ============================================
+// PPV & FRA Training Type Master Controllers
+// ============================================
+
+exports.getAllPpvFraTrainingTypes = getAll('ppv-fra-training-type');
+exports.getPpvFraTrainingTypeById = getById('ppv-fra-training-type');
+exports.createPpvFraTrainingType = create('ppv-fra-training-type');
+exports.updatePpvFraTrainingType = update('ppv-fra-training-type');
+exports.deletePpvFraTrainingType = deleteEntity('ppv-fra-training-type');
+
+// ============================================
+// Dignitary Type Master Controllers
+// ============================================
+
+exports.getAllDignitaryTypes = getAll('dignitary-type');
+exports.getDignitaryTypeById = getById('dignitary-type');
+exports.createDignitaryType = create('dignitary-type');
+exports.updateDignitaryType = update('dignitary-type');
+exports.deleteDignitaryType = deleteEntity('dignitary-type');
+
+// ============================================
+// Financial Project Master Controllers
+// ============================================
+
+exports.getAllFinancialProjects = getAll('financial-project');
+exports.getFinancialProjectById = getById('financial-project');
+exports.createFinancialProject = create('financial-project');
+exports.updateFinancialProject = update('financial-project');
+exports.deleteFinancialProject = deleteEntity('financial-project');
+
+// ============================================
+// Funding Agency Master Controllers
+// ============================================
+
+exports.getAllFundingAgencies = getAll('funding-agency');
+exports.getFundingAgencyById = getById('funding-agency');
+exports.createFundingAgency = create('funding-agency');
+exports.updateFundingAgency = update('funding-agency');
+exports.deleteFundingAgency = deleteEntity('funding-agency');
+
+exports.getAllVehiclePresentStatuses = getAll('vehicle-present-status');
+exports.getVehiclePresentStatusById = getById('vehicle-present-status');
+exports.createVehiclePresentStatus = create('vehicle-present-status');
+exports.updateVehiclePresentStatus = update('vehicle-present-status');
+exports.deleteVehiclePresentStatus = deleteEntity('vehicle-present-status');
+
+exports.getAllEquipmentPresentStatuses = getAll('equipment-present-status');
+exports.getEquipmentPresentStatusById = getById('equipment-present-status');
+exports.createEquipmentPresentStatus = create('equipment-present-status');
+exports.updateEquipmentPresentStatus = update('equipment-present-status');
+exports.deleteEquipmentPresentStatus = deleteEntity('equipment-present-status');

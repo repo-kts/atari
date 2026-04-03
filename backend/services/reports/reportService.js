@@ -64,6 +64,7 @@ class ReportService {
                 description: s.description,
                 subsection: s.subsection,
                 parentSectionId: s.parentSectionId,
+                dataSource: s.dataSource,
             })),
         };
     }

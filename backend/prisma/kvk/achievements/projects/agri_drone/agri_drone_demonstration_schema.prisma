@@ -1,0 +1,42 @@
+model KvkAgriDroneDemonstration {
+  agriDroneDemonstrationId Int      @id @default(autoincrement()) @map("agri_drone_demonstration_id")
+
+  kvkId       Int
+  agriDroneId Int      @map("agri_drone_id")
+
+  reportingYear       DateTime? @map("reporting_year")
+  demonstrationsOnId  Int?  @map("agri_drone_demonstrations_on_id")
+  districtId          Int?  @map("district_id")
+
+  dateOfDemonstration DateTime? @map("date_of_demonstration")
+  placeOfDemonstration String? @map("place_of_demonstration")
+  cropName            String? @map("crop_name")
+  noOfDemos           Int?    @map("no_of_demos")
+  areaHa              Float?  @map("area_ha")
+  noOfFarmers         Int?    @map("no_of_farmers")
+
+  generalM Int? @map("general_m")
+  generalF Int? @map("general_f")
+  obcM     Int? @map("obc_m")
+  obcF     Int? @map("obc_f")
+  scM      Int? @map("sc_m")
+  scF      Int? @map("sc_f")
+  stM      Int? @map("st_m")
+  stF      Int? @map("st_f")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  kvk              Kvk                             @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  agriDrone        KvkAgriDrone                    @relation(fields: [agriDroneId], references: [agriDroneId], onDelete: Cascade)
+  district         DistrictMaster?                 @relation(fields: [districtId], references: [districtId], onDelete: SetNull)
+  demonstrationsOn AgriDroneDemonstrationsOnMaster? @relation(fields: [demonstrationsOnId], references: [agriDroneDemonstrationsOnId], onDelete: SetNull)
+
+  @@index([kvkId])
+  @@index([agriDroneId])
+  @@index([reportingYear])
+  @@index([districtId])
+  @@index([demonstrationsOnId])
+  @@map("kvk_agri_drone_demonstration")
+}
+

@@ -1,6 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { parseReportingYearDate, ensureNotFutureDate, normalizeDateRange } = require('../../utils/reportingYearUtils.js');
 
 /**
  * About KVK Repository
@@ -28,6 +29,9 @@ const ENTITY_CONFIG = {
             },
             university: {
                 select: { universityId: true, universityName: true }
+            },
+            landDetails: {
+                select: { landId: true, item: true, areaHa: true }
             }
         }
     },
@@ -107,16 +111,16 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-vehicle-details': { // Alias for vehicles
-        model: 'kvkVehicle',
-        idField: 'vehicleId',
-        nameField: 'vehicleName',
+        model: 'kvkVehicleDetail',
+        idField: 'vehicleDetailId',
+        nameField: 'vehicleId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
+			vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
+            vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
         }
     },
     'kvk-equipments': {
@@ -125,16 +129,16 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
         }
     },
     'kvk-equipment-details': {
-        model: 'kvkEquipment',
-        idField: 'equipmentId',
-        nameField: 'equipmentName',
+        model: 'kvkEquipmentDetail',
+        idField: 'equipmentDetailId',
+        nameField: 'equipmentId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            reportingYear: { select: { yearId: true, yearName: true } }
+            equipment: { select: { equipmentId: true, equipmentName: true, yearOfPurchase: true, totalCost: true, sourceOfFunding: true } },
+            equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
         }
     },
     'kvk-farm-implements': {
@@ -172,6 +176,40 @@ function getEntityConfig(entityName) {
         throw new Error(`Invalid entity name: ${entityName}`);
     }
     return config;
+}
+
+async function resolveDetailEntityId(entityName, parsedId) {
+    if (entityName === 'kvk-vehicle-details') {
+        const byPrimary = await prisma.kvkVehicleDetail.findUnique({
+            where: { vehicleDetailId: parsedId },
+            select: { vehicleDetailId: true },
+        });
+        if (byPrimary) return byPrimary.vehicleDetailId;
+
+        const byVehicle = await prisma.kvkVehicleDetail.findFirst({
+            where: { vehicleId: parsedId },
+            select: { vehicleDetailId: true },
+            orderBy: [{ reportingYear: 'desc' }, { vehicleDetailId: 'desc' }],
+        });
+        return byVehicle?.vehicleDetailId || null;
+    }
+
+    if (entityName === 'kvk-equipment-details') {
+        const byPrimary = await prisma.kvkEquipmentDetail.findUnique({
+            where: { equipmentDetailId: parsedId },
+            select: { equipmentDetailId: true },
+        });
+        if (byPrimary) return byPrimary.equipmentDetailId;
+
+        const byEquipment = await prisma.kvkEquipmentDetail.findFirst({
+            where: { equipmentId: parsedId },
+            select: { equipmentDetailId: true },
+            orderBy: [{ reportingYear: 'desc' }, { equipmentDetailId: 'desc' }],
+        });
+        return byEquipment?.equipmentDetailId || null;
+    }
+
+    return parsedId;
 }
 
 async function findAll(entityName, options = {}, user = null) {
@@ -224,6 +262,15 @@ async function findAll(entityName, options = {}, user = null) {
     } else {
         // For other entities: use standard filter spreading
         where = { ...filters };
+        const { reportingYearFrom, reportingYearTo } = where;
+        if (reportingYearFrom !== undefined || reportingYearTo !== undefined) {
+            where.reportingYear = normalizeDateRange({
+                from: reportingYearFrom,
+                to: reportingYearTo,
+            });
+            delete where.reportingYearFrom;
+            delete where.reportingYearTo;
+        }
 
         // Add search filter if nameField is defined
         if (search && config.nameField) {
@@ -346,8 +393,13 @@ async function findById(entityName, id) {
         throw new Error(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
 
+    const resolvedId = await resolveDetailEntityId(entityName, parsedId);
+    if (!resolvedId) {
+        return null;
+    }
+
     return await prisma[config.model].findUnique({
-        where: { [config.idField]: parsedId },
+        where: { [config.idField]: resolvedId },
         include: config.includes,
     });
 }
@@ -397,6 +449,17 @@ function convertRelationFieldsForKvk(data) {
             converted.university = { connect: { universityId: sanitizeInteger(converted.universityId) } };
         }
         delete converted.universityId;
+    }
+
+    // Handle landDetails nested write (replaces existing records with new list)
+    if (converted.landDetails && Array.isArray(converted.landDetails)) {
+        converted.landDetails = {
+            deleteMany: {},
+            create: converted.landDetails.map(item => ({
+                item: sanitizeString(item.item),
+                areaHa: parseFloat(item.areaHa) || 0
+            }))
+        };
     }
     
     return converted;
@@ -497,20 +560,47 @@ function sanitizeData(entityName, data) {
 
     // Remove fields that don't exist in Prisma schema for KVK
     if (entityName === 'kvks') {
-        // Prisma schema only has: kvkName, zoneId, stateId, districtId, orgId, universityId,
-        // hostOrg, mobile, email, address, yearOfSanction
+        const allowedFields = [
+            'kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId',
+            'mobile', 'landline', 'fax', 'email', 'address',
+            'hostOrg', 'hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'hostAddress',
+            'yearOfSanction', 'landDetails'
+        ];
+
         // Remove all fields that don't exist in the schema
-        const invalidFields = ['hostMobile', 'hostLandline', 'hostFax', 'hostEmail', 'createdAt', 'updatedAt'];
-        invalidFields.forEach(field => {
-            delete sanitized[field];
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
         });
 
         // Sanitize string fields
         if (sanitized.kvkName !== undefined) {
             sanitized.kvkName = sanitizeString(safeGet(data, 'kvkName'), { allowEmpty: false });
         }
+        if (sanitized.landline !== undefined) {
+            sanitized.landline = sanitizeString(safeGet(data, 'landline'), { allowEmpty: true });
+        }
+        if (sanitized.fax !== undefined) {
+            sanitized.fax = sanitizeString(safeGet(data, 'fax'), { allowEmpty: true });
+        }
         if (sanitized.hostOrg !== undefined) {
             sanitized.hostOrg = sanitizeString(safeGet(data, 'hostOrg'), { allowEmpty: true });
+        }
+        if (sanitized.hostMobile !== undefined) {
+            sanitized.hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { allowEmpty: true });
+        }
+        if (sanitized.hostLandline !== undefined) {
+            sanitized.hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { allowEmpty: true });
+        }
+        if (sanitized.hostFax !== undefined) {
+            sanitized.hostFax = sanitizeString(safeGet(data, 'hostFax'), { allowEmpty: true });
+        }
+        if (sanitized.hostEmail !== undefined) {
+            sanitized.hostEmail = sanitizeString(safeGet(data, 'hostEmail'), { allowEmpty: true });
+        }
+        if (sanitized.hostAddress !== undefined) {
+            sanitized.hostAddress = sanitizeString(safeGet(data, 'hostAddress'), { allowEmpty: true });
         }
         if (sanitized.mobile !== undefined) {
             sanitized.mobile = sanitizeString(safeGet(data, 'mobile'), { allowEmpty: true });
@@ -546,6 +636,73 @@ function sanitizeData(entityName, data) {
         }
     }
 
+    if (entityName === 'kvk-vehicles') {
+        const allowedFields = [
+            'kvkId',
+            'vehicleName',
+            'registrationNo',
+            'yearOfPurchase',
+            'totalCost',
+        ];
+
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+    }
+
+    if (entityName === 'kvk-equipments') {
+        const allowedFields = [
+            'kvkId',
+            'equipmentName',
+            'yearOfPurchase',
+            'totalCost',
+            'sourceOfFunding',
+            'type',
+        ];
+
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+    }
+
+    if (entityName === 'kvk-vehicle-details') {
+        const allowedFields = [
+            'kvkId',
+            'vehicleId',
+            'reportingYear',
+            'totalRun',
+            'repairingCost',
+            'sourceOfFunding',
+            'vehicleStatusId',
+        ];
+
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+    }
+
+    if (entityName === 'kvk-equipment-details') {
+        const allowedFields = [
+            'kvkId',
+            'equipmentId',
+            'reportingYear',
+            'sourceOfFunding',
+            'equipmentStatusId',
+        ];
+
+        Object.keys(sanitized).forEach(field => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+    }
+
     return sanitized;
 }
 
@@ -557,30 +714,12 @@ async function create(entityName, data) {
 
     const config = getEntityConfig(entityName);
 
-    // For vehicle-details and equipment-details, check for required IDs BEFORE sanitization
-    // (sanitization removes them because they're idFields)
-    if (entityName === 'kvk-vehicle-details' && !data.vehicleId) {
-        throw new ValidationError('vehicleId is required for vehicle-details. Please select a vehicle first.');
-    }
-    if (entityName === 'kvk-equipment-details' && !data.equipmentId) {
-        throw new ValidationError('equipmentId is required for equipment-details. Please select an equipment first.');
-    }
-
     // Sanitize data to remove fields not in Prisma schema (includes ID removal)
     let sanitizedData = sanitizeData(entityName, data);
 
     // CRITICAL: Ensure ID fields are removed for create operations too
     sanitizedData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
     
-    // Restore vehicleId/equipmentId for vehicle-details/equipment-details after removeIdFieldsForUpdate
-    // (needed to identify which vehicle/equipment to update, but not part of the data payload)
-    if (entityName === 'kvk-vehicle-details' && data.vehicleId) {
-        sanitizedData.vehicleId = sanitizeInteger(data.vehicleId);
-    }
-    if (entityName === 'kvk-equipment-details' && data.equipmentId) {
-        sanitizedData.equipmentId = sanitizeInteger(data.equipmentId);
-    }
-
     // For KVKs, convert relation IDs to relation connect operations
     if (entityName === 'kvks') {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
@@ -594,36 +733,34 @@ async function create(entityName, data) {
         }
     }
 
-    // For vehicle-details and equipment-details: if vehicleId/equipmentId is provided,
-    // update the existing record instead of creating a new one
-    if (entityName === 'kvk-vehicle-details' && sanitizedData.vehicleId) {
-        // Update existing vehicle with the details
-        const vehicleId = sanitizedData.vehicleId;
-        // Remove vehicleId from update data as it's used in where clause
-        const updateData = removeIdFieldsForUpdate(sanitizedData, [config.idField, 'vehicleId']);
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
-        return await prisma[config.model].update({
-            where: { [config.idField]: vehicleId },
-            data: updateData,
-            include: config.includes,
-        });
+    if (entityName === 'kvk-vehicle-details') {
+        const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
+        ensureNotFutureDate(parsedReportingYear);
+        const finalData = {
+            kvkId: sanitizeInteger(sanitizedData.kvkId),
+            vehicleId: sanitizeInteger(sanitizedData.vehicleId),
+            reportingYear: parsedReportingYear,
+            totalRun: sanitizedData.totalRun ? String(sanitizedData.totalRun) : '',
+            repairingCost: sanitizedData.repairingCost !== undefined ? Number(sanitizedData.repairingCost) : null,
+            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
+        };
+
+        return await prisma[config.model].create({ data: finalData, include: config.includes });
     }
 
-    if (entityName === 'kvk-equipment-details' && sanitizedData.equipmentId) {
-        // Update existing equipment with the details
-        const equipmentId = sanitizedData.equipmentId;
-        // Remove equipmentId from update data as it's used in where clause
-        const updateData = removeIdFieldsForUpdate(sanitizedData, [config.idField, 'equipmentId']);
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
-        return await prisma[config.model].update({
-            where: { [config.idField]: equipmentId },
-            data: updateData,
-            include: config.includes,
-        });
+    if (entityName === 'kvk-equipment-details') {
+        const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
+        ensureNotFutureDate(parsedReportingYear);
+        const finalData = {
+            kvkId: sanitizeInteger(sanitizedData.kvkId),
+            equipmentId: sanitizeInteger(sanitizedData.equipmentId),
+            reportingYear: parsedReportingYear,
+            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
+        };
+
+        return await prisma[config.model].create({ data: finalData, include: config.includes });
     }
 
     // For kvk-employees and kvk-staff-transferred, convert relation ID fields to relation connect operations
@@ -639,26 +776,16 @@ async function create(entityName, data) {
         }
     }
 
-    // Note: vehicleId/equipmentId validation is done before sanitization above
-    // They are restored in sanitizedData after sanitization
-
-    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
     if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
         const convertedData = { ...sanitizedData };
-        
-        // Remove old reportingYear and yearId fields
-        delete convertedData.reportingYear;
-        delete convertedData.yearId;
-        
-        // Convert reportingYearId to relation connect/disconnect
-        if (convertedData.reportingYearId !== undefined) {
-            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
-                convertedData.reportingYear = { disconnect: true };
-            } else {
-                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
-            }
-            delete convertedData.reportingYearId;
+
+        if (convertedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(convertedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            convertedData.reportingYear = parsedReportingYear;
         }
+
         
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
@@ -674,11 +801,6 @@ async function create(entityName, data) {
 
     // Generic create path - ensure ID fields are removed
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    // For vehicle-details and equipment-details, remove old reportingYear and yearId fields
-    if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
-        delete finalData.reportingYear;
-        delete finalData.yearId;
-    }
     try {
         return await prisma[config.model].create({
             data: finalData,
@@ -706,6 +828,10 @@ async function update(entityName, id, data) {
     if (!parsedId || parsedId <= 0) {
         throw new ValidationError(`Invalid ID for ${entityName}: ${id}. ID must be a positive integer.`);
     }
+    const resolvedId = await resolveDetailEntityId(entityName, parsedId);
+    if (!resolvedId) {
+        throw new ValidationError(`${entityName} with ID ${id} not found`);
+    }
 
     // Sanitize data to remove fields not in Prisma schema (includes ID removal)
     let sanitizedData = sanitizeData(entityName, data);
@@ -718,7 +844,7 @@ async function update(entityName, id, data) {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
         try {
             return await prisma[config.model].update({
-                where: { [config.idField]: parsedId },
+                where: { [config.idField]: resolvedId },
                 data: convertedData,
                 include: config.includes,
             });
@@ -727,24 +853,41 @@ async function update(entityName, id, data) {
         }
     }
 
-    // For vehicle-details and equipment-details, only update the fields provided
-    // Don't require base fields like vehicleName/equipmentName
-    if (entityName === 'kvk-vehicle-details' || entityName === 'kvk-equipment-details') {
-        // Filter out any undefined/null values and only keep the fields that are being updated
-        const updateData = {};
-        for (const [key, value] of Object.entries(sanitizedData)) {
-            // Only include fields that have actual values (not undefined, but allow null for optional fields)
-            if (value !== undefined) {
-                updateData[key] = value;
-            }
+    if (entityName === 'kvk-vehicle-details') {
+        const finalUpdateData = {};
+        if (sanitizedData.kvkId !== undefined) finalUpdateData.kvkId = sanitizeInteger(sanitizedData.kvkId);
+        if (sanitizedData.vehicleId !== undefined) finalUpdateData.vehicleId = sanitizeInteger(sanitizedData.vehicleId);
+        if (sanitizedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            finalUpdateData.reportingYear = parsedReportingYear;
         }
-        // Remove old reportingYear and yearId fields - only use reportingYearId
-        delete updateData.reportingYear;
-        delete updateData.yearId;
-        // Ensure ID fields are removed from updateData
-        const finalUpdateData = removeIdFieldsForUpdate(updateData, [config.idField]);
+        if (sanitizedData.totalRun !== undefined) finalUpdateData.totalRun = String(sanitizedData.totalRun || '');
+        if (sanitizedData.repairingCost !== undefined) finalUpdateData.repairingCost = sanitizedData.repairingCost === null ? null : Number(sanitizedData.repairingCost);
+        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
+
         return await prisma[config.model].update({
-            where: { [config.idField]: parsedId },
+            where: { [config.idField]: resolvedId },
+            data: finalUpdateData,
+            include: config.includes,
+        });
+    }
+
+    if (entityName === 'kvk-equipment-details') {
+        const finalUpdateData = {};
+        if (sanitizedData.kvkId !== undefined) finalUpdateData.kvkId = sanitizeInteger(sanitizedData.kvkId);
+        if (sanitizedData.equipmentId !== undefined) finalUpdateData.equipmentId = sanitizeInteger(sanitizedData.equipmentId);
+        if (sanitizedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(sanitizedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            finalUpdateData.reportingYear = parsedReportingYear;
+        }
+        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
+
+        return await prisma[config.model].update({
+            where: { [config.idField]: resolvedId },
             data: finalUpdateData,
             include: config.includes,
         });
@@ -755,7 +898,7 @@ async function update(entityName, id, data) {
         const convertedData = convertRelationFieldsForStaff(sanitizedData);
         try {
             return await prisma[config.model].update({
-                where: { [config.idField]: parsedId },
+                where: { [config.idField]: resolvedId },
                 data: convertedData,
                 include: config.includes,
             });
@@ -764,29 +907,22 @@ async function update(entityName, id, data) {
         }
     }
 
-    // For kvk-vehicles and kvk-equipments, convert reportingYearId to relation connect operation
+    // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
     if (entityName === 'kvk-vehicles' || entityName === 'kvk-equipments') {
         const convertedData = { ...sanitizedData };
-        
-        // Remove old reportingYear and yearId fields
-        delete convertedData.reportingYear;
-        delete convertedData.yearId;
-        
-        // Convert reportingYearId to relation connect/disconnect
-        if (convertedData.reportingYearId !== undefined) {
-            if (convertedData.reportingYearId === null || convertedData.reportingYearId === '') {
-                convertedData.reportingYear = { disconnect: true };
-            } else {
-                convertedData.reportingYear = { connect: { yearId: parseInt(convertedData.reportingYearId) } };
-            }
-            delete convertedData.reportingYearId;
+
+        if (convertedData.reportingYear !== undefined) {
+            const parsedReportingYear = parseReportingYearDate(convertedData.reportingYear);
+            ensureNotFutureDate(parsedReportingYear);
+            convertedData.reportingYear = parsedReportingYear;
         }
+
         
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
         try {
             return await prisma[config.model].update({
-                where: { [config.idField]: parsedId },
+                where: { [config.idField]: resolvedId },
                 data: finalData,
                 include: config.includes,
             });
@@ -799,7 +935,7 @@ async function update(entityName, id, data) {
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
     try {
         return await prisma[config.model].update({
-            where: { [config.idField]: parsedId },
+            where: { [config.idField]: resolvedId },
             data: finalData,
             include: config.includes,
         });
@@ -852,9 +988,13 @@ async function deleteEntity(entityName, id) {
     if (isNaN(parsedId) || parsedId <= 0) {
         throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
     }
+    const resolvedId = await resolveDetailEntityId(entityName, parsedId);
+    if (!resolvedId) {
+        throw new Error(`${entityName} not found`);
+    }
     
     // Check for dependent records
-    const dependentCheck = await checkDependentRecords(entityName, config, parsedId);
+    const dependentCheck = await checkDependentRecords(entityName, config, resolvedId);
     if (dependentCheck.hasDependents) {
         const dependentNames = Object.keys(dependentCheck.counts).join(', ');
         throw new Error(`Cannot delete ${entityName}: has dependent records (${dependentNames})`);
@@ -862,7 +1002,7 @@ async function deleteEntity(entityName, id) {
 
     try {
         return await prisma[config.model].delete({
-            where: { [config.idField]: parsedId },
+            where: { [config.idField]: resolvedId },
         });
     } catch (error) {
         // Handle foreign key constraint violations
@@ -956,15 +1096,19 @@ async function getStaffForDropdown(kvkId) {
 }
 
 /**
- * Create transfer history record
+ * Create transfer history record.
+ * Caller must supply a valid transferDate (Date object or parseable date value).
+ * @param {object} transferData
+ * @param {import('@prisma/client').PrismaClient|import('@prisma/client').Prisma.TransactionClient} [dbClient]
  */
-async function createTransferHistory(transferData) {
-    return await prisma.staffTransferHistory.create({
+async function createTransferHistory(transferData, dbClient = prisma) {
+    return await dbClient.staffTransferHistory.create({
         data: {
             kvkStaffId: transferData.kvkStaffId,
             fromKvkId: transferData.fromKvkId,
             toKvkId: transferData.toKvkId,
             transferredBy: transferData.transferredBy,
+            transferDate: transferData.transferDate,
             transferReason: transferData.transferReason,
             notes: transferData.notes,
             isReversal: transferData.isReversal || false,
@@ -1000,6 +1144,96 @@ async function createTransferHistory(transferData) {
     });
 }
 
+/**
+ * Returns the most-recent non-reversal transfer record for a staff member.
+ * Used by duplicate-consecutive-transfer guard in service layer.
+ */
+async function getLastTransferRecord(staffId) {
+    return prisma.staffTransferHistory.findFirst({
+        where: { kvkStaffId: staffId, isReversal: false },
+        orderBy: { transferDate: 'desc' },
+        select: {
+            transferId: true,
+            fromKvkId: true,
+            toKvkId: true,
+            transferDate: true,
+        },
+    });
+}
+
+async function filterAssetsForReportingYear({ kvkId, reportingYear, assetType }) {
+    const parsedKvkId = sanitizeInteger(kvkId);
+    const targetYearDate = reportingYear ? parseReportingYearDate(reportingYear) : new Date();
+
+    if (assetType === 'vehicle') {
+        const hiddenVehicleIds = await prisma.kvkVehicleDetail.findMany({
+            where: {
+                kvkId: parsedKvkId,
+                reportingYear: { lt: targetYearDate },
+                vehicleStatus: { hideInNextYear: true },
+            },
+            distinct: ['vehicleId'],
+            select: { vehicleId: true },
+        });
+
+        return {
+            hiddenAssetIds: hiddenVehicleIds.map((item) => item.vehicleId),
+            targetYearDate,
+        };
+    }
+
+    const hiddenEquipmentIds = await prisma.kvkEquipmentDetail.findMany({
+        where: {
+            kvkId: parsedKvkId,
+            reportingYear: { lt: targetYearDate },
+            equipmentStatus: { hideInNextYear: true },
+        },
+        distinct: ['equipmentId'],
+        select: { equipmentId: true },
+    });
+
+    return {
+        hiddenAssetIds: hiddenEquipmentIds.map((item) => item.equipmentId),
+        targetYearDate,
+    };
+}
+
+async function getVehiclesForDropdown(kvkId, reportingYear) {
+    const parsedKvkId = sanitizeInteger(kvkId);
+    const { hiddenAssetIds } = await filterAssetsForReportingYear({
+        kvkId: parsedKvkId,
+        reportingYear,
+        assetType: 'vehicle',
+    });
+
+    return prisma.kvkVehicle.findMany({
+        where: {
+            kvkId: parsedKvkId,
+            ...(hiddenAssetIds.length ? { vehicleId: { notIn: hiddenAssetIds } } : {}),
+        },
+        select: { vehicleId: true, vehicleName: true, registrationNo: true },
+        orderBy: { vehicleName: 'asc' },
+    });
+}
+
+async function getEquipmentsForDropdown(kvkId, reportingYear) {
+    const parsedKvkId = sanitizeInteger(kvkId);
+    const { hiddenAssetIds } = await filterAssetsForReportingYear({
+        kvkId: parsedKvkId,
+        reportingYear,
+        assetType: 'equipment',
+    });
+
+    return prisma.kvkEquipment.findMany({
+        where: {
+            kvkId: parsedKvkId,
+            ...(hiddenAssetIds.length ? { equipmentId: { notIn: hiddenAssetIds } } : {}),
+        },
+        select: { equipmentId: true, equipmentName: true },
+        orderBy: { equipmentName: 'asc' },
+    });
+}
+
 module.exports = {
     findAll,
     findById,
@@ -1010,5 +1244,9 @@ module.exports = {
     getAllDisciplines,
     getAllInfraMasters,
     getStaffForDropdown,
-    createTransferHistory
+    createTransferHistory,
+    getLastTransferRecord,
+    filterAssetsForReportingYear,
+    getVehiclesForDropdown,
+    getEquipmentsForDropdown,
 };

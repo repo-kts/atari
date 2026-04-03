@@ -35,12 +35,6 @@ const ENTITY_CONFIG = {
             },
         },
     },
-    'years': {
-        model: 'yearMaster',
-        idField: 'yearId',
-        nameField: 'yearName',
-        includes: {},
-    },
     // Employee Masters
     'staff-category': {
         model: 'staffCategoryMaster',
@@ -199,6 +193,22 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'nari-activity': {
+        model: 'nariActivity',
+        idField: 'nariActivityId',
+        nameField: 'activityName',
+        includes: {
+            _count: {
+                select: {
+                    nariNutritionalGardens: true,
+                    nariBioFortifiedCrops: true,
+                    nariValueAdditions: true,
+                    nariTrainingProgrammes: true,
+                    nariExtensionActivities: true,
+                },
+            },
+        },
+    },
     'nari-nutrition-garden-type': {
         model: 'nutritionGardenType',
         idField: 'nutritionGardenTypeId',
@@ -208,6 +218,153 @@ const ENTITY_CONFIG = {
                 select: {
                     nariNutritionalGardens: true,
                 },
+            },
+        },
+    },
+    'nicra-category': {
+        model: 'nicraCategory',
+        idField: 'nicraCategoryId',
+        nameField: 'categoryName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
+        includes: {
+            _count: {
+                select: {
+                    nicraDetails: true,
+                    subCategories: true,
+                },
+            },
+        },
+    },
+    'nicra-sub-category': {
+        model: 'nicraSubCategory',
+        idField: 'nicraSubCategoryId',
+        nameField: 'subCategoryName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured on nicra_details
+        parentField: 'nicraCategoryId',
+        includes: {
+            category: {
+                select: {
+                    nicraCategoryId: true,
+                    categoryName: true,
+                },
+            },
+            _count: {
+                select: {
+                    nicraDetails: true,
+                },
+            },
+        },
+    },
+    'nicra-seed-bank-fodder-bank': {
+        model: 'nicraSeedBankFodderBankMaster',
+        idField: 'nicraSeedBankFodderBankId',
+        nameField: 'name',
+        includes: {},
+    },
+    'nicra-dignitary-type': {
+        model: 'nicraDignitaryTypeMaster',
+        idField: 'nicraDignitaryTypeId',
+        nameField: 'name',
+        includes: {},
+    },
+    'nicra-pi-type': {
+        model: 'nicraPiTypeMaster',
+        idField: 'nicraPiTypeId',
+        nameField: 'name',
+        includes: {},
+    },
+    'impact-specific-area-master': {
+        model: 'impactSpecificAreaMaster',
+        idField: 'specificAreaId',
+        nameField: 'specificAreaName',
+        includes: {},
+    },
+    'enterprise-type': {
+        model: 'enterpriseTypeMaster',
+        idField: 'enterpriseTypeId',
+        nameField: 'enterpriseTypeName',
+        includes: {},
+    },
+    'account-type': {
+        model: 'accountTypeMaster',
+        idField: 'accountTypeId',
+        nameField: 'accountType',
+        includes: {},
+    },
+    'programme-type': {
+        model: 'programmeTypeMaster',
+        idField: 'programmeTypeId',
+        nameField: 'programmeType',
+        includes: {},
+    },
+    'ppv-fra-training-type': {
+        model: 'ppvFraTrainingTypeMaster',
+        idField: 'typeId',
+        nameField: 'typeName',
+        includes: {},
+    },
+    'dignitary-type': {
+        model: 'dignitaryType',
+        idField: 'dignitaryTypeId',
+        nameField: 'name',
+        includes: {
+            _count: {
+                select: {
+                    visitors: true,
+                },
+            },
+        },
+    },
+    'financial-project': {
+        model: 'financialProject',
+        idField: 'financialProjectId',
+        nameField: 'projectName',
+        includes: {
+            fundingAgency: {
+                select: {
+                    fundingAgencyId: true,
+                    agencyName: true,
+                },
+            },
+            _count: {
+                select: {
+                    projectBudgets: true,
+                },
+            },
+        },
+    },
+    'funding-agency': {
+        model: 'fundingAgency',
+        idField: 'fundingAgencyId',
+        nameField: 'agencyName',
+        includes: {
+            _count: {
+                select: {
+                    financialProjects: true,
+                    projectBudgets: true,
+                },
+            },
+        },
+    },
+    'vehicle-present-status': {
+        model: 'vehiclePresentStatusMaster',
+        idField: 'vehicleStatusId',
+        nameField: 'statusLabel',
+        extraFields: ['statusCode', 'hideInNextYear', 'isActive'],
+        includes: {
+            _count: {
+                select: { vehicleDetails: true },
+            },
+        },
+    },
+    'equipment-present-status': {
+        model: 'equipmentPresentStatusMaster',
+        idField: 'equipmentStatusId',
+        nameField: 'statusLabel',
+        extraFields: ['statusCode', 'hideInNextYear', 'isActive'],
+        includes: {
+            _count: {
+                select: { equipmentDetails: true },
             },
         },
     },
@@ -351,8 +508,7 @@ const create = async (entityType, data) => {
         config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
     ];
     
-    // Only include the name field (these are simple master entities)
-    // Validate that the name field is provided and not empty
+    // Validate and include name field
     if (data[config.nameField]) {
         const nameValue = String(data[config.nameField]).trim();
         if (nameValue === '') {
@@ -361,6 +517,27 @@ const create = async (entityType, data) => {
         sanitizedData[config.nameField] = nameValue;
     } else {
         throw new Error(`${config.nameField} is required`);
+    }
+
+    if (config.extraFields) {
+        for (const field of config.extraFields) {
+            if (data[field] !== undefined) {
+                sanitizedData[field] = data[field];
+            }
+        }
+    }
+
+    // Optional parent field support (for dependent masters like NICRA sub-category)
+    if (config.parentField) {
+        const parentVal = data[config.parentField];
+        if (parentVal === undefined || parentVal === null || parentVal === '') {
+            throw new Error(`${config.parentField} is required`);
+        }
+        const parsedParentVal = parseInt(parentVal, 10);
+        if (isNaN(parsedParentVal)) {
+            throw new Error(`Invalid ${config.parentField}`);
+        }
+        sanitizedData[config.parentField] = parsedParentVal;
     }
     
     // Ensure no ID field is accidentally included
@@ -383,16 +560,20 @@ const create = async (entityType, data) => {
         'discipline',
         'sanctioned-posts',
         'seasons',
-        'years',
         'crop-type',
         'important-day',
         'soil-water-analysis',
+        'enterprise-type',
+        'account-type',
+        'programme-type',
+        'ppv-fra-training-type',
+        'dignitary-type',
+        'financial-project',
     ];
     
     if (entitiesWithSeededData.includes(entityType)) {
         const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
                          entityType === 'seasons' ? 'season' :
-                         entityType === 'years' ? 'year_master' :
                          entityType === 'staff-category' ? 'staff_category_master' :
                          entityType === 'pay-level' ? 'pay_level_master' :
                          entityType === 'discipline' ? 'discipline' :
@@ -403,7 +584,13 @@ const create = async (entityType, data) => {
                          entityType === 'funding-source' ? 'funding_source_master' :
                          entityType === 'crop-type' ? 'crop_type' :
                          entityType === 'infrastructure-master' ? 'kvk_infrastructure_master' :
-                         entityType === 'soil-water-analysis' ? 'soil_water_analysis' : null;
+                         entityType === 'soil-water-analysis' ? 'soil_water_analysis' :
+                         entityType === 'enterprise-type' ? 'enterprise_type_master' :
+                         entityType === 'account-type' ? 'account_type_master' :
+                         entityType === 'programme-type' ? 'programme_type_master' : 
+                         entityType === 'ppv-fra-training-type' ? 'ppv_fra_training_type_master' :
+                         entityType === 'dignitary-type' ? 'dignitary_type' : 
+                         entityType === 'financial-project' ? 'financial_project' : null;
         
         if (tableName) {
             const columnName = config.idField.replace(/([A-Z])/g, '_$1').toLowerCase();
@@ -443,7 +630,6 @@ const create = async (entityType, data) => {
                 // Try to automatically fix the sequence
                 const tableName = entityType === 'sanctioned-posts' ? 'sanctioned_post' :
                                  entityType === 'seasons' ? 'season' :
-                                 entityType === 'years' ? 'year_master' :
                                  entityType === 'staff-category' ? 'staff_category_master' :
                                  entityType === 'pay-level' ? 'pay_level_master' :
                                  entityType === 'discipline' ? 'discipline' :
@@ -526,6 +712,26 @@ const update = async (entityType, id, data) => {
             throw new Error(`${config.nameField} cannot be empty`);
         }
         sanitizedData[config.nameField] = nameValue;
+    }
+
+    if (config.extraFields) {
+        for (const field of config.extraFields) {
+            if (data[field] !== undefined) {
+                sanitizedData[field] = data[field];
+            }
+        }
+    }
+
+    if (config.parentField && data[config.parentField] !== undefined) {
+        const parentVal = data[config.parentField];
+        if (parentVal === null || parentVal === '') {
+            throw new Error(`${config.parentField} cannot be empty`);
+        }
+        const parsedParentVal = parseInt(parentVal, 10);
+        if (isNaN(parsedParentVal)) {
+            throw new Error(`Invalid ${config.parentField}`);
+        }
+        sanitizedData[config.parentField] = parsedParentVal;
     }
     
     // Remove ID fields from update data

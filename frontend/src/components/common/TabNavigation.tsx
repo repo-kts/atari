@@ -97,7 +97,26 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                 checkScrollRef.current?.()
             })
         }
-    }, [tabsString]) // Removed checkScroll from dependencies - using ref instead
+    }, [tabsString])
+    
+    // Scroll active tab into view - manual scrollLeft for stability
+    useEffect(() => {
+        if (containerRef.current) {
+            const container = containerRef.current
+            const activeTab = container.querySelector('[aria-selected="true"]') as HTMLElement
+            if (activeTab) {
+                // Calculate position relative to container
+                const containerWidth = container.clientWidth
+                const tabOffset = activeTab.offsetLeft
+                const tabWidth = activeTab.offsetWidth
+                
+                const targetScrollLeft = tabOffset - (containerWidth / 2) + (tabWidth / 2)
+                
+                // Directly set scrollLeft to prevent global viewport shifting
+                container.scrollLeft = targetScrollLeft
+            }
+        }
+    }, [currentPath])
 
     const scroll = (direction: 'left' | 'right') => {
         if (containerRef.current) {
@@ -112,7 +131,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
     if (tabs.length <= 1) return null
 
     return (
-        <div className={`relative px-6 pb-2 ${className}`}>
+        <div className={`relative px-1 pb-2 w-fit ${className}`}>
             {/* Left scroll button */}
             {showLeftArrow && (
                 <button
@@ -127,7 +146,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
             {/* Tabs container */}
             <div
                 ref={containerRef}
-                className="flex items-center gap-1 overflow-x-auto w-fit scrollbar-hide bg-[#487749] rounded-xl p-1"
+                className="flex items-center gap-1 overflow-x-auto w-fit scrollbar-hide bg-[#487749] rounded-2xl p-1 shadow-inner"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
                 {tabs.map((tab) => {
@@ -136,7 +155,7 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
                         <button
                             key={tab.path}
                             onClick={() => navigate(tab.path)}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-all duration-200 ${isActive
+                            className={`px-4 py-2 text-sm font-medium rounded-xl whitespace-nowrap transition-all duration-200 ${isActive
                                 ? 'bg-white text-[#487749] shadow-sm'
                                 : 'text-white hover:text-[#487749] hover:bg-white/50'
                                 }`}

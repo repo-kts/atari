@@ -46,6 +46,9 @@ class ReportDataService {
             case 'kvkEmployees':
                 rawData = await reportRepository.getKvkEmployees(kvkId, sectionFilters);
                 break;
+            case 'kvkEmployeesHeads':
+                rawData = await reportRepository.getKvkEmployeeHeads(kvkId, sectionFilters);
+                break;
             case 'kvkStaffTransferred':
                 rawData = await reportRepository.getKvkStaffTransferred(kvkId, sectionFilters);
                 break;
@@ -55,8 +58,14 @@ class ReportDataService {
             case 'kvkVehicles':
                 rawData = await reportRepository.getKvkVehicles(kvkId, sectionFilters);
                 break;
+            case 'kvkVehicleDetails':
+                rawData = await reportRepository.getKvkVehicleDetails(kvkId, sectionFilters);
+                break;
             case 'kvkEquipments':
                 rawData = await reportRepository.getKvkEquipments(kvkId, sectionFilters);
+                break;
+            case 'kvkEquipmentRecords':
+                rawData = await reportRepository.getKvkEquipmentRecords(kvkId, sectionFilters);
                 break;
             case 'kvkFarmImplements':
                 rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
@@ -212,6 +221,8 @@ class ReportDataService {
         }
 
         switch (field.type) {
+            case 'raw':
+                return value;
             case 'date':
                 if (value instanceof Date) {
                     return value.toLocaleDateString('en-IN', {
@@ -242,6 +253,15 @@ class ReportDataService {
                 return value ? 'Yes' : 'No';
 
             case 'image':
+                // Handle JSON-encoded image and caption
+                if (typeof value === 'string' && value.startsWith('{"image":')) {
+                    try {
+                        const parsed = JSON.parse(value);
+                        return parsed.image || null;
+                    } catch (e) {
+                        // Not valid JSON, return as is
+                    }
+                }
                 // Return image path or placeholder
                 return value || null;
 
@@ -278,8 +298,8 @@ class ReportDataService {
             zone: kvk.zone?.zoneName || '',
             state: kvk.state?.stateName || '',
             district: kvk.district?.districtName || '',
-            organization: kvk.org?.uniName || '',
-            university: kvk.university?.uniName || null,
+            organization: kvk.org?.orgName || '',
+            university: kvk.university?.universityName || null,
             hostOrg: kvk.hostOrg,
             yearOfSanction: kvk.yearOfSanction,
         };

@@ -23,10 +23,26 @@ export const featureRoutes: RouteConfig[] = [
         moduleCode: 'module_images',
     },
     {
+        path: '/module-images/create',
+        title: 'Add Images',
+        description: 'Upload category-wise photographs',
+        category: 'Features',
+        parent: '/module-images',
+        moduleCode: 'module_images',
+    },
+    {
         path: '/targets',
         title: 'Targets',
         description: 'View and manage system targets',
         category: 'Features',
+        moduleCode: 'targets',
+    },
+    {
+        path: '/targets/create',
+        title: 'Add Targets',
+        description: 'Create a new target',
+        category: 'Features',
+        parent: '/targets',
         moduleCode: 'targets',
     },
     {

@@ -12,6 +12,13 @@ model TspScspActivities {
   @@map("tsp_scsp_district")
 }
 
+model TspScspTypeMaster {
+  tspScspTypeId Int    @id @default(autoincrement()) @map("tsp_scsp_type_id")
+  typeName      String @unique @map("type_name")
+  tspScspRecords TspScsp[]
+
+  @@map("tsp_scsp_type_master")
+}
 
 model TspScsp {
   tspScspId Int @id @default(autoincrement()) @map("tsp_scsp_id")
@@ -19,35 +26,38 @@ model TspScsp {
   kvkId Int
   kvk   Kvk @relation(fields: [kvkId], references: [kvkId])
 
-  reportingYearId Int?        @map("reporting_year_id")
-  reportingYear   YearMaster? @relation(fields: [reportingYearId], references: [yearId], onDelete: SetNull)
+  reportingYear DateTime? @map("reporting_year")
 
   type TspScspType
 
-  activityId Int
-  activity   TspScspActivities @relation(fields: [activityId], references: [tspScspActivityId])
+  tspScspTypeId Int?               @map("tsp_scsp_type_id")
+  tspScspType   TspScspTypeMaster? @relation(fields: [tspScspTypeId], references: [tspScspTypeId], onDelete: SetNull)
+
+  activityId Int?
+  activity   TspScspActivities? @relation(fields: [activityId], references: [tspScspActivityId], onDelete: SetNull)
 
   numberOfTrainingsOrDemos              Int   @map("number_of_trainings_or_demos")
   numberOfBeneficiaries                 Int   @map("number_of_beneficiaries")
-  fundsReceived                         Float @map("funds_received")
-  achievementFamilyIncomeUnit           Float @map("achievement_family_income_unit")
-  achievementConsumptionLevelUnit       Float @map("achievement_consumption_level_unit")
-  achievementImplementsAvailabilityUnit Float @map("achievement_implements_availability_unit")
-  achievementFamilyIncome               Float @map("achievement_family_income")
-  achievementConsumptionLevel           Float @map("achievement_consumption_level")
-  achievementImplementsAvailability     Float @map("achievement_implements_availability")
+  fundsReceived                         Float? @map("funds_received")
+  achievementFamilyIncomeUnit           Float? @map("achievement_family_income_unit")
+  achievementConsumptionLevelUnit       Float? @map("achievement_consumption_level_unit")
+  achievementImplementsAvailabilityUnit Float? @map("achievement_implements_availability_unit")
+  achievementFamilyIncome               Float? @map("achievement_family_income")
+  achievementConsumptionLevel           Float? @map("achievement_consumption_level")
+  achievementImplementsAvailability     Float? @map("achievement_implements_availability")
 
-  districtId Int
-  district   DistrictMaster @relation(fields: [districtId], references: [districtId])
+  districtId Int?
+  district   DistrictMaster? @relation(fields: [districtId], references: [districtId], onDelete: SetNull)
 
-  subDistrict             String @map("sub_district")
-  numberOfVillagesCovered Int    @map("number_of_villages_covered")
-  villageNamesCovered     String @map("village_names_covered")
-  stMale                  Int    @map("st_male")
-  stFemale                Int    @map("st_female")
-  stTotal                 Int    @map("st_total")
+  subDistrict             String? @map("sub_district")
+  numberOfVillagesCovered Int?    @map("number_of_villages_covered")
+  villageNamesCovered     String? @map("village_names_covered")
+  stMale                  Int?    @map("st_male")
+  stFemale                Int?    @map("st_female")
+  stTotal                 Int?    @map("st_total")
 
   @@index([kvkId])
+  @@index([tspScspTypeId])
   @@index([activityId])
   @@index([districtId])
   @@map("tsp_scsp")

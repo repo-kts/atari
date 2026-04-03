@@ -8,74 +8,78 @@ interface TspScspFormsProps {
     entityType: string
     formData: any
     setFormData: (data: any) => void
-    years: any[]
     districts: any[]
+    tspScspTypes: any[]
+    tspScspActivities: any[]
 }
 
 export const TspScspForms: React.FC<TspScspFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    years,
-    districts
+    districts,
+    tspScspTypes,
+    tspScspActivities
 }) => {
+    const normalizedType = (formData?.type || '').toString().toUpperCase()
+    const isScsp = normalizedType === 'SCSP'
+
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_TSP_SCSP && (
                 <div className="space-y-10">
                     {/* Header Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <MasterDataDropdown
+                        <FormInput
                             label="Reporting Year"
                             required
-                            value={formData.reportingYearId || formData.yearId || ''}
-                            onChange={(value) => setFormData({ ...formData, reportingYearId: value, yearId: value })}
-                            options={createMasterDataOptions(years, 'yearId', 'yearName')}
-                            emptyMessage="No reporting years available"
+                            type="date"
+                            value={formData.reportingYear ?? ''}
+                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Type"
                             required
-                            value={formData.type || ''}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                            options={[
-                                { value: 'TSP', label: 'TSP' },
-                                { value: 'SCSP', label: 'SCSP' }
-                            ]}
+                            value={formData.type ?? ''}
+                            onChange={(value) => setFormData({ ...formData, type: value })}
+                            options={createMasterDataOptions(tspScspTypes, 'typeName', 'typeName')}
+                            placeholder="Select Type"
                         />
-                        <FormSelect
+                        <MasterDataDropdown
                             label="Activities"
                             required
-                            value={formData.activityId || ''}
-                            onChange={(e) => setFormData({ ...formData, activityId: e.target.value })}
-                            options={[
-                                { value: '1', label: 'Activity 1' },
-                                { value: '2', label: 'Activity 2' }
-                            ]}
+                            value={formData.activityId ?? ''}
+                            onChange={(value) => setFormData({ ...formData, activityId: value })}
+                            options={createMasterDataOptions(tspScspActivities, 'tspScspActivityId', 'activityName')}
+                            placeholder="Select Activity"
                         />
                         <FormInput
                             label="No. of Trainings/Demos"
                             required
                             type="number"
-                            value={formData.noOfTrainings || ''}
+                            value={formData.noOfTrainings ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfTrainings: e.target.value })}
                         />
                         <FormInput
                             label="No. of beneficiaries"
                             required
                             type="number"
-                            value={formData.noOfBeneficiaries || ''}
+                            value={formData.noOfBeneficiaries ?? ''}
                             onChange={(e) => setFormData({ ...formData, noOfBeneficiaries: e.target.value })}
                         />
+                        {!isScsp && (
                         <FormInput
                             label="Funds received"
                             required
                             type="number"
-                            value={formData.fundsReceived || ''}
+                            value={formData.fundsReceived ?? ''}
                             onChange={(e) => setFormData({ ...formData, fundsReceived: e.target.value })}
                         />
+                        )}
                     </div>
 
+                    {!isScsp && (
+                        <>
                     {/* Achievements of physical outcome Section */}
                     <div className="space-y-6 pt-4">
                         <h3 className="text-xl font-bold text-gray-800">Achievements of physical outcome</h3>
@@ -96,7 +100,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-6 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome1_unit || ''}
+                                                value={formData.outcome1_unit ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome1_unit: e.target.value })}
                                                 placeholder="%"
                                             />
@@ -104,7 +108,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-6 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome1_achievement || ''}
+                                                value={formData.outcome1_achievement ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome1_achievement: e.target.value })}
                                             />
                                         </td>
@@ -115,7 +119,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-6 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome2_unit || ''}
+                                                value={formData.outcome2_unit ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome2_unit: e.target.value })}
                                                 placeholder="%"
                                             />
@@ -123,7 +127,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-6 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome2_achievement || ''}
+                                                value={formData.outcome2_achievement ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome2_achievement: e.target.value })}
                                             />
                                         </td>
@@ -134,7 +138,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-6 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome3_unit || ''}
+                                                value={formData.outcome3_unit ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome3_unit: e.target.value })}
                                                 placeholder="%"
                                             />
@@ -142,7 +146,7 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                         <td className="py-4 px-2">
                                             <input
                                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#487749] text-base"
-                                                value={formData.outcome3_achievement || ''}
+                                                value={formData.outcome3_achievement ?? ''}
                                                 onChange={(e) => setFormData({ ...formData, outcome3_achievement: e.target.value })}
                                             />
                                         </td>
@@ -159,27 +163,27 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                             <FormSelect
                                 label="District"
                                 required
-                                value={formData.districtId || ''}
+                                value={formData.districtId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, districtId: parseInt(e.target.value) })}
                                 options={districts.map((d: any) => ({ value: d.id || d.districtId, label: d.districtName }))}
                             />
                             <FormInput
                                 label="Sub-district"
                                 required
-                                value={formData.subDistrict || ''}
+                                value={formData.subDistrict ?? ''}
                                 onChange={(e) => setFormData({ ...formData, subDistrict: e.target.value })}
                             />
                             <FormInput
                                 label="No. of Village covered"
                                 required
                                 type="number"
-                                value={formData.villagesCount || ''}
+                                value={formData.villagesCount ?? ''}
                                 onChange={(e) => setFormData({ ...formData, villagesCount: e.target.value })}
                             />
                             <FormInput
                                 label="Name of village(s) covered"
                                 required
-                                value={formData.villageNames || ''}
+                                value={formData.villageNames ?? ''}
                                 onChange={(e) => setFormData({ ...formData, villageNames: e.target.value })}
                             />
                         </div>
@@ -192,26 +196,28 @@ export const TspScspForms: React.FC<TspScspFormsProps> = ({
                                     label="M"
                                     required
                                     type="number"
-                                    value={formData.beneficiaryMale || ''}
+                                    value={formData.beneficiaryMale ?? ''}
                                     onChange={(e) => setFormData({ ...formData, beneficiaryMale: e.target.value })}
                                 />
                                 <FormInput
                                     label="F"
                                     required
                                     type="number"
-                                    value={formData.beneficiaryFemale || ''}
+                                    value={formData.beneficiaryFemale ?? ''}
                                     onChange={(e) => setFormData({ ...formData, beneficiaryFemale: e.target.value })}
                                 />
                                 <FormInput
                                     label="T"
                                     required
                                     type="number"
-                                    value={formData.beneficiaryTotal || ''}
+                                    value={formData.beneficiaryTotal ?? ''}
                                     onChange={(e) => setFormData({ ...formData, beneficiaryTotal: e.target.value })}
                                 />
                             </div>
                         </div>
                     </div>
+                        </>
+                    )}
                 </div>
             )}
         </>
