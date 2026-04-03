@@ -68,12 +68,16 @@ function generateCustomTemplateHTML(templateKey, rawData, title) {
         ? rawData
         : (rawData ? [rawData] : []);
 
+    // Look up the matching section for correct sectionId
+    const matchedSection = getAllSections().find(section => section.customTemplate === templateKey);
+
     return reportTemplateService.generateStandaloneCustomTemplateHTML(
         templateKey,
         normalizedData,
         {
-            sectionId: '1.1',
-            title,
+            sectionId: matchedSection?.id || '1.1',
+            title: matchedSection?.title || title,
+            customSectionLabel: matchedSection?.customSectionLabel,
         }
     );
 }
