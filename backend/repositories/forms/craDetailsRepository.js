@@ -47,7 +47,7 @@ const craDetailsRepository = {
                 farmerPracticeYield: parseFloat(data.farmerPracticeYield || data.yieldObtainedUnderFarmerPracticesQha || 0)
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 season: { select: { seasonName: true } },
                 farmingSystem: { select: { farmingSystemName: true } },
             }
@@ -65,7 +65,7 @@ const craDetailsRepository = {
         const results = await prisma.craDetails.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 season: { select: { seasonName: true } },
                 farmingSystem: { select: { farmingSystemName: true } },
             },
@@ -83,7 +83,7 @@ const craDetailsRepository = {
         const result = await prisma.craDetails.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 season: { select: { seasonName: true } },
                 farmingSystem: { select: { farmingSystemName: true } },
             }
@@ -145,7 +145,7 @@ const craDetailsRepository = {
                 farmerPracticeYield: (data.farmerPracticeYield !== undefined || data.yieldObtainedUnderFarmerPracticesQha !== undefined) ? parseFloat(data.farmerPracticeYield ?? data.yieldObtainedUnderFarmerPracticesQha) : undefined
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 season: { select: { seasonName: true } },
                 farmingSystem: { select: { farmingSystemName: true } },
             }
@@ -172,7 +172,9 @@ function _mapResponse(r) {
     if (!r) return null;
     return {
         id: r.craDetailsId,
+        kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : '',
+        stateName: r.kvk?.state?.stateName || '',
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         seasonId: r.seasonId,

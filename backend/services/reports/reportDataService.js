@@ -1,6 +1,7 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
+const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -92,6 +93,9 @@ class ReportDataService {
             case 'cfldBudgetUtilization':
                 rawData = await cfldReportRepository.getCfldBudgetUtilizationData(kvkId, sectionFilters);
                 break;
+            case 'craDetails':
+                rawData = await craReportRepository.getCraDetailsData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -101,7 +105,8 @@ class ReportDataService {
             || dataSource === 'oftDetailCards'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
-            || dataSource === 'cfldBudgetUtilization';
+            || dataSource === 'cfldBudgetUtilization'
+            || dataSource === 'craDetails';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

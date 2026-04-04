@@ -82,6 +82,10 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
 }
 
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
+    if (templateKey === 'cra-details-state-wise') {
+        return buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
         return { headers: fallbackHeaders, rows: fallbackRows };
@@ -97,6 +101,80 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'State',
+        'Season',
+        'Technology demonstrated / interventions',
+        'Cropping system',
+        'Farming system crop under demonstration',
+        'Area under demonstration (in ac)',
+        'Crop yield (q/ha)',
+        'System productivity (q/ha)',
+        'Total return (Rs./ha)',
+        'Yield obtained under farmer practice (q/ha)',
+        'General M',
+        'General F',
+        'General T',
+        'OBC M',
+        'OBC F',
+        'OBC T',
+        'SC M',
+        'SC F',
+        'SC T',
+        'ST M',
+        'ST F',
+        'ST T',
+        'Total M',
+        'Total F',
+        'Total T',
+    ];
+
+    const rows = normalizedData.map(row => {
+        const generalM = Number(row.generalM || 0);
+        const generalF = Number(row.generalF || 0);
+        const obcM = Number(row.obcM || 0);
+        const obcF = Number(row.obcF || 0);
+        const scM = Number(row.scM || 0);
+        const scF = Number(row.scF || 0);
+        const stM = Number(row.stM || 0);
+        const stF = Number(row.stF || 0);
+
+        const generalT = generalM + generalF;
+        const obcT = obcM + obcF;
+        const scT = scM + scF;
+        const stT = stM + stF;
+        const totalM = generalM + obcM + scM + stM;
+        const totalF = generalF + obcF + scF + stF;
+        const totalT = totalM + totalF;
+
+        return [
+            formatExportValue(row.stateName || row.state?.stateName || '-', format),
+            formatExportValue(row.seasonName || row.season || '-', format),
+            formatExportValue(row.interventions || row.technologyDemonstrated || '-', format),
+            formatExportValue(row.croppingSystem || row.cropingSystem || '-', format),
+            formatExportValue(row.farmingSystemName || '-', format),
+            formatExportValue(row.areaInAcre ?? 0, format),
+            formatExportValue(row.cropYield ?? 0, format),
+            formatExportValue(row.systemProductivity ?? 0, format),
+            formatExportValue(row.totalReturn ?? 0, format),
+            formatExportValue(row.farmerPracticeYield ?? 0, format),
+            generalM, generalF, generalT,
+            obcM, obcF, obcT,
+            scM, scF, scT,
+            stM, stF, stT,
+            totalM, totalF, totalT,
+        ];
+    });
+
+    return { headers, rows };
 }
 
 function getNestedValue(obj, path) {

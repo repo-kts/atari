@@ -1,11 +1,13 @@
 const craExtensionActivityRepository = require('../../repositories/forms/craExtensionActivityRepository.js');
 const craDetailsRepository = require('../../repositories/forms/craDetailsRepository.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const craExtensionActivityController = {
     // Details Handlers
     createDetails: async (req, res) => {
         try {
             const result = await craDetailsRepository.create(req.body, null, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craDetails', result?.kvkId || req.user?.kvkId);
             res.status(201).json({
                 success: true,
                 message: 'CRA Details created successfully',
@@ -41,6 +43,7 @@ const craExtensionActivityController = {
     updateDetails: async (req, res) => {
         try {
             const result = await craDetailsRepository.update(req.params.id, req.body, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craDetails', result?.kvkId || req.user?.kvkId);
             res.status(200).json({ success: true, message: 'CRA details updated successfully', data: result });
         } catch (error) {
             console.error('Error in craExtensionActivityController.updateDetails:', error);
@@ -50,7 +53,9 @@ const craExtensionActivityController = {
 
     deleteDetails: async (req, res) => {
         try {
+            const existing = await craDetailsRepository.findById(req.params.id, req.user);
             await craDetailsRepository.delete(req.params.id, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craDetails', existing?.kvkId || req.user?.kvkId);
             res.status(200).json({ success: true, message: 'CRA details deleted successfully' });
         } catch (error) {
             console.error('Error in craExtensionActivityController.deleteDetails:', error);

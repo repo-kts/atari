@@ -77,7 +77,6 @@ function renderCfldBudgetUtilizationSection(section, data, sectionId, isFirstSec
     return `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-    <h3 class="about-kvk-subheading">G. Details of budget utilization :</h3>
     <table class="data-table">
         <thead>
             <tr>

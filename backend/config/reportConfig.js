@@ -354,6 +354,21 @@ const reportConfig = {
                 { dbField: 'areaAchieved', displayName: 'Area (ha) achieved' },
             ],
         },
+        {
+            id: '2.9',
+            title: 'CRA Details',
+            description: 'Climate resilient agriculture details with state-wise presentation',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'craDetails',
+            format: 'custom',
+            customTemplate: 'cra-details-state-wise',
+            filters: {
+                dateFields: [],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 
