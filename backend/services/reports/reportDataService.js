@@ -89,6 +89,9 @@ class ReportDataService {
             case 'cfldExtensionActivity':
                 rawData = await cfldReportRepository.getCfldExtensionActivityData(kvkId, sectionFilters);
                 break;
+            case 'cfldBudgetUtilization':
+                rawData = await cfldReportRepository.getCfldBudgetUtilizationData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -97,7 +100,8 @@ class ReportDataService {
         const skipTransform = dataSource === 'oftSummary'
             || dataSource === 'oftDetailCards'
             || dataSource === 'cfldCombined'
-            || dataSource === 'cfldExtensionActivity';
+            || dataSource === 'cfldExtensionActivity'
+            || dataSource === 'cfldBudgetUtilization';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

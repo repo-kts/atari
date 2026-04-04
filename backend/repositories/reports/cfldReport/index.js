@@ -1,6 +1,11 @@
-const { getCfldCombinedData, getCfldExtensionActivityData } = require('./cfldReportRepository.js');
+const {
+    getCfldCombinedData,
+    getCfldExtensionActivityData,
+    getCfldBudgetUtilizationData,
+} = require('./cfldReportRepository.js');
 
 module.exports = {
     getCfldCombinedData,
     getCfldExtensionActivityData,
+    getCfldBudgetUtilizationData,
 };

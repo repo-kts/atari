@@ -198,7 +198,75 @@ async function getCfldExtensionActivityData(kvkId, filters = {}) {
     });
 }
 
+async function getCfldBudgetUtilizationData(kvkId, filters = {}) {
+    const where = { kvkId };
+    if (filters.startDate || filters.endDate) {
+        where.createdAt = {};
+        if (filters.startDate) where.createdAt.gte = new Date(filters.startDate);
+        if (filters.endDate) where.createdAt.lte = new Date(filters.endDate);
+    }
+    if (filters.year) {
+        const yearRange = buildDateRangeForYear(filters.year);
+        if (yearRange) {
+            where.reportingYearDate = {
+                gte: yearRange.start,
+                lte: yearRange.end,
+            };
+        }
+    }
+
+    const rows = await prisma.kvkBudgetUtilization.findMany({
+        where,
+        include: {
+            kvk: {
+                select: {
+                    kvkId: true,
+                    kvkName: true,
+                    state: { select: { stateId: true, stateName: true } },
+                },
+            },
+            season: { select: { seasonId: true, seasonName: true } },
+            crop: { select: { cropId: true, cropName: true } },
+            items: {
+                include: { budgetItem: { select: { budgetItemId: true, itemName: true } } },
+            },
+        },
+        orderBy: [{ budgetId: 'asc' }],
+    });
+
+    return rows.map(row => {
+        const items = (row.items || []).map(item => {
+            const received = Number(item.budgetReceived || 0);
+            const utilized = Number(item.budgetUtilized || 0);
+            return {
+                budgetItemId: item.budgetItemId,
+                itemName: item.budgetItem?.itemName || '',
+                budgetReceived: received,
+                budgetUtilized: utilized,
+                balance: received - utilized,
+            };
+        });
+        return {
+            budgetId: row.budgetId,
+            kvkId: row.kvkId,
+            kvkName: row.kvk?.kvkName || '',
+            stateId: row.kvk?.state?.stateId || null,
+            stateName: row.kvk?.state?.stateName || '',
+            reportingYearDate: row.reportingYearDate || null,
+            seasonId: row.seasonId || null,
+            seasonName: row.season?.seasonName || '',
+            cropId: row.cropId || null,
+            cropName: row.crop?.cropName || '',
+            overallFundAllocation: Number(row.overallFundAllocation || 0),
+            areaAllotted: Number(row.areaAllotted || 0),
+            areaAchieved: Number(row.areaAchieved || 0),
+            items,
+        };
+    });
+}
+
 module.exports = {
     getCfldCombinedData,
     getCfldExtensionActivityData,
+    getCfldBudgetUtilizationData,
 };

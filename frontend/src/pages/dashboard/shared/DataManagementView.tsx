@@ -736,7 +736,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             ? 'cfld-combined'
                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
                                                 ? 'cfld-extension-activity'
-                                                : undefined;
+                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                    ? 'cfld-budget-utilization'
+                                                    : undefined;
 
         await handleExportData(format, {
             title,

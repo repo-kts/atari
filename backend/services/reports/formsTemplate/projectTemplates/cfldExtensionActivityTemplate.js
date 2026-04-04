@@ -82,7 +82,6 @@ function renderCfldExtensionActivitySection(section, data, sectionId, isFirstSec
     return `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-    <h3 class="about-kvk-subheading">C. Extension activities under CFLD conducted :</h3>
     <table class="data-table">
         <thead>
             <tr>

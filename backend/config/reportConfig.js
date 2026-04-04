@@ -332,6 +332,28 @@ const reportConfig = {
                 { dbField: 'totalFarmers', displayName: 'Total Farmers' },
             ],
         },
+        {
+            id: '2.8.3',
+            title: 'Details of budget utilization',
+            description: 'CFLD crop-wise budget utilization details',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'cfldBudgetUtilization',
+            format: 'custom',
+            customTemplate: 'cfld-budget-utilization',
+            filters: {
+                dateFields: ['createdAt'],
+                yearFields: ['reportingYearDate'],
+            },
+            fields: [
+                { dbField: 'kvkName', displayName: 'KVK Name' },
+                { dbField: 'seasonName', displayName: 'Season' },
+                { dbField: 'cropName', displayName: 'Crop' },
+                { dbField: 'overallFundAllocation', displayName: 'Overall fund allocation' },
+                { dbField: 'areaAllotted', displayName: 'Area (ha) alloted' },
+                { dbField: 'areaAchieved', displayName: 'Area (ha) achieved' },
+            ],
+        },
     ],
 };
 
