@@ -277,6 +277,33 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.8.1',
+            title: 'Performance of Demonstration under CFLD',
+            description: 'Combined CFLD report with technical, economic, socio-economic and perception parameters',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'cfldCombined',
+            format: 'custom',
+            customTemplate: 'cfld-combined',
+            filters: {
+                dateFields: ['createdAt'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [
+                { dbField: 'reportingYear', displayName: 'Reporting Year', type: 'date' },
+                { dbField: 'kvkName', displayName: 'KVK Name' },
+                { dbField: 'stateName', displayName: 'State' },
+                { dbField: 'cropTypeName', displayName: 'Crop Type' },
+                { dbField: 'seasonName', displayName: 'Season' },
+                { dbField: 'cropName', displayName: 'Crop' },
+                { dbField: 'areaInHa', displayName: 'Area (ha)' },
+                { dbField: 'technologyDemonstrated', displayName: 'Detail of technology demonstrated' },
+                { dbField: 'farmerYield', displayName: 'Yield in farmer field (q/ha)' },
+                { dbField: 'demoYieldAvg', displayName: 'Yield in demonstration (q/ha)' },
+                { dbField: 'percentIncrease', displayName: '% Increase' },
+            ],
+        },
     ],
 };
 
@@ -301,6 +328,10 @@ function getSectionsByDataSource(dataSource) {
     return reportConfig.sections.filter(s => s.dataSource === dataSource);
 }
 
+function getSectionByCustomTemplate(customTemplate) {
+    return reportConfig.sections.find(s => s.customTemplate === customTemplate);
+}
+
 /**
  * Validate section IDs
  */
@@ -318,5 +349,6 @@ module.exports = {
     getSectionConfig,
     getAllSections,
     getSectionsByDataSource,
+    getSectionByCustomTemplate, 
     validateSectionIds,
 };

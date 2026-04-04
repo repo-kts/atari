@@ -721,18 +721,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             entityType === ENTITY_TYPES.KVKS
                 ? 'about-kvk-view'
                 : entityType === ENTITY_TYPES.KVK_BANK_ACCOUNTS
-                ? 'about-kvk-bank-accounts'
-                : entityType === ENTITY_TYPES.KVK_EMPLOYEES
-                ? 'about-kvk-employees-full'
-                : entityType === ENTITY_TYPES.KVK_VEHICLES
-                ? 'about-kvk-vehicles'
-                : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
-                ? 'about-kvk-vehicle-details'
-                : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
-                ? 'about-kvk-equipment-records'
-                : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
-                ? 'oft-combined'
-                : undefined;
+                    ? 'about-kvk-bank-accounts'
+                    : entityType === ENTITY_TYPES.KVK_EMPLOYEES
+                        ? 'about-kvk-employees-full'
+                        : entityType === ENTITY_TYPES.KVK_VEHICLES
+                            ? 'about-kvk-vehicles'
+                            : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
+                                ? 'about-kvk-vehicle-details'
+                                : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
+                                    ? 'about-kvk-equipment-records'
+                                    : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
+                                        ? 'oft-combined'
+                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                            ? 'cfld-combined'
+                                            : undefined;
+
         await handleExportData(format, {
             title,
             fields,
