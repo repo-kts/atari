@@ -1,6 +1,6 @@
 const exportHelper = require('../utils/exportHelper');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
-const { getAllSections } = require('../config/reportConfig.js');
+const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const exportData = async (req, res) => {
@@ -23,7 +23,7 @@ const exportData = async (req, res) => {
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
         const tabularData = (templateKey && rawData)
-            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows)
+            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows, format)
             : {
                 headers,
                 rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
@@ -68,8 +68,7 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         ? rawData
         : (rawData ? [rawData] : []);
 
-    // Look up the matching section for correct sectionId
-    const matchedSection = getAllSections().find(section => section.customTemplate === templateKey);
+    const matchedSection = getSectionByCustomTemplate(templateKey) || getAllSections().find(section => section.customTemplate === templateKey);
 
     return await reportTemplateService.generateStandaloneCustomTemplateHTML(
         templateKey,
@@ -82,9 +81,8 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
     );
 }
 
-function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows) {
-    const sections = getAllSections();
-    const section = sections.find(s => s.customTemplate === templateKey);
+function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
+    const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }

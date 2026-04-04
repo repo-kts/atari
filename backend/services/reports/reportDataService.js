@@ -1,5 +1,6 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
+const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -82,12 +83,15 @@ class ReportDataService {
             case 'oftDetailCards':
                 rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
                 break;
+            case 'cfldCombined':
+                rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
         // OFT sections pass raw data to templates (complex nested structures)
-        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards';
+        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards' || dataSource === 'cfldCombined';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

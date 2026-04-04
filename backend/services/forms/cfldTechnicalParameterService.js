@@ -1,15 +1,27 @@
 const cfldTechnicalParameterRepository = require('../../repositories/forms/cfldTechnicalParameterRepository');
 const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError, UnauthorizedError } = require('../../utils/errorHandler.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const TRANSACTION_OPTIONS = {
     maxWait: 5000,
     timeout: 12000,
 };
 
+function assertKvkRecordAccess(record, user) {
+    if (!record || !user) return;
+    if (!['kvk_admin', 'kvk_user'].includes(user.roleName)) return;
+
+    if (Number(record.kvkId) !== Number(user.kvkId)) {
+        throw new UnauthorizedError('Unauthorized');
+    }
+}
+
 const cfldTechnicalParameterService = {
     create: async (data, user) => {
-        return await cfldTechnicalParameterRepository.create(data, {}, user);
+        const result = await cfldTechnicalParameterRepository.create(data, {}, user);
+        await invalidateCfldReportCache(result?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -22,12 +34,11 @@ const cfldTechnicalParameterService = {
 
     update: async (id, data, user) => {
         const existing = await cfldTechnicalParameterRepository.findById(id);
-        if (!existing) throw new Error('Record not found');
-
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
-        }
-        return await cfldTechnicalParameterRepository.update(id, data);
+        if (!existing) throw new NotFoundError('CFLD technical parameter');
+        assertKvkRecordAccess(existing, user);
+        const result = await cfldTechnicalParameterRepository.update(id, data);
+        await invalidateCfldReportCache(existing.kvkId);
+        return result;
     },
 
     transferToNextYear: async (id, user) => {
@@ -47,9 +58,7 @@ const cfldTechnicalParameterService = {
 
         if (!source) throw new NotFoundError('CFLD technical parameter');
 
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(source.kvkId) !== Number(user.kvkId)) {
-            throw new UnauthorizedError('Unauthorized');
-        }
+        assertKvkRecordAccess(source, user);
 
         if (!source.reportingYear) {
             throw new ValidationError('Cannot transfer CFLD without reportingYear', 'reportingYear');
@@ -70,7 +79,7 @@ const cfldTechnicalParameterService = {
         const sourceSocio = (source.socioEconomicParameters || [])[0] || null;
         const sourcePerception = (source.farmersPerceptionParameters || [])[0] || null;
 
-        return await prisma.$transaction(async (tx) => {
+        const transferred = await prisma.$transaction(async (tx) => {
             // Mark source as transferred
             await tx.cfldTechnicalParameter.update({
                 where: { cfldTechId: source.cfldTechId },
@@ -182,17 +191,28 @@ const cfldTechnicalParameterService = {
 
             return newTechnical;
         }, TRANSACTION_OPTIONS);
+        await invalidateCfldReportCache(source.kvkId);
+        return transferred;
     },
 
     delete: async (id, user) => {
         const existing = await cfldTechnicalParameterRepository.findById(id);
-        if (!existing) throw new Error('Record not found');
-
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
-            throw new Error('Unauthorized');
-        }
-        return await cfldTechnicalParameterRepository.delete(id);
+        if (!existing) throw new NotFoundError('CFLD technical parameter');
+        assertKvkRecordAccess(existing, user);
+        const deleted = await cfldTechnicalParameterRepository.delete(id);
+        await invalidateCfldReportCache(existing.kvkId);
+        return deleted;
     }
 };
+
+async function invalidateCfldReportCache(kvkId) {
+    if (!kvkId) return;
+    try {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('cfldCombined', kvkId);
+    } catch (error) {
+        // Non-blocking cache cleanup; writes should still succeed.
+        console.warn('Failed to invalidate CFLD report cache:', error?.message || error);
+    }
+}
 
 module.exports = cfldTechnicalParameterService;
