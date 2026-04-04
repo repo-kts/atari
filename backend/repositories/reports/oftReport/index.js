@@ -1,6 +1,7 @@
-const { getOftSummaryData, getOftDetailCards } = require('./oftReportRepository.js');
+const { getOftSummaryData, getOftDetailCards, getOftSubjectsWithThematicAreas } = require('./oftReportRepository.js');
 
 module.exports = {
     getOftSummaryData,
     getOftDetailCards,
+    getOftSubjectsWithThematicAreas,
 };

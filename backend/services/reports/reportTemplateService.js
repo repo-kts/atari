@@ -71,12 +71,12 @@ class ReportTemplateService {
      * Generate standalone HTML document for a custom template.
      * Reuses the same custom-template handlers used by all-reports flow.
      */
-    generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
+    async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
         const { sectionId = '1.1', title = 'Custom Report' } = options;
         const pseudoSection = { id: sectionId, title };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
-        const renderedSection = this._generateCustomSection(
+        const renderedSection = await this._generateCustomSection(
             pseudoSection,
             data,
             sectionConfig,
@@ -232,6 +232,7 @@ class ReportTemplateService {
             );
         }
 
+        // Handler may return a string or a Promise (async handlers like oft-combined)
         return customTemplateHandler(section, data, sectionId, isFirstSection);
     }
 

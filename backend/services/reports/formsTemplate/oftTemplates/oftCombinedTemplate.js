@@ -5,26 +5,35 @@
  * in a single PDF, matching the original ATARI website KVK-side report.
  *
  * Used by the module-level export (DataManagementView → exportController).
- * The all-reports flow uses the individual templates separately.
+ * Fetches OFT subjects from DB so the summary shows all thematic areas.
  *
  * Bound to reportTemplateService (`this`).
  */
 
 const { renderOftSummarySection } = require('./oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./oftDetailCardsTemplate.js');
+const { getOftSubjectsWithThematicAreas } = require('../../../../repositories/reports/oftReport/index.js');
 
-function renderOftCombinedSection(section, data, sectionId, isFirstSection) {
+async function renderOftCombinedSection(section, data, sectionId, isFirstSection) {
     if (!data || (Array.isArray(data) && data.length === 0)) {
         return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
 
     const records = Array.isArray(data) ? data : [data];
 
-    // Section 2.1 — OFT Summary
+    // Fetch subjects from DB for the summary to show all thematic areas
+    let subjects = [];
+    try {
+        subjects = await getOftSubjectsWithThematicAreas();
+    } catch (e) {
+        // If DB fetch fails, summary will still work with data-driven areas
+    }
+
+    // Section 2.1 — OFT Summary (pass { records, subjects })
     const summaryHtml = renderOftSummarySection.call(
         this,
         { id: '2.1', title: 'OFT Summary' },
-        records,
+        { records, subjects },
         'section-2-1',
         isFirstSection
     );

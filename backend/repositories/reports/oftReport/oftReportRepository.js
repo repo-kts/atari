@@ -94,7 +94,24 @@ async function getOftDetailCards(kvkId, filters = {}) {
     });
 }
 
+/**
+ * Get all OFT subjects with their thematic areas (master data).
+ * Used to render ALL rows in the summary table even with 0 data.
+ */
+async function getOftSubjectsWithThematicAreas() {
+    return await prisma.oftSubject.findMany({
+        include: {
+            thematicAreas: {
+                select: { oftThematicAreaId: true, thematicAreaName: true },
+                orderBy: { thematicAreaName: 'asc' },
+            },
+        },
+        orderBy: { subjectName: 'asc' },
+    });
+}
+
 module.exports = {
     getOftSummaryData,
     getOftDetailCards,
+    getOftSubjectsWithThematicAreas,
 };
