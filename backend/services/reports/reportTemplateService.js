@@ -13,6 +13,7 @@ const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
 const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTemplates/craDetailsStateWiseTemplate.js');
+const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
 
 /**
  * Report Template Service
@@ -37,6 +38,7 @@ class ReportTemplateService {
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
             'cra-details-state-wise': renderCraDetailsStateWiseSection.bind(this),
+            'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
         };
     }
 

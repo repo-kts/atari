@@ -736,6 +736,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             ? 'cfld-combined'
                                             : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                 ? 'cra-details-state-wise'
+                                            : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
+                                                ? 'cra-extension-activity'
                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
                                                 ? 'cfld-extension-activity'
                                                 : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET

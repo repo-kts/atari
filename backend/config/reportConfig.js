@@ -369,6 +369,20 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.10',
+            title: 'CRA Extension Activity',
+            description: 'Extension activities under climate resilient agriculture',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'craExtensionActivity',
+            format: 'custom',
+            customTemplate: 'cra-extension-activity',
+            filters: {
+                dateFields: ['startDate'],
+            },
+            fields: [],
+        },
     ],
 };
 

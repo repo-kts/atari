@@ -86,6 +86,60 @@ async function getCraDetailsData(kvkId, filters = {}) {
     return rows.map(mapRecord);
 }
 
+function mapExtensionRecord(record) {
+    return {
+        craExtensionActivityId: record.craExtensionActivityId,
+        kvkId: record.kvkId,
+        kvkName: record.kvk?.kvkName || '',
+        stateName: record.kvk?.state?.stateName || '',
+        extensionActivityName: record.activity?.activityName || '',
+        withinStateOrOutState: record.withinStateWithoutState || record.withinStateOrWithoutState || record.withinState || '-',
+        exposureVisitNo: Number(record.exposureVisitNo || 0),
+        startDate: record.startDate || null,
+        endDate: record.endDate || null,
+        generalM: Number(record.generalM || 0),
+        generalF: Number(record.generalF || 0),
+        obcM: Number(record.obcM || 0),
+        obcF: Number(record.obcF || 0),
+        scM: Number(record.scM || 0),
+        scF: Number(record.scF || 0),
+        stM: Number(record.stM || 0),
+        stF: Number(record.stF || 0),
+    };
+}
+
+async function getCraExtensionActivityData(kvkId, filters = {}) {
+    const where = { kvkId };
+
+    if (filters.startDate || filters.endDate) {
+        where.startDate = {};
+        if (filters.startDate) {
+            where.startDate.gte = new Date(filters.startDate);
+        }
+        if (filters.endDate) {
+            where.startDate.lte = new Date(filters.endDate);
+        }
+    }
+
+    const rows = await prisma.craExtensionActivity.findMany({
+        where,
+        include: {
+            kvk: {
+                select: {
+                    kvkId: true,
+                    kvkName: true,
+                    state: { select: { stateId: true, stateName: true } },
+                },
+            },
+            activity: { select: { activityId: true, activityName: true } },
+        },
+        orderBy: [{ startDate: 'asc' }, { craExtensionActivityId: 'asc' }],
+    });
+
+    return rows.map(mapExtensionRecord);
+}
+
 module.exports = {
     getCraDetailsData,
+    getCraExtensionActivityData,
 };

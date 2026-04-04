@@ -96,6 +96,9 @@ class ReportDataService {
             case 'craDetails':
                 rawData = await craReportRepository.getCraDetailsData(kvkId, sectionFilters);
                 break;
+            case 'craExtensionActivity':
+                rawData = await craReportRepository.getCraExtensionActivityData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -106,7 +109,8 @@ class ReportDataService {
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'
-            || dataSource === 'craDetails';
+            || dataSource === 'craDetails'
+            || dataSource === 'craExtensionActivity';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

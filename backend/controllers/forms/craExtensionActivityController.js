@@ -67,6 +67,7 @@ const craExtensionActivityController = {
     create: async (req, res) => {
         try {
             const result = await craExtensionActivityRepository.create(req.body, null, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craExtensionActivity', result?.kvkId || req.user?.kvkId);
             res.status(201).json({
                 success: true,
                 message: 'Extension activity created successfully for CRA',
@@ -127,6 +128,7 @@ const craExtensionActivityController = {
     update: async (req, res) => {
         try {
             const result = await craExtensionActivityRepository.update(req.params.id, req.body, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craExtensionActivity', result?.kvkId || req.user?.kvkId);
             res.status(200).json({
                 success: true,
                 message: 'Extension activity updated successfully',
@@ -144,7 +146,9 @@ const craExtensionActivityController = {
 
     delete: async (req, res) => {
         try {
+            const existing = await craExtensionActivityRepository.findById(req.params.id, req.user);
             await craExtensionActivityRepository.delete(req.params.id, req.user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('craExtensionActivity', existing?.kvkId || req.user?.kvkId);
             res.status(200).json({
                 success: true,
                 message: 'Extension activity deleted successfully'
