@@ -10,6 +10,7 @@ const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSum
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
+const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 
 /**
  * Report Template Service
@@ -31,6 +32,7 @@ class ReportTemplateService {
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
+            'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
         };
     }
 

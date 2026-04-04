@@ -37,6 +37,20 @@ function buildWhere(kvkId, filters = {}) {
     return where;
 }
 
+function buildExtensionWhere(kvkId, filters = {}) {
+    const where = { kvkId };
+    if (filters.startDate || filters.endDate) {
+        where.activityDate = {};
+        if (filters.startDate) {
+            where.activityDate.gte = new Date(filters.startDate);
+        }
+        if (filters.endDate) {
+            where.activityDate.lte = new Date(filters.endDate);
+        }
+    }
+    return where;
+}
+
 function mapCfldRecord(record) {
     const economic = (record.economicParameters || [])[0] || {};
     const socio = (record.socioEconomicParameters || [])[0] || {};
@@ -136,6 +150,55 @@ async function getCfldCombinedData(kvkId, filters = {}) {
     return records.map(mapCfldRecord);
 }
 
+async function getCfldExtensionActivityData(kvkId, filters = {}) {
+    const where = buildExtensionWhere(kvkId, filters);
+    const rows = await prisma.extensionActivityOrganized.findMany({
+        where,
+        include: {
+            kvk: {
+                select: {
+                    kvkId: true,
+                    kvkName: true,
+                    state: { select: { stateId: true, stateName: true } },
+                },
+            },
+            season: { select: { seasonId: true, seasonName: true } },
+            extensionActivity: { select: { extensionActivityId: true, extensionName: true } },
+        },
+        orderBy: [{ activityDate: 'asc' }, { organizedId: 'asc' }],
+    });
+
+    return rows.map(row => {
+        const totalM = (row.generalM || 0) + (row.obcM || 0) + (row.scM || 0) + (row.stM || 0);
+        const totalF = (row.generalF || 0) + (row.obcF || 0) + (row.scF || 0) + (row.stF || 0);
+        return {
+            organizedId: row.organizedId,
+            kvkId: row.kvkId,
+            kvkName: row.kvk?.kvkName || '',
+            stateId: row.kvk?.state?.stateId || null,
+            stateName: row.kvk?.state?.stateName || '',
+            seasonId: row.seasonId || null,
+            seasonName: row.season?.seasonName || '',
+            extensionActivityId: row.extensionActivityId,
+            extensionActivityName: row.extensionActivity?.extensionName || '',
+            activityDate: row.activityDate || null,
+            placeOfActivity: row.placeOfActivity || '',
+            generalM: row.generalM || 0,
+            generalF: row.generalF || 0,
+            obcM: row.obcM || 0,
+            obcF: row.obcF || 0,
+            scM: row.scM || 0,
+            scF: row.scF || 0,
+            stM: row.stM || 0,
+            stF: row.stF || 0,
+            totalM,
+            totalF,
+            totalFarmers: totalM + totalF,
+        };
+    });
+}
+
 module.exports = {
     getCfldCombinedData,
+    getCfldExtensionActivityData,
 };

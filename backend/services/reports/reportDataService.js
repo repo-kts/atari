@@ -86,12 +86,18 @@ class ReportDataService {
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
                 break;
+            case 'cfldExtensionActivity':
+                rawData = await cfldReportRepository.getCfldExtensionActivityData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
         // OFT sections pass raw data to templates (complex nested structures)
-        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards' || dataSource === 'cfldCombined';
+        const skipTransform = dataSource === 'oftSummary'
+            || dataSource === 'oftDetailCards'
+            || dataSource === 'cfldCombined'
+            || dataSource === 'cfldExtensionActivity';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
