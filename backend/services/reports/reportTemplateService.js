@@ -9,6 +9,8 @@ const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/abo
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
+const { renderPrevalentDiseasesCropsSection, renderPrevalentDiseasesLivestockSection } = require('./formsTemplate/miscTemplates/prevalentDiseasesTemplate.js');
+const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
 
 /**
  * Report Template Service
@@ -29,6 +31,9 @@ class ReportTemplateService {
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
+            'misc-prevalent-diseases-crops': renderPrevalentDiseasesCropsSection.bind(this),
+            'misc-prevalent-diseases-livestock': renderPrevalentDiseasesLivestockSection.bind(this),
+            'misc-nyk-training': renderNykTrainingSection.bind(this),
         };
     }
 

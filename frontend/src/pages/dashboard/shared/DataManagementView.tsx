@@ -732,6 +732,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ? 'about-kvk-equipment-records'
                 : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
                 ? 'oft-combined'
+                : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS
+                ? 'misc-prevalent-diseases-crops'
+                : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK
+                ? 'misc-prevalent-diseases-livestock'
+                : entityType === ENTITY_TYPES.MISC_NYK_TRAINING
+                ? 'misc-nyk-training'
                 : undefined;
         await handleExportData(format, {
             title,

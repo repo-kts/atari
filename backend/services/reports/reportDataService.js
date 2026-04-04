@@ -1,5 +1,6 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
+const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -82,12 +83,23 @@ class ReportDataService {
             case 'oftDetailCards':
                 rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
                 break;
+            case 'prevalentDiseasesCrops':
+                rawData = await miscReportRepository.getPrevalentDiseasesCrops(kvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesLivestock':
+                rawData = await miscReportRepository.getPrevalentDiseasesLivestock(kvkId, sectionFilters);
+                break;
+            case 'nykTraining':
+                rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
-        // OFT sections pass raw data to templates (complex nested structures)
-        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards';
+        // Custom template sections pass raw data directly (complex nested structures)
+        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards'
+            || dataSource === 'prevalentDiseasesCrops' || dataSource === 'prevalentDiseasesLivestock'
+            || dataSource === 'nykTraining';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
