@@ -1,4 +1,5 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
+const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -70,12 +71,26 @@ class ReportDataService {
             case 'kvkFarmImplements':
                 rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
                 break;
+            case 'oftSummary': {
+                const [summaryRecords, subjects] = await Promise.all([
+                    oftReportRepository.getOftSummaryData(kvkId, sectionFilters),
+                    oftReportRepository.getOftSubjectsWithThematicAreas(),
+                ]);
+                rawData = { records: summaryRecords, subjects };
+                break;
+            }
+            case 'oftDetailCards':
+                rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
+        // OFT sections pass raw data to templates (complex nested structures)
+        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards';
+
         // Transform data according to section configuration
-        const transformedData = this._transformSectionData(rawData, sectionConfig);
+        const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
         
         // Build standardized structure
         const result = {

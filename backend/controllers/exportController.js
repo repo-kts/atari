@@ -32,7 +32,7 @@ const exportData = async (req, res) => {
         switch (format.toLowerCase()) {
             case 'pdf':
                 const html = templateKey
-                    ? generateCustomTemplateHTML(templateKey, rawData, title)
+                    ? await generateCustomTemplateHTML(templateKey, rawData, title)
                     : generateHTML(title, headers, rows);
 
                 buffer = await exportHelper.generatePDF(html);
@@ -63,17 +63,21 @@ const exportData = async (req, res) => {
     }
 };
 
-function generateCustomTemplateHTML(templateKey, rawData, title) {
+async function generateCustomTemplateHTML(templateKey, rawData, title) {
     const normalizedData = Array.isArray(rawData)
         ? rawData
         : (rawData ? [rawData] : []);
 
-    return reportTemplateService.generateStandaloneCustomTemplateHTML(
+    // Look up the matching section for correct sectionId
+    const matchedSection = getAllSections().find(section => section.customTemplate === templateKey);
+
+    return await reportTemplateService.generateStandaloneCustomTemplateHTML(
         templateKey,
         normalizedData,
         {
-            sectionId: '1.1',
-            title,
+            sectionId: matchedSection?.id || '1.1',
+            title: matchedSection?.title || title,
+            customSectionLabel: matchedSection?.customSectionLabel,
         }
     );
 }

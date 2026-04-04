@@ -50,6 +50,7 @@ model Kvkoft {
   numberOfLocation         Int                @map("number_of_location")
   numberOfTrialReplication Int                @map("number_of_trial_replication")
   oftStartDate             DateTime           @map("oft_start_date")
+  oftEndDate               DateTime?          @map("oft_end_date")
   criticalInput            String             @map("critical_input")
   costOfOft                Float              @map("cost_of_oft")
   farmersGeneralM          Int                @map("farmers_general_m")

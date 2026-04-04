@@ -296,6 +296,28 @@ class ReportAggregationService {
             };
         }
 
+        // For custom format sections (OFT, etc.), combine all array data
+        if (sectionConfig.format === 'custom') {
+            const allRows = [];
+            validData.forEach(sd => {
+                if (Array.isArray(sd.data)) {
+                    allRows.push(...sd.data);
+                } else if (sd.data) {
+                    allRows.push(sd.data);
+                }
+            });
+
+            return {
+                sectionId,
+                data: allRows,
+                metadata: {
+                    recordCount: allRows.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // Default: return first valid data
         return validData[0];
     }

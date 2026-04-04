@@ -6,6 +6,9 @@ const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/veh
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
+const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
+const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
+const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
 
 /**
  * Report Template Service
@@ -23,6 +26,9 @@ class ReportTemplateService {
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'oft-summary': renderOftSummarySection.bind(this),
+            'oft-detail-cards': renderOftDetailCardsSection.bind(this),
+            'oft-combined': renderOftCombinedSection.bind(this),
         };
     }
 
@@ -65,12 +71,12 @@ class ReportTemplateService {
      * Generate standalone HTML document for a custom template.
      * Reuses the same custom-template handlers used by all-reports flow.
      */
-    generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
+    async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
         const { sectionId = '1.1', title = 'Custom Report' } = options;
         const pseudoSection = { id: sectionId, title };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
-        const renderedSection = this._generateCustomSection(
+        const renderedSection = await this._generateCustomSection(
             pseudoSection,
             data,
             sectionConfig,
@@ -226,6 +232,7 @@ class ReportTemplateService {
             );
         }
 
+        // Handler may return a string or a Promise (async handlers like oft-combined)
         return customTemplateHandler(section, data, sectionId, isFirstSection);
     }
 
