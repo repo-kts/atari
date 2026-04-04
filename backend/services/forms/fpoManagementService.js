@@ -1,8 +1,11 @@
 const fpoManagementRepository = require('../../repositories/forms/fpoManagementRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const fpoManagementService = {
     create: async (data, user) => {
-        return await fpoManagementRepository.create(data, user);
+        const result = await fpoManagementRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoManagement', result?.kvkId || user?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -20,7 +23,9 @@ const fpoManagementService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await fpoManagementRepository.update(id, data);
+        const result = await fpoManagementRepository.update(id, data);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoManagement', result?.kvkId || existing?.kvkId || user?.kvkId);
+        return result;
     },
 
     delete: async (id, user) => {
@@ -30,7 +35,9 @@ const fpoManagementService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await fpoManagementRepository.delete(id);
+        const result = await fpoManagementRepository.delete(id);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoManagement', existing?.kvkId || user?.kvkId);
+        return result;
     }
 };
 

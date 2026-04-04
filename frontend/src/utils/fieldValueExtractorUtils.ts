@@ -18,6 +18,25 @@ interface FieldExtractorConfig {
     priority?: number; // Higher priority = checked first
 }
 
+function getRegistrationValue(item: any): string | null {
+    const value = item.registrationNo
+        ?? item.registrationNumber
+        ?? item.registration_no
+        ?? item.registration_number
+        ?? item.regNo
+        ?? item.reg_no
+        ?? item.vehicle?.registrationNo
+        ?? item.fpoRegistrationNo
+        ?? item.fpoRegistrationNumber
+        ?? item.ppvFraPlantVarietiesID;
+
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    return String(value);
+}
+
 // ============================================
 // Field Extractor Functions
 // ============================================
@@ -222,16 +241,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             if (typeof val === 'string') return val;
             if (val && typeof val === 'object' && val.districtName) return val.districtName;
             if (item.kvk?.district?.districtName) return item.kvk.district.districtName;
-            return null;
-        },
-        priority: 7,
-    },
-    [FIELD_NAMES.ORGANIZATION_ORG_NAME]: {
-        extractor: (item: any) => {
-            if (item.org?.orgName) return item.org.orgName;
-            if (item.organization?.orgName) return item.organization.orgName;
-            if (item.organization?.uniName) return item.organization.uniName; // Legacy
-            if (item.uniName) return item.uniName; // Legacy
             return null;
         },
         priority: 7,
@@ -553,22 +562,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
         extractor: (item: any) => item.placeOfActivity || item.venue || item.PlaceOfActivity || null,
-        priority: 7,
-    },
-    [FIELD_NAMES.NO_OF_FARMERS_ATTENDED]: {
-        extractor: (item: any) => {
-            const sum = (
-                (item.generalM || 0) + (item.generalF || 0) +
-                (item.obcM || 0) + (item.obcF || 0) +
-                (item.scM || 0) + (item.scF || 0) +
-                (item.stM || 0) + (item.stF || 0) +
-                (item.genMale || 0) + (item.genFemale || 0) +
-                (item.obcMale || 0) + (item.obcFemale || 0) +
-                (item.scMale || 0) + (item.scFemale || 0) +
-                (item.stMale || 0) + (item.stFemale || 0)
-            );
-            return sum > 0 ? String(sum) : (item.noOfFarmersAttended || item.totalFarmers || null);
-        },
         priority: 7,
     },
     [FIELD_NAMES.IMPORTANT_DAYS]: {
@@ -1062,7 +1055,10 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 5,
     },
     [FIELD_NAMES.REGISTRATION_NO]: {
-        extractor: (item: any) => item.registrationNo || (item.ppvFraPlantVarietiesID ? String(item.ppvFraPlantVarietiesID) : null),
+        extractor: (item: any) => getRegistrationValue(item),
+    },
+    'Registration No': {
+        extractor: (item: any) => getRegistrationValue(item),
     },
     [FIELD_NAMES.RELATED_CROP_LIVESTOCK_TECHNOLOGY]: {
         extractor: (item: any) => {
@@ -1118,9 +1114,6 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
             const value = item.noOfFarmersAttended || item.numberOfFarmersAttended || item.noOfParticipants || item.numberOfParticipants;
             return value !== undefined && value !== null ? String(value) : null;
         }
-    },
-    [FIELD_NAMES.PLACE_OF_ACTIVITY]: {
-        extractor: (item: any) => item.placeOfActivity || item.venue || item.place || null,
     },
     [FIELD_NAMES.REMARK]: {
         extractor: (item: any) => item.remark || item.remarks || item['Remark'] || null,

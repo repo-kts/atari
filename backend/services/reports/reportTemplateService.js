@@ -14,6 +14,8 @@ const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectT
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
 const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTemplates/craDetailsStateWiseTemplate.js');
 const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
+const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
+const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
 
 /**
  * Report Template Service
@@ -39,6 +41,8 @@ class ReportTemplateService {
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
             'cra-details-state-wise': renderCraDetailsStateWiseSection.bind(this),
             'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
+            'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
+            'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
         };
     }
 

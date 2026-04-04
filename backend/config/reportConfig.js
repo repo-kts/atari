@@ -383,6 +383,34 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.11',
+            title: 'Formation and Promotion of FPOs as CBBOs under NCDC Funding',
+            description: 'FPO registration, training and business performance under CBBO support',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'fpoCbboDetails',
+            format: 'custom',
+            customTemplate: 'fpo-cbbo-details',
+            filters: {
+                dateFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.12',
+            title: 'Details of commodity-based organizations/Farmers Cooperative Society/FPO Formed/Associated with KVK under NCDC Funding',
+            description: 'FPO management profile details under NCDC funding',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'fpoManagement',
+            format: 'custom',
+            customTemplate: 'fpo-management-details',
+            filters: {
+                dateFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 

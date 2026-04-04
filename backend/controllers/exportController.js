@@ -88,6 +88,12 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'cra-extension-activity') {
         return buildCraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'fpo-cbbo-details') {
+        return buildFpoCbboTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'fpo-management-details') {
+        return buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
@@ -104,6 +110,84 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of the FPO',
+        'Address of FPO',
+        'Registration No',
+        'Date of Registration',
+        'Proposed Activity',
+        'Commodity identified',
+        'Total No. of BOM Members',
+        'Total no of farmers attached',
+        'Financial position (Rupees in lakh)',
+        'Success indicator',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.fpoName || '-', format),
+        formatExportValue(row.address || row.fpoAddress || '-', format),
+        formatExportValue(row.registrationNumber || row.registrationNo || '-', format),
+        formatExportValue(row.registrationDate || '-', format),
+        formatExportValue(row.proposedActivity || '-', format),
+        formatExportValue(row.commodityIdentified || '-', format),
+        formatExportValue(row.totalBomMembers ?? row.bomMembersCount ?? 0, format),
+        formatExportValue(row.totalFarmersAttached ?? row.farmersAttachedCount ?? 0, format),
+        formatExportValue(row.financialPositionLakh ?? row.financialPosition ?? 0, format),
+        formatExportValue(row.successIndicator || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildFpoCbboTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of state',
+        'Name of district',
+        'No. of blocks allocated',
+        'No. of FPOs registered as CBBO',
+        'Average no of members per FPO',
+        'No. of FPO received management cost',
+        'No. of FPO received equity grant',
+        'Tech. backstopping provided to no. of FPOs',
+        'No. of training programme organized for FPOs for technology backstopping as CBBO',
+        'Training received by FPO members',
+        'Assistance to no. of FPOs in economic activities',
+        'Is business plan prepared for FPOs as CBBOs',
+        'Is business plan prepared for FPOs as without CBBOs',
+        'No. of FPOs doing business',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.stateName || '-', format),
+        formatExportValue(row.districtName || '-', format),
+        formatExportValue(row.blocksAllocated ?? 0, format),
+        formatExportValue(row.fposRegisteredAsCbbo ?? 0, format),
+        formatExportValue(row.avgMembersPerFpo ?? 0, format),
+        formatExportValue(row.fposReceivedManagementCost ?? 0, format),
+        formatExportValue(row.fposReceivedEquityGrant ?? 0, format),
+        formatExportValue(row.techBackstoppingProvided ?? 0, format),
+        formatExportValue(row.trainingProgrammeOrganized ?? 0, format),
+        formatExportValue(row.trainingReceivedByMembers || '-', format),
+        formatExportValue(row.assistanceInEconomicActivities ?? 0, format),
+        formatExportValue(row.businessPlanPreparedWithCbbo || '-', format),
+        formatExportValue(row.businessPlanPreparedWithoutCbbo || '-', format),
+        formatExportValue(row.fposDoingBusiness ?? 0, format),
+    ]);
+
+    return { headers, rows };
 }
 
 function buildCraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
