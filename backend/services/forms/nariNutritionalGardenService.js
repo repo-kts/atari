@@ -19,6 +19,18 @@ const nariNutritionalGardenService = {
 
     delete: async (id, user) => {
         return await nariNutritionalGardenRepository.delete(id, user);
+    },
+
+    getResultById: async (id) => {
+        return await nariNutritionalGardenRepository.getResultById(id);
+    },
+
+    createResult: async (id, data) => {
+        return await nariNutritionalGardenRepository.createResult(id, data);
+    },
+
+    updateResult: async (id, data) => {
+        return await nariNutritionalGardenRepository.updateResult(id, data);
     }
 };
 

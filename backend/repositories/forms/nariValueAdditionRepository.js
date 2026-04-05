@@ -123,6 +123,60 @@ const nariValueAdditionRepository = {
         return await prisma.nariValueAddition.delete({
             where: { nariValueAdditionId: parseInt(id) }
         });
+    },
+
+    // Result Methods
+    getResultById: async (id) => {
+        return await prisma.nariValueAdditionResult.findFirst({
+            where: { nariValueAdditionId: parseInt(id) }
+        });
+    },
+
+    createResult: async (id, data) => {
+        const valueAdditionId = parseInt(id);
+        return await prisma.$transaction(async (tx) => {
+            const result = await tx.nariValueAdditionResult.create({
+                data: {
+                    nariValueAdditionId: valueAdditionId,
+                    reportingYear: data.reportingYear ? new Date(data.reportingYear) : null,
+                    productName: data.productName || '',
+                    amountProduced: parseFloat(data.amountProduced || 0),
+                    marketPrice: parseFloat(data.marketPrice || 0),
+                    netIncome: parseFloat(data.netIncome || 0),
+                    shelfLife: data.shelfLife || '',
+                    fssaiCertified: data.fssaiCertified || '',
+                }
+            });
+
+            await tx.nariValueAddition.update({
+                where: { nariValueAdditionId: valueAdditionId },
+                data: { status: 'COMPLETED' }
+            });
+
+            return result;
+        });
+    },
+
+    updateResult: async (id, data) => {
+        const valueAdditionId = parseInt(id);
+        const existingResult = await prisma.nariValueAdditionResult.findFirst({
+            where: { nariValueAdditionId: valueAdditionId }
+        });
+
+        if (!existingResult) throw new Error('Result not found');
+
+        return await prisma.nariValueAdditionResult.update({
+            where: { nariValueAdditionResultId: existingResult.nariValueAdditionResultId },
+            data: {
+                reportingYear: data.reportingYear ? new Date(data.reportingYear) : undefined,
+                productName: data.productName !== undefined ? data.productName : undefined,
+                amountProduced: data.amountProduced !== undefined ? parseFloat(data.amountProduced) : undefined,
+                marketPrice: data.marketPrice !== undefined ? parseFloat(data.marketPrice) : undefined,
+                netIncome: data.netIncome !== undefined ? parseFloat(data.netIncome) : undefined,
+                shelfLife: data.shelfLife !== undefined ? data.shelfLife : undefined,
+                fssaiCertified: data.fssaiCertified !== undefined ? data.fssaiCertified : undefined,
+            }
+        });
     }
 };
 
@@ -150,7 +204,7 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         cropName: r.nameOfCrop,

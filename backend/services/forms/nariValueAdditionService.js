@@ -19,6 +19,18 @@ const nariValueAdditionService = {
 
     delete: async (id, user) => {
         return await nariValueAdditionRepository.delete(id, user);
+    },
+
+    getResultById: async (id) => {
+        return await nariValueAdditionRepository.getResultById(id);
+    },
+
+    createResult: async (id, data) => {
+        return await nariValueAdditionRepository.createResult(id, data);
+    },
+
+    updateResult: async (id, data) => {
+        return await nariValueAdditionRepository.updateResult(id, data);
     }
 };
 

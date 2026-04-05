@@ -119,7 +119,7 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true, sourceOfFunding: true } },
+            vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
         }
     },

@@ -8,6 +8,12 @@ const nariTrainingRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        // Validation for mandatory fields
+        if (!data.activityId) throw new Error('Activity is required');
+        if (!data.nameOfNutriSmartVillage) throw new Error('Name of Nutri-Smart Village is required');
+        if (!data.areaOfTraining && !data.trainingArea) throw new Error('Area of Training is required');
+        if (!data.titleOfTraining && !data.trainingTitle) throw new Error('Title of Training is required');
+
         const result = await prisma.nariTrainingProgramme.create({
             data: {
                 kvkId,
@@ -16,11 +22,11 @@ const nariTrainingRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: data.activityId ? parseInt(data.activityId) : null,
+                activityId: parseInt(data.activityId),
                 campusType: data.campusType || 'ON_CAMPUS',
                 nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                areaOfTraining: data.areaOfTraining || '',
-                titleOfTraining: data.titleOfTraining || '',
+                areaOfTraining: data.areaOfTraining || data.trainingArea || '',
+                titleOfTraining: data.titleOfTraining || data.trainingTitle || '',
                 noOfDays: parseInt(data.noOfDays || 0),
                 noOfCourses: parseInt(data.noOfCourses || 0),
                 venue: data.venue || '',
@@ -183,7 +189,7 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         genMale: r.generalM,

@@ -19,6 +19,18 @@ const nariBioFortifiedCropService = {
 
     delete: async (id, user) => {
         return await nariBioFortifiedCropRepository.delete(id, user);
+    },
+
+    getResultById: async (id) => {
+        return await nariBioFortifiedCropRepository.getResultById(id);
+    },
+
+    createResult: async (id, data) => {
+        return await nariBioFortifiedCropRepository.createResult(id, data);
+    },
+
+    updateResult: async (id, data) => {
+        return await nariBioFortifiedCropRepository.updateResult(id, data);
     }
 };
 

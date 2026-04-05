@@ -837,25 +837,39 @@ export function normalizeStartEndDateRanges(data: any): any {
 function stripFileObjects(data: any): any {
     if (!data || typeof data !== 'object') return data;
     const transformed = { ...data };
+
     Object.keys(transformed).forEach(key => {
         const val = transformed[key];
+
+        // 1. Direct File/FileList removal
         if (typeof File !== 'undefined' && val instanceof File) {
             delete transformed[key];
-        } else if (typeof FileList !== 'undefined' && val instanceof FileList) {
+            return;
+        }
+        if (typeof FileList !== 'undefined' && val instanceof FileList) {
             delete transformed[key];
+            return;
+        }
+
+        // 2. Arrays containing File objects (like photo lists)
+        if (Array.isArray(val)) {
+            transformed[key] = val.map((item: any) => {
+                if (item && typeof item === 'object') {
+                    const hasFile = item.file instanceof File || (typeof File !== 'undefined' && item.file instanceof File);
+                    if (hasFile || item instanceof File) {
+                        if (item instanceof File) return null;
+                        
+                        const { file, preview, image, ...rest } = item;
+                        return {
+                            ...rest,
+                            image: image || preview || rest.url || rest.path || ''
+                        };
+                    }
+                }
+                return item;
+            }).filter(item => item !== null && !(typeof File !== 'undefined' && item instanceof File));
         }
     });
-
-    // Also check for files inside arrays (like photographs when they are raw Files)
-    if (Array.isArray(transformed.photographs)) {
-        transformed.photographs = transformed.photographs.map(p => {
-            if (p && typeof p === 'object' && 'file' in p && (typeof File !== 'undefined' && p.file instanceof File)) {
-                const { file, ...rest } = p;
-                return rest;
-            }
-            return p;
-        }).filter(p => !(typeof File !== 'undefined' && p instanceof File));
-    }
 
     return transformed;
 }
@@ -871,12 +885,12 @@ export function transformDataForCreate(
     transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
+    transformed = stripFileObjects(transformed); // STRIP FILES BEFORE TRANSFORMATION
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = normalizeStartEndDateRanges(transformed);
-    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
-    transformed = stripFileObjects(transformed); // STRIP FILES HERE
+    transformed = removeEmptyIdFields(transformed);
     return transformed;
 }
 
@@ -893,11 +907,11 @@ export function transformDataForUpdate(
     transformed = normalizeReportingYearDateAlias(transformed);
     transformed = normalizeReportingYearFields(transformed);
     transformed = removeCategoryIfNeeded(entityType, transformed);
+    transformed = stripFileObjects(transformed); // STRIP FILES BEFORE TRANSFORMATION
     transformed = applyEntityTransformation(entityType, transformed);
     transformed = normalizeLegacyReportingYear(transformed);
     transformed = sanitizeEnumFields(entityType, transformed);
     transformed = normalizeStartEndDateRanges(transformed);
-    transformed = removeEmptyIdFields(transformed); // Remove empty string ID fields
-    transformed = stripFileObjects(transformed); // STRIP FILES HERE
+    transformed = removeEmptyIdFields(transformed);
     return transformed;
 }

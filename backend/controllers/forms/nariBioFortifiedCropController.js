@@ -45,6 +45,33 @@ const nariBioFortifiedCropController = {
         } catch (error) {
             res.status(500).json({ success: false, message: error.message });
         }
+    },
+
+    getResult: async (req, res) => {
+        try {
+            const result = await nariBioFortifiedCropService.getResultById(req.params.id);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    createResult: async (req, res) => {
+        try {
+            const result = await nariBioFortifiedCropService.createResult(req.params.id, req.body);
+            res.status(201).json({ success: true, data: result });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    updateResult: async (req, res) => {
+        try {
+            const result = await nariBioFortifiedCropService.updateResult(req.params.id, req.body);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
     }
 };
 

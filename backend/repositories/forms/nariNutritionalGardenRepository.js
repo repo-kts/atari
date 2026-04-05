@@ -8,6 +8,11 @@ const nariNutritionalGardenRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        // Validation for mandatory fields
+        if (!data.activityId) throw new Error('Activity is required');
+        if (!data.nameOfNutriSmartVillage) throw new Error('Name of Nutri-Smart Village is required');
+        if (!data.typeOfNutritionalGardenId) throw new Error('Type of Nutritional Garden is required');
+
         const result = await prisma.nariNutritionalGarden.create({
             data: {
                 kvkId,
@@ -16,11 +21,11 @@ const nariNutritionalGardenRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: data.activityId ? parseInt(data.activityId) : null,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                typeOfNutritionalGardenId: data.typeOfNutritionalGardenId ? parseInt(data.typeOfNutritionalGardenId) : null,
+                activityId: parseInt(data.activityId),
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage,
+                typeOfNutritionalGardenId: parseInt(data.typeOfNutritionalGardenId),
                 number: parseInt(data.number || 0),
-                areaSqm: data.areaSqm ? parseFloat(data.areaSqm) : 0,
+                areaSqm: parseFloat(data.areaSqm || 0),
                 generalM: parseInt(data.generalM || data.genMale || 0),
                 generalF: parseInt(data.generalF || data.genFemale || 0),
                 obcM: parseInt(data.obcM || data.obcMale || 0),
@@ -129,6 +134,62 @@ const nariNutritionalGardenRepository = {
         return await prisma.nariNutritionalGarden.delete({
             where: { nariNutritionalGardenId: parseInt(id) }
         });
+    },
+
+    // Result Methods
+    getResultById: async (id) => {
+        return await prisma.nariNutritionalGardenResult.findFirst({
+            where: { nariNutritionalGardenId: parseInt(id) }
+        });
+    },
+
+    createResult: async (id, data) => {
+        const nutritionalGardenId = parseInt(id);
+        return await prisma.$transaction(async (tx) => {
+            const result = await tx.nariNutritionalGardenResult.create({
+                data: {
+                    nariNutritionalGardenId: nutritionalGardenId,
+                    reportingYear: data.reportingYear ? new Date(data.reportingYear) : null,
+                    cropName: data.cropName || '',
+                    variety: data.variety || '',
+                    areaSqm: parseFloat(data.areaSqm || 0),
+                    productionKg: parseFloat(data.productionKg || 0),
+                    consumptionKg: parseFloat(data.consumptionKg || 0),
+                    sellKg: parseFloat(data.sellKg || 0),
+                    income: parseFloat(data.income || 0),
+                }
+            });
+
+            await tx.nariNutritionalGarden.update({
+                where: { nariNutritionalGardenId: nutritionalGardenId },
+                data: { status: 'COMPLETED' }
+            });
+
+            return result;
+        });
+    },
+
+    updateResult: async (id, data) => {
+        const nutritionalGardenId = parseInt(id);
+        const existingResult = await prisma.nariNutritionalGardenResult.findFirst({
+            where: { nariNutritionalGardenId: nutritionalGardenId }
+        });
+
+        if (!existingResult) throw new Error('Result not found');
+
+        return await prisma.nariNutritionalGardenResult.update({
+            where: { nariNutritionalGardenResultId: existingResult.nariNutritionalGardenResultId },
+            data: {
+                reportingYear: data.reportingYear ? new Date(data.reportingYear) : undefined,
+                cropName: data.cropName !== undefined ? data.cropName : undefined,
+                variety: data.variety !== undefined ? data.variety : undefined,
+                areaSqm: data.areaSqm !== undefined ? parseFloat(data.areaSqm) : undefined,
+                productionKg: data.productionKg !== undefined ? parseFloat(data.productionKg) : undefined,
+                consumptionKg: data.consumptionKg !== undefined ? parseFloat(data.consumptionKg) : undefined,
+                sellKg: data.sellKg !== undefined ? parseFloat(data.sellKg) : undefined,
+                income: data.income !== undefined ? parseFloat(data.income) : undefined,
+            }
+        });
     }
 };
 
@@ -158,7 +219,7 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         gardenType: r.typeOfNutritionalGarden?.name,
