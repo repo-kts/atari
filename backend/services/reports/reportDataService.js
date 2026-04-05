@@ -97,6 +97,12 @@ class ReportDataService {
             case 'nykTraining':
                 rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
                 break;
+            case 'ppvFraPlantVarieties':
+                rawData = await miscReportRepository.getPpvFraPlantVarieties(kvkId, sectionFilters);
+                break;
+            case 'ppvFraTraining':
+                rawData = await miscReportRepository.getPpvFraTraining(kvkId, sectionFilters);
+                break;
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
                 break;
@@ -149,6 +155,8 @@ class ReportDataService {
             || dataSource === 'prevalentDiseasesCrops'
             || dataSource === 'prevalentDiseasesLivestock'
             || dataSource === 'nykTraining'
+            || dataSource === 'ppvFraPlantVarieties'
+            || dataSource === 'ppvFraTraining'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'

@@ -738,7 +738,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 ? 'misc-prevalent-diseases-livestock'
                                                 : entityType === ENTITY_TYPES.MISC_NYK_TRAINING
                                                     ? 'misc-nyk-training'
-                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                                    : entityType === ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES
+                                                        ? 'misc-ppv-fra-plant-varieties'
+                                                        : entityType === ENTITY_TYPES.MISC_PPV_FRA_TRAINING
+                                                            ? 'misc-ppv-fra-training'
+                                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
                                                         ? 'cfld-combined'
                                                         : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                             ? 'cra-details-state-wise'

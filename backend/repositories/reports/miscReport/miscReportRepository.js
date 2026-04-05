@@ -40,8 +40,37 @@ async function getNykTraining(kvkId, filters = {}) {
     });
 }
 
+async function getPpvFraPlantVarieties(kvkId, filters = {}) {
+    const where = { kvkId };
+    applyCreatedAtFilters(where, filters);
+
+    return await prisma.ppvFraPlantVarieties.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
+        },
+        orderBy: [{ reportingYear: 'desc' }, { cropName: 'asc' }],
+    });
+}
+
+async function getPpvFraTraining(kvkId, filters = {}) {
+    const where = { kvkId };
+    applyCreatedAtFilters(where, filters);
+
+    return await prisma.ppvFraTraining.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
+            trainingType: { select: { typeId: true, typeName: true } },
+        },
+        orderBy: [{ programmeDate: 'desc' }, { title: 'asc' }],
+    });
+}
+
 module.exports = {
     getPrevalentDiseasesCrops,
     getPrevalentDiseasesLivestock,
     getNykTraining,
+    getPpvFraPlantVarieties,
+    getPpvFraTraining,
 };
