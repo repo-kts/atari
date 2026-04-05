@@ -20,6 +20,7 @@ const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/d
 const { renderDrmrActivitySection }        = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
 const { renderNariBioFortifiedSection }    = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
 const { renderNariTrainingSection }        = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
+const { renderCsisaSection }               = require('./formsTemplate/projectTemplates/csisaTemplate.js');
 const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
 const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
 const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
@@ -57,6 +58,7 @@ class ReportTemplateService {
             'nari-nutrition-garden': renderNariNutritionGardenSection.bind(this),
             'nari-bio-fortified': renderNariBioFortifiedSection.bind(this),
             'nari-training':      renderNariTrainingSection.bind(this),
+            'csisa':              renderCsisaSection.bind(this),
             'nari-extension':     renderNariExtensionSection.bind(this),
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
             'arya-current':       renderAryaCurrentSection.bind(this),

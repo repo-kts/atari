@@ -132,6 +132,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'arya-prev-year') {
         return buildAryaPrevYearTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'csisa') {
+        return buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'nari-value-addition') {
         return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -949,6 +952,68 @@ function buildAryaPrevYearTabularData(rawData, format, fallbackHeaders, fallback
         Number(row.employmentOtherMandays ?? row.employmentOther ?? 0),
         Number((row.employmentFamilyMandays ?? row.employmentFamily ?? 0) + (row.employmentOtherMandays ?? row.employmentOther ?? 0)),
         Number(row.personsVisitedUnit ?? row.personsVisited ?? 0),
+    ]);
+
+    return { headers, rows };
+}
+
+/**
+ * CSISA – Excel / DOCX tabular export (Section 2.22)
+ *
+ * Each row in `rawData` is already one flattened crop-detail row
+ * (parent CSISA fields repeated) as produced by csisaReportRepository.
+ * Stable 20-column layout matching the PDF template.
+ */
+function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Season',
+        'Village Covered',
+        'Block Covered',
+        'District Covered',
+        'Respondent',
+        'Trial Name',
+        'Area Covered (ha)',
+        'Name of Crop',
+        'Tech. Options',
+        'Variety Name',
+        'Duration (Days)',
+        'Sowing Date',
+        'Harvesting Date',
+        'Maturity Days',
+        'Grain Yield (q/ha)',
+        'Cost of Cultivation (Rs/ha)',
+        'Gross Return (Rs/ha)',
+        'Net Return (Rs/ha)',
+        'BCR',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.seasonName       || '-', format),
+        Number(row.villagesCovered  ?? 0),
+        Number(row.blocksCovered    ?? 0),
+        Number(row.districtsCovered ?? 0),
+        Number(row.respondents      ?? 0),
+        formatExportValue(row.trialName        || '-', format),
+        Number(row.areaCoveredHa   ?? 0),
+        formatExportValue(row.cropName         || '-', format),
+        formatExportValue(row.technologyOption || '-', format),
+        formatExportValue(row.varietyName      || '-', format),
+        Number(row.durationDays    ?? 0),
+        formatExportValue(row.sowingDate       || '-', format),
+        formatExportValue(row.harvestingDate   || '-', format),
+        Number(row.daysOfMaturity  ?? 0),
+        Number(row.grainYieldQPerHa ?? 0),
+        Number(row.costOfCultivation ?? 0),
+        Number(row.grossReturn      ?? 0),
+        Number(row.netReturn        ?? 0),
+        Number(row.bcr              ?? 0),
     ]);
 
     return { headers, rows };

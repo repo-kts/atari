@@ -544,6 +544,21 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.22',
+            title: 'CSISA Details',
+            description: 'Details of Cereal Systems Initiative for South Asia (CSISA) with crop trial data',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'csisa',
+            format: 'custom',
+            customTemplate: 'csisa',
+            filters: {
+                dateFields: ['reportingYear'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 
