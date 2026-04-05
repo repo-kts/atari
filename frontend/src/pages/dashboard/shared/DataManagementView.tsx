@@ -764,6 +764,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                     ? 'nicra-basic'
                                             : entityType === ENTITY_TYPES.PROJECT_SEED_HUB
                                                 ? 'seed-hub'
+                                            : entityType === ENTITY_TYPES.PROJECT_OTHER
+                                                ? 'other-programmes'
                                             : entityType === ENTITY_TYPES.PROJECT_CSISA
                                                                                                         ? 'csisa'
                                                                                                         : entityType === ENTITY_TYPES.PROJECT_TSP_SCSP

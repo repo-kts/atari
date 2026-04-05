@@ -144,6 +144,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'seed-hub') {
         return buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'other-programmes') {
+        return buildOtherProgrammesTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'tsp') {
         return buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -1051,6 +1054,36 @@ function buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows)
         Number(r.quantitySaleToOtherOrgQ ?? 0),
         Number(r.amountGeneratedLakh ?? 0),
         Number(r.totalAmountPresentLakh ?? 0),
+    ]);
+    return { headers, rows };
+}
+
+function buildOtherProgrammesTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'KVK',
+        'Name of the programme',
+        'Date',
+        'Venue',
+        'Purpose',
+        'General M','General F','General T',
+        'OBC M','OBC F','OBC T',
+        'SC M','SC F','SC T',
+        'ST M','ST F','ST T',
+        'Grand M','Grand F','Grand T',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.programmeName || '-', format),
+        formatExportValue(r.programmeDate ? new Date(r.programmeDate).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.venue || '-', format),
+        formatExportValue(r.purpose || '-', format),
+        Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
+        Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+        Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+        Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+        Number(r.grandM ?? 0), Number(r.grandF ?? 0), Number(r.grandT ?? 0),
     ]);
     return { headers, rows };
 }

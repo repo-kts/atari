@@ -604,6 +604,21 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.25',
+            title: 'Other Programmes organized by KVK (not covered above)',
+            description: 'Other programmes with beneficiary categories and KVK name column',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'otherProgrammes',
+            format: 'custom',
+            customTemplate: 'other-programmes',
+            filters: {
+                dateFields: ['programmeDate'],
+                yearFields: ['programmeDate'],
+            },
+            fields: [],
+        },
     ],
 };
 

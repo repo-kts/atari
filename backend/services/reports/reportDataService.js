@@ -10,6 +10,7 @@ const csisaReportRepository = require('../../repositories/reports/csisaReport/in
 const nicraReportRepository = require('../../repositories/reports/nicraReport/index.js');
 const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
 const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
+const otherProgrammeReportRepository = require('../../repositories/reports/otherProgrammeReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -158,6 +159,9 @@ class ReportDataService {
             case 'seedHub':
                 rawData = await seedHubReportRepository.getSeedHubData(kvkId, sectionFilters);
                 break;
+            case 'otherProgrammes':
+                rawData = await otherProgrammeReportRepository.getOtherProgrammeData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -186,7 +190,7 @@ class ReportDataService {
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
             || dataSource === 'scsp';
-        const skipTransformWithSeedHub = skipTransform || dataSource === 'seedHub';
+        const skipTransformWithSeedHub = skipTransform || dataSource === 'seedHub' || dataSource === 'otherProgrammes';
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
