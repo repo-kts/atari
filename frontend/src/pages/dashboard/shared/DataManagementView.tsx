@@ -732,35 +732,41 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     ? 'about-kvk-equipment-records'
                                     : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
                                         ? 'oft-combined'
-                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
-                                            ? 'cfld-combined'
-                                            : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
-                                                ? 'cra-details-state-wise'
-                                            : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
-                                                ? 'cra-extension-activity'
-                                            : entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS
-                                                ? 'fpo-cbbo-details'
-                                            : entityType === ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
-                                                ? 'fpo-management-details'
-                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS
-                                                ? 'drmr-details'
-                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
-                                                ? 'drmr-activity'
-                                            : entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                                                ? 'nari-nutrition-garden'
-                                            : entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                                                ? 'nari-bio-fortified'
-                                            : entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                                                ? 'nari-value-addition'
-                                            : entityType === ENTITY_TYPES.PROJECT_NARI_TRAINING
-                                                ? 'nari-training'
-                                            : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
-                                                ? 'nari-extension'
-                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                ? 'cfld-extension-activity'
-                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                    ? 'cfld-budget-utilization'
-                                                    : undefined;
+                                        : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS
+                                            ? 'misc-prevalent-diseases-crops'
+                                            : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK
+                                                ? 'misc-prevalent-diseases-livestock'
+                                                : entityType === ENTITY_TYPES.MISC_NYK_TRAINING
+                                                    ? 'misc-nyk-training'
+                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                                        ? 'cfld-combined'
+                                                        : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
+                                                            ? 'cra-details-state-wise'
+                                                            : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
+                                                                ? 'cra-extension-activity'
+                                                                : entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS
+                                                                    ? 'fpo-cbbo-details'
+                                                                    : entityType === ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
+                                                                        ? 'fpo-management-details'
+                                                                        : entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS
+                                                                            ? 'drmr-details'
+                                                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
+                                                                                ? 'drmr-activity'
+                                                                                : entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                                                                                    ? 'nari-nutrition-garden'
+                                                                                    : entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                                                                                        ? 'nari-bio-fortified'
+                                                                                        : entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                                                                                            ? 'nari-value-addition'
+                                                                                            : entityType === ENTITY_TYPES.PROJECT_NARI_TRAINING
+                                                                                                ? 'nari-training'
+                                                                                                : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
+                                                                                                    ? 'nari-extension'
+                                                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                                                                        ? 'cfld-extension-activity'
+                                                                                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                                                                            ? 'cfld-budget-utilization'
+                                                                                                            : undefined;
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource = templateKey && filteredData.length === 0 && items.length > 0 ? items : filteredData;

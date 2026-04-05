@@ -1,5 +1,6 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
+const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
@@ -87,6 +88,15 @@ class ReportDataService {
             case 'oftDetailCards':
                 rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
                 break;
+            case 'prevalentDiseasesCrops':
+                rawData = await miscReportRepository.getPrevalentDiseasesCrops(kvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesLivestock':
+                rawData = await miscReportRepository.getPrevalentDiseasesLivestock(kvkId, sectionFilters);
+                break;
+            case 'nykTraining':
+                rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
+                break;
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
                 break;
@@ -133,9 +143,12 @@ class ReportDataService {
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
-        // OFT sections pass raw data to templates (complex nested structures)
+        // Custom template sections pass raw data directly (complex nested structures)
         const skipTransform = dataSource === 'oftSummary'
             || dataSource === 'oftDetailCards'
+            || dataSource === 'prevalentDiseasesCrops'
+            || dataSource === 'prevalentDiseasesLivestock'
+            || dataSource === 'nykTraining'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'
