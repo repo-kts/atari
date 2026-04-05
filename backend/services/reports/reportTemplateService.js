@@ -13,6 +13,8 @@ const { renderPrevalentDiseasesCropsSection, renderPrevalentDiseasesLivestockSec
 const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
 const { renderPpvFraPlantVarietiesSection } = require('./formsTemplate/miscTemplates/ppvFraPlantVarietiesTemplate.js');
 const { renderPpvFraTrainingSection } = require('./formsTemplate/miscTemplates/ppvFraTrainingTemplate.js');
+const { renderVipVisitorsSection } = require('./formsTemplate/miscTemplates/vipVisitorsTemplate.js');
+const { renderRaweFetFitSection } = require('./formsTemplate/miscTemplates/raweFetFitTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
@@ -52,6 +54,8 @@ class ReportTemplateService {
             'misc-nyk-training': renderNykTrainingSection.bind(this),
             'misc-ppv-fra-plant-varieties': renderPpvFraPlantVarietiesSection.bind(this),
             'misc-ppv-fra-training': renderPpvFraTrainingSection.bind(this),
+            'misc-vip-visitors': renderVipVisitorsSection.bind(this),
+            'misc-rawe-fet-fit': renderRaweFetFitSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),

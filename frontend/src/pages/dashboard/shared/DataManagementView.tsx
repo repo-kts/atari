@@ -742,7 +742,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                         ? 'misc-ppv-fra-plant-varieties'
                                                         : entityType === ENTITY_TYPES.MISC_PPV_FRA_TRAINING
                                                             ? 'misc-ppv-fra-training'
-                                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                                            : entityType === ENTITY_TYPES.MISC_VIP_VISITORS
+                                                                ? 'misc-vip-visitors'
+                                                                : entityType === ENTITY_TYPES.MISC_RAWE_FET
+                                                                    ? 'misc-rawe-fet-fit'
+                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
                                                         ? 'cfld-combined'
                                                         : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                             ? 'cra-details-state-wise'

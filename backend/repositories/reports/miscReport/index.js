@@ -4,6 +4,8 @@ const {
     getNykTraining,
     getPpvFraPlantVarieties,
     getPpvFraTraining,
+    getVipVisitors,
+    getRaweFetFit,
 } = require('./miscReportRepository.js');
 
 module.exports = {
@@ -12,4 +14,6 @@ module.exports = {
     getNykTraining,
     getPpvFraPlantVarieties,
     getPpvFraTraining,
+    getVipVisitors,
+    getRaweFetFit,
 };

@@ -53,6 +53,34 @@ async function getPpvFraPlantVarieties(kvkId, filters = {}) {
     });
 }
 
+async function getVipVisitors(kvkId, filters = {}) {
+    const where = { kvkId };
+    applyCreatedAtFilters(where, filters);
+
+    return await prisma.vipVisitor.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
+            dignitaryType: { select: { dignitaryTypeId: true, name: true } },
+        },
+        orderBy: [{ dateOfVisit: 'desc' }, { ministerName: 'asc' }],
+    });
+}
+
+async function getRaweFetFit(kvkId, filters = {}) {
+    const where = { kvkId };
+    applyCreatedAtFilters(where, filters);
+
+    return await prisma.raweFetFitProgramme.findMany({
+        where,
+        include: {
+            kvk: { select: { kvkId: true, kvkName: true } },
+            attachmentType: { select: { attachmentTypeId: true, name: true } },
+        },
+        orderBy: [{ startDate: 'desc' }],
+    });
+}
+
 async function getPpvFraTraining(kvkId, filters = {}) {
     const where = { kvkId };
     applyCreatedAtFilters(where, filters);
@@ -73,4 +101,6 @@ module.exports = {
     getNykTraining,
     getPpvFraPlantVarieties,
     getPpvFraTraining,
+    getVipVisitors,
+    getRaweFetFit,
 };
