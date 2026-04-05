@@ -756,6 +756,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 ? 'nari-training'
                                             : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
                                                 ? 'nari-extension'
+                                            : entityType === ENTITY_TYPES.PROJECT_ARYA_CURRENT
+                                                ? 'arya-current'
+                                            : entityType === ENTITY_TYPES.PROJECT_ARYA_EVALUATION
+                                                ? 'arya-prev-year'
                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
                                                 ? 'cfld-extension-activity'
                                                 : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET

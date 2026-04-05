@@ -23,6 +23,8 @@ const { renderNariTrainingSection }        = require('./formsTemplate/projectTem
 const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
 const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
 const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderAryaCurrentSection }         = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
+const { renderAryaPrevYearSection }        = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
 
 /**
  * Report Template Service
@@ -57,6 +59,8 @@ class ReportTemplateService {
             'nari-training':      renderNariTrainingSection.bind(this),
             'nari-extension':     renderNariExtensionSection.bind(this),
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
+            'arya-current':       renderAryaCurrentSection.bind(this),
+            'arya-prev-year':     renderAryaPrevYearSection.bind(this),
         };
     }
 

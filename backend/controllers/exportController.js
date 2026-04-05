@@ -126,6 +126,12 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'nari-extension') {
         return buildNariExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'arya-current') {
+        return buildAryaCurrentTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'arya-prev-year') {
+        return buildAryaPrevYearTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'nari-value-addition') {
         return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -838,6 +844,112 @@ function buildNariExtensionTabularData(rawData, format, fallbackHeaders, fallbac
             grandM, grandF, grandT,
         ];
     });
+
+    return { headers, rows };
+}
+
+function buildAryaCurrentTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of Enterprise',
+        'No. of Training conducted',
+        'Units Male',
+        'Units Female',
+        'Rural youth trained Male',
+        'Rural youth trained Female',
+        'Viable units (functional units)',
+        'Closed units (non functional)',
+        'Average size of each entrepreneurial unit',
+        'Total Production/unit/year',
+        'Per unit cost of Production',
+        'Sale value of produce',
+        'Economic Gains / unit',
+        'Employment generated (mandays)',
+    ];
+
+    const rows = normalizedData.map(row => {
+        const perUnitCost = Number(row.perUnitCostOfProduction ?? row.perUnitCost ?? 0);
+        const saleValue = Number(row.saleValueOfProduce ?? row.saleValue ?? 0);
+        const economicGains = Number(row.economicGainsPerUnit ?? (saleValue - perUnitCost));
+
+        return [
+            formatExportValue(row.enterpriseName || '-', format),
+            Number(row.trainingsConducted ?? row.trainingConducted ?? row.trainings ?? 0),
+            Number(row.unitsMale ?? row.unitsEstablishedMale ?? 0),
+            Number(row.unitsFemale ?? row.unitsEstablishedFemale ?? 0),
+            Number(row.youthMale ?? row.youthTrainedMale ?? 0),
+            Number(row.youthFemale ?? row.youthTrainedFemale ?? 0),
+            Number(row.viableUnits ?? 0),
+            Number(row.closedUnits ?? 0),
+            Number(row.avgSizeOfUnit ?? row.avgUnitSize ?? 0),
+            Number(row.totalProductionPerYear ?? row.totalProduction ?? 0),
+            perUnitCost,
+            saleValue,
+            economicGains,
+            Number(row.employmentGeneratedMandays ?? row.employmentGenerated ?? 0),
+        ];
+    });
+
+    return { headers, rows };
+}
+
+function buildAryaPrevYearTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'State',
+        'KVK',
+        'Name of Enterprise',
+        'Units Male',
+        'Units Female',
+        'No. of non-functional entrepreneurial unit closed',
+        'Date of Closing',
+        'No. of non-functional entrepreneurial unit restarted',
+        'Date of Restart',
+        'No. of Unit',
+        'Unit capacity',
+        'Fixed cost',
+        'Variable cost',
+        'Total production/unit/year',
+        'Gross cost of production/unit/year',
+        'Gross return per unit/year',
+        'Net benefit / unit/year',
+        'Employment Family',
+        'Employment Other than Family',
+        'Employment Total',
+        'No. of persons visited entrepreneur unit',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.stateName || '-', format),
+        formatExportValue(row.kvkName || '-', format),
+        formatExportValue(row.enterpriseName || '-', format),
+        Number(row.unitsMale ?? row.unitsEstablishedMale ?? 0),
+        Number(row.unitsFemale ?? row.unitsEstablishedFemale ?? 0),
+        Number(row.nonFunctionalUnitsClosed ?? row.unitsClosed ?? row.totalClosed ?? 0),
+        formatExportValue(row.dateOfClosing ?? row.closingDate ?? '-', format),
+        Number(row.nonFunctionalUnitsRestarted ?? row.unitsRestarted ?? row.totalRestarted ?? 0),
+        formatExportValue(row.dateOfRestart ?? row.restartDate ?? '-', format),
+        Number(row.numberOfUnits ?? row.noOfUnit ?? 0),
+        Number(row.unitCapacity ?? 0),
+        Number(row.fixedCost ?? 0),
+        Number(row.variableCost ?? 0),
+        Number(row.totalProductionPerUnitYear ?? row.totalProductionPerUnit ?? 0),
+        Number(row.grossCostPerUnitYear ?? row.grossCost ?? 0),
+        Number(row.grossReturnPerUnitYear ?? row.grossValue ?? 0),
+        Number(row.netBenefitPerUnitYear ?? row.netBenefit ?? 0),
+        Number(row.employmentFamilyMandays ?? row.employmentFamily ?? 0),
+        Number(row.employmentOtherMandays ?? row.employmentOther ?? 0),
+        Number((row.employmentFamilyMandays ?? row.employmentFamily ?? 0) + (row.employmentOtherMandays ?? row.employmentOther ?? 0)),
+        Number(row.personsVisitedUnit ?? row.personsVisited ?? 0),
+    ]);
 
     return { headers, rows };
 }

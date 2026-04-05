@@ -5,6 +5,7 @@ const craReportRepository = require('../../repositories/reports/craReport/index.
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
 const drmrReportRepository = require('../../repositories/reports/drmrReport/index.js');
 const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
+const aryaReportRepository = require('../../repositories/reports/aryaReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -129,6 +130,12 @@ class ReportDataService {
             case 'nariExtension':
                 rawData = await nariReportRepository.getNariExtensionData(kvkId, sectionFilters);
                 break;
+            case 'aryaCurrent':
+                rawData = await aryaReportRepository.getAryaCurrentData(kvkId, sectionFilters);
+                break;
+            case 'aryaPrevYear':
+                rawData = await aryaReportRepository.getAryaPrevData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -149,7 +156,9 @@ class ReportDataService {
             || dataSource === 'nariBioFortified'
             || dataSource === 'nariValueAddition'
             || dataSource === 'nariTraining'
-            || dataSource === 'nariExtension';
+            || dataSource === 'nariExtension'
+            || dataSource === 'aryaCurrent'
+            || dataSource === 'aryaPrevYear';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

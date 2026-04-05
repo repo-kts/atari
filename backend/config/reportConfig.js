@@ -514,6 +514,36 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.20',
+            title: 'ARYA Current Year Details',
+            description: 'Attracting and retaining youth in agriculture (current year)',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'aryaCurrent',
+            format: 'custom',
+            customTemplate: 'arya-current',
+            filters: {
+                dateFields: ['reportingYear'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.21',
+            title: 'ARYA Previous Year Details',
+            description: 'Attracting and retaining youth in agriculture (previous year evaluation)',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'aryaPrevYear',
+            format: 'custom',
+            customTemplate: 'arya-prev-year',
+            filters: {
+                dateFields: ['reportingYear'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 
