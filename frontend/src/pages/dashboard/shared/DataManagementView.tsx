@@ -1071,7 +1071,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         setIsFldResultPageOpen(false)
                                         setSelectedFldId(null)
                                         setSelectedFldItem(null)
-) : isNariNutriResultPageOpen ? (
+                                    }}
+                                    onSubmit={handleSubmitFldResult}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ) : isNariNutriResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariNutritionalGardenResultForm
                             onClose={() => setIsNariNutriResultPageOpen(false)}
