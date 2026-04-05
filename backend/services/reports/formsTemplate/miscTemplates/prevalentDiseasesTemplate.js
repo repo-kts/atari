@@ -27,11 +27,7 @@ function renderPrevalentDiseasesLivestockSection(section, data, sectionId, isFir
 }
 
 function _renderPrevalentDiseases(section, data, sectionId, isFirstSection, type) {
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-        return this._generateEmptySection(section, null, sectionId, isFirstSection);
-    }
-
-    const records = Array.isArray(data) ? data : [data];
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
@@ -63,6 +59,13 @@ function _renderPrevalentDiseases(section, data, sectionId, isFirstSection, type
             </tr>
         </thead>
         <tbody>`;
+
+    if (records.length === 0) {
+        html += `
+            <tr>
+                <td colspan="7" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td>
+            </tr>`;
+    }
 
     records.forEach((row) => {
         const kvk = row.kvk?.kvkName || '-';

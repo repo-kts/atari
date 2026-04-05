@@ -10,11 +10,7 @@
  */
 
 function renderPpvFraPlantVarietiesSection(section, data, sectionId, isFirstSection) {
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-        return this._generateEmptySection(section, null, sectionId, isFirstSection);
-    }
-
-    const records = Array.isArray(data) ? data : [data];
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
@@ -37,6 +33,13 @@ function renderPpvFraPlantVarietiesSection(section, data, sectionId, isFirstSect
             </tr>
         </thead>
         <tbody>`;
+
+    if (records.length === 0) {
+        html += `
+            <tr>
+                <td colspan="9" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td>
+            </tr>`;
+    }
 
     records.forEach((row) => {
         const crop = row.cropName || '-';

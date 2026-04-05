@@ -29,11 +29,7 @@ function _groupByKvk(records) {
 }
 
 function renderNykTrainingSection(section, data, sectionId, isFirstSection) {
-    if (!data || (Array.isArray(data) && data.length === 0)) {
-        return this._generateEmptySection(section, null, sectionId, isFirstSection);
-    }
-
-    const records = Array.isArray(data) ? data : [data];
+    const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection
         ? 'section-page section-page-first'
         : 'section-page section-page-continued';
@@ -43,6 +39,44 @@ function renderNykTrainingSection(section, data, sectionId, isFirstSection) {
     <h1 class="section-title" style="margin-bottom:16px;">Nehru Yuva Kendra</h1>`;
 
     const grouped = _groupByKvk(records);
+
+    // If no data, render an empty table with the standard header
+    if (grouped.size === 0) {
+        html += `
+    <table class="data-table" style="width:100%;margin-bottom:20px;">
+        <thead>
+            <tr>
+                <th rowspan="3" style="vertical-align:bottom;">Title of the training programme</th>
+                <th colspan="2" style="text-align:center;">Period</th>
+                <th colspan="15" style="text-align:center;">No. of the participant</th>
+                <th rowspan="3" style="vertical-align:bottom;">Amount of Fund Received (Rs)</th>
+            </tr>
+            <tr>
+                <th rowspan="2" style="vertical-align:bottom;">From</th>
+                <th rowspan="2" style="vertical-align:bottom;">To</th>
+                <th colspan="3" style="text-align:center;">General</th>
+                <th colspan="3" style="text-align:center;">OBC</th>
+                <th colspan="3" style="text-align:center;">SC</th>
+                <th colspan="3" style="text-align:center;">ST</th>
+                <th colspan="3" style="text-align:center;">Total</th>
+            </tr>
+            <tr>
+                <th style="text-align:center;">M</th><th style="text-align:center;">F</th><th style="text-align:center;">T</th>
+                <th style="text-align:center;">M</th><th style="text-align:center;">F</th><th style="text-align:center;">T</th>
+                <th style="text-align:center;">M</th><th style="text-align:center;">F</th><th style="text-align:center;">T</th>
+                <th style="text-align:center;">M</th><th style="text-align:center;">F</th><th style="text-align:center;">T</th>
+                <th style="text-align:center;">M</th><th style="text-align:center;">F</th><th style="text-align:center;">T</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="19" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>`;
+        return html;
+    }
 
     for (const [kvkName, kvkRecords] of grouped) {
         // KVK heading — bold, left-aligned
