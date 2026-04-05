@@ -1,4 +1,12 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
+const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
+const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
+const craReportRepository = require('../../repositories/reports/craReport/index.js');
+const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
+const drmrReportRepository = require('../../repositories/reports/drmrReport/index.js');
+const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
+const aryaReportRepository  = require('../../repositories/reports/aryaReport/index.js');
+const csisaReportRepository = require('../../repositories/reports/csisaReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -70,12 +78,95 @@ class ReportDataService {
             case 'kvkFarmImplements':
                 rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
                 break;
+            case 'oftSummary': {
+                const [summaryRecords, subjects] = await Promise.all([
+                    oftReportRepository.getOftSummaryData(kvkId, sectionFilters),
+                    oftReportRepository.getOftSubjectsWithThematicAreas(),
+                ]);
+                rawData = { records: summaryRecords, subjects };
+                break;
+            }
+            case 'oftDetailCards':
+                rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
+                break;
+            case 'cfldCombined':
+                rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
+                break;
+            case 'cfldExtensionActivity':
+                rawData = await cfldReportRepository.getCfldExtensionActivityData(kvkId, sectionFilters);
+                break;
+            case 'cfldBudgetUtilization':
+                rawData = await cfldReportRepository.getCfldBudgetUtilizationData(kvkId, sectionFilters);
+                break;
+            case 'craDetails':
+                rawData = await craReportRepository.getCraDetailsData(kvkId, sectionFilters);
+                break;
+            case 'craExtensionActivity':
+                rawData = await craReportRepository.getCraExtensionActivityData(kvkId, sectionFilters);
+                break;
+            case 'fpoCbboDetails':
+                rawData = await fpoReportRepository.getFpoCbboDetailsData(kvkId, sectionFilters);
+                break;
+            case 'fpoManagement':
+                rawData = await fpoReportRepository.getFpoManagementData(kvkId, sectionFilters);
+                break;
+            case 'drmrDetails':
+                rawData = await drmrReportRepository.getDrmrDetailsData(kvkId, sectionFilters);
+                break;
+            case 'drmrActivity':
+                rawData = await drmrReportRepository.getDrmrActivityData(kvkId, sectionFilters);
+                break;
+            case 'nariBioFortified':
+                rawData = await nariReportRepository.getNariBioFortifiedData(kvkId, sectionFilters);
+                break;
+            case 'nariValueAddition':
+                rawData = await nariReportRepository.getNariValueAdditionData(kvkId, sectionFilters);
+                break;
+            case 'nariNutritionGarden':
+                rawData = await nariReportRepository.getNariNutritionGardenData(kvkId, sectionFilters);
+                break;
+            case 'nariTraining':
+                rawData = await nariReportRepository.getNariTrainingData(kvkId, sectionFilters);
+                break;
+            case 'nariExtension':
+                rawData = await nariReportRepository.getNariExtensionData(kvkId, sectionFilters);
+                break;
+            case 'aryaCurrent':
+                rawData = await aryaReportRepository.getAryaCurrentData(kvkId, sectionFilters);
+                break;
+            case 'aryaPrevYear':
+                rawData = await aryaReportRepository.getAryaPrevData(kvkId, sectionFilters);
+                break;
+            case 'csisa':
+                rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
+        // OFT sections pass raw data to templates (complex nested structures)
+        const skipTransform = dataSource === 'oftSummary'
+            || dataSource === 'oftDetailCards'
+            || dataSource === 'cfldCombined'
+            || dataSource === 'cfldExtensionActivity'
+            || dataSource === 'cfldBudgetUtilization'
+            || dataSource === 'craDetails'
+            || dataSource === 'craExtensionActivity'
+            || dataSource === 'fpoCbboDetails'
+            || dataSource === 'fpoManagement'
+            || dataSource === 'drmrDetails'
+            || dataSource === 'drmrActivity'
+            || dataSource === 'nariNutritionGarden'
+            || dataSource === 'nariBioFortified'
+            || dataSource === 'nariValueAddition'
+            || dataSource === 'nariTraining'
+            || dataSource === 'nariExtension'
+            || dataSource === 'aryaCurrent'
+            || dataSource === 'aryaPrevYear'
+            || dataSource === 'csisa';
+
         // Transform data according to section configuration
-        const transformedData = this._transformSectionData(rawData, sectionConfig);
+        const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
         
         // Build standardized structure
         const result = {

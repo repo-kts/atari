@@ -58,6 +58,18 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_university_master',
     },
     {
+        path: ENTITY_PATHS.KVK_MASTER,
+        title: 'KVK Master',
+        category: 'All Masters',
+        subcategory: 'Basic Masters',
+        parent: '/all-master',
+        subcategoryPath: '/all-master/basic',
+        siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
+        fields: FIELD_GROUPS.VIEW_KVKS,
+        moduleCode: 'about_kvks_view_kvks',
+        canCreate: ['super_admin'],
+    },
+    {
         path: ENTITY_PATHS.DISTRICTS,
         title: 'District Master',
         category: 'All Masters',

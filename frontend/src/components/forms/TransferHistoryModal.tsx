@@ -29,11 +29,15 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
 
     const formatDate = (dateString: string) => {
         try {
-            return format(new Date(dateString), 'MMM dd, yyyy HH:mm');
+            return format(new Date(dateString), 'dd MMM yyyy');
         } catch {
             return dateString;
         }
     };
+
+    const sortedHistory = [...history].sort((a, b) => {
+        return new Date(b.transferDate).getTime() - new Date(a.transferDate).getTime();
+    });
 
     return (
         <Modal isOpen={open} onClose={onClose} title={`Transfer History - ${staff.staffName}`} size="lg">
@@ -54,7 +58,7 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {history.map((transfer) => (
+                        {sortedHistory.map((transfer) => (
                             <div
                                 key={transfer.transferId}
                                 className={`border rounded-lg p-4 ${transfer.isReversal
@@ -74,6 +78,7 @@ export const TransferHistoryModal: React.FC<TransferHistoryModalProps> = ({
                                             </span>
                                         )}
                                         <span className="text-xs text-[#757575]">
+                                            Transfer Date:{' '}
                                             {formatDate(transfer.transferDate)}
                                         </span>
                                     </div>

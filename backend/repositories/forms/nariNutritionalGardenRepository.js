@@ -36,7 +36,7 @@ const nariNutritionalGardenRepository = {
                 stF: parseInt(data.stF || data.stFemale || 0),
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
                 typeOfNutritionalGarden: { select: { name: true } },
             }
@@ -75,7 +75,7 @@ const nariNutritionalGardenRepository = {
         const results = await prisma.nariNutritionalGarden.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
                 typeOfNutritionalGarden: { select: { name: true } },
             },
@@ -88,7 +88,7 @@ const nariNutritionalGardenRepository = {
         const result = await prisma.nariNutritionalGarden.findUnique({
             where: { nariNutritionalGardenId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
                 typeOfNutritionalGarden: { select: { name: true } },
             }
@@ -122,7 +122,7 @@ const nariNutritionalGardenRepository = {
                 stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
                 typeOfNutritionalGarden: { select: { name: true } },
             }
@@ -201,6 +201,8 @@ function _mapResponse(r) {
         id: r.nariNutritionalGardenId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
+        stateName: r.kvk?.state?.stateName || '',
+        districtName: r.kvk?.district?.districtName || '',
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,

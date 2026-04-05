@@ -1,8 +1,14 @@
 const nariBioFortifiedCropRepository = require('../../repositories/forms/nariBioFortifiedCropRepository.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const nariBioFortifiedCropService = {
     create: async (data, user) => {
-        return await nariBioFortifiedCropRepository.create(data, user);
+        const result = await nariBioFortifiedCropRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk(
+            'nariBioFortified',
+            result?.kvkId || user?.kvkId,
+        );
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -14,11 +20,23 @@ const nariBioFortifiedCropService = {
     },
 
     update: async (id, data, user) => {
-        return await nariBioFortifiedCropRepository.update(id, data, user);
+        const existing = await nariBioFortifiedCropRepository.findById(id);
+        const result = await nariBioFortifiedCropRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk(
+            'nariBioFortified',
+            result?.kvkId || existing?.kvkId || user?.kvkId,
+        );
+        return result;
     },
 
     delete: async (id, user) => {
-        return await nariBioFortifiedCropRepository.delete(id, user);
+        const existing = await nariBioFortifiedCropRepository.findById(id);
+        const result = await nariBioFortifiedCropRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk(
+            'nariBioFortified',
+            existing?.kvkId || user?.kvkId,
+        );
+        return result;
     },
 
     getResultById: async (id) => {

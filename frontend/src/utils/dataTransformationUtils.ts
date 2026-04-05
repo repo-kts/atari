@@ -125,7 +125,15 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
         },
     },
     [ENTITY_TYPES.UNIVERSITIES]: {
-        includeFields: ['universityName', 'orgId'],
+        includeFields: [
+            'universityName',
+            'orgId',
+            'hostMobile',
+            'hostLandline',
+            'hostFax',
+            'hostEmail',
+            'hostAddress',
+        ],
     },
     [ENTITY_TYPES.ORGANIZATIONS]: {
         excludeFields: ['zoneId', 'stateId'],
@@ -870,6 +878,17 @@ function stripFileObjects(data: any): any {
             }).filter(item => item !== null && !(typeof File !== 'undefined' && item instanceof File));
         }
     });
+
+    // Also check for files inside arrays (like photographs when they are raw Files)
+    if (Array.isArray(transformed.photographs)) {
+        transformed.photographs = transformed.photographs.map((p: any) => {
+            if (p && typeof p === 'object' && 'file' in p && (typeof File !== 'undefined' && p.file instanceof File)) {
+                const { file, ...rest } = p;
+                return rest;
+            }
+            return p;
+        }).filter((p: any) => !(typeof File !== 'undefined' && p instanceof File));
+    }
 
     return transformed;
 }

@@ -20,6 +20,7 @@ import {
 import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
+import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -128,6 +129,35 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             }
         }
     }, [formData.kvkStaffId, formData.id, entityType, setFormData]);
+    // Autofill host fields from selected University
+    const selectedUniversityId = typeof formData.universityId === 'number' ? formData.universityId : undefined
+    const { data: uniHost, loading: uniLoading } = useUniversityHostFields(selectedUniversityId)
+
+    React.useEffect(() => {
+        if (selectedUniversityId && uniHost) {
+            setFormData((prev: any) => ({
+                ...prev,
+                universityName: uniHost.universityName || prev.universityName || '',
+                hostOrg: uniHost.hostOrg || '',
+                hostMobile: uniHost.hostMobile || '',
+                hostLandline: uniHost.hostLandline || '',
+                hostFax: uniHost.hostFax || '',
+                hostEmail: uniHost.hostEmail || '',
+                hostAddress: uniHost.hostAddress || '',
+            }))
+        } else if (!selectedUniversityId) {
+            setFormData((prev: any) => ({
+                ...prev,
+                universityName: '',
+                hostOrg: '',
+                hostMobile: '',
+                hostLandline: '',
+                hostFax: '',
+                hostEmail: '',
+                hostAddress: '',
+            }))
+        }
+    }, [selectedUniversityId, uniHost?.universityName, uniHost?.hostOrg, uniHost?.hostMobile, uniHost?.hostLandline, uniHost?.hostFax, uniHost?.hostEmail, uniHost?.hostAddress, setFormData])
 
     if (!entityType) return null
 
@@ -288,7 +318,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
                             <FormInput
                                 label=""
-                                required={!Array.isArray(formData.photoPath) || formData.photoPath.length === 0}
                                 type="file"
                                 multiple
                                 accept="image/*"
@@ -876,27 +905,39 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormInput
                                     label="Host Organization Name"
                                     required
-                                    value={formData.hostOrg ?? ''}
-                                    onChange={(e) => setFormData({ ...formData, hostOrg: e.target.value })}
+                                    value={formData.universityName ?? ''}
+                                    onChange={() => {}}
+                                    readOnly
+                                    disabled
+                                    helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
                                     placeholder="Enter host organization name"
                                 />
                             </div>
                             <FormInput
                                 label="Mobile Number"
                                 value={formData.hostMobile ?? ''}
-                                onChange={(e) => setFormData({ ...formData, hostMobile: e.target.value })}
+                                onChange={() => {}}
+                                readOnly
+                                disabled
+                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
                                 placeholder="+91"
                             />
                             <FormInput
                                 label="Landline"
                                 value={formData.hostLandline ?? ''}
-                                onChange={(e) => setFormData({ ...formData, hostLandline: e.target.value })}
+                                onChange={() => {}}
+                                readOnly
+                                disabled
+                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
                                 placeholder="Enter landline"
                             />
                             <FormInput
                                 label="Fax"
                                 value={formData.hostFax ?? ''}
-                                onChange={(e) => setFormData({ ...formData, hostFax: e.target.value })}
+                                onChange={() => {}}
+                                readOnly
+                                disabled
+                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
                                 placeholder="Enter fax"
                             />
                             <div className="md:col-span-3">
@@ -904,7 +945,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     label="E-mail"
                                     type="email"
                                     value={formData.hostEmail ?? ''}
-                                    onChange={(e) => setFormData({ ...formData, hostEmail: e.target.value })}
+                                    onChange={() => {}}
+                                    readOnly
+                                    disabled
+                                    helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
                                     placeholder="Enter email address"
                                 />
                             </div>
@@ -912,7 +956,9 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormTextArea
                                     label="Host Address"
                                     value={formData.hostAddress ?? ''}
-                                    onChange={(e) => setFormData({ ...formData, hostAddress: e.target.value })}
+                                    onChange={() => {}}
+                                    readOnly
+                                    disabled
                                     rows={2}
                                     placeholder="Enter complete address"
                                 />

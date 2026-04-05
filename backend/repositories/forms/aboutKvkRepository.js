@@ -411,7 +411,7 @@ async function findById(entityName, id) {
  */
 function convertRelationFieldsForKvk(data) {
     const converted = { ...data };
-    
+
     // CRITICAL: Remove all ID field variations first - Prisma doesn't accept them in data object
     const idFieldVariations = ['id', '_id', 'kvkId', 'kvk_id'];
     for (const idField of idFieldVariations) {
@@ -419,28 +419,28 @@ function convertRelationFieldsForKvk(data) {
             delete converted[idField];
         }
     }
-    
+
     // Required relations - must use connect
     if (converted.zoneId !== undefined && converted.zoneId !== null) {
         converted.zone = { connect: { zoneId: sanitizeInteger(converted.zoneId) } };
         delete converted.zoneId;
     }
-    
+
     if (converted.stateId !== undefined && converted.stateId !== null) {
         converted.state = { connect: { stateId: sanitizeInteger(converted.stateId) } };
         delete converted.stateId;
     }
-    
+
     if (converted.districtId !== undefined && converted.districtId !== null) {
         converted.district = { connect: { districtId: sanitizeInteger(converted.districtId) } };
         delete converted.districtId;
     }
-    
+
     if (converted.orgId !== undefined && converted.orgId !== null) {
         converted.org = { connect: { orgId: sanitizeInteger(converted.orgId) } };
         delete converted.orgId;
     }
-    
+
     // Optional relation - can be null (disconnect) or connect
     if (converted.universityId !== undefined) {
         if (converted.universityId === null || converted.universityId === '' || converted.universityId === undefined) {
@@ -461,7 +461,7 @@ function convertRelationFieldsForKvk(data) {
             }))
         };
     }
-    
+
     return converted;
 }
 
@@ -472,7 +472,7 @@ function convertRelationFieldsForKvk(data) {
  */
 function convertRelationFieldsForStaff(data) {
     const converted = { ...data };
-    
+
     // CRITICAL: Remove all ID field variations first - Prisma doesn't accept them in data object
     const idFieldVariations = ['id', '_id', 'kvkStaffId', 'kvk_staff_id'];
     for (const idField of idFieldVariations) {
@@ -480,23 +480,23 @@ function convertRelationFieldsForStaff(data) {
             delete converted[idField];
         }
     }
-    
+
     // Convert relation ID fields to relation connect operations
     if (converted.sanctionedPostId !== undefined) {
         converted.sanctionedPost = { connect: { sanctionedPostId: converted.sanctionedPostId } };
         delete converted.sanctionedPostId;
     }
-    
+
     if (converted.disciplineId !== undefined) {
         converted.discipline = { connect: { disciplineId: converted.disciplineId } };
         delete converted.disciplineId;
     }
-    
+
     if (converted.kvkId !== undefined) {
         converted.kvk = { connect: { kvkId: converted.kvkId } };
         delete converted.kvkId;
     }
-    
+
     // Handle optional relations (can be null)
     if (converted.staffCategoryId !== undefined) {
         if (converted.staffCategoryId === null || converted.staffCategoryId === '') {
@@ -506,7 +506,7 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.staffCategoryId;
     }
-    
+
     if (converted.payLevelId !== undefined) {
         if (converted.payLevelId === null || converted.payLevelId === '') {
             converted.payLevel = { disconnect: true };
@@ -515,7 +515,7 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.payLevelId;
     }
-    
+
     if (converted.originalKvkId !== undefined) {
         if (converted.originalKvkId === null || converted.originalKvkId === '') {
             converted.originalKvk = { disconnect: true };
@@ -524,8 +524,104 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.originalKvkId;
     }
-    
+
     return converted;
+}
+
+/**
+ * Convert relation ID fields to Prisma relation connect operations for KVK infrastructure
+ * @param {object} data - Data with relation ID fields
+ * @returns {object} Data with relation connect operations
+ */
+function convertRelationFieldsForInfrastructure(data) {
+    const converted = { ...data };
+
+    if (converted.kvkId !== undefined) {
+        converted.kvk = { connect: { kvkId: sanitizeInteger(converted.kvkId) } };
+        delete converted.kvkId;
+    }
+
+    if (converted.infraMasterId !== undefined) {
+        converted.infraMaster = { connect: { infraMasterId: sanitizeInteger(converted.infraMasterId) } };
+        delete converted.infraMasterId;
+    }
+
+    return converted;
+}
+
+const KVK_BANK_ACCOUNT_ALLOWED_FIELDS = [
+    'kvkId',
+    'accountType',
+    'accountName',
+    'bankName',
+    'location',
+    'accountNumber',
+];
+
+const KVK_STAFF_ALLOWED_FIELDS = [
+    'kvkId',
+    'staffName',
+    'email',
+    'mobile',
+    'dateOfBirth',
+    'photoPath',
+    'resumePath',
+    'sanctionedPostId',
+    'positionOrder',
+    'disciplineId',
+    'payScale',
+    'dateOfJoining',
+    'jobType',
+    'allowances',
+    'transferStatus',
+    'sourceKvkIds',
+    'originalKvkId',
+    'staffCategoryId',
+    'payLevelId',
+];
+
+const KVK_INFRA_ALLOWED_FIELDS = [
+    'kvkId',
+    'infraMasterId',
+    'notYetStarted',
+    'completedPlinthLevel',
+    'completedLintelLevel',
+    'completedRoofLevel',
+    'totallyCompleted',
+    'plinthAreaSqM',
+    'underUse',
+    'sourceOfFunding',
+];
+
+const ACCOUNT_TYPE_VALUES = new Set(['KVK', 'REVOLVING_FUND', 'OTHER']);
+
+function keepOnlyAllowedFields(payload, allowedFields) {
+    Object.keys(payload).forEach((field) => {
+        if (!allowedFields.includes(field)) {
+            delete payload[field];
+        }
+    });
+}
+
+function normalizeAccountType(value) {
+    const normalized = String(value || '')
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, '_');
+
+    if (!ACCOUNT_TYPE_VALUES.has(normalized)) {
+        throw new ValidationError(`Invalid accountType: ${value}`, 'accountType');
+    }
+
+    return normalized;
+}
+
+async function executePrismaWrite(entityName, operation, executor, resourceName = entityName) {
+    try {
+        return await executor();
+    } catch (error) {
+        throw translatePrismaError(error, resourceName, operation);
+    }
 }
 
 /**
@@ -551,7 +647,7 @@ function sanitizeData(entityName, data) {
         config.idField.toLowerCase(),
         config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
     ];
-    
+
     for (const idField of idFieldVariations) {
         if (sanitized[idField] !== undefined) {
             delete sanitized[idField];
@@ -630,8 +726,8 @@ function sanitizeData(entityName, data) {
         }
         if (sanitized.universityId !== undefined) {
             const universityId = safeGet(data, 'universityId');
-            sanitized.universityId = (universityId === null || universityId === undefined || universityId === '') 
-                ? null 
+            sanitized.universityId = (universityId === null || universityId === undefined || universityId === '')
+                ? null
                 : sanitizeInteger(universityId);
         }
     }
@@ -667,6 +763,51 @@ function sanitizeData(entityName, data) {
                 delete sanitized[field];
             }
         });
+    }
+
+    if (entityName === 'kvk-bank-accounts') {
+        keepOnlyAllowedFields(sanitized, KVK_BANK_ACCOUNT_ALLOWED_FIELDS);
+
+        if (sanitized.kvkId !== undefined) {
+            sanitized.kvkId = sanitizeInteger(safeGet(data, 'kvkId'));
+        }
+        if (sanitized.accountType !== undefined) {
+            sanitized.accountType = normalizeAccountType(safeGet(data, 'accountType'));
+        }
+        if (sanitized.accountName !== undefined) {
+            sanitized.accountName = sanitizeString(safeGet(data, 'accountName'), { allowEmpty: false });
+        }
+        if (sanitized.bankName !== undefined) {
+            sanitized.bankName = sanitizeString(safeGet(data, 'bankName'), { allowEmpty: false });
+        }
+        if (sanitized.location !== undefined) {
+            sanitized.location = sanitizeString(safeGet(data, 'location'), { allowEmpty: false });
+        }
+        if (sanitized.accountNumber !== undefined) {
+            sanitized.accountNumber = sanitizeString(safeGet(data, 'accountNumber'), { allowEmpty: false });
+        }
+    }
+
+    if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
+        keepOnlyAllowedFields(sanitized, KVK_STAFF_ALLOWED_FIELDS);
+    }
+
+    if (entityName === 'kvk-infrastructure') {
+        keepOnlyAllowedFields(sanitized, KVK_INFRA_ALLOWED_FIELDS);
+
+        if (sanitized.kvkId !== undefined) {
+            sanitized.kvkId = sanitizeInteger(safeGet(data, 'kvkId'));
+        }
+        if (sanitized.infraMasterId !== undefined) {
+            sanitized.infraMasterId = sanitizeInteger(safeGet(data, 'infraMasterId'));
+        }
+        if (sanitized.sourceOfFunding !== undefined) {
+            sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
+        }
+        if (sanitized.plinthAreaSqM !== undefined) {
+            const numericValue = Number(safeGet(data, 'plinthAreaSqM'));
+            sanitized.plinthAreaSqM = Number.isNaN(numericValue) ? 0 : numericValue;
+        }
     }
 
     if (entityName === 'kvk-vehicle-details') {
@@ -719,18 +860,16 @@ async function create(entityName, data) {
 
     // CRITICAL: Ensure ID fields are removed for create operations too
     sanitizedData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    
+
     // For KVKs, convert relation IDs to relation connect operations
     if (entityName === 'kvks') {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
-        try {
+        return executePrismaWrite(entityName, 'create', async () => {
             return await prisma[config.model].create({
                 data: convertedData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, 'KVK', 'create');
-        }
+        }, 'KVK');
     }
 
     if (entityName === 'kvk-vehicle-details') {
@@ -746,7 +885,9 @@ async function create(entityName, data) {
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
         };
 
-        return await prisma[config.model].create({ data: finalData, include: config.includes });
+        return executePrismaWrite(entityName, 'create', async () => {
+            return await prisma[config.model].create({ data: finalData, include: config.includes });
+        });
     }
 
     if (entityName === 'kvk-equipment-details') {
@@ -760,20 +901,30 @@ async function create(entityName, data) {
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
-        return await prisma[config.model].create({ data: finalData, include: config.includes });
+        return executePrismaWrite(entityName, 'create', async () => {
+            return await prisma[config.model].create({ data: finalData, include: config.includes });
+        });
     }
 
     // For kvk-employees and kvk-staff-transferred, convert relation ID fields to relation connect operations
     if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
         const convertedData = convertRelationFieldsForStaff(sanitizedData);
-        try {
+        return executePrismaWrite(entityName, 'create', async () => {
             return await prisma[config.model].create({
                 data: convertedData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, entityName, 'create');
-        }
+        });
+    }
+
+    if (entityName === 'kvk-infrastructure') {
+        const convertedData = convertRelationFieldsForInfrastructure(sanitizedData);
+        return executePrismaWrite(entityName, 'create', async () => {
+            return await prisma[config.model].create({
+                data: convertedData,
+                include: config.includes,
+            });
+        });
     }
 
     // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
@@ -786,29 +937,25 @@ async function create(entityName, data) {
             convertedData.reportingYear = parsedReportingYear;
         }
 
-        
+
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
-        try {
+        return executePrismaWrite(entityName, 'create', async () => {
             return await prisma[config.model].create({
                 data: finalData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, entityName, 'create');
-        }
+        });
     }
 
     // Generic create path - ensure ID fields are removed
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    try {
+    return executePrismaWrite(entityName, 'create', async () => {
         return await prisma[config.model].create({
             data: finalData,
             include: config.includes,
         });
-    } catch (error) {
-        throw translatePrismaError(error, entityName, 'create');
-    }
+    });
 }
 
 async function update(entityName, id, data) {
@@ -842,15 +989,13 @@ async function update(entityName, id, data) {
     // For KVKs, convert relation IDs to relation connect/disconnect operations
     if (entityName === 'kvks') {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
-        try {
+        return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
                 where: { [config.idField]: resolvedId },
                 data: convertedData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, 'KVK', 'update');
-        }
+        }, 'KVK');
     }
 
     if (entityName === 'kvk-vehicle-details') {
@@ -867,10 +1012,12 @@ async function update(entityName, id, data) {
         if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
 
-        return await prisma[config.model].update({
-            where: { [config.idField]: resolvedId },
-            data: finalUpdateData,
-            include: config.includes,
+        return executePrismaWrite(entityName, 'update', async () => {
+            return await prisma[config.model].update({
+                where: { [config.idField]: resolvedId },
+                data: finalUpdateData,
+                include: config.includes,
+            });
         });
     }
 
@@ -886,25 +1033,36 @@ async function update(entityName, id, data) {
         if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
 
-        return await prisma[config.model].update({
-            where: { [config.idField]: resolvedId },
-            data: finalUpdateData,
-            include: config.includes,
+        return executePrismaWrite(entityName, 'update', async () => {
+            return await prisma[config.model].update({
+                where: { [config.idField]: resolvedId },
+                data: finalUpdateData,
+                include: config.includes,
+            });
         });
     }
 
     // For kvk-employees and kvk-staff-transferred, convert relation ID fields to relation connect operations
     if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
         const convertedData = convertRelationFieldsForStaff(sanitizedData);
-        try {
+        return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
                 where: { [config.idField]: resolvedId },
                 data: convertedData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, entityName, 'update');
-        }
+        });
+    }
+
+    if (entityName === 'kvk-infrastructure') {
+        const convertedData = convertRelationFieldsForInfrastructure(sanitizedData);
+        return executePrismaWrite(entityName, 'update', async () => {
+            return await prisma[config.model].update({
+                where: { [config.idField]: resolvedId },
+                data: convertedData,
+                include: config.includes,
+            });
+        });
     }
 
     // For kvk-vehicles and kvk-equipments, validate reportingYear DateTime
@@ -917,31 +1075,27 @@ async function update(entityName, id, data) {
             convertedData.reportingYear = parsedReportingYear;
         }
 
-        
+
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
-        try {
+        return executePrismaWrite(entityName, 'update', async () => {
             return await prisma[config.model].update({
                 where: { [config.idField]: resolvedId },
                 data: finalData,
                 include: config.includes,
             });
-        } catch (error) {
-            throw translatePrismaError(error, entityName, 'update');
-        }
+        });
     }
 
     // Generic update path - ensure ID fields are removed
     const finalData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    try {
+    return executePrismaWrite(entityName, 'update', async () => {
         return await prisma[config.model].update({
             where: { [config.idField]: resolvedId },
             data: finalData,
             include: config.includes,
         });
-    } catch (error) {
-        throw translatePrismaError(error, entityName, 'update');
-    }
+    });
 }
 
 /**
@@ -953,17 +1107,17 @@ async function checkDependentRecords(entityName, config, id) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
         const entity = await prisma[config.model].findUnique({
             where: { [config.idField]: id },
-            select: { 
+            select: {
                 _count: {
                     select: config.includes._count.select
                 }
             },
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
-            
+
             if (dependentCounts.length > 0) {
                 return {
                     hasDependents: true,
@@ -972,7 +1126,7 @@ async function checkDependentRecords(entityName, config, id) {
             }
         }
     }
-    
+
     return { hasDependents: false };
 }
 
@@ -992,7 +1146,7 @@ async function deleteEntity(entityName, id) {
     if (!resolvedId) {
         throw new Error(`${entityName} not found`);
     }
-    
+
     // Check for dependent records
     const dependentCheck = await checkDependentRecords(entityName, config, resolvedId);
     if (dependentCheck.hasDependents) {
@@ -1000,22 +1154,11 @@ async function deleteEntity(entityName, id) {
         throw new Error(`Cannot delete ${entityName}: has dependent records (${dependentNames})`);
     }
 
-    try {
+    return executePrismaWrite(entityName, 'delete', async () => {
         return await prisma[config.model].delete({
             where: { [config.idField]: resolvedId },
         });
-    } catch (error) {
-        // Handle foreign key constraint violations
-        if (error.code === 'P2003') {
-            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
-        }
-        // Handle record not found
-        if (error.code === 'P2025') {
-            throw new Error(`${entityName} not found`);
-        }
-        // Re-throw other errors
-        throw error;
-    }
+    });
 }
 /**
  * Get all sanctioned posts (for dropdown)
@@ -1096,15 +1239,19 @@ async function getStaffForDropdown(kvkId) {
 }
 
 /**
- * Create transfer history record
+ * Create transfer history record.
+ * Caller must supply a valid transferDate (Date object or parseable date value).
+ * @param {object} transferData
+ * @param {import('@prisma/client').PrismaClient|import('@prisma/client').Prisma.TransactionClient} [dbClient]
  */
-async function createTransferHistory(transferData) {
-    return await prisma.staffTransferHistory.create({
+async function createTransferHistory(transferData, dbClient = prisma) {
+    return await dbClient.staffTransferHistory.create({
         data: {
             kvkStaffId: transferData.kvkStaffId,
             fromKvkId: transferData.fromKvkId,
             toKvkId: transferData.toKvkId,
             transferredBy: transferData.transferredBy,
+            transferDate: transferData.transferDate,
             transferReason: transferData.transferReason,
             notes: transferData.notes,
             isReversal: transferData.isReversal || false,
@@ -1137,6 +1284,23 @@ async function createTransferHistory(transferData) {
                 }
             }
         }
+    });
+}
+
+/**
+ * Returns the most-recent non-reversal transfer record for a staff member.
+ * Used by duplicate-consecutive-transfer guard in service layer.
+ */
+async function getLastTransferRecord(staffId) {
+    return prisma.staffTransferHistory.findFirst({
+        where: { kvkStaffId: staffId, isReversal: false },
+        orderBy: { transferDate: 'desc' },
+        select: {
+            transferId: true,
+            fromKvkId: true,
+            toKvkId: true,
+            transferDate: true,
+        },
     });
 }
 
@@ -1224,6 +1388,7 @@ module.exports = {
     getAllInfraMasters,
     getStaffForDropdown,
     createTransferHistory,
+    getLastTransferRecord,
     filterAssetsForReportingYear,
     getVehiclesForDropdown,
     getEquipmentsForDropdown,

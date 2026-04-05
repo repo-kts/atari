@@ -40,7 +40,7 @@ const fpoCbboDetailsRepository = {
             const result = await prisma.fpoCbboDetails.create({
                 data: finalCreateData,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 }
             });
 
@@ -81,7 +81,7 @@ const fpoCbboDetailsRepository = {
         const results = await prisma.fpoCbboDetails.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             },
             orderBy: { fpoCbboDetailsId: 'desc' }
         });
@@ -93,7 +93,7 @@ const fpoCbboDetailsRepository = {
         const result = await prisma.fpoCbboDetails.findUnique({
             where: { fpoCbboDetailsId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             }
         });
 
@@ -156,7 +156,7 @@ const fpoCbboDetailsRepository = {
                 where: { fpoCbboDetailsId: parsedId },
                 data: finalUpdateData,
                 include: {
-                    kvk: { select: { kvkName: true } },
+                    kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 }
             });
 
@@ -188,6 +188,8 @@ function _mapResponse(r) {
         id: r.fpoCbboDetailsId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        stateName: r.kvk?.state?.stateName || '',
+        districtName: r.kvk?.district?.districtName || '',
         reportingYear: formatReportingYear(r.reportingYear),
         blocksAllocated: r.blocksAllocated,
         fposRegisteredAsCbbo: r.fposRegisteredAsCbbo,

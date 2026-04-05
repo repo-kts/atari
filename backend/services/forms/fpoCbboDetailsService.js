@@ -1,8 +1,11 @@
 const fpoCbboDetailsRepository = require('../../repositories/forms/fpoCbboDetailsRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const fpoCbboDetailsService = {
     create: async (data, user) => {
-        return await fpoCbboDetailsRepository.create(data, user);
+        const result = await fpoCbboDetailsRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoCbboDetails', result?.kvkId || user?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -20,7 +23,9 @@ const fpoCbboDetailsService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await fpoCbboDetailsRepository.update(id, data);
+        const result = await fpoCbboDetailsRepository.update(id, data);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoCbboDetails', result?.kvkId || existing?.kvkId || user?.kvkId);
+        return result;
     },
 
     delete: async (id, user) => {
@@ -30,7 +35,9 @@ const fpoCbboDetailsService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await fpoCbboDetailsRepository.delete(id);
+        const result = await fpoCbboDetailsRepository.delete(id);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fpoCbboDetails', existing?.kvkId || user?.kvkId);
+        return result;
     }
 };
 

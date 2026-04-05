@@ -6,6 +6,26 @@ const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/veh
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
+const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
+const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
+const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
+const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
+const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
+const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
+const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTemplates/craDetailsStateWiseTemplate.js');
+const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
+const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
+const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
+const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/drmrDetailsTemplate.js');
+const { renderDrmrActivitySection }        = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
+const { renderNariBioFortifiedSection }    = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
+const { renderNariTrainingSection }        = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
+const { renderCsisaSection }               = require('./formsTemplate/projectTemplates/csisaTemplate.js');
+const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
+const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
+const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderAryaCurrentSection }         = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
+const { renderAryaPrevYearSection }        = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
 
 /**
  * Report Template Service
@@ -23,6 +43,26 @@ class ReportTemplateService {
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'oft-summary': renderOftSummarySection.bind(this),
+            'oft-detail-cards': renderOftDetailCardsSection.bind(this),
+            'oft-combined': renderOftCombinedSection.bind(this),
+            'cfld-combined': renderCfldCombinedSection.bind(this),
+            'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
+            'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
+            'cra-details-state-wise': renderCraDetailsStateWiseSection.bind(this),
+            'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
+            'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
+            'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
+            'drmr-details': renderDrmrDetailsSection.bind(this),
+            'drmr-activity':      renderDrmrActivitySection.bind(this),
+            'nari-nutrition-garden': renderNariNutritionGardenSection.bind(this),
+            'nari-bio-fortified': renderNariBioFortifiedSection.bind(this),
+            'nari-training':      renderNariTrainingSection.bind(this),
+            'csisa':              renderCsisaSection.bind(this),
+            'nari-extension':     renderNariExtensionSection.bind(this),
+            'nari-value-addition': renderNariValueAdditionSection.bind(this),
+            'arya-current':       renderAryaCurrentSection.bind(this),
+            'arya-prev-year':     renderAryaPrevYearSection.bind(this),
         };
     }
 
@@ -31,6 +71,10 @@ class ReportTemplateService {
      */
     generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
         const sections = getAllSections();
+        const reportContext = {
+            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isStandalone: false,
+        };
         // Filter sections that have valid data (not errors, not null/undefined)
         const selectedSections = sections.filter(s => {
             const sectionData = sectionsData[s.id];
@@ -53,7 +97,7 @@ class ReportTemplateService {
     ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
     ${this._generateTableOfContents(selectedSections)}
     <div class="sections-container">
-        ${this._generateSectionPages(selectedSections, sectionsData)}
+        ${this._generateSectionPages(selectedSections, sectionsData, reportContext)}
     </div>
 </body>
 </html>`;
@@ -65,17 +109,22 @@ class ReportTemplateService {
      * Generate standalone HTML document for a custom template.
      * Reuses the same custom-template handlers used by all-reports flow.
      */
-    generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
+    async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
         const { sectionId = '1.1', title = 'Custom Report' } = options;
         const pseudoSection = { id: sectionId, title };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
-        const renderedSection = this._generateCustomSection(
+        const reportContext = {
+            isAggregatedReport: false,
+            isStandalone: true,
+        };
+        const renderedSection = await this._generateCustomSection(
             pseudoSection,
             data,
             sectionConfig,
             sectionAnchorId,
-            true
+            true,
+            reportContext
         );
 
         return `
@@ -129,8 +178,6 @@ class ReportTemplateService {
         </div>
         <div class="report-meta">
             <p><strong>Report Period:</strong> ${reportPeriod}</p>
-            <p><strong>Generated Date:</strong> ${generatedDate}</p>
-            <p><strong>Generated By:</strong> ${this._escapeHtml(generatedBy)}</p>
         </div>
     </div>
 </div>`;
@@ -168,7 +215,7 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    _generateSectionPages(selectedSections, sectionsData) {
+    _generateSectionPages(selectedSections, sectionsData, reportContext = {}) {
         let html = '';
         let isFirstSection = true;
 
@@ -194,7 +241,7 @@ class ReportTemplateService {
 
             // Generate section based on format
             if (sectionConfig.format === 'custom') {
-                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection);
+                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext);
             } else if (sectionConfig.format === 'formatted-text') {
                 html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
             } else if (sectionConfig.format === 'table') {
@@ -212,7 +259,7 @@ class ReportTemplateService {
     /**
      * Generate custom section using dedicated template keys
      */
-    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection) {
+    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext = {}) {
         const customTemplateKey = sectionConfig?.customTemplate;
         if (!customTemplateKey) {
             return this._generateEmptySection(section, 'Custom template key is missing', sectionId, isFirstSection);
@@ -228,7 +275,8 @@ class ReportTemplateService {
             );
         }
 
-        return customTemplateHandler(section, data, sectionId, isFirstSection);
+        // Handler may return a string or a Promise (async handlers like oft-combined)
+        return customTemplateHandler(section, data, sectionId, isFirstSection, reportContext);
     }
 
     /**

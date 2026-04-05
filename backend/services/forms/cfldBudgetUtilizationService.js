@@ -1,8 +1,11 @@
 const cfldBudgetUtilizationRepository = require('../../repositories/forms/cfldBudgetUtilizationRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const cfldBudgetUtilizationService = {
     create: async (data, user) => {
-        return await cfldBudgetUtilizationRepository.create(data, {}, user);
+        const result = await cfldBudgetUtilizationRepository.create(data, {}, user);
+        await invalidateCfldBudgetReportCache(result?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -20,7 +23,9 @@ const cfldBudgetUtilizationService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await cfldBudgetUtilizationRepository.update(id, data, user);
+        const result = await cfldBudgetUtilizationRepository.update(id, data, user);
+        await invalidateCfldBudgetReportCache(existing.kvkId);
+        return result;
     },
 
     delete: async (id, user) => {
@@ -30,8 +35,19 @@ const cfldBudgetUtilizationService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await cfldBudgetUtilizationRepository.delete(id);
+        const deleted = await cfldBudgetUtilizationRepository.delete(id);
+        await invalidateCfldBudgetReportCache(existing.kvkId);
+        return deleted;
     }
 };
+
+async function invalidateCfldBudgetReportCache(kvkId) {
+    if (!kvkId) return;
+    try {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('cfldBudgetUtilization', kvkId);
+    } catch (error) {
+        console.warn('Failed to invalidate CFLD budget report cache:', error?.message || error);
+    }
+}
 
 module.exports = cfldBudgetUtilizationService;

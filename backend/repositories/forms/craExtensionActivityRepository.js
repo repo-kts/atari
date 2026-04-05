@@ -126,6 +126,7 @@ function _mapResponse(r) {
     if (!r) return null;
     return {
         id: r.craExtensionActivityId,
+        kvkId: r.kvkId,
         activityId: r.activityId,
         extensionActivityId: r.activityId,
         activityName: r.activity ? r.activity.activityName : '',

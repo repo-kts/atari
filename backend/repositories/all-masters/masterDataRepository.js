@@ -1,6 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger, safeGet } = require('../../utils/dataSanitizer.js');
-const { ValidationError } = require('../../utils/errorHandler.js');
+const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 /**
  * Generic Master Data Repository 
@@ -119,7 +119,16 @@ const ENTITY_CONFIG = {
         nameField: 'universityName',
         tableName: '"universityMaster"',
         idColumn: 'university_id',
-        allowedFields: ['universityName', 'orgId'],
+        allowedFields: [
+            'universityName',
+            'orgId',
+            'hostOrg',
+            'hostMobile',
+            'hostLandline',
+            'hostFax',
+            'hostEmail',
+            'hostAddress',
+        ],
         includes: {
             organization: {
                 select: {
@@ -168,6 +177,57 @@ function getEntityConfig(entityName) {
     return config;
 }
 
+const ENTITY_RESOURCE_NAMES = {
+    zones: 'Zone',
+    states: 'State',
+    districts: 'District',
+    organizations: 'Organization',
+    universities: 'University',
+};
+
+function getEntityResourceName(entityName) {
+    return ENTITY_RESOURCE_NAMES[entityName] || 'Resource';
+}
+
+function isPrismaError(error) {
+    return typeof error?.code === 'string' && /^P\d{4}$/.test(error.code);
+}
+
+function rethrowRepositoryError(error, entityName, operation) {
+    // Keep domain errors untouched.
+    if (error instanceof ValidationError || error?.statusCode) {
+        throw error;
+    }
+
+    // Normalize all Prisma errors through shared translator.
+    if (isPrismaError(error)) {
+        throw translatePrismaError(error, getEntityResourceName(entityName), operation);
+    }
+
+    throw error;
+}
+
+async function withRepositoryErrorHandling(entityName, operation, executor) {
+    try {
+        return await executor();
+    } catch (error) {
+        rethrowRepositoryError(error, entityName, operation);
+    }
+}
+
+function parseRequiredEntityId(id, idField, action = 'process') {
+    if (id === undefined || id === null || id === '') {
+        throw new ValidationError(`Missing ${idField} for ${action}`, idField);
+    }
+
+    const parsedId = sanitizeInteger(id);
+    if (!parsedId || isNaN(parsedId)) {
+        throw new ValidationError(`Invalid ${idField}: ${id}`, idField);
+    }
+
+    return parsedId;
+}
+
 /**
  * Find all entities with pagination, filtering, and sorting
  * @param {string} entityName - Entity name
@@ -203,20 +263,22 @@ async function findAll(entityName, options = {}) {
     }
 
     // Execute queries in parallel for better performance
-    const [data, total] = await Promise.all([
-        prisma[config.model].findMany({
-            where,
-            include: config.includes,
-            skip,
-            take,
-            orderBy: {
-                [config.idField]: sortOrder,
-            },
-        }),
-        prisma[config.model].count({ where }),
-    ]);
+    return withRepositoryErrorHandling(entityName, 'fetch', async () => {
+        const [data, total] = await Promise.all([
+            prisma[config.model].findMany({
+                where,
+                include: config.includes,
+                skip,
+                take,
+                orderBy: {
+                    [actualSortBy]: sortOrder,
+                },
+            }),
+            prisma[config.model].count({ where }),
+        ]);
 
-    return { data, total };
+        return { data, total };
+    });
 }
 
 /**
@@ -227,20 +289,13 @@ async function findAll(entityName, options = {}) {
  */
 async function findById(entityName, id) {
     const config = getEntityConfig(entityName);
-    
-    // Validate ID
-    if (id === undefined || id === null || id === '') {
-        throw new Error(`Missing ID field: ${config.idField}`);
-    }
-    
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Invalid ID: ${id}. Expected a number.`);
-    }
+    const parsedId = parseRequiredEntityId(id, config.idField, 'lookup');
 
-    return await prisma[config.model].findUnique({
-        where: { [config.idField]: parsedId },
-        include: config.includes,
+    return withRepositoryErrorHandling(entityName, 'fetch', async () => {
+        return await prisma[config.model].findUnique({
+            where: { [config.idField]: parsedId },
+            include: config.includes,
+        });
     });
 }
 
@@ -252,22 +307,7 @@ async function findById(entityName, id) {
  */
 function sanitizeAndValidateData(entityName, data) {
     const config = getEntityConfig(entityName);
-    const sanitized = { ...data };
-
-    // Remove ID fields to prevent conflicts
-    const idFieldVariations = [
-        config.idField,
-        'id',
-        '_id',
-        config.idField.toLowerCase(),
-        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
-    ];
-
-    for (const idField of idFieldVariations) {
-        if (sanitized[idField] !== undefined) {
-            delete sanitized[idField];
-        }
-    }
+    const sanitized = {};
 
     // Validate required fields based on entity type
     switch (entityName) {
@@ -315,8 +355,6 @@ function sanitizeAndValidateData(entityName, data) {
             // districtId is optional but should be parsed if provided
             if (data.districtId !== undefined && data.districtId !== null && data.districtId !== '') {
                 sanitized.districtId = parseInt(data.districtId);
-            } else {
-                sanitized.districtId = null;
             }
             break;
 
@@ -327,8 +365,27 @@ function sanitizeAndValidateData(entityName, data) {
             if (!data.orgId) {
                 throw new Error('orgId is required');
             }
+            // Optionals
+            const hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { maxLength: 30 });
+            const hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { maxLength: 30 });
+            const hostFax = sanitizeString(safeGet(data, 'hostFax'), { maxLength: 30 });
+            const hostEmail = sanitizeString(safeGet(data, 'hostEmail'), { maxLength: 200 });
+            const hostAddress = sanitizeString(safeGet(data, 'hostAddress'), { maxLength: 1000 });
+            if (hostEmail) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(hostEmail)) {
+                    throw new Error('hostEmail must be a valid email address');
+                }
+            }
             sanitized.universityName = String(data.universityName).trim();
             sanitized.orgId = parseInt(data.orgId);
+            // Derive hostOrg from universityName to avoid duplicate input
+            sanitized.hostOrg = sanitized.universityName;
+            sanitized.hostMobile = hostMobile;
+            sanitized.hostLandline = hostLandline;
+            sanitized.hostFax = hostFax;
+            sanitized.hostEmail = hostEmail;
+            sanitized.hostAddress = hostAddress;
             break;
 
         default:
@@ -357,15 +414,18 @@ async function create(entityName, data) {
 
     // Sanitize and validate data
     const sanitizedData = sanitizeAndValidateData(entityName, data);
+    const prismaData = convertRelationIdsToNestedWrites(entityName, sanitizedData, 'create');
 
     // Ensure sanitizedData is not empty
-    if (!sanitizedData || Object.keys(sanitizedData).length === 0) {
+    if (!prismaData || Object.keys(prismaData).length === 0) {
         throw new ValidationError('No valid data provided for creation');
     }
 
-    return await prisma[config.model].create({
-        data: sanitizedData,
-        include: config.includes,
+    return withRepositoryErrorHandling(entityName, 'create', async () => {
+        return await prisma[config.model].create({
+            data: prismaData,
+            include: config.includes,
+        });
     });
 }
 
@@ -377,93 +437,102 @@ async function create(entityName, data) {
  */
 function sanitizeUpdateData(entityName, data) {
     const config = getEntityConfig(entityName);
-    const sanitized = { ...data };
-
-    // Remove ID fields
-    const idFieldVariations = [
-        config.idField,
-        'id',
-        '_id',
-        config.idField.toLowerCase(),
-        config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
-    ];
-
-    for (const idField of idFieldVariations) {
-        if (sanitized[idField] !== undefined) {
-            delete sanitized[idField];
-        }
-    }
+    const sanitized = {};
 
     // Validate and sanitize fields based on entity type
     switch (entityName) {
         case 'zones':
-            if (sanitized.zoneName !== undefined) {
-                if (!sanitized.zoneName || String(sanitized.zoneName).trim() === '') {
+            if (data.zoneName !== undefined) {
+                if (!data.zoneName || String(data.zoneName).trim() === '') {
                     throw new Error('zoneName cannot be empty');
                 }
-                sanitized.zoneName = String(sanitized.zoneName).trim();
+                sanitized.zoneName = String(data.zoneName).trim();
             }
             break;
 
         case 'states':
-            if (sanitized.stateName !== undefined) {
-                if (!sanitized.stateName || String(sanitized.stateName).trim() === '') {
+            if (data.stateName !== undefined) {
+                if (!data.stateName || String(data.stateName).trim() === '') {
                     throw new Error('stateName cannot be empty');
                 }
-                sanitized.stateName = String(sanitized.stateName).trim();
+                sanitized.stateName = String(data.stateName).trim();
             }
-            if (sanitized.zoneId !== undefined) {
-                sanitized.zoneId = parseInt(sanitized.zoneId);
+            if (data.zoneId !== undefined) {
+                sanitized.zoneId = parseInt(data.zoneId);
             }
             break;
 
         case 'districts':
-            if (sanitized.districtName !== undefined) {
-                if (!sanitized.districtName || String(sanitized.districtName).trim() === '') {
+            if (data.districtName !== undefined) {
+                if (!data.districtName || String(data.districtName).trim() === '') {
                     throw new Error('districtName cannot be empty');
                 }
-                sanitized.districtName = String(sanitized.districtName).trim();
+                sanitized.districtName = String(data.districtName).trim();
             }
-            if (sanitized.stateId !== undefined) {
-                sanitized.stateId = parseInt(sanitized.stateId);
+            if (data.stateId !== undefined) {
+                sanitized.stateId = parseInt(data.stateId);
             }
-            if (sanitized.zoneId !== undefined) {
-                sanitized.zoneId = parseInt(sanitized.zoneId);
+            if (data.zoneId !== undefined) {
+                sanitized.zoneId = parseInt(data.zoneId);
             }
             break;
 
         case 'organizations':
-            if (sanitized.orgName !== undefined) {
-                if (!sanitized.orgName || String(sanitized.orgName).trim() === '') {
+            if (data.orgName !== undefined) {
+                if (!data.orgName || String(data.orgName).trim() === '') {
                     throw new Error('orgName cannot be empty');
                 }
-                sanitized.orgName = String(sanitized.orgName).trim();
+                sanitized.orgName = String(data.orgName).trim();
             }
-            if (sanitized.districtId !== undefined) {
-                if (sanitized.districtId === null || sanitized.districtId === '') {
+            if (data.districtId !== undefined) {
+                if (data.districtId === null || data.districtId === '') {
                     sanitized.districtId = null;
                 } else {
-                    sanitized.districtId = parseInt(sanitized.districtId);
+                    sanitized.districtId = parseInt(data.districtId);
                 }
             }
             break;
 
         case 'universities':
-            if (sanitized.universityName !== undefined) {
-                if (!sanitized.universityName || String(sanitized.universityName).trim() === '') {
+            if (data.universityName !== undefined) {
+                if (!data.universityName || String(data.universityName).trim() === '') {
                     throw new Error('universityName cannot be empty');
                 }
-                sanitized.universityName = String(sanitized.universityName).trim();
+                sanitized.universityName = String(data.universityName).trim();
+                // Keep hostOrg in sync with universityName
+                sanitized.hostOrg = sanitized.universityName;
             }
-            if (sanitized.orgId !== undefined) {
-                sanitized.orgId = parseInt(sanitized.orgId);
+            if (data.orgId !== undefined) {
+                sanitized.orgId = parseInt(data.orgId);
+            }
+            if (data.hostMobile !== undefined) {
+                sanitized.hostMobile = sanitizeString(data.hostMobile, { maxLength: 30 });
+            }
+            if (data.hostLandline !== undefined) {
+                sanitized.hostLandline = sanitizeString(data.hostLandline, { maxLength: 30 });
+            }
+            if (data.hostFax !== undefined) {
+                sanitized.hostFax = sanitizeString(data.hostFax, { maxLength: 30 });
+            }
+            if (data.hostEmail !== undefined) {
+                const email = sanitizeString(data.hostEmail, { maxLength: 200 });
+                if (email) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        throw new Error('hostEmail must be a valid email address');
+                    }
+                }
+                sanitized.hostEmail = email;
+            }
+            if (data.hostAddress !== undefined) {
+                sanitized.hostAddress = sanitizeString(data.hostAddress, { maxLength: 1000 });
             }
             break;
 
         default:
             // For other entities, sanitize name field if provided
-            if (config.nameField && sanitized[config.nameField] !== undefined) {
-                const nameValue = String(sanitized[config.nameField]).trim();
+            if (config.nameField && data[config.nameField] !== undefined) {
+                const nameValue = String(data[config.nameField]).trim();
                 if (nameValue === '') {
                     throw new Error(`${config.nameField} cannot be empty`);
                 }
@@ -477,6 +546,50 @@ function sanitizeUpdateData(entityName, data) {
     }
 
     return sanitized;
+}
+
+/**
+ * Convert scalar relation IDs into Prisma nested relation write operations.
+ * Prisma checked create/update inputs reject direct FK fields like districtId.
+ * @param {string} entityName - Entity name
+ * @param {object} data - Sanitized scalar payload
+ * @param {'create'|'update'} operation - Write operation type
+ * @returns {object} Prisma-compatible payload
+ */
+function convertRelationIdsToNestedWrites(entityName, data, operation) {
+    const converted = { ...data };
+
+    if (entityName === 'states' && converted.zoneId !== undefined) {
+        converted.zone = { connect: { zoneId: converted.zoneId } };
+        delete converted.zoneId;
+    }
+
+    if (entityName === 'districts') {
+        if (converted.stateId !== undefined) {
+            converted.state = { connect: { stateId: converted.stateId } };
+            delete converted.stateId;
+        }
+        if (converted.zoneId !== undefined) {
+            converted.zone = { connect: { zoneId: converted.zoneId } };
+            delete converted.zoneId;
+        }
+    }
+
+    if (entityName === 'organizations' && converted.districtId !== undefined) {
+        if (operation === 'update' && converted.districtId === null) {
+            converted.district = { disconnect: true };
+        } else if (converted.districtId !== null) {
+            converted.district = { connect: { districtId: converted.districtId } };
+        }
+        delete converted.districtId;
+    }
+
+    if (entityName === 'universities' && converted.orgId !== undefined) {
+        converted.organization = { connect: { orgId: converted.orgId } };
+        delete converted.orgId;
+    }
+
+    return converted;
 }
 
 /**
@@ -501,16 +614,19 @@ async function update(entityName, id, data) {
 
     // Sanitize update data
     const sanitizedData = sanitizeUpdateData(entityName, data);
+    const prismaData = convertRelationIdsToNestedWrites(entityName, sanitizedData, 'update');
 
     // Ensure sanitizedData is not empty
-    if (!sanitizedData || Object.keys(sanitizedData).length === 0) {
+    if (!prismaData || Object.keys(prismaData).length === 0) {
         throw new ValidationError('No valid fields provided for update');
     }
 
-    return await prisma[config.model].update({
-        where: { [config.idField]: entityId },
-        data: sanitizedData,
-        include: config.includes,
+    return withRepositoryErrorHandling(entityName, 'update', async () => {
+        return await prisma[config.model].update({
+            where: { [config.idField]: entityId },
+            data: prismaData,
+            include: config.includes,
+        });
     });
 }
 
@@ -525,15 +641,17 @@ async function checkDependentRecords(entityName, config, id) {
     // Check _count if available in includes
     if (config.includes && config.includes._count && config.includes._count.select) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
-        const entity = await prisma[config.model].findUnique({
-            where: { [config.idField]: id },
-            select: { 
-                _count: {
-                    select: config.includes._count.select
-                }
-            },
+        const entity = await withRepositoryErrorHandling(entityName, 'fetch', async () => {
+            return await prisma[config.model].findUnique({
+                where: { [config.idField]: id },
+                select: { 
+                    _count: {
+                        select: config.includes._count.select
+                    }
+                },
+            });
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
@@ -558,34 +676,15 @@ async function checkDependentRecords(entityName, config, id) {
  */
 async function deleteEntity(entityName, id) {
     const config = getEntityConfig(entityName);
-    
-    // Validate ID
-    if (id === undefined || id === null || id === '') {
-        throw new Error(`Cannot delete ${entityName}: missing ID field`);
-    }
-    
-    const parsedId = parseInt(id);
-    if (isNaN(parsedId)) {
-        throw new Error(`Cannot delete ${entityName}: invalid ID: ${id}`);
-    }
-    
-    // Note: With onDelete: SetNull in schema, dependent records will be automatically nullified
-    try {
+
+    const parsedId = parseRequiredEntityId(id, config.idField, 'delete');
+
+    // With onDelete: SetNull, most dependent records are nullified automatically.
+    return withRepositoryErrorHandling(entityName, 'delete', async () => {
         return await prisma[config.model].delete({
             where: { [config.idField]: parsedId },
         });
-    } catch (error) {
-        // Handle foreign key constraint violations (if schema doesn't have SetNull)
-        if (error.code === 'P2003') {
-            throw new Error(`Cannot delete ${entityName}: has dependent records. Please try again or contact support.`);
-        }
-        // Handle record not found
-        if (error.code === 'P2025') {
-            throw new Error(`${entityName} not found`);
-        }
-        // Re-throw other errors
-        throw error;
-    }
+    });
 }
 
 /**
@@ -594,10 +693,13 @@ async function deleteEntity(entityName, id) {
  * @returns {Promise<Array>}
  */
 async function findStatesByZone(zoneId) {
-    return await prisma.stateMaster.findMany({
-        where: { zoneId: parseInt(zoneId) },
-        include: ENTITY_CONFIG.states.includes,
-        orderBy: { stateName: 'asc' },
+    const parsedZoneId = parseRequiredEntityId(zoneId, 'zoneId', 'lookup');
+    return withRepositoryErrorHandling('states', 'fetch', async () => {
+        return await prisma.stateMaster.findMany({
+            where: { zoneId: parsedZoneId },
+            include: ENTITY_CONFIG.states.includes,
+            orderBy: { stateName: 'asc' },
+        });
     });
 }
 
@@ -607,10 +709,13 @@ async function findStatesByZone(zoneId) {
  * @returns {Promise<Array>}
  */
 async function findDistrictsByState(stateId) {
-    return await prisma.districtMaster.findMany({
-        where: { stateId: parseInt(stateId) },
-        include: ENTITY_CONFIG.districts.includes,
-        orderBy: { districtName: 'asc' },
+    const parsedStateId = parseRequiredEntityId(stateId, 'stateId', 'lookup');
+    return withRepositoryErrorHandling('districts', 'fetch', async () => {
+        return await prisma.districtMaster.findMany({
+            where: { stateId: parsedStateId },
+            include: ENTITY_CONFIG.districts.includes,
+            orderBy: { districtName: 'asc' },
+        });
     });
 }
 
@@ -620,10 +725,13 @@ async function findDistrictsByState(stateId) {
  * @returns {Promise<Array>}
  */
 async function findOrgsByDistrict(districtId) {
-    return await prisma.orgMaster.findMany({
-        where: { districtId: parseInt(districtId) },
-        include: ENTITY_CONFIG.organizations.includes,
-        orderBy: { orgName: 'asc' },
+    const parsedDistrictId = parseRequiredEntityId(districtId, 'districtId', 'lookup');
+    return withRepositoryErrorHandling('organizations', 'fetch', async () => {
+        return await prisma.orgMaster.findMany({
+            where: { districtId: parsedDistrictId },
+            include: ENTITY_CONFIG.organizations.includes,
+            orderBy: { orgName: 'asc' },
+        });
     });
 }
 
@@ -633,10 +741,13 @@ async function findOrgsByDistrict(districtId) {
  * @returns {Promise<Array>}
  */
 async function findUniversitiesByOrg(orgId) {
-    return await prisma.universityMaster.findMany({
-        where: { orgId: parseInt(orgId) },
-        include: ENTITY_CONFIG.universities.includes,
-        orderBy: { universityName: 'asc' },
+    const parsedOrgId = parseRequiredEntityId(orgId, 'orgId', 'lookup');
+    return withRepositoryErrorHandling('universities', 'fetch', async () => {
+        return await prisma.universityMaster.findMany({
+            where: { orgId: parsedOrgId },
+            include: ENTITY_CONFIG.universities.includes,
+            orderBy: { universityName: 'asc' },
+        });
     });
 }
 
@@ -662,8 +773,10 @@ async function nameExists(entityName, name, excludeId = null, additionalFilters 
         };
     }
 
-    const count = await prisma[config.model].count({ where });
-    return count > 0;
+    return withRepositoryErrorHandling(entityName, 'validate', async () => {
+        const count = await prisma[config.model].count({ where });
+        return count > 0;
+    });
 }
 
 /**
@@ -671,21 +784,23 @@ async function nameExists(entityName, name, excludeId = null, additionalFilters 
  * @returns {Promise<object>}
  */
 async function getStats() {
-    const [zones, states, districts, organizations, universities] = await Promise.all([
-        prisma.zone.count(),
-        prisma.stateMaster.count(),
-        prisma.districtMaster.count(),
-        prisma.orgMaster.count(),
-        prisma.universityMaster.count(),
-    ]);
+    return withRepositoryErrorHandling('zones', 'fetch', async () => {
+        const [zones, states, districts, organizations, universities] = await Promise.all([
+            prisma.zone.count(),
+            prisma.stateMaster.count(),
+            prisma.districtMaster.count(),
+            prisma.orgMaster.count(),
+            prisma.universityMaster.count(),
+        ]);
 
-    return {
-        zones,
-        states,
-        districts,
-        organizations,
-        universities,
-    };
+        return {
+            zones,
+            states,
+            districts,
+            organizations,
+            universities,
+        };
+    });
 }
 
 /**
@@ -693,26 +808,28 @@ async function getStats() {
  * @returns {Promise<Array>}
  */
 async function getHierarchy() {
-    const zones = await prisma.zone.findMany({
-        include: {
-            states: {
-                include: {
-                    districts: {
-                        include: {
-                            orgs: {
-                                include: {
-                                    universities: true,
+    return withRepositoryErrorHandling('zones', 'fetch', async () => {
+        const zones = await prisma.zone.findMany({
+            include: {
+                states: {
+                    include: {
+                        districts: {
+                            include: {
+                                orgs: {
+                                    include: {
+                                        universities: true,
+                                    },
                                 },
                             },
                         },
                     },
                 },
             },
-        },
-        orderBy: { zoneName: 'asc' },
-    });
+            orderBy: { zoneName: 'asc' },
+        });
 
-    return zones;
+        return zones;
+    });
 }
 
 /**
@@ -722,54 +839,55 @@ async function getHierarchy() {
  * @returns {Promise<boolean>}
  */
 async function validateReferences(entityName, data) {
-    switch (entityName) {
-        case 'states':
-            if (data.zoneId) {
-                const zone = await prisma.zone.findUnique({
-                    where: { zoneId: parseInt(data.zoneId) },
-                });
-                return !!zone;
-            }
-            break;
-
-        case 'districts':
-            if (data.stateId && data.zoneId) {
-                const [state, zone] = await Promise.all([
-                    prisma.stateMaster.findUnique({
-                        where: { stateId: parseInt(data.stateId) },
-                    }),
-                    prisma.zone.findUnique({
+    return withRepositoryErrorHandling(entityName, 'validate', async () => {
+        switch (entityName) {
+            case 'states':
+                if (data.zoneId) {
+                    const zone = await prisma.zone.findUnique({
                         where: { zoneId: parseInt(data.zoneId) },
-                    }),
-                ]);
-                return !!(state && zone);
-            }
-            break;
+                    });
+                    return !!zone;
+                }
+                break;
 
-        case 'organizations':
-            if (data.districtId) {
-                const district = await prisma.districtMaster.findUnique({
-                    where: { districtId: parseInt(data.districtId) },
-                });
-                return !!district;
-            }
-            break;
+            case 'districts':
+                if (data.stateId && data.zoneId) {
+                    const [state, zone] = await Promise.all([
+                        prisma.stateMaster.findUnique({
+                            where: { stateId: parseInt(data.stateId) },
+                        }),
+                        prisma.zone.findUnique({
+                            where: { zoneId: parseInt(data.zoneId) },
+                        }),
+                    ]);
+                    return !!(state && zone);
+                }
+                break;
 
-        case 'universities':
-            if (data.orgId) {
-                const org = await prisma.orgMaster.findUnique({
-                    where: { orgId: parseInt(data.orgId) },
-                });
-                if (!org) return false;
+            case 'organizations':
+                if (data.districtId) {
+                    const district = await prisma.districtMaster.findUnique({
+                        where: { districtId: parseInt(data.districtId) },
+                    });
+                    return !!district;
+                }
+                break;
+
+            case 'universities':
+                if (data.orgId) {
+                    const org = await prisma.orgMaster.findUnique({
+                        where: { orgId: parseInt(data.orgId) },
+                    });
+                    return !!org;
+                }
+                break;
+
+            default:
                 return true;
-            }
-            break;
+        }
 
-        default:
-            return true;
-    }
-
-    return true;
+        return true;
+    });
 }
 
 module.exports = {

@@ -8,7 +8,7 @@
  */
 
 /**
- * Custom error classes
+ * Custom error classes 
  */
 class ValidationError extends Error {
     constructor(message, field = null) {
@@ -179,10 +179,26 @@ function translatePrismaError(error, resource = 'Resource', operation = 'operati
         }
         
         if (error.message.includes('Invalid') && error.message.includes('invocation')) {
+            const unknownArgMatch = error.message.match(/Unknown argument `(\w+)`/);
+            if (unknownArgMatch) {
+                return new ValidationError(`Unsupported field: ${unknownArgMatch[1]}`, unknownArgMatch[1]);
+            }
+
             const match = error.message.match(/Argument `(\w+)` is missing/);
             if (match) {
                 return new ValidationError(`Missing required field: ${match[1]}`);
             }
+        }
+
+        const invalidValueMatch = error.message.match(
+            /Argument `(\w+)`:\s*Invalid value provided\.\s*Expected\s+([^,]+),\s*provided/i
+        );
+        if (invalidValueMatch) {
+            const [, field, expectedType] = invalidValueMatch;
+            return new ValidationError(
+                `Invalid value for ${field}. Expected ${expectedType}.`,
+                field
+            );
         }
         
         if (error.message.includes('Cannot read properties of undefined')) {

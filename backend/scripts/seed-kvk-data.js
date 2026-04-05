@@ -55,7 +55,8 @@ async function getOrCreateOrg(name) {
   return org;
 }
 
-async function getOrCreateUniversity(name, orgId) {
+async function getOrCreateUniversity(name, orgId, hostOrg = null) {
+  const resolvedHostOrg = (hostOrg || name || '').trim();
   let university = await prisma.universityMaster.findFirst({
     where: { universityName: name }
   });
@@ -63,6 +64,7 @@ async function getOrCreateUniversity(name, orgId) {
     university = await prisma.universityMaster.create({
       data: {
         universityName: name,
+        hostOrg: resolvedHostOrg,
         organization: { connect: { orgId } }
       }
     });
@@ -225,8 +227,8 @@ async function seedKvks() {
   const org1 = await getOrCreateOrg('ICAR');
   const org2 = await getOrCreateOrg('State Agricultural University');
 
-  const university1 = await getOrCreateUniversity('Punjab Agricultural University', org1.orgId);
-  const university2 = await getOrCreateUniversity('Karnataka State Agricultural University', org2.orgId);
+  const university1 = await getOrCreateUniversity('Punjab Agricultural University', org1.orgId, 'PAU');
+  const university2 = await getOrCreateUniversity('Karnataka State Agricultural University', org2.orgId, 'UAS Bangalore');
 
   const season1 = await getOrCreateSeason('Kharif');
   const season2 = await getOrCreateSeason('Rabi');

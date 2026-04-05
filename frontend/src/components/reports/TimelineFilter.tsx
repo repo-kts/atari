@@ -1,7 +1,7 @@
 import React from 'react';
 import * as Popover from '@radix-ui/react-popover';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, CheckCircle2, CalendarRange, CalendarDays } from 'lucide-react';
+import { Calendar as CalendarIcon, CheckCircle2, CalendarRange, CalendarDays, Download } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Calendar } from '../ui/calendar';
 
@@ -15,8 +15,22 @@ interface TimelineFilterProps {
     year: number;
     onYearChange: (year: number) => void;
     onApplySelection?: () => void;
+    onBeforePreviewApply?: () => void;
     disabled?: boolean;
+    // Optional export controls shown inline with the filter for compact layout
+    onDownload?: (format: 'excel' | 'doc') => void;
+    downloadingFormat?: 'pdf' | 'excel' | 'doc' | null;
+    hasData?: boolean;
+    isGenerating?: boolean;
+    onDownloadPdf?: () => void;
 }
+
+const Spinner: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={`animate-spin ${className || ''}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+    </svg>
+);
 
 export const TimelineFilter: React.FC<TimelineFilterProps> = ({
     filterType,
@@ -28,7 +42,13 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
     year,
     onYearChange,
     onApplySelection,
+    onBeforePreviewApply,
     disabled = false,
+    onDownload,
+    downloadingFormat = null,
+    hasData = true,
+    isGenerating = false,
+    onDownloadPdf,
 }) => {
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 30 }, (_, i) => currentYear - i);
@@ -65,7 +85,7 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
         new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0).getTime();
 
     return (
-        <div className="bg-white border border-[#EEEEEE] rounded-[24px] px-4 sm:px-6 py-3 shadow-sm">
+        <div className="bg-white">
             <h3 className="text-[15px] font-bold text-[#212121] mb-3 flex items-center gap-3">
                 <div className="p-1.5 bg-[#487749]/10 rounded-lg text-[#487749]">
                     <CalendarIcon className="w-4 h-4" />
@@ -73,17 +93,17 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                 Timeline Filter
             </h3>
             <div className="space-y-3">
-                <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 pb-2 border-b border-[#F5F5F5]">
-                    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 w-full">
+                {/* Top control row: filter type toggles on the left, actions on the right (stack on small) */}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-4 pb-2 border-b border-[#F5F5F5]">
+                    <div className="flex items-center gap-2 w-full">
                         <button
                             type="button"
                             onClick={() => onFilterTypeChange('dateRange')}
                             disabled={disabled}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
-                                filterType === 'dateRange'
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${filterType === 'dateRange'
                                     ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
                                     : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
-                            }`}
+                                }`}
                         >
                             <CalendarRange className="w-3.5 h-3.5" />
                             Date Range
@@ -92,11 +112,10 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                             type="button"
                             onClick={() => onFilterTypeChange('year')}
                             disabled={disabled}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
-                                filterType === 'year'
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${filterType === 'year'
                                     ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
                                     : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
-                            }`}
+                                }`}
                         >
                             <CalendarDays className="w-3.5 h-3.5" />
                             Year
@@ -105,33 +124,98 @@ export const TimelineFilter: React.FC<TimelineFilterProps> = ({
                             type="button"
                             onClick={() => onFilterTypeChange('none')}
                             disabled={disabled}
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${
-                                filterType === 'none'
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${filterType === 'none'
                                     ? 'border-[#487749] bg-[#487749]/10 text-[#487749]'
                                     : 'border-[#E0E0E0] bg-white text-[#757575] hover:text-[#487749]'
-                            }`}
+                                }`}
                         >
                             All Data
                         </button>
                     </div>
 
-                    {onApplySelection && (
-                        <Button
-                            type="button"
-                            variant="primary"
-                            size="sm"
-                            onClick={onApplySelection}
-                            disabled={disabled}
-                            className="w-full sm:w-auto rounded-lg px-3 h-8 font-semibold uppercase tracking-[0.12em] text-[10px] inline-flex items-center justify-center gap-1.5 shrink-0 leading-none whitespace-nowrap"
-                        >
-                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                            Apply Selection
-                        </Button>
-                    )}
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+                        {onApplySelection && (
+                            <Button
+                                type="button"
+                                variant="primary"
+                                size="sm"
+                                onClick={() => {
+                                    onBeforePreviewApply?.();
+                                    onApplySelection?.();
+                                }}
+                                disabled={disabled}
+                                className="rounded-lg px-3 h-8 font-semibold uppercase tracking-[0.12em] text-[10px] inline-flex items-center justify-center gap-1.5 shrink-0 leading-none"
+                            >
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                Preview
+                            </Button>
+                        )}
+                        {onDownloadPdf && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={onDownloadPdf}
+                                disabled={disabled || isGenerating || !hasData}
+                                className="rounded-lg px-3 h-8 text-[10px] inline-flex items-center gap-1.5"
+                            >
+                                {downloadingFormat === 'pdf' ? (
+                                    <>
+                                        <Spinner className="w-3 h-3" />
+                                        PDF
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="w-3 h-3" />
+                                        PDF
+                                    </>
+                                )}
+                            </Button>
+                        )}
+                        {onDownload && (
+                            <>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => onDownload && onDownload('excel')}
+                                    disabled={disabled || isGenerating || !hasData}
+                                    className="rounded-lg px-3 h-8 text-[10px] inline-flex items-center gap-1.5"
+                                >
+                                    {downloadingFormat === 'excel' ? (
+                                        <>
+                                            <Spinner className="w-3 h-3" />
+                                            Excel
+                                        </>
+                                    ) : (
+                                        'Excel'
+                                    )}
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => onDownload && onDownload('doc')}
+                                    disabled={disabled || isGenerating || !hasData}
+                                    className="rounded-lg px-3 h-8 text-[10px] inline-flex items-center gap-1.5"
+                                >
+                                    {downloadingFormat === 'doc' ? (
+                                        <>
+                                            <Spinner className="w-3 h-3" />
+                                            Word
+                                        </>
+                                    ) : (
+                                        'Word'
+                                    )}
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {filterType === 'dateRange' && (
                     <div className="space-y-3 pb-2">
+                        {/* Date pickers grid: single column on xs, two on >=sm */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="block text-[10px] font-bold text-[#487749] uppercase tracking-wider">

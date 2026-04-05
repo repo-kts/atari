@@ -14,6 +14,91 @@ const buildDateFromYear = (yearValue) => {
     return year === null ? null : new Date(Date.UTC(year, 0, 1));
 };
 
+const getDefaultSectorId = async () => {
+    const sector = await prisma.sector.findFirst({
+        select: { sectorId: true },
+        orderBy: { sectorId: 'asc' },
+    });
+    if (sector) {
+        return sector.sectorId;
+    }
+
+    // Auto-heal empty master-data setup: create a default sector once.
+    try {
+        const created = await prisma.sector.create({
+            data: { sectorName: 'General' },
+            select: { sectorId: true },
+        });
+        return created.sectorId;
+    } catch (error) {
+        // If another request created it concurrently or name already exists, fetch first again.
+        const fallback = await prisma.sector.findFirst({
+            select: { sectorId: true },
+            orderBy: { sectorId: 'asc' },
+        });
+        if (fallback) {
+            return fallback.sectorId;
+        }
+        throw error;
+    }
+};
+
+const resolveOrCreateCfldCropId = async (cropName) => {
+    if (!cropName || !String(cropName).trim()) {
+        throw new Error('Crop is required');
+    }
+    const normalizedCropName = String(cropName).trim();
+
+    const existingCrop = await prisma.fldCrop.findFirst({
+        where: { cropName: { equals: normalizedCropName, mode: 'insensitive' } },
+        select: { cropId: true },
+    });
+    if (existingCrop) return existingCrop.cropId;
+
+    const sectorId = await getDefaultSectorId();
+    let category = await prisma.fldCategory.findFirst({
+        where: { categoryName: { equals: 'CFLD', mode: 'insensitive' } },
+        select: { categoryId: true, sectorId: true },
+    });
+    if (!category) {
+        category = await prisma.fldCategory.create({
+            data: {
+                categoryName: 'CFLD',
+                sectorId,
+            },
+            select: { categoryId: true, sectorId: true },
+        });
+    }
+
+    let subcategory = await prisma.fldSubcategory.findFirst({
+        where: {
+            categoryId: category.categoryId,
+            subCategoryName: { equals: 'CFLD', mode: 'insensitive' },
+        },
+        select: { subCategoryId: true },
+    });
+    if (!subcategory) {
+        subcategory = await prisma.fldSubcategory.create({
+            data: {
+                subCategoryName: 'CFLD',
+                categoryId: category.categoryId,
+                sectorId: category.sectorId,
+            },
+            select: { subCategoryId: true },
+        });
+    }
+
+    const createdCrop = await prisma.fldCrop.create({
+        data: {
+            cropName: normalizedCropName,
+            categoryId: category.categoryId,
+            subCategoryId: subcategory.subCategoryId,
+        },
+        select: { cropId: true },
+    });
+    return createdCrop.cropId;
+};
+
 const resolveDateFromYearWithFallback = (yearValue, fallbackDate = null) => {
     const year = parseYearFromInput(yearValue, null);
     if (year === null) return fallbackDate || null;
@@ -72,39 +157,7 @@ const cfldBudgetUtilizationRepository = {
         // Resolve cropId
         let cropId = data.cropId ? parseInt(data.cropId) : null;
         if (data.crop) {
-            let crop = await prisma.fldCrop.findFirst({
-                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
-            });
-            if (!crop) {
-                // CFLD category/subcategory creation logic...
-                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
-                if (!category) {
-                    const sectors = await prisma.$queryRawUnsafe("SELECT sector_id FROM sector ORDER BY sector_id LIMIT 1");
-                    const sId = sectors.length > 0 ? sectors[0].sector_id : 1;
-                    const catRows = await prisma.$queryRawUnsafe(`
-                        INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', $1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-                        RETURNING category_id
-                    `, sId);
-                    category = { categoryId: catRows[0].category_id, sectorId: sId };
-                }
-                let subcategory = await prisma.fldSubcategory.findFirst({ where: { subCategoryName: 'CFLD' } });
-                if (!subcategory) {
-                    const subRows = await prisma.$queryRawUnsafe(`
-                        INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', $1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-                        RETURNING sub_category_id
-                    `, category.categoryId, category.sectorId || 1);
-                    subcategory = { subCategoryId: subRows[0].sub_category_id };
-                }
-                const cropRows = await prisma.$queryRawUnsafe(
-                    "INSERT INTO crop (crop_name, \"categoryId\", \"subCategoryId\", created_at, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING crop_id",
-                    data.crop, category.categoryId, subcategory.subCategoryId
-                );
-                cropId = cropRows[0].crop_id;
-            } else {
-                cropId = crop.cropId;
-            }
+            cropId = await resolveOrCreateCfldCropId(data.crop);
         }
         if (!cropId) throw new Error('Crop is required');
 
@@ -213,33 +266,7 @@ const cfldBudgetUtilizationRepository = {
         if (data.seasonId) updateData.seasonId = parseInt(data.seasonId);
 
         if (data.crop) {
-            // ... crop resolution logic ...
-            let crop = await prisma.fldCrop.findFirst({
-                where: { cropName: { equals: data.crop, mode: 'insensitive' } }
-            });
-            if (!crop) {
-                let category = await prisma.fldCategory.findFirst({ where: { categoryName: 'CFLD' } });
-                if (!category) {
-                    const catRows = await prisma.$queryRawUnsafe(`
-                        INSERT INTO category (category_name, "sectorId", created_at, updated_at) 
-                        VALUES ('CFLD', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-                        RETURNING category_id
-                    `);
-                    category = { categoryId: catRows[0].category_id };
-                }
-                const subRows = await prisma.$queryRawUnsafe(`
-                    INSERT INTO sub_category (sub_category_name, "categoryId", "sectorId", created_at, updated_at) 
-                    VALUES ('CFLD', $1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-                    RETURNING sub_category_id
-                `, category.categoryId);
-                const cropRows = await prisma.$queryRawUnsafe(
-                    "INSERT INTO crop (crop_name, \"categoryId\", \"subCategoryId\", created_at, updated_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) RETURNING crop_id",
-                    data.crop, category.categoryId, subRows[0].sub_category_id
-                );
-                updateData.cropId = cropRows[0].crop_id;
-            } else {
-                updateData.cropId = crop.cropId;
-            }
+            updateData.cropId = await resolveOrCreateCfldCropId(data.crop);
         }
 
         if (data.overallFundAllocation !== undefined) updateData.overallFundAllocation = parseFloat(data.overallFundAllocation);

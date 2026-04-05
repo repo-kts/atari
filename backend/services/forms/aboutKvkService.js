@@ -2,6 +2,7 @@ const aboutKvkRepository = require('../../repositories/forms/aboutKvkRepository.
 const prisma = require('../../config/prisma.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { sanitizeDate, sanitizeString } = require('../../utils/dataSanitizer.js');
 
 /** Roles scoped to a specific KVK */
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
@@ -342,8 +343,8 @@ class AboutKvkService {
             'kvks': ['kvkName', 'zoneId', 'stateId', 'districtId', 'orgId', 'universityId', 'hostOrg', 'mobile', 'email', 'address', 'yearOfSanction'],
             // Note: universityId is required as per the newest form requirements
             'kvk-bank-accounts': ['kvkId', 'accountType', 'accountName', 'bankName', 'location', 'accountNumber'],
-            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
-            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId', 'photoPath'],
+            'kvk-employees': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId'],
+            'kvk-staff-transferred': ['kvkId', 'staffName', 'mobile', 'dateOfBirth', 'sanctionedPostId', 'positionOrder', 'disciplineId', 'dateOfJoining', 'staffCategoryId'],
             'kvk-infrastructure': ['kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel', 'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding'],
             'kvk-vehicles': ['kvkId', 'vehicleName', 'registrationNo', 'yearOfPurchase', 'totalCost'],
             'kvk-vehicle-details': ['kvkId', 'reportingYear', 'vehicleId', 'totalRun', 'vehicleStatusId'],
@@ -441,7 +442,7 @@ class AboutKvkService {
      * @param {string} notes - Optional notes
      * @returns {Promise<object>} Updated employee record with transfer history
      */
-    async transferEmployee(employeeId, targetKvkId, user = null, transferReason = null, notes = null) {
+    async transferEmployee(employeeId, targetKvkId, user = null, transferReason = null, notes = null, transferDate = null) {
         if (!user) {
             throw new Error('User is required for transfer');
         }
@@ -470,7 +471,29 @@ class AboutKvkService {
 
         // Prevent transferring to the same KVK
         if (employee.kvkId === targetKvkId) {
-            throw new Error('Cannot transfer employee to the same KVK');
+            throw new Error('Staff is already at this KVK');
+        }
+
+        // --- Transfer Date Validation ---
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            throw new Error('Transfer date is required');
+        }
+        if (parsedTransferDate > new Date()) {
+            throw new Error('Transfer date cannot be in the future');
+        }
+
+        // --- Consecutive-Duplicate Guard ---
+        // Prevent immediate repeat of identical FROM->TO transfer for same staff.
+        const lastTransfer = await aboutKvkRepository.getLastTransferRecord(employeeId);
+        if (
+            lastTransfer &&
+            lastTransfer.fromKvkId === employee.kvkId &&
+            lastTransfer.toKvkId === targetKvkId
+        ) {
+            throw new Error(
+                'Cannot transfer: this staff member was already transferred away from this KVK in the most recent operation. Use the Revert option if the previous transfer was a mistake.'
+            );
         }
 
         // Track source KVK(s) - add current KVK to the source list
@@ -505,7 +528,7 @@ class AboutKvkService {
                     sourceKvkIds: sourceKvkIds,
                     originalKvkId: originalKvkId,
                     transferCount: (employee.transferCount || 0) + 1,
-                    lastTransferDate: new Date(),
+                    lastTransferDate: parsedTransferDate,
                 },
                 include: {
                     kvk: {
@@ -526,10 +549,11 @@ class AboutKvkService {
                 fromKvkId: currentKvkId,
                 toKvkId: targetKvkId,
                 transferredBy: user.userId,
-                transferReason: transferReason,
-                notes: notes,
+                transferDate: parsedTransferDate,
+                transferReason: sanitizeString(transferReason, { allowEmpty: false }),
+                notes: sanitizeString(notes, { allowEmpty: false }),
                 isReversal: false,
-            });
+            }, tx);
 
             return { employee: updatedEmployee, transferHistory };
         });
@@ -629,9 +653,17 @@ class AboutKvkService {
     /**
      * Revert a transfer (Super Admin only)
      */
-    async revertTransfer(transferId, targetKvkId, user = null, reason = null, notes = null) {
+    async revertTransfer(transferId, targetKvkId, user = null, reason = null, notes = null, transferDate = null) {
         if (!user || user.roleName !== 'super_admin') {
             throw new Error('Only Super Admins can revert transfers');
+        }
+
+        const parsedTransferDate = sanitizeDate(transferDate);
+        if (!parsedTransferDate) {
+            throw new Error('Transfer date is required');
+        }
+        if (parsedTransferDate > new Date()) {
+            throw new Error('Transfer date cannot be in the future');
         }
 
         // Get the transfer record
@@ -669,7 +701,7 @@ class AboutKvkService {
                 data: {
                     kvkId: revertToKvkId,
                     transferStatus: revertToKvkId === employee.originalKvkId ? 'ACTIVE' : 'TRANSFERRED',
-                    lastTransferDate: new Date(),
+                    lastTransferDate: parsedTransferDate,
                 },
                 include: {
                     kvk: {
@@ -690,11 +722,12 @@ class AboutKvkService {
                 fromKvkId: employee.kvkId,
                 toKvkId: revertToKvkId,
                 transferredBy: user.userId,
-                transferReason: reason || 'Transfer reversal',
-                notes: notes,
+                transferDate: parsedTransferDate,
+                transferReason: sanitizeString(reason || 'Transfer reversal', { allowEmpty: false }),
+                notes: sanitizeString(notes, { allowEmpty: false }),
                 isReversal: true,
                 reversedTransferId: transferId,
-            });
+            }, tx);
 
             return { employee: updatedEmployee, transferHistory: reversalHistory };
         });

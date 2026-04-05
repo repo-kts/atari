@@ -71,7 +71,7 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
             ENTITY_TYPES.KVKS,
         ],
         dependencyField: 'universityId',
-        relatedQueryPatterns: [],
+        relatedQueryPatterns: ['universities-by-organization'],
     },
 
     // KVKs: Depend on Zones, States, Districts, Organizations, Universities

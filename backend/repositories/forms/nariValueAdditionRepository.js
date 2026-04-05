@@ -30,7 +30,7 @@ const nariValueAdditionRepository = {
                 stF: parseInt(data.stF || data.stFemale || 0),
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -68,7 +68,7 @@ const nariValueAdditionRepository = {
         const results = await prisma.nariValueAddition.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             },
             orderBy: { nariValueAdditionId: 'desc' }
@@ -80,7 +80,7 @@ const nariValueAdditionRepository = {
         const result = await prisma.nariValueAddition.findUnique({
             where: { nariValueAdditionId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -112,7 +112,7 @@ const nariValueAdditionRepository = {
                 stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -188,6 +188,8 @@ function _mapResponse(r) {
         id: r.nariValueAdditionId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
+        stateName: r.kvk?.state?.stateName || '',
+        districtName: r.kvk?.district?.districtName || '',
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
