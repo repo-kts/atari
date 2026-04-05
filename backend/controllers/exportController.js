@@ -138,6 +138,21 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'nari-value-addition') {
         return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'nicra-basic') {
+        return buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'seed-hub') {
+        return buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'tsp') {
+        return buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'scsp') {
+        return buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'tsp-scsp') {
+        return buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
@@ -957,6 +972,89 @@ function buildAryaPrevYearTabularData(rawData, format, fallbackHeaders, fallback
     return { headers, rows };
 }
 
+function buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalized = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalized.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    const headers = [
+        'KVK',
+        'RF Normal',
+        'RF Received',
+        'Temp Max',
+        'Temp Min',
+        '>10 days',
+        '>15 days',
+        '>20 days',
+        'Intensive rain >60 mm',
+        'Water depth (cm)',
+        'Duration (days)',
+    ];
+    const rows = normalized.map(r => [
+        formatExportValue(r.kvkName || '-', format),
+        Number(r.rfMmDistrictNormal ?? r.rfNormal ?? 0),
+        Number(r.rfMmDistrictReceived ?? r.rfReceived ?? 0),
+        Number(r.maxTemperature ?? 0),
+        Number(r.minTemperature ?? 0),
+        Number(r.dry10 ?? 0),
+        Number(r.dry15 ?? 0),
+        Number(r.dry20 ?? 0),
+        Number(r.intensiveRain ?? 0),
+        Number(r.waterDepth ?? 0),
+        // Derive duration from start/end when available, else leave blank
+        (() => {
+            const start = r.startDate ? new Date(r.startDate) : null;
+            const end = r.endDate ? new Date(r.endDate) : null;
+            if (start && end && !isNaN(start) && !isNaN(end)) {
+                const ms = end - start;
+                return Math.round(ms / (1000 * 60 * 60 * 24));
+            }
+            return '';
+        })(),
+    ]);
+    return { headers, rows };
+}
+
+function buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalized = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalized.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    const headers = [
+        'KVK',
+        'Season',
+        'Crop',
+        'Variety',
+        'Area covered (ha)',
+        'Yield (Q/ha)',
+        'Qty produced (Q)',
+        'Qty sale out (Q)',
+        'Farmers purchased',
+        'Qty sale to farmers (Q)',
+        'Villages covered',
+        'Qty sale to other org (Q)',
+        'Amount generated (Lakh)',
+        'Total amount in project (Lakh)',
+    ];
+    const rows = normalized.map(r => [
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.season || '-', format),
+        formatExportValue(r.cropName || '-', format),
+        formatExportValue(r.varietyName || '-', format),
+        Number(r.areaCoveredHa ?? 0),
+        Number(r.yieldQPerHa ?? 0),
+        Number(r.quantityProducedQ ?? 0),
+        Number(r.quantitySaleOutQ ?? 0),
+        Number(r.farmersPurchased ?? 0),
+        Number(r.quantitySaleToFarmersQ ?? 0),
+        Number(r.villagesCovered ?? 0),
+        Number(r.quantitySaleToOtherOrgQ ?? 0),
+        Number(r.amountGeneratedLakh ?? 0),
+        Number(r.totalAmountPresentLakh ?? 0),
+    ]);
+    return { headers, rows };
+}
+
 /**
  * CSISA – Excel / DOCX tabular export (Section 2.22)
  *
@@ -1014,6 +1112,144 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
         Number(row.grossReturn      ?? 0),
         Number(row.netReturn        ?? 0),
         Number(row.bcr              ?? 0),
+    ]);
+
+    return { headers, rows };
+}
+
+/**
+ * TSP (Tribal Sub Plan) – Excel / DOCX tabular export (Section 2.23.1)
+ *
+ * rawData is the structured object from tspScspReportRepository.getTspData():
+ *   { activities[], fundsReceived, outcomes{}, locationDetails[], records[] }
+ * We flatten to one-row-per-activity with relevant summary columns appended.
+ */
+function buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const d = Array.isArray(rawData) ? rawData[0] : rawData;
+    if (!d || !d.activities || d.activities.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'KVK Name', 'Reporting Year', 'Activity',
+        'Nos. (Count)', 'No. of Beneficiaries',
+        'Fund Received (Rs. In lakh)',
+        'Change in Family Income (%)', 'Change in Family Consumption Level (%)',
+        'Change in Availability of Agricultural Implements (%)',
+        'District', 'Subdistrict', 'No. of Villages Covered',
+        'Village Names', 'ST Beneficiaries (M)', 'ST Beneficiaries (F)', 'ST Beneficiaries (T)',
+    ];
+
+    const rows = d.activities.map(act => [
+        formatExportValue(d.kvkName || '-', format),
+        formatExportValue(d.reportingYear || '-', format),
+        formatExportValue(act.activityName || '-', format),
+        Number(act.noOfTrainings ?? 0),
+        Number(act.noOfBeneficiaries ?? 0),
+        Number(d.fundsReceived ?? 0),
+        Number(d.outcomes?.familyIncome?.achievement ?? 0),
+        Number(d.outcomes?.consumptionLevel?.achievement ?? 0),
+        Number(d.outcomes?.implementsAvailability?.achievement ?? 0),
+        // Location – leave blank per-activity row (one district row added separately)
+        formatExportValue('-', format),
+        formatExportValue('-', format),
+        Number(0),
+        formatExportValue('-', format),
+        Number(0), Number(0), Number(0),
+    ]);
+
+    // Append location detail rows
+    (d.locationDetails || []).forEach(loc => {
+        rows.push([
+            formatExportValue(d.kvkName || '-', format),
+            formatExportValue(d.reportingYear || '-', format),
+            formatExportValue('Location Detail', format),
+            Number(0), Number(0),
+            Number(d.fundsReceived ?? 0),
+            Number(0), Number(0), Number(0),
+            formatExportValue(loc.districtName || '-', format),
+            formatExportValue(loc.subDistrict || '-', format),
+            Number(loc.villagesCount ?? 0),
+            formatExportValue(loc.villageNames || '-', format),
+            Number(loc.stMale ?? 0),
+            Number(loc.stFemale ?? 0),
+            Number(loc.stTotal ?? 0),
+        ]);
+    });
+
+    return { headers, rows };
+}
+
+/**
+ * SCSP (Scheduled Caste Sub Plan) – Excel / DOCX tabular export (Section 2.23.2)
+ *
+ * rawData is the structured object from tspScspReportRepository.getScspData():
+ *   { activities[], records[] }
+ * Only section (a) – physical output.
+ */
+function buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const d = Array.isArray(rawData) ? rawData[0] : rawData;
+    if (!d || !d.activities || d.activities.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'KVK Name', 'Reporting Year', 'Activity',
+        'Nos. (Count)', 'No. of Beneficiaries',
+    ];
+
+    const rows = d.activities.map(act => [
+        formatExportValue(d.kvkName || '-', format),
+        formatExportValue(d.reportingYear || '-', format),
+        formatExportValue(act.activityName || '-', format),
+        Number(act.noOfTrainings ?? 0),
+        Number(act.noOfBeneficiaries ?? 0),
+    ]);
+
+    return { headers, rows };
+}
+
+/**
+ * Combined TSP + SCSP – Excel / DOCX module-level export (templateKey: 'tsp-scsp')
+ *
+ * rawData is a flat array of TspScsp form records (both types) as returned
+ * by the forms repository (_mapResponse).  We split by type and render a
+ * unified flat table with a Type column.
+ */
+function buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const records = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (records.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'KVK Name', 'Reporting Year', 'Type', 'Activity',
+        'Nos. (Count)', 'No. of Beneficiaries',
+        'Fund Received (Rs. In lakh)',
+        'Change in Family Income (%)', 'Change in Family Consumption Level (%)',
+        'Change in Availability of Agricultural Implements (%)',
+        'District', 'Subdistrict', 'No. of Villages Covered',
+        'Village Names', 'ST Beneficiaries (M)', 'ST Beneficiaries (F)', 'ST Beneficiaries (T)',
+    ];
+
+    const rows = records.map(r => [
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.yearName || r.reportingYear || '-', format),
+        formatExportValue(r.type || '-', format),
+        formatExportValue(r.activityName || '-', format),
+        Number(r.noOfTrainings ?? 0),
+        Number(r.noOfBeneficiaries ?? 0),
+        Number(r.fundsReceived ?? 0),
+        Number(r.outcome1_achievement ?? 0),
+        Number(r.outcome2_achievement ?? 0),
+        Number(r.outcome3_achievement ?? 0),
+        formatExportValue(r.districtName || '-', format),
+        formatExportValue(r.subDistrict || '-', format),
+        Number(r.villagesCount ?? 0),
+        formatExportValue(r.villageNames || '-', format),
+        Number(r.beneficiaryMale ?? 0),
+        Number(r.beneficiaryFemale ?? 0),
+        Number(r.beneficiaryTotal ?? 0),
     ]);
 
     return { headers, rows };

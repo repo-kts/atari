@@ -11,14 +11,28 @@ const nicraConvergenceRepository = require('../../repositories/forms/nicraConver
 const nicraDignitariesRepository = require('../../repositories/forms/nicraDignitariesRepository');
 const nicraPiCopiRepository = require('../../repositories/forms/nicraPiCopiRepository');
 const nicraMasterRepository = require('../../repositories/all-masters/nicraMasterRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const nicraService = {
     // Basic Info
     getAllBasicInfo: async (filters, user) => await nicraBasicInfoRepository.findAll(filters, user),
     getBasicInfoById: async (id, user) => await nicraBasicInfoRepository.findById(id, user),
-    createBasicInfo: async (data, user) => await nicraBasicInfoRepository.create(data, user),
-    updateBasicInfo: async (id, data, user) => await nicraBasicInfoRepository.update(id, data, user),
-    deleteBasicInfo: async (id, user) => await nicraBasicInfoRepository.delete(id, user),
+    createBasicInfo: async (data, user) => {
+        const result = await nicraBasicInfoRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraBasic', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateBasicInfo: async (id, data, user) => {
+        const result = await nicraBasicInfoRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraBasic', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteBasicInfo: async (id, user) => {
+        const existing = await nicraBasicInfoRepository.findById(id, user);
+        const result = await nicraBasicInfoRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraBasic', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 
     // Training
     getAllTraining: async (filters, user) => await nicraTrainingRepository.findAll(filters, user),
@@ -44,9 +58,25 @@ const nicraService = {
     // Intervention
     getAllIntervention: async (filters, user) => await nicraInterventionRepository.findAll(filters, user),
     getInterventionById: async (id, user) => await nicraInterventionRepository.findById(id, user),
-    createIntervention: async (data, user) => await nicraInterventionRepository.create(data, user),
-    updateIntervention: async (id, data, user) => await nicraInterventionRepository.update(id, data, user),
-    deleteIntervention: async (id, user) => await nicraInterventionRepository.delete(id, user),
+    createIntervention: async (data, user) => {
+        const result = await nicraInterventionRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraIntervention', result?.kvkId || user?.kvkId);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicra', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateIntervention: async (id, data, user) => {
+        const result = await nicraInterventionRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraIntervention', result?.kvkId || user?.kvkId);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicra', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteIntervention: async (id, user) => {
+        const existing = await nicraInterventionRepository.findById(id, user);
+        const result = await nicraInterventionRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraIntervention', existing?.kvkId || user?.kvkId);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicra', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 
     // Revenue
     getAllRevenue: async (filters, user) => await nicraRevenueRepository.findAll(filters, user),

@@ -33,9 +33,6 @@ import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
 import { OftResultForm, OftResultFormValue } from './forms/achievement/OftResultForm'
 import { FldResultForm, FldResultValue } from './forms/achievement/FldResultForm'
 import { DatePicker } from '@/components/ui/date-picker'
-import { NariNutritionalGardenResultForm, NariNutritionalGardenResultValue } from './forms/achievement/NariNutritionalGardenResultForm'
-import { NariBioFortifiedResultForm, NariBioFortifiedResultValue } from './forms/achievement/NariBioFortifiedResultForm'
-import { NariValueAdditionResultForm, NariValueAdditionResultValue } from './forms/achievement/NariValueAdditionResultForm'
 
 interface DataManagementViewProps {
     title: string
@@ -95,15 +92,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [selectedFldId, setSelectedFldId] = useState<number | string | null>(null)
     const [selectedFldItem, setSelectedFldItem] = useState<any>(null)
     const fldResultQuery = useFldResult(selectedFldId || undefined)
-
-    const [isNariNutriResultPageOpen, setIsNariNutriResultPageOpen] = useState(false)
-    const [selectedNariNutriId, setSelectedNariNutriId] = useState<number | string | null>(null)
-
-    const [isNariBioResultPageOpen, setIsNariBioResultPageOpen] = useState(false)
-    const [selectedNariBioId, setSelectedNariBioId] = useState<number | string | null>(null)
-
-    const [isNariValueResultPageOpen, setIsNariValueResultPageOpen] = useState(false)
-    const [selectedNariValueId, setSelectedNariValueId] = useState<number | string | null>(null)
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
@@ -597,37 +585,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         })
     }
 
-    const handleSubmitNariNutriResult = async (payload: NariNutritionalGardenResultValue) => {
-        // Mocking for now as per user request to not push backend
-        console.log('Saving Nutrition Garden Result:', selectedNariNutriId, payload)
-        alert({
-            title: 'Success',
-            message: 'Nutrition Garden result saved successfully (Local Mock).',
-            variant: 'success',
-            autoClose: true,
-        })
-    }
-
-    const handleSubmitNariBioResult = async (payload: NariBioFortifiedResultValue) => {
-        console.log('Saving Bio Fortified Result:', selectedNariBioId, payload)
-        alert({
-            title: 'Success',
-            message: 'Bio Fortified result saved successfully (Local Mock).',
-            variant: 'success',
-            autoClose: true,
-        })
-    }
-
-    const handleSubmitNariValueResult = async (payload: NariValueAdditionResultValue) => {
-        console.log('Saving Value Addition Result:', selectedNariValueId, payload)
-        alert({
-            title: 'Success',
-            message: 'Value Addition result saved successfully (Local Mock).',
-            variant: 'success',
-            autoClose: true,
-        })
-    }
-
     const statusValue = (item: any) => normalizeOftStatus(item.status || item.ongoingCompleted)
     const oftCustomActions = entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
         ? [
@@ -656,36 +613,35 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 icon: FilePenLine,
             },
         ]
-        : []
+        : entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
+            ? [
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferFldToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'add-result',
+                    label: 'Add Result',
+                    onClick: handleAddFldResult,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: handleEditFldResult,
+                    isVisible: (item: any) => statusValue(item) === 'COMPLETED',
+                    className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
+            : []
 
-    const fldCustomActions = entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
-        ? [
-            {
-                key: 'transfer-next-year',
-                label: 'Transfer',
-                onClick: handleTransferFldToNextYear,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                icon: ArrowRight,
-            },
-            {
-                key: 'add-result',
-                label: 'Add Result',
-                onClick: handleAddFldResult,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePlus2,
-            },
-            {
-                key: 'edit-result',
-                label: 'Edit Result',
-                onClick: handleEditFldResult,
-                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
-                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                icon: FilePenLine,
-            },
-        ]
-        : []
     const cfldCustomActions = entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
         ? [
             {
@@ -729,32 +685,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
                 icon: FilePenLine,
             },
-        ]
-        : []
-
-    const nariCustomActions = entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN ||
-        entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED ||
-        entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-        ? [
-            {
-                key: 'create-result',
-                label: 'Create Result',
-                onClick: (item: any) => {
-                    if (entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN) {
-                        setSelectedNariNutriId(item.id)
-                        setIsNariNutriResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED) {
-                        setSelectedNariBioId(item.id)
-                        setIsNariBioResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION) {
-                        setSelectedNariValueId(item.id)
-                        setIsNariValueResultPageOpen(true)
-                    }
-                },
-                isVisible: () => true,
-                className: 'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
-                icon: FilePlus2,
-            }
         ]
         : []
 
@@ -830,13 +760,19 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                             ? 'arya-current'
                                                                                             : entityType === ENTITY_TYPES.PROJECT_ARYA_EVALUATION
                                                                                                 ? 'arya-prev-year'
-                                                                                                : entityType === ENTITY_TYPES.PROJECT_CSISA
-                                                                                                    ? 'csisa'
-                                                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                                                                        ? 'cfld-extension-activity'
-                                                                                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                                                                            ? 'cfld-budget-utilization'
-                                                                                                            : undefined;
+                                                                                                : entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC
+                                                                                                    ? 'nicra-basic'
+                                            : entityType === ENTITY_TYPES.PROJECT_SEED_HUB
+                                                ? 'seed-hub'
+                                            : entityType === ENTITY_TYPES.PROJECT_CSISA
+                                                                                                        ? 'csisa'
+                                                                                                        : entityType === ENTITY_TYPES.PROJECT_TSP_SCSP
+                                                                                                            ? 'tsp-scsp'
+                                                                                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                                                                                ? 'cfld-extension-activity'
+                                                                                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                                                                                    ? 'cfld-budget-utilization'
+                                                                                                                    : undefined;
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource = templateKey && filteredData.length === 0 && items.length > 0 ? items : filteredData;
@@ -895,15 +831,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     return (
         <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
-            {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && !isNariNutriResultPageOpen && !isNariBioResultPageOpen && !isNariValueResultPageOpen && (
+            {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && (
                 <div className="flex-none bg-white relative z-20 px-3 md:px-5">
                     {breadcrumbs.length > 0 && (
                         <div className="flex flex-row items-center gap-3 sm:gap-4 pt-4 pb-4">
                             <button
                                 onClick={() => {
+                                    // Special handling for different categories
                                     if (routeConfig?.category === 'Projects') {
+                                        // Always go back to projects overview for any project sub-page
                                         navigate('/forms/achievements/projects')
                                     } else if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
+                                        // Go to subcategory path (e.g., /all-master/basic, /all-master/training-extension)
                                         const subcategoryPath = breadcrumbs[1]?.path
                                         if (subcategoryPath) {
                                             navigate(subcategoryPath)
@@ -917,6 +856,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     } else if (routeConfig?.parent) {
                                         navigate(routeConfig.parent)
                                     } else if (breadcrumbs.length > 1) {
+                                        // Fallback: go to second-to-last breadcrumb that has a valid path
                                         const parentBreadcrumb = [...breadcrumbs].reverse()[1]
                                         if (parentBreadcrumb?.path) {
                                             navigate(parentBreadcrumb.path)
@@ -940,12 +880,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
                     {siblingRoutes.length > 1 && (
                         <div className="pb-2">
+                            {/* Desktop tabs */}
                             <div className="hidden sm:block">
                                 <TabNavigation
                                     tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
                                     currentPath={location.pathname}
                                 />
                             </div>
+                            {/* Mobile dropdown */}
                             <div className="sm:hidden">
                                 <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw] h-11">
                                     <button
@@ -986,7 +928,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 </div>
             )}
 
+            {/* Main Content Area - Flexible height */}
             <div className="flex-1 flex flex-col min-h-0 bg-[#FAF9F6] overflow-hidden rounded-xl px-3 md:px-5 py-3 md:py-2">
+                {/* Show Form Page if open, otherwise show List View */}
                 {isFormPageOpen ? (
                     <div className="flex-1 overflow-y-auto py-4">
                         {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && renderOftFldTabs({ mode: 'edit', kind: 'oft', item: editingItem })}
@@ -1077,27 +1021,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             </div>
                         </div>
                     </div>
-                ) : isNariNutriResultPageOpen ? (
-                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariNutritionalGardenResultForm
-                            onClose={() => setIsNariNutriResultPageOpen(false)}
-                            onSubmit={handleSubmitNariNutriResult}
-                        />
-                    </div>
-                ) : isNariBioResultPageOpen ? (
-                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariBioFortifiedResultForm
-                            onClose={() => setIsNariBioResultPageOpen(false)}
-                            onSubmit={handleSubmitNariBioResult}
-                        />
-                    </div>
-                ) : isNariValueResultPageOpen ? (
-                    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariValueAdditionResultForm
-                            onClose={() => setIsNariValueResultPageOpen(false)}
-                            onSubmit={handleSubmitNariValueResult}
-                        />
-                    </div>
                 ) : (
                     <>
                         <div className="flex-none pb-2">
@@ -1107,6 +1030,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <p className="text-sm text-[#757575] mt-1">{description}</p>
                                 </div>
                                 <div className="flex gap-3 flex-wrap items-center">
+                                    {/* Desktop: show export buttons expanded */}
                                     <div className="hidden md:flex gap-2 items-center">
                                         {exportFormatOptions.map((opt) => (
                                             <button
@@ -1132,6 +1056,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         ))}
                                     </div>
 
+                                    {/* Mobile: styled dropdown menu */}
                                     <div ref={exportMenuRef} className="relative md:hidden">
                                         <button
                                             type="button"
@@ -1210,8 +1135,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         ariaLabel="Reporting year to"
                                         className="h-10 px-3 py-2 text-sm sm:w-[170px]"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSearchQuery('')
+                                            setReportingYearFrom('')
+                                            setReportingYearTo('')
+                                            setCurrentPage(1)
+                                        }}
+                                        disabled={!hasActiveFilters}
+                                        className="h-11 px-3 border border-[#487749] rounded-xl bg-[#487749] text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3d6540]"
+                                    >
+                                        Clear Filters
+                                    </button>
                                 </div>
                             </div>
+
+                            {error && <ErrorState message={error} className="my-4" />}
                         </div>
 
                         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
@@ -1253,12 +1193,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         canDeleteItem={canDeleteItem}
                                         onTransfer={isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED ? handleTransfer : undefined}
                                         onViewHistory={(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) ? handleViewHistory : undefined}
-                                        customActions={[
-                                            ...oftCustomActions,
-                                            ...fldCustomActions,
-                                            ...cfldCustomActions,
-                                            ...nariCustomActions
-                                        ]}
+                                        customActions={entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM ? cfldCustomActions : oftCustomActions}
                                     />
 
                                     <Pagination

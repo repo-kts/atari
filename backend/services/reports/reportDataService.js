@@ -7,6 +7,9 @@ const drmrReportRepository = require('../../repositories/reports/drmrReport/inde
 const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
 const aryaReportRepository  = require('../../repositories/reports/aryaReport/index.js');
 const csisaReportRepository = require('../../repositories/reports/csisaReport/index.js');
+const nicraReportRepository = require('../../repositories/reports/nicraReport/index.js');
+const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
+const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -137,8 +140,23 @@ class ReportDataService {
             case 'aryaPrevYear':
                 rawData = await aryaReportRepository.getAryaPrevData(kvkId, sectionFilters);
                 break;
+            case 'nicraBasic':
+                rawData = await nicraReportRepository.getNicraBasicData(kvkId, sectionFilters);
+                break;
             case 'csisa':
                 rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
+                break;
+            case 'tspScsp':
+                rawData = await tspScspReportRepository.getCombinedTspScspData(kvkId, sectionFilters);
+                break;
+            case 'tsp':
+                rawData = await tspScspReportRepository.getTspData(kvkId, sectionFilters);
+                break;
+            case 'scsp':
+                rawData = await tspScspReportRepository.getScspData(kvkId, sectionFilters);
+                break;
+            case 'seedHub':
+                rawData = await seedHubReportRepository.getSeedHubData(kvkId, sectionFilters);
                 break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
@@ -163,10 +181,15 @@ class ReportDataService {
             || dataSource === 'nariExtension'
             || dataSource === 'aryaCurrent'
             || dataSource === 'aryaPrevYear'
-            || dataSource === 'csisa';
+            || dataSource === 'nicraBasic'
+            || dataSource === 'csisa'
+            || dataSource === 'tspScsp'
+            || dataSource === 'tsp'
+            || dataSource === 'scsp';
+        const skipTransformWithSeedHub = skipTransform || dataSource === 'seedHub';
 
         // Transform data according to section configuration
-        const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
+        const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
         
         // Build standardized structure
         const result = {

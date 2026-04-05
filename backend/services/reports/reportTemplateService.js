@@ -24,8 +24,13 @@ const { renderCsisaSection }               = require('./formsTemplate/projectTem
 const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
 const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
 const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderNicraBasicSection }          = require('./formsTemplate/projectTemplates/nicraBasicTemplate.js');
 const { renderAryaCurrentSection }         = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
 const { renderAryaPrevYearSection }        = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
+const { renderTspSection }                 = require('./formsTemplate/projectTemplates/tspTemplate.js');
+const { renderScspSection }               = require('./formsTemplate/projectTemplates/scspTemplate.js');
+const { renderTspScspSection }            = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
+const { renderSeedHubSection }           = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 
 /**
  * Report Template Service
@@ -63,6 +68,11 @@ class ReportTemplateService {
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
             'arya-current':       renderAryaCurrentSection.bind(this),
             'arya-prev-year':     renderAryaPrevYearSection.bind(this),
+            'nicra-basic':        renderNicraBasicSection.bind(this),
+            'tsp':                renderTspSection.bind(this),
+            'scsp':               renderScspSection.bind(this),
+            'tsp-scsp':           renderTspScspSection.bind(this),
+            'seed-hub':           renderSeedHubSection.bind(this),
         };
     }
 
