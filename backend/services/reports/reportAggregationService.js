@@ -277,7 +277,7 @@ class ReportAggregationService {
         }
 
         // For table sections, combine all rows
-        if (sectionConfig.format === 'table' || sectionConfig.format === 'grouped-table') {
+        if (sectionConfig.format === 'table' || sectionConfig.format === 'grouped-table' || sectionConfig.format === 'custom') {
             const allRows = [];
             validData.forEach(sd => {
                 if (Array.isArray(sd.data)) {

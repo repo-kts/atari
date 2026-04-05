@@ -101,6 +101,11 @@ async function getKvkFarmImplements(kvkId, filters = {}) {
 
     return await prisma.kvkFarmImplement.findMany({
         where,
+        include: {
+            kvk: {
+                select: { kvkId: true, kvkName: true },
+            },
+        },
         orderBy: [
             { yearOfPurchase: 'desc' },
             { implementName: 'asc' },

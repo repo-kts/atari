@@ -2,6 +2,10 @@ const exportHelper = require('../utils/exportHelper');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
+const {
+    formatCostValue,
+    formatStatusValue,
+} = require('../services/reports/formsTemplate/aboutkvkTemplates/farmImplementsFormatters.js');
 
 const exportData = async (req, res) => {
     try {
@@ -14,23 +18,26 @@ const exportData = async (req, res) => {
             rawData
         } = req.body;
 
-        if (!title || !headers || !rows || !format) {
-            return res.status(400).json({ message: 'Missing required fields: title, headers, rows, format' });
+        const hasTemplatePayload = Boolean(templateKey && rawData);
+        if (!title || !format || (!hasTemplatePayload && (!headers || !rows))) {
+            return res.status(400).json({
+                message: 'Missing required fields. For template exports: title, format, templateKey, rawData. Otherwise: title, headers, rows, format'
+            });
         }
 
         let buffer;
         let contentType;
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
-        const tabularData = (templateKey && rawData)
-            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows, format)
+        const tabularData = hasTemplatePayload
+            ? buildTabularDataFromTemplate(templateKey, rawData, headers || [], rows || [], format)
             : {
                 headers,
                 rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
             };
 
         switch (format.toLowerCase()) {
-            case 'pdf':
+            case 'pdf': {
                 const html = templateKey
                     ? await generateCustomTemplateHTML(templateKey, rawData, title)
                     : generateHTML(title, headers, rows);
@@ -39,6 +46,7 @@ const exportData = async (req, res) => {
                 contentType = 'application/pdf';
                 fileName += '.pdf';
                 break;
+            }
             case 'excel':
                 buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -75,7 +83,7 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         normalizedData,
         {
             sectionId: matchedSection?.id || '1.1',
-            title: matchedSection?.title || title,
+            title: matchedSection?.customSectionLabel || title,
             customSectionLabel: matchedSection?.customSectionLabel,
         }
     );
@@ -104,12 +112,42 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     const mappedHeaders = section.fields.map(field => field.displayName);
     const mappedRows = normalizedData.map(record => {
         return section.fields.map(field => {
-            const value = getNestedValue(record, field.dbField);
-            return formatExportValue(value, format);
+            const value = resolveFieldValue(record, field);
+            return formatFieldByType(field, value, format);
         });
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function resolveFieldValue(record, field) {
+    if (Array.isArray(field.lookupPaths) && field.lookupPaths.length > 0) {
+        return pickFirstValue(record, field.lookupPaths);
+    }
+    return getNestedValue(record, field.dbField);
+}
+
+function formatFieldByType(field, value, format = 'csv') {
+    if (field.type === 'currency') return formatCostValue(value);
+    if (field.type === 'status') return formatStatusValue(value);
+    return formatExportValue(value, format);
+}
+
+function pickFirstValue(record, candidatePaths = []) {
+    if (!record || typeof record !== 'object') {
+        return null;
+    }
+
+    for (const path of candidatePaths) {
+        const value = path.includes('.')
+            ? getNestedValue(record, path)
+            : record[path];
+        if (value !== null && value !== undefined && value !== '') {
+            return value;
+        }
+    }
+
+    return null;
 }
 
 function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows) {

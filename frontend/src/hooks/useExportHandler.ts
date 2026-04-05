@@ -68,19 +68,30 @@ export function useExportHandler(): UseExportHandlerReturn {
     const handleServerExport = useCallback(
         async (format: ExportFormat, options: ExportOptions) => {
             const { title, fields, data, pathname, templateKey } = options;
-            const headerLabels = fields.map(formatHeaderLabel);
-            const rows = data.map(item => fields.map(field => getFieldValue(item, field)));
+            const isTemplateExport = Boolean(templateKey);
+            const headerLabels = isTemplateExport
+                ? undefined
+                : fields.map(formatHeaderLabel);
+            const rows = isTemplateExport
+                ? undefined
+                : data.map(item => fields.map(field => getFieldValue(item, field)));
+            const payload = isTemplateExport
+                ? {
+                    title,
+                    templateKey,
+                    rawData: data,
+                    format: format as 'pdf' | 'excel' | 'word',
+                }
+                : {
+                    title,
+                    headers: headerLabels || [],
+                    rows: rows || [],
+                    format: format as 'pdf' | 'excel' | 'word',
+                };
 
             try {
                 const blob = await exportApi.exportData(
-                    {
-                        title,
-                        headers: headerLabels,
-                        rows,
-                        format: format as 'pdf' | 'excel' | 'word',
-                        templateKey,
-                        rawData: templateKey ? data : undefined,
-                    },
+                    payload,
                     pathname
                 );
 
