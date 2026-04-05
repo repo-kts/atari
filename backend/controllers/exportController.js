@@ -111,8 +111,23 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'drmr-details') {
         return buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'nari-nutrition-garden') {
+        return buildNariNutritionGardenTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'drmr-activity') {
         return buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nari-bio-fortified') {
+        return buildNariBioFortifiedTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nari-training') {
+        return buildNariTrainingTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nari-extension') {
+        return buildNariExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nari-value-addition') {
+        return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
@@ -130,6 +145,69 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function buildNariNutritionGardenTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of Nutri-Smart Village',
+        'Name of State',
+        'Name of District',
+        'Activity Type',
+        'Type of Nutritional Garden',
+        'Number',
+        'Area(sqm)',
+        'General M',
+        'General F',
+        'General T',
+        'OBC M',
+        'OBC F',
+        'OBC T',
+        'SC M',
+        'SC F',
+        'SC T',
+        'ST M',
+        'ST F',
+        'ST T',
+        'Grand Total M',
+        'Grand Total F',
+        'Grand Total T',
+    ];
+
+    const rows = normalizedData.map(row => {
+        const generalM = Number(row.generalM ?? row.genMale ?? 0);
+        const generalF = Number(row.generalF ?? row.genFemale ?? 0);
+        const obcM = Number(row.obcM ?? row.obcMale ?? 0);
+        const obcF = Number(row.obcF ?? row.obcFemale ?? 0);
+        const scM = Number(row.scM ?? row.scMale ?? 0);
+        const scF = Number(row.scF ?? row.scFemale ?? 0);
+        const stM = Number(row.stM ?? row.stMale ?? 0);
+        const stF = Number(row.stF ?? row.stFemale ?? 0);
+        const totalM = generalM + obcM + scM + stM;
+        const totalF = generalF + obcF + scF + stF;
+        const totalT = totalM + totalF;
+
+        return [
+            formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
+            formatExportValue(row.stateName || '-', format),
+            formatExportValue(row.districtName || '-', format),
+            formatExportValue(row.activityName || '-', format),
+            formatExportValue(row.typeOfNutritionalGarden || row.gardenType || '-', format),
+            formatExportValue(row.number ?? 0, format),
+            formatExportValue(row.areaSqm ?? 0, format),
+            generalM, generalF, generalM + generalF,
+            obcM, obcF, obcM + obcF,
+            scM, scF, scM + scF,
+            stM, stF, stM + stF,
+            totalM, totalF, totalT,
+        ];
+    });
+
+    return { headers, rows };
 }
 
 function buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows) {
@@ -486,6 +564,278 @@ function buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRo
             scM, scF, scT,
             stM, stF, stT,
             totalM, totalF, totalT,
+        ];
+    });
+
+    return { headers, rows };
+}
+
+/**
+ * NARI Bio-fortified Crops – Excel / DOCX tabular export (Section 2.16)
+ *
+ * Emits two logical header groups in a single flat sheet:
+ *   Part A – crop-level columns + beneficiary M/F/T per category + grand total
+ *   Part B – consumption pattern columns (marks unavailable fields as '-')
+ *
+ * Robust key fallbacks handle both the report-repository payload shape and the
+ * raw frontend module-export shape from the forms API.
+ */
+function buildNariBioFortifiedTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        // Part A – crop details
+        'S.No.',
+        'Name of Nutri-Smart Village',
+        'Season',
+        'Activity Type',
+        'Category of Crop',
+        'Name of Crop',
+        'Variety',
+        'Area (ha)',
+        // Part A – beneficiary counts
+        'General M', 'General F', 'General T',
+        'OBC M',     'OBC F',     'OBC T',
+        'SC M',      'SC F',      'SC T',
+        'ST M',      'ST F',      'ST T',
+        'Grand Total M', 'Grand Total F', 'Grand Total T',
+        // Part B – consumption pattern
+        'Production/yield',
+        'Consumption (gm/day/person)',
+        'Form of Consumption',
+        'No. of Days of Consumption in a Year',
+    ];
+
+    const rows = normalizedData.map((row, idx) => {
+        const generalM = Number(row.generalM ?? row.genMale  ?? 0);
+        const generalF = Number(row.generalF ?? row.genFemale ?? 0);
+        const generalT = Number(row.generalT)  || (generalM + generalF);
+        const obcM     = Number(row.obcM  ?? row.obcMale   ?? 0);
+        const obcF     = Number(row.obcF  ?? row.obcFemale ?? 0);
+        const obcT     = Number(row.obcT)  || (obcM + obcF);
+        const scM      = Number(row.scM   ?? row.scMale    ?? 0);
+        const scF      = Number(row.scF   ?? row.scFemale  ?? 0);
+        const scT      = Number(row.scT)   || (scM + scF);
+        const stM      = Number(row.stM   ?? row.stMale    ?? 0);
+        const stF      = Number(row.stF   ?? row.stFemale  ?? 0);
+        const stT      = Number(row.stT)   || (stM + stF);
+        const grandM   = Number(row.grandM) || (generalM + obcM + scM + stM);
+        const grandF   = Number(row.grandF) || (generalF + obcF + scF + stF);
+        const grandT   = grandM + grandF;
+
+        return [
+            idx + 1,
+            formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
+            formatExportValue(row.seasonName    || '-', format),
+            formatExportValue(row.activityName  || '-', format),
+            formatExportValue(row.cropCategoryName || row.cropCategory || '-', format),
+            formatExportValue(row.nameOfCrop || row.cropName || '-', format),
+            formatExportValue(row.variety    || '-', format),
+            formatExportValue(row.areaHa     ?? 0,   format),
+            generalM, generalF, generalT,
+            obcM,     obcF,     obcT,
+            scM,      scF,      scT,
+            stM,      stF,      stT,
+            grandM,   grandF,   grandT,
+            // Part B – not stored in DB yet → placeholder
+            formatExportValue(row.productionYield          || '-', format),
+            formatExportValue(row.consumptionGmPerDayPerson || '-', format),
+            formatExportValue(row.formOfConsumption         || '-', format),
+            formatExportValue(row.daysOfConsumptionPerYear  || '-', format),
+        ];
+    });
+
+    return { headers, rows };
+}
+
+/**
+ * NARI Value Addition – Excel / DOCX tabular export (Section 2.17)
+ *
+ * Emits the value-addition summary with beneficiary category counts and
+ * includes the beneficiary-product detail fields with robust fallbacks.
+ */
+function buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'S.No.',
+        'Name of Nutri-Smart Village',
+        'Name of Crop',
+        'Name of Value-added Product',
+        'Activity Type',
+        'General M', 'General F', 'General T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Grand Total M', 'Grand Total F', 'Grand Total T',
+        'Amount Produced(Kg)',
+        'Market Price(Rs/kg)',
+        'Net Income(Rs)',
+        'Self-life of Produce',
+        'FSSAI Certification',
+        'FSSAI Certification No.',
+    ];
+
+    const rows = normalizedData.map((row, idx) => {
+        const generalM = Number(row.generalM ?? row.genMale ?? 0);
+        const generalF = Number(row.generalF ?? row.genFemale ?? 0);
+        const obcM = Number(row.obcM ?? row.obcMale ?? 0);
+        const obcF = Number(row.obcF ?? row.obcFemale ?? 0);
+        const scM = Number(row.scM ?? row.scMale ?? 0);
+        const scF = Number(row.scF ?? row.scFemale ?? 0);
+        const stM = Number(row.stM ?? row.stMale ?? 0);
+        const stF = Number(row.stF ?? row.stFemale ?? 0);
+        const grandM = generalM + obcM + scM + stM;
+        const grandF = generalF + obcF + scF + stF;
+        const grandT = grandM + grandF;
+
+        return [
+            idx + 1,
+            formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
+            formatExportValue(row.nameOfCrop || row.cropName || '-', format),
+            formatExportValue(row.nameOfValueAddedProduct || row.productName || '-', format),
+            formatExportValue(row.activityName || '-', format),
+            generalM, generalF, generalM + generalF,
+            obcM, obcF, obcM + obcF,
+            scM, scF, scM + scF,
+            stM, stF, stM + stF,
+            grandM, grandF, grandT,
+            formatExportValue(row.amountProducedKg || '-', format),
+            formatExportValue(row.marketPricePerKg || '-', format),
+            formatExportValue(row.netIncomeRs || '-', format),
+            formatExportValue(row.shelfLifeOfProduce || '-', format),
+            formatExportValue(row.fssaiCertification || '-', format),
+            formatExportValue(row.fssaiCertificationNo || '-', format),
+        ];
+    });
+
+    return { headers, rows };
+}
+
+/**
+ * NARI Training Programmes – Excel / DOCX tabular export (Section 2.18)
+ *
+ * Stable 24-column layout matching the PDF report:
+ *   S.No. | Village | Activity | Area of Training | Title of Training |
+ *   On/Off Campus | Venue | Days | Courses |
+ *   General M/F/T | OBC M/F/T | SC M/F/T | ST M/F/T | Grand Total M/F/T
+ */
+function buildNariTrainingTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'S.No.',
+        'Name of Nutri Smart Village',
+        'Activity Type',
+        'Area of Training',
+        'Title of Training',
+        'On Campus/Off Campus',
+        'Venue',
+        'No of Days',
+        'No of Courses',
+        'General M', 'General F', 'General T',
+        'OBC M',     'OBC F',     'OBC T',
+        'SC M',      'SC F',      'SC T',
+        'ST M',      'ST F',      'ST T',
+        'Grand Total M', 'Grand Total F', 'Grand Total T',
+    ];
+
+    const rows = normalizedData.map((row, idx) => {
+        const generalM = Number(row.generalM ?? row.genMale   ?? 0);
+        const generalF = Number(row.generalF ?? row.genFemale ?? 0);
+        const generalT = Number(row.generalT) || (generalM + generalF);
+        const obcM     = Number(row.obcM  ?? row.obcMale   ?? 0);
+        const obcF     = Number(row.obcF  ?? row.obcFemale ?? 0);
+        const obcT     = Number(row.obcT) || (obcM + obcF);
+        const scM      = Number(row.scM   ?? row.scMale    ?? 0);
+        const scF      = Number(row.scF   ?? row.scFemale  ?? 0);
+        const scT      = Number(row.scT)  || (scM + scF);
+        const stM      = Number(row.stM   ?? row.stMale    ?? 0);
+        const stF      = Number(row.stF   ?? row.stFemale  ?? 0);
+        const stT      = Number(row.stT)  || (stM + stF);
+        const grandM   = Number(row.grandM) || (generalM + obcM + scM + stM);
+        const grandF   = Number(row.grandF) || (generalF + obcF + scF + stF);
+        const grandT   = grandM + grandF;
+
+        const campusLabel = row.campusTypeLabel
+            || (row.campusType === 'ON_CAMPUS'  ? 'On Campus'
+              : row.campusType === 'OFF_CAMPUS' ? 'Off Campus'
+              : row.campusType || '-');
+
+        return [
+            idx + 1,
+            formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
+            formatExportValue(row.activityName   || '-', format),
+            formatExportValue(row.areaOfTraining || '-', format),
+            formatExportValue(row.titleOfTraining || '-', format),
+            formatExportValue(campusLabel, format),
+            formatExportValue(row.venue || '-', format),
+            Number(row.noOfDays    ?? 0),
+            Number(row.noOfCourses ?? 0),
+            generalM, generalF, generalT,
+            obcM,     obcF,     obcT,
+            scM,      scF,      scT,
+            stM,      stF,      stT,
+            grandM,   grandF,   grandT,
+        ];
+    });
+
+    return { headers, rows };
+}
+
+/**
+ * NARI Extension Activities – Excel / DOCX tabular export (Section 2.19)
+ */
+function buildNariExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'S.No.',
+        'Name of Nutri Smart Village',
+        'Title/Type of Activity',
+        'No. of activities',
+        'General M', 'General F', 'General T',
+        'OBC M', 'OBC F', 'OBC T',
+        'SC M', 'SC F', 'SC T',
+        'ST M', 'ST F', 'ST T',
+        'Grand Total M', 'Grand Total F', 'Grand Total T',
+    ];
+
+    const rows = normalizedData.map((row, idx) => {
+        const generalM = Number(row.generalM ?? row.genMale ?? 0);
+        const generalF = Number(row.generalF ?? row.genFemale ?? 0);
+        const obcM = Number(row.obcM ?? row.obcMale ?? 0);
+        const obcF = Number(row.obcF ?? row.obcFemale ?? 0);
+        const scM = Number(row.scM ?? row.scMale ?? 0);
+        const scF = Number(row.scF ?? row.scFemale ?? 0);
+        const stM = Number(row.stM ?? row.stMale ?? 0);
+        const stF = Number(row.stF ?? row.stFemale ?? 0);
+        const grandM = Number(row.grandM) || (generalM + obcM + scM + stM);
+        const grandF = Number(row.grandF) || (generalF + obcF + scF + stF);
+        const grandT = grandM + grandF;
+
+        return [
+            idx + 1,
+            formatExportValue(row.nameOfNutriSmartVillage || row.villageName || '-', format),
+            formatExportValue(row.titleOrTypeOfActivity || row.activityOrganized || row.activityName || '-', format),
+            formatExportValue(row.noOfActivities ?? 0, format),
+            generalM, generalF, generalM + generalF,
+            obcM, obcF, obcM + obcF,
+            scM, scF, scM + scF,
+            stM, stF, stM + stF,
+            grandM, grandF, grandT,
         ];
     });
 

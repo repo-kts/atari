@@ -1,8 +1,11 @@
 const nariNutritionalGardenRepository = require('../../repositories/forms/nariNutritionalGardenRepository.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const nariNutritionalGardenService = {
     create: async (data, user) => {
-        return await nariNutritionalGardenRepository.create(data, user);
+        const result = await nariNutritionalGardenRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nariNutritionGarden', result?.kvkId || user?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -14,11 +17,17 @@ const nariNutritionalGardenService = {
     },
 
     update: async (id, data, user) => {
-        return await nariNutritionalGardenRepository.update(id, data, user);
+        const existing = await nariNutritionalGardenRepository.findById(id, user);
+        const result = await nariNutritionalGardenRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nariNutritionGarden', result?.kvkId || existing?.kvkId || user?.kvkId);
+        return result;
     },
 
     delete: async (id, user) => {
-        return await nariNutritionalGardenRepository.delete(id, user);
+        const existing = await nariNutritionalGardenRepository.findById(id, user);
+        const result = await nariNutritionalGardenRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nariNutritionGarden', existing?.kvkId || user?.kvkId);
+        return result;
     }
 };
 

@@ -17,7 +17,12 @@ const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTe
 const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
 const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
 const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/drmrDetailsTemplate.js');
-const { renderDrmrActivitySection } = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
+const { renderDrmrActivitySection }        = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
+const { renderNariBioFortifiedSection }    = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
+const { renderNariTrainingSection }        = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
+const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
+const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
+const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
 
 /**
  * Report Template Service
@@ -46,7 +51,12 @@ class ReportTemplateService {
             'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
             'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
             'drmr-details': renderDrmrDetailsSection.bind(this),
-            'drmr-activity': renderDrmrActivitySection.bind(this),
+            'drmr-activity':      renderDrmrActivitySection.bind(this),
+            'nari-nutrition-garden': renderNariNutritionGardenSection.bind(this),
+            'nari-bio-fortified': renderNariBioFortifiedSection.bind(this),
+            'nari-training':      renderNariTrainingSection.bind(this),
+            'nari-extension':     renderNariExtensionSection.bind(this),
+            'nari-value-addition': renderNariValueAdditionSection.bind(this),
         };
     }
 

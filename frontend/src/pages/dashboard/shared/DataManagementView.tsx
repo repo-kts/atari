@@ -746,6 +746,16 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 ? 'drmr-details'
                                             : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
                                                 ? 'drmr-activity'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                                                ? 'nari-nutrition-garden'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                                                ? 'nari-bio-fortified'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                                                ? 'nari-value-addition'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_TRAINING
+                                                ? 'nari-training'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
+                                                ? 'nari-extension'
                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
                                                 ? 'cfld-extension-activity'
                                                 : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
