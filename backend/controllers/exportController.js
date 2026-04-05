@@ -94,6 +94,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'fpo-management-details') {
         return buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'drmr-details') {
+        return buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
@@ -110,6 +113,51 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of KVK',
+        'Varieties used in IP',
+        'Situations (Irrigated/Rainfed)',
+        'Varieties used in FP',
+        'Yield IP (Kg/ha)',
+        'Yield FP (Kg/ha)',
+        'YIOFP (%)',
+        'COC IP (Rs./ha)',
+        'COC FP (Rs./ha)',
+        'GMR IP (Rs./ha)',
+        'GMR FP (Rs./ha)',
+        'ANMR IP (Rs./ha)',
+        'ANMR FP (Rs./ha)',
+        'B:C ratio IP',
+        'B:C ratio FP',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.kvkName || '-', format),
+        formatExportValue(row.varietiesUsedInIp || row.varietyImprovedPractice || '-', format),
+        formatExportValue(row.situation || row.situations || '-', format),
+        formatExportValue(row.varietiesUsedInFp || row.varietyFarmerPractice || '-', format),
+        formatExportValue(row.yieldImprovedKgPerHa ?? row.yieldImproved ?? 0, format),
+        formatExportValue(row.yieldFarmerKgPerHa ?? row.yieldFarmerPractise ?? 0, format),
+        formatExportValue(row.yieldIncreasePercent ?? 0, format),
+        formatExportValue(row.costImprovedPerHa ?? row.costImproved ?? 0, format),
+        formatExportValue(row.costFarmerPerHa ?? row.costFarmerPractise ?? 0, format),
+        formatExportValue(row.grossReturnImprovedPerHa ?? row.grossReturnImproved ?? 0, format),
+        formatExportValue(row.grossReturnFarmerPerHa ?? row.grossReturnFarmerPractise ?? 0, format),
+        formatExportValue(row.netReturnImprovedPerHa ?? row.netReturnImproved ?? 0, format),
+        formatExportValue(row.netReturnFarmerPerHa ?? row.netReturnFarmerPractise ?? 0, format),
+        formatExportValue(row.bcRatioImproved ?? 0, format),
+        formatExportValue(row.bcRatioFarmer ?? row.bcRatioFarmerPractise ?? 0, format),
+    ]);
+
+    return { headers, rows };
 }
 
 function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows) {

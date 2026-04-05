@@ -411,6 +411,20 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.13',
+            title: 'DRMR Details',
+            description: 'DRMR varietal and economics comparison details',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'drmrDetails',
+            format: 'custom',
+            customTemplate: 'drmr-details',
+            filters: {
+                dateFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 

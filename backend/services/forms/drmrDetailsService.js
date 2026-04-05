@@ -1,8 +1,11 @@
 const drmrDetailsRepository = require('../../repositories/forms/drmrDetailsRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const drmrDetailsService = {
     create: async (data, user) => {
-        return await drmrDetailsRepository.create(data, user);
+        const result = await drmrDetailsRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('drmrDetails', result?.kvkId || user?.kvkId);
+        return result;
     },
 
     findAll: async (filters, user) => {
@@ -20,7 +23,9 @@ const drmrDetailsService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await drmrDetailsRepository.update(id, data);
+        const result = await drmrDetailsRepository.update(id, data);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('drmrDetails', result?.kvkId || existing?.kvkId || user?.kvkId);
+        return result;
     },
 
     delete: async (id, user) => {
@@ -30,7 +35,9 @@ const drmrDetailsService = {
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName) && Number(existing.kvkId) !== Number(user.kvkId)) {
             throw new Error('Unauthorized');
         }
-        return await drmrDetailsRepository.delete(id);
+        const result = await drmrDetailsRepository.delete(id);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('drmrDetails', existing?.kvkId || user?.kvkId);
+        return result;
     }
 };
 

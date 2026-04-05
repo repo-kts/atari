@@ -3,6 +3,7 @@ const oftReportRepository = require('../../repositories/reports/oftReport/index.
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
+const drmrReportRepository = require('../../repositories/reports/drmrReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -106,6 +107,9 @@ class ReportDataService {
             case 'fpoManagement':
                 rawData = await fpoReportRepository.getFpoManagementData(kvkId, sectionFilters);
                 break;
+            case 'drmrDetails':
+                rawData = await drmrReportRepository.getDrmrDetailsData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -119,7 +123,8 @@ class ReportDataService {
             || dataSource === 'craDetails'
             || dataSource === 'craExtensionActivity'
             || dataSource === 'fpoCbboDetails'
-            || dataSource === 'fpoManagement';
+            || dataSource === 'fpoManagement'
+            || dataSource === 'drmrDetails';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

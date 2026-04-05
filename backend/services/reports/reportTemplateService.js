@@ -16,6 +16,7 @@ const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTem
 const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
 const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
 const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
+const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/drmrDetailsTemplate.js');
 
 /**
  * Report Template Service
@@ -43,6 +44,7 @@ class ReportTemplateService {
             'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
             'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
             'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
+            'drmr-details': renderDrmrDetailsSection.bind(this),
         };
     }
 
