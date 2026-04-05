@@ -4,6 +4,8 @@ const miscReportRepository = require('../../repositories/reports/miscReport/inde
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
+const drmrReportRepository = require('../../repositories/reports/drmrReport/index.js');
+const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -116,6 +118,27 @@ class ReportDataService {
             case 'fpoManagement':
                 rawData = await fpoReportRepository.getFpoManagementData(kvkId, sectionFilters);
                 break;
+            case 'drmrDetails':
+                rawData = await drmrReportRepository.getDrmrDetailsData(kvkId, sectionFilters);
+                break;
+            case 'drmrActivity':
+                rawData = await drmrReportRepository.getDrmrActivityData(kvkId, sectionFilters);
+                break;
+            case 'nariBioFortified':
+                rawData = await nariReportRepository.getNariBioFortifiedData(kvkId, sectionFilters);
+                break;
+            case 'nariValueAddition':
+                rawData = await nariReportRepository.getNariValueAdditionData(kvkId, sectionFilters);
+                break;
+            case 'nariNutritionGarden':
+                rawData = await nariReportRepository.getNariNutritionGardenData(kvkId, sectionFilters);
+                break;
+            case 'nariTraining':
+                rawData = await nariReportRepository.getNariTrainingData(kvkId, sectionFilters);
+                break;
+            case 'nariExtension':
+                rawData = await nariReportRepository.getNariExtensionData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -132,7 +155,14 @@ class ReportDataService {
             || dataSource === 'craDetails'
             || dataSource === 'craExtensionActivity'
             || dataSource === 'fpoCbboDetails'
-            || dataSource === 'fpoManagement';
+            || dataSource === 'fpoManagement'
+            || dataSource === 'drmrDetails'
+            || dataSource === 'drmrActivity'
+            || dataSource === 'nariNutritionGarden'
+            || dataSource === 'nariBioFortified'
+            || dataSource === 'nariValueAddition'
+            || dataSource === 'nariTraining'
+            || dataSource === 'nariExtension';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
