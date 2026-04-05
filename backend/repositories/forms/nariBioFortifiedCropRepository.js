@@ -9,11 +9,17 @@ const nariBioFortifiedCropRepository = {
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
         // Validation for mandatory fields
-        if (!data.seasonId) throw new Error('Season is required');
-        if (!data.activityId) throw new Error('Activity is required');
-        if (!data.cropCategoryId) throw new Error('Category of Crop is required');
-        if (!data.nameOfNutriSmartVillage) throw new Error('Name of Nutri-Smart Village is required');
-        if (!data.nameOfCrop && !data.cropName) throw new Error('Name of Crop is required');
+        const seasonId = parseInt(data.seasonId);
+        const activityId = parseInt(data.activityId);
+        const cropCategoryId = parseInt(data.cropCategoryId);
+        const villageName = data.nameOfNutriSmartVillage || data.villageName || '';
+        const cropName = data.nameOfCrop || data.cropName || '';
+
+        if (isNaN(seasonId)) throw new Error('Season is required');
+        if (isNaN(activityId)) throw new Error('Activity is required');
+        if (isNaN(cropCategoryId)) throw new Error('Category of Crop is required');
+        if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
+        if (!cropName) throw new Error('Name of Crop is required');
         if (!data.variety) throw new Error('Variety is required');
 
         const result = await prisma.nariBioFortifiedCrop.create({
@@ -24,11 +30,11 @@ const nariBioFortifiedCropRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                seasonId: parseInt(data.seasonId),
-                activityId: parseInt(data.activityId),
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                cropCategoryId: parseInt(data.cropCategoryId),
-                nameOfCrop: data.nameOfCrop || data.cropName || '',
+                seasonId,
+                activityId,
+                nameOfNutriSmartVillage: villageName,
+                cropCategoryId,
+                nameOfCrop: cropName,
                 variety: data.variety || '',
                 areaHa: parseFloat(data.areaHa || 0),
                 generalM: parseInt(data.generalM || data.genMale || 0),
@@ -117,19 +123,19 @@ const nariBioFortifiedCropRepository = {
                     : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
                 cropCategoryId: data.cropCategoryId ? parseInt(data.cropCategoryId) : undefined,
-                nameOfCrop: data.nameOfCrop !== undefined ? data.nameOfCrop : undefined,
+                nameOfCrop: data.nameOfCrop || data.cropName || undefined,
                 variety: data.variety !== undefined ? data.variety : undefined,
                 areaHa: data.areaHa !== undefined ? parseFloat(data.areaHa) : undefined,
-                generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
-                generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,
-                obcM: data.obcM !== undefined || data.obcMale !== undefined ? parseInt(data.obcM ?? data.obcMale) : undefined,
-                obcF: data.obcF !== undefined || data.obcFemale !== undefined ? parseInt(data.obcF ?? data.obcFemale) : undefined,
-                scM: data.scM !== undefined || data.scMale !== undefined ? parseInt(data.scM ?? data.scMale) : undefined,
-                scF: data.scF !== undefined || data.scFemale !== undefined ? parseInt(data.scF ?? data.scFemale) : undefined,
-                stM: data.stM !== undefined || data.stMale !== undefined ? parseInt(data.stM ?? data.stMale) : undefined,
-                stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
+                generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
+                generalF: (data.generalF !== undefined || data.genFemale !== undefined) ? (parseInt(data.generalF ?? data.genFemale) || 0) : undefined,
+                obcM: (data.obcM !== undefined || data.obcMale !== undefined) ? (parseInt(data.obcM ?? data.obcMale) || 0) : undefined,
+                obcF: (data.obcF !== undefined || data.obcFemale !== undefined) ? (parseInt(data.obcF ?? data.obcFemale) || 0) : undefined,
+                scM: (data.scM !== undefined || data.scMale !== undefined) ? (parseInt(data.scM ?? data.scMale) || 0) : undefined,
+                scF: (data.scF !== undefined || data.scFemale !== undefined) ? (parseInt(data.scF ?? data.scFemale) || 0) : undefined,
+                stM: (data.stM !== undefined || data.stMale !== undefined) ? (parseInt(data.stM ?? data.stMale) || 0) : undefined,
+                stF: (data.stF !== undefined || data.stFemale !== undefined) ? (parseInt(data.stF ?? data.stFemale) || 0) : undefined,
             },
             include: {
                 kvk: { select: { kvkName: true } },

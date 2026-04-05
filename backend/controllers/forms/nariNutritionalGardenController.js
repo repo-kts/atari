@@ -6,7 +6,8 @@ const nariNutritionalGardenController = {
             const result = await nariNutritionalGardenService.create(req.body, req.user);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            console.error('[NariNutritionalGardenController] Create failed:', error);
+            res.status(500).json({ success: false, message: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
         }
     },
 

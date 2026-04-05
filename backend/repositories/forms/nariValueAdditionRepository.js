@@ -8,6 +8,9 @@ const nariValueAdditionRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        const activityId = parseInt(data.activityId);
+        if (isNaN(activityId)) throw new Error('Activity is required');
+
         const result = await prisma.nariValueAddition.create({
             data: {
                 kvkId,
@@ -16,10 +19,10 @@ const nariValueAdditionRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: data.activityId ? parseInt(data.activityId) : null,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                nameOfCrop: data.nameOfCrop || '',
-                nameOfValueAddedProduct: data.nameOfValueAddedProduct || '',
+                activityId,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || '',
+                nameOfCrop: data.nameOfCrop || data.cropName || '',
+                nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || '',
                 generalM: parseInt(data.generalM || data.genMale || 0),
                 generalF: parseInt(data.generalF || data.genFemale || 0),
                 obcM: parseInt(data.obcM || data.obcMale || 0),
@@ -99,17 +102,17 @@ const nariValueAdditionRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
-                nameOfCrop: data.nameOfCrop !== undefined ? data.nameOfCrop : undefined,
-                nameOfValueAddedProduct: data.nameOfValueAddedProduct !== undefined ? data.nameOfValueAddedProduct : undefined,
-                generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
-                generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,
-                obcM: data.obcM !== undefined || data.obcMale !== undefined ? parseInt(data.obcM ?? data.obcMale) : undefined,
-                obcF: data.obcF !== undefined || data.obcFemale !== undefined ? parseInt(data.obcF ?? data.obcFemale) : undefined,
-                scM: data.scM !== undefined || data.scMale !== undefined ? parseInt(data.scM ?? data.scMale) : undefined,
-                scF: data.scF !== undefined || data.scFemale !== undefined ? parseInt(data.scF ?? data.scFemale) : undefined,
-                stM: data.stM !== undefined || data.stMale !== undefined ? parseInt(data.stM ?? data.stMale) : undefined,
-                stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
+                nameOfCrop: data.nameOfCrop || data.cropName || undefined,
+                nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || undefined,
+                generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
+                generalF: (data.generalF !== undefined || data.genFemale !== undefined) ? (parseInt(data.generalF ?? data.genFemale) || 0) : undefined,
+                obcM: (data.obcM !== undefined || data.obcMale !== undefined) ? (parseInt(data.obcM ?? data.obcMale) || 0) : undefined,
+                obcF: (data.obcF !== undefined || data.obcFemale !== undefined) ? (parseInt(data.obcF ?? data.obcFemale) || 0) : undefined,
+                scM: (data.scM !== undefined || data.scMale !== undefined) ? (parseInt(data.scM ?? data.scMale) || 0) : undefined,
+                scF: (data.scF !== undefined || data.scFemale !== undefined) ? (parseInt(data.scF ?? data.scFemale) || 0) : undefined,
+                stM: (data.stM !== undefined || data.stMale !== undefined) ? (parseInt(data.stM ?? data.stMale) || 0) : undefined,
+                stF: (data.stF !== undefined || data.stFemale !== undefined) ? (parseInt(data.stF ?? data.stFemale) || 0) : undefined,
             },
             include: {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },

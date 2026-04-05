@@ -8,6 +8,9 @@ const nariExtensionActivityRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        const activityId = parseInt(data.activityId);
+        if (isNaN(activityId)) throw new Error('Activity is required');
+
         const result = await prisma.nariExtensionActivity.create({
             data: {
                 kvkId,
@@ -16,9 +19,9 @@ const nariExtensionActivityRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: data.activityId ? parseInt(data.activityId) : null,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                nameOfActivity: data.nameOfActivity || '',
+                activityId,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || '',
+                nameOfActivity: data.nameOfActivity || data.activityName || '',
                 noOfActivities: parseInt(data.noOfActivities || 0),
                 generalM: parseInt(data.generalM || data.genMale || 0),
                 generalF: parseInt(data.generalF || data.genFemale || 0),
@@ -99,8 +102,8 @@ const nariExtensionActivityRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
-                nameOfActivity: data.nameOfActivity !== undefined ? data.nameOfActivity : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
+                nameOfActivity: data.nameOfActivity || data.activityName || undefined,
                 noOfActivities: data.noOfActivities !== undefined ? parseInt(data.noOfActivities) : undefined,
                 generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
                 generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,

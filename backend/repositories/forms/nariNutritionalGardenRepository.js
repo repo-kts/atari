@@ -9,9 +9,13 @@ const nariNutritionalGardenRepository = {
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
         // Validation for mandatory fields
-        if (!data.activityId) throw new Error('Activity is required');
-        if (!data.nameOfNutriSmartVillage) throw new Error('Name of Nutri-Smart Village is required');
-        if (!data.typeOfNutritionalGardenId) throw new Error('Type of Nutritional Garden is required');
+        const activityId = parseInt(data.activityId);
+        const typeOfNutritionalGardenId = parseInt(data.typeOfNutritionalGardenId);
+        const villageName = data.nameOfNutriSmartVillage || data.villageName || '';
+
+        if (isNaN(activityId)) throw new Error('Activity is required');
+        if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
+        if (isNaN(typeOfNutritionalGardenId)) throw new Error('Type of Nutritional Garden is required');
 
         const result = await prisma.nariNutritionalGarden.create({
             data: {
@@ -108,18 +112,18 @@ const nariNutritionalGardenRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
                 typeOfNutritionalGardenId: data.typeOfNutritionalGardenId ? parseInt(data.typeOfNutritionalGardenId) : undefined,
-                number: data.number !== undefined ? parseInt(data.number) : undefined,
-                areaSqm: data.areaSqm !== undefined ? parseFloat(data.areaSqm) : undefined,
-                generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
-                generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,
-                obcM: data.obcM !== undefined || data.obcMale !== undefined ? parseInt(data.obcM ?? data.obcMale) : undefined,
-                obcF: data.obcF !== undefined || data.obcFemale !== undefined ? parseInt(data.obcF ?? data.obcFemale) : undefined,
-                scM: data.scM !== undefined || data.scMale !== undefined ? parseInt(data.scM ?? data.scMale) : undefined,
-                scF: data.scF !== undefined || data.scFemale !== undefined ? parseInt(data.scF ?? data.scFemale) : undefined,
-                stM: data.stM !== undefined || data.stMale !== undefined ? parseInt(data.stM ?? data.stMale) : undefined,
-                stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
+                number: data.number !== undefined ? (parseInt(data.number) || 0) : undefined,
+                areaSqm: data.areaSqm !== undefined ? (parseFloat(data.areaSqm) || 0) : undefined,
+                generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
+                generalF: (data.generalF !== undefined || data.genFemale !== undefined) ? (parseInt(data.generalF ?? data.genFemale) || 0) : undefined,
+                obcM: (data.obcM !== undefined || data.obcMale !== undefined) ? (parseInt(data.obcM ?? data.obcMale) || 0) : undefined,
+                obcF: (data.obcF !== undefined || data.obcFemale !== undefined) ? (parseInt(data.obcF ?? data.obcFemale) || 0) : undefined,
+                scM: (data.scM !== undefined || data.scMale !== undefined) ? (parseInt(data.scM ?? data.scMale) || 0) : undefined,
+                scF: (data.scF !== undefined || data.scFemale !== undefined) ? (parseInt(data.scF ?? data.scFemale) || 0) : undefined,
+                stM: (data.stM !== undefined || data.stMale !== undefined) ? (parseInt(data.stM ?? data.stMale) || 0) : undefined,
+                stF: (data.stF !== undefined || data.stFemale !== undefined) ? (parseInt(data.stF ?? data.stFemale) || 0) : undefined,
             },
             include: {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },

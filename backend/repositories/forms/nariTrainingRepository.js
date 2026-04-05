@@ -9,10 +9,15 @@ const nariTrainingRepository = {
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
         // Validation for mandatory fields
-        if (!data.activityId) throw new Error('Activity is required');
-        if (!data.nameOfNutriSmartVillage) throw new Error('Name of Nutri-Smart Village is required');
-        if (!data.areaOfTraining && !data.trainingArea) throw new Error('Area of Training is required');
-        if (!data.titleOfTraining && !data.trainingTitle) throw new Error('Title of Training is required');
+        const activityId = parseInt(data.activityId);
+        const villageName = data.nameOfNutriSmartVillage || data.villageName || '';
+        const areaOfTraining = data.areaOfTraining || data.trainingArea || '';
+        const titleOfTraining = data.titleOfTraining || data.trainingTitle || '';
+
+        if (isNaN(activityId)) throw new Error('Activity is required');
+        if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
+        if (!areaOfTraining) throw new Error('Area of Training is required');
+        if (!titleOfTraining) throw new Error('Title of Training is required');
 
         const result = await prisma.nariTrainingProgramme.create({
             data: {
@@ -22,11 +27,11 @@ const nariTrainingRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: parseInt(data.activityId),
+                activityId,
                 campusType: data.campusType || 'ON_CAMPUS',
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                areaOfTraining: data.areaOfTraining || data.trainingArea || '',
-                titleOfTraining: data.titleOfTraining || data.trainingTitle || '',
+                nameOfNutriSmartVillage: villageName,
+                areaOfTraining,
+                titleOfTraining,
                 noOfDays: parseInt(data.noOfDays || 0),
                 noOfCourses: parseInt(data.noOfCourses || 0),
                 venue: data.venue || '',
@@ -89,7 +94,7 @@ const nariTrainingRepository = {
     findById: async (id, user) => {
         const where = { nariTrainingProgrammeId: parseInt(id) };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = user.kvkId;
+            where.kvkId = parseInt(user.kvkId);
         }
 
         const result = await prisma.nariTrainingProgramme.findFirst({
@@ -105,7 +110,7 @@ const nariTrainingRepository = {
     update: async (id, data, user) => {
         const where = { nariTrainingProgrammeId: parseInt(id) };
         if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = user.kvkId;
+            where.kvkId = parseInt(user.kvkId);
         }
 
         const existing = await prisma.nariTrainingProgramme.findFirst({ where });
@@ -123,9 +128,9 @@ const nariTrainingRepository = {
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
                 campusType: data.campusType || undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
-                areaOfTraining: data.areaOfTraining !== undefined ? data.areaOfTraining : undefined,
-                titleOfTraining: data.titleOfTraining !== undefined ? data.titleOfTraining : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
+                areaOfTraining: data.areaOfTraining || data.trainingArea || undefined,
+                titleOfTraining: data.titleOfTraining || data.trainingTitle || undefined,
                 noOfDays: data.noOfDays !== undefined ? parseInt(data.noOfDays) : undefined,
                 noOfCourses: data.noOfCourses !== undefined ? parseInt(data.noOfCourses) : undefined,
                 venue: data.venue !== undefined ? data.venue : undefined,
