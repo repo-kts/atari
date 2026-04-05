@@ -27,7 +27,13 @@ function renderRaweFetFitSection(section, data, sectionId, isFirstSection) {
     let html = `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title" style="margin-bottom:10px;">Details of attachment training (RAWE) through KVK</h1>
-    <table class="data-table" style="width:100%;">
+    <table class="data-table" style="width:100%;table-layout:fixed;">
+        <colgroup>
+            <col style="width:15%;">
+            <col style="width:60%;">
+            <col style="width:12%;">
+            <col style="width:13%;">
+        </colgroup>
         <thead>
             <tr>
                 <th>KVK</th>
@@ -56,7 +62,7 @@ function renderRaweFetFitSection(section, data, sectionId, isFirstSection) {
         html += `
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
-                <td>${this._escapeHtml(typeName)}</td>
+                <td style="word-wrap:break-word;word-break:break-word;">${this._escapeHtml(typeName)}</td>
                 <td style="text-align:center;">${totalStudents}</td>
                 <td style="text-align:center;">${this._escapeHtml(days)}</td>
             </tr>`;
