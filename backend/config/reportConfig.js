@@ -314,6 +314,140 @@ const reportConfig = {
             filters: { dateFields: ['createdAt'] },
             fields: [],
         },
+        {
+            id: '2.8.1',
+            title: 'Performance of Demonstration under CFLD',
+            description: 'Combined CFLD report with technical, economic, socio-economic and perception parameters',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'cfldCombined',
+            format: 'custom',
+            customTemplate: 'cfld-combined',
+            filters: {
+                dateFields: ['createdAt'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [
+                { dbField: 'reportingYear', displayName: 'Reporting Year', type: 'date' },
+                { dbField: 'kvkName', displayName: 'KVK Name' },
+                { dbField: 'stateName', displayName: 'State' },
+                { dbField: 'cropTypeName', displayName: 'Crop Type' },
+                { dbField: 'seasonName', displayName: 'Season' },
+                { dbField: 'cropName', displayName: 'Crop' },
+                { dbField: 'areaInHa', displayName: 'Area (ha)' },
+                { dbField: 'technologyDemonstrated', displayName: 'Detail of technology demonstrated' },
+                { dbField: 'farmerYield', displayName: 'Yield in farmer field (q/ha)' },
+                { dbField: 'demoYieldAvg', displayName: 'Yield in demonstration (q/ha)' },
+                { dbField: 'percentIncrease', displayName: '% Increase' },
+            ],
+        },
+        {
+            id: '2.8.2',
+            title: 'Extension activities under CFLD conducted',
+            description: 'CFLD extension activities with participant category counts',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'cfldExtensionActivity',
+            format: 'custom',
+            customTemplate: 'cfld-extension-activity',
+            filters: {
+                dateFields: ['activityDate'],
+            },
+            fields: [
+                { dbField: 'kvkName', displayName: 'KVK Name' },
+                { dbField: 'extensionActivityName', displayName: 'Extension Activities organized' },
+                { dbField: 'activityDate', displayName: 'Activity Date', type: 'date' },
+                { dbField: 'placeOfActivity', displayName: 'Place of Activity' },
+                { dbField: 'generalM', displayName: 'General M' },
+                { dbField: 'generalF', displayName: 'General F' },
+                { dbField: 'obcM', displayName: 'OBC M' },
+                { dbField: 'obcF', displayName: 'OBC F' },
+                { dbField: 'scM', displayName: 'SC M' },
+                { dbField: 'scF', displayName: 'SC F' },
+                { dbField: 'stM', displayName: 'ST M' },
+                { dbField: 'stF', displayName: 'ST F' },
+                { dbField: 'totalFarmers', displayName: 'Total Farmers' },
+            ],
+        },
+        {
+            id: '2.8.3',
+            title: 'Details of budget utilization',
+            description: 'CFLD crop-wise budget utilization details',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'cfldBudgetUtilization',
+            format: 'custom',
+            customTemplate: 'cfld-budget-utilization',
+            filters: {
+                dateFields: ['createdAt'],
+                yearFields: ['reportingYearDate'],
+            },
+            fields: [
+                { dbField: 'kvkName', displayName: 'KVK Name' },
+                { dbField: 'seasonName', displayName: 'Season' },
+                { dbField: 'cropName', displayName: 'Crop' },
+                { dbField: 'overallFundAllocation', displayName: 'Overall fund allocation' },
+                { dbField: 'areaAllotted', displayName: 'Area (ha) alloted' },
+                { dbField: 'areaAchieved', displayName: 'Area (ha) achieved' },
+            ],
+        },
+        {
+            id: '2.9',
+            title: 'CRA Details',
+            description: 'Climate resilient agriculture details with state-wise presentation',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'craDetails',
+            format: 'custom',
+            customTemplate: 'cra-details-state-wise',
+            filters: {
+                dateFields: [],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.10',
+            title: 'CRA Extension Activity',
+            description: 'Extension activities under climate resilient agriculture',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'craExtensionActivity',
+            format: 'custom',
+            customTemplate: 'cra-extension-activity',
+            filters: {
+                dateFields: ['startDate'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.11',
+            title: 'Formation and Promotion of FPOs as CBBOs under NCDC Funding',
+            description: 'FPO registration, training and business performance under CBBO support',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'fpoCbboDetails',
+            format: 'custom',
+            customTemplate: 'fpo-cbbo-details',
+            filters: {
+                dateFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
+            id: '2.12',
+            title: 'Details of commodity-based organizations/Farmers Cooperative Society/FPO Formed/Associated with KVK under NCDC Funding',
+            description: 'FPO management profile details under NCDC funding',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'fpoManagement',
+            format: 'custom',
+            customTemplate: 'fpo-management-details',
+            filters: {
+                dateFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 
@@ -338,6 +472,10 @@ function getSectionsByDataSource(dataSource) {
     return reportConfig.sections.filter(s => s.dataSource === dataSource);
 }
 
+function getSectionByCustomTemplate(customTemplate) {
+    return reportConfig.sections.find(s => s.customTemplate === customTemplate);
+}
+
 /**
  * Validate section IDs
  */
@@ -355,5 +493,6 @@ module.exports = {
     getSectionConfig,
     getAllSections,
     getSectionsByDataSource,
+    getSectionByCustomTemplate, 
     validateSectionIds,
 };

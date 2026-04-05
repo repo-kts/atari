@@ -1,6 +1,6 @@
 const exportHelper = require('../utils/exportHelper');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
-const { getAllSections } = require('../config/reportConfig.js');
+const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 
 const exportData = async (req, res) => {
@@ -23,7 +23,7 @@ const exportData = async (req, res) => {
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
         const tabularData = (templateKey && rawData)
-            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows)
+            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows, format)
             : {
                 headers,
                 rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
@@ -68,8 +68,7 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         ? rawData
         : (rawData ? [rawData] : []);
 
-    // Look up the matching section for correct sectionId
-    const matchedSection = getAllSections().find(section => section.customTemplate === templateKey);
+    const matchedSection = getSectionByCustomTemplate(templateKey) || getAllSections().find(section => section.customTemplate === templateKey);
 
     return await reportTemplateService.generateStandaloneCustomTemplateHTML(
         templateKey,
@@ -82,9 +81,21 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
     );
 }
 
-function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows) {
-    const sections = getAllSections();
-    const section = sections.find(s => s.customTemplate === templateKey);
+function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
+    if (templateKey === 'cra-details-state-wise') {
+        return buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'cra-extension-activity') {
+        return buildCraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'fpo-cbbo-details') {
+        return buildFpoCbboTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'fpo-management-details') {
+        return buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+
+    const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
@@ -99,6 +110,223 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
+}
+
+function buildFpoManagementTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of the FPO',
+        'Address of FPO',
+        'Registration No',
+        'Date of Registration',
+        'Proposed Activity',
+        'Commodity identified',
+        'Total No. of BOM Members',
+        'Total no of farmers attached',
+        'Financial position (Rupees in lakh)',
+        'Success indicator',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.fpoName || '-', format),
+        formatExportValue(row.address || row.fpoAddress || '-', format),
+        formatExportValue(row.registrationNumber || row.registrationNo || '-', format),
+        formatExportValue(row.registrationDate || '-', format),
+        formatExportValue(row.proposedActivity || '-', format),
+        formatExportValue(row.commodityIdentified || '-', format),
+        formatExportValue(row.totalBomMembers ?? row.bomMembersCount ?? 0, format),
+        formatExportValue(row.totalFarmersAttached ?? row.farmersAttachedCount ?? 0, format),
+        formatExportValue(row.financialPositionLakh ?? row.financialPosition ?? 0, format),
+        formatExportValue(row.successIndicator || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildFpoCbboTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of state',
+        'Name of district',
+        'No. of blocks allocated',
+        'No. of FPOs registered as CBBO',
+        'Average no of members per FPO',
+        'No. of FPO received management cost',
+        'No. of FPO received equity grant',
+        'Tech. backstopping provided to no. of FPOs',
+        'No. of training programme organized for FPOs for technology backstopping as CBBO',
+        'Training received by FPO members',
+        'Assistance to no. of FPOs in economic activities',
+        'Is business plan prepared for FPOs as CBBOs',
+        'Is business plan prepared for FPOs as without CBBOs',
+        'No. of FPOs doing business',
+    ];
+
+    const rows = normalizedData.map(row => [
+        formatExportValue(row.stateName || '-', format),
+        formatExportValue(row.districtName || '-', format),
+        formatExportValue(row.blocksAllocated ?? 0, format),
+        formatExportValue(row.fposRegisteredAsCbbo ?? 0, format),
+        formatExportValue(row.avgMembersPerFpo ?? 0, format),
+        formatExportValue(row.fposReceivedManagementCost ?? 0, format),
+        formatExportValue(row.fposReceivedEquityGrant ?? 0, format),
+        formatExportValue(row.techBackstoppingProvided ?? 0, format),
+        formatExportValue(row.trainingProgrammeOrganized ?? 0, format),
+        formatExportValue(row.trainingReceivedByMembers || '-', format),
+        formatExportValue(row.assistanceInEconomicActivities ?? 0, format),
+        formatExportValue(row.businessPlanPreparedWithCbbo || '-', format),
+        formatExportValue(row.businessPlanPreparedWithoutCbbo || '-', format),
+        formatExportValue(row.fposDoingBusiness ?? 0, format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildCraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'KVK',
+        'Name of Extension Activity',
+        'Within State/Out of State',
+        'Exposure visit (no.)',
+        'Start Date',
+        'End Date',
+        'General M',
+        'General F',
+        'General T',
+        'OBC M',
+        'OBC F',
+        'OBC T',
+        'SC M',
+        'SC F',
+        'SC T',
+        'ST M',
+        'ST F',
+        'ST T',
+        'Total M',
+        'Total F',
+        'Total T',
+    ];
+
+    const rows = normalizedData.map(row => {
+        const generalM = Number(row.generalM ?? row.genM ?? 0);
+        const generalF = Number(row.generalF ?? row.genF ?? 0);
+        const obcM = Number(row.obcM ?? 0);
+        const obcF = Number(row.obcF ?? 0);
+        const scM = Number(row.scM ?? 0);
+        const scF = Number(row.scF ?? 0);
+        const stM = Number(row.stM ?? 0);
+        const stF = Number(row.stF ?? 0);
+        const generalT = generalM + generalF;
+        const obcT = obcM + obcF;
+        const scT = scM + scF;
+        const stT = stM + stF;
+        const totalM = generalM + obcM + scM + stM;
+        const totalF = generalF + obcF + scF + stF;
+        const totalT = totalM + totalF;
+
+        return [
+            formatExportValue(row.kvkName || '-', format),
+            formatExportValue(row.extensionActivityName || row.activityName || '-', format),
+            formatExportValue(row.withinStateOrOutState || row.withinStateWithoutState || '-', format),
+            formatExportValue(row.exposureVisitNo ?? row.exposureVisit ?? 0, format),
+            formatExportValue(row.startDate || '-', format),
+            formatExportValue(row.endDate || '-', format),
+            generalM, generalF, generalT,
+            obcM, obcF, obcT,
+            scM, scF, scT,
+            stM, stF, stT,
+            totalM, totalF, totalT,
+        ];
+    });
+
+    return { headers, rows };
+}
+
+function buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'State',
+        'Season',
+        'Technology demonstrated / interventions',
+        'Cropping system',
+        'Farming system crop under demonstration',
+        'Area under demonstration (in ac)',
+        'Crop yield (q/ha)',
+        'System productivity (q/ha)',
+        'Total return (Rs./ha)',
+        'Yield obtained under farmer practice (q/ha)',
+        'General M',
+        'General F',
+        'General T',
+        'OBC M',
+        'OBC F',
+        'OBC T',
+        'SC M',
+        'SC F',
+        'SC T',
+        'ST M',
+        'ST F',
+        'ST T',
+        'Total M',
+        'Total F',
+        'Total T',
+    ];
+
+    const rows = normalizedData.map(row => {
+        const generalM = Number(row.generalM || 0);
+        const generalF = Number(row.generalF || 0);
+        const obcM = Number(row.obcM || 0);
+        const obcF = Number(row.obcF || 0);
+        const scM = Number(row.scM || 0);
+        const scF = Number(row.scF || 0);
+        const stM = Number(row.stM || 0);
+        const stF = Number(row.stF || 0);
+
+        const generalT = generalM + generalF;
+        const obcT = obcM + obcF;
+        const scT = scM + scF;
+        const stT = stM + stF;
+        const totalM = generalM + obcM + scM + stM;
+        const totalF = generalF + obcF + scF + stF;
+        const totalT = totalM + totalF;
+
+        return [
+            formatExportValue(row.stateName || row.state?.stateName || '-', format),
+            formatExportValue(row.seasonName || row.season || '-', format),
+            formatExportValue(row.interventions || row.technologyDemonstrated || '-', format),
+            formatExportValue(row.croppingSystem || row.cropingSystem || '-', format),
+            formatExportValue(row.farmingSystemName || '-', format),
+            formatExportValue(row.areaInAcre ?? 0, format),
+            formatExportValue(row.cropYield ?? 0, format),
+            formatExportValue(row.systemProductivity ?? 0, format),
+            formatExportValue(row.totalReturn ?? 0, format),
+            formatExportValue(row.farmerPracticeYield ?? 0, format),
+            generalM, generalF, generalT,
+            obcM, obcF, obcT,
+            scM, scF, scT,
+            stM, stF, stT,
+            totalM, totalF, totalT,
+        ];
+    });
+
+    return { headers, rows };
 }
 
 function getNestedValue(obj, path) {

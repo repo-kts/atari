@@ -11,6 +11,13 @@ const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/of
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
 const { renderPrevalentDiseasesCropsSection, renderPrevalentDiseasesLivestockSection } = require('./formsTemplate/miscTemplates/prevalentDiseasesTemplate.js');
 const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
+const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
+const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
+const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
+const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTemplates/craDetailsStateWiseTemplate.js');
+const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
+const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
+const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
 
 /**
  * Report Template Service
@@ -34,6 +41,13 @@ class ReportTemplateService {
             'misc-prevalent-diseases-crops': renderPrevalentDiseasesCropsSection.bind(this),
             'misc-prevalent-diseases-livestock': renderPrevalentDiseasesLivestockSection.bind(this),
             'misc-nyk-training': renderNykTrainingSection.bind(this),
+            'cfld-combined': renderCfldCombinedSection.bind(this),
+            'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
+            'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
+            'cra-details-state-wise': renderCraDetailsStateWiseSection.bind(this),
+            'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
+            'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
+            'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
         };
     }
 
@@ -42,6 +56,10 @@ class ReportTemplateService {
      */
     generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
         const sections = getAllSections();
+        const reportContext = {
+            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isStandalone: false,
+        };
         // Filter sections that have valid data (not errors, not null/undefined)
         const selectedSections = sections.filter(s => {
             const sectionData = sectionsData[s.id];
@@ -64,7 +82,7 @@ class ReportTemplateService {
     ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
     ${this._generateTableOfContents(selectedSections)}
     <div class="sections-container">
-        ${this._generateSectionPages(selectedSections, sectionsData)}
+        ${this._generateSectionPages(selectedSections, sectionsData, reportContext)}
     </div>
 </body>
 </html>`;
@@ -81,12 +99,17 @@ class ReportTemplateService {
         const pseudoSection = { id: sectionId, title };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
+        const reportContext = {
+            isAggregatedReport: false,
+            isStandalone: true,
+        };
         const renderedSection = await this._generateCustomSection(
             pseudoSection,
             data,
             sectionConfig,
             sectionAnchorId,
-            true
+            true,
+            reportContext
         );
 
         return `
@@ -177,7 +200,7 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    _generateSectionPages(selectedSections, sectionsData) {
+    _generateSectionPages(selectedSections, sectionsData, reportContext = {}) {
         let html = '';
         let isFirstSection = true;
 
@@ -203,7 +226,7 @@ class ReportTemplateService {
 
             // Generate section based on format
             if (sectionConfig.format === 'custom') {
-                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection);
+                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext);
             } else if (sectionConfig.format === 'formatted-text') {
                 html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
             } else if (sectionConfig.format === 'table') {
@@ -221,7 +244,7 @@ class ReportTemplateService {
     /**
      * Generate custom section using dedicated template keys
      */
-    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection) {
+    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext = {}) {
         const customTemplateKey = sectionConfig?.customTemplate;
         if (!customTemplateKey) {
             return this._generateEmptySection(section, 'Custom template key is missing', sectionId, isFirstSection);
@@ -238,7 +261,7 @@ class ReportTemplateService {
         }
 
         // Handler may return a string or a Promise (async handlers like oft-combined)
-        return customTemplateHandler(section, data, sectionId, isFirstSection);
+        return customTemplateHandler(section, data, sectionId, isFirstSection, reportContext);
     }
 
     /**

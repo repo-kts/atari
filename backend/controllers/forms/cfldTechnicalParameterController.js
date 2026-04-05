@@ -1,4 +1,25 @@
 const cfldTechnicalParameterService = require('../../services/forms/cfldTechnicalParameterService');
+const { translatePrismaError } = require('../../utils/errorHandler.js');
+
+const RESOURCE = 'CFLD technical parameter';
+
+function sendError(res, error, operation) {
+    const normalizedError = translatePrismaError(error, RESOURCE, operation);
+    const statusCode = normalizedError.statusCode || 500;
+
+    if (statusCode >= 500) {
+        console.error(`Error ${operation} ${RESOURCE}:`, error);
+    } else {
+        console.warn(`Error ${operation} ${RESOURCE}:`, normalizedError.message);
+    }
+
+    return res.status(statusCode).json({
+        success: false,
+        error: normalizedError.message,
+        code: normalizedError.code || 'INTERNAL_ERROR',
+        ...(normalizedError.field ? { field: normalizedError.field } : {}),
+    });
+}
 
 const cfldTechnicalParameterController = {
     create: async (req, res) => {
@@ -6,8 +27,7 @@ const cfldTechnicalParameterController = {
             const result = await cfldTechnicalParameterService.create(req.body, req.user);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            console.error('Error creating CFLD Technical Parameter:', error);
-            res.status(500).json({ success: false, error: error.message });
+            return sendError(res, error, 'create');
         }
     },
 
@@ -16,8 +36,7 @@ const cfldTechnicalParameterController = {
             const results = await cfldTechnicalParameterService.findAll(req.query, req.user);
             res.json({ success: true, data: results });
         } catch (error) {
-            console.error('Error fetching CFLD Technical Parameters:', error);
-            res.status(500).json({ success: false, error: error.message });
+            return sendError(res, error, 'findAll');
         }
     },
 
@@ -29,8 +48,7 @@ const cfldTechnicalParameterController = {
             }
             res.json({ success: true, data: result });
         } catch (error) {
-            console.error('Error fetching CFLD Technical Parameter:', error);
-            res.status(500).json({ success: false, error: error.message });
+            return sendError(res, error, 'findById');
         }
     },
 
@@ -39,9 +57,7 @@ const cfldTechnicalParameterController = {
             const result = await cfldTechnicalParameterService.update(req.params.id, req.body, req.user);
             res.json({ success: true, data: result });
         } catch (error) {
-            console.error('Error updating CFLD Technical Parameter:', error);
-            const status = error.message === 'Unauthorized' ? 403 : error.message === 'Record not found' ? 404 : 500;
-            res.status(status).json({ success: false, error: error.message });
+            return sendError(res, error, 'update');
         }
     },
 
@@ -50,9 +66,7 @@ const cfldTechnicalParameterController = {
             await cfldTechnicalParameterService.delete(req.params.id, req.user);
             res.json({ success: true, message: 'Record deleted successfully' });
         } catch (error) {
-            console.error('Error deleting CFLD Technical Parameter:', error);
-            const status = error.message === 'Unauthorized' ? 403 : error.message === 'Record not found' ? 404 : 500;
-            res.status(status).json({ success: false, error: error.message });
+            return sendError(res, error, 'delete');
         }
     },
 
@@ -61,9 +75,7 @@ const cfldTechnicalParameterController = {
             const result = await cfldTechnicalParameterService.transferToNextYear(req.params.id, req.user);
             res.json({ success: true, data: result });
         } catch (error) {
-            console.error('Error transferring CFLD Technical Parameter:', error);
-            const status = error.statusCode || (error.name === 'UnauthorizedError' ? 403 : error.name === 'NotFoundError' ? 404 : 500);
-            res.status(status).json({ success: false, error: error.message || 'Transfer failed' });
+            return sendError(res, error, 'transfer');
         }
     },
 };

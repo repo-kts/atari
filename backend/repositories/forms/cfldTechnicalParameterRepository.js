@@ -12,7 +12,7 @@ const {
     parseMonth,
     buildKvkScopedWhere,
 } = require('../../utils/cfldHelpers.js');
-const { ValidationError } = require('../../utils/errorHandler.js');
+const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 const TRANSACTION_OPTIONS = {
     maxWait: 5000,
@@ -24,7 +24,12 @@ const REPO_CONFIG = {
     model: 'cfldTechnicalParameter',
     idField: 'cfldTechId',
     include: {
-        kvk: { select: { kvkName: true } },
+        kvk: {
+            select: {
+                kvkName: true,
+                state: { select: { stateId: true, stateName: true } },
+            },
+        },
         crop: { select: { cropName: true } },
         cropType: { select: { typeId: true, typeName: true } },
         season: { select: { seasonName: true } },
@@ -97,6 +102,63 @@ function safeMaybeText(value) {
     if (value === null || value === undefined) return null;
     const text = String(value).trim();
     return text ? text : null;
+}
+
+const PHOTO_VALUE_KEYS = ['path', 'url', 'filePath', 'location', 'name'];
+
+function extractPhotoPath(value) {
+    if (value === null || value === undefined) return null;
+
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed ? trimmed : null;
+    }
+
+    if (typeof value === 'object' && !Array.isArray(value)) {
+        for (const key of PHOTO_VALUE_KEYS) {
+            const candidate = value[key];
+            if (typeof candidate === 'string' && candidate.trim()) {
+                return candidate.trim();
+            }
+        }
+    }
+
+    return null;
+}
+
+function normalizePhotoPath(value, fieldName, options = {}) {
+    const { allowUndefined = false } = options;
+    if (allowUndefined && value === undefined) return undefined;
+    if (value === null || value === undefined) return null;
+
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            const normalized = extractPhotoPath(item);
+            if (normalized) {
+                return normalized;
+            }
+        }
+        return null;
+    }
+
+    const normalized = extractPhotoPath(value);
+    if (normalized !== null) return normalized;
+
+    throw new ValidationError(
+        `${fieldName} must be a string path, null, or array of file path objects/strings`,
+        fieldName
+    );
+}
+
+function normalizePhotoFields(data, options = {}) {
+    return {
+        trainingPhotoPath: normalizePhotoPath(data.trainingPhotoPath, 'trainingPhotoPath', options),
+        qualityActionPhotoPath: normalizePhotoPath(
+            data.qualityActionPhotoPath,
+            'qualityActionPhotoPath',
+            options
+        ),
+    };
 }
 
 function normalizeActiveSection(data) {
@@ -230,6 +292,7 @@ async function buildCreateData(data, user) {
     const percentIncrease = hasValue(percentIncreaseInput)
         ? safeParseInt(percentIncreaseInput, computedPercentIncrease)
         : computedPercentIncrease;
+    const normalizedPhotoFields = normalizePhotoFields(data);
 
     return {
         kvkId,
@@ -271,8 +334,8 @@ async function buildCreateData(data, user) {
         scF: safeParseInt(data.scF, 0),
         stM: safeParseInt(data.stM, 0),
         stF: safeParseInt(data.stF, 0),
-        trainingPhotoPath: data.trainingPhotoPath || null,
-        qualityActionPhotoPath: data.qualityActionPhotoPath || null,
+        trainingPhotoPath: normalizedPhotoFields.trainingPhotoPath,
+        qualityActionPhotoPath: normalizedPhotoFields.qualityActionPhotoPath,
     };
 }
 
@@ -378,6 +441,7 @@ async function upsertFarmersPerceptionParameters(tx, { cfldTechId, data }) {
  */
 async function buildUpdateData(data, existing) {
     const updateData = {};
+    const normalizedPhotoFields = normalizePhotoFields(data, { allowUndefined: true });
 
     // Resolve CFLD crop if crop name is provided
     if (data.crop && data.cropTypeId) {
@@ -497,11 +561,11 @@ async function buildUpdateData(data, existing) {
     if (data.scF !== undefined) updateData.scF = safeParseInt(data.scF, existing.scF);
     if (data.stM !== undefined) updateData.stM = safeParseInt(data.stM, existing.stM);
     if (data.stF !== undefined) updateData.stF = safeParseInt(data.stF, existing.stF);
-    if (data.trainingPhotoPath !== undefined) {
-        updateData.trainingPhotoPath = data.trainingPhotoPath;
+    if (normalizedPhotoFields.trainingPhotoPath !== undefined) {
+        updateData.trainingPhotoPath = normalizedPhotoFields.trainingPhotoPath;
     }
-    if (data.qualityActionPhotoPath !== undefined) {
-        updateData.qualityActionPhotoPath = data.qualityActionPhotoPath;
+    if (normalizedPhotoFields.qualityActionPhotoPath !== undefined) {
+        updateData.qualityActionPhotoPath = normalizedPhotoFields.qualityActionPhotoPath;
     }
 
     if (data.reportingYear !== undefined) {
@@ -528,6 +592,14 @@ async function buildUpdateData(data, existing) {
     }
 
     return updateData;
+}
+
+function toRepositoryError(error, operation) {
+    if (error instanceof ValidationError) {
+        return error;
+    }
+
+    return translatePrismaError(error, 'CFLD technical parameter', operation);
 }
 
 const cfldTechnicalParameterRepository = {
@@ -562,14 +634,8 @@ const cfldTechnicalParameterRepository = {
 
             return _mapResponse(result);
         } catch (error) {
-            if (error instanceof ValidationError) {
-                throw error;
-            }
             console.error('Error creating CFLD technical parameter:', error);
-            throw new ValidationError(
-                `Failed to create CFLD technical parameter: ${error.message}`,
-                'create'
-            );
+            throw toRepositoryError(error, 'create');
         }
     },
 
@@ -589,10 +655,7 @@ const cfldTechnicalParameterRepository = {
             return results.map(_mapResponse);
         } catch (error) {
             console.error('Error finding CFLD technical parameters:', error);
-            throw new ValidationError(
-                `Failed to fetch CFLD technical parameters: ${error.message}`,
-                'findAll'
-            );
+            throw toRepositoryError(error, 'findAll');
         }
     },
 
@@ -609,10 +672,7 @@ const cfldTechnicalParameterRepository = {
             return result ? _mapResponse(result) : null;
         } catch (error) {
             console.error('Error finding CFLD technical parameter by ID:', error);
-            throw new ValidationError(
-                `Failed to fetch CFLD technical parameter: ${error.message}`,
-                'findById'
-            );
+            throw toRepositoryError(error, 'findById');
         }
     },
 
@@ -657,14 +717,8 @@ const cfldTechnicalParameterRepository = {
 
             return _mapResponse(result);
         } catch (error) {
-            if (error instanceof ValidationError) {
-                throw error;
-            }
             console.error('Error updating CFLD technical parameter:', error);
-            throw new ValidationError(
-                `Failed to update CFLD technical parameter: ${error.message}`,
-                'update'
-            );
+            throw toRepositoryError(error, 'update');
         }
     },
 
@@ -678,10 +732,7 @@ const cfldTechnicalParameterRepository = {
             });
         } catch (error) {
             console.error('Error deleting CFLD technical parameter:', error);
-            throw new ValidationError(
-                `Failed to delete CFLD technical parameter: ${error.message}`,
-                'delete'
-            );
+            throw toRepositoryError(error, 'delete');
         }
     },
 };
@@ -708,6 +759,8 @@ function _mapResponse(r) {
         id: r.cfldTechId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        stateId: r.kvk?.state?.stateId,
+        stateName: r.kvk?.state?.stateName,
         cropId: r.cropId,
         cropName: r.crop ? r.crop.cropName : undefined,
         month: r.month,

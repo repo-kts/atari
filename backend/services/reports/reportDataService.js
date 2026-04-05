@@ -1,6 +1,9 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
 const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
+const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
+const craReportRepository = require('../../repositories/reports/craReport/index.js');
+const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -92,14 +95,44 @@ class ReportDataService {
             case 'nykTraining':
                 rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
                 break;
+            case 'cfldCombined':
+                rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
+                break;
+            case 'cfldExtensionActivity':
+                rawData = await cfldReportRepository.getCfldExtensionActivityData(kvkId, sectionFilters);
+                break;
+            case 'cfldBudgetUtilization':
+                rawData = await cfldReportRepository.getCfldBudgetUtilizationData(kvkId, sectionFilters);
+                break;
+            case 'craDetails':
+                rawData = await craReportRepository.getCraDetailsData(kvkId, sectionFilters);
+                break;
+            case 'craExtensionActivity':
+                rawData = await craReportRepository.getCraExtensionActivityData(kvkId, sectionFilters);
+                break;
+            case 'fpoCbboDetails':
+                rawData = await fpoReportRepository.getFpoCbboDetailsData(kvkId, sectionFilters);
+                break;
+            case 'fpoManagement':
+                rawData = await fpoReportRepository.getFpoManagementData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
         // Custom template sections pass raw data directly (complex nested structures)
-        const skipTransform = dataSource === 'oftSummary' || dataSource === 'oftDetailCards'
-            || dataSource === 'prevalentDiseasesCrops' || dataSource === 'prevalentDiseasesLivestock'
-            || dataSource === 'nykTraining';
+        const skipTransform = dataSource === 'oftSummary'
+            || dataSource === 'oftDetailCards'
+            || dataSource === 'prevalentDiseasesCrops'
+            || dataSource === 'prevalentDiseasesLivestock'
+            || dataSource === 'nykTraining'
+            || dataSource === 'cfldCombined'
+            || dataSource === 'cfldExtensionActivity'
+            || dataSource === 'cfldBudgetUtilization'
+            || dataSource === 'craDetails'
+            || dataSource === 'craExtensionActivity'
+            || dataSource === 'fpoCbboDetails'
+            || dataSource === 'fpoManagement';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);
