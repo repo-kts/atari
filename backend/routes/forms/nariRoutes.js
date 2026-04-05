@@ -17,6 +17,9 @@ router.get('/bio-fortified-crop', nariBioFortifiedCropController.getAll);
 router.get('/bio-fortified-crop/:id', nariBioFortifiedCropController.getById);
 router.put('/bio-fortified-crop/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariBioFortifiedCropController.update);
 router.delete('/bio-fortified-crop/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariBioFortifiedCropController.delete);
+router.get('/bio-fortified-crop/:id/result', nariBioFortifiedCropController.getResult);
+router.post('/bio-fortified-crop/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariBioFortifiedCropController.createResult);
+router.put('/bio-fortified-crop/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariBioFortifiedCropController.updateResult);
 
 // Extension Activity Routes
 router.post('/extension-activity', requireRole(['kvk_admin', 'kvk_user', 'super_admin', 'icar_admin', 'atari_admin']), nariExtensionActivityController.create);
@@ -31,6 +34,9 @@ router.get('/nutritional-garden', nariNutritionalGardenController.getAll);
 router.get('/nutritional-garden/:id', nariNutritionalGardenController.getById);
 router.put('/nutritional-garden/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariNutritionalGardenController.update);
 router.delete('/nutritional-garden/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariNutritionalGardenController.delete);
+router.get('/nutritional-garden/:id/result', nariNutritionalGardenController.getResult);
+router.post('/nutritional-garden/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariNutritionalGardenController.createResult);
+router.put('/nutritional-garden/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariNutritionalGardenController.updateResult);
 
 // Value Addition Routes
 router.post('/value-addition', requireRole(['kvk_admin', 'kvk_user', 'super_admin', 'icar_admin', 'atari_admin']), nariValueAdditionController.create);
@@ -38,6 +44,9 @@ router.get('/value-addition', nariValueAdditionController.getAll);
 router.get('/value-addition/:id', nariValueAdditionController.getById);
 router.put('/value-addition/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariValueAdditionController.update);
 router.delete('/value-addition/:id', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariValueAdditionController.delete);
+router.get('/value-addition/:id/result', nariValueAdditionController.getResult);
+router.post('/value-addition/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariValueAdditionController.createResult);
+router.put('/value-addition/:id/result', requireRole(['kvk_admin', 'kvk_user', 'super_admin']), nariValueAdditionController.updateResult);
 
 // Training Programme Routes
 router.post('/training-programme', requireRole(['kvk_admin', 'kvk_user', 'super_admin', 'icar_admin', 'atari_admin']), nariTrainingController.create);

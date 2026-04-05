@@ -21,7 +21,7 @@ const nariBioFortifiedCropService = {
 
     update: async (id, data, user) => {
         const existing = await nariBioFortifiedCropRepository.findById(id);
-        const result   = await nariBioFortifiedCropRepository.update(id, data, user);
+        const result = await nariBioFortifiedCropRepository.update(id, data, user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk(
             'nariBioFortified',
             result?.kvkId || existing?.kvkId || user?.kvkId,
@@ -31,13 +31,25 @@ const nariBioFortifiedCropService = {
 
     delete: async (id, user) => {
         const existing = await nariBioFortifiedCropRepository.findById(id);
-        const result   = await nariBioFortifiedCropRepository.delete(id, user);
+        const result = await nariBioFortifiedCropRepository.delete(id, user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk(
             'nariBioFortified',
             existing?.kvkId || user?.kvkId,
         );
         return result;
     },
+
+    getResultById: async (id) => {
+        return await nariBioFortifiedCropRepository.getResultById(id);
+    },
+
+    createResult: async (id, data) => {
+        return await nariBioFortifiedCropRepository.createResult(id, data);
+    },
+
+    updateResult: async (id, data) => {
+        return await nariBioFortifiedCropRepository.updateResult(id, data);
+    }
 };
 
 module.exports = nariBioFortifiedCropService;
