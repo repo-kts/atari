@@ -590,6 +590,21 @@ const reportConfig = {
             fields: [],
         },
         {
+            id: '2.24.2',
+            title: 'NICRA – Training',
+            description: 'Training courses with duration, type, and participant categories',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'nicraTraining',
+            format: 'custom',
+            customTemplate: 'nicra-training',
+            filters: {
+                dateFields: ['startDate', 'endDate'],
+                yearFields: ['startDate', 'endDate'],
+            },
+            fields: [],
+        },
+        {
             id: '2.24',
             title: 'Seed Hub Programme – Seed Production and Sale',
             description: 'Information of quality seed produced in participatory mode under Seed Hub',

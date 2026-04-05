@@ -37,9 +37,23 @@ const nicraService = {
     // Training
     getAllTraining: async (filters, user) => await nicraTrainingRepository.findAll(filters, user),
     getTrainingById: async (id, user) => await nicraTrainingRepository.findById(id, user),
-    createTraining: async (data, user) => await nicraTrainingRepository.create(data, user),
-    updateTraining: async (id, data, user) => await nicraTrainingRepository.update(id, data, user),
-    deleteTraining: async (id, user) => await nicraTrainingRepository.delete(id, user),
+    createTraining: async (data, user) => {
+        const result = await nicraTrainingRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraTraining', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateTraining: async (id, data, user) => {
+        const existing = await nicraTrainingRepository.findById(id, user);
+        const result = await nicraTrainingRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraTraining', existing?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteTraining: async (id, user) => {
+        const existing = await nicraTrainingRepository.findById(id, user);
+        const result = await nicraTrainingRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraTraining', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 
     // Extension Activity
     getAllExtensionActivity: async (filters, user) => await nicraExtensionActivityRepository.findAll(filters, user),

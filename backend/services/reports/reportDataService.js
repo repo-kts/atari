@@ -144,6 +144,9 @@ class ReportDataService {
             case 'nicraBasic':
                 rawData = await nicraReportRepository.getNicraBasicData(kvkId, sectionFilters);
                 break;
+            case 'nicraTraining':
+                rawData = await nicraReportRepository.getNicraTrainingData(kvkId, sectionFilters);
+                break;
             case 'csisa':
                 rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
                 break;

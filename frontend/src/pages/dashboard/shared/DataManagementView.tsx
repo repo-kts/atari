@@ -762,19 +762,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                 ? 'arya-prev-year'
                                                                                                 : entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC
                                                                                                     ? 'nicra-basic'
-                                            : entityType === ENTITY_TYPES.PROJECT_SEED_HUB
-                                                ? 'seed-hub'
-                                            : entityType === ENTITY_TYPES.PROJECT_OTHER
-                                                ? 'other-programmes'
-                                            : entityType === ENTITY_TYPES.PROJECT_CSISA
-                                                                                                        ? 'csisa'
-                                                                                                        : entityType === ENTITY_TYPES.PROJECT_TSP_SCSP
-                                                                                                            ? 'tsp-scsp'
-                                                                                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                                                                                ? 'cfld-extension-activity'
-                                                                                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                                                                                    ? 'cfld-budget-utilization'
-                                                                                                                    : undefined;
+                                                                                                    : entityType === ENTITY_TYPES.PROJECT_SEED_HUB
+                                                                                                        ? 'seed-hub'
+                                                                                                        : entityType === ENTITY_TYPES.PROJECT_OTHER
+                                                                                                            ? 'other-programmes'
+                                                                                                            : entityType === ENTITY_TYPES.PROJECT_NICRA_TRAINING
+                                                                                                                ? 'nicra-training'
+                                                                                                                : entityType === ENTITY_TYPES.PROJECT_CSISA
+                                                                                                                    ? 'csisa'
+                                                                                                                    : entityType === ENTITY_TYPES.PROJECT_TSP_SCSP
+                                                                                                                        ? 'tsp-scsp'
+                                                                                                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                                                                                            ? 'cfld-extension-activity'
+                                                                                                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                                                                                                ? 'cfld-budget-utilization'
+                                                                                                                                : undefined;
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource = templateKey && filteredData.length === 0 && items.length > 0 ? items : filteredData;

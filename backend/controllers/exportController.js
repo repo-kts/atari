@@ -141,6 +141,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'nicra-basic') {
         return buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'nicra-training') {
+        return buildNicraTrainingTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'seed-hub') {
         return buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -1018,6 +1021,35 @@ function buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRo
     return { headers, rows };
 }
 
+function buildNicraTrainingTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'Title of the training course',
+        'Start Date',
+        'End Date',
+        'Duration (days)',
+        'Training Type',
+        'Gen M','Gen F','Gen T',
+        'OBC M','OBC F','OBC T',
+        'SC M','SC F','SC T',
+        'ST M','ST F','ST T',
+        'Total M','Total F','Total T',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.titleOfTraining || '-', format),
+        formatExportValue(r.startDate ? new Date(r.startDate).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.endDate ? new Date(r.endDate).toISOString().slice(0,10) : '-', format),
+        Number(r.durationDays ?? 0),
+        formatExportValue(r.campusType || '-', format),
+        Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
+        Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+        Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+        Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+        Number(r.totM ?? 0), Number(r.totF ?? 0), Number(r.totT ?? 0),
+    ]);
+    return { headers, rows };
+}
 function buildSeedHubTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     const normalized = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (normalized.length === 0) {

@@ -1,5 +1,6 @@
-const { getNicraBasicData } = require('./nicraReportRepository.js');
+const { getNicraBasicData, getNicraTrainingData } = require('./nicraReportRepository.js');
 
 module.exports = {
     getNicraBasicData,
+    getNicraTrainingData,
 };

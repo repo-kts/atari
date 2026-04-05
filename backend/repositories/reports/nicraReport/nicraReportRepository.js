@@ -66,4 +66,62 @@ async function getNicraBasicData(kvkId, filters = {}) {
     }));
 }
 
-module.exports = { getNicraBasicData };
+async function getNicraTrainingData(kvkId, filters = {}) {
+    const where = {};
+    if (kvkId) where.kvkId = kvkId;
+    if (filters.startDate || filters.endDate || filters.year) {
+        where.startDate = {};
+        if (filters.year && !filters.startDate && !filters.endDate) {
+            const y = Number(filters.year);
+            if (Number.isFinite(y)) {
+                where.startDate.gte = new Date(Date.UTC(y, 0, 1, 0, 0, 0, 0));
+                where.startDate.lte = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999));
+            }
+        } else {
+            if (filters.startDate) {
+                const from = new Date(filters.startDate);
+                if (!isNaN(from)) {
+                    from.setHours(0, 0, 0, 0);
+                    where.startDate.gte = from;
+                }
+            }
+            if (filters.endDate) {
+                const to = new Date(filters.endDate);
+                if (!isNaN(to)) {
+                    to.setHours(23, 59, 59, 999);
+                    where.startDate.lte = to;
+                }
+            }
+        }
+    }
+
+    const rows = await prisma.nicraTraining.findMany({
+        where,
+        include: { kvk: { select: { kvkName: true } } },
+        orderBy: [{ startDate: 'asc' }, { nicraTrainingId: 'asc' }],
+    });
+
+    return rows.map(r => {
+        const gT = (r.generalM || 0) + (r.generalF || 0);
+        const oT = (r.obcM || 0) + (r.obcF || 0);
+        const sT = (r.scM || 0) + (r.scF || 0);
+        const tT = (r.stM || 0) + (r.stF || 0);
+        const totM = (r.generalM || 0) + (r.obcM || 0) + (r.scM || 0) + (r.stM || 0);
+        const totF = (r.generalF || 0) + (r.obcF || 0) + (r.scF || 0) + (r.stF || 0);
+        return {
+            kvkName: r.kvk?.kvkName || '',
+            titleOfTraining: r.titleOfTraining || '',
+            campusType: r.campusType || '',
+            startDate: r.startDate,
+            endDate: r.endDate,
+            durationDays: r.startDate && r.endDate ? Math.max(1, Math.round((r.endDate - r.startDate) / (1000*60*60*24))) : 1,
+            genM: r.generalM || 0, genF: r.generalF || 0, genT: gT,
+            obcM: r.obcM || 0, obcF: r.obcF || 0, obcT: oT,
+            scM: r.scM || 0, scF: r.scF || 0, scT: sT,
+            stM: r.stM || 0, stF: r.stF || 0, stT: tT,
+            totM, totF, totT: totM + totF,
+        };
+    });
+}
+
+module.exports = { getNicraBasicData, getNicraTrainingData };

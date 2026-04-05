@@ -32,6 +32,7 @@ const { renderScspSection } = require('./formsTemplate/projectTemplates/scspTemp
 const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
+const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
 
 /**
  * Report Template Service
@@ -70,6 +71,7 @@ class ReportTemplateService {
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
             'nicra-basic': renderNicraBasicSection.bind(this),
+            'nicra-training': renderNicraTrainingSection.bind(this),
             'tsp': renderTspSection.bind(this),
             'scsp': renderScspSection.bind(this),
             'tsp-scsp': renderTspScspSection.bind(this),
