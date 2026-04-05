@@ -110,6 +110,9 @@ class ReportDataService {
             case 'drmrDetails':
                 rawData = await drmrReportRepository.getDrmrDetailsData(kvkId, sectionFilters);
                 break;
+            case 'drmrActivity':
+                rawData = await drmrReportRepository.getDrmrActivityData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -124,7 +127,8 @@ class ReportDataService {
             || dataSource === 'craExtensionActivity'
             || dataSource === 'fpoCbboDetails'
             || dataSource === 'fpoManagement'
-            || dataSource === 'drmrDetails';
+            || dataSource === 'drmrDetails'
+            || dataSource === 'drmrActivity';
 
         // Transform data according to section configuration
         const transformedData = skipTransform ? rawData : this._transformSectionData(rawData, sectionConfig);

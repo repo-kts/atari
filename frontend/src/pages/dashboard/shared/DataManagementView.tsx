@@ -744,6 +744,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 ? 'fpo-management-details'
                                             : entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS
                                                 ? 'drmr-details'
+                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
+                                                ? 'drmr-activity'
                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
                                                 ? 'cfld-extension-activity'
                                                 : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET

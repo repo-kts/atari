@@ -425,6 +425,21 @@ const reportConfig = {
             },
             fields: [],
         },
+        {
+            id: '2.14',
+            title: 'DRMR Activity',
+            description: 'Details augmenting rapeseed-mustard production activities with participant category totals',
+            subsection: true,
+            parentSectionId: '3',
+            dataSource: 'drmrActivity',
+            format: 'custom',
+            customTemplate: 'drmr-activity',
+            filters: {
+                dateFields: ['reportingYear', 'startDate', 'endDate'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
     ],
 };
 

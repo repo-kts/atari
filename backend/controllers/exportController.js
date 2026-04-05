@@ -3,6 +3,20 @@ const reportTemplateService = require('../services/reports/reportTemplateService
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
 
+const DRMR_ACTIVITY_ROW_CONFIG = [
+    { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
+    { activityType: 'FRONTLINE_DEMONSTRATION', itemLabel: 'Area under FLDs', unitFallback: 'Hectare', valueKey: 'fld_count', prefix: 'fld_count_', group: 'Frontline demonstrations (FLDs) and other demonstrations' },
+    { activityType: 'AWARENESS_CAMP', itemLabel: 'Awareness camps, exposure visit etc', unitFallback: 'N/A', valueKey: 'awareness_count', prefix: 'awareness_count_' },
+    { activityType: 'INPUT_SEEDS', itemLabel: 'Seeds (Field Crops)', unitFallback: 'Kg', valueKey: 'seeds_qty', prefix: 'seeds_qty_', group: 'Input Distribution' },
+    { activityType: 'INPUT_SMALL_EQUIPMENT', itemLabel: 'Small equipments (Upto Rs.2000)', unitFallback: 'Number', valueKey: 'small_equip_qty', prefix: 'small_equip_qty_' },
+    { activityType: 'INPUT_LARGE_EQUIPMENT', itemLabel: 'Large equipments (more than Rs.2000)', unitFallback: 'Number', valueKey: 'large_equip_qty', prefix: 'large_equip_qty_' },
+    { activityType: 'INPUT_FERTILIZER', itemLabel: 'Fertilizers (NPK)/ Secondary/ Micro Fertilizers', unitFallback: 'Kg', valueKey: 'fertilizer_qty', prefix: 'fertilizer_qty_' },
+    { activityType: 'INPUT_PPC', itemLabel: 'Plant Protection chemicals', unitFallback: 'Lit.', valueKey: 'pp_chemicals_qty', prefix: 'pp_chemicals_qty_' },
+    { activityType: 'LITERATURE_DISTRIBUTION', itemLabel: 'Distribution of Literature', unitFallback: 'N/A', valueKey: 'lecture_count', prefix: 'lecture_count_' },
+    { activityType: 'KISAN_MELA', itemLabel: 'Kisan Mela', unitFallback: 'N/A', valueKey: 'kisan_mela_count', prefix: 'kisan_mela_count_' },
+    { activityType: 'OTHER', itemLabel: 'Any other (specify)', unitFallback: 'N/A', valueKey: 'any_other_count', prefix: 'any_other_count_' },
+];
+
 const exportData = async (req, res) => {
     try {
         const {
@@ -97,6 +111,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'drmr-details') {
         return buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'drmr-activity') {
+        return buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
     if (!section || !Array.isArray(section.fields) || section.fields.length === 0) {
@@ -156,6 +173,104 @@ function buildDrmrDetailsTabularData(rawData, format, fallbackHeaders, fallbackR
         formatExportValue(row.bcRatioImproved ?? 0, format),
         formatExportValue(row.bcRatioFarmer ?? row.bcRatioFarmerPractise ?? 0, format),
     ]);
+
+    return { headers, rows };
+}
+
+function buildDrmrActivityTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'KVK',
+        'Reporting Year',
+        'Item/Activity',
+        'Unit',
+        'Quantity',
+        'General M',
+        'General F',
+        'General T',
+        'OBC M',
+        'OBC F',
+        'OBC T',
+        'SC M',
+        'SC F',
+        'SC T',
+        'ST M',
+        'ST F',
+        'ST T',
+        'Grand Total M',
+        'Grand Total F',
+        'Grand Total T',
+    ];
+
+    const rows = [];
+    normalizedData.forEach(record => {
+        const kvkName = record.kvkName || '-';
+        const year = record.reportingYear || '-';
+        const activitiesMap = Array.isArray(record.activities)
+            ? record.activities.reduce((acc, activity) => {
+                if (activity?.activityType) {
+                    acc[activity.activityType] = activity;
+                }
+                return acc;
+            }, {})
+            : {};
+
+        DRMR_ACTIVITY_ROW_CONFIG.forEach(config => {
+            const activity = activitiesMap[config.activityType] || {};
+            const quantity = firstDefined(
+                activity.quantityOrSpecification,
+                activity.specification,
+                activity.quantity,
+                record[config.valueKey],
+                0
+            );
+            const unit = firstDefined(activity.unit, record[`${config.valueKey}_unit`], config.unitFallback, '-');
+
+            const generalM = toNum(firstDefined(activity.generalM, record[`${config.prefix}general_m`], 0));
+            const generalF = toNum(firstDefined(activity.generalF, record[`${config.prefix}general_f`], 0));
+            const obcM = toNum(firstDefined(activity.obcM, record[`${config.prefix}obc_m`], 0));
+            const obcF = toNum(firstDefined(activity.obcF, record[`${config.prefix}obc_f`], 0));
+            const scM = toNum(firstDefined(activity.scM, record[`${config.prefix}sc_m`], 0));
+            const scF = toNum(firstDefined(activity.scF, record[`${config.prefix}sc_f`], 0));
+            const stM = toNum(firstDefined(activity.stM, record[`${config.prefix}st_m`], 0));
+            const stF = toNum(firstDefined(activity.stF, record[`${config.prefix}st_f`], 0));
+
+            const generalT = generalM + generalF;
+            const obcT = obcM + obcF;
+            const scT = scM + scF;
+            const stT = stM + stF;
+            const totalM = generalM + obcM + scM + stM;
+            const totalF = generalF + obcF + scF + stF;
+            const totalT = totalM + totalF;
+
+            rows.push([
+                formatExportValue(kvkName, format),
+                formatExportValue(year, format),
+                formatExportValue(config.itemLabel, format),
+                formatExportValue(unit, format),
+                formatExportValue(quantity, format),
+                formatExportValue(generalM, format),
+                formatExportValue(generalF, format),
+                formatExportValue(generalT, format),
+                formatExportValue(obcM, format),
+                formatExportValue(obcF, format),
+                formatExportValue(obcT, format),
+                formatExportValue(scM, format),
+                formatExportValue(scF, format),
+                formatExportValue(scT, format),
+                formatExportValue(stM, format),
+                formatExportValue(stF, format),
+                formatExportValue(stT, format),
+                formatExportValue(totalM, format),
+                formatExportValue(totalF, format),
+                formatExportValue(totalT, format),
+            ]);
+        });
+    });
 
     return { headers, rows };
 }
@@ -383,6 +498,20 @@ function getNestedValue(obj, path) {
         if (acc === null || acc === undefined) return null;
         return acc[key] !== undefined ? acc[key] : null;
     }, obj);
+}
+
+function toNum(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function firstDefined(...candidates) {
+    for (const value of candidates) {
+        if (value !== null && value !== undefined && value !== '') {
+            return value;
+        }
+    }
+    return null;
 }
 
 function formatExportValue(value, format = 'csv') {
