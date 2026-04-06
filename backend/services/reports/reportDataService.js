@@ -11,6 +11,18 @@ const nicraReportRepository = require('../../repositories/reports/nicraReport/in
 const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
 const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
 const otherProgrammeReportRepository = require('../../repositories/reports/otherProgrammeReport/index.js');
+const specialProgrammeReportRepository = require('../../repositories/reports/specialProgrammeReport/index.js');
+const functionalLinkageReportRepository = require('../../repositories/reports/functionalLinkageReport/index.js');
+const successStoryReportRepository = require('../../repositories/reports/successStoryReport/index.js');
+const entrepreneurshipReportRepository = require('../../repositories/reports/entrepreneurshipReport/index.js');
+const kvkImpactActivityReportRepository = require('../../repositories/reports/kvkImpactActivityReport/index.js');
+const demonstrationUnitReportRepository = require('../../repositories/reports/demonstrationUnitReport/index.js');
+const instructionalFarmCropReportRepository = require('../../repositories/reports/instructionalFarmCropReport/index.js');
+const productionUnitReportRepository = require('../../repositories/reports/productionUnitReport/index.js');
+const instructionalFarmLivestockReportRepository = require('../../repositories/reports/instructionalFarmLivestockReport/index.js');
+const hostelUtilizationReportRepository = require('../../repositories/reports/hostelUtilizationReport/index.js');
+const staffQuartersUtilizationReportRepository = require('../../repositories/reports/staffQuartersUtilizationReport/index.js');
+const rainwaterHarvestingReportRepository = require('../../repositories/reports/rainwaterHarvestingReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -164,6 +176,41 @@ class ReportDataService {
                 break;
             case 'otherProgrammes':
                 rawData = await otherProgrammeReportRepository.getOtherProgrammeData(kvkId, sectionFilters);
+            case 'specialProgramme':
+                rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(kvkId, sectionFilters);
+                break;
+            case 'functionalLinkage':
+                rawData = await functionalLinkageReportRepository.getFunctionalLinkageData(kvkId, sectionFilters);
+                break;
+            case 'successStory':
+                rawData = await successStoryReportRepository.getSuccessStoryData(kvkId, sectionFilters);
+                break;
+            case 'entrepreneurship':
+                rawData = await entrepreneurshipReportRepository.getEntrepreneurshipData(kvkId, sectionFilters);
+                break;
+            case 'kvkImpactActivity':
+                rawData = await kvkImpactActivityReportRepository.getKvkImpactActivityData(kvkId, sectionFilters);
+                break;
+            case 'demonstrationUnit':
+                rawData = await demonstrationUnitReportRepository.getDemonstrationUnitData(kvkId, sectionFilters);
+                break;
+            case 'instructionalFarmCrop':
+                rawData = await instructionalFarmCropReportRepository.getInstructionalFarmCropData(kvkId, sectionFilters);
+                break;
+            case 'productionUnit':
+                rawData = await productionUnitReportRepository.getProductionUnitData(kvkId, sectionFilters);
+                break;
+            case 'instructionalFarmLivestock':
+                rawData = await instructionalFarmLivestockReportRepository.getInstructionalFarmLivestockData(kvkId, sectionFilters);
+                break;
+            case 'hostelUtilization':
+                rawData = await hostelUtilizationReportRepository.getHostelUtilizationData(kvkId, sectionFilters);
+                break;
+            case 'staffQuartersUtilization':
+                rawData = await staffQuartersUtilizationReportRepository.getStaffQuartersUtilizationData(kvkId, sectionFilters);
+                break;
+            case 'rainwaterHarvesting':
+                rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(kvkId, sectionFilters);
                 break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
@@ -193,7 +240,21 @@ class ReportDataService {
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
             || dataSource === 'scsp';
-        const skipTransformWithSeedHub = skipTransform || dataSource === 'seedHub' || dataSource === 'otherProgrammes';
+        const skipTransformWithSeedHub = skipTransform
+            || dataSource === 'seedHub'
+            || dataSource === 'otherProgrammes'
+            || dataSource === 'specialProgramme'
+            || dataSource === 'functionalLinkage'
+            || dataSource === 'successStory'
+            || dataSource === 'entrepreneurship'
+            || dataSource === 'kvkImpactActivity'
+            || dataSource === 'demonstrationUnit'
+            || dataSource === 'instructionalFarmCrop'
+            || dataSource === 'productionUnit'
+            || dataSource === 'instructionalFarmLivestock'
+            || dataSource === 'hostelUtilization'
+            || dataSource === 'staffQuartersUtilization'
+            || dataSource === 'rainwaterHarvesting';
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
