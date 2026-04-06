@@ -3,6 +3,7 @@ const oftReportRepository = require('../../repositories/reports/oftReport/index.
 const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
 const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
 const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
+const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
@@ -153,6 +154,12 @@ class ReportDataService {
             case 'swachhtaBudget':
                 rawData = await swachhtaReportRepository.getSwachhtaBudget(kvkId, sectionFilters);
                 break;
+            case 'sacMeetings':
+                rawData = await meetingsReportRepository.getSacMeetings(kvkId, sectionFilters);
+                break;
+            case 'otherMeetings':
+                rawData = await meetingsReportRepository.getOtherMeetings(kvkId, sectionFilters);
+                break;
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
                 break;
@@ -297,6 +304,8 @@ class ReportDataService {
             || dataSource === 'swachhtaSewa'
             || dataSource === 'swachhtaPakhwada'
             || dataSource === 'swachhtaBudget'
+            || dataSource === 'sacMeetings'
+            || dataSource === 'otherMeetings'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'

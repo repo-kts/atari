@@ -23,6 +23,8 @@ const { renderMsgDetailsSection } = require('./formsTemplate/digitalInfoTemplate
 const { renderSwachhtaSewaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaSewaTemplate.js');
 const { renderSwachhtaPakhwadaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaTemplate.js');
 const { renderSwachhtaBudgetSection } = require('./formsTemplate/swachhtaTemplates/swachhtaBudgetTemplate.js');
+const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/sacMeetingTemplate.js');
+const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
@@ -99,6 +101,8 @@ class ReportTemplateService {
             'swachhta-sewa': renderSwachhtaSewaSection.bind(this),
             'swachhta-pakhwada': renderSwachhtaPakhwadaSection.bind(this),
             'swachhta-budget': renderSwachhtaBudgetSection.bind(this),
+            'meetings-sac': renderSacMeetingSection.bind(this),
+            'meetings-other': renderOtherMeetingSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
