@@ -28,12 +28,39 @@ const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTe
 const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
 const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
 const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/drmrDetailsTemplate.js');
-const { renderDrmrActivitySection }        = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
-const { renderNariBioFortifiedSection }    = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
-const { renderNariTrainingSection }        = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
-const { renderNariExtensionSection }       = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
+const { renderDrmrActivitySection } = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
+const { renderNariBioFortifiedSection } = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
+const { renderNariTrainingSection } = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
+const { renderCsisaSection } = require('./formsTemplate/projectTemplates/csisaTemplate.js');
+const { renderNariExtensionSection } = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
 const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
-const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderNariValueAdditionSection } = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderNicraBasicSection } = require('./formsTemplate/projectTemplates/nicraBasicTemplate.js');
+const { renderAryaCurrentSection } = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
+const { renderAryaPrevYearSection } = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
+const { renderTspSection } = require('./formsTemplate/projectTemplates/tspTemplate.js');
+const { renderScspSection } = require('./formsTemplate/projectTemplates/scspTemplate.js');
+const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
+const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
+const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
+const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
+const { renderSpecialProgrammeSection }    = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
+const { renderFunctionalLinkageSection }   = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
+const { renderSuccessStorySection }       = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
+const { renderEntrepreneurshipSection }    = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
+const { renderKvkImpactActivitySection }   = require('./formsTemplate/projectTemplates/kvkImpactActivityTemplate.js');
+const { renderDemonstrationUnitSection }   = require('./formsTemplate/projectTemplates/demonstrationUnitTemplate.js');
+const { renderInstructionalFarmCropSection } = require('./formsTemplate/projectTemplates/instructionalFarmCropTemplate.js');
+const { renderProductionUnitSection }        = require('./formsTemplate/projectTemplates/productionUnitTemplate.js');
+const { renderInstructionalFarmLivestockSection } = require('./formsTemplate/projectTemplates/instructionalFarmLivestockTemplate.js');
+const { renderHostelUtilizationSection }          = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
+const { renderStaffQuartersUtilizationSection }   = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
+const { renderRainwaterHarvestingSection }        = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
+const { renderNicraInterventionSection } = require('./formsTemplate/projectTemplates/nicraInterventionTemplate.js');
+const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplates/nicraExtensionTemplate.js');
+const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
+const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
+const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
 
 /**
  * Report Template Service
@@ -74,12 +101,41 @@ class ReportTemplateService {
             'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
             'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
             'drmr-details': renderDrmrDetailsSection.bind(this),
-            'drmr-activity':      renderDrmrActivitySection.bind(this),
+            'drmr-activity': renderDrmrActivitySection.bind(this),
             'nari-nutrition-garden': renderNariNutritionGardenSection.bind(this),
             'nari-bio-fortified': renderNariBioFortifiedSection.bind(this),
-            'nari-training':      renderNariTrainingSection.bind(this),
-            'nari-extension':     renderNariExtensionSection.bind(this),
+            'nari-training': renderNariTrainingSection.bind(this),
+            'csisa': renderCsisaSection.bind(this),
+            'nari-extension': renderNariExtensionSection.bind(this),
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
+            'arya-current': renderAryaCurrentSection.bind(this),
+            'arya-prev-year': renderAryaPrevYearSection.bind(this),
+            'nicra-basic': renderNicraBasicSection.bind(this),
+            'nicra-training': renderNicraTrainingSection.bind(this),
+            'nicra-intervention': renderNicraInterventionSection.bind(this),
+            'nicra-extension': renderNicraExtensionSection.bind(this),
+            'nicra-farm-implement': renderNicraFarmImplementSection.bind(this),
+            'nicra-vcrmc': renderNicraVcrmcSection.bind(this),
+            'nicra-soil-health': renderNicraSoilHealthSection.bind(this),
+            'tsp': renderTspSection.bind(this),
+            'scsp': renderScspSection.bind(this),
+            'tsp-scsp': renderTspScspSection.bind(this),
+            'seed-hub': renderSeedHubSection.bind(this),
+            'other-programmes': renderOtherProgrammesSection.bind(this),
+            'arya-current':       renderAryaCurrentSection.bind(this),
+            'arya-prev-year':     renderAryaPrevYearSection.bind(this),
+            'special-programme':  renderSpecialProgrammeSection.bind(this),
+            'functional-linkage': renderFunctionalLinkageSection.bind(this),
+            'success-story':      renderSuccessStorySection.bind(this),
+            'entrepreneurship':   renderEntrepreneurshipSection.bind(this),
+            'kvk-impact-activity': renderKvkImpactActivitySection.bind(this),
+            'demonstration-unit':  renderDemonstrationUnitSection.bind(this),
+            'instructional-farm-crop': renderInstructionalFarmCropSection.bind(this),
+            'production-unit':         renderProductionUnitSection.bind(this),
+            'instructional-farm-livestock': renderInstructionalFarmLivestockSection.bind(this),
+            'hostel-utilization':           renderHostelUtilizationSection.bind(this),
+            'staff-quarters':               renderStaffQuartersUtilizationSection.bind(this),
+            'rainwater-harvesting':         renderRainwaterHarvestingSection.bind(this),
         };
     }
 
@@ -935,7 +991,7 @@ class ReportTemplateService {
         margin-bottom: 10px;
         border: 0.2px solid #000000;
         font-size: 8pt;
-        page-break-inside: avoid;
+        page-break-inside: auto;
     }
 
     .data-table th,
@@ -1034,7 +1090,7 @@ class ReportTemplateService {
         margin-bottom: 14px;
         border: 0.2px solid #000000;
         font-size: 8pt;
-        page-break-inside: avoid;
+        page-break-inside: auto;
     }
 
     .about-kvk-table th,
@@ -1120,7 +1176,7 @@ class ReportTemplateService {
         
         .data-table,
         .grouped-table {
-            page-break-inside: avoid;
+            page-break-inside: auto;
         }
         
         .section-title {

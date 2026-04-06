@@ -119,7 +119,7 @@ const ENTITY_CONFIG = {
         nameField: 'vehicleId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-			vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
+            vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
         }
     },
@@ -411,7 +411,7 @@ async function findById(entityName, id) {
  */
 function convertRelationFieldsForKvk(data) {
     const converted = { ...data };
-    
+
     // CRITICAL: Remove all ID field variations first - Prisma doesn't accept them in data object
     const idFieldVariations = ['id', '_id', 'kvkId', 'kvk_id'];
     for (const idField of idFieldVariations) {
@@ -419,28 +419,28 @@ function convertRelationFieldsForKvk(data) {
             delete converted[idField];
         }
     }
-    
+
     // Required relations - must use connect
     if (converted.zoneId !== undefined && converted.zoneId !== null) {
         converted.zone = { connect: { zoneId: sanitizeInteger(converted.zoneId) } };
         delete converted.zoneId;
     }
-    
+
     if (converted.stateId !== undefined && converted.stateId !== null) {
         converted.state = { connect: { stateId: sanitizeInteger(converted.stateId) } };
         delete converted.stateId;
     }
-    
+
     if (converted.districtId !== undefined && converted.districtId !== null) {
         converted.district = { connect: { districtId: sanitizeInteger(converted.districtId) } };
         delete converted.districtId;
     }
-    
+
     if (converted.orgId !== undefined && converted.orgId !== null) {
         converted.org = { connect: { orgId: sanitizeInteger(converted.orgId) } };
         delete converted.orgId;
     }
-    
+
     // Optional relation - can be null (disconnect) or connect
     if (converted.universityId !== undefined) {
         if (converted.universityId === null || converted.universityId === '' || converted.universityId === undefined) {
@@ -461,7 +461,7 @@ function convertRelationFieldsForKvk(data) {
             }))
         };
     }
-    
+
     return converted;
 }
 
@@ -472,7 +472,7 @@ function convertRelationFieldsForKvk(data) {
  */
 function convertRelationFieldsForStaff(data) {
     const converted = { ...data };
-    
+
     // CRITICAL: Remove all ID field variations first - Prisma doesn't accept them in data object
     const idFieldVariations = ['id', '_id', 'kvkStaffId', 'kvk_staff_id'];
     for (const idField of idFieldVariations) {
@@ -480,23 +480,23 @@ function convertRelationFieldsForStaff(data) {
             delete converted[idField];
         }
     }
-    
+
     // Convert relation ID fields to relation connect operations
     if (converted.sanctionedPostId !== undefined) {
         converted.sanctionedPost = { connect: { sanctionedPostId: converted.sanctionedPostId } };
         delete converted.sanctionedPostId;
     }
-    
+
     if (converted.disciplineId !== undefined) {
         converted.discipline = { connect: { disciplineId: converted.disciplineId } };
         delete converted.disciplineId;
     }
-    
+
     if (converted.kvkId !== undefined) {
         converted.kvk = { connect: { kvkId: converted.kvkId } };
         delete converted.kvkId;
     }
-    
+
     // Handle optional relations (can be null)
     if (converted.staffCategoryId !== undefined) {
         if (converted.staffCategoryId === null || converted.staffCategoryId === '') {
@@ -506,7 +506,7 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.staffCategoryId;
     }
-    
+
     if (converted.payLevelId !== undefined) {
         if (converted.payLevelId === null || converted.payLevelId === '') {
             converted.payLevel = { disconnect: true };
@@ -515,7 +515,7 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.payLevelId;
     }
-    
+
     if (converted.originalKvkId !== undefined) {
         if (converted.originalKvkId === null || converted.originalKvkId === '') {
             converted.originalKvk = { disconnect: true };
@@ -524,7 +524,7 @@ function convertRelationFieldsForStaff(data) {
         }
         delete converted.originalKvkId;
     }
-    
+
     return converted;
 }
 
@@ -647,7 +647,7 @@ function sanitizeData(entityName, data) {
         config.idField.toLowerCase(),
         config.idField.replace(/([A-Z])/g, '_$1').toLowerCase(),
     ];
-    
+
     for (const idField of idFieldVariations) {
         if (sanitized[idField] !== undefined) {
             delete sanitized[idField];
@@ -726,8 +726,8 @@ function sanitizeData(entityName, data) {
         }
         if (sanitized.universityId !== undefined) {
             const universityId = safeGet(data, 'universityId');
-            sanitized.universityId = (universityId === null || universityId === undefined || universityId === '') 
-                ? null 
+            sanitized.universityId = (universityId === null || universityId === undefined || universityId === '')
+                ? null
                 : sanitizeInteger(universityId);
         }
     }
@@ -860,7 +860,7 @@ async function create(entityName, data) {
 
     // CRITICAL: Ensure ID fields are removed for create operations too
     sanitizedData = removeIdFieldsForUpdate(sanitizedData, [config.idField]);
-    
+
     // For KVKs, convert relation IDs to relation connect operations
     if (entityName === 'kvks') {
         const convertedData = convertRelationFieldsForKvk(sanitizedData);
@@ -937,7 +937,7 @@ async function create(entityName, data) {
             convertedData.reportingYear = parsedReportingYear;
         }
 
-        
+
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
         return executePrismaWrite(entityName, 'create', async () => {
@@ -1075,7 +1075,7 @@ async function update(entityName, id, data) {
             convertedData.reportingYear = parsedReportingYear;
         }
 
-        
+
         // Ensure ID fields are removed
         const finalData = removeIdFieldsForUpdate(convertedData, [config.idField]);
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1107,17 +1107,17 @@ async function checkDependentRecords(entityName, config, id) {
         // Properly structure _count query - Prisma expects _count: { select: {...} }
         const entity = await prisma[config.model].findUnique({
             where: { [config.idField]: id },
-            select: { 
+            select: {
                 _count: {
                     select: config.includes._count.select
                 }
             },
         });
-        
+
         if (entity && entity._count) {
             const dependentCounts = Object.entries(entity._count)
                 .filter(([_, count]) => count > 0);
-            
+
             if (dependentCounts.length > 0) {
                 return {
                     hasDependents: true,
@@ -1126,7 +1126,7 @@ async function checkDependentRecords(entityName, config, id) {
             }
         }
     }
-    
+
     return { hasDependents: false };
 }
 
@@ -1146,7 +1146,7 @@ async function deleteEntity(entityName, id) {
     if (!resolvedId) {
         throw new Error(`${entityName} not found`);
     }
-    
+
     // Check for dependent records
     const dependentCheck = await checkDependentRecords(entityName, config, resolvedId);
     if (dependentCheck.hasDependents) {

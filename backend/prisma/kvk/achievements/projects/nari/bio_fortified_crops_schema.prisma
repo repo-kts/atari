@@ -30,6 +30,9 @@ model NariBioFortifiedCrop {
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
 
+  status NariStatus @default(ONGOING) @map("status")
+  results NariBioFortifiedCropResult[]
+
   @@index([kvkId])
   @@index([activityId])
   @@map("nari_bio_fortified_crop")
@@ -42,4 +45,26 @@ model CropCategory {
   nariBioFortifiedCrops NariBioFortifiedCrop[]
 
   @@map("crop_category")
+}
+
+model NariBioFortifiedCropResult {
+  nariBioFortifiedCropResultId Int @id @default(autoincrement()) @map("nari_bio_fortified_crop_result_id")
+
+  nariBioFortifiedCropId Int @map("nari_bio_fortified_crop_id")
+  nariBioFortifiedCrop   NariBioFortifiedCrop @relation(fields: [nariBioFortifiedCropId], references: [nariBioFortifiedCropId], onDelete: Cascade)
+
+  reportingYear DateTime? @map("reporting_year")
+  cropName      String    @map("name_of_crops")
+  variety       String    @map("varieties")
+  areaHa        Float     @map("area_grown_ha")
+  productionKg  Float     @map("production_kg")
+  consumptionGm Float     @map("consumption_gm_day_person")
+  formOfConsumption String @map("form_of_consumption")
+  daysInYear    Int       @map("no_of_days_in_year")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([nariBioFortifiedCropId])
+  @@map("nari_bio_fortified_crop_result")
 }

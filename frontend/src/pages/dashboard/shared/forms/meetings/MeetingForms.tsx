@@ -77,29 +77,53 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                 }
 
                 const newFiles = Array.from(files);
-                const previews: string[] = [];
-                let count = 0;
+                const processedPhotos: any[] = [];
+                let processedCount = 0;
 
-                newFiles.forEach((file, index) => {
+                newFiles.forEach((file) => {
                     const reader = new FileReader();
-                    reader.onloadend = () => {
-                        previews[index] = reader.result as string;
-                        count++;
-                        if (count === newFiles.length) {
-                            const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                            setFormData({
-                                ...formData,
-                                [field]: [
-                                    ...existingPhotos,
-                                    ...newFiles.map((f, i) => ({
-                                        file: f,
-                                        preview: previews[i],
-                                        image: previews[i],
-                                        caption: ''
-                                    }))
-                                ]
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            // COMPRESS IMAGE: Max width/height 1280px
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            const MAX_SIZE = 1280;
+                            
+                            if (width > height && width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            } else if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx?.drawImage(img, 0, 0, width, height);
+                            
+                            // Convert to JPEG at 0.7 quality
+                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                            
+                            processedPhotos.push({
+                                file: null, // No need for raw File anymore
+                                preview: compressedBase64,
+                                image: compressedBase64,
+                                caption: ''
                             });
-                        }
+
+                            processedCount++;
+                            if (processedCount === newFiles.length) {
+                                const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                                setFormData({
+                                    ...formData,
+                                    [field]: [...existingPhotos, ...processedPhotos]
+                                });
+                            }
+                        };
+                        img.src = event.target?.result as string;
                     };
                     reader.readAsDataURL(file);
                 });

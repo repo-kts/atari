@@ -34,32 +34,67 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         const files = e.target.files;
         if (files && files.length > 0) {
             const newFiles = Array.from(files);
-            const previews: string[] = [];
-            let count = 0;
-
-            newFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews[index] = reader.result as string;
-                    count++;
-                    if (count === newFiles.length) {
-                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                        setFormData({
-                            ...formData,
-                            [field]: [
-                                ...existingPhotos,
-                                ...newFiles.map((f, i) => ({
-                                    file: f,
-                                    preview: previews[i],
-                                    image: previews[i],
+            
+            // Generic file processor (handles both compression for images and Base64 for others)
+            const processFile = (file: File): Promise<any> => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const content = event.target?.result as string;
+                        
+                        // If it's an image, we attempt compression for the gallery
+                        if (file.type.startsWith('image/')) {
+                            const img = new Image();
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+                                const MAX_SIZE = 1280;
+                                if (width > height && width > MAX_SIZE) {
+                                    height *= MAX_SIZE / width;
+                                    width = MAX_SIZE;
+                                } else if (height > MAX_SIZE) {
+                                    width *= MAX_SIZE / height;
+                                    height = MAX_SIZE;
+                                }
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx?.drawImage(img, 0, 0, width, height);
+                                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                resolve({
+                                    file: null,
+                                    preview: compressedBase64,
+                                    image: compressedBase64,
+                                    name: file.name,
                                     caption: ''
-                                }))
-                            ]
-                        });
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
+                                });
+                            };
+                            img.src = content;
+                        } else {
+                            // Non-image file (PDF, etc.) - just Base64 it
+                            resolve(content);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            if (field === 'uploadFile') {
+                // Single file handling for Supporting Document
+                processFile(newFiles[0]).then(result => {
+                    setFormData((prev: any) => ({ ...prev, [field]: result }));
+                });
+            } else {
+                // Multiple gallery photos handling
+                Promise.all(newFiles.map(processFile)).then(results => {
+                    const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
+                    setFormData((prev: any) => ({
+                        ...prev,
+                        [field]: [...existingPhotos, ...results]
+                    }));
+                });
+            }
         }
     };
 
@@ -131,7 +166,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         </FormSection>
     );
 
-    const renderPhotoAndFileRow = (photoField: string, onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void) => (
+    const renderPhotoAndFileRow = (photoField: string) => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="space-y-2">
                 <FormInput
@@ -145,48 +180,46 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                 />
                 {renderGallery(photoField)}
             </div>
-            <FormInput
-                label="Upload File"
-                type="file"
-                onChange={onFileChange}
-                helperText="Upload supporting document (PDF, DOCX, etc.)"
-            />
+            <div className="space-y-2">
+                <FormInput
+                    label="Upload File"
+                    type="file"
+                    onChange={handleFileChange('uploadFile')}
+                    helperText="Upload supporting document (PDF, DOCX, etc.)"
+                />
+                {formData.uploadFile && (
+                    <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-100 flex items-center gap-2">
+                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                         File Selected
+                         {typeof formData.uploadFile === 'string' && formData.uploadFile.length > 100 && " (Base64 ready)"}
+                    </div>
+                )}
+            </div>
         </div>
     );
 
-    // Normalize incoming photographs data when editing
-    React.useEffect(() => {
-        ['photographs'].forEach(field => {
-            if (formData[field]) {
-                if (typeof formData[field] === 'string') {
-                    if (formData[field].startsWith('[') || formData[field].startsWith('{')) {
-                        try {
-                            const parsed = JSON.parse(formData[field]);
-                            const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
-                            const normalized = arrayToMap.map((item: any) => {
-                                if (typeof item === 'string') {
-                                    return { preview: item, image: item, caption: '' };
-                                }
-                                const url = item.image || item.url || item.path || item.preview || '';
-                                return {
-                                    preview: url,
-                                    image: url,
-                                    caption: item.caption || ''
-                                };
-                            });
-                            setFormData((prev: any) => ({ ...prev, [field]: normalized }));
-                        } catch (e) {
-                            console.error('Photo parsing error:', e);
-                        }
-                    } else if (formData[field].trim() !== '') {
-                        // Handle raw comma separated or single URL
-                        const values = formData[field].includes(',') ? formData[field].split(',') : [formData[field]];
-                        const normalized = values.filter((v: string) => v.trim() !== '').map((s: string) => ({
-                            preview: s.trim(),
-                            image: s.trim(),
-                            caption: ''
-                        }));
+    // Normalize incoming photographs and uploadFile data when editing
+    useEffect(() => {
+        ['photographs', 'uploadFile'].forEach(field => {
+            if (formData[field] && typeof formData[field] === 'string') {
+                if (field === 'photographs' && (formData[field].startsWith('[') || formData[field].startsWith('{'))) {
+                    try {
+                        const parsed = JSON.parse(formData[field]);
+                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
+                        const normalized = arrayToMap.map((item: any) => {
+                            if (typeof item === 'string') {
+                                return { preview: item, image: item, caption: '' };
+                            }
+                            const url = item.image || item.url || item.path || item.preview || '';
+                            return {
+                                preview: url,
+                                image: url,
+                                caption: item.caption || ''
+                            };
+                        });
                         setFormData((prev: any) => ({ ...prev, [field]: normalized }));
+                    } catch (e) {
+                        console.error('Photo parsing error:', e);
                     }
                 }
             }
@@ -527,7 +560,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    {renderPhotoAndFileRow('photographs', (e) => setFormData({ ...formData, uploadFile: e.target.files?.[0] }))}
+                    {renderPhotoAndFileRow('photographs')}
                 </div>
             )}
 

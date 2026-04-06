@@ -55,7 +55,7 @@ const aryaPrevYearRepository = {
         const result = await prisma.aryaPrevYear.findUnique({
             where: { aryaPrevYearId: resultRows[0].arya_prev_year_id },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 enterprise: { select: { enterpriseName: true } },
             }
         });
@@ -97,7 +97,7 @@ const aryaPrevYearRepository = {
         const results = await prisma.aryaPrevYear.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 enterprise: { select: { enterpriseName: true } },
             },
             orderBy: { aryaPrevYearId: 'desc' }
@@ -117,7 +117,7 @@ const aryaPrevYearRepository = {
         const result = await prisma.aryaPrevYear.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 enterprise: { select: { enterpriseName: true } },
             }
         });
@@ -180,7 +180,7 @@ const aryaPrevYearRepository = {
         const updated = await prisma.aryaPrevYear.findUnique({
             where: { aryaPrevYearId },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } } } },
                 enterprise: { select: { enterpriseName: true } },
             }
         });
@@ -213,6 +213,7 @@ function _mapResponse(r) {
         aryaPrevYearId: r.aryaPrevYearId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
+        stateName: r.kvk?.state?.stateName || '',
         reportingYear: formatReportingYear(r.reportingYear),
         enterpriseId: r.enterpriseId,
         enterpriseName: r.enterprise ? r.enterprise.enterpriseName : undefined,

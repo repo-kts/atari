@@ -25,6 +25,9 @@ model NariNutritionalGarden {
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
 
+  status NariStatus @default(ONGOING) @map("status")
+  results NariNutritionalGardenResult[]
+
   @@index([kvkId])
   @@index([activityId])
   @@map("nari_nutritional_garden")
@@ -37,4 +40,31 @@ model NutritionGardenType {
   nariNutritionalGardens NariNutritionalGarden[]
 
   @@map("nutrition_garden_type")
+}
+
+enum NariStatus {
+  ONGOING
+  COMPLETED
+}
+
+model NariNutritionalGardenResult {
+  nariNutritionalGardenResultId Int @id @default(autoincrement()) @map("nari_nutritional_garden_result_id")
+
+  nariNutritionalGardenId Int @map("nari_nutritional_garden_id")
+  nariNutritionalGarden   NariNutritionalGarden @relation(fields: [nariNutritionalGardenId], references: [nariNutritionalGardenId], onDelete: Cascade)
+
+  reportingYear DateTime? @map("reporting_year")
+  cropName      String    @map("name_of_crops")
+  variety       String    @map("varieties")
+  areaSqm       Float     @map("area_grown_sqm")
+  productionKg  Float     @map("production_kg")
+  consumptionKg Float     @map("consumption_kg")
+  sellKg        Float     @map("sell_of_produce_kg")
+  income        Float     @map("income_from_sell_of_produce")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([nariNutritionalGardenId])
+  @@map("nari_nutritional_garden_result")
 }

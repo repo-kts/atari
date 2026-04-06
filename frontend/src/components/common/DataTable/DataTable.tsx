@@ -32,6 +32,7 @@ interface DataTableProps {
         onClick: (item: any) => void
         isVisible?: (item: any) => boolean
         className?: string
+        icon?: React.ComponentType<{ className?: string }>
     }>
 }
 

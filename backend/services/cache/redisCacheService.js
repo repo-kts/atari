@@ -27,10 +27,11 @@ class RedisCacheService {
                 password: process.env.REDIS_PASSWORD || undefined,
                 db: parseInt(process.env.REDIS_DB || '0', 10),
                 retryStrategy: (times) => {
-                    const delay = Math.min(times * 50, 2000);
-                    return delay;
+                    // Stop retrying after 3 unsuccessful attempts
+                    if (times > 3) return null;
+                    return Math.min(times * 100, 3000);
                 },
-                maxRetriesPerRequest: 3,
+                maxRetriesPerRequest: 1,
                 enableReadyCheck: true,
                 lazyConnect: true,
             };
@@ -46,18 +47,24 @@ class RedisCacheService {
             });
 
             this.client.on('error', (error) => {
-                console.error('Redis client error:', error.message);
-                // Don't throw, allow fallback to database
+                if (this.enabled) {
+                    console.error('Redis client error:', error.message);
+                }
             });
 
             this.client.on('close', () => {
-                console.log('Redis client connection closed');
+                if (this.enabled) {
+                    console.log('Redis client connection closed');
+                }
             });
 
             // Connect to Redis
             this.client.connect().catch((error) => {
-                console.error('Failed to connect to Redis:', error.message);
+                if (this.enabled) {
+                    console.error('Failed to connect to Redis:', error.message);
+                }
                 this.enabled = false;
+                this.client.disconnect();
             });
         } catch (error) {
             console.error('Failed to initialize Redis client:', error.message);
