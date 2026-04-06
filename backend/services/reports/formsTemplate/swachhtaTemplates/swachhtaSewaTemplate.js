@@ -18,7 +18,11 @@ function renderSwachhtaSewaSection(section, data, sectionId, isFirstSection) {
     let html = `
 <div id="${sectionId}" class="${pageClass}">
     <h1 class="section-title" style="margin-bottom:10px;">Observation of Swachhta hi Sewa SBA</h1>
-    <table class="data-table" style="width:100%;">
+    <table class="data-table" style="width:100%;table-layout:fixed;">
+        <colgroup>
+            <col style="width:12%;"><col style="width:20%;"><col style="width:28%;">
+            <col style="width:10%;"><col style="width:10%;"><col style="width:10%;"><col style="width:10%;">
+        </colgroup>
         <thead>
             <tr>
                 <th rowspan="2" style="vertical-align:bottom;">KVK</th>

@@ -8,6 +8,21 @@
  * Columns: KVK | Activities | No of village covered | Total Expenditure(Rs.in Lakhs)
  */
 
+const COLGROUP = `
+        <colgroup>
+            <col style="width:15%;"><col style="width:45%;"><col style="width:18%;"><col style="width:22%;">
+        </colgroup>`;
+
+const THEAD = `
+        <thead>
+            <tr>
+                <th>KVK</th>
+                <th>Activities</th>
+                <th>No of village covered</th>
+                <th>Total Expenditure(Rs.in Lakhs)</th>
+            </tr>
+        </thead>`;
+
 function renderSwachhtaBudgetSection(section, data, sectionId, isFirstSection) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
@@ -18,15 +33,8 @@ function renderSwachhtaBudgetSection(section, data, sectionId, isFirstSection) {
 
     if (records.length === 0) {
         html += `
-    <table class="data-table" style="width:100%;">
-        <thead>
-            <tr>
-                <th>KVK</th>
-                <th>Activities</th>
-                <th>No of village covered</th>
-                <th>Total Expenditure(Rs.in Lakhs)</th>
-            </tr>
-        </thead>
+    <table class="data-table" style="width:100%;table-layout:fixed;">
+        ${COLGROUP}${THEAD}
         <tbody>
             <tr><td colspan="4" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>
         </tbody>
@@ -35,15 +43,8 @@ function renderSwachhtaBudgetSection(section, data, sectionId, isFirstSection) {
         records.forEach(row => {
             const kvk = row.kvk?.kvkName || '-';
             html += `
-    <table class="data-table" style="width:100%;margin-bottom:20px;">
-        <thead>
-            <tr>
-                <th>KVK</th>
-                <th>Activities</th>
-                <th>No of village covered</th>
-                <th>Total Expenditure(Rs.in Lakhs)</th>
-            </tr>
-        </thead>
+    <table class="data-table" style="width:100%;table-layout:fixed;margin-bottom:20px;">
+        ${COLGROUP}${THEAD}
         <tbody>
             <tr>
                 <td>${this._escapeHtml(kvk)}</td>
