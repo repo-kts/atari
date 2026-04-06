@@ -138,6 +138,7 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'nari-value-addition') {
         return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+<<<<<<< Updated upstream
     if (templateKey === 'nicra-basic') {
         return buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -158,6 +159,43 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'tsp-scsp') {
         return buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows);
+=======
+    if (templateKey === 'special-programme') {
+        return buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'functional-linkage') {
+        return buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'success-story') {
+        return buildSuccessStoryTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'entrepreneurship') {
+        return buildEntrepreneurshipTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'kvk-impact-activity') {
+        return buildKvkImpactActivityTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'demonstration-unit') {
+        return buildDemonstrationUnitTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'instructional-farm-crop') {
+        return buildInstructionalFarmCropTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'production-unit') {
+        return buildProductionUnitTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'instructional-farm-livestock') {
+        return buildInstructionalFarmLivestockTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'hostel-utilization') {
+        return buildHostelUtilizationTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'staff-quarters') {
+        return buildStaffQuartersTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'rainwater-harvesting') {
+        return buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, fallbackRows);
+>>>>>>> Stashed changes
     }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
@@ -1182,6 +1220,7 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     return { headers, rows };
 }
 
+<<<<<<< Updated upstream
 /**
  * TSP (Tribal Sub Plan) – Excel / DOCX tabular export (Section 2.23.1)
  *
@@ -1192,10 +1231,16 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
 function buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     const d = Array.isArray(rawData) ? rawData[0] : rawData;
     if (!d || !d.activities || d.activities.length === 0) {
+=======
+function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+>>>>>>> Stashed changes
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
 
     const headers = [
+<<<<<<< Updated upstream
         'KVK Name', 'Reporting Year', 'Activity',
         'Nos. (Count)', 'No. of Beneficiaries',
         'Fund Received (Rs. In lakh)',
@@ -1269,11 +1314,31 @@ function buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
         formatExportValue(act.activityName || '-', format),
         Number(act.noOfTrainings ?? 0),
         Number(act.noOfBeneficiaries ?? 0),
+=======
+        'Sr.No.',
+        'Programme Type',
+        'Name of the Programme/Scheme',
+        'Purpose of programme',
+        'Date/Month of initiation',
+        'Funding agency',
+        'Amount(Rs.)',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.programmeType || '-', format),
+        formatExportValue(row.programmeName || '-', format),
+        formatExportValue(row.programmePurpose || '-', format),
+        formatExportValue(row.initiationDate || '-', format),
+        formatExportValue(row.fundingAgency || '-', format),
+        formatExportValue(row.amount || 0, format),
+>>>>>>> Stashed changes
     ]);
 
     return { headers, rows };
 }
 
+<<<<<<< Updated upstream
 /**
  * Combined TSP + SCSP – Excel / DOCX module-level export (templateKey: 'tsp-scsp')
  *
@@ -1284,10 +1349,16 @@ function buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
 function buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     const records = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (records.length === 0) {
+=======
+function buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+>>>>>>> Stashed changes
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
 
     const headers = [
+<<<<<<< Updated upstream
         'KVK Name', 'Reporting Year', 'Type', 'Activity',
         'Nos. (Count)', 'No. of Beneficiaries',
         'Fund Received (Rs. In lakh)',
@@ -1315,6 +1386,306 @@ function buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows)
         Number(r.beneficiaryMale ?? 0),
         Number(r.beneficiaryFemale ?? 0),
         Number(r.beneficiaryTotal ?? 0),
+=======
+        'Sr.No.',
+        'Name of Organization',
+        'Nature of Linkage',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.organizationName || '-', format),
+        formatExportValue(row.natureOfLinkage || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildSuccessStoryTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Farmer Name',
+        'Story Title',
+        'Enterprise',
+        'Net Income',
+        'Cost-Benefit Ratio',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.farmerName || '-', format),
+        formatExportValue(row.storyTitle || '-', format),
+        formatExportValue(row.enterprise || '-', format),
+        formatExportValue(row.netIncome || 0, format),
+        formatExportValue(row.costBenefitRatio || 0, format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildEntrepreneurshipTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Name of the entrepreneur',
+        'Type of Enterprise',
+        'Year of establishment',
+        'Annual Income',
+        'No of members',
+        'Technical components',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.entrepreneurName || '-', format),
+        formatExportValue(row.enterpriseType || '-', format),
+        formatExportValue(row.yearOfEstablishment || '-', format),
+        formatExportValue(row.annualIncome || 0, format),
+        formatExportValue(row.membersAssociated || 0, format),
+        formatExportValue(row.technicalComponents || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildKvkImpactActivityTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'State',
+        'District',
+        'Specific Area',
+        'Brief Details',
+        'Farmers Benefitted',
+        'Horizontal Spread',
+        '% Adoption',
+        'Income Before',
+        'Income After',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.stateName || '-', format),
+        formatExportValue(row.districtName || '-', format),
+        formatExportValue(row.specificArea || '-', format),
+        formatExportValue(row.briefDetails || '-', format),
+        formatExportValue(row.farmersBenefitted || 0, format),
+        formatExportValue(row.horizontalSpread || '0', format),
+        formatExportValue(row.adoptionPercentage || 0, format),
+        formatExportValue(row.incomeBefore || 0, format),
+        formatExportValue(row.incomeAfter || 0, format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildDemonstrationUnitTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Name of Demo Unit',
+        'Year of Estt.',
+        'Area (Sq. mt)',
+        'Variety/Breed',
+        'Produce',
+        'Qty.',
+        'Cost of Inputs',
+        'Gross Income',
+        'Remarks',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.demoUnitName || '-', format),
+        formatExportValue(row.yearOfEstablishment || '-', format),
+        formatExportValue(row.area || 0, format),
+        formatExportValue(row.varietyBreed || '-', format),
+        formatExportValue(row.produce || '-', format),
+        formatExportValue(row.quantity || 0, format),
+        formatExportValue(row.costOfInputs || 0, format),
+        formatExportValue(row.grossIncome || 0, format),
+        formatExportValue(row.remarks || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildInstructionalFarmCropTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Season',
+        'Name Of the Crop',
+        'Area (ha)',
+        'Variety',
+        'Type of Produce',
+        'Qty.',
+        'Cost of Inputs',
+        'Gross Income',
+        'Remarks',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        formatExportValue(row.seasonName || '-', format),
+        formatExportValue(row.cropName || '-', format),
+        formatExportValue(row.area || 0, format),
+        formatExportValue(row.variety || '-', format),
+        formatExportValue(row.typeOfProduce || '-', format),
+        formatExportValue(row.quantity || 0, format),
+        formatExportValue(row.costOfInputs || 0, format),
+        formatExportValue(row.grossIncome || 0, format),
+        formatExportValue(row.remarks || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildProductionUnitTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Name of the Product',
+        'Qty.(Kg)',
+        'Cost of Inputs',
+        'Gross Income',
+        'Remarks',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.productName || '-', format),
+        formatExportValue(row.quantity || 0, format),
+        formatExportValue(row.costOfInputs || 0, format),
+        formatExportValue(row.grossIncome || 0, format),
+        formatExportValue(row.remarks || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildInstructionalFarmLivestockTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Name of the Animal/Bird/Aquatics',
+        'Species / Breed / Variety',
+        'Type of Produce',
+        'Qty.',
+        'Cost of Inputs',
+        'Gross Income',
+        'Remarks',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        formatExportValue(row.animalName || '-', format),
+        formatExportValue(row.speciesBreed || '-', format),
+        formatExportValue(row.typeOfProduce || '-', format),
+        formatExportValue(row.quantity || 0, format),
+        formatExportValue(row.costOfInputs || 0, format),
+        formatExportValue(row.grossIncome || 0, format),
+        formatExportValue(row.remarks || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildHostelUtilizationTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Months',
+        'No. of Trainees Stayed',
+        'Trainee Days (Days Stayed)',
+        'Reason for Short Fall (if any)',
+    ];
+
+    const rows = normalizedData.map((row) => [
+        formatExportValue(row.months || '-', format),
+        formatExportValue(row.traineesStayed || 0, format),
+        formatExportValue(row.traineeDays || 0, format),
+        formatExportValue(row.reasonForShortFall || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildStaffQuartersTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Date of Completion',
+        'No. of Staff Quarters',
+        'Occupancy Details',
+        'Remark',
+    ];
+
+    const rows = normalizedData.map((row) => [
+        formatExportValue(row.dateOfCompletion || '-', format),
+        formatExportValue(row.numberOfQuarters || 0, format),
+        formatExportValue(row.occupancyDetails || '-', format),
+        formatExportValue(row.remark || '-', format),
+    ]);
+
+    return { headers, rows };
+}
+
+function buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sl.',
+        'No of training programme conducted',
+        'No. of demonstrations',
+        'No. of plant material produced',
+        'Visit by the farmers (No.)',
+        'Visit by the officials (No.)',
+    ];
+
+    let sl = 1;
+    const rows = normalizedData.map((row) => [
+        sl++,
+        formatExportValue(row.trainingProgrammes || 0, format),
+        formatExportValue(row.demonstrations || 0, format),
+        formatExportValue(row.plantMaterial || 0, format),
+        formatExportValue(row.farmerVisits || 0, format),
+        formatExportValue(row.officialVisits || 0, format),
+>>>>>>> Stashed changes
     ]);
 
     return { headers, rows };

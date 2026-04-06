@@ -736,6 +736,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             ? 'cfld-combined'
                                             : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                 ? 'cra-details-state-wise'
+<<<<<<< Updated upstream
                                                 : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
                                                     ? 'cra-extension-activity'
                                                     : entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS
@@ -777,6 +778,63 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                                             : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
                                                                                                                                 ? 'cfld-budget-utilization'
                                                                                                                                 : undefined;
+=======
+                                            : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
+                                                ? 'cra-extension-activity'
+                                            : entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS
+                                                ? 'fpo-cbbo-details'
+                                            : entityType === ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
+                                                ? 'fpo-management-details'
+                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS
+                                                ? 'drmr-details'
+                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
+                                                ? 'drmr-activity'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                                                ? 'nari-nutrition-garden'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                                                ? 'nari-bio-fortified'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                                                ? 'nari-value-addition'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_TRAINING
+                                                ? 'nari-training'
+                                            : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
+                                                ? 'nari-extension'
+                                            : entityType === ENTITY_TYPES.PROJECT_ARYA_CURRENT
+                                                ? 'arya-current'
+                                            : entityType === ENTITY_TYPES.PROJECT_ARYA_EVALUATION
+                                                ? 'arya-prev-year'
+                                            : entityType === ENTITY_TYPES.PROJECT_CSISA
+                                                ? 'csisa'
+                                            : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                ? 'cfld-extension-activity'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
+                                                ? 'special-programme'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
+                                                ? 'functional-linkage'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
+                                                ? 'success-story'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
+                                                ? 'entrepreneurship'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
+                                                ? 'kvk-impact-activity'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
+                                                ? 'demonstration-unit'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
+                                                ? 'instructional-farm-crop'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
+                                                ? 'production-unit'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
+                                                ? 'instructional-farm-livestock'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_HOSTEL
+                                                ? 'hostel-utilization'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
+                                                ? 'staff-quarters'
+                                            : entityType === ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
+                                                ? 'rainwater-harvesting'
+                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                    ? 'cfld-budget-utilization'
+                                                    : undefined;
+>>>>>>> Stashed changes
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource = templateKey && filteredData.length === 0 && items.length > 0 ? items : filteredData;
