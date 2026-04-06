@@ -6,7 +6,7 @@ async function getSacMeetings(kvkId, filters = {}) {
     applyCreatedAtFilters(where, filters);
     return await prisma.sacMeeting.findMany({
         where,
-        include: { kvk: { select: { kvkId: true, kvkName: true } } },
+        include: { kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } } },
         orderBy: [{ startDate: 'desc' }],
     });
 }
@@ -16,7 +16,7 @@ async function getOtherMeetings(kvkId, filters = {}) {
     applyCreatedAtFilters(where, filters);
     return await prisma.atariMeeting.findMany({
         where,
-        include: { kvk: { select: { kvkId: true, kvkName: true } } },
+        include: { kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } } },
         orderBy: [{ meetingDate: 'desc' }],
     });
 }

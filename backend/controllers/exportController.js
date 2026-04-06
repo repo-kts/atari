@@ -211,7 +211,69 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'rainwater-harvesting') {
         return buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
 
+    // ── Swachhta + Meetings Excel/Word exports ──────────────────
+    if (templateKey === 'swachhta-sewa' || templateKey === 'swachhta-pakhwada') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'Date/ Duration of Observation', 'Total No of Activities undertaken', 'Staffs', 'Farmers', 'Others', 'total'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(r.observationDate, format),
+            r.totalActivities || 0,
+            r.staffCount || 0,
+            r.farmerCount || 0,
+            r.othersCount || 0,
+            (r.staffCount || 0) + (r.farmerCount || 0) + (r.othersCount || 0),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'swachhta-budget') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'Vermi - No of village covered', 'Vermi - Total Expenditure(Rs.in Lakhs)', 'Other - No of village covered', 'Other - Total Expenditure(Rs.in Lakhs)'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            r.vermiVillageCovered || 0,
+            r.vermiTotalExpenditure || 0,
+            r.otherVillageCovered || 0,
+            r.otherTotalExpenditure || 0,
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'meetings-sac') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'Start Date', 'End Date', 'No of participants', 'Total statutory members present (sate line department)', 'Salient recommendations', 'Action Taken', 'If not, State reason'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(r.startDate, format),
+            formatExportValue(r.endDate, format),
+            r.numberOfParticipants || 0,
+            r.statutoryMembersPresent || 0,
+            formatExportValue(r.salientRecommendations, format),
+            r.actionTaken === 'YES' ? 'yes' : r.actionTaken === 'NO' ? 'no' : '-',
+            formatExportValue(r.reason, format),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'meetings-other') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'Date', 'Type of Meeting', 'Agenda', 'Representative from ATARI'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(r.meetingDate, format),
+            formatExportValue(r.typeOfMeeting, format),
+            formatExportValue(r.agenda, format),
+            formatExportValue(r.representativeFromAtari, format),
+        ]);
+        return { headers, rows };
     }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
@@ -220,12 +282,13 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
 
     const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-    const mappedHeaders = section.fields.map(field => field.displayName);
-    const mappedRows = normalizedData.map(record => {
-        return section.fields.map(field => {
+    const mappedHeaders = ['S.no.', ...section.fields.map(field => field.displayName)];
+    const mappedRows = normalizedData.map((record, idx) => {
+        const fieldValues = section.fields.map(field => {
             const value = getNestedValue(record, field.dbField);
             return formatExportValue(value, format);
         });
+        return [idx + 1, ...fieldValues];
     });
 
     return { headers: mappedHeaders, rows: mappedRows };
