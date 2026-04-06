@@ -261,6 +261,97 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
         ]);
         return { headers, rows };
     }
+    // ── Digital Information Excel/Word exports ────────────────
+    if (templateKey === 'di-kisan-sarathi') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of farmers registered on KSP portal', 'Phone call addressed', 'Answered call'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            r.noOfFarmersRegisteredOnKspPortal || 0,
+            r.phoneCallAddressed || 0,
+            r.phoneCallAnswered || 0,
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'di-mobile-app') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'Number of Mobile Apps developed by KVK', 'Name of the Apps', 'Language of the Apps', 'Meant for crop/ livestock/ fishery/ others', 'No. of times downloaded'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            r.numberOfAppsDeveloped || 0,
+            formatExportValue(r.nameOfApp, format),
+            formatExportValue(r.languageOfApp, format),
+            formatExportValue(r.meantFor, format),
+            r.numberOfTimesDownloaded || 0,
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'di-kmas') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of farmers covered', 'No of advisories sent', 'Crop', 'Livestock', 'Weather', 'Marketing', 'Awareness', 'Other Enterprises', 'Any other'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            r.noOfFarmersCovered || 0,
+            r.noOfAdvisoriesSent || 0,
+            formatExportValue(r.crop, format),
+            formatExportValue(r.livestock, format),
+            formatExportValue(r.weather, format),
+            formatExportValue(r.marketing, format),
+            formatExportValue(r.awareness, format),
+            formatExportValue(r.otherEnterprises, format),
+            formatExportValue(r.anyOther, format),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'di-web-portal') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of visitors visited the portal', 'No. of farmers registered on the portal'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            r.noOfVisitors || 0,
+            r.noOfFarmersRegistered || 0,
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'di-msg-details') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const channels = [
+            { label: 'Advisories through Text messages', prefix: 'text' },
+            { label: 'Advisories through WhatsApp', prefix: 'whatsapp' },
+            { label: 'Advisories through weather advisory bulletin', prefix: 'weather' },
+            { label: 'Advisories through social media/FB/Twitter/Instagram/Other', prefix: 'social' },
+        ];
+        const chFields = ['NoOfFarmersCovered', 'NoOfAdvisoriesSent', 'Crop', 'Livestock', 'Weather', 'Marketing', 'Awareness', 'OtherEnterprises'];
+        const chHeaders = [];
+        channels.forEach(ch => {
+            chFields.forEach(f => chHeaders.push(`${ch.label} - ${f}`));
+        });
+        const headers = ['S.no.', 'Name of State', 'Name of District', ...chHeaders];
+        const rows = d.map((r, i) => {
+            const vals = [
+                i + 1,
+                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            ];
+            channels.forEach(ch => {
+                chFields.forEach(f => {
+                    const key = ch.prefix + f;
+                    vals.push(formatExportValue(r[key], format));
+                });
+            });
+            return vals;
+        });
+        return { headers, rows };
+    }
+
     if (templateKey === 'meetings-other') {
         const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
         const headers = ['S.no.', 'Name of State', 'Name of District', 'Date', 'Type of Meeting', 'Agenda', 'Representative from ATARI'];
