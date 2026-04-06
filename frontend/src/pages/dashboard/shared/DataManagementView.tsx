@@ -27,6 +27,8 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
+import { formatHeaderLabel } from '@/utils/exportUtils'
+import { exportApi } from '@/services/exportApi'
 import { useToast } from '@/hooks/useToast'
 import { useTransferOftToNextYear, useTransferFldToNextYear, useCreateOftResult, useUpdateOftResult, useOftResult, useFldResult, useCreateFldResult, useUpdateFldResult } from '@/hooks/useOftWorkflow'
 import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
@@ -878,16 +880,40 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return null
     }, [entityType])
 
+    const [statewiseLoading, setStatewiseLoading] = useState(false)
+
     const handleStatewiseExport = async () => {
-        if (!statewiseTemplateKey) return
-        const exportDataSource = filteredData.length === 0 && items.length > 0 ? items : filteredData
-        await handleExportData('pdf', {
-            title,
-            fields,
-            data: exportDataSource,
-            pathname: location.pathname,
-            templateKey: statewiseTemplateKey,
-        })
+        if (!statewiseTemplateKey || statewiseLoading) return
+        setStatewiseLoading(true)
+        try {
+            const exportDataSource = filteredData.length === 0 && items.length > 0 ? items : filteredData
+            const headerLabels = fields.map(formatHeaderLabel)
+            const rows = exportDataSource.map(item => fields.map(field => getFieldValue(item, field)))
+
+            const blob = await exportApi.exportData(
+                {
+                    title,
+                    headers: headerLabels,
+                    rows,
+                    format: 'pdf',
+                    templateKey: statewiseTemplateKey,
+                    rawData: exportDataSource,
+                },
+                location.pathname
+            )
+
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-statewise-${Date.now()}.pdf`
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = filename
+            a.click()
+            URL.revokeObjectURL(url)
+        } catch (error: any) {
+            console.error('State-wise export failed:', error)
+        } finally {
+            setStatewiseLoading(false)
+        }
     }
 
     const exportFormatOptions = useMemo(
@@ -1128,11 +1154,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 key={opt.value}
                                                 type="button"
                                                 onClick={() => handleExport(opt.value)}
-                                                disabled={exportLoadingState !== null && exportLoadingState !== opt.value}
+                                                disabled={(exportLoadingState !== null && exportLoadingState !== opt.value) || statewiseLoading}
                                                 className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${exportLoadingState === opt.value
                                                     ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
                                                     : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
-                                                    } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                    } ${(exportLoadingState !== null && exportLoadingState !== opt.value) || statewiseLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 {exportLoadingState === opt.value ? (
                                                     <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1149,11 +1175,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             <button
                                                 type="button"
                                                 onClick={handleStatewiseExport}
-                                                disabled={exportLoadingState !== null}
-                                                className="h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]"
+                                                disabled={exportLoadingState !== null || statewiseLoading}
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${statewiseLoading
+                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                    } ${exportLoadingState !== null ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
-                                                <Download className="w-4 h-4" />
-                                                State-wise
+                                                {statewiseLoading ? (
+                                                    <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                    </svg>
+                                                ) : (
+                                                    <Download className="w-4 h-4" />
+                                                )}
+                                                {statewiseLoading ? 'Downloading...' : 'State-wise'}
                                             </button>
                                         )}
                                     </div>
@@ -1163,10 +1199,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => setIsExportMenuOpen((v) => !v)}
-                                            disabled={exportLoadingState !== null}
+                                            disabled={exportLoadingState !== null || statewiseLoading}
                                             className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors disabled:opacity-60"
                                         >
-                                            {exportLoadingState ? (
+                                            {(exportLoadingState || statewiseLoading) ? (
                                                 <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
@@ -1174,7 +1210,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             ) : (
                                                 <Download className="w-4 h-4 text-[#487749]" />
                                             )}
-                                            {exportLoadingState ? 'Downloading...' : 'Download'}
+                                            {(exportLoadingState || statewiseLoading) ? 'Downloading...' : 'Download'}
                                             <ChevronDown className="w-4 h-4 text-[#757575]" />
                                         </button>
                                         {isExportMenuOpen && (
