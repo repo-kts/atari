@@ -15,6 +15,11 @@ const { renderPpvFraPlantVarietiesSection } = require('./formsTemplate/miscTempl
 const { renderPpvFraTrainingSection } = require('./formsTemplate/miscTemplates/ppvFraTrainingTemplate.js');
 const { renderVipVisitorsSection } = require('./formsTemplate/miscTemplates/vipVisitorsTemplate.js');
 const { renderRaweFetFitSection } = require('./formsTemplate/miscTemplates/raweFetFitTemplate.js');
+const { renderKisanSarathiSection } = require('./formsTemplate/digitalInfoTemplates/kisanSarathiTemplate.js');
+const { renderMobileAppSection } = require('./formsTemplate/digitalInfoTemplates/mobileAppTemplate.js');
+const { renderKmasSection } = require('./formsTemplate/digitalInfoTemplates/kmasTemplate.js');
+const { renderWebPortalSection } = require('./formsTemplate/digitalInfoTemplates/webPortalTemplate.js');
+const { renderMsgDetailsSection } = require('./formsTemplate/digitalInfoTemplates/msgDetailsTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
@@ -56,6 +61,11 @@ class ReportTemplateService {
             'misc-ppv-fra-training': renderPpvFraTrainingSection.bind(this),
             'misc-vip-visitors': renderVipVisitorsSection.bind(this),
             'misc-rawe-fet-fit': renderRaweFetFitSection.bind(this),
+            'di-kisan-sarathi': renderKisanSarathiSection.bind(this),
+            'di-mobile-app': renderMobileAppSection.bind(this),
+            'di-kmas': renderKmasSection.bind(this),
+            'di-web-portal': renderWebPortalSection.bind(this),
+            'di-msg-details': renderMsgDetailsSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),

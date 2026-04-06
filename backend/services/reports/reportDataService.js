@@ -1,6 +1,7 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
 const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
+const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
@@ -109,6 +110,21 @@ class ReportDataService {
             case 'raweFetFit':
                 rawData = await miscReportRepository.getRaweFetFit(kvkId, sectionFilters);
                 break;
+            case 'kisanSarathi':
+                rawData = await digitalInfoReportRepository.getKisanSarathi(kvkId, sectionFilters);
+                break;
+            case 'mobileApp':
+                rawData = await digitalInfoReportRepository.getMobileApp(kvkId, sectionFilters);
+                break;
+            case 'kmas':
+                rawData = await digitalInfoReportRepository.getKmas(kvkId, sectionFilters);
+                break;
+            case 'webPortal':
+                rawData = await digitalInfoReportRepository.getWebPortal(kvkId, sectionFilters);
+                break;
+            case 'msgDetails':
+                rawData = await digitalInfoReportRepository.getMsgDetails(kvkId, sectionFilters);
+                break;
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
                 break;
@@ -165,6 +181,11 @@ class ReportDataService {
             || dataSource === 'ppvFraTraining'
             || dataSource === 'vipVisitors'
             || dataSource === 'raweFetFit'
+            || dataSource === 'kisanSarathi'
+            || dataSource === 'mobileApp'
+            || dataSource === 'kmas'
+            || dataSource === 'webPortal'
+            || dataSource === 'msgDetails'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'

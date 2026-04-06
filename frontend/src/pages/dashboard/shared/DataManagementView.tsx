@@ -746,7 +746,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                 ? 'misc-vip-visitors'
                                                                 : entityType === ENTITY_TYPES.MISC_RAWE_FET
                                                                     ? 'misc-rawe-fet-fit'
-                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                                                    : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI
+                                                                        ? 'di-kisan-sarathi'
+                                                                        : entityType === ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP
+                                                                            ? 'di-mobile-app'
+                                                                            : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY
+                                                                                ? 'di-kmas'
+                                                                                : entityType === ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL
+                                                                                    ? 'di-web-portal'
+                                                                                    : entityType === ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS
+                                                                                        ? 'di-msg-details'
+                                                                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
                                                         ? 'cfld-combined'
                                                         : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                             ? 'cra-details-state-wise'
