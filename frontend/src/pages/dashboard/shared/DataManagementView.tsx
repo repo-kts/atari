@@ -36,6 +36,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { NariNutritionalGardenResultForm, NariNutritionalGardenResultValue } from './forms/achievement/NariNutritionalGardenResultForm'
 import { NariBioFortifiedResultForm, NariBioFortifiedResultValue } from './forms/achievement/NariBioFortifiedResultForm'
 import { NariValueAdditionResultForm, NariValueAdditionResultValue } from './forms/achievement/NariValueAdditionResultForm'
+import { useNariResult } from '@/hooks/useNariResult'
 
 interface DataManagementViewProps {
     title: string
@@ -98,12 +99,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const [isNariNutriResultPageOpen, setIsNariNutriResultPageOpen] = useState(false)
     const [selectedNariNutriId, setSelectedNariNutriId] = useState<number | string | null>(null)
+    const nariNutriResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN, selectedNariNutriId)
 
     const [isNariBioResultPageOpen, setIsNariBioResultPageOpen] = useState(false)
     const [selectedNariBioId, setSelectedNariBioId] = useState<number | string | null>(null)
+    const nariBioResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED, selectedNariBioId)
 
     const [isNariValueResultPageOpen, setIsNariValueResultPageOpen] = useState(false)
     const [selectedNariValueId, setSelectedNariValueId] = useState<number | string | null>(null)
+    const nariValueResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION, selectedNariValueId)
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
@@ -598,31 +602,33 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleSubmitNariNutriResult = async (payload: NariNutritionalGardenResultValue) => {
-        // Mocking for now as per user request to not push backend
-        console.log('Saving Nutrition Garden Result:', selectedNariNutriId, payload)
+        if (!selectedNariNutriId) return
+        await nariNutriResult.saveResult(payload)
         alert({
             title: 'Success',
-            message: 'Nutrition Garden result saved successfully (Local Mock).',
+            message: 'Nutrition Garden result saved successfully.',
             variant: 'success',
             autoClose: true,
         })
     }
 
     const handleSubmitNariBioResult = async (payload: NariBioFortifiedResultValue) => {
-        console.log('Saving Bio Fortified Result:', selectedNariBioId, payload)
+        if (!selectedNariBioId) return
+        await nariBioResult.saveResult(payload)
         alert({
             title: 'Success',
-            message: 'Bio Fortified result saved successfully (Local Mock).',
+            message: 'Bio Fortified result saved successfully.',
             variant: 'success',
             autoClose: true,
         })
     }
 
     const handleSubmitNariValueResult = async (payload: NariValueAdditionResultValue) => {
-        console.log('Saving Value Addition Result:', selectedNariValueId, payload)
+        if (!selectedNariValueId) return
+        await nariValueResult.saveResult(payload)
         alert({
             title: 'Success',
-            message: 'Value Addition result saved successfully (Local Mock).',
+            message: 'Value Addition result saved successfully.',
             variant: 'success',
             autoClose: true,
         })
@@ -751,9 +757,28 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         setIsNariValueResultPageOpen(true)
                     }
                 },
-                isVisible: () => true,
+                isVisible: (item: any) => statusValue(item) !== 'COMPLETED',
                 className: 'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
                 icon: FilePlus2,
+            },
+            {
+                key: 'edit-result',
+                label: 'Edit Result',
+                onClick: (item: any) => {
+                    if (entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN) {
+                        setSelectedNariNutriId(item.id)
+                        setIsNariNutriResultPageOpen(true)
+                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED) {
+                        setSelectedNariBioId(item.id)
+                        setIsNariBioResultPageOpen(true)
+                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION) {
+                        setSelectedNariValueId(item.id)
+                        setIsNariValueResultPageOpen(true)
+                    }
+                },
+                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
+                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                icon: FilePenLine,
             }
         ]
         : []
@@ -1080,21 +1105,36 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ) : isNariNutriResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariNutritionalGardenResultForm
-                            onClose={() => setIsNariNutriResultPageOpen(false)}
+                            mode={nariNutriResult.resultData ? 'edit' : 'create'}
+                            initialValue={nariNutriResult.resultData}
+                            onClose={() => {
+                                setIsNariNutriResultPageOpen(false)
+                                setSelectedNariNutriId(null)
+                            }}
                             onSubmit={handleSubmitNariNutriResult}
                         />
                     </div>
                 ) : isNariBioResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariBioFortifiedResultForm
-                            onClose={() => setIsNariBioResultPageOpen(false)}
+                            mode={nariBioResult.resultData ? 'edit' : 'create'}
+                            initialValue={nariBioResult.resultData}
+                            onClose={() => {
+                                setIsNariBioResultPageOpen(false)
+                                setSelectedNariBioId(null)
+                            }}
                             onSubmit={handleSubmitNariBioResult}
                         />
                     </div>
                 ) : isNariValueResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariValueAdditionResultForm
-                            onClose={() => setIsNariValueResultPageOpen(false)}
+                            mode={nariValueResult.resultData ? 'edit' : 'create'}
+                            initialValue={nariValueResult.resultData}
+                            onClose={() => {
+                                setIsNariValueResultPageOpen(false)
+                                setSelectedNariValueId(null)
+                            }}
                             onSubmit={handleSubmitNariValueResult}
                         />
                     </div>

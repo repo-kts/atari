@@ -225,6 +225,7 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
+        status: r.status,
 
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,

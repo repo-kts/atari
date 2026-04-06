@@ -20,7 +20,12 @@ export function useNariResult(entityType: string, parentId: number | string | nu
         queryFn: async () => {
             if (!parentId || !endpoint) return null;
             const res = await apiClient.get<any>(`${endpoint}/${parentId}/result`);
-            return res.data || null;
+            const data = res.data || null;
+            if (data && data.reportingYear) {
+                // Ensure the date is in YYYY-MM-DD format for the DatePicker
+                data.reportingYear = data.reportingYear.split('T')[0];
+            }
+            return data;
         },
         enabled: !!parentId && !!endpoint,
     });
