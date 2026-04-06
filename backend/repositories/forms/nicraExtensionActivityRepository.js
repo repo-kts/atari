@@ -1,5 +1,14 @@
 const prisma = require('../../config/prisma.js');
 
+const kvkIncludeWithState = {
+    kvk: {
+        select: {
+            kvkName: true,
+            state: { select: { stateName: true } },
+        },
+    },
+};
+
 const nicraExtensionActivityRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -34,7 +43,7 @@ const nicraExtensionActivityRepository = {
 
         return await prisma.nicraExtensionActivity.findMany({
             where,
-            include: { kvk: { select: { kvkName: true } } },
+            include: kvkIncludeWithState,
             orderBy: { nicraExtensionActivityId: 'desc' }
         });
     },
@@ -46,7 +55,7 @@ const nicraExtensionActivityRepository = {
         }
         return await prisma.nicraExtensionActivity.findFirst({
             where,
-            include: { kvk: { select: { kvkName: true } } }
+            include: kvkIncludeWithState
         });
     },
 

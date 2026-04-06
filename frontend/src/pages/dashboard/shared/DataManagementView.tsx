@@ -603,35 +603,59 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const handleSubmitNariNutriResult = async (payload: NariNutritionalGardenResultValue) => {
         if (!selectedNariNutriId) return
-        await nariNutriResult.saveResult(payload)
-        alert({
-            title: 'Success',
-            message: 'Nutrition Garden result saved successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
+        try {
+            await nariNutriResult.saveResult(payload)
+            alert({
+                title: 'Success',
+                message: 'Nutrition Garden result saved successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                variant: 'error',
+            })
+        }
     }
 
     const handleSubmitNariBioResult = async (payload: NariBioFortifiedResultValue) => {
         if (!selectedNariBioId) return
-        await nariBioResult.saveResult(payload)
-        alert({
-            title: 'Success',
-            message: 'Bio Fortified result saved successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
+        try {
+            await nariBioResult.saveResult(payload)
+            alert({
+                title: 'Success',
+                message: 'Bio Fortified result saved successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                variant: 'error',
+            })
+        }
     }
 
     const handleSubmitNariValueResult = async (payload: NariValueAdditionResultValue) => {
         if (!selectedNariValueId) return
-        await nariValueResult.saveResult(payload)
-        alert({
-            title: 'Success',
-            message: 'Value Addition result saved successfully.',
-            variant: 'success',
-            autoClose: true,
-        })
+        try {
+            await nariValueResult.saveResult(payload)
+            alert({
+                title: 'Success',
+                message: 'Value Addition result saved successfully.',
+                variant: 'success',
+                autoClose: true,
+            })
+        } catch (err: any) {
+            alert({
+                title: 'Error',
+                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                variant: 'error',
+            })
+        }
     }
 
     const statusValue = (item: any) => normalizeOftStatus(item.status || item.ongoingCompleted)

@@ -1,6 +1,15 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 
+const kvkIncludeWithState = {
+    kvk: {
+        select: {
+            kvkName: true,
+            state: { select: { stateName: true } },
+        },
+    },
+};
+
 const nicraFarmImplementRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -53,6 +62,8 @@ const nicraFarmImplementRepository = {
         return {
             ...r,
             id: r.nicraFarmImplementId,
+            kvkName: r.kvk?.kvkName || r.kvkName || '',
+            stateName: r.kvk?.state?.stateName || r.stateName || '',
             startDate: r.startDate && r.startDate instanceof Date ? r.startDate.toISOString().split('T')[0] : (r.startDate || ''),
             endDate: r.endDate && r.endDate instanceof Date ? r.endDate.toISOString().split('T')[0] : (r.endDate || ''),
             // Frontend generic field names
@@ -105,9 +116,7 @@ const nicraFarmImplementRepository = {
 
         const results = await prisma.nicraFarmImplement.findMany({
             where,
-            include: {
-                kvk: { select: { kvkName: true } },
-            },
+            include: kvkIncludeWithState,
             orderBy: { nicraFarmImplementId: 'desc' }
         });
         return results.map(r => nicraFarmImplementRepository._mapResponse(r));
@@ -120,9 +129,7 @@ const nicraFarmImplementRepository = {
         }
         const result = await prisma.nicraFarmImplement.findFirst({
             where,
-            include: {
-                kvk: { select: { kvkName: true } },
-            }
+            include: kvkIncludeWithState
         });
         return nicraFarmImplementRepository._mapResponse(result);
     },
