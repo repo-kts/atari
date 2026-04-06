@@ -871,6 +871,25 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return null
     }, [entityType])
 
+    // State-wise template key mapping (only modules that support it)
+    const statewiseTemplateKey = useMemo(() => {
+        if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC) return 'meetings-sac-statewise'
+        if (entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA) return 'swachhta-pakhwada-statewise'
+        return null
+    }, [entityType])
+
+    const handleStatewiseExport = async () => {
+        if (!statewiseTemplateKey) return
+        const exportDataSource = filteredData.length === 0 && items.length > 0 ? items : filteredData
+        await handleExportData('pdf', {
+            title,
+            fields,
+            data: exportDataSource,
+            pathname: location.pathname,
+            templateKey: statewiseTemplateKey,
+        })
+    }
+
     const exportFormatOptions = useMemo(
         () => [
             { value: 'pdf', label: 'PDF' },
@@ -1126,6 +1145,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 {exportLoadingState === opt.value ? 'Downloading...' : opt.label}
                                             </button>
                                         ))}
+                                        {statewiseTemplateKey && (
+                                            <button
+                                                type="button"
+                                                onClick={handleStatewiseExport}
+                                                disabled={exportLoadingState !== null}
+                                                className="h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                                State-wise
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Mobile: styled dropdown menu */}
@@ -1165,6 +1195,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                         </span>
                                                     </button>
                                                 ))}
+                                                {statewiseTemplateKey && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsExportMenuOpen(false)
+                                                            handleStatewiseExport()
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
+                                                    >
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Download className="w-4 h-4 text-[#487749]" />
+                                                            State-wise
+                                                        </span>
+                                                    </button>
+                                                )}
                                             </div>
                                         )}
                                     </div>
