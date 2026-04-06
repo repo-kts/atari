@@ -28,18 +28,6 @@ const nariValueAdditionService = {
         const result = await nariValueAdditionRepository.delete(id, user);
         await reportCacheInvalidationService.invalidateDataSourceForKvk('nariValueAddition', existing?.kvkId || user?.kvkId);
         return result;
-    },
-
-    getResultById: async (id) => {
-        return await nariValueAdditionRepository.getResultById(id);
-    },
-
-    createResult: async (id, data) => {
-        return await nariValueAdditionRepository.createResult(id, data);
-    },
-
-    updateResult: async (id, data) => {
-        return await nariValueAdditionRepository.updateResult(id, data);
     }
 };
 
