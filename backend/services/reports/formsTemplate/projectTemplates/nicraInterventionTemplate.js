@@ -1,3 +1,54 @@
+function esc(t){if(t===null||t===undefined)return'';const m={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};return String(t).replace(/[&<>"']/g,c=>m[c]);}
+function n(v){const x=Number(v);return Number.isFinite(x)?x:0;}
+
+function renderNicraInterventionSection(section, data, sectionId, isFirstSection){
+  const rows = Array.isArray(data)?data:(data?[data]:[]);
+  if(rows.length===0){ return this._generateEmptySection(section,null,sectionId,isFirstSection); }
+
+  // Split into columns by bank type
+  const body = rows.map((r,idx)=>`
+    <tr>
+      <td>${idx+1}</td>
+      <td class="l">${esc(r.stateName || '')}</td>
+      <td class="l">${esc(r.kvkName || '')}</td>
+      <td class="l">${esc(r.bankType && r.bankType.toLowerCase().includes('seed') ? r.cropWithVariety : '')}</td>
+      <td>${esc(r.bankType && r.bankType.toLowerCase().includes('seed') ? n(r.quantityQ) : '')}</td>
+      <td class="l">${esc(r.bankType && r.bankType.toLowerCase().includes('fodder') ? r.cropWithVariety : '')}</td>
+      <td>${esc(r.bankType && r.bankType.toLowerCase().includes('fodder') ? n(r.quantityQ) : '')}</td>
+    </tr>
+  `).join('');
+
+  return `
+<div id="${sectionId}" class="${isFirstSection?'section-page section-page-first':'section-page section-page-continued'}">
+  <style>
+    .nicra-int { width:100%; table-layout:fixed; border-collapse:collapse; font-size:6.2pt; line-height:1.15; }
+    .nicra-int th,.nicra-int td { border:0.2px solid #000; padding:2px 3px; text-align:center; vertical-align:middle; word-break:break-word; }
+    .nicra-int thead th { background:#fff; font-weight:bold; }
+    .nicra-int .l { text-align:left; }
+  </style>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
+  <table class="nicra-int">
+    <thead>
+      <tr>
+        <th rowspan="2">S.No.</th>
+        <th rowspan="2">State</th>
+        <th rowspan="2">KVK</th>
+        <th colspan="2">Seed bank</th>
+        <th colspan="2">Fodder bank</th>
+      </tr>
+      <tr>
+        <th>Crop with variety</th><th>Quantity in (q)</th>
+        <th>Fodder crop with variety</th><th>Quantity in (q)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${body}
+    </tbody>
+  </table>
+</div>`;
+}
+
+module.exports = { renderNicraInterventionSection };
 'use strict';
 
 /**

@@ -58,9 +58,23 @@ const nicraService = {
     // Extension Activity
     getAllExtensionActivity: async (filters, user) => await nicraExtensionActivityRepository.findAll(filters, user),
     getExtensionActivityById: async (id, user) => await nicraExtensionActivityRepository.findById(id, user),
-    createExtensionActivity: async (data, user) => await nicraExtensionActivityRepository.create(data, user),
-    updateExtensionActivity: async (id, data, user) => await nicraExtensionActivityRepository.update(id, data, user),
-    deleteExtensionActivity: async (id, user) => await nicraExtensionActivityRepository.delete(id, user),
+    createExtensionActivity: async (data, user) => {
+        const result = await nicraExtensionActivityRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraExtensionActivity', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateExtensionActivity: async (id, data, user) => {
+        const existing = await nicraExtensionActivityRepository.findById(id, user);
+        const result = await nicraExtensionActivityRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraExtensionActivity', existing?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteExtensionActivity: async (id, user) => {
+        const existing = await nicraExtensionActivityRepository.findById(id, user);
+        const result = await nicraExtensionActivityRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nicraExtensionActivity', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 
     // Details
     getAllDetails: async (filters, user) => await nicraDetailsRepository.findAll(filters, user),

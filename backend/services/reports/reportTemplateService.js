@@ -45,6 +45,11 @@ const { renderInstructionalFarmLivestockSection } = require('./formsTemplate/pro
 const { renderHostelUtilizationSection }          = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
 const { renderStaffQuartersUtilizationSection }   = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
 const { renderRainwaterHarvestingSection }        = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
+const { renderNicraInterventionSection } = require('./formsTemplate/projectTemplates/nicraInterventionTemplate.js');
+const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplates/nicraExtensionTemplate.js');
+const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
+const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
+const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
 
 /**
  * Report Template Service
@@ -84,6 +89,11 @@ class ReportTemplateService {
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
             'nicra-basic': renderNicraBasicSection.bind(this),
             'nicra-training': renderNicraTrainingSection.bind(this),
+            'nicra-intervention': renderNicraInterventionSection.bind(this),
+            'nicra-extension': renderNicraExtensionSection.bind(this),
+            'nicra-farm-implement': renderNicraFarmImplementSection.bind(this),
+            'nicra-vcrmc': renderNicraVcrmcSection.bind(this),
+            'nicra-soil-health': renderNicraSoilHealthSection.bind(this),
             'tsp': renderTspSection.bind(this),
             'scsp': renderScspSection.bind(this),
             'tsp-scsp': renderTspScspSection.bind(this),

@@ -5,7 +5,7 @@ const craReportRepository = require('../../repositories/reports/craReport/index.
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
 const drmrReportRepository = require('../../repositories/reports/drmrReport/index.js');
 const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
-const aryaReportRepository  = require('../../repositories/reports/aryaReport/index.js');
+const aryaReportRepository = require('../../repositories/reports/aryaReport/index.js');
 const csisaReportRepository = require('../../repositories/reports/csisaReport/index.js');
 const nicraReportRepository = require('../../repositories/reports/nicraReport/index.js');
 const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
@@ -159,6 +159,21 @@ class ReportDataService {
             case 'nicraTraining':
                 rawData = await nicraReportRepository.getNicraTrainingData(kvkId, sectionFilters);
                 break;
+            case 'nicraIntervention':
+                rawData = await nicraReportRepository.getNicraInterventionData(kvkId, sectionFilters);
+                break;
+            case 'nicraExtensionActivity':
+                rawData = await nicraReportRepository.getNicraExtensionActivityData(kvkId, sectionFilters);
+                break;
+            case 'nicraFarmImplement':
+                rawData = await nicraReportRepository.getNicraFarmImplementData(kvkId, sectionFilters);
+                break;
+            case 'nicraVcrmc':
+                rawData = await nicraReportRepository.getNicraVcrmcData(kvkId, sectionFilters);
+                break;
+            case 'nicraSoilHealth':
+                rawData = await nicraReportRepository.getNicraSoilHealthData(kvkId, sectionFilters);
+                break;
             case 'csisa':
                 rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
                 break;
@@ -236,6 +251,12 @@ class ReportDataService {
             || dataSource === 'aryaCurrent'
             || dataSource === 'aryaPrevYear'
             || dataSource === 'nicraBasic'
+            || dataSource === 'nicraTraining'
+            || dataSource === 'nicraIntervention'
+            || dataSource === 'nicraExtensionActivity'
+            || dataSource === 'nicraFarmImplement'
+            || dataSource === 'nicraVcrmc'
+            || dataSource === 'nicraSoilHealth'
             || dataSource === 'csisa'
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
@@ -258,7 +279,7 @@ class ReportDataService {
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
-        
+
         // Build standardized structure
         const result = {
             sectionId,
@@ -372,7 +393,7 @@ class ReportDataService {
 
         sectionConfig.fields.forEach(field => {
             const value = this._getNestedValue(record, field.dbField);
-            
+
             // Skip optional fields that are null/undefined
             if (field.optional && (value === null || value === undefined)) {
                 return;

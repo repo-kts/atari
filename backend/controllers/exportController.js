@@ -151,6 +151,21 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'other-programmes') {
         return buildOtherProgrammesTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
+    if (templateKey === 'nicra-intervention') {
+        return buildNicraInterventionTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nicra-extension') {
+        return buildNicraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nicra-farm-implement') {
+        return buildNicraFarmImplementTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nicra-vcrmc') {
+        return buildNicraVcrmcTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nicra-soil-health') {
+        return buildNicraSoilHealthTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
     if (templateKey === 'tsp') {
         return buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -1155,6 +1170,200 @@ function buildOtherProgrammesTabularData(rawData, format, fallbackHeaders, fallb
         Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
         Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
         Number(r.grandM ?? 0), Number(r.grandF ?? 0), Number(r.grandT ?? 0),
+    ]);
+    return { headers, rows };
+}
+
+function buildNicraInterventionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'State',
+        'KVK',
+        'Seed bank - Crop with variety',
+        'Seed bank - Quantity (q)',
+        'Fodder bank - Crop with variety',
+        'Fodder bank - Quantity (q)',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.stateName || '-', format),
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.bankType?.toLowerCase().includes('seed') ? (r.cropWithVariety || '-') : '', format),
+        r.bankType?.toLowerCase().includes('seed') ? Number(r.quantityQ ?? 0) : '',
+        formatExportValue(r.bankType?.toLowerCase().includes('fodder') ? (r.cropWithVariety || '-') : '', format),
+        r.bankType?.toLowerCase().includes('fodder') ? Number(r.quantityQ ?? 0) : '',
+    ]);
+    return { headers, rows };
+}
+
+function buildNicraExtensionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const pickFirst = (...values) => {
+        for (const value of values) {
+            if (value !== null && value !== undefined && value !== '') return value;
+        }
+        return '';
+    };
+    const resolveStateName = (row) => pickFirst(
+        row?.stateName,
+        row?.state,
+        row?.kvk?.stateName,
+        row?.kvk?.state?.stateName,
+        row?.kvks?.stateName,
+        row?.kvks?.state?.stateName
+    );
+    const resolveKvkName = (row) => pickFirst(
+        row?.kvkName,
+        row?.kvk?.kvkName,
+        row?.kvks?.kvkName
+    );
+    const normalize = (r) => {
+        if (r && (r.generalM !== undefined || r.genMale !== undefined)) {
+            const genM = Number(r.genM ?? r.genMale ?? r.generalM ?? 0);
+            const genF = Number(r.genF ?? r.genFemale ?? r.generalF ?? 0);
+            const obcM = Number(r.obcM ?? r.obcMale ?? 0);
+            const obcF = Number(r.obcF ?? r.obcFemale ?? 0);
+            const scM = Number(r.scM ?? r.scMale ?? 0);
+            const scF = Number(r.scF ?? r.scFemale ?? 0);
+            const stM = Number(r.stM ?? r.stMale ?? 0);
+            const stF = Number(r.stF ?? r.stFemale ?? 0);
+            const genT = genM + genF, obcT = obcM + obcF, scT = scM + scF, stT = stM + stF;
+            const totM = genM + obcM + scM + stM;
+            const totF = genF + obcF + scF + stF;
+            return {
+                stateName: resolveStateName(r),
+                kvkName: resolveKvkName(r),
+                activityName: r.activityName || r.activity || '',
+                numProgrammes: Number(r.numProgrammes ?? 1),
+                genM, genF, genT, obcM, obcF, obcT, scM, scF, scT, stM, stF, stT, totM, totF, totT: totM + totF,
+            };
+        }
+        return r;
+    };
+    const rawArr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const arr = rawArr.map(normalize);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'State','KVK','Name of the activity','Number of Programmes',
+        'Gen M','Gen F','Gen T',
+        'OBC M','OBC F','OBC T',
+        'SC M','SC F','SC T',
+        'ST M','ST F','ST T',
+        'Total M','Total F','Total T',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.stateName || '-', format),
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.activityName || '-', format),
+        Number(r.numProgrammes ?? 0),
+        Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
+        Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+        Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+        Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+        Number(r.totM ?? 0), Number(r.totF ?? 0), Number(r.totT ?? 0),
+    ]);
+    return { headers, rows };
+}
+
+function buildNicraFarmImplementTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const pickFirst = (...values) => {
+        for (const value of values) {
+            if (value !== null && value !== undefined && value !== '') return value;
+        }
+        return '';
+    };
+    const resolveStateName = (row) => pickFirst(
+        row?.stateName,
+        row?.state,
+        row?.kvk?.stateName,
+        row?.kvk?.state?.stateName,
+        row?.kvks?.stateName,
+        row?.kvks?.state?.stateName
+    );
+    const resolveKvkName = (row) => pickFirst(
+        row?.kvkName,
+        row?.kvk?.kvkName,
+        row?.kvks?.kvkName
+    );
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'State','KVK','Name of farm implement/equipment',
+        'Gen M','Gen F','Gen T',
+        'OBC M','OBC F','OBC T',
+        'SC M','SC F','SC T',
+        'ST M','ST F','ST T',
+        'Total M','Total F','Total T',
+        'Area covered (ha)',
+        'Used (hours)',
+        'Revenue generated (Rs.)',
+        'Expenditure repairing (Rs.)',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(resolveStateName(r) || '-', format),
+        formatExportValue(resolveKvkName(r) || '-', format),
+        formatExportValue(r.nameOfFarmImplement || r.nameOfFarmImplementEquipment || '-', format),
+        Number(r.genM ?? r.generalM ?? r.genMale ?? 0), Number(r.genF ?? r.generalF ?? r.genFemale ?? 0), Number(r.genT ?? 0),
+        Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+        Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+        Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+        Number(r.totM ?? 0), Number(r.totF ?? 0), Number(r.totT ?? 0),
+        Number(r.areaCovered ?? r.areaCoveredByFarmImplement ?? 0),
+        Number(r.farmImplementUsedHours ?? r.farmImplementUsedInHours ?? 0),
+        Number(r.revenueGeneratedRs ?? r.revenueGeneratedByFarmImplement ?? 0),
+        Number(r.expenditureIncurredRepairingRs ?? r.expenditureIncurredOnRepairing ?? 0),
+    ]);
+    return { headers, rows };
+}
+
+function buildNicraVcrmcTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'State','KVK','Village name','VCRMC Constitution date',
+        'Members Male','Members Female','Members Total',
+        'Meetings organized (no.)','Date of VCRMC meeting',
+        'Name of Secretary','Name of President','Major decision taken',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.stateName || '-', format),
+        formatExportValue(r.kvkName || '-', format),
+        formatExportValue(r.villageName || '-', format),
+        formatExportValue(r.vcrmcConstitutionDate ? new Date(r.vcrmcConstitutionDate).toISOString().slice(0,10) : '-', format),
+        Number(r.membersMale ?? 0), Number(r.membersFemale ?? 0), Number(r.membersTotal ?? 0),
+        Number(r.meetingsOrganized ?? 0),
+        formatExportValue(r.dateOfMeeting ? new Date(r.dateOfMeeting).toISOString().slice(0,10) : '-', format),
+        formatExportValue(r.nameOfSecretary || '-', format),
+        formatExportValue(r.nameOfPresident || '-', format),
+        formatExportValue(r.majorDecisionTaken || '-', format),
+    ]);
+    return { headers, rows };
+}
+
+function buildNicraSoilHealthTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const arr = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (arr.length === 0) return { headers: fallbackHeaders, rows: fallbackRows };
+    const headers = [
+        'State','KVK',
+        'No. of soil samples collected',
+        'No. of samples analysed',
+        'SHC issued',
+        'Gen M','Gen F','Gen T',
+        'OBC M','OBC F','OBC T',
+        'SC M','SC F','SC T',
+        'ST M','ST F','ST T',
+        'Total M','Total F','Total T',
+    ];
+    const rows = arr.map(r => [
+        formatExportValue(r.stateName || '-', format),
+        formatExportValue(r.kvkName || '-', format),
+        Number(r.noOfSoilSamplesCollected ?? 0),
+        Number(r.noOfSamplesAnalysed ?? 0),
+        Number(r.shcIssued ?? 0),
+        Number(r.genM ?? r.generalM ?? r.genMale ?? 0), Number(r.genF ?? r.generalF ?? r.genFemale ?? 0), Number(r.genT ?? 0),
+        Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+        Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+        Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+        Number(r.totM ?? 0), Number(r.totF ?? 0), Number(r.totT ?? 0),
     ]);
     return { headers, rows };
 }
