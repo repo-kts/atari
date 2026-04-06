@@ -20,6 +20,9 @@ const { renderMobileAppSection } = require('./formsTemplate/digitalInfoTemplates
 const { renderKmasSection } = require('./formsTemplate/digitalInfoTemplates/kmasTemplate.js');
 const { renderWebPortalSection } = require('./formsTemplate/digitalInfoTemplates/webPortalTemplate.js');
 const { renderMsgDetailsSection } = require('./formsTemplate/digitalInfoTemplates/msgDetailsTemplate.js');
+const { renderSwachhtaSewaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaSewaTemplate.js');
+const { renderSwachhtaPakhwadaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaTemplate.js');
+const { renderSwachhtaBudgetSection } = require('./formsTemplate/swachhtaTemplates/swachhtaBudgetTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
@@ -93,6 +96,9 @@ class ReportTemplateService {
             'di-kmas': renderKmasSection.bind(this),
             'di-web-portal': renderWebPortalSection.bind(this),
             'di-msg-details': renderMsgDetailsSection.bind(this),
+            'swachhta-sewa': renderSwachhtaSewaSection.bind(this),
+            'swachhta-pakhwada': renderSwachhtaPakhwadaSection.bind(this),
+            'swachhta-budget': renderSwachhtaBudgetSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),

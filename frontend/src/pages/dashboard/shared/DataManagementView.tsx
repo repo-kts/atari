@@ -756,7 +756,13 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                     ? 'di-web-portal'
                                                                                     : entityType === ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS
                                                                                         ? 'di-msg-details'
-                                                                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                                                                        : entityType === ENTITY_TYPES.MISC_SWACHHTA_SEWA
+                                                                                            ? 'swachhta-sewa'
+                                                                                            : entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA
+                                                                                                ? 'swachhta-pakhwada'
+                                                                                                : entityType === ENTITY_TYPES.MISC_SWACHHTA_BUDGET
+                                                                                                    ? 'swachhta-budget'
+                                                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
                                             ? 'cfld-combined'
                                             : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
                                                 ? 'cra-details-state-wise'
