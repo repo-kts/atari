@@ -138,7 +138,7 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'nari-value-addition') {
         return buildNariValueAdditionTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
-<<<<<<< Updated upstream
+
     if (templateKey === 'nicra-basic') {
         return buildNicraBasicTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -159,7 +159,8 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'tsp-scsp') {
         return buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows);
-=======
+    }
+
     if (templateKey === 'special-programme') {
         return buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -195,7 +196,7 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'rainwater-harvesting') {
         return buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, fallbackRows);
->>>>>>> Stashed changes
+
     }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
@@ -1220,7 +1221,7 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     return { headers, rows };
 }
 
-<<<<<<< Updated upstream
+
 /**
  * TSP (Tribal Sub Plan) – Excel / DOCX tabular export (Section 2.23.1)
  *
@@ -1231,16 +1232,10 @@ function buildCsisaTabularData(rawData, format, fallbackHeaders, fallbackRows) {
 function buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     const d = Array.isArray(rawData) ? rawData[0] : rawData;
     if (!d || !d.activities || d.activities.length === 0) {
-=======
-function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows) {
-    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-    if (normalizedData.length === 0) {
->>>>>>> Stashed changes
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
 
     const headers = [
-<<<<<<< Updated upstream
         'KVK Name', 'Reporting Year', 'Activity',
         'Nos. (Count)', 'No. of Beneficiaries',
         'Fund Received (Rs. In lakh)',
@@ -1260,7 +1255,6 @@ function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fall
         Number(d.outcomes?.familyIncome?.achievement ?? 0),
         Number(d.outcomes?.consumptionLevel?.achievement ?? 0),
         Number(d.outcomes?.implementsAvailability?.achievement ?? 0),
-        // Location – leave blank per-activity row (one district row added separately)
         formatExportValue('-', format),
         formatExportValue('-', format),
         Number(0),
@@ -1290,6 +1284,35 @@ function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fall
     return { headers, rows };
 }
 
+function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sr.No.',
+        'Programme Type',
+        'Name of the Programme/Scheme',
+        'Purpose of programme',
+        'Date/Month of initiation',
+        'Funding agency',
+        'Amount(Rs.)',
+    ];
+
+    const rows = normalizedData.map((row, idx) => [
+        idx + 1,
+        formatExportValue(row.programmeType || '-', format),
+        formatExportValue(row.programmeName || '-', format),
+        formatExportValue(row.programmePurpose || '-', format),
+        formatExportValue(row.initiationDate || '-', format),
+        formatExportValue(row.fundingAgency || '-', format),
+        formatExportValue(row.amount || 0, format),
+    ]);
+
+    return { headers, rows };
+}
+
 /**
  * SCSP (Scheduled Caste Sub Plan) – Excel / DOCX tabular export (Section 2.23.2)
  *
@@ -1314,31 +1337,12 @@ function buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
         formatExportValue(act.activityName || '-', format),
         Number(act.noOfTrainings ?? 0),
         Number(act.noOfBeneficiaries ?? 0),
-=======
-        'Sr.No.',
-        'Programme Type',
-        'Name of the Programme/Scheme',
-        'Purpose of programme',
-        'Date/Month of initiation',
-        'Funding agency',
-        'Amount(Rs.)',
-    ];
-
-    const rows = normalizedData.map((row, idx) => [
-        idx + 1,
-        formatExportValue(row.programmeType || '-', format),
-        formatExportValue(row.programmeName || '-', format),
-        formatExportValue(row.programmePurpose || '-', format),
-        formatExportValue(row.initiationDate || '-', format),
-        formatExportValue(row.fundingAgency || '-', format),
-        formatExportValue(row.amount || 0, format),
->>>>>>> Stashed changes
     ]);
 
     return { headers, rows };
 }
 
-<<<<<<< Updated upstream
+
 /**
  * Combined TSP + SCSP – Excel / DOCX module-level export (templateKey: 'tsp-scsp')
  *
@@ -1349,16 +1353,10 @@ function buildScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
 function buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
     const records = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
     if (records.length === 0) {
-=======
-function buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fallbackRows) {
-    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-    if (normalizedData.length === 0) {
->>>>>>> Stashed changes
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
 
     const headers = [
-<<<<<<< Updated upstream
         'KVK Name', 'Reporting Year', 'Type', 'Activity',
         'Nos. (Count)', 'No. of Beneficiaries',
         'Fund Received (Rs. In lakh)',
@@ -1386,7 +1384,18 @@ function buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fal
         Number(r.beneficiaryMale ?? 0),
         Number(r.beneficiaryFemale ?? 0),
         Number(r.beneficiaryTotal ?? 0),
-=======
+    ]);
+
+    return { headers, rows };
+}
+
+function buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (normalizedData.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
         'Sr.No.',
         'Name of Organization',
         'Nature of Linkage',
@@ -1685,11 +1694,12 @@ function buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, f
         formatExportValue(row.plantMaterial || 0, format),
         formatExportValue(row.farmerVisits || 0, format),
         formatExportValue(row.officialVisits || 0, format),
->>>>>>> Stashed changes
     ]);
 
     return { headers, rows };
 }
+
+
 
 function getNestedValue(obj, path) {
     if (!obj || !path) return null;

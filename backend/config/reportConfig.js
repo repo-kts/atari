@@ -560,7 +560,6 @@ const reportConfig = {
             fields: [],
         },
         {
-<<<<<<< Updated upstream
             id: '2.23',
             title: 'TSP / SCSP Details',
             description: 'Details of Tribal Sub Plan (TSP) and Scheduled Caste Sub Plan (SCSP)',
@@ -634,7 +633,6 @@ const reportConfig = {
                 yearFields: ['programmeDate'],
             },
             fields: [],
-=======
             id: '10.20',
             title: 'Special Programmes',
             description: 'List of Special Programmes Undertaken by the KVK',
@@ -886,7 +884,6 @@ const reportConfig = {
                 { dbField: 'farmerVisits', displayName: 'Visit by the farmers (No.)' },
                 { dbField: 'officialVisits', displayName: 'Visit by the officials (No.)' },
             ],
->>>>>>> Stashed changes
         },
     ],
 };

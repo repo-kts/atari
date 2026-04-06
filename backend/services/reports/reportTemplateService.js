@@ -23,7 +23,6 @@ const { renderNariTrainingSection } = require('./formsTemplate/projectTemplates/
 const { renderCsisaSection } = require('./formsTemplate/projectTemplates/csisaTemplate.js');
 const { renderNariExtensionSection } = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
 const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
-<<<<<<< Updated upstream
 const { renderNariValueAdditionSection } = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
 const { renderNicraBasicSection } = require('./formsTemplate/projectTemplates/nicraBasicTemplate.js');
 const { renderAryaCurrentSection } = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
@@ -34,7 +33,6 @@ const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspSc
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
 const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
-=======
 const { renderNariValueAdditionSection }   = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
 const { renderAryaCurrentSection }         = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
 const { renderAryaPrevYearSection }        = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
@@ -50,7 +48,6 @@ const { renderInstructionalFarmLivestockSection } = require('./formsTemplate/pro
 const { renderHostelUtilizationSection }          = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
 const { renderStaffQuartersUtilizationSection }   = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
 const { renderRainwaterHarvestingSection }        = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
->>>>>>> Stashed changes
 
 /**
  * Report Template Service
@@ -86,7 +83,6 @@ class ReportTemplateService {
             'csisa': renderCsisaSection.bind(this),
             'nari-extension': renderNariExtensionSection.bind(this),
             'nari-value-addition': renderNariValueAdditionSection.bind(this),
-<<<<<<< Updated upstream
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
             'nicra-basic': renderNicraBasicSection.bind(this),
@@ -96,7 +92,6 @@ class ReportTemplateService {
             'tsp-scsp': renderTspScspSection.bind(this),
             'seed-hub': renderSeedHubSection.bind(this),
             'other-programmes': renderOtherProgrammesSection.bind(this),
-=======
             'arya-current':       renderAryaCurrentSection.bind(this),
             'arya-prev-year':     renderAryaPrevYearSection.bind(this),
             'special-programme':  renderSpecialProgrammeSection.bind(this),
@@ -111,7 +106,6 @@ class ReportTemplateService {
             'hostel-utilization':           renderHostelUtilizationSection.bind(this),
             'staff-quarters':               renderStaffQuartersUtilizationSection.bind(this),
             'rainwater-harvesting':         renderRainwaterHarvestingSection.bind(this),
->>>>>>> Stashed changes
         };
     }
 

@@ -7,12 +7,10 @@ const drmrReportRepository = require('../../repositories/reports/drmrReport/inde
 const nariReportRepository = require('../../repositories/reports/nariReport/index.js');
 const aryaReportRepository  = require('../../repositories/reports/aryaReport/index.js');
 const csisaReportRepository = require('../../repositories/reports/csisaReport/index.js');
-<<<<<<< Updated upstream
 const nicraReportRepository = require('../../repositories/reports/nicraReport/index.js');
 const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
 const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
 const otherProgrammeReportRepository = require('../../repositories/reports/otherProgrammeReport/index.js');
-=======
 const specialProgrammeReportRepository = require('../../repositories/reports/specialProgrammeReport/index.js');
 const functionalLinkageReportRepository = require('../../repositories/reports/functionalLinkageReport/index.js');
 const successStoryReportRepository = require('../../repositories/reports/successStoryReport/index.js');
@@ -25,7 +23,6 @@ const instructionalFarmLivestockReportRepository = require('../../repositories/r
 const hostelUtilizationReportRepository = require('../../repositories/reports/hostelUtilizationReport/index.js');
 const staffQuartersUtilizationReportRepository = require('../../repositories/reports/staffQuartersUtilizationReport/index.js');
 const rainwaterHarvestingReportRepository = require('../../repositories/reports/rainwaterHarvestingReport/index.js');
->>>>>>> Stashed changes
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -165,7 +162,6 @@ class ReportDataService {
             case 'csisa':
                 rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
                 break;
-<<<<<<< Updated upstream
             case 'tspScsp':
                 rawData = await tspScspReportRepository.getCombinedTspScspData(kvkId, sectionFilters);
                 break;
@@ -180,7 +176,6 @@ class ReportDataService {
                 break;
             case 'otherProgrammes':
                 rawData = await otherProgrammeReportRepository.getOtherProgrammeData(kvkId, sectionFilters);
-=======
             case 'specialProgramme':
                 rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(kvkId, sectionFilters);
                 break;
@@ -216,7 +211,6 @@ class ReportDataService {
                 break;
             case 'rainwaterHarvesting':
                 rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(kvkId, sectionFilters);
->>>>>>> Stashed changes
                 break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
@@ -241,15 +235,14 @@ class ReportDataService {
             || dataSource === 'nariExtension'
             || dataSource === 'aryaCurrent'
             || dataSource === 'aryaPrevYear'
-<<<<<<< Updated upstream
             || dataSource === 'nicraBasic'
             || dataSource === 'csisa'
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
             || dataSource === 'scsp';
-        const skipTransformWithSeedHub = skipTransform || dataSource === 'seedHub' || dataSource === 'otherProgrammes';
-=======
-            || dataSource === 'csisa'
+        const skipTransformWithSeedHub = skipTransform
+            || dataSource === 'seedHub'
+            || dataSource === 'otherProgrammes'
             || dataSource === 'specialProgramme'
             || dataSource === 'functionalLinkage'
             || dataSource === 'successStory'
@@ -262,7 +255,6 @@ class ReportDataService {
             || dataSource === 'hostelUtilization'
             || dataSource === 'staffQuartersUtilization'
             || dataSource === 'rainwaterHarvesting';
->>>>>>> Stashed changes
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
