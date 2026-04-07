@@ -9,10 +9,10 @@ export interface NariBioFortifiedResultValue {
     cropName: string
     variety: string
     areaHa: string | number
-    productionYield: string | number
-    consumptionGmPerDay: string | number
+    productionKg: string | number
+    consumptionGm: string | number
     formOfConsumption: string
-    daysOfConsumption: string | number
+    daysInYear: string | number
 }
 
 interface NariBioFortifiedResultFormProps {
@@ -27,10 +27,10 @@ const defaultValue: NariBioFortifiedResultValue = {
     cropName: '',
     variety: '',
     areaHa: '',
-    productionYield: '',
-    consumptionGmPerDay: '',
+    productionKg: '',
+    consumptionGm: '',
     formOfConsumption: '',
-    daysOfConsumption: '',
+    daysInYear: '',
 }
 
 export const NariBioFortifiedResultForm: React.FC<NariBioFortifiedResultFormProps> = ({ mode = 'create', initialValue, onClose, onSubmit }) => {
@@ -101,15 +101,15 @@ export const NariBioFortifiedResultForm: React.FC<NariBioFortifiedResultFormProp
                             label="Production/yield (kg/ha)"
                             type="number"
                             required
-                            value={value.productionYield}
-                            onChange={(e) => setValue((v) => ({ ...v, productionYield: e.target.value }))}
+                            value={value.productionKg}
+                            onChange={(e) => setValue((v) => ({ ...v, productionKg: e.target.value }))}
                         />
                         <FormInput
                             label="Consumption (gm/day/person)"
                             type="number"
                             required
-                            value={value.consumptionGmPerDay}
-                            onChange={(e) => setValue((v) => ({ ...v, consumptionGmPerDay: e.target.value }))}
+                            value={value.consumptionGm}
+                            onChange={(e) => setValue((v) => ({ ...v, consumptionGm: e.target.value }))}
                         />
                         <FormInput
                             label="Form of consumption"
@@ -121,8 +121,8 @@ export const NariBioFortifiedResultForm: React.FC<NariBioFortifiedResultFormProp
                             label="No. of days of consumption in a year"
                             type="number"
                             required
-                            value={value.daysOfConsumption}
-                            onChange={(e) => setValue((v) => ({ ...v, daysOfConsumption: e.target.value }))}
+                            value={value.daysInYear}
+                            onChange={(e) => setValue((v) => ({ ...v, daysInYear: e.target.value }))}
                         />
                     </div>
 
