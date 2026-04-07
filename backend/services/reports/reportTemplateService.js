@@ -9,6 +9,24 @@ const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/abo
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
 const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
+const { renderPrevalentDiseasesCropsSection, renderPrevalentDiseasesLivestockSection } = require('./formsTemplate/miscTemplates/prevalentDiseasesTemplate.js');
+const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
+const { renderPpvFraPlantVarietiesSection } = require('./formsTemplate/miscTemplates/ppvFraPlantVarietiesTemplate.js');
+const { renderPpvFraTrainingSection } = require('./formsTemplate/miscTemplates/ppvFraTrainingTemplate.js');
+const { renderVipVisitorsSection } = require('./formsTemplate/miscTemplates/vipVisitorsTemplate.js');
+const { renderRaweFetFitSection } = require('./formsTemplate/miscTemplates/raweFetFitTemplate.js');
+const { renderKisanSarathiSection } = require('./formsTemplate/digitalInfoTemplates/kisanSarathiTemplate.js');
+const { renderMobileAppSection } = require('./formsTemplate/digitalInfoTemplates/mobileAppTemplate.js');
+const { renderKmasSection } = require('./formsTemplate/digitalInfoTemplates/kmasTemplate.js');
+const { renderWebPortalSection } = require('./formsTemplate/digitalInfoTemplates/webPortalTemplate.js');
+const { renderMsgDetailsSection } = require('./formsTemplate/digitalInfoTemplates/msgDetailsTemplate.js');
+const { renderSwachhtaSewaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaSewaTemplate.js');
+const { renderSwachhtaPakhwadaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaTemplate.js');
+const { renderSwachhtaBudgetSection } = require('./formsTemplate/swachhtaTemplates/swachhtaBudgetTemplate.js');
+const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/sacMeetingTemplate.js');
+const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
+const { renderSacMeetingStatewiseSection } = require('./formsTemplate/meetingsTemplates/sacMeetingStatewiseTemplate.js');
+const { renderSwachhtaPakhwadaStatewiseSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaStatewiseTemplate.js');
 const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
 const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
 const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
@@ -87,6 +105,25 @@ class ReportTemplateService {
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
+            'misc-prevalent-diseases-crops': renderPrevalentDiseasesCropsSection.bind(this),
+            'misc-prevalent-diseases-livestock': renderPrevalentDiseasesLivestockSection.bind(this),
+            'misc-nyk-training': renderNykTrainingSection.bind(this),
+            'misc-ppv-fra-plant-varieties': renderPpvFraPlantVarietiesSection.bind(this),
+            'misc-ppv-fra-training': renderPpvFraTrainingSection.bind(this),
+            'misc-vip-visitors': renderVipVisitorsSection.bind(this),
+            'misc-rawe-fet-fit': renderRaweFetFitSection.bind(this),
+            'di-kisan-sarathi': renderKisanSarathiSection.bind(this),
+            'di-mobile-app': renderMobileAppSection.bind(this),
+            'di-kmas': renderKmasSection.bind(this),
+            'di-web-portal': renderWebPortalSection.bind(this),
+            'di-msg-details': renderMsgDetailsSection.bind(this),
+            'swachhta-sewa': renderSwachhtaSewaSection.bind(this),
+            'swachhta-pakhwada': renderSwachhtaPakhwadaSection.bind(this),
+            'swachhta-budget': renderSwachhtaBudgetSection.bind(this),
+            'meetings-sac': renderSacMeetingSection.bind(this),
+            'meetings-other': renderOtherMeetingSection.bind(this),
+            'meetings-sac-statewise': renderSacMeetingStatewiseSection.bind(this),
+            'swachhta-pakhwada-statewise': renderSwachhtaPakhwadaStatewiseSection.bind(this),
             'cfld-combined': renderCfldCombinedSection.bind(this),
             'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
             'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),

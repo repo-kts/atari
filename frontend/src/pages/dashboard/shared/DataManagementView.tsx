@@ -43,6 +43,8 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
+import { formatHeaderLabel } from '@/utils/exportUtils'
+import { exportApi } from '@/services/exportApi'
 import { useToast } from '@/hooks/useToast'
 import {
     useTransferOftToNextYear,
@@ -1251,7 +1253,41 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                                                 : entityType ===
                                                                                                                                     ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK
                                                                                                                                   ? 'technology-week-celebration-page-report'
-                                                                                                                                  : undefined
+                                                                                                                                  : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS
+                                                                                                                                    ? 'misc-prevalent-diseases-crops'
+                                                                                                                                    : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK
+                                                                                                                                      ? 'misc-prevalent-diseases-livestock'
+                                                                                                                                      : entityType === ENTITY_TYPES.MISC_NYK_TRAINING
+                                                                                                                                        ? 'misc-nyk-training'
+                                                                                                                                        : entityType === ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES
+                                                                                                                                          ? 'misc-ppv-fra-plant-varieties'
+                                                                                                                                          : entityType === ENTITY_TYPES.MISC_PPV_FRA_TRAINING
+                                                                                                                                            ? 'misc-ppv-fra-training'
+                                                                                                                                            : entityType === ENTITY_TYPES.MISC_VIP_VISITORS
+                                                                                                                                              ? 'misc-vip-visitors'
+                                                                                                                                              : entityType === ENTITY_TYPES.MISC_RAWE_FET
+                                                                                                                                                ? 'misc-rawe-fet-fit'
+                                                                                                                                                : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI
+                                                                                                                                                  ? 'di-kisan-sarathi'
+                                                                                                                                                  : entityType === ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP
+                                                                                                                                                    ? 'di-mobile-app'
+                                                                                                                                                    : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY
+                                                                                                                                                      ? 'di-kmas'
+                                                                                                                                                      : entityType === ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL
+                                                                                                                                                        ? 'di-web-portal'
+                                                                                                                                                        : entityType === ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS
+                                                                                                                                                          ? 'di-msg-details'
+                                                                                                                                                          : entityType === ENTITY_TYPES.MISC_SWACHHTA_SEWA
+                                                                                                                                                            ? 'swachhta-sewa'
+                                                                                                                                                            : entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA
+                                                                                                                                                              ? 'swachhta-pakhwada'
+                                                                                                                                                              : entityType === ENTITY_TYPES.MISC_SWACHHTA_BUDGET
+                                                                                                                                                                ? 'swachhta-budget'
+                                                                                                                                                                : entityType === ENTITY_TYPES.MISC_MEETINGS_SAC
+                                                                                                                                                                  ? 'meetings-sac'
+                                                                                                                                                                  : entityType === ENTITY_TYPES.MISC_MEETINGS_OTHER
+                                                                                                                                                                    ? 'meetings-other'
+                                                                                                                                                                    : undefined
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource =
@@ -1266,6 +1302,49 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             pathname: location.pathname,
             templateKey,
         })
+    }
+
+    // State-wise template key mapping (only modules that support it)
+    const statewiseTemplateKey = useMemo(() => {
+        if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC) return 'meetings-sac-statewise'
+        if (entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA) return 'swachhta-pakhwada-statewise'
+        return null
+    }, [entityType])
+
+    const [statewiseLoading, setStatewiseLoading] = useState(false)
+
+    const handleStatewiseExport = async () => {
+        if (!statewiseTemplateKey || statewiseLoading) return
+        setStatewiseLoading(true)
+        try {
+            const exportDataSource = filteredData.length === 0 && items.length > 0 ? items : filteredData
+            const headerLabels = fields.map(formatHeaderLabel)
+            const rows = exportDataSource.map(item => fields.map(field => getFieldValue(item, field)))
+
+            const blob = await exportApi.exportData(
+                {
+                    title,
+                    headers: headerLabels,
+                    rows,
+                    format: 'pdf',
+                    templateKey: statewiseTemplateKey,
+                    rawData: exportDataSource,
+                },
+                location.pathname
+            )
+
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-statewise-${Date.now()}.pdf`
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = filename
+            a.click()
+            URL.revokeObjectURL(url)
+        } catch (error: any) {
+            console.error('State-wise export failed:', error)
+        } finally {
+            setStatewiseLoading(false)
+        }
     }
 
     const multiFormNote = useMemo(() => {
@@ -1697,6 +1776,27 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     : opt.label}
                                             </button>
                                         ))}
+                                        {statewiseTemplateKey && (
+                                            <button
+                                                type="button"
+                                                onClick={handleStatewiseExport}
+                                                disabled={exportLoadingState !== null || statewiseLoading}
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${statewiseLoading
+                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                } ${exportLoadingState !== null ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                            >
+                                                {statewiseLoading ? (
+                                                    <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                    </svg>
+                                                ) : (
+                                                    <Download className="w-4 h-4" />
+                                                )}
+                                                {statewiseLoading ? 'Downloading...' : 'State-wise'}
+                                            </button>
+                                        )}
                                     </div>
 
                                     <div
@@ -1765,6 +1865,21 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                             </span>
                                                         </button>
                                                     )
+                                                )}
+                                                {statewiseTemplateKey && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setIsExportMenuOpen(false)
+                                                            handleStatewiseExport()
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
+                                                    >
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Download className="w-4 h-4 text-[#487749]" />
+                                                            State-wise
+                                                        </span>
+                                                    </button>
                                                 )}
                                             </div>
                                         )}

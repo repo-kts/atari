@@ -239,6 +239,13 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         />
 
                         <FormInput
+                            label="Registration No."
+                            value={formData.registrationNo ?? ''}
+                            onChange={handleFieldChange('registrationNo')}
+                            placeholder="e.g. REG/2024/0732"
+                        />
+
+                        <FormInput
                             label="Farmer Name"
                             required
                             value={formData.farmerName ?? ''}

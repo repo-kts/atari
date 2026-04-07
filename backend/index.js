@@ -1,4 +1,8 @@
 require('dotenv').config();
+require('dns').setDefaultResultOrder('ipv4first');
+// Node's Happy Eyeballs default 250ms per-address timeout is too short for
+// high-latency routes to Neon (AWS). Give it 5s so TCP can actually complete.
+require('net').setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
 const express = require('express');
 const cors = require('cors');

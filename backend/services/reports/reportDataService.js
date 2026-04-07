@@ -1,5 +1,9 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
+const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
+const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
+const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
+const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
@@ -111,6 +115,57 @@ class ReportDataService {
             }
             case 'oftDetailCards':
                 rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesCrops':
+                rawData = await miscReportRepository.getPrevalentDiseasesCrops(kvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesLivestock':
+                rawData = await miscReportRepository.getPrevalentDiseasesLivestock(kvkId, sectionFilters);
+                break;
+            case 'nykTraining':
+                rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
+                break;
+            case 'ppvFraPlantVarieties':
+                rawData = await miscReportRepository.getPpvFraPlantVarieties(kvkId, sectionFilters);
+                break;
+            case 'ppvFraTraining':
+                rawData = await miscReportRepository.getPpvFraTraining(kvkId, sectionFilters);
+                break;
+            case 'vipVisitors':
+                rawData = await miscReportRepository.getVipVisitors(kvkId, sectionFilters);
+                break;
+            case 'raweFetFit':
+                rawData = await miscReportRepository.getRaweFetFit(kvkId, sectionFilters);
+                break;
+            case 'kisanSarathi':
+                rawData = await digitalInfoReportRepository.getKisanSarathi(kvkId, sectionFilters);
+                break;
+            case 'mobileApp':
+                rawData = await digitalInfoReportRepository.getMobileApp(kvkId, sectionFilters);
+                break;
+            case 'kmas':
+                rawData = await digitalInfoReportRepository.getKmas(kvkId, sectionFilters);
+                break;
+            case 'webPortal':
+                rawData = await digitalInfoReportRepository.getWebPortal(kvkId, sectionFilters);
+                break;
+            case 'msgDetails':
+                rawData = await digitalInfoReportRepository.getMsgDetails(kvkId, sectionFilters);
+                break;
+            case 'swachhtaSewa':
+                rawData = await swachhtaReportRepository.getSwachhtaSewa(kvkId, sectionFilters);
+                break;
+            case 'swachhtaPakhwada':
+                rawData = await swachhtaReportRepository.getSwachhtaPakhwada(kvkId, sectionFilters);
+                break;
+            case 'swachhtaBudget':
+                rawData = await swachhtaReportRepository.getSwachhtaBudget(kvkId, sectionFilters);
+                break;
+            case 'sacMeetings':
+                rawData = await meetingsReportRepository.getSacMeetings(kvkId, sectionFilters);
+                break;
+            case 'otherMeetings':
+                rawData = await meetingsReportRepository.getOtherMeetings(kvkId, sectionFilters);
                 break;
             case 'cfldCombined':
                 rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
@@ -275,9 +330,26 @@ class ReportDataService {
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
-        // OFT sections pass raw data to templates (complex nested structures)
+        // Custom template sections pass raw data directly (complex nested structures)
         const skipTransform = dataSource === 'oftSummary'
             || dataSource === 'oftDetailCards'
+            || dataSource === 'prevalentDiseasesCrops'
+            || dataSource === 'prevalentDiseasesLivestock'
+            || dataSource === 'nykTraining'
+            || dataSource === 'ppvFraPlantVarieties'
+            || dataSource === 'ppvFraTraining'
+            || dataSource === 'vipVisitors'
+            || dataSource === 'raweFetFit'
+            || dataSource === 'kisanSarathi'
+            || dataSource === 'mobileApp'
+            || dataSource === 'kmas'
+            || dataSource === 'webPortal'
+            || dataSource === 'msgDetails'
+            || dataSource === 'swachhtaSewa'
+            || dataSource === 'swachhtaPakhwada'
+            || dataSource === 'swachhtaBudget'
+            || dataSource === 'sacMeetings'
+            || dataSource === 'otherMeetings'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'
