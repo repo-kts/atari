@@ -29,6 +29,11 @@ const {
     generateTrainingsPageExcelBuffer,
     generateTrainingsPageWordBuffer,
 } = require('../utils/trainingsPageExport.js');
+const { resolveExtensionActivityPagePayload } = require('../repositories/reports/extensionOutreachReport/extensionOutreachReportRepository.js');
+const {
+    generateExtensionActivityPageExcelBuffer,
+    generateExtensionActivityPageWordBuffer,
+} = require('../utils/extensionActivityPageExport.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -79,6 +84,9 @@ const exportData = async (req, res) => {
         if (templateKey === 'trainings-page-report' && rawData) {
             effectiveRawData = rawData;
         }
+        if (templateKey === 'extension-activities-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
 
         const tabularData = (templateKey && rawData)
             ? buildTabularDataFromTemplate(templateKey, effectiveRawData, headers, rows, format)
@@ -108,6 +116,11 @@ const exportData = async (req, res) => {
                         title,
                         resolveTrainingsPageReportPayload(effectiveRawData),
                     );
+                } else if (templateKey === 'extension-activities-page-report') {
+                    buffer = await generateExtensionActivityPageExcelBuffer(
+                        title,
+                        resolveExtensionActivityPagePayload(effectiveRawData),
+                    );
                 } else {
                     buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 }
@@ -124,6 +137,11 @@ const exportData = async (req, res) => {
                     buffer = await generateTrainingsPageWordBuffer(
                         title,
                         resolveTrainingsPageReportPayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'extension-activities-page-report') {
+                    buffer = await generateExtensionActivityPageWordBuffer(
+                        title,
+                        resolveExtensionActivityPagePayload(effectiveRawData),
                     );
                 } else {
                     buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
@@ -158,7 +176,8 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         {
             sectionId: matchedSection?.id
                 || (templateKey === 'fld-page-report' ? 'fld-page'
-                    : templateKey === 'trainings-page-report' ? 'trainings-page' : '1.1'),
+                    : templateKey === 'trainings-page-report' ? 'trainings-page'
+                        : templateKey === 'extension-activities-page-report' ? 'extension-activities-page' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
         }
@@ -166,7 +185,8 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
 }
 
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
-    if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report') {
+    if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report'
+        || templateKey === 'extension-activities-page-report') {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
     if (templateKey === 'cra-details-state-wise') {

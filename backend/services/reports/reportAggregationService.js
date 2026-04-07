@@ -336,6 +336,26 @@ class ReportAggregationService {
             };
         }
 
+        if (sectionConfig.dataSource === 'extensionOutreachReport') {
+            const { buildPayloadFromRecords } = require('../../repositories/reports/extensionOutreachReport/extensionOutreachReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const payload = buildPayloadFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { payload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // For custom format sections (OFT, etc.), combine all array data
         if (sectionConfig.format === 'custom') {
             const allRows = [];

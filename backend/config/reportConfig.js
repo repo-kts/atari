@@ -308,6 +308,21 @@ const reportConfig = {
             fields: [],
         },
         {
+            id: '2.5',
+            title: 'A. Achievements of Extension/Outreach Activities',
+            description: 'State-wise extension summary and activity-wise breakdown (farmers and extension officials by category)',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'extensionOutreachReport',
+            format: 'custom',
+            customTemplate: 'extension-outreach-report',
+            filters: {
+                dateFields: ['startDate'],
+                yearFields: ['startDate'],
+            },
+            fields: [],
+        },
+        {
             id: '2.8.1',
             title: 'Performance of Demonstration under CFLD',
             description: 'Combined CFLD report with technical, economic, socio-economic and perception parameters',

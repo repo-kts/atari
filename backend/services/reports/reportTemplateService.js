@@ -59,6 +59,8 @@ const { renderFldPageReportSection } = require('./formsTemplate/achievementTempl
 const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
 const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
 const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
+const { renderExtensionOutreachReportSection } = require('./formsTemplate/achievementTemplates/extensionOutreachReportTemplate.js');
+const { renderExtensionActivityPageReportSection } = require('./formsTemplate/achievementTemplates/extensionActivityPageReportTemplate.js');
 const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
 const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
 
@@ -119,6 +121,8 @@ class ReportTemplateService {
             'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
             'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
             'trainings-page-report': renderTrainingsPageReportSection.bind(this),
+            'extension-outreach-report': renderExtensionOutreachReportSection.bind(this),
+            'extension-activities-page-report': renderExtensionActivityPageReportSection.bind(this),
             'agri-drone-introduction': renderAgriDroneIntroductionSection.bind(this),
             'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),

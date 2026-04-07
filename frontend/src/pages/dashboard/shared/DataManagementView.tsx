@@ -1242,7 +1242,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                                           : entityType ===
                                                                                                                               ENTITY_TYPES.ACHIEVEMENT_TRAINING
                                                                                                                             ? 'trainings-page-report'
-                                                                                                                            : undefined
+                                                                                                                            : entityType ===
+                                                                                                                                ENTITY_TYPES.ACHIEVEMENT_EXTENSION
+                                                                                                                              ? 'extension-activities-page-report'
+                                                                                                                              : undefined
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource =
