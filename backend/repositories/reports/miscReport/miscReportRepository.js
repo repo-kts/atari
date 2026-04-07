@@ -8,7 +8,7 @@ async function getPrevalentDiseasesCrops(kvkId, filters = {}) {
     return await prisma.prevalentDiseasesInCrop.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
         },
         orderBy: [{ dateOfOutbreak: 'desc' }, { diseaseName: 'asc' }],
     });
@@ -21,7 +21,7 @@ async function getPrevalentDiseasesLivestock(kvkId, filters = {}) {
     return await prisma.prevalentDiseasesOnLivestock.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
         },
         orderBy: [{ dateOfOutbreak: 'desc' }, { diseaseName: 'asc' }],
     });
@@ -34,7 +34,7 @@ async function getNykTraining(kvkId, filters = {}) {
     return await prisma.nykTraining.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
         },
         orderBy: [{ startDate: 'desc' }, { title: 'asc' }],
     });
@@ -47,7 +47,7 @@ async function getPpvFraPlantVarieties(kvkId, filters = {}) {
     return await prisma.ppvFraPlantVarieties.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
         },
         orderBy: [{ reportingYear: 'desc' }, { cropName: 'asc' }],
     });
@@ -60,7 +60,7 @@ async function getVipVisitors(kvkId, filters = {}) {
     return await prisma.vipVisitor.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             dignitaryType: { select: { dignitaryTypeId: true, name: true } },
         },
         orderBy: [{ dateOfVisit: 'desc' }, { ministerName: 'asc' }],
@@ -74,7 +74,7 @@ async function getRaweFetFit(kvkId, filters = {}) {
     return await prisma.raweFetFitProgramme.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             attachmentType: { select: { attachmentTypeId: true, name: true } },
         },
         orderBy: [{ startDate: 'desc' }],
@@ -88,7 +88,7 @@ async function getPpvFraTraining(kvkId, filters = {}) {
     return await prisma.ppvFraTraining.findMany({
         where,
         include: {
-            kvk: { select: { kvkId: true, kvkName: true } },
+            kvk: { select: { kvkId: true, kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
             trainingType: { select: { typeId: true, typeName: true } },
         },
         orderBy: [{ programmeDate: 'desc' }, { title: 'asc' }],

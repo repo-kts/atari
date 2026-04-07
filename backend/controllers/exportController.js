@@ -261,6 +261,161 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
         ]);
         return { headers, rows };
     }
+    // ── Miscellaneous Excel/Word exports ──────────────────────
+    if (templateKey === 'misc-prevalent-diseases-crops') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Name of the disease', 'Crop', 'Date of outbreak', 'Area affected (in ha)', '% Commodity loss', 'Preventive measures taken for area (in ha)'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+            formatExportValue(r.diseaseName, format),
+            formatExportValue(r.crop, format),
+            formatExportValue(r.dateOfOutbreak, format),
+            r.areaAffected != null ? r.areaAffected : 0,
+            r.commodityLossPercent != null ? r.commodityLossPercent : 0,
+            r.preventiveMeasuresArea != null ? r.preventiveMeasuresArea : 0,
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-prevalent-diseases-livestock') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Name of the disease', 'Species affected', 'Date of outbreak', 'Number of death/ Morbidity rate (%)', 'Number of animals vaccinated', 'Preventive measures taken for area (in ha)'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+            formatExportValue(r.diseaseName, format),
+            formatExportValue(r.livestockType, format),
+            formatExportValue(r.dateOfOutbreak, format),
+            r.mortalityCount != null ? r.mortalityCount : 0,
+            r.animalsTreated != null ? r.animalsTreated : 0,
+            formatExportValue(r.preventiveMeasures, format),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-nyk-training') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Title of the training programme', 'From', 'To',
+            'General M', 'General F', 'General T', 'OBC M', 'OBC F', 'OBC T',
+            'SC M', 'SC F', 'SC T', 'ST M', 'ST F', 'ST T',
+            'Total M', 'Total F', 'Total T', 'Amount of Fund Received (Rs)'];
+        const rows = d.map((r, i) => {
+            const gM = r.generalM || 0, gF = r.generalF || 0;
+            const oM = r.obcM || 0, oF = r.obcF || 0;
+            const sM = r.scM || 0, sF = r.scF || 0;
+            const tM = r.stM || 0, tF = r.stF || 0;
+            const totalM = gM + oM + sM + tM, totalF = gF + oF + sF + tF;
+            return [
+                i + 1,
+                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+                formatExportValue(r.title, format),
+                formatExportValue(r.startDate, format),
+                formatExportValue(r.endDate, format),
+                gM, gF, gM + gF, oM, oF, oM + oF, sM, sF, sM + sF, tM, tF, tM + tF,
+                totalM, totalF, totalM + totalF,
+                r.fundReceived != null ? r.fundReceived : 0,
+            ];
+        });
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-ppv-fra-plant-varieties') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'KVK', 'Year of Registration', 'Crop Name', 'Registration No.', 'Farmer Name', 'Mobile No.', 'District', 'Block', 'Village', 'Characteristics'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+            r.reportingYear != null ? r.reportingYear : '-',
+            formatExportValue(r.cropName, format),
+            formatExportValue(r.registrationNo, format),
+            formatExportValue(r.farmerName, format),
+            formatExportValue(r.mobile, format),
+            formatExportValue(r.district, format),
+            formatExportValue(r.block, format),
+            formatExportValue(r.village, format),
+            formatExportValue(r.characteristics, format),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-ppv-fra-training') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Date of training/awareness programme', 'Title', 'Type', 'Venue', 'Resource Person',
+            'General M', 'General F', 'General T', 'OBC M', 'OBC F', 'OBC T',
+            'SC M', 'SC F', 'SC T', 'ST M', 'ST F', 'ST T',
+            'Total M', 'Total F', 'Total T'];
+        const rows = d.map((r, i) => {
+            const gM = r.generalM || 0, gF = r.generalF || 0;
+            const oM = r.obcM || 0, oF = r.obcF || 0;
+            const sM = r.scM || 0, sF = r.scF || 0;
+            const tM = r.stM || 0, tF = r.stF || 0;
+            const totalM = gM + oM + sM + tM, totalF = gF + oF + sF + tF;
+            const typeLabel = r.trainingType?.typeName || (r.type === 'TRAINING' ? 'Training' : r.type === 'AWARENESS' ? 'Awareness' : r.type || '-');
+            return [
+                i + 1,
+                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+                formatExportValue(r.programmeDate, format),
+                formatExportValue(r.title, format),
+                typeLabel,
+                formatExportValue(r.venue, format),
+                formatExportValue(r.resourcePerson, format),
+                gM, gF, gM + gF, oM, oF, oM + oF, sM, sF, sM + sF, tM, tF, tM + tF,
+                totalM, totalF, totalM + totalF,
+            ];
+        });
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-vip-visitors') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Date', 'Name of the person', 'Purpose of visit'];
+        const rows = d.map((r, i) => [
+            i + 1,
+            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+            formatExportValue(r.dateOfVisit, format),
+            formatExportValue(r.ministerName, format),
+            formatExportValue(r.salientPoints, format),
+        ]);
+        return { headers, rows };
+    }
+    if (templateKey === 'misc-rawe-fet-fit') {
+        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+        const headers = ['S.No.', 'State', 'District', 'KVK', 'Start Date', 'End Date', 'Type of attachment',
+            'Male Students', 'Female Students', 'Total Students',
+            'Male Participants', 'Female Participants', 'Total Participants', 'No of days stayed'];
+        const rows = d.map((r, i) => {
+            const male = Number(r.maleStudents) || 0;
+            const female = Number(r.femaleStudents) || 0;
+            const totalStudents = male + female;
+            const startD = r.startDate ? new Date(r.startDate) : null;
+            const endD = r.endDate ? new Date(r.endDate) : null;
+            let days = '-';
+            if (startD && endD && !isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
+                days = Math.max(0, Math.round((endD - startD) / (1000 * 60 * 60 * 24)) + 1);
+            }
+            return [
+                i + 1,
+                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
+                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
+                formatExportValue(r.startDate, format),
+                formatExportValue(r.endDate, format),
+                formatExportValue(r.attachmentType?.name, format),
+                male, female, totalStudents,
+                male, female, totalStudents,
+                days,
+            ];
+        });
+        return { headers, rows };
+    }
+
     // ── Digital Information Excel/Word exports ────────────────
     if (templateKey === 'di-kisan-sarathi') {
         const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
