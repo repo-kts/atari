@@ -51,23 +51,40 @@ const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspSc
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
 const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
-const { renderSpecialProgrammeSection }    = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
-const { renderFunctionalLinkageSection }   = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
-const { renderSuccessStorySection }       = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
-const { renderEntrepreneurshipSection }    = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
-const { renderKvkImpactActivitySection }   = require('./formsTemplate/projectTemplates/kvkImpactActivityTemplate.js');
-const { renderDemonstrationUnitSection }   = require('./formsTemplate/projectTemplates/demonstrationUnitTemplate.js');
+const { renderSpecialProgrammeSection } = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
+const { renderFunctionalLinkageSection } = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
+const { renderSuccessStorySection } = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
+const { renderEntrepreneurshipSection } = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
+const { renderKvkImpactActivitySection } = require('./formsTemplate/projectTemplates/kvkImpactActivityTemplate.js');
+const { renderDemonstrationUnitSection } = require('./formsTemplate/projectTemplates/demonstrationUnitTemplate.js');
 const { renderInstructionalFarmCropSection } = require('./formsTemplate/projectTemplates/instructionalFarmCropTemplate.js');
-const { renderProductionUnitSection }        = require('./formsTemplate/projectTemplates/productionUnitTemplate.js');
+const { renderProductionUnitSection } = require('./formsTemplate/projectTemplates/productionUnitTemplate.js');
 const { renderInstructionalFarmLivestockSection } = require('./formsTemplate/projectTemplates/instructionalFarmLivestockTemplate.js');
-const { renderHostelUtilizationSection }          = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
-const { renderStaffQuartersUtilizationSection }   = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
-const { renderRainwaterHarvestingSection }        = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
+const { renderHostelUtilizationSection } = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
+const { renderStaffQuartersUtilizationSection } = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
+const { renderRainwaterHarvestingSection } = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
 const { renderNicraInterventionSection } = require('./formsTemplate/projectTemplates/nicraInterventionTemplate.js');
 const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplates/nicraExtensionTemplate.js');
 const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
 const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
 const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
+const { renderNaturalFarmingPhysicalSection } = require('./formsTemplate/projectTemplates/naturalFarmingPhysicalTemplate.js');
+const { renderNfDemonstrationInformationSection } = require('./formsTemplate/projectTemplates/nfDemonstrationInformationTemplate.js');
+const { renderNfFarmersPracticingInformationSection } = require('./formsTemplate/projectTemplates/nfFarmersPracticingInformationTemplate.js');
+const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectTemplates/nfSoilDataInformationTemplate.js');
+const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
+const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
+const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
+const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
+const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
+const { renderExtensionOutreachReportSection } = require('./formsTemplate/achievementTemplates/extensionOutreachReportTemplate.js');
+const { renderExtensionActivityPageReportSection } = require('./formsTemplate/achievementTemplates/extensionActivityPageReportTemplate.js');
+const { renderOtherExtensionContentPageReportSection } = require('./formsTemplate/achievementTemplates/otherExtensionContentPageReportTemplate.js');
+const { renderOtherExtensionContentMatrixReportSection } = require('./formsTemplate/achievementTemplates/otherExtensionContentMatrixReportTemplate.js');
+const { renderTechnologyWeekCelebrationPageReportSection } = require('./formsTemplate/achievementTemplates/technologyWeekCelebrationPageReportTemplate.js');
+const { renderTechnologyWeekStateSummaryReportSection } = require('./formsTemplate/achievementTemplates/technologyWeekStateSummaryReportTemplate.js');
+const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
+const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
 
 /**
  * Report Template Service
@@ -136,20 +153,37 @@ class ReportTemplateService {
             'tsp-scsp': renderTspScspSection.bind(this),
             'seed-hub': renderSeedHubSection.bind(this),
             'other-programmes': renderOtherProgrammesSection.bind(this),
-            'arya-current':       renderAryaCurrentSection.bind(this),
-            'arya-prev-year':     renderAryaPrevYearSection.bind(this),
-            'special-programme':  renderSpecialProgrammeSection.bind(this),
+            'natural-farming-physical': renderNaturalFarmingPhysicalSection.bind(this),
+            'nf-demonstration-information': renderNfDemonstrationInformationSection.bind(this),
+            'nf-farmers-practicing-information': renderNfFarmersPracticingInformationSection.bind(this),
+            'nf-soil-data-information': renderNfSoilDataInformationSection.bind(this),
+            'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
+            'fld-page-report': renderFldPageReportSection.bind(this),
+            'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
+            'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
+            'trainings-page-report': renderTrainingsPageReportSection.bind(this),
+            'extension-outreach-report': renderExtensionOutreachReportSection.bind(this),
+            'extension-activities-page-report': renderExtensionActivityPageReportSection.bind(this),
+            'other-extension-content-page-report': renderOtherExtensionContentPageReportSection.bind(this),
+            'other-extension-content-matrix-report': renderOtherExtensionContentMatrixReportSection.bind(this),
+            'technology-week-celebration-page-report': renderTechnologyWeekCelebrationPageReportSection.bind(this),
+            'technology-week-state-summary-report': renderTechnologyWeekStateSummaryReportSection.bind(this),
+            'agri-drone-introduction': renderAgriDroneIntroductionSection.bind(this),
+            'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
+            'arya-current': renderAryaCurrentSection.bind(this),
+            'arya-prev-year': renderAryaPrevYearSection.bind(this),
+            'special-programme': renderSpecialProgrammeSection.bind(this),
             'functional-linkage': renderFunctionalLinkageSection.bind(this),
-            'success-story':      renderSuccessStorySection.bind(this),
-            'entrepreneurship':   renderEntrepreneurshipSection.bind(this),
+            'success-story': renderSuccessStorySection.bind(this),
+            'entrepreneurship': renderEntrepreneurshipSection.bind(this),
             'kvk-impact-activity': renderKvkImpactActivitySection.bind(this),
-            'demonstration-unit':  renderDemonstrationUnitSection.bind(this),
+            'demonstration-unit': renderDemonstrationUnitSection.bind(this),
             'instructional-farm-crop': renderInstructionalFarmCropSection.bind(this),
-            'production-unit':         renderProductionUnitSection.bind(this),
+            'production-unit': renderProductionUnitSection.bind(this),
             'instructional-farm-livestock': renderInstructionalFarmLivestockSection.bind(this),
-            'hostel-utilization':           renderHostelUtilizationSection.bind(this),
-            'staff-quarters':               renderStaffQuartersUtilizationSection.bind(this),
-            'rainwater-harvesting':         renderRainwaterHarvestingSection.bind(this),
+            'hostel-utilization': renderHostelUtilizationSection.bind(this),
+            'staff-quarters': renderStaffQuartersUtilizationSection.bind(this),
+            'rainwater-harvesting': renderRainwaterHarvestingSection.bind(this),
         };
     }
 
@@ -198,7 +232,12 @@ class ReportTemplateService {
      */
     async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
         const { sectionId = '1.1', title = 'Custom Report' } = options;
-        const pseudoSection = { id: sectionId, title };
+        const fullSection = getSectionConfig(sectionId);
+        const pseudoSection = {
+            id: sectionId,
+            title,
+            ...(fullSection?.fields?.length ? { fields: fullSection.fields } : {}),
+        };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
         const reportContext = {

@@ -16,6 +16,7 @@ export interface NariNutritionalGardenResultValue {
 }
 
 interface NariNutritionalGardenResultFormProps {
+    mode?: 'create' | 'edit'
     initialValue?: Partial<NariNutritionalGardenResultValue>
     onClose: () => void
     onSubmit: (value: NariNutritionalGardenResultValue) => Promise<void>
@@ -32,7 +33,7 @@ const defaultValue: NariNutritionalGardenResultValue = {
     income: '',
 }
 
-export const NariNutritionalGardenResultForm: React.FC<NariNutritionalGardenResultFormProps> = ({ initialValue, onClose, onSubmit }) => {
+export const NariNutritionalGardenResultForm: React.FC<NariNutritionalGardenResultFormProps> = ({ mode = 'create', initialValue, onClose, onSubmit }) => {
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState<NariNutritionalGardenResultValue>({ ...defaultValue, ...(initialValue || {}) })
 
@@ -59,7 +60,7 @@ export const NariNutritionalGardenResultForm: React.FC<NariNutritionalGardenResu
                     Back
                 </button>
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#487749] leading-tight">
-                    Details of established Nutrition Garden in Nutri-Smart village
+                    {mode === 'create' ? 'Details of established Nutrition Garden in Nutri-Smart village' : 'Edit Nutrition Garden Result'}
                 </h1>
             </div>
 
@@ -138,7 +139,7 @@ export const NariNutritionalGardenResultForm: React.FC<NariNutritionalGardenResu
                             variant="primary"
                             className="px-8 py-2.5"
                         >
-                            Create Result
+                            {mode === 'create' ? 'Create Result' : 'Update Result'}
                         </LoadingButton>
                     </div>
                 </form>

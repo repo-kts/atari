@@ -14,6 +14,7 @@ const csisaReportRepository = require('../../repositories/reports/csisaReport/in
 const nicraReportRepository = require('../../repositories/reports/nicraReport/index.js');
 const tspScspReportRepository = require('../../repositories/reports/tspScspReport/index.js');
 const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
+const naturalFarmingReportRepository = require('../../repositories/reports/naturalFarmingReport/index.js');
 const otherProgrammeReportRepository = require('../../repositories/reports/otherProgrammeReport/index.js');
 const specialProgrammeReportRepository = require('../../repositories/reports/specialProgrammeReport/index.js');
 const functionalLinkageReportRepository = require('../../repositories/reports/functionalLinkageReport/index.js');
@@ -27,6 +28,12 @@ const instructionalFarmLivestockReportRepository = require('../../repositories/r
 const hostelUtilizationReportRepository = require('../../repositories/reports/hostelUtilizationReport/index.js');
 const staffQuartersUtilizationReportRepository = require('../../repositories/reports/staffQuartersUtilizationReport/index.js');
 const rainwaterHarvestingReportRepository = require('../../repositories/reports/rainwaterHarvestingReport/index.js');
+const agriDroneReportRepository = require('../../repositories/reports/agriDroneReport/index.js');
+const fldStateCategoryReportRepository = require('../../repositories/reports/fldStateCategoryReport/index.js');
+const trainingCapacityReportRepository = require('../../repositories/reports/trainingCapacityReport/index.js');
+const extensionOutreachReportRepository = require('../../repositories/reports/extensionOutreachReport/index.js');
+const otherExtensionContentReportRepository = require('../../repositories/reports/otherExtensionContentReport/index.js');
+const technologyWeekCelebrationReportRepository = require('../../repositories/reports/technologyWeekCelebrationReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -229,6 +236,27 @@ class ReportDataService {
             case 'nicraSoilHealth':
                 rawData = await nicraReportRepository.getNicraSoilHealthData(kvkId, sectionFilters);
                 break;
+            case 'naturalFarmingPhysical':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingPhysicalInfoData(kvkId, sectionFilters);
+                break;
+            case 'naturalFarmingDemonstration':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingDemonstrationData(kvkId, sectionFilters);
+                break;
+            case 'naturalFarmingFarmersPracticing':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingFarmersPracticingData(kvkId, sectionFilters);
+                break;
+            case 'naturalFarmingSoilData':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingSoilData(kvkId, sectionFilters);
+                break;
+            case 'naturalFarmingBudgetExpenditure':
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingBudgetExpenditureData(kvkId, sectionFilters);
+                break;
+            case 'agriDroneIntroduction':
+                rawData = await agriDroneReportRepository.getAgriDroneIntroductionData(kvkId, sectionFilters);
+                break;
+            case 'agriDroneDemonstrationDetails':
+                rawData = await agriDroneReportRepository.getAgriDroneDemonstrationDetailsData(kvkId, sectionFilters);
+                break;
             case 'csisa':
                 rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
                 break;
@@ -246,6 +274,7 @@ class ReportDataService {
                 break;
             case 'otherProgrammes':
                 rawData = await otherProgrammeReportRepository.getOtherProgrammeData(kvkId, sectionFilters);
+                break;
             case 'specialProgramme':
                 rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(kvkId, sectionFilters);
                 break;
@@ -281,6 +310,21 @@ class ReportDataService {
                 break;
             case 'rainwaterHarvesting':
                 rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(kvkId, sectionFilters);
+                break;
+            case 'fldStateCategoryReport':
+                rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(kvkId, sectionFilters);
+                break;
+            case 'trainingCapacityReport':
+                rawData = await trainingCapacityReportRepository.getTrainingCapacityReportData(kvkId, sectionFilters);
+                break;
+            case 'extensionOutreachReport':
+                rawData = await extensionOutreachReportRepository.getExtensionOutreachReportData(kvkId, sectionFilters);
+                break;
+            case 'otherExtensionContentReport':
+                rawData = await otherExtensionContentReportRepository.getOtherExtensionContentReportData(kvkId, sectionFilters);
+                break;
+            case 'technologyWeekCelebrationReport':
+                rawData = await technologyWeekCelebrationReportRepository.getTechnologyWeekCelebrationReportData(kvkId, sectionFilters);
                 break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
@@ -329,10 +373,22 @@ class ReportDataService {
             || dataSource === 'nicraFarmImplement'
             || dataSource === 'nicraVcrmc'
             || dataSource === 'nicraSoilHealth'
+            || dataSource === 'naturalFarmingPhysical'
+            || dataSource === 'naturalFarmingDemonstration'
+            || dataSource === 'naturalFarmingFarmersPracticing'
+            || dataSource === 'naturalFarmingSoilData'
+            || dataSource === 'naturalFarmingBudgetExpenditure'
+            || dataSource === 'agriDroneIntroduction'
+            || dataSource === 'agriDroneDemonstrationDetails'
             || dataSource === 'csisa'
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
-            || dataSource === 'scsp';
+            || dataSource === 'scsp'
+            || dataSource === 'fldStateCategoryReport'
+            || dataSource === 'trainingCapacityReport'
+            || dataSource === 'extensionOutreachReport'
+            || dataSource === 'otherExtensionContentReport'
+            || dataSource === 'technologyWeekCelebrationReport';
         const skipTransformWithSeedHub = skipTransform
             || dataSource === 'seedHub'
             || dataSource === 'otherProgrammes'

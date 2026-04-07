@@ -135,23 +135,35 @@ export function useProjectData(entityType: string) {
 
     const createMutation = useMutation({
         mutationFn: (data: any) => apiClient.post(endpoint, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ['project-data', entityType],
+                exact: true,
+                refetchType: 'active',
+            });
         },
     });
 
     const updateMutation = useMutation({
         mutationFn: ({ id, data }: { id: number | string; data: any }) =>
             apiClient.put(`${endpoint}/${id}`, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ['project-data', entityType],
+                exact: true,
+                refetchType: 'active',
+            });
         },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id: number | string) => apiClient.delete(`${endpoint}/${id}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['project-data', entityType] });
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({
+                queryKey: ['project-data', entityType],
+                exact: true,
+                refetchType: 'active',
+            });
         },
     });
 

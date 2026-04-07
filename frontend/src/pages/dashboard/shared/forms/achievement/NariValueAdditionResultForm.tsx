@@ -15,6 +15,7 @@ export interface NariValueAdditionResultValue {
 }
 
 interface NariValueAdditionResultFormProps {
+    mode?: 'create' | 'edit'
     initialValue?: Partial<NariValueAdditionResultValue>
     onClose: () => void
     onSubmit: (value: NariValueAdditionResultValue) => Promise<void>
@@ -30,7 +31,7 @@ const defaultValue: NariValueAdditionResultValue = {
     fssaiCertified: '',
 }
 
-export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormProps> = ({ initialValue, onClose, onSubmit }) => {
+export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormProps> = ({ mode = 'create', initialValue, onClose, onSubmit }) => {
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState<NariValueAdditionResultValue>({ ...defaultValue, ...(initialValue || {}) })
 
@@ -57,7 +58,7 @@ export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormPr
                     Back
                 </button>
                 <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-[#487749] leading-tight">
-                    Create Details of value-added products each beneficiary
+                    {mode === 'create' ? 'Create Details of value-added products each beneficiary' : 'Edit Value Added Product Result'}
                 </h1>
             </div>
 
@@ -133,7 +134,7 @@ export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormPr
                             variant="primary"
                             className="px-8 py-2.5"
                         >
-                            Create Result
+                            {mode === 'create' ? 'Create Result' : 'Update Result'}
                         </LoadingButton>
                     </div>
                 </form>

@@ -21,6 +21,7 @@ model NariExtensionActivity {
   scF      Int @default(0) @map("sc_f")
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
+  status   String @default("ONGOING") @map("status")
 
   @@index([kvkId])
   @@index([activityId])

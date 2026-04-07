@@ -94,56 +94,8 @@ const _mapResponse = async (r) => {
         (r.scM || 0) + (r.scF || 0) +
         (r.stM || 0) + (r.stF || 0);
 
-    // Resolve trainingThematicAreaId from thematicArea name
-    let trainingThematicAreaId = null;
-    if (r.thematicArea && r.thematicArea.name && r.trainingAreaId) {
-        try {
-            // First try exact match with trainingAreaId
-            let trainingThematicArea = await prisma.trainingThematicArea.findFirst({
-                where: {
-                    trainingThematicAreaName: { equals: r.thematicArea.name, mode: 'insensitive' },
-                    trainingAreaId: r.trainingAreaId
-                },
-                select: { trainingThematicAreaId: true }
-            });
-
-            // If not found, try without trainingAreaId constraint (in case the area changed)
-            if (!trainingThematicArea) {
-                trainingThematicArea = await prisma.trainingThematicArea.findFirst({
-                    where: {
-                        trainingThematicAreaName: { equals: r.thematicArea.name, mode: 'insensitive' }
-                    },
-                    select: { trainingThematicAreaId: true }
-                });
-            }
-
-            // If still not found, try partial match (contains)
-            if (!trainingThematicArea) {
-                trainingThematicArea = await prisma.trainingThematicArea.findFirst({
-                    where: {
-                        trainingThematicAreaName: { contains: r.thematicArea.name, mode: 'insensitive' },
-                        trainingAreaId: r.trainingAreaId
-                    },
-                    select: { trainingThematicAreaId: true }
-                });
-            }
-
-            if (trainingThematicArea) {
-                trainingThematicAreaId = trainingThematicArea.trainingThematicAreaId;
-            } else {
-                // Try to find any thematic area with similar name as last resort
-                const allThematicAreas = await prisma.trainingThematicArea.findMany({
-                    where: {
-                        trainingAreaId: r.trainingAreaId
-                    },
-                    select: { trainingThematicAreaId: true, trainingThematicAreaName: true }
-                });
-            }
-        } catch (error) {
-            // If lookup fails, log the error
-            console.error('Failed to resolve trainingThematicAreaId:', error);
-        }
-    }
+    // thematicAreaId on the row is the FK to training_thematic_area.training_thematic_area_id
+    const trainingThematicAreaId = r.thematicAreaId;
 
     // Resolve staffId (kvkStaffId) from coordinator name
     let staffId = null;
@@ -176,12 +128,12 @@ const _mapResponse = async (r) => {
         clienteleId: r.clienteleId,
         clientele: r.clientele ? r.clientele.name : undefined,
         trainingTypeId: r.trainingTypeId,
-        trainingType: r.trainingType ? r.trainingType.name : undefined,
+        trainingType: r.trainingType ? r.trainingType.trainingTypeName : undefined,
         trainingAreaId: r.trainingAreaId,
-        trainingArea: r.trainingArea ? r.trainingArea.name : undefined,
+        trainingArea: r.trainingArea ? r.trainingArea.trainingAreaName : undefined,
         thematicAreaId: r.thematicAreaId,
-        trainingThematicAreaId: trainingThematicAreaId || r.thematicAreaId, // Resolved from TrainingThematicArea
-        thematicArea: r.thematicArea ? r.thematicArea.name : undefined,
+        trainingThematicAreaId,
+        thematicArea: r.trainingThematicArea ? r.trainingThematicArea.trainingThematicAreaName : undefined,
         coordinatorId: r.coordinatorId,
         coordinator: r.coordinator ? r.coordinator.name : undefined,
         staffId: staffId, // Resolved from KvkStaff
@@ -225,11 +177,10 @@ const _mapResponse = async (r) => {
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
         startDate: r.startDate ? new Date(r.startDate).toISOString().split('T')[0] : undefined,
         endDate: r.endDate ? new Date(r.endDate).toISOString().split('T')[0] : undefined,
-        trainingProgram: r.trainingType ? r.trainingType.name : undefined,
+        trainingProgram: r.trainingType ? r.trainingType.trainingTypeName : undefined,
         trainingTitle: r.titleOfTraining,
         venue: r.venue,
-        trainingDiscipline: r.trainingArea ? r.trainingArea.name : undefined,
-        thematicArea: r.thematicArea ? r.thematicArea.name : undefined,
+        trainingDiscipline: r.trainingArea ? r.trainingArea.trainingAreaName : undefined,
         noOfParticipants: totalParticipants,
     };
 };
@@ -287,43 +238,22 @@ const trainingRepository = {
                     'trainingAreaId'
                 ) : null;
 
-                // Handle thematicAreaId - can come as thematicAreaId or trainingThematicAreaId
+                // FK thematicAreaId -> training_thematic_area.training_thematic_area_id
                 let thematicAreaId = null;
-                if (data.thematicAreaId) {
+                if (data.trainingThematicAreaId != null && data.trainingThematicAreaId !== '') {
+                    thematicAreaId = validateRequiredInteger(
+                        data,
+                        ['trainingThematicAreaId'],
+                        'Invalid training thematic area ID',
+                        'trainingThematicAreaId'
+                    );
+                } else if (data.thematicAreaId != null && data.thematicAreaId !== '') {
                     thematicAreaId = validateRequiredInteger(
                         data,
                         ['thematicAreaId'],
                         'Invalid thematic area ID',
                         'thematicAreaId'
                     );
-                } else if (data.trainingThematicAreaId) {
-                    // Try to find ThematicAreaMaster by matching with TrainingThematicArea name
-                    const trainingThematicAreaId = validateRequiredInteger(
-                        data,
-                        ['trainingThematicAreaId'],
-                        'Invalid training thematic area ID',
-                        'trainingThematicAreaId'
-                    );
-
-                    const trainingThematicArea = await tx.trainingThematicArea.findUnique({
-                        where: { trainingThematicAreaId },
-                        select: { trainingThematicAreaName: true }
-                    });
-
-                    if (trainingThematicArea) {
-                        // Find or create ThematicAreaMaster with the same name (within transaction)
-                        let thematicArea = await tx.thematicAreaMaster.findFirst({
-                            where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
-                        });
-
-                        if (!thematicArea) {
-                            // Create if doesn't exist
-                            thematicArea = await tx.thematicAreaMaster.create({
-                                data: { name: sanitizeString(trainingThematicArea.trainingThematicAreaName) }
-                            });
-                        }
-                        thematicAreaId = thematicArea.thematicAreaId;
-                    }
                 }
 
                 if (!thematicAreaId || isNaN(thematicAreaId)) {
@@ -433,9 +363,9 @@ const trainingRepository = {
                     include: {
                         kvk: { select: { kvkName: true } },
                         clientele: { select: { name: true } },
-                        trainingType: { select: { name: true } },
-                        trainingArea: { select: { name: true } },
-                        thematicArea: { select: { name: true } },
+                        trainingType: { select: { trainingTypeName: true } },
+                        trainingArea: { select: { trainingAreaName: true } },
+                        trainingThematicArea: { select: { trainingThematicAreaName: true } },
                         coordinator: { select: { name: true } },
                         fundingSource: { select: { name: true } },
                     }
@@ -486,9 +416,9 @@ const trainingRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 clientele: { select: { name: true } },
-                trainingType: { select: { name: true } },
-                trainingArea: { select: { name: true } },
-                thematicArea: { select: { name: true } },
+                trainingType: { select: { trainingTypeName: true } },
+                trainingArea: { select: { trainingAreaName: true } },
+                trainingThematicArea: { select: { trainingThematicAreaName: true } },
                 coordinator: { select: { name: true } },
                 fundingSource: { select: { name: true } },
             },
@@ -515,9 +445,9 @@ const trainingRepository = {
             include: {
                 kvk: { select: { kvkName: true } },
                 clientele: { select: { name: true } },
-                trainingType: { select: { name: true } },
-                trainingArea: { select: { name: true } },
-                thematicArea: { select: { name: true } },
+                trainingType: { select: { trainingTypeName: true } },
+                trainingArea: { select: { trainingAreaName: true } },
+                trainingThematicArea: { select: { trainingThematicAreaName: true } },
                 coordinator: { select: { name: true } },
                 fundingSource: { select: { name: true } },
             },
@@ -593,44 +523,22 @@ const trainingRepository = {
             ) : null;
         }
 
-        // Handle thematicAreaId update
-        if (data.thematicAreaId !== undefined) {
+        if (data.trainingThematicAreaId !== undefined) {
+            updateData.thematicAreaId = data.trainingThematicAreaId
+                ? validateRequiredInteger(
+                    data,
+                    ['trainingThematicAreaId'],
+                    'Invalid training thematic area ID',
+                    'trainingThematicAreaId'
+                )
+                : null;
+        } else if (data.thematicAreaId !== undefined) {
             updateData.thematicAreaId = validateRequiredInteger(
                 data,
                 ['thematicAreaId'],
                 'Invalid thematic area ID',
                 'thematicAreaId'
             );
-        } else if (data.trainingThematicAreaId !== undefined) {
-            // Try to find ThematicAreaMaster by matching with TrainingThematicArea name
-            const trainingThematicAreaId = validateRequiredInteger(
-                data,
-                ['trainingThematicAreaId'],
-                'Invalid training thematic area ID',
-                'trainingThematicAreaId'
-            );
-
-            const trainingThematicArea = await prisma.trainingThematicArea.findUnique({
-                where: { trainingThematicAreaId },
-                select: { trainingThematicAreaName: true }
-            });
-
-            if (trainingThematicArea) {
-                // Find or create ThematicAreaMaster with the same name
-                // Note: For updates, we'll create outside transaction for now
-                // If needed, wrap entire update in transaction
-                let thematicArea = await prisma.thematicAreaMaster.findFirst({
-                    where: { name: { equals: trainingThematicArea.trainingThematicAreaName, mode: 'insensitive' } }
-                });
-
-                if (!thematicArea) {
-                    // Create if doesn't exist
-                    thematicArea = await prisma.thematicAreaMaster.create({
-                        data: { name: sanitizeString(trainingThematicArea.trainingThematicAreaName) }
-                    });
-                }
-                updateData.thematicAreaId = thematicArea.thematicAreaId;
-            }
         }
 
         if (data.fundingSourceId !== undefined) {
@@ -747,9 +655,9 @@ const trainingRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     clientele: { select: { name: true } },
-                    trainingType: { select: { name: true } },
-                    trainingArea: { select: { name: true } },
-                    thematicArea: { select: { name: true } },
+                    trainingType: { select: { trainingTypeName: true } },
+                    trainingArea: { select: { trainingAreaName: true } },
+                    trainingThematicArea: { select: { trainingThematicAreaName: true } },
                     coordinator: { select: { name: true } },
                     fundingSource: { select: { name: true } },
                 }
@@ -764,9 +672,9 @@ const trainingRepository = {
                 include: {
                     kvk: { select: { kvkName: true } },
                     clientele: { select: { name: true } },
-                    trainingType: { select: { name: true } },
-                    trainingArea: { select: { name: true } },
-                    thematicArea: { select: { name: true } },
+                    trainingType: { select: { trainingTypeName: true } },
+                    trainingArea: { select: { trainingAreaName: true } },
+                    trainingThematicArea: { select: { trainingThematicAreaName: true } },
                     coordinator: { select: { name: true } },
                     fundingSource: { select: { name: true } },
                 }

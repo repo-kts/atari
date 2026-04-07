@@ -1,6 +1,13 @@
 const fldRepository = require('../../repositories/forms/fldRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { FLD_STATUS, normalizeFldStatus } = require('../../constants/fldStatus.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+
+async function invalidateFldStateCategoryReport(kvkId) {
+    if (kvkId) {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('fldStateCategoryReport', kvkId);
+    }
+}
 
 /**
  * FLD Service
@@ -18,7 +25,9 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
-        return await fldRepository.create(payload, user);
+        const result = await fldRepository.create(payload, user);
+        await invalidateFldStateCategoryReport(result?.kvkId || user?.kvkId);
+        return result;
     },
 
     /**
@@ -52,7 +61,9 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
-        return await fldRepository.update(id, payload, user);
+        const result = await fldRepository.update(id, payload, user);
+        await invalidateFldStateCategoryReport(result?.kvkId ?? user?.kvkId);
+        return result;
     },
 
     transferToNextYear: async (id, user) => {
@@ -74,7 +85,9 @@ const fldService = {
         }
         nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
-        return fldRepository.transferToNextYearTx(source, nextReportingYear);
+        const out = await fldRepository.transferToNextYearTx(source, nextReportingYear);
+        await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
+        return out;
     },
 
     addResult: async (id, payload, user) => {
@@ -88,6 +101,7 @@ const fldService = {
         _validateFldResultPayload(payload);
         const result = await fldRepository.createResultTx(id, payload);
         await fldRepository.updateStatus(id, FLD_STATUS.COMPLETED);
+        await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return result;
     },
 
@@ -99,7 +113,9 @@ const fldService = {
             throw new ValidationError('Result can only be edited for COMPLETED FLD records');
         }
         _validateFldResultPayload(payload);
-        return fldRepository.updateResultTx(id, payload);
+        const updated = await fldRepository.updateResultTx(id, payload);
+        await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
+        return updated;
     },
 
     getResult: async (id, user) => {
@@ -117,7 +133,10 @@ const fldService = {
      * @returns {Promise<Object>} Success confirmation
      */
     deleteFld: async (id, user) => {
-        return await fldRepository.delete(id, user);
+        const existing = await fldRepository.findById(id, user);
+        const result = await fldRepository.delete(id, user);
+        await invalidateFldStateCategoryReport(existing?.kvkId || user?.kvkId);
+        return result;
     },
 };
 
