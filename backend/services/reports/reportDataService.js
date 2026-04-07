@@ -28,6 +28,8 @@ const agriDroneReportRepository = require('../../repositories/reports/agriDroneR
 const fldStateCategoryReportRepository = require('../../repositories/reports/fldStateCategoryReport/index.js');
 const trainingCapacityReportRepository = require('../../repositories/reports/trainingCapacityReport/index.js');
 const extensionOutreachReportRepository = require('../../repositories/reports/extensionOutreachReport/index.js');
+const otherExtensionContentReportRepository = require('../../repositories/reports/otherExtensionContentReport/index.js');
+const technologyWeekCelebrationReportRepository = require('../../repositories/reports/technologyWeekCelebrationReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -263,6 +265,12 @@ class ReportDataService {
             case 'extensionOutreachReport':
                 rawData = await extensionOutreachReportRepository.getExtensionOutreachReportData(kvkId, sectionFilters);
                 break;
+            case 'otherExtensionContentReport':
+                rawData = await otherExtensionContentReportRepository.getOtherExtensionContentReportData(kvkId, sectionFilters);
+                break;
+            case 'technologyWeekCelebrationReport':
+                rawData = await technologyWeekCelebrationReportRepository.getTechnologyWeekCelebrationReportData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -306,7 +314,9 @@ class ReportDataService {
             || dataSource === 'scsp'
             || dataSource === 'fldStateCategoryReport'
             || dataSource === 'trainingCapacityReport'
-            || dataSource === 'extensionOutreachReport';
+            || dataSource === 'extensionOutreachReport'
+            || dataSource === 'otherExtensionContentReport'
+            || dataSource === 'technologyWeekCelebrationReport';
         const skipTransformWithSeedHub = skipTransform
             || dataSource === 'seedHub'
             || dataSource === 'otherProgrammes'

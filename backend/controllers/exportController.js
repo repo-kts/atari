@@ -34,6 +34,16 @@ const {
     generateExtensionActivityPageExcelBuffer,
     generateExtensionActivityPageWordBuffer,
 } = require('../utils/extensionActivityPageExport.js');
+const { resolveOtherExtensionPagePayload } = require('../repositories/reports/otherExtensionContentReport/otherExtensionContentReportRepository.js');
+const {
+    generateOtherExtensionContentPageExcelBuffer,
+    generateOtherExtensionContentPageWordBuffer,
+} = require('../utils/otherExtensionContentPageExport.js');
+const { resolveTechnologyWeekPagePayload } = require('../repositories/reports/technologyWeekCelebrationReport/technologyWeekCelebrationReportRepository.js');
+const {
+    generateTechnologyWeekCelebrationPageExcelBuffer,
+    generateTechnologyWeekCelebrationPageWordBuffer,
+} = require('../utils/technologyWeekCelebrationPageExport.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -87,6 +97,12 @@ const exportData = async (req, res) => {
         if (templateKey === 'extension-activities-page-report' && rawData) {
             effectiveRawData = rawData;
         }
+        if (templateKey === 'other-extension-content-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'technology-week-celebration-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
 
         const tabularData = (templateKey && rawData)
             ? buildTabularDataFromTemplate(templateKey, effectiveRawData, headers, rows, format)
@@ -121,6 +137,16 @@ const exportData = async (req, res) => {
                         title,
                         resolveExtensionActivityPagePayload(effectiveRawData),
                     );
+                } else if (templateKey === 'other-extension-content-page-report') {
+                    buffer = await generateOtherExtensionContentPageExcelBuffer(
+                        title,
+                        resolveOtherExtensionPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'technology-week-celebration-page-report') {
+                    buffer = await generateTechnologyWeekCelebrationPageExcelBuffer(
+                        title,
+                        resolveTechnologyWeekPagePayload(effectiveRawData),
+                    );
                 } else {
                     buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 }
@@ -142,6 +168,16 @@ const exportData = async (req, res) => {
                     buffer = await generateExtensionActivityPageWordBuffer(
                         title,
                         resolveExtensionActivityPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'other-extension-content-page-report') {
+                    buffer = await generateOtherExtensionContentPageWordBuffer(
+                        title,
+                        resolveOtherExtensionPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'technology-week-celebration-page-report') {
+                    buffer = await generateTechnologyWeekCelebrationPageWordBuffer(
+                        title,
+                        resolveTechnologyWeekPagePayload(effectiveRawData),
                     );
                 } else {
                     buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
@@ -177,7 +213,9 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
             sectionId: matchedSection?.id
                 || (templateKey === 'fld-page-report' ? 'fld-page'
                     : templateKey === 'trainings-page-report' ? 'trainings-page'
-                        : templateKey === 'extension-activities-page-report' ? 'extension-activities-page' : '1.1'),
+                        : templateKey === 'extension-activities-page-report' ? 'extension-activities-page'
+                            : templateKey === 'other-extension-content-page-report' ? 'other-extension-content-page'
+                                : templateKey === 'technology-week-celebration-page-report' ? 'technology-week-celebration-page' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
         }
@@ -186,7 +224,9 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
 
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
     if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report'
-        || templateKey === 'extension-activities-page-report') {
+        || templateKey === 'extension-activities-page-report'
+        || templateKey === 'other-extension-content-page-report'
+        || templateKey === 'technology-week-celebration-page-report') {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
     if (templateKey === 'cra-details-state-wise') {

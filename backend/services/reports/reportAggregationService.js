@@ -356,6 +356,46 @@ class ReportAggregationService {
             };
         }
 
+        if (sectionConfig.dataSource === 'otherExtensionContentReport') {
+            const { buildMatrixPayloadFromRecords } = require('../../repositories/reports/otherExtensionContentReport/otherExtensionContentReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const matrixPayload = buildMatrixPayloadFromRecords(allRecords, null);
+            return {
+                sectionId,
+                data: { matrixPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'technologyWeekCelebrationReport') {
+            const { buildStateSummaryFromRecords } = require('../../repositories/reports/technologyWeekCelebrationReport/technologyWeekCelebrationReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const stateSummaryPayload = buildStateSummaryFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { stateSummaryPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // For custom format sections (OFT, etc.), combine all array data
         if (sectionConfig.format === 'custom') {
             const allRows = [];
