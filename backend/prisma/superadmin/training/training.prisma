@@ -1,9 +1,10 @@
 model TrainingType {
-  trainingTypeId   Int            @id @default(autoincrement()) @map("training_type_id")
-  trainingTypeName String         @unique @map("training_type_name")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
+  trainingTypeId   Int                   @id @default(autoincrement()) @map("training_type_id")
+  trainingTypeName String                @unique @map("training_type_name")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
   trainingAreas    TrainingArea[]
+  trainingAchievements TrainingAchievement[]
 
   @@index([trainingTypeId])
   @@index([trainingTypeName])
@@ -16,8 +17,9 @@ model TrainingArea {
   trainingTypeId   Int?
   createdAt        DateTime               @default(now()) @map("created_at")
   updatedAt        DateTime               @updatedAt @map("updated_at")
-  trainingType     TrainingType?          @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: Cascade)
+  trainingType     TrainingType?          @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
   thematicAreas    TrainingThematicArea[]
+  trainingAchievements TrainingAchievement[]
 
   @@index([trainingAreaId])
   @@index([trainingTypeId])
@@ -26,12 +28,13 @@ model TrainingArea {
 }
 
 model TrainingThematicArea {
-  trainingThematicAreaId   Int           @id @default(autoincrement()) @map("training_thematic_area_id")
-  trainingThematicAreaName String        @map("training_thematic_area_name")
+  trainingThematicAreaId   Int                   @id @default(autoincrement()) @map("training_thematic_area_id")
+  trainingThematicAreaName String                @map("training_thematic_area_name")
   trainingAreaId           Int?
-  createdAt                DateTime      @default(now()) @map("created_at")
-  updatedAt                DateTime      @updatedAt @map("updated_at")
-  trainingArea             TrainingArea? @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: Cascade)
+  createdAt                DateTime              @default(now()) @map("created_at")
+  updatedAt                DateTime              @updatedAt @map("updated_at")
+  trainingArea             TrainingArea?         @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: SetNull)
+  trainingAchievements     TrainingAchievement[]
 
   @@index([trainingThematicAreaId])
   @@index([trainingAreaId])

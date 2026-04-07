@@ -174,19 +174,11 @@ async function seedStaffMasters() {
 async function seedTrainingMasters() {
   console.log('🌱 Training masters...');
 
-  for (const name of TRAINING_TYPES) {
-    await prisma.trainingTypeMaster.upsert({
-      where: { name },
+  for (const trainingTypeName of TRAINING_TYPES) {
+    await prisma.trainingType.upsert({
+      where: { trainingTypeName },
       update: {},
-      create: { name },
-    });
-  }
-
-  for (const name of TRAINING_AREAS) {
-    await prisma.trainingAreaMaster.upsert({
-      where: { name },
-      update: {},
-      create: { name },
+      create: { trainingTypeName },
     });
   }
 
@@ -198,12 +190,36 @@ async function seedTrainingMasters() {
     });
   }
 
-  for (const name of THEMATIC_AREAS) {
-    await prisma.thematicAreaMaster.upsert({
-      where: { name },
-      update: {},
-      create: { name },
+  const firstType = await prisma.trainingType.findFirst({ orderBy: { trainingTypeId: 'asc' } });
+  if (firstType) {
+    for (const trainingAreaName of TRAINING_AREAS) {
+      const existing = await prisma.trainingArea.findFirst({
+        where: { trainingAreaName, trainingTypeId: firstType.trainingTypeId },
+      });
+      if (!existing) {
+        await prisma.trainingArea.create({
+          data: { trainingAreaName, trainingTypeId: firstType.trainingTypeId },
+        });
+      }
+    }
+    const areas = await prisma.trainingArea.findMany({
+      where: { trainingTypeId: firstType.trainingTypeId },
+      orderBy: { trainingAreaId: 'asc' },
     });
+    if (areas.length > 0) {
+      for (let i = 0; i < THEMATIC_AREAS.length; i++) {
+        const trainingThematicAreaName = THEMATIC_AREAS[i];
+        const area = areas[i % areas.length];
+        const exists = await prisma.trainingThematicArea.findFirst({
+          where: { trainingThematicAreaName, trainingAreaId: area.trainingAreaId },
+        });
+        if (!exists) {
+          await prisma.trainingThematicArea.create({
+            data: { trainingThematicAreaName, trainingAreaId: area.trainingAreaId },
+          });
+        }
+      }
+    }
   }
 
   for (const name of COURSE_COORDINATORS) {

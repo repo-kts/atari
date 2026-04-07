@@ -1239,7 +1239,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                                                                         : entityType ===
                                                                                                                             ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
                                                                                                                           ? 'rainwater-harvesting'
-                                                                                                                          : undefined
+                                                                                                                          : entityType ===
+                                                                                                                              ENTITY_TYPES.ACHIEVEMENT_TRAINING
+                                                                                                                            ? 'trainings-page-report'
+                                                                                                                            : undefined
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource =

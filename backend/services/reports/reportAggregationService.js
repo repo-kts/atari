@@ -316,6 +316,26 @@ class ReportAggregationService {
             };
         }
 
+        if (sectionConfig.dataSource === 'trainingCapacityReport') {
+            const { buildPayloadFromRecords } = require('../../repositories/reports/trainingCapacityReport/trainingCapacityReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const payload = buildPayloadFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { payload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
         // For custom format sections (OFT, etc.), combine all array data
         if (sectionConfig.format === 'custom') {
             const allRows = [];

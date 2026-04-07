@@ -293,6 +293,21 @@ const reportConfig = {
             fields: [],
         },
         {
+            id: '2.4',
+            title: 'Achievements on Training / Capacity Building Programmes',
+            description: 'State-wise, thematic-area summary and thematic details by training type (training achievement data)',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'trainingCapacityReport',
+            format: 'custom',
+            customTemplate: 'training-capacity-report',
+            filters: {
+                dateFields: ['startDate'],
+                yearFields: ['startDate'],
+            },
+            fields: [],
+        },
+        {
             id: '2.8.1',
             title: 'Performance of Demonstration under CFLD',
             description: 'Combined CFLD report with technical, economic, socio-economic and perception parameters',

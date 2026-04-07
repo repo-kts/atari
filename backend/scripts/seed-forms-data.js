@@ -358,9 +358,9 @@ async function seedTrainings(kvkIds) {
 
   // Get required masters
   const clienteles = await prisma.clienteleMaster.findMany({ take: 5 });
-  const trainingTypes = await prisma.trainingTypeMaster.findMany({ take: 5 });
-  const trainingAreas = await prisma.trainingAreaMaster.findMany({ take: 5 });
-  const thematicAreas = await prisma.thematicAreaMaster.findMany({ take: 5 });
+  const trainingTypes = await prisma.trainingType.findMany({ take: 5 });
+  const trainingAreas = await prisma.trainingArea.findMany({ take: 5 });
+  const thematicAreas = await prisma.trainingThematicArea.findMany({ take: 5 });
   const coordinators = await prisma.courseCoordinatorMaster.findMany({ take: 3 });
   const fundingSources = await prisma.fundingSourceMaster.findMany({ take: 3 });
 
@@ -393,7 +393,7 @@ async function seedTrainings(kvkIds) {
         clienteleId: clienteles[i % clienteles.length].clienteleId,
         trainingTypeId: trainingTypes[i % trainingTypes.length].trainingTypeId,
         trainingAreaId: trainingAreas[i % trainingAreas.length].trainingAreaId,
-        thematicAreaId: thematicAreas[i % thematicAreas.length].thematicAreaId,
+        thematicAreaId: thematicAreas[i % thematicAreas.length].trainingThematicAreaId,
         coordinatorId: coordinators[i % coordinators.length].coordinatorId,
         fundingSourceId: fundingSources.length > 0 ? fundingSources[i % fundingSources.length].fundingSourceId : null,
         titleOfTraining: trainingTitles[i % trainingTitles.length],
