@@ -278,6 +278,21 @@ const reportConfig = {
             fields: [],
         },
         {
+            id: '2.3',
+            title: 'Achievements of Front-Line Demonstrations (FLD)',
+            description: 'State-wise summary by FLD category and category-wise detail (farmers, demos, area, yield, economics)',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'fldStateCategoryReport',
+            format: 'custom',
+            customTemplate: 'fld-state-category-report',
+            filters: {
+                dateFields: ['reportingYear'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [],
+        },
+        {
             id: '2.8.1',
             title: 'Performance of Demonstration under CFLD',
             description: 'Combined CFLD report with technical, economic, socio-economic and perception parameters',

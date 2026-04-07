@@ -1099,144 +1099,147 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                           ? 'about-kvk-equipment-records'
                           : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
                             ? 'oft-combined'
-                            : entityType ===
-                                ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
-                              ? 'cfld-combined'
-                              : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
-                                ? 'cra-details-state-wise'
+                            : entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
+                              ? 'fld-page-report'
+                              : entityType ===
+                                  ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                                ? 'cfld-combined'
                                 : entityType ===
-                                    ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
-                                  ? 'cra-extension-activity'
+                                    ENTITY_TYPES.PROJECT_CRA_DETAILS
+                                  ? 'cra-details-state-wise'
                                   : entityType ===
-                                      ENTITY_TYPES.PROJECT_FPO_DETAILS
-                                    ? 'fpo-cbbo-details'
+                                      ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
+                                    ? 'cra-extension-activity'
                                     : entityType ===
-                                        ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
-                                      ? 'fpo-management-details'
+                                        ENTITY_TYPES.PROJECT_FPO_DETAILS
+                                      ? 'fpo-cbbo-details'
                                       : entityType ===
-                                          ENTITY_TYPES.PROJECT_DRMR_DETAILS
-                                        ? 'drmr-details'
+                                          ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
+                                        ? 'fpo-management-details'
                                         : entityType ===
-                                            ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
-                                          ? 'drmr-activity'
+                                            ENTITY_TYPES.PROJECT_DRMR_DETAILS
+                                          ? 'drmr-details'
                                           : entityType ===
-                                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                                            ? 'nari-nutrition-garden'
+                                              ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
+                                            ? 'drmr-activity'
                                             : entityType ===
-                                                ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                                              ? 'nari-bio-fortified'
+                                                ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                                              ? 'nari-nutrition-garden'
                                               : entityType ===
-                                                  ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                                                ? 'nari-value-addition'
+                                                  ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                                                ? 'nari-bio-fortified'
                                                 : entityType ===
-                                                    ENTITY_TYPES.PROJECT_NARI_TRAINING
-                                                  ? 'nari-training'
+                                                    ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                                                  ? 'nari-value-addition'
                                                   : entityType ===
-                                                      ENTITY_TYPES.PROJECT_NARI_EXTENSION
-                                                    ? 'nari-extension'
+                                                      ENTITY_TYPES.PROJECT_NARI_TRAINING
+                                                    ? 'nari-training'
                                                     : entityType ===
-                                                        ENTITY_TYPES.PROJECT_ARYA_CURRENT
-                                                      ? 'arya-current'
+                                                        ENTITY_TYPES.PROJECT_NARI_EXTENSION
+                                                      ? 'nari-extension'
                                                       : entityType ===
-                                                          ENTITY_TYPES.PROJECT_ARYA_EVALUATION
-                                                        ? 'arya-prev-year'
+                                                          ENTITY_TYPES.PROJECT_ARYA_CURRENT
+                                                        ? 'arya-current'
                                                         : entityType ===
-                                                            ENTITY_TYPES.PROJECT_NICRA_BASIC
-                                                          ? 'nicra-basic'
+                                                            ENTITY_TYPES.PROJECT_ARYA_EVALUATION
+                                                          ? 'arya-prev-year'
                                                           : entityType ===
-                                                              ENTITY_TYPES.PROJECT_SEED_HUB
-                                                            ? 'seed-hub'
+                                                              ENTITY_TYPES.PROJECT_NICRA_BASIC
+                                                            ? 'nicra-basic'
                                                             : entityType ===
-                                                                ENTITY_TYPES.PROJECT_OTHER
-                                                              ? 'other-programmes'
+                                                                ENTITY_TYPES.PROJECT_SEED_HUB
+                                                              ? 'seed-hub'
                                                               : entityType ===
-                                                                  ENTITY_TYPES.PROJECT_NICRA_TRAINING
-                                                                ? 'nicra-training'
+                                                                  ENTITY_TYPES.PROJECT_OTHER
+                                                                ? 'other-programmes'
                                                                 : entityType ===
-                                                                    ENTITY_TYPES.PROJECT_NICRA_INTERVENTION
-                                                                  ? 'nicra-intervention'
+                                                                    ENTITY_TYPES.PROJECT_NICRA_TRAINING
+                                                                  ? 'nicra-training'
                                                                   : entityType ===
-                                                                      ENTITY_TYPES.PROJECT_NICRA_EXTENSION
-                                                                    ? 'nicra-extension'
+                                                                      ENTITY_TYPES.PROJECT_NICRA_INTERVENTION
+                                                                    ? 'nicra-intervention'
                                                                     : entityType ===
-                                                                        ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING
-                                                                      ? 'nicra-farm-implement'
+                                                                        ENTITY_TYPES.PROJECT_NICRA_EXTENSION
+                                                                      ? 'nicra-extension'
                                                                       : entityType ===
-                                                                          ENTITY_TYPES.PROJECT_NICRA_VCRMC
-                                                                        ? 'nicra-vcrmc'
+                                                                          ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING
+                                                                        ? 'nicra-farm-implement'
                                                                         : entityType ===
-                                                                            ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH
-                                                                          ? 'nicra-soil-health'
+                                                                            ENTITY_TYPES.PROJECT_NICRA_VCRMC
+                                                                          ? 'nicra-vcrmc'
                                                                           : entityType ===
-                                                                              ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL
-                                                                            ? 'natural-farming-physical'
+                                                                              ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH
+                                                                            ? 'nicra-soil-health'
                                                                             : entityType ===
-                                                                                ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO
-                                                                              ? 'nf-demonstration-information'
+                                                                                ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL
+                                                                              ? 'natural-farming-physical'
                                                                               : entityType ===
-                                                                                  ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS
-                                                                                ? 'nf-farmers-practicing-information'
+                                                                                  ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO
+                                                                                ? 'nf-demonstration-information'
                                                                                 : entityType ===
-                                                                                    ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL
-                                                                                  ? 'nf-soil-data-information'
+                                                                                    ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS
+                                                                                  ? 'nf-farmers-practicing-information'
                                                                                   : entityType ===
-                                                                                      ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET
-                                                                                    ? 'nf-budget-expenditure-information'
+                                                                                      ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL
+                                                                                    ? 'nf-soil-data-information'
                                                                                     : entityType ===
-                                                                                        ENTITY_TYPES.PROJECT_AGRI_DRONE
-                                                                                      ? 'agri-drone-introduction'
+                                                                                        ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET
+                                                                                      ? 'nf-budget-expenditure-information'
                                                                                       : entityType ===
-                                                                                          ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO
-                                                                                        ? 'agri-drone-demonstration-details'
+                                                                                          ENTITY_TYPES.PROJECT_AGRI_DRONE
+                                                                                        ? 'agri-drone-introduction'
                                                                                         : entityType ===
-                                                                                            ENTITY_TYPES.PROJECT_CSISA
-                                                                                          ? 'csisa'
+                                                                                            ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO
+                                                                                          ? 'agri-drone-demonstration-details'
                                                                                           : entityType ===
-                                                                                              ENTITY_TYPES.PROJECT_TSP_SCSP
-                                                                                            ? 'tsp-scsp'
+                                                                                              ENTITY_TYPES.PROJECT_CSISA
+                                                                                            ? 'csisa'
                                                                                             : entityType ===
-                                                                                                ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                                                              ? 'cfld-extension-activity'
+                                                                                                ENTITY_TYPES.PROJECT_TSP_SCSP
+                                                                                              ? 'tsp-scsp'
                                                                                               : entityType ===
-                                                                                                  ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                                                                ? 'cfld-budget-utilization'
+                                                                                                  ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                                                                ? 'cfld-extension-activity'
                                                                                                 : entityType ===
-                                                                                                    ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
-                                                                                                  ? 'special-programme'
+                                                                                                    ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                                                                  ? 'cfld-budget-utilization'
                                                                                                   : entityType ===
-                                                                                                      ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
-                                                                                                    ? 'functional-linkage'
+                                                                                                      ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
+                                                                                                    ? 'special-programme'
                                                                                                     : entityType ===
-                                                                                                        ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
-                                                                                                      ? 'success-story'
+                                                                                                        ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
+                                                                                                      ? 'functional-linkage'
                                                                                                       : entityType ===
-                                                                                                          ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
-                                                                                                        ? 'entrepreneurship'
+                                                                                                          ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
+                                                                                                        ? 'success-story'
                                                                                                         : entityType ===
-                                                                                                            ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
-                                                                                                          ? 'kvk-impact-activity'
+                                                                                                            ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
+                                                                                                          ? 'entrepreneurship'
                                                                                                           : entityType ===
-                                                                                                              ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
-                                                                                                            ? 'demonstration-unit'
+                                                                                                              ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
+                                                                                                            ? 'kvk-impact-activity'
                                                                                                             : entityType ===
-                                                                                                                ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
-                                                                                                              ? 'instructional-farm-crop'
+                                                                                                                ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
+                                                                                                              ? 'demonstration-unit'
                                                                                                               : entityType ===
-                                                                                                                  ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
-                                                                                                                ? 'production-unit'
+                                                                                                                  ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
+                                                                                                                ? 'instructional-farm-crop'
                                                                                                                 : entityType ===
-                                                                                                                    ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
-                                                                                                                  ? 'instructional-farm-livestock'
+                                                                                                                    ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
+                                                                                                                  ? 'production-unit'
                                                                                                                   : entityType ===
-                                                                                                                      ENTITY_TYPES.PERFORMANCE_HOSTEL
-                                                                                                                    ? 'hostel-utilization'
+                                                                                                                      ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
+                                                                                                                    ? 'instructional-farm-livestock'
                                                                                                                     : entityType ===
-                                                                                                                        ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
-                                                                                                                      ? 'staff-quarters'
+                                                                                                                        ENTITY_TYPES.PERFORMANCE_HOSTEL
+                                                                                                                      ? 'hostel-utilization'
                                                                                                                       : entityType ===
-                                                                                                                          ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
-                                                                                                                        ? 'rainwater-harvesting'
-                                                                                                                        : undefined
+                                                                                                                          ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
+                                                                                                                        ? 'staff-quarters'
+                                                                                                                        : entityType ===
+                                                                                                                            ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
+                                                                                                                          ? 'rainwater-harvesting'
+                                                                                                                          : undefined
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource =

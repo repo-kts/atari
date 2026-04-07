@@ -16,6 +16,14 @@ const {
     enrichAgriDroneIntroductionExport,
 } = require('../repositories/reports/agriDroneReport/agriDroneIntroductionReportRepository.js');
 const { resolveAgriDroneDemonstrationDetailsPayload } = require('../repositories/reports/agriDroneReport/agriDroneDemonstrationDetailsReportRepository.js');
+const {
+    enrichFldListWithResults,
+    resolveFldPageReportPayload,
+} = require('../repositories/reports/fldPageReport/fldPageReportPayload.js');
+const {
+    generateFldPageExcelBuffer,
+    generateFldPageWordBuffer,
+} = require('../utils/fldPageExport.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -60,6 +68,9 @@ const exportData = async (req, res) => {
         if (templateKey === 'agri-drone-introduction' && rawData) {
             effectiveRawData = await enrichAgriDroneIntroductionExport(rawData);
         }
+        if (templateKey === 'fld-page-report' && rawData) {
+            effectiveRawData = await enrichFldListWithResults(rawData);
+        }
 
         const tabularData = (templateKey && rawData)
             ? buildTabularDataFromTemplate(templateKey, effectiveRawData, headers, rows, format)
@@ -79,12 +90,26 @@ const exportData = async (req, res) => {
                 fileName += '.pdf';
                 break;
             case 'excel':
-                buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
+                if (templateKey === 'fld-page-report') {
+                    buffer = await generateFldPageExcelBuffer(
+                        title,
+                        resolveFldPageReportPayload(effectiveRawData),
+                    );
+                } else {
+                    buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
+                }
                 contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
                 fileName += '.xlsx';
                 break;
             case 'word':
-                buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
+                if (templateKey === 'fld-page-report') {
+                    buffer = await generateFldPageWordBuffer(
+                        title,
+                        resolveFldPageReportPayload(effectiveRawData),
+                    );
+                } else {
+                    buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
+                }
                 contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
                 fileName += '.docx';
                 break;
@@ -113,7 +138,8 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
         templateKey,
         normalizedData,
         {
-            sectionId: matchedSection?.id || '1.1',
+            sectionId: matchedSection?.id
+                || (templateKey === 'fld-page-report' ? 'fld-page' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
         }
@@ -121,6 +147,9 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
 }
 
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
+    if (templateKey === 'fld-page-report') {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
     if (templateKey === 'cra-details-state-wise') {
         return buildCraDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }

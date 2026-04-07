@@ -55,6 +55,8 @@ const { renderNfDemonstrationInformationSection } = require('./formsTemplate/pro
 const { renderNfFarmersPracticingInformationSection } = require('./formsTemplate/projectTemplates/nfFarmersPracticingInformationTemplate.js');
 const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectTemplates/nfSoilDataInformationTemplate.js');
 const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
+const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
+const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
 const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
 const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
 
@@ -111,6 +113,8 @@ class ReportTemplateService {
             'nf-farmers-practicing-information': renderNfFarmersPracticingInformationSection.bind(this),
             'nf-soil-data-information': renderNfSoilDataInformationSection.bind(this),
             'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
+            'fld-page-report': renderFldPageReportSection.bind(this),
+            'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
             'agri-drone-introduction': renderAgriDroneIntroductionSection.bind(this),
             'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),

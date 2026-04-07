@@ -25,6 +25,7 @@ const hostelUtilizationReportRepository = require('../../repositories/reports/ho
 const staffQuartersUtilizationReportRepository = require('../../repositories/reports/staffQuartersUtilizationReport/index.js');
 const rainwaterHarvestingReportRepository = require('../../repositories/reports/rainwaterHarvestingReport/index.js');
 const agriDroneReportRepository = require('../../repositories/reports/agriDroneReport/index.js');
+const fldStateCategoryReportRepository = require('../../repositories/reports/fldStateCategoryReport/index.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
@@ -251,6 +252,9 @@ class ReportDataService {
             case 'rainwaterHarvesting':
                 rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(kvkId, sectionFilters);
                 break;
+            case 'fldStateCategoryReport':
+                rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(kvkId, sectionFilters);
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -291,7 +295,8 @@ class ReportDataService {
             || dataSource === 'csisa'
             || dataSource === 'tspScsp'
             || dataSource === 'tsp'
-            || dataSource === 'scsp';
+            || dataSource === 'scsp'
+            || dataSource === 'fldStateCategoryReport';
         const skipTransformWithSeedHub = skipTransform
             || dataSource === 'seedHub'
             || dataSource === 'otherProgrammes'
