@@ -2,6 +2,20 @@ const exportHelper = require('../utils/exportHelper');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');
+const { NF_DEMONSTRATION_PARAMETER_DEFS } = require('../repositories/reports/naturalFarmingReport/nfDemonstrationConstants.js');
+const { normalizeDemonstrationExportRow } = require('../repositories/reports/naturalFarmingReport/demonstrationInfoReportRepository.js');
+const { normalizeFarmersPracticingExportRow } = require('../repositories/reports/naturalFarmingReport/farmersPracticingReportRepository.js');
+const {
+    inferSoilTablesFromRecords,
+    prepareNfSoilExportPayload,
+    groupUnassignedSoilRowsByParameterName,
+} = require('../repositories/reports/naturalFarmingReport/soilDataReportRepository.js');
+const { resolveBudgetTemplatePayload } = require('../repositories/reports/naturalFarmingReport/budgetExpenditureReportRepository.js');
+const {
+    resolveAgriDroneIntroductionPayload,
+    enrichAgriDroneIntroductionExport,
+} = require('../repositories/reports/agriDroneReport/agriDroneIntroductionReportRepository.js');
+const { resolveAgriDroneDemonstrationDetailsPayload } = require('../repositories/reports/agriDroneReport/agriDroneDemonstrationDetailsReportRepository.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -36,8 +50,19 @@ const exportData = async (req, res) => {
         let contentType;
         let fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}`;
 
+        let effectiveRawData = rawData;
+        if (templateKey === 'nf-soil-data-information' && rawData) {
+            effectiveRawData = await prepareNfSoilExportPayload(rawData);
+        }
+        if (templateKey === 'nf-budget-expenditure-information' && rawData) {
+            effectiveRawData = resolveBudgetTemplatePayload(rawData);
+        }
+        if (templateKey === 'agri-drone-introduction' && rawData) {
+            effectiveRawData = await enrichAgriDroneIntroductionExport(rawData);
+        }
+
         const tabularData = (templateKey && rawData)
-            ? buildTabularDataFromTemplate(templateKey, rawData, headers, rows, format)
+            ? buildTabularDataFromTemplate(templateKey, effectiveRawData, headers, rows, format)
             : {
                 headers,
                 rows: rows.map(row => row.map(cell => formatExportValue(cell, format)))
@@ -46,7 +71,7 @@ const exportData = async (req, res) => {
         switch (format.toLowerCase()) {
             case 'pdf':
                 const html = templateKey
-                    ? await generateCustomTemplateHTML(templateKey, rawData, title)
+                    ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title)
                     : generateHTML(title, headers, rows);
 
                 buffer = await exportHelper.generatePDF(html);
@@ -165,6 +190,27 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'nicra-soil-health') {
         return buildNicraSoilHealthTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'natural-farming-physical') {
+        return buildNaturalFarmingPhysicalTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nf-demonstration-information') {
+        return buildNaturalFarmingDemonstrationTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nf-farmers-practicing-information') {
+        return buildNaturalFarmingFarmersPracticingTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nf-soil-data-information') {
+        return buildNfSoilDataTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'nf-budget-expenditure-information') {
+        return buildNfBudgetExpenditureTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'agri-drone-introduction') {
+        return buildAgriDroneIntroductionTabularData(rawData, format, fallbackHeaders, fallbackRows);
+    }
+    if (templateKey === 'agri-drone-demonstration-details') {
+        return buildAgriDroneDemonstrationDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
     if (templateKey === 'tsp') {
         return buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows);
@@ -1368,6 +1414,489 @@ function buildNicraSoilHealthTabularData(rawData, format, fallbackHeaders, fallb
     return { headers, rows };
 }
 
+function buildNaturalFarmingPhysicalTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const NF_OTHER_KEY = '__other_activities__';
+    const resolved = resolveNFPhysicalGrouped(rawData);
+    const activityGroups = resolved.activityGroups || {};
+    const activityOrder  = resolved.activityOrder || [];
+    const activityNames  = resolved.activityNames || [];
+    const stateAggregates = Array.isArray(resolved.stateAggregates) ? resolved.stateAggregates : [];
+    const rows = [];
+
+    // ── State-wise aggregate table (dynamic activity columns) ──
+    if (stateAggregates.length > 0) {
+        rows.push([formatExportValue('State-wise overall Physical Information', format)]);
+        const aggHeader = ['S.No.', 'State', ...activityNames, 'Other activities', 'Total programmes', 'Total M', 'Total F', 'Total T'];
+        rows.push(aggHeader);
+        stateAggregates.forEach((r, idx) => {
+            const actCols = activityNames.map(a => Number(r[a] ?? 0));
+            rows.push([
+                idx + 1,
+                formatExportValue(r.stateName || '-', format),
+                ...actCols,
+                Number(r.other ?? 0),
+                Number(r.totalProgrammes ?? 0),
+                Number(r.totM ?? 0),
+                Number(r.totF ?? 0),
+                Number(r.totT ?? 0),
+            ]);
+        });
+        rows.push([]); // blank separator
+    }
+
+    // ── Dynamic activity detail tables ──
+    const emitActivity = (title, arr) => {
+        if (!arr || arr.length === 0) return;
+        rows.push([formatExportValue(title, format)]);
+        rows.push([
+            'S.No.', 'Title of programme', 'Date', 'Venue',
+            'Gen M', 'Gen F', 'Gen T',
+            'OBC M', 'OBC F', 'OBC T',
+            'SC M', 'SC F', 'SC T',
+            'ST M', 'ST F', 'ST T',
+            'Total M', 'Total F', 'Total T',
+            'Remarks',
+        ]);
+        arr.forEach((r, idx) => {
+            rows.push([
+                idx + 1,
+                formatExportValue(r.trainingTitle || r.activityName || '-', format),
+                formatExportValue(r.trainingDate || '-', format),
+                formatExportValue(r.venue || '-', format),
+                Number(r.genM ?? 0), Number(r.genF ?? 0), Number(r.genT ?? 0),
+                Number(r.obcM ?? 0), Number(r.obcF ?? 0), Number(r.obcT ?? 0),
+                Number(r.scM ?? 0), Number(r.scF ?? 0), Number(r.scT ?? 0),
+                Number(r.stM ?? 0), Number(r.stF ?? 0), Number(r.stT ?? 0),
+                Number(r.totM ?? 0), Number(r.totF ?? 0), Number(r.totT ?? 0),
+                formatExportValue(r.remarks || '-', format),
+            ]);
+        });
+        rows.push([]);
+    };
+
+    const emitOther = (arr) => {
+        if (!arr || arr.length === 0) return;
+        rows.push([formatExportValue('Other activities', format)]);
+        rows.push(['S.No.', 'Name of the Innovative programme organized', 'Significance of innovative programme', 'Remarks']);
+        arr.forEach((r, idx) => {
+            rows.push([
+                idx + 1,
+                formatExportValue(r.innovativeProgrammeName || '-', format),
+                formatExportValue(r.significanceOfInnovativeProgramme || '-', format),
+                formatExportValue(r.remarks || '-', format),
+            ]);
+        });
+    };
+
+    // Iterate over all activity categories in insertion order
+    for (const key of activityOrder) {
+        if (key === NF_OTHER_KEY) {
+            emitOther(activityGroups[key]);
+        } else {
+            emitActivity(key, activityGroups[key]);
+        }
+    }
+
+    const headers = rows[1] || fallbackHeaders;
+    return { headers, rows: rows.length ? rows : fallbackRows };
+}
+
+/**
+ * Natural Farming — Demonstration Information: long-format rows (one per parameter per demonstration).
+ */
+function buildNaturalFarmingDemonstrationTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const flat = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (flat.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sl.',
+        'Demo ID',
+        'Reporting year',
+        'State',
+        'District',
+        'KVK / Farmer',
+        'Address & contact',
+        'Agro-climatic zone',
+        'Cropping pattern',
+        'Latitude (N)',
+        'Longitude (E)',
+        'Activity',
+        'Crop',
+        'Variety',
+        'Season',
+        'NF technology / components',
+        'Area (ha)',
+        'Detail of farmer practice',
+        'Parameter',
+        'Performance without NF',
+        'Performance with NF',
+        'Farmer feedback',
+    ];
+
+    const rows = [];
+    let sl = 0;
+
+    flat.forEach((raw) => {
+        const rec = normalizeDemonstrationExportRow(raw);
+        if (!rec) return;
+        NF_DEMONSTRATION_PARAMETER_DEFS.forEach((def, pi) => {
+            sl += 1;
+            rows.push([
+                sl,
+                rec.demonstrationInfoId ?? '-',
+                formatExportValue(rec.reportingYear ?? '', format),
+                formatExportValue(rec.stateName ?? '', format),
+                formatExportValue(rec.districtName ?? '', format),
+                formatExportValue(rec.kvkFarmerLabel ?? '', format),
+                formatExportValue(rec.addressWithContact ?? '', format),
+                formatExportValue(rec.agroClimaticZone ?? '', format),
+                formatExportValue(rec.croppingPattern ?? '', format),
+                formatExportValue(rec.latitude != null ? rec.latitude : '', format),
+                formatExportValue(rec.longitude != null ? rec.longitude : '', format),
+                formatExportValue(rec.activityName ?? '', format),
+                formatExportValue(rec.crop ?? '', format),
+                formatExportValue(rec.variety ?? '', format),
+                formatExportValue(rec.seasonName ?? '', format),
+                formatExportValue(rec.naturalFarmingTechnology ?? '', format),
+                formatExportValue(rec.areaInHa != null ? rec.areaInHa : '', format),
+                formatExportValue(rec.farmerPracticeDetails ?? '', format),
+                formatExportValue(def.label, format),
+                formatExportValue(rec[def.withoutKey], format),
+                formatExportValue(rec[def.withKey], format),
+                pi === 0 ? formatExportValue(rec.farmerFeedback ?? '', format) : '',
+            ]);
+        });
+    });
+
+    return { headers, rows: rows.length ? rows : fallbackRows };
+}
+
+/**
+ * Natural Farming — Farmers already practicing: long-format rows (one per parameter per record).
+ */
+function buildNaturalFarmingFarmersPracticingTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const flat = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    if (flat.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+
+    const headers = [
+        'Sl.',
+        'Record ID',
+        'Reporting year',
+        'State',
+        'District',
+        'KVK / Farmer',
+        'Address & contact',
+        'Agro-climatic zone',
+        'Cropping pattern',
+        'Latitude (N)',
+        'Longitude (E)',
+        'Activity',
+        'Crop',
+        'Variety',
+        'Season',
+        'NF technology / components',
+        'Area (ha)',
+        'Detail of farmer practice',
+        'Parameter',
+        'Without NF practice',
+        'With NF practice',
+        'Farmer feedback',
+    ];
+
+    const rows = [];
+    let sl = 0;
+
+    flat.forEach((raw) => {
+        const rec = normalizeFarmersPracticingExportRow(raw);
+        if (!rec) return;
+        NF_DEMONSTRATION_PARAMETER_DEFS.forEach((def, pi) => {
+            sl += 1;
+            rows.push([
+                sl,
+                rec.farmersPracticingId ?? '-',
+                formatExportValue(rec.reportingYear ?? '', format),
+                formatExportValue(rec.stateName ?? '', format),
+                formatExportValue(rec.districtName ?? '', format),
+                formatExportValue(rec.kvkFarmerLabel ?? '', format),
+                formatExportValue(rec.addressWithContact ?? '', format),
+                formatExportValue(rec.agroClimaticZone ?? '', format),
+                formatExportValue(rec.croppingPattern ?? '', format),
+                formatExportValue(rec.latitude != null ? rec.latitude : '', format),
+                formatExportValue(rec.longitude != null ? rec.longitude : '', format),
+                formatExportValue(rec.activityName ?? '', format),
+                formatExportValue(rec.crop ?? '', format),
+                formatExportValue(rec.variety ?? '', format),
+                formatExportValue(rec.seasonName ?? '', format),
+                formatExportValue(rec.naturalFarmingTechnology ?? '', format),
+                formatExportValue(rec.areaInHa != null ? rec.areaInHa : '', format),
+                formatExportValue(rec.farmerPracticeDetails ?? '', format),
+                formatExportValue(def.label, format),
+                formatExportValue(rec[def.withoutKey], format),
+                formatExportValue(rec[def.withKey], format),
+                pi === 0 ? formatExportValue(rec.farmerFeedback ?? '', format) : '',
+            ]);
+        });
+    });
+
+    return { headers, rows: rows.length ? rows : fallbackRows };
+}
+
+function buildNfSoilDataTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const payload = rawData && typeof rawData === 'object' && !Array.isArray(rawData) && Array.isArray(rawData.tables)
+        ? rawData
+        : inferSoilTablesFromRecords(rawData);
+    const tables = payload.tables || [];
+    const unassigned = payload.unassignedRows;
+
+    const headers = [
+        'Section',
+        'Soil parameter (master)',
+        'Season',
+        'Crop',
+        'pH (before crop sowing)',
+        'EC (dS/m) before',
+        'OC (%) before',
+        'N (Kg/ha) before',
+        'P (Kg/ha) before',
+        'K (Kg/ha) before',
+        'Soil Microbes (cfu) before',
+        'pH (after harvesting)',
+        'EC (dS/m) after',
+        'OC (%) after',
+        'N (Kg/ha) after',
+        'P (Kg/ha) after',
+        'K (Kg/ha) after',
+        'Soil Microbes (cfu) after',
+    ];
+
+    const pushRows = (subtitle, rows) => {
+        const out = [];
+        for (const r of rows || []) {
+            out.push([
+                formatExportValue(subtitle, format),
+                formatExportValue(r.parameterName ?? '', format),
+                formatExportValue(r.seasonName ?? '', format),
+                formatExportValue(r.crop ?? '', format),
+                formatExportValue(r.phBefore, format),
+                formatExportValue(r.ecBefore, format),
+                formatExportValue(r.ocBefore, format),
+                formatExportValue(r.nBefore, format),
+                formatExportValue(r.pBefore, format),
+                formatExportValue(r.kBefore, format),
+                formatExportValue(r.soilMicrobesBefore, format),
+                formatExportValue(r.phAfter, format),
+                formatExportValue(r.ecAfter, format),
+                formatExportValue(r.ocAfter, format),
+                formatExportValue(r.nAfter, format),
+                formatExportValue(r.pAfter, format),
+                formatExportValue(r.kAfter, format),
+                formatExportValue(r.soilMicrobesAfter, format),
+            ]);
+        }
+        return out;
+    };
+
+    const rows = [];
+    tables.forEach((t) => {
+        rows.push(...pushRows(t.subtitle || '', t.rows));
+    });
+    if (unassigned && unassigned.length > 0) {
+        groupUnassignedSoilRowsByParameterName(unassigned).forEach(({ subtitle, rows: chunk }) => {
+            rows.push(...pushRows(subtitle, chunk));
+        });
+    }
+
+    if (rows.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    return { headers, rows };
+}
+
+function buildNfBudgetExpenditureTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const payload = resolveBudgetTemplatePayload(rawData);
+    const rows = payload.rows || [];
+    const headers = [
+        'Name of activity',
+        'Number of activities organized',
+        'Budget sanction (Rs)',
+        'Budget expenditure (Rs)',
+        'Total Budget Expenditure (Rs)',
+    ];
+    const out = rows.map((r) => [
+        formatExportValue(r.activityLabel, format),
+        formatExportValue(r.numberOfActivities, format),
+        formatExportValue(r.budgetSanction, format),
+        formatExportValue(r.budgetExpenditure, format),
+        formatExportValue(r.totalBudgetExpenditure, format),
+    ]);
+    if (out.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    return { headers, rows: out };
+}
+
+function buildAgriDroneIntroductionTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const payload = resolveAgriDroneIntroductionPayload(rawData);
+    const rows = payload.rows || [];
+    const headers = ['S.No.', 'Name of parameter', 'Details of parameter'];
+    const out = [];
+    for (const r of rows) {
+        if (r._spacer) {
+            out.push(['', '', '']);
+            continue;
+        }
+        out.push([
+            formatExportValue(r.sNo, format),
+            formatExportValue(r.parameterName, format),
+            formatExportValue(r.details, format),
+        ]);
+    }
+    if (out.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    return { headers, rows: out };
+}
+
+const AGRI_DRONE_DEMO_FLAT_HEADERS = [
+    'Demos on',
+    'Name of district',
+    'Date of demonstration',
+    'Place of demonstration',
+    'Crop Name',
+    'No. of demos',
+    'Area covered under demos (area in ha)',
+    'General M',
+    'General F',
+    'General T',
+    'OBC M',
+    'OBC F',
+    'OBC T',
+    'SC M',
+    'SC F',
+    'SC T',
+    'ST M',
+    'ST F',
+    'ST T',
+    'Grand Total M',
+    'Grand Total F',
+    'Grand Total T',
+];
+
+function buildAgriDroneDemonstrationDetailsTabularData(rawData, format, fallbackHeaders, fallbackRows) {
+    const payload = resolveAgriDroneDemonstrationDetailsPayload(rawData);
+    const rows = payload.rows || [];
+    const out = rows.map((r) => [
+        formatExportValue(r.demonstrationsOn, format),
+        formatExportValue(r.districtName, format),
+        formatExportValue(r.dateOfDemonstration, format),
+        formatExportValue(r.placeOfDemonstration, format),
+        formatExportValue(r.cropName, format),
+        formatExportValue(r.noOfDemos, format),
+        formatExportValue(r.areaHa, format),
+        formatExportValue(r.generalM, format),
+        formatExportValue(r.generalF, format),
+        formatExportValue(r.generalT, format),
+        formatExportValue(r.obcM, format),
+        formatExportValue(r.obcF, format),
+        formatExportValue(r.obcT, format),
+        formatExportValue(r.scM, format),
+        formatExportValue(r.scF, format),
+        formatExportValue(r.scT, format),
+        formatExportValue(r.stM, format),
+        formatExportValue(r.stF, format),
+        formatExportValue(r.stT, format),
+        formatExportValue(r.grandM, format),
+        formatExportValue(r.grandF, format),
+        formatExportValue(r.grandT, format),
+    ]);
+    if (out.length === 0) {
+        return { headers: fallbackHeaders, rows: fallbackRows };
+    }
+    return { headers: AGRI_DRONE_DEMO_FLAT_HEADERS, rows: out };
+}
+
+/**
+ * Resolve raw data into dynamic grouped format for Natural Farming Physical Info.
+ * Handles both the pre-grouped object from the report service and flat arrays from the form page.
+ */
+function resolveNFPhysicalGrouped(rawData) {
+    const NF_OTHER_KEY = '__other_activities__';
+    // Already grouped (from report data service)
+    if (rawData && !Array.isArray(rawData) && rawData.activityGroups) {
+        return rawData;
+    }
+    // Flat array (from form page export)
+    const flatRows = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
+    const activityGroups = {};
+    const activityOrder = [];
+    const stateMap = new Map();
+
+    for (const raw of flatRows) {
+        const r = normalizeNFPhysicalRow(raw);
+        const isOther = !r.trainingTitle && !r.trainingDate && !r.venue;
+        const key = isOther ? NF_OTHER_KEY : (r.activityName || 'Uncategorised');
+
+        if (!activityGroups[key]) {
+            activityGroups[key] = [];
+            activityOrder.push(key);
+        }
+        activityGroups[key].push(r);
+
+        const stKey = r.stateName || '-';
+        if (!stateMap.has(stKey)) {
+            stateMap.set(stKey, { stateName: stKey, totalProgrammes: 0, totM: 0, totF: 0, totT: 0, other: 0 });
+        }
+        const agg = stateMap.get(stKey);
+        if (isOther) {
+            agg.other += 1;
+        } else {
+            const aName = r.activityName || 'Uncategorised';
+            if (agg[aName] === undefined) agg[aName] = 0;
+            agg[aName] += 1;
+        }
+        agg.totalProgrammes += 1;
+        agg.totM += Number(r.totM ?? 0);
+        agg.totF += Number(r.totF ?? 0);
+        agg.totT += Number(r.totT ?? 0);
+    }
+    const activityNames = activityOrder.filter(k => k !== NF_OTHER_KEY);
+    const stateAggregates = Array.from(stateMap.values()).sort((a, b) => a.stateName.localeCompare(b.stateName));
+    return { activityGroups, activityOrder, activityNames, stateAggregates };
+}
+
+function normalizeNFPhysicalRow(r) {
+    const genM = Number(r.genM ?? r.genMale ?? r.generalM ?? 0) || 0;
+    const genF = Number(r.genF ?? r.genFemale ?? r.generalF ?? 0) || 0;
+    const obcM = Number(r.obcM ?? r.obcMale ?? 0) || 0;
+    const obcF = Number(r.obcF ?? r.obcFemale ?? 0) || 0;
+    const scM  = Number(r.scM ?? r.scMale ?? 0) || 0;
+    const scF  = Number(r.scF ?? r.scFemale ?? 0) || 0;
+    const stM  = Number(r.stM ?? r.stMale ?? 0) || 0;
+    const stF  = Number(r.stF ?? r.stFemale ?? 0) || 0;
+    const totM = genM + obcM + scM + stM;
+    const totF = genF + obcF + scF + stF;
+    return {
+        ...r,
+        trainingTitle: r.trainingTitle || '',
+        trainingDate: r.trainingDate || '',
+        venue: r.venue || '',
+        activityName: r.activityName || (r.activityMaster && r.activityMaster.activityName) || '',
+        remarks: r.remarks || '',
+        innovativeProgrammeName: r.innovativeProgrammeName || '',
+        significanceOfInnovativeProgramme: r.significanceOfInnovativeProgramme || '',
+        stateName: r.stateName || (r.kvk && r.kvk.state && r.kvk.state.stateName) || '',
+        kvkName: r.kvkName || (r.kvk && r.kvk.kvkName) || '',
+        genM, genF, genT: genM + genF,
+        obcM, obcF, obcT: obcM + obcF,
+        scM,  scF,  scT:  scM  + scF,
+        stM,  stF,  stT:  stM  + stF,
+        totM, totF, totT: totM + totF,
+    };
+}
 /**
  * CSISA – Excel / DOCX tabular export (Section 2.22)
  *

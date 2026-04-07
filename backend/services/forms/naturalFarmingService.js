@@ -6,6 +6,8 @@ const {
     soilDataRepository,
     financialInfoRepository,
 } = require('../../repositories/forms/naturalFarmingRepository');
+const { farmersPracticingRepository } = require('../../repositories/forms/farmersPracticingRepository');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const naturalFarmingService = {
     // Geographical Info
@@ -25,9 +27,41 @@ const naturalFarmingService = {
     // Demonstration Info
     getAllDemo: (filters, user) => demonstrationInfoRepository.findAll(filters, user),
     getDemoById: (id, user) => demonstrationInfoRepository.findById(id, user),
-    createDemo: (data, user) => demonstrationInfoRepository.create(data, user),
-    updateDemo: (id, data, user) => demonstrationInfoRepository.update(id, data, user),
-    deleteDemo: (id, user) => demonstrationInfoRepository.delete(id, user),
+    createDemo: async (data, user) => {
+        const result = await demonstrationInfoRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingDemonstration', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateDemo: async (id, data, user) => {
+        const result = await demonstrationInfoRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingDemonstration', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteDemo: async (id, user) => {
+        const existing = await demonstrationInfoRepository.findById(id, user);
+        const result = await demonstrationInfoRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingDemonstration', existing?.kvkId || user?.kvkId);
+        return result;
+    },
+
+    // Farmers already practicing Natural Farming
+    getAllFarmersPracticing: (filters, user) => farmersPracticingRepository.findAll(filters, user),
+    getFarmersPracticingById: (id, user) => farmersPracticingRepository.findById(id, user),
+    createFarmersPracticing: async (data, user) => {
+        const result = await farmersPracticingRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingFarmersPracticing', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateFarmersPracticing: async (id, data, user) => {
+        const result = await farmersPracticingRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingFarmersPracticing', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteFarmersPracticing: async (id, user) => {
+        const existing = await farmersPracticingRepository.findById(id, user);
+        await farmersPracticingRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingFarmersPracticing', existing?.kvkId || user?.kvkId);
+    },
 
     // Beneficiaries
     getAllBeneficiaries: (filters, user) => beneficiariesRepository.findAll(filters, user),
@@ -39,16 +73,42 @@ const naturalFarmingService = {
     // Soil Data
     getAllSoil: (filters, user) => soilDataRepository.findAll(filters, user),
     getSoilById: (id, user) => soilDataRepository.findById(id, user),
-    createSoil: (data, user) => soilDataRepository.create(data, user),
-    updateSoil: (id, data, user) => soilDataRepository.update(id, data, user),
-    deleteSoil: (id, user) => soilDataRepository.delete(id, user),
+    createSoil: async (data, user) => {
+        const result = await soilDataRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingSoilData', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateSoil: async (id, data, user) => {
+        const result = await soilDataRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingSoilData', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteSoil: async (id, user) => {
+        const existing = await soilDataRepository.findById(id, user);
+        const result = await soilDataRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingSoilData', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 
     // Financial Info (Budget)
     getAllFinancial: (filters, user) => financialInfoRepository.findAll(filters, user),
     getFinancialById: (id, user) => financialInfoRepository.findById(id, user),
-    createFinancial: (data, user) => financialInfoRepository.create(data, user),
-    updateFinancial: (id, data, user) => financialInfoRepository.update(id, data, user),
-    deleteFinancial: (id, user) => financialInfoRepository.delete(id, user),
+    createFinancial: async (data, user) => {
+        const result = await financialInfoRepository.create(data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingBudgetExpenditure', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    updateFinancial: async (id, data, user) => {
+        const result = await financialInfoRepository.update(id, data, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingBudgetExpenditure', result?.kvkId || user?.kvkId);
+        return result;
+    },
+    deleteFinancial: async (id, user) => {
+        const existing = await financialInfoRepository.findById(id, user);
+        const result = await financialInfoRepository.delete(id, user);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('naturalFarmingBudgetExpenditure', existing?.kvkId || user?.kvkId);
+        return result;
+    },
 };
 
 module.exports = naturalFarmingService;

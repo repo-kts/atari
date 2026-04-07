@@ -1,7 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Download, ChevronLeft, ArrowRight, FilePlus2, FilePenLine, ChevronDown } from 'lucide-react'
+import {
+    Plus,
+    Download,
+    ChevronLeft,
+    ArrowRight,
+    FilePlus2,
+    FilePenLine,
+    ChevronDown,
+} from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
@@ -9,10 +17,18 @@ import { Pagination } from '@/components/common/DataTable/Pagination'
 import { SearchInput } from '@/components/common/SearchInput'
 import { LoadingState } from '@/components/common/LoadingState'
 // import { ErrorState } from '@/components/common/ErrorState'
-import { getBreadcrumbsForPath, getRouteConfig, getSiblingRoutes } from '@/config/route'
+import {
+    getBreadcrumbsForPath,
+    getRouteConfig,
+    getSiblingRoutes,
+} from '@/config/route'
 import { DataManagementFormPage } from './DataManagementFormPage'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { getEntityTypeFromPath, getFieldValue, resolveTableFields } from '@/utils/masterUtils'
+import {
+    getEntityTypeFromPath,
+    getFieldValue,
+    resolveTableFields,
+} from '@/utils/masterUtils'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
@@ -28,14 +44,38 @@ import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
 import { useToast } from '@/hooks/useToast'
-import { useTransferOftToNextYear, useTransferFldToNextYear, useCreateOftResult, useUpdateOftResult, useOftResult, useFldResult, useCreateFldResult, useUpdateFldResult } from '@/hooks/useOftWorkflow'
+import {
+    useTransferOftToNextYear,
+    useTransferFldToNextYear,
+    useCreateOftResult,
+    useUpdateOftResult,
+    useOftResult,
+    useFldResult,
+    useCreateFldResult,
+    useUpdateFldResult,
+} from '@/hooks/useOftWorkflow'
 import { useTransferCfldTechnicalToNextYear } from '@/hooks/useCfldWorkflow'
-import { OftResultForm, OftResultFormValue } from './forms/achievement/OftResultForm'
-import { FldResultForm, FldResultValue } from './forms/achievement/FldResultForm'
+import {
+    OftResultForm,
+    OftResultFormValue,
+} from './forms/achievement/OftResultForm'
+import {
+    FldResultForm,
+    FldResultValue,
+} from './forms/achievement/FldResultForm'
 import { DatePicker } from '@/components/ui/date-picker'
-import { NariNutritionalGardenResultForm, NariNutritionalGardenResultValue } from './forms/achievement/NariNutritionalGardenResultForm'
-import { NariBioFortifiedResultForm, NariBioFortifiedResultValue } from './forms/achievement/NariBioFortifiedResultForm'
-import { NariValueAdditionResultForm, NariValueAdditionResultValue } from './forms/achievement/NariValueAdditionResultForm'
+import {
+    NariNutritionalGardenResultForm,
+    NariNutritionalGardenResultValue,
+} from './forms/achievement/NariNutritionalGardenResultForm'
+import {
+    NariBioFortifiedResultForm,
+    NariBioFortifiedResultValue,
+} from './forms/achievement/NariBioFortifiedResultForm'
+import {
+    NariValueAdditionResultForm,
+    NariValueAdditionResultValue,
+} from './forms/achievement/NariValueAdditionResultForm'
 import { useNariResult } from '@/hooks/useNariResult'
 
 interface DataManagementViewProps {
@@ -65,7 +105,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     } = useFormState()
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
-    const [selectedEmployee, setSelectedEmployee] = useState<KvkEmployee | null>(null)
+    const [selectedEmployee, setSelectedEmployee] =
+        useState<KvkEmployee | null>(null)
 
     // Get user and permission helper from auth store
     const { user, hasPermission } = useAuth()
@@ -78,7 +119,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Handler hooks
     const { handleMasterDataDelete } = useDeleteHandler({ confirm, alert })
     const { handleEdit: handleEditItem } = useEditHandler()
-    const { handleExport: handleExportData, exportLoading: exportLoadingState } = useExportHandler()
+    const {
+        handleExport: handleExportData,
+        exportLoading: exportLoadingState,
+    } = useExportHandler()
     const transferOftMutation = useTransferOftToNextYear()
     const transferFldMutation = useTransferFldToNextYear()
     const transferCfldMutation = useTransferCfldTechnicalToNextYear()
@@ -87,27 +131,53 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const createFldResultMutation = useCreateFldResult()
     const updateFldResultMutation = useUpdateFldResult()
     const [isOftResultPageOpen, setIsOftResultPageOpen] = useState(false)
-    const [oftResultMode, setOftResultMode] = useState<'create' | 'edit'>('create')
-    const [selectedOftId, setSelectedOftId] = useState<number | string | null>(null)
+    const [oftResultMode, setOftResultMode] = useState<'create' | 'edit'>(
+        'create'
+    )
+    const [selectedOftId, setSelectedOftId] = useState<number | string | null>(
+        null
+    )
     const [selectedOftItem, setSelectedOftItem] = useState<any>(null)
     const oftResultQuery = useOftResult(selectedOftId || undefined)
     const [isFldResultPageOpen, setIsFldResultPageOpen] = useState(false)
-    const [fldResultMode, setFldResultMode] = useState<'create' | 'edit'>('create')
-    const [selectedFldId, setSelectedFldId] = useState<number | string | null>(null)
+    const [fldResultMode, setFldResultMode] = useState<'create' | 'edit'>(
+        'create'
+    )
+    const [selectedFldId, setSelectedFldId] = useState<number | string | null>(
+        null
+    )
     const [selectedFldItem, setSelectedFldItem] = useState<any>(null)
     const fldResultQuery = useFldResult(selectedFldId || undefined)
 
-    const [isNariNutriResultPageOpen, setIsNariNutriResultPageOpen] = useState(false)
-    const [selectedNariNutriId, setSelectedNariNutriId] = useState<number | string | null>(null)
-    const nariNutriResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN, selectedNariNutriId)
+    const [isNariNutriResultPageOpen, setIsNariNutriResultPageOpen] =
+        useState(false)
+    const [selectedNariNutriId, setSelectedNariNutriId] = useState<
+        number | string | null
+    >(null)
+    const nariNutriResult = useNariResult(
+        ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN,
+        selectedNariNutriId
+    )
 
-    const [isNariBioResultPageOpen, setIsNariBioResultPageOpen] = useState(false)
-    const [selectedNariBioId, setSelectedNariBioId] = useState<number | string | null>(null)
-    const nariBioResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED, selectedNariBioId)
+    const [isNariBioResultPageOpen, setIsNariBioResultPageOpen] =
+        useState(false)
+    const [selectedNariBioId, setSelectedNariBioId] = useState<
+        number | string | null
+    >(null)
+    const nariBioResult = useNariResult(
+        ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED,
+        selectedNariBioId
+    )
 
-    const [isNariValueResultPageOpen, setIsNariValueResultPageOpen] = useState(false)
-    const [selectedNariValueId, setSelectedNariValueId] = useState<number | string | null>(null)
-    const nariValueResult = useNariResult(ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION, selectedNariValueId)
+    const [isNariValueResultPageOpen, setIsNariValueResultPageOpen] =
+        useState(false)
+    const [selectedNariValueId, setSelectedNariValueId] = useState<
+        number | string | null
+    >(null)
+    const nariValueResult = useNariResult(
+        ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION,
+        selectedNariValueId
+    )
 
     // Route meta, siblings & breadcrumbs
     const routeConfig = getRouteConfig(location.pathname)
@@ -116,7 +186,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Filter sibling tabs: only show tabs for routes the user has VIEW permission for
     const siblingRoutes = React.useMemo(
         () =>
-            allSiblingRoutes.filter((r) => {
+            allSiblingRoutes.filter(r => {
                 const code = r.moduleCode
                 if (!code) return true
                 return hasPermission('VIEW', code)
@@ -131,7 +201,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
-    const hasActiveFilters = Boolean(searchQuery.trim() || reportingYearFrom || reportingYearTo)
+    const hasActiveFilters = Boolean(
+        searchQuery.trim() || reportingYearFrom || reportingYearTo
+    )
 
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
@@ -150,7 +222,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const { isAboutKvk: isAboutKvkEntity } = getEntityTypeChecks(entityType)
 
     // Check if KVK admin/user doesn't have kvkId linked
-    const isKvkRoleWithoutKvk = user &&
+    const isKvkRoleWithoutKvk =
+        user &&
         (user.role === 'kvk_admin' || user.role === 'kvk_user') &&
         !user.kvkId &&
         isAboutKvkEntity
@@ -178,15 +251,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Edit button should be shown for a given item
     const canEditItem = (item: any) => {
         if (!user) return false
-        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } = getEntityTypeChecks(entityType)
+        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } =
+            getEntityTypeChecks(entityType)
 
-        if (isAboutKvkEntity || isMiscellaneous || isSwachhtaBharatAbhiyaan || isMeetings) {
+        if (
+            isAboutKvkEntity ||
+            isMiscellaneous ||
+            isSwachhtaBharatAbhiyaan ||
+            isMeetings
+        ) {
             if (moduleCode && !hasPermission('EDIT', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can edit all records
-            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user') return true
+            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user')
+                return true
             // KVK roles can only edit their own data
-            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
+            if (!item.transferStatus || item.transferStatus === 'ACTIVE')
+                return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
         // Master data entities: explicit module EDIT permission is sufficient
@@ -197,15 +278,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     // Determine if Delete button should be shown for a given item
     const canDeleteItem = (item: any) => {
         if (!user) return false
-        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } = getEntityTypeChecks(entityType)
+        const { isMiscellaneous, isSwachhtaBharatAbhiyaan, isMeetings } =
+            getEntityTypeChecks(entityType)
 
-        if (isAboutKvkEntity || isMiscellaneous || isSwachhtaBharatAbhiyaan || isMeetings) {
+        if (
+            isAboutKvkEntity ||
+            isMiscellaneous ||
+            isSwachhtaBharatAbhiyaan ||
+            isMeetings
+        ) {
             if (moduleCode && !hasPermission('DELETE', moduleCode)) return false
             if (entityType === ENTITY_TYPES.KVKS) return true
             // Any non-kvk role that passed the permission gate above can delete all records
-            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user') return true
+            if (user.role !== 'kvk_admin' && user.role !== 'kvk_user')
+                return true
             // KVK roles can only delete their own data
-            if (!item.transferStatus || item.transferStatus === 'ACTIVE') return true
+            if (!item.transferStatus || item.transferStatus === 'ACTIVE')
+                return true
             return item.kvkId === user.kvkId || item.kvk?.kvkId === user.kvkId
         }
         // Master data entities: explicit module DELETE permission is sufficient
@@ -249,16 +338,29 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const filteredData = useMemo(() => {
         const maxDate = new Date()
         maxDate.setHours(23, 59, 59, 999)
-        const rawFromDate = reportingYearFrom ? new Date(reportingYearFrom) : null
+        const rawFromDate = reportingYearFrom
+            ? new Date(reportingYearFrom)
+            : null
         if (rawFromDate) rawFromDate.setHours(0, 0, 0, 0)
         const rawToDate = reportingYearTo ? new Date(reportingYearTo) : null
         if (rawToDate) rawToDate.setHours(23, 59, 59, 999)
         const fromDate =
-            rawFromDate && rawToDate ? (rawFromDate <= rawToDate ? rawFromDate : rawToDate) : rawFromDate
+            rawFromDate && rawToDate
+                ? rawFromDate <= rawToDate
+                    ? rawFromDate
+                    : rawToDate
+                : rawFromDate
         const toDate =
-            rawFromDate && rawToDate ? (rawFromDate <= rawToDate ? rawToDate : rawFromDate) : rawToDate
+            rawFromDate && rawToDate
+                ? rawFromDate <= rawToDate
+                    ? rawToDate
+                    : rawFromDate
+                : rawToDate
         const yearFiltered = items.filter((item: any) => {
-            const value = item.reportingYear || item.reportingYearDate || item.reportingYear?.yearName
+            const value =
+                item.reportingYear ||
+                item.reportingYearDate ||
+                item.reportingYear?.yearName
             if (!value) return !fromDate && !toDate
             const itemDate = new Date(value)
             if (Number.isNaN(itemDate.getTime())) return !fromDate && !toDate
@@ -281,7 +383,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
-        const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage))
+        const totalPages = Math.max(
+            1,
+            Math.ceil(filteredData.length / itemsPerPage)
+        )
         // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
         const safePage = Math.min(currentPage, totalPages)
         const startIndex = (safePage - 1) * itemsPerPage
@@ -291,7 +396,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         return { totalPages, safePage, startIndex, endIndex, paginatedData }
     }, [filteredData, currentPage, itemsPerPage])
 
-    const { totalPages, safePage, startIndex, endIndex, paginatedData } = paginationData
+    const { totalPages, safePage, startIndex, endIndex, paginatedData } =
+        paginationData
 
     const handleEdit = (item: any) => {
         handleEditItem({
@@ -305,7 +411,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         if (activeHook && entityType) {
             handleMasterDataDelete(item, entityType, activeHook)
         } else {
-            console.warn('Cannot delete: missing activeHook or entityType', { activeHook, entityType })
+            console.warn('Cannot delete: missing activeHook or entityType', {
+                activeHook,
+                entityType,
+            })
         }
     }
 
@@ -335,7 +444,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         openForm()
     }
 
-    const normalizeOftStatus = (status: unknown): string => String(status || '').toUpperCase().trim()
+    const normalizeOftStatus = (status: unknown): string =>
+        String(status || '')
+            .toUpperCase()
+            .trim()
 
     const handleTransferOftToNextYear = async (item: any) => {
         const id = item?.id ?? item?.kvkOftId
@@ -405,7 +517,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             await transferCfldMutation.mutateAsync(id)
             alert({
                 title: 'Success',
-                message: 'CFLD transferred to next reporting year successfully.',
+                message:
+                    'CFLD transferred to next reporting year successfully.',
                 variant: 'success',
                 autoClose: true,
             })
@@ -418,7 +531,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         }
     }
 
-    const openCfldSectionForm = (item: any, section: 'technical' | 'economic' | 'socio' | 'perception') => {
+    const openCfldSectionForm = (
+        item: any,
+        section: 'technical' | 'economic' | 'socio' | 'perception'
+    ) => {
         openForm({
             ...item,
             cfldActiveSection: section,
@@ -446,13 +562,22 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const handleSubmitOftResult = async (payload: OftResultFormValue) => {
         if (!selectedOftId) return
         if (oftResultMode === 'create') {
-            await createOftResultMutation.mutateAsync({ id: selectedOftId, payload })
+            await createOftResultMutation.mutateAsync({
+                id: selectedOftId,
+                payload,
+            })
         } else {
-            await updateOftResultMutation.mutateAsync({ id: selectedOftId, payload })
+            await updateOftResultMutation.mutateAsync({
+                id: selectedOftId,
+                payload,
+            })
         }
         alert({
             title: 'Success',
-            message: oftResultMode === 'create' ? 'OFT result created successfully.' : 'OFT result updated successfully.',
+            message:
+                oftResultMode === 'create'
+                    ? 'OFT result created successfully.'
+                    : 'OFT result updated successfully.',
             variant: 'success',
             autoClose: true,
         })
@@ -481,11 +606,17 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             ? 'px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all'
             : 'px-4 py-2 bg-white border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] transition-all'
 
-    const renderOftFldTabs = (opts: { mode: 'edit' | 'add-result' | 'edit-result'; kind: 'oft' | 'fld'; item: any }) => {
+    const renderOftFldTabs = (opts: {
+        mode: 'edit' | 'add-result' | 'edit-result'
+        kind: 'oft' | 'fld'
+        item: any
+    }) => {
         const item = opts.item
         if (!item) return null
 
-        const normalized = normalizeOftStatus(item.status || item.ongoingCompleted)
+        const normalized = normalizeOftStatus(
+            item.status || item.ongoingCompleted
+        )
         const canAdd = normalized === 'ONGOING'
         const canEditResult = normalized === 'COMPLETED'
 
@@ -516,26 +647,50 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             else handleEditFldResult(item)
         }
 
-        const options: Array<{ value: 'edit' | 'add-result' | 'edit-result'; label: string; isVisible: boolean }> = [
+        const options: Array<{
+            value: 'edit' | 'add-result' | 'edit-result'
+            label: string
+            isVisible: boolean
+        }> = [
             { value: 'edit', label: labelEdit, isVisible: true },
             { value: 'add-result', label: 'Add Result', isVisible: canAdd },
-            { value: 'edit-result', label: 'Edit Result', isVisible: canEditResult },
+            {
+                value: 'edit-result',
+                label: 'Edit Result',
+                isVisible: canEditResult,
+            },
         ]
 
         return (
             <>
                 {/* Desktop tabs */}
                 <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
-                    <button type="button" className={tabButtonClass(opts.mode === 'edit')} onClick={goEdit}>
+                    <button
+                        type="button"
+                        className={tabButtonClass(opts.mode === 'edit')}
+                        onClick={goEdit}
+                    >
                         {labelEdit}
                     </button>
                     {canAdd && (
-                        <button type="button" className={tabButtonClass(opts.mode === 'add-result')} onClick={goAdd}>
+                        <button
+                            type="button"
+                            className={tabButtonClass(
+                                opts.mode === 'add-result'
+                            )}
+                            onClick={goAdd}
+                        >
                             Add Result
                         </button>
                     )}
                     {canEditResult && (
-                        <button type="button" className={tabButtonClass(opts.mode === 'edit-result')} onClick={goEditResult}>
+                        <button
+                            type="button"
+                            className={tabButtonClass(
+                                opts.mode === 'edit-result'
+                            )}
+                            onClick={goEditResult}
+                        >
                             Edit Result
                         </button>
                     )}
@@ -543,36 +698,51 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
                 {/* Mobile dropdown (custom menu like Download) */}
                 <div className="sm:hidden mb-4">
-                    <div ref={oftFldTabMenuRef} className="relative inline-flex bg-red-300 max-w-[90vw]">
+                    <div
+                        ref={oftFldTabMenuRef}
+                        className="relative inline-flex bg-red-300 max-w-[90vw]"
+                    >
                         <button
                             type="button"
-                            onClick={() => setIsOftFldTabMenuOpen((v) => !v)}
+                            onClick={() => setIsOftFldTabMenuOpen(v => !v)}
                             className="inline-flex items-center gap-2 px-4 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
                         >
-                            {options.find((o) => o.value === opts.mode)?.label || 'Select'}
+                            {options.find(o => o.value === opts.mode)?.label ||
+                                'Select'}
                             <ChevronDown className="w-4 h-4 text-[#757575]" />
                         </button>
 
                         {isOftFldTabMenuOpen && (
                             <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
                                 {options
-                                    .filter((o) => o.isVisible)
-                                    .map((o) => {
+                                    .filter(o => o.isVisible)
+                                    .map(o => {
                                         const selected = o.value === opts.mode
                                         return (
                                             <button
                                                 key={o.value}
                                                 type="button"
                                                 onClick={() => {
-                                                    setIsOftFldTabMenuOpen(false)
-                                                    if (o.value === 'edit') goEdit()
-                                                    else if (o.value === 'add-result') goAdd()
-                                                    else if (o.value === 'edit-result') goEditResult()
+                                                    setIsOftFldTabMenuOpen(
+                                                        false
+                                                    )
+                                                    if (o.value === 'edit')
+                                                        goEdit()
+                                                    else if (
+                                                        o.value === 'add-result'
+                                                    )
+                                                        goAdd()
+                                                    else if (
+                                                        o.value ===
+                                                        'edit-result'
+                                                    )
+                                                        goEditResult()
                                                 }}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
-                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                    }`}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                    selected
+                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                }`}
                                             >
                                                 {o.label}
                                             </button>
@@ -589,19 +759,30 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const handleSubmitFldResult = async (payload: FldResultValue) => {
         if (!selectedFldId) return
         if (fldResultMode === 'create') {
-            await createFldResultMutation.mutateAsync({ id: selectedFldId, payload })
+            await createFldResultMutation.mutateAsync({
+                id: selectedFldId,
+                payload,
+            })
         } else {
-            await updateFldResultMutation.mutateAsync({ id: selectedFldId, payload })
+            await updateFldResultMutation.mutateAsync({
+                id: selectedFldId,
+                payload,
+            })
         }
         alert({
             title: 'Success',
-            message: fldResultMode === 'create' ? 'FLD result created successfully.' : 'FLD result updated successfully.',
+            message:
+                fldResultMode === 'create'
+                    ? 'FLD result created successfully.'
+                    : 'FLD result updated successfully.',
             variant: 'success',
             autoClose: true,
         })
     }
 
-    const handleSubmitNariNutriResult = async (payload: NariNutritionalGardenResultValue) => {
+    const handleSubmitNariNutriResult = async (
+        payload: NariNutritionalGardenResultValue
+    ) => {
         if (!selectedNariNutriId) return
         try {
             await nariNutriResult.saveResult(payload)
@@ -614,13 +795,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         } catch (err: any) {
             alert({
                 title: 'Error',
-                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                message:
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    'Failed to save result',
                 variant: 'error',
             })
         }
     }
 
-    const handleSubmitNariBioResult = async (payload: NariBioFortifiedResultValue) => {
+    const handleSubmitNariBioResult = async (
+        payload: NariBioFortifiedResultValue
+    ) => {
         if (!selectedNariBioId) return
         try {
             await nariBioResult.saveResult(payload)
@@ -633,13 +819,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         } catch (err: any) {
             alert({
                 title: 'Error',
-                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                message:
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    'Failed to save result',
                 variant: 'error',
             })
         }
     }
 
-    const handleSubmitNariValueResult = async (payload: NariValueAdditionResultValue) => {
+    const handleSubmitNariValueResult = async (
+        payload: NariValueAdditionResultValue
+    ) => {
         if (!selectedNariValueId) return
         try {
             await nariValueResult.saveResult(payload)
@@ -652,160 +843,214 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         } catch (err: any) {
             alert({
                 title: 'Error',
-                message: err?.response?.data?.message || err?.message || 'Failed to save result',
+                message:
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    'Failed to save result',
                 variant: 'error',
             })
         }
     }
 
-    const statusValue = (item: any) => normalizeOftStatus(item.status || item.ongoingCompleted)
-    const oftCustomActions = entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
-        ? [
-            {
-                key: 'transfer-next-year',
-                label: 'Transfer',
-                onClick: handleTransferOftToNextYear,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                icon: ArrowRight,
-            },
-            {
-                key: 'add-result',
-                label: 'Add Result',
-                onClick: handleAddOftResult,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePlus2,
-            },
-            {
-                key: 'edit-result',
-                label: 'Edit Result',
-                onClick: handleEditOftResult,
-                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
-                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                icon: FilePenLine,
-            },
-        ]
-        : []
+    const statusValue = (item: any) =>
+        normalizeOftStatus(item.status || item.ongoingCompleted)
+    const oftCustomActions =
+        entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
+            ? [
+                  {
+                      key: 'transfer-next-year',
+                      label: 'Transfer',
+                      onClick: handleTransferOftToNextYear,
+                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                      icon: ArrowRight,
+                  },
+                  {
+                      key: 'add-result',
+                      label: 'Add Result',
+                      onClick: handleAddOftResult,
+                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                      icon: FilePlus2,
+                  },
+                  {
+                      key: 'edit-result',
+                      label: 'Edit Result',
+                      onClick: handleEditOftResult,
+                      isVisible: (item: any) =>
+                          statusValue(item) === 'COMPLETED',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+              ]
+            : []
 
-    const fldCustomActions = entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
-        ? [
-            {
-                key: 'transfer-next-year',
-                label: 'Transfer',
-                onClick: handleTransferFldToNextYear,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                icon: ArrowRight,
-            },
-            {
-                key: 'add-result',
-                label: 'Add Result',
-                onClick: handleAddFldResult,
-                isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePlus2,
-            },
-            {
-                key: 'edit-result',
-                label: 'Edit Result',
-                onClick: handleEditFldResult,
-                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
-                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                icon: FilePenLine,
-            },
-        ]
-        : []
-    const cfldCustomActions = entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
-        ? [
-            {
-                key: 'transfer-next-year',
-                label: 'Transfer',
-                onClick: handleTransferCfldToNextYear,
-                isVisible: (item: any) => item?.status === 'ONGOING',
-                className: 'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                icon: ArrowRight,
-            },
-            {
-                key: 'economic-params',
-                label: 'Economic Parameters',
-                onClick: (item: any) => openCfldSectionForm(item, 'economic'),
-                isVisible: (item: any) => {
-                    const normalized = normalizeOftStatus(item?.status)
-                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
-                },
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePenLine,
-            },
-            {
-                key: 'socio-params',
-                label: 'Update Socio Economic Parameters',
-                onClick: (item: any) => openCfldSectionForm(item, 'socio'),
-                isVisible: (item: any) => {
-                    const normalized = normalizeOftStatus(item?.status)
-                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
-                },
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePenLine,
-            },
-            {
-                key: 'perception-params',
-                label: 'Farmers Perception Parameters',
-                onClick: (item: any) => openCfldSectionForm(item, 'perception'),
-                isVisible: (item: any) => {
-                    const normalized = normalizeOftStatus(item?.status)
-                    return normalized !== 'TRANSFERRED' && normalized !== 'COMPLETED'
-                },
-                className: 'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                icon: FilePenLine,
-            },
-        ]
-        : []
+    const fldCustomActions =
+        entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
+            ? [
+                  {
+                      key: 'transfer-next-year',
+                      label: 'Transfer',
+                      onClick: handleTransferFldToNextYear,
+                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                      icon: ArrowRight,
+                  },
+                  {
+                      key: 'add-result',
+                      label: 'Add Result',
+                      onClick: handleAddFldResult,
+                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                      icon: FilePlus2,
+                  },
+                  {
+                      key: 'edit-result',
+                      label: 'Edit Result',
+                      onClick: handleEditFldResult,
+                      isVisible: (item: any) =>
+                          statusValue(item) === 'COMPLETED',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+              ]
+            : []
+    const cfldCustomActions =
+        entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+            ? [
+                  {
+                      key: 'transfer-next-year',
+                      label: 'Transfer',
+                      onClick: handleTransferCfldToNextYear,
+                      isVisible: (item: any) => item?.status === 'ONGOING',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                      icon: ArrowRight,
+                  },
+                  {
+                      key: 'economic-params',
+                      label: 'Economic Parameters',
+                      onClick: (item: any) =>
+                          openCfldSectionForm(item, 'economic'),
+                      isVisible: (item: any) => {
+                          const normalized = normalizeOftStatus(item?.status)
+                          return (
+                              normalized !== 'TRANSFERRED' &&
+                              normalized !== 'COMPLETED'
+                          )
+                      },
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+                  {
+                      key: 'socio-params',
+                      label: 'Update Socio Economic Parameters',
+                      onClick: (item: any) =>
+                          openCfldSectionForm(item, 'socio'),
+                      isVisible: (item: any) => {
+                          const normalized = normalizeOftStatus(item?.status)
+                          return (
+                              normalized !== 'TRANSFERRED' &&
+                              normalized !== 'COMPLETED'
+                          )
+                      },
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+                  {
+                      key: 'perception-params',
+                      label: 'Farmers Perception Parameters',
+                      onClick: (item: any) =>
+                          openCfldSectionForm(item, 'perception'),
+                      isVisible: (item: any) => {
+                          const normalized = normalizeOftStatus(item?.status)
+                          return (
+                              normalized !== 'TRANSFERRED' &&
+                              normalized !== 'COMPLETED'
+                          )
+                      },
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+              ]
+            : []
 
-    const nariCustomActions = entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN ||
+    const nariCustomActions =
+        entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN ||
         entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED ||
         entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-        ? [
-            {
-                key: 'create-result',
-                label: 'Create Result',
-                onClick: (item: any) => {
-                    if (entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN) {
-                        setSelectedNariNutriId(item.id)
-                        setIsNariNutriResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED) {
-                        setSelectedNariBioId(item.id)
-                        setIsNariBioResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION) {
-                        setSelectedNariValueId(item.id)
-                        setIsNariValueResultPageOpen(true)
-                    }
-                },
-                isVisible: (item: any) => statusValue(item) !== 'COMPLETED',
-                className: 'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
-                icon: FilePlus2,
-            },
-            {
-                key: 'edit-result',
-                label: 'Edit Result',
-                onClick: (item: any) => {
-                    if (entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN) {
-                        setSelectedNariNutriId(item.id)
-                        setIsNariNutriResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED) {
-                        setSelectedNariBioId(item.id)
-                        setIsNariBioResultPageOpen(true)
-                    } else if (entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION) {
-                        setSelectedNariValueId(item.id)
-                        setIsNariValueResultPageOpen(true)
-                    }
-                },
-                isVisible: (item: any) => statusValue(item) === 'COMPLETED',
-                className: 'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                icon: FilePenLine,
-            }
-        ]
-        : []
+            ? [
+                  {
+                      key: 'create-result',
+                      label: 'Create Result',
+                      onClick: (item: any) => {
+                          if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                          ) {
+                              setSelectedNariNutriId(item.id)
+                              setIsNariNutriResultPageOpen(true)
+                          } else if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                          ) {
+                              setSelectedNariBioId(item.id)
+                              setIsNariBioResultPageOpen(true)
+                          } else if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                          ) {
+                              setSelectedNariValueId(item.id)
+                              setIsNariValueResultPageOpen(true)
+                          }
+                      },
+                      isVisible: (item: any) =>
+                          statusValue(item) !== 'COMPLETED',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                      icon: FilePlus2,
+                  },
+                  {
+                      key: 'edit-result',
+                      label: 'Edit Result',
+                      onClick: (item: any) => {
+                          if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                          ) {
+                              setSelectedNariNutriId(item.id)
+                              setIsNariNutriResultPageOpen(true)
+                          } else if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                          ) {
+                              setSelectedNariBioId(item.id)
+                              setIsNariBioResultPageOpen(true)
+                          } else if (
+                              entityType ===
+                              ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                          ) {
+                              setSelectedNariValueId(item.id)
+                              setIsNariValueResultPageOpen(true)
+                          }
+                      },
+                      isVisible: (item: any) =>
+                          statusValue(item) === 'COMPLETED',
+                      className:
+                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                      icon: FilePenLine,
+                  },
+              ]
+            : []
 
     // Custom hook for save operations with proper error handling
     const { save: saveData, isSaving } = useDataSave({
@@ -821,7 +1066,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 autoCloseDelay: 4500,
             })
         },
-    });
+    })
 
     /**
      * Handles saving form data (create or update)
@@ -829,9 +1074,12 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
      */
     const handleSaveModal = async () => {
         if (activeHook && entityType) {
-            await saveData(formData, editingItem);
+            await saveData(formData, editingItem)
         } else {
-            console.warn('Cannot save: missing activeHook or entityType', { activeHook, entityType })
+            console.warn('Cannot save: missing activeHook or entityType', {
+                activeHook,
+                entityType,
+            })
         }
     }
 
@@ -840,102 +1088,161 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             entityType === ENTITY_TYPES.KVKS
                 ? 'about-kvk-view'
                 : entityType === ENTITY_TYPES.KVK_BANK_ACCOUNTS
-                    ? 'about-kvk-bank-accounts'
-                    : entityType === ENTITY_TYPES.KVK_EMPLOYEES
-                        ? 'about-kvk-employees-full'
-                        : entityType === ENTITY_TYPES.KVK_VEHICLES
-                            ? 'about-kvk-vehicles'
-                            : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
-                                ? 'about-kvk-vehicle-details'
-                                : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
-                                    ? 'about-kvk-equipment-records'
-                                    : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
-                                        ? 'oft-combined'
-                                        : entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
-                                            ? 'cfld-combined'
-                                            : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
-                                                ? 'cra-details-state-wise'
-                                                : entityType === ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
-                                                    ? 'cra-extension-activity'
-                                                    : entityType === ENTITY_TYPES.PROJECT_FPO_DETAILS
-                                                        ? 'fpo-cbbo-details'
-                                                        : entityType === ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
-                                                            ? 'fpo-management-details'
-                                                            : entityType === ENTITY_TYPES.PROJECT_DRMR_DETAILS
-                                                                ? 'drmr-details'
-                                                                : entityType === ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
-                                                                    ? 'drmr-activity'
-                                                                    : entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                                                                        ? 'nari-nutrition-garden'
-                                                                        : entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                                                                            ? 'nari-bio-fortified'
-                                                                            : entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                                                                                ? 'nari-value-addition'
-                                                                                : entityType === ENTITY_TYPES.PROJECT_NARI_TRAINING
-                                                                                    ? 'nari-training'
-                                                                                    : entityType === ENTITY_TYPES.PROJECT_NARI_EXTENSION
-                                                                                        ? 'nari-extension'
-                                                                                        : entityType === ENTITY_TYPES.PROJECT_ARYA_CURRENT
-                                                                                            ? 'arya-current'
-                                                                                            : entityType === ENTITY_TYPES.PROJECT_ARYA_EVALUATION
-                                                                                                ? 'arya-prev-year'
-                                                                                                : entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC
-                                                                                                    ? 'nicra-basic'
-                                                                                                    : entityType === ENTITY_TYPES.PROJECT_SEED_HUB
-                                                                                                        ? 'seed-hub'
-                                                                                                        : entityType === ENTITY_TYPES.PROJECT_OTHER
-                                                                                                            ? 'other-programmes'
-                                                                                                            : entityType === ENTITY_TYPES.PROJECT_NICRA_TRAINING
-                                                                                                                ? 'nicra-training'
-                                                                                                                : entityType === ENTITY_TYPES.PROJECT_NICRA_INTERVENTION
-                                                                                                                    ? 'nicra-intervention'
-                                                                                                                    : entityType === ENTITY_TYPES.PROJECT_NICRA_EXTENSION
-                                                                                                                        ? 'nicra-extension'
-                                                                                                                        : entityType === ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING
-                                                                                                                            ? 'nicra-farm-implement'
-                                                                                                                            : entityType === ENTITY_TYPES.PROJECT_NICRA_VCRMC
-                                                                                                                                ? 'nicra-vcrmc'
-                                                                                                                                : entityType === ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH
-                                                                                                                                    ? 'nicra-soil-health'
-                                                                                                                                    : entityType === ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL
-                                                                                                                                        ? 'natural-farming-physical'
-                                                                                                                                        : entityType === ENTITY_TYPES.PROJECT_CSISA
-                                                                                                                                            ? 'csisa'
-                                                                                                                                            : entityType === ENTITY_TYPES.PROJECT_TSP_SCSP
-                                                                                                                                                ? 'tsp-scsp'
-                                                                                                                                                : entityType === ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                                                                                                                    ? 'cfld-extension-activity'
-                                                                                                                                                    : entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                                                                                                                        ? 'cfld-budget-utilization'
-                                                                                                                                                        : entityType === ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
-                                                                                                                                                            ? 'special-programme'
-                                                                                                                                                            : entityType === ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
-                                                                                                                                                                ? 'functional-linkage'
-                                                                                                                                                                : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
-                                                                                                                                                                    ? 'success-story'
-                                                                                                                                                                    : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
-                                                                                                                                                                        ? 'entrepreneurship'
-                                                                                                                                                                        : entityType === ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
-                                                                                                                                                                            ? 'kvk-impact-activity'
-                                                                                                                                                                            : entityType === ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
-                                                                                                                                                                                ? 'demonstration-unit'
-                                                                                                                                                                                : entityType === ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
-                                                                                                                                                                                    ? 'instructional-farm-crop'
-                                                                                                                                                                                    : entityType === ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
-                                                                                                                                                                                        ? 'production-unit'
-                                                                                                                                                                                        : entityType === ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
-                                                                                                                                                                                            ? 'instructional-farm-livestock'
-                                                                                                                                                                                            : entityType === ENTITY_TYPES.PERFORMANCE_HOSTEL
-                                                                                                                                                                                                ? 'hostel-utilization'
-                                                                                                                                                                                                : entityType === ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
-                                                                                                                                                                                                    ? 'staff-quarters'
-                                                                                                                                                                                                    : entityType === ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
-                                                                                                                                                                                                        ? 'rainwater-harvesting'
-                                                                                                                                                                                                        : undefined;
-
+                  ? 'about-kvk-bank-accounts'
+                  : entityType === ENTITY_TYPES.KVK_EMPLOYEES
+                    ? 'about-kvk-employees-full'
+                    : entityType === ENTITY_TYPES.KVK_VEHICLES
+                      ? 'about-kvk-vehicles'
+                      : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
+                        ? 'about-kvk-vehicle-details'
+                        : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
+                          ? 'about-kvk-equipment-records'
+                          : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
+                            ? 'oft-combined'
+                            : entityType ===
+                                ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
+                              ? 'cfld-combined'
+                              : entityType === ENTITY_TYPES.PROJECT_CRA_DETAILS
+                                ? 'cra-details-state-wise'
+                                : entityType ===
+                                    ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
+                                  ? 'cra-extension-activity'
+                                  : entityType ===
+                                      ENTITY_TYPES.PROJECT_FPO_DETAILS
+                                    ? 'fpo-cbbo-details'
+                                    : entityType ===
+                                        ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
+                                      ? 'fpo-management-details'
+                                      : entityType ===
+                                          ENTITY_TYPES.PROJECT_DRMR_DETAILS
+                                        ? 'drmr-details'
+                                        : entityType ===
+                                            ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
+                                          ? 'drmr-activity'
+                                          : entityType ===
+                                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                                            ? 'nari-nutrition-garden'
+                                            : entityType ===
+                                                ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                                              ? 'nari-bio-fortified'
+                                              : entityType ===
+                                                  ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                                                ? 'nari-value-addition'
+                                                : entityType ===
+                                                    ENTITY_TYPES.PROJECT_NARI_TRAINING
+                                                  ? 'nari-training'
+                                                  : entityType ===
+                                                      ENTITY_TYPES.PROJECT_NARI_EXTENSION
+                                                    ? 'nari-extension'
+                                                    : entityType ===
+                                                        ENTITY_TYPES.PROJECT_ARYA_CURRENT
+                                                      ? 'arya-current'
+                                                      : entityType ===
+                                                          ENTITY_TYPES.PROJECT_ARYA_EVALUATION
+                                                        ? 'arya-prev-year'
+                                                        : entityType ===
+                                                            ENTITY_TYPES.PROJECT_NICRA_BASIC
+                                                          ? 'nicra-basic'
+                                                          : entityType ===
+                                                              ENTITY_TYPES.PROJECT_SEED_HUB
+                                                            ? 'seed-hub'
+                                                            : entityType ===
+                                                                ENTITY_TYPES.PROJECT_OTHER
+                                                              ? 'other-programmes'
+                                                              : entityType ===
+                                                                  ENTITY_TYPES.PROJECT_NICRA_TRAINING
+                                                                ? 'nicra-training'
+                                                                : entityType ===
+                                                                    ENTITY_TYPES.PROJECT_NICRA_INTERVENTION
+                                                                  ? 'nicra-intervention'
+                                                                  : entityType ===
+                                                                      ENTITY_TYPES.PROJECT_NICRA_EXTENSION
+                                                                    ? 'nicra-extension'
+                                                                    : entityType ===
+                                                                        ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING
+                                                                      ? 'nicra-farm-implement'
+                                                                      : entityType ===
+                                                                          ENTITY_TYPES.PROJECT_NICRA_VCRMC
+                                                                        ? 'nicra-vcrmc'
+                                                                        : entityType ===
+                                                                            ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH
+                                                                          ? 'nicra-soil-health'
+                                                                          : entityType ===
+                                                                              ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL
+                                                                            ? 'natural-farming-physical'
+                                                                            : entityType ===
+                                                                                ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO
+                                                                              ? 'nf-demonstration-information'
+                                                                              : entityType ===
+                                                                                  ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS
+                                                                                ? 'nf-farmers-practicing-information'
+                                                                                : entityType ===
+                                                                                    ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL
+                                                                                  ? 'nf-soil-data-information'
+                                                                                  : entityType ===
+                                                                                      ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET
+                                                                                    ? 'nf-budget-expenditure-information'
+                                                                                    : entityType ===
+                                                                                        ENTITY_TYPES.PROJECT_AGRI_DRONE
+                                                                                      ? 'agri-drone-introduction'
+                                                                                      : entityType ===
+                                                                                          ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO
+                                                                                        ? 'agri-drone-demonstration-details'
+                                                                                        : entityType ===
+                                                                                            ENTITY_TYPES.PROJECT_CSISA
+                                                                                          ? 'csisa'
+                                                                                          : entityType ===
+                                                                                              ENTITY_TYPES.PROJECT_TSP_SCSP
+                                                                                            ? 'tsp-scsp'
+                                                                                            : entityType ===
+                                                                                                ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
+                                                                                              ? 'cfld-extension-activity'
+                                                                                              : entityType ===
+                                                                                                  ENTITY_TYPES.PROJECT_CFLD_BUDGET
+                                                                                                ? 'cfld-budget-utilization'
+                                                                                                : entityType ===
+                                                                                                    ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
+                                                                                                  ? 'special-programme'
+                                                                                                  : entityType ===
+                                                                                                      ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
+                                                                                                    ? 'functional-linkage'
+                                                                                                    : entityType ===
+                                                                                                        ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
+                                                                                                      ? 'success-story'
+                                                                                                      : entityType ===
+                                                                                                          ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
+                                                                                                        ? 'entrepreneurship'
+                                                                                                        : entityType ===
+                                                                                                            ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
+                                                                                                          ? 'kvk-impact-activity'
+                                                                                                          : entityType ===
+                                                                                                              ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
+                                                                                                            ? 'demonstration-unit'
+                                                                                                            : entityType ===
+                                                                                                                ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
+                                                                                                              ? 'instructional-farm-crop'
+                                                                                                              : entityType ===
+                                                                                                                  ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
+                                                                                                                ? 'production-unit'
+                                                                                                                : entityType ===
+                                                                                                                    ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
+                                                                                                                  ? 'instructional-farm-livestock'
+                                                                                                                  : entityType ===
+                                                                                                                      ENTITY_TYPES.PERFORMANCE_HOSTEL
+                                                                                                                    ? 'hostel-utilization'
+                                                                                                                    : entityType ===
+                                                                                                                        ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
+                                                                                                                      ? 'staff-quarters'
+                                                                                                                      : entityType ===
+                                                                                                                          ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
+                                                                                                                        ? 'rainwater-harvesting'
+                                                                                                                        : undefined
 
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
-        const exportDataSource = templateKey && filteredData.length === 0 && items.length > 0 ? items : filteredData;
+        const exportDataSource =
+            templateKey && filteredData.length === 0 && items.length > 0
+                ? items
+                : filteredData
 
         await handleExportData(format, {
             title,
@@ -960,24 +1267,37 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }, [entityType])
 
     const exportFormatOptions = useMemo(
-        () => [
-            { value: 'pdf', label: 'PDF' },
-            { value: 'excel', label: 'Excel' },
-            { value: 'word', label: 'Word' },
-        ] as const,
+        () =>
+            [
+                { value: 'pdf', label: 'PDF' },
+                { value: 'excel', label: 'Excel' },
+                { value: 'word', label: 'Word' },
+            ] as const,
         []
     )
 
     useEffect(() => {
         const onDocMouseDown = (e: MouseEvent) => {
             const target = e.target as Node
-            if (isMobileRouteMenuOpen && mobileRouteMenuRef.current && !mobileRouteMenuRef.current.contains(target)) {
+            if (
+                isMobileRouteMenuOpen &&
+                mobileRouteMenuRef.current &&
+                !mobileRouteMenuRef.current.contains(target)
+            ) {
                 setIsMobileRouteMenuOpen(false)
             }
-            if (isExportMenuOpen && exportMenuRef.current && !exportMenuRef.current.contains(target)) {
+            if (
+                isExportMenuOpen &&
+                exportMenuRef.current &&
+                !exportMenuRef.current.contains(target)
+            ) {
                 setIsExportMenuOpen(false)
             }
-            if (isOftFldTabMenuOpen && oftFldTabMenuRef.current && !oftFldTabMenuRef.current.contains(target)) {
+            if (
+                isOftFldTabMenuOpen &&
+                oftFldTabMenuRef.current &&
+                !oftFldTabMenuRef.current.contains(target)
+            ) {
                 setIsOftFldTabMenuOpen(false)
             }
         }
@@ -991,106 +1311,168 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     return (
         <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden">
             {/* Back + Breadcrumbs + Tabs - Fixed Header (hidden when form is open) */}
-            {!isFormPageOpen && !isOftResultPageOpen && !isFldResultPageOpen && !isNariNutriResultPageOpen && !isNariBioResultPageOpen && !isNariValueResultPageOpen && (
-                <div className="flex-none bg-white relative z-20 px-3 md:px-5">
-                    {breadcrumbs.length > 0 && (
-                        <div className="flex flex-row items-center gap-3 sm:gap-4 pt-4 pb-4">
-                            <button
-                                onClick={() => {
-                                    if (routeConfig?.category === 'Projects') {
-                                        navigate('/forms/achievements/projects')
-                                    } else if (routeConfig?.category === 'All Masters' && breadcrumbs.length > 1) {
-                                        const subcategoryPath = breadcrumbs[1]?.path
-                                        if (subcategoryPath) {
-                                            navigate(subcategoryPath)
-                                        } else if (routeConfig?.subcategoryPath) {
-                                            navigate(routeConfig.subcategoryPath)
-                                        } else {
-                                            navigate('/all-master')
-                                        }
-                                    } else if (routeConfig?.subcategoryPath) {
-                                        navigate(routeConfig.subcategoryPath)
-                                    } else if (routeConfig?.parent) {
-                                        navigate(routeConfig.parent)
-                                    } else if (breadcrumbs.length > 1) {
-                                        const parentBreadcrumb = [...breadcrumbs].reverse()[1]
-                                        if (parentBreadcrumb?.path) {
-                                            navigate(parentBreadcrumb.path)
-                                        } else {
-                                            navigate('/forms')
-                                        }
-                                    } else {
-                                        navigate('/dashboard')
-                                    }
-                                }}
-                                className="self-start flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                                Back
-                            </button>
-                            <div className="w-full">
-                                <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
-                            </div>
-                        </div>
-                    )}
-
-                    {siblingRoutes.length > 1 && (
-                        <div className="pb-2">
-                            <div className="hidden sm:block">
-                                <TabNavigation
-                                    tabs={siblingRoutes.map(r => ({ label: r.title, path: r.path }))}
-                                    currentPath={location.pathname}
-                                />
-                            </div>
-                            <div className="sm:hidden">
-                                <div ref={mobileRouteMenuRef} className="relative inline-flex max-w-[90vw] h-11">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsMobileRouteMenuOpen((v) => !v)}
-                                        className="inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
-                                    >
-                                        {siblingRoutes.find((r) => r.path === location.pathname)?.title || 'Select'}
-                                        <ChevronDown className="w-4 h-4 text-[#757575]" />
-                                    </button>
-                                    {isMobileRouteMenuOpen && (
-                                        <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
-                                            {siblingRoutes.map((r) => {
-                                                const selected = r.path === location.pathname
-                                                return (
-                                                    <button
-                                                        key={r.path}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setIsMobileRouteMenuOpen(false)
-                                                            navigate(r.path)
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
-                                                            ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                            : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                            }`}
-                                                    >
-                                                        {r.title}
-                                                    </button>
+            {!isFormPageOpen &&
+                !isOftResultPageOpen &&
+                !isFldResultPageOpen &&
+                !isNariNutriResultPageOpen &&
+                !isNariBioResultPageOpen &&
+                !isNariValueResultPageOpen && (
+                    <div className="flex-none bg-white relative z-20 px-3 md:px-5">
+                        {breadcrumbs.length > 0 && (
+                            <div className="flex flex-row items-center gap-3 sm:gap-4 pt-4 pb-4">
+                                <button
+                                    onClick={() => {
+                                        if (
+                                            routeConfig?.category === 'Projects'
+                                        ) {
+                                            navigate(
+                                                '/forms/achievements/projects'
+                                            )
+                                        } else if (
+                                            routeConfig?.category ===
+                                                'All Masters' &&
+                                            breadcrumbs.length > 1
+                                        ) {
+                                            const subcategoryPath =
+                                                breadcrumbs[1]?.path
+                                            if (subcategoryPath) {
+                                                navigate(subcategoryPath)
+                                            } else if (
+                                                routeConfig?.subcategoryPath
+                                            ) {
+                                                navigate(
+                                                    routeConfig.subcategoryPath
                                                 )
-                                            })}
-                                        </div>
-                                    )}
+                                            } else {
+                                                navigate('/all-master')
+                                            }
+                                        } else if (
+                                            routeConfig?.subcategoryPath
+                                        ) {
+                                            navigate(
+                                                routeConfig.subcategoryPath
+                                            )
+                                        } else if (routeConfig?.parent) {
+                                            navigate(routeConfig.parent)
+                                        } else if (breadcrumbs.length > 1) {
+                                            const parentBreadcrumb = [
+                                                ...breadcrumbs,
+                                            ].reverse()[1]
+                                            if (parentBreadcrumb?.path) {
+                                                navigate(parentBreadcrumb.path)
+                                            } else {
+                                                navigate('/forms')
+                                            }
+                                        } else {
+                                            navigate('/dashboard')
+                                        }
+                                    }}
+                                    className="self-start flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Back
+                                </button>
+                                <div className="w-full">
+                                    <Breadcrumbs
+                                        items={breadcrumbs.map((b, i) => ({
+                                            ...b,
+                                            level: i,
+                                        }))}
+                                        showHome={false}
+                                    />
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-            )}
+                        )}
+
+                        {siblingRoutes.length > 1 && (
+                            <div className="pb-2">
+                                <div className="hidden sm:block">
+                                    <TabNavigation
+                                        tabs={siblingRoutes.map(r => ({
+                                            label: r.title,
+                                            path: r.path,
+                                        }))}
+                                        currentPath={location.pathname}
+                                    />
+                                </div>
+                                <div className="sm:hidden">
+                                    <div
+                                        ref={mobileRouteMenuRef}
+                                        className="relative inline-flex max-w-[90vw] h-11"
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setIsMobileRouteMenuOpen(
+                                                    v => !v
+                                                )
+                                            }
+                                            className="inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors"
+                                        >
+                                            {siblingRoutes.find(
+                                                r =>
+                                                    r.path === location.pathname
+                                            )?.title || 'Select'}
+                                            <ChevronDown className="w-4 h-4 text-[#757575]" />
+                                        </button>
+                                        {isMobileRouteMenuOpen && (
+                                            <div className="absolute z-50 mt-1 w-60 max-w-[90vw] rounded-2xl border border-[#E0E0E0] bg-white p-1">
+                                                {siblingRoutes.map(r => {
+                                                    const selected =
+                                                        r.path ===
+                                                        location.pathname
+                                                    return (
+                                                        <button
+                                                            key={r.path}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIsMobileRouteMenuOpen(
+                                                                    false
+                                                                )
+                                                                navigate(r.path)
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
+                                                                selected
+                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                            }`}
+                                                        >
+                                                            {r.title}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
             <div className="flex-1 flex flex-col min-h-0 bg-[#FAF9F6] overflow-hidden rounded-xl px-3 md:px-5 py-3 md:py-2">
                 {isFormPageOpen ? (
                     <div className="flex-1 overflow-y-auto py-4">
-                        {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && renderOftFldTabs({ mode: 'edit', kind: 'oft', item: editingItem })}
-                        {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD && renderOftFldTabs({ mode: 'edit', kind: 'fld', item: editingItem })}
+                        {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT &&
+                            renderOftFldTabs({
+                                mode: 'edit',
+                                kind: 'oft',
+                                item: editingItem,
+                            })}
+                        {entityType === ENTITY_TYPES.ACHIEVEMENT_FLD &&
+                            renderOftFldTabs({
+                                mode: 'edit',
+                                kind: 'fld',
+                                item: editingItem,
+                            })}
 
                         <DataManagementFormPage
                             entityType={entityType}
-                            title={editingItem ? `Edit ${title.replace(/ Master$/, '')}` : `Create ${title.replace(/ Master$/, '')}`}
+                            title={
+                                editingItem
+                                    ? `Edit ${title.replace(/ Master$/, '')}`
+                                    : `Create ${title.replace(/ Master$/, '')}`
+                            }
                             formData={formData}
                             setFormData={setFormData}
                             onSave={handleSaveModal}
@@ -1102,7 +1484,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     <div className="flex-1 overflow-y-auto p-4">
                         <div className="space-y-4 min-h-[300px]">
                             {renderOftFldTabs({
-                                mode: oftResultMode === 'create' ? 'add-result' : 'edit-result',
+                                mode:
+                                    oftResultMode === 'create'
+                                        ? 'add-result'
+                                        : 'edit-result',
                                 kind: 'oft',
                                 item: selectedOftItem,
                             })}
@@ -1119,15 +1504,27 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     Back
                                 </button>
                                 <h1 className="text-2xl font-semibold text-[#487749]">
-                                    {oftResultMode === 'create' ? 'Create OFT Result' : 'Edit OFT Result'}
+                                    {oftResultMode === 'create'
+                                        ? 'Create OFT Result'
+                                        : 'Edit OFT Result'}
                                 </h1>
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[260px] p-4">
                                 <OftResultForm
                                     embedded
                                     mode={oftResultMode}
-                                    initialValue={(oftResultQuery.data as any)?.data || (oftResultQuery.data as any) || undefined}
-                                    sourceRows={Array.isArray(selectedOftItem?.technologyOptions) ? selectedOftItem.technologyOptions : []}
+                                    initialValue={
+                                        (oftResultQuery.data as any)?.data ||
+                                        (oftResultQuery.data as any) ||
+                                        undefined
+                                    }
+                                    sourceRows={
+                                        Array.isArray(
+                                            selectedOftItem?.technologyOptions
+                                        )
+                                            ? selectedOftItem.technologyOptions
+                                            : []
+                                    }
                                     onClose={() => {
                                         setIsOftResultPageOpen(false)
                                         setSelectedOftId(null)
@@ -1142,7 +1539,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="space-y-6 min-h-[400px]">
                             {renderOftFldTabs({
-                                mode: fldResultMode === 'create' ? 'add-result' : 'edit-result',
+                                mode:
+                                    fldResultMode === 'create'
+                                        ? 'add-result'
+                                        : 'edit-result',
                                 kind: 'fld',
                                 item: selectedFldItem,
                             })}
@@ -1162,7 +1562,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
                                 <FldResultForm
                                     mode={fldResultMode}
-                                    initialValue={(fldResultQuery.data as any)?.data || (fldResultQuery.data as any) || undefined}
+                                    initialValue={
+                                        (fldResultQuery.data as any)?.data ||
+                                        (fldResultQuery.data as any) ||
+                                        undefined
+                                    }
                                     onClose={() => {
                                         setIsFldResultPageOpen(false)
                                         setSelectedFldId(null)
@@ -1176,7 +1580,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ) : isNariNutriResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariNutritionalGardenResultForm
-                            mode={nariNutriResult.resultData ? 'edit' : 'create'}
+                            mode={
+                                nariNutriResult.resultData ? 'edit' : 'create'
+                            }
                             initialValue={nariNutriResult.resultData}
                             onClose={() => {
                                 setIsNariNutriResultPageOpen(false)
@@ -1200,7 +1606,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                 ) : isNariValueResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
                         <NariValueAdditionResultForm
-                            mode={nariValueResult.resultData ? 'edit' : 'create'}
+                            mode={
+                                nariValueResult.resultData ? 'edit' : 'create'
+                            }
                             initialValue={nariValueResult.resultData}
                             onClose={() => {
                                 setIsNariValueResultPageOpen(false)
@@ -1214,71 +1622,135 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         <div className="flex-none pb-2">
                             <div className="mb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-[#487749]">{title}</h2>
-                                    <p className="text-sm text-[#757575] mt-1">{description}</p>
+                                    <h2 className="text-xl font-semibold text-[#487749]">
+                                        {title}
+                                    </h2>
+                                    <p className="text-sm text-[#757575] mt-1">
+                                        {description}
+                                    </p>
                                 </div>
                                 <div className="flex gap-3 flex-wrap items-center">
                                     <div className="hidden md:flex gap-2 items-center">
-                                        {exportFormatOptions.map((opt) => (
+                                        {exportFormatOptions.map(opt => (
                                             <button
                                                 key={opt.value}
                                                 type="button"
-                                                onClick={() => handleExport(opt.value)}
-                                                disabled={exportLoadingState !== null && exportLoadingState !== opt.value}
-                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${exportLoadingState === opt.value
-                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
-                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
-                                                    } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                onClick={() =>
+                                                    handleExport(opt.value)
+                                                }
+                                                disabled={
+                                                    exportLoadingState !==
+                                                        null &&
+                                                    exportLoadingState !==
+                                                        opt.value
+                                                }
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${
+                                                    exportLoadingState ===
+                                                    opt.value
+                                                        ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                        : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
-                                                {exportLoadingState === opt.value ? (
-                                                    <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                {exportLoadingState ===
+                                                opt.value ? (
+                                                    <svg
+                                                        className="w-4 h-4 animate-spin text-[#487749]"
+                                                        viewBox="0 0 24 24"
+                                                        fill="none"
+                                                        aria-hidden="true"
+                                                    >
+                                                        <circle
+                                                            className="opacity-25"
+                                                            cx="12"
+                                                            cy="12"
+                                                            r="10"
+                                                            stroke="currentColor"
+                                                            strokeWidth="4"
+                                                        ></circle>
+                                                        <path
+                                                            className="opacity-75"
+                                                            fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"
+                                                        ></path>
                                                     </svg>
                                                 ) : (
                                                     <Download className="w-4 h-4" />
                                                 )}
-                                                {exportLoadingState === opt.value ? 'Downloading...' : opt.label}
+                                                {exportLoadingState ===
+                                                opt.value
+                                                    ? 'Downloading...'
+                                                    : opt.label}
                                             </button>
                                         ))}
                                     </div>
 
-                                    <div ref={exportMenuRef} className="relative md:hidden">
+                                    <div
+                                        ref={exportMenuRef}
+                                        className="relative md:hidden"
+                                    >
                                         <button
                                             type="button"
-                                            onClick={() => setIsExportMenuOpen((v) => !v)}
-                                            disabled={exportLoadingState !== null}
+                                            onClick={() =>
+                                                setIsExportMenuOpen(v => !v)
+                                            }
+                                            disabled={
+                                                exportLoadingState !== null
+                                            }
                                             className="h-10 inline-flex items-center gap-2 px-3 border border-[#E0E0E0] rounded-xl bg-white text-sm font-medium text-[#212121] hover:bg-[#F5F5F5] transition-colors disabled:opacity-60"
                                         >
                                             {exportLoadingState ? (
-                                                <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
+                                                <svg
+                                                    className="w-4 h-4 animate-spin text-[#487749]"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    aria-hidden="true"
+                                                >
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"
+                                                    ></path>
                                                 </svg>
                                             ) : (
                                                 <Download className="w-4 h-4 text-[#487749]" />
                                             )}
-                                            {exportLoadingState ? 'Downloading...' : 'Download'}
+                                            {exportLoadingState
+                                                ? 'Downloading...'
+                                                : 'Download'}
                                             <ChevronDown className="w-4 h-4 text-[#757575]" />
                                         </button>
                                         {isExportMenuOpen && (
                                             <div className="absolute z-50 mt-1 w-44 rounded-2xl border border-[#E0E0E0] bg-white p-1">
-                                                {exportFormatOptions.map((opt) => (
-                                                    <button
-                                                        key={opt.value}
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setIsExportMenuOpen(false)
-                                                            handleExport(opt.value)
-                                                        }}
-                                                        className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
-                                                    >
-                                                        <span className="inline-flex items-center gap-2">
-                                                            <Download className="w-4 h-4 text-[#487749]" />
-                                                            {opt.label}
-                                                        </span>
-                                                    </button>
-                                                ))}
+                                                {exportFormatOptions.map(
+                                                    opt => (
+                                                        <button
+                                                            key={opt.value}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setIsExportMenuOpen(
+                                                                    false
+                                                                )
+                                                                handleExport(
+                                                                    opt.value
+                                                                )
+                                                            }}
+                                                            className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
+                                                        >
+                                                            <span className="inline-flex items-center gap-2">
+                                                                <Download className="w-4 h-4 text-[#487749]" />
+                                                                {opt.label}
+                                                            </span>
+                                                        </button>
+                                                    )
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -1308,7 +1780,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <DatePicker
                                         value={reportingYearFrom}
                                         onChange={setReportingYearFrom}
-                                        max={new Date().toISOString().split('T')[0]}
+                                        max={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                         placeholder="From date"
                                         ariaLabel="Reporting year from"
                                         className="h-10 px-3 py-2 text-sm sm:w-[170px]"
@@ -1316,7 +1792,11 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <DatePicker
                                         value={reportingYearTo}
                                         onChange={setReportingYearTo}
-                                        max={new Date().toISOString().split('T')[0]}
+                                        max={
+                                            new Date()
+                                                .toISOString()
+                                                .split('T')[0]
+                                        }
                                         placeholder="To date"
                                         ariaLabel="Reporting year to"
                                         className="h-10 px-3 py-2 text-sm sm:w-[170px]"
@@ -1333,12 +1813,29 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <div className="absolute inset-0 overflow-auto flex items-center justify-center">
                                         <div className="text-center px-6 py-12">
                                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#F5F5F5] mb-4">
-                                                <svg className="w-8 h-8 text-[#757575]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                <svg
+                                                    className="w-8 h-8 text-[#757575]"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                                    />
                                                 </svg>
                                             </div>
-                                            <h3 className="text-lg font-semibold text-[#212121] mb-2">No KVK Linked</h3>
-                                            <p className="text-[#757575] mb-4">You do not have a linked KVK yet. Please contact administrator to assign a KVK to your account.</p>
+                                            <h3 className="text-lg font-semibold text-[#212121] mb-2">
+                                                No KVK Linked
+                                            </h3>
+                                            <p className="text-[#757575] mb-4">
+                                                You do not have a linked KVK
+                                                yet. Please contact
+                                                administrator to assign a KVK to
+                                                your account.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -1362,13 +1859,25 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         onDelete={handleDelete}
                                         canEditItem={canEditItem}
                                         canDeleteItem={canDeleteItem}
-                                        onTransfer={isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED ? handleTransfer : undefined}
-                                        onViewHistory={(isEmployeeDetails || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) ? handleViewHistory : undefined}
+                                        onTransfer={
+                                            isEmployeeDetails ||
+                                            entityType ===
+                                                ENTITY_TYPES.KVK_STAFF_TRANSFERRED
+                                                ? handleTransfer
+                                                : undefined
+                                        }
+                                        onViewHistory={
+                                            isEmployeeDetails ||
+                                            entityType ===
+                                                ENTITY_TYPES.KVK_STAFF_TRANSFERRED
+                                                ? handleViewHistory
+                                                : undefined
+                                        }
                                         customActions={[
                                             ...oftCustomActions,
                                             ...fldCustomActions,
                                             ...cfldCustomActions,
-                                            ...nariCustomActions
+                                            ...nariCustomActions,
                                         ]}
                                     />
 
