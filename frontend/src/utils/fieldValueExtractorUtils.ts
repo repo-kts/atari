@@ -386,8 +386,21 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     // Crop field - using FIELD_NAMES constant (note: FIELD_NAMES.CROP_NAME = 'cropName')
     // Also handles the `crop` plain-string field used by prevalent diseases
     [FIELD_NAMES.CROP_NAME]: {
-        extractor: (item: any) => item.cropName || item.CropName || (typeof item.crop === 'string' ? item.crop : null) || null,
+        extractor: (item: any) =>
+            item.cropName ||
+            item.nameOfCrop ||
+            item.CropName ||
+            (typeof item.crop === 'string' ? item.crop : null) ||
+            null,
         priority: 5,
+    },
+    [FIELD_NAMES.NAME_OF_NUTRI_SMART_VILLAGE]: {
+        extractor: (item: any) => item.nameOfNutriSmartVillage || item.villageName || null,
+        priority: 6,
+    },
+    [FIELD_NAMES.NAME_OF_VALUE_ADDED_PRODUCT]: {
+        extractor: (item: any) => item.nameOfValueAddedProduct || item.productName || null,
+        priority: 6,
     },
 
     // Training fields
@@ -1138,6 +1151,17 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.CATEGORY_OF_CROP]: {
         extractor: (item: any) => item.cropCategory?.name || item.cropCategoryName || null,
+    },
+    [FIELD_NAMES.NUTRITION_GARDEN_CROP_RESULTS]: {
+        extractor: (item: any) => {
+            const rows = item.results;
+            const n = typeof item.resultCount === 'number' ? item.resultCount : Array.isArray(rows) ? rows.length : 0;
+            if (n === 0) return '—';
+            const first = Array.isArray(rows) && rows[0];
+            const crop = first?.cropName ? String(first.cropName) : '';
+            if (n === 1 && crop) return crop;
+            return crop ? `${n} entries (${crop}${n > 1 ? '…' : ''})` : `${n} entr${n === 1 ? 'y' : 'ies'}`;
+        },
     },
     [FIELD_NAMES.TYPE_OF_NUTRITIONAL_GARDEN]: {
         extractor: (item: any) => item.typeOfNutritionalGarden?.name || item.typeOfNutritionalGardenName || null,

@@ -101,18 +101,29 @@ function buildTable1(rows, escFn) {
 }
 
 function buildTable2(rows, escFn) {
-    const bodyRows = rows.map((row, idx) => `<tr>
-        <td>${idx + 1}</td>
-        <td class="left">${escFn(row.nameOfValueAddedProduct || row.productName || '-')}</td>
-        <td>${escFn(row.amountProducedKg || '-')}</td>
-        <td>${escFn(row.marketPricePerKg || '-')}</td>
-        <td>${escFn(row.netIncomeRs || '-')}</td>
-        <td>${escFn(row.shelfLifeOfProduce || '-')}</td>
-        <td>${escFn(row.fssaiCertification || '-')}</td>
-        <td>${escFn(row.fssaiCertificationNo || '-')}</td>
-    </tr>`).join('');
+    // Second table: rows from NariValueAdditionResult (per header row); Prisma fields: productName, amountProduced, marketPrice, netIncome, shelfLife, fssaiCertified
+    let sr = 1;
+    const lines = [];
+    rows.forEach((parent) => {
+        const resultList = Array.isArray(parent.results) ? parent.results : [];
+        resultList.forEach((r) => {
+            const ap = r.amountProduced;
+            const mp = r.marketPrice;
+            const ni = r.netIncome;
+            lines.push(`<tr>
+        <td>${sr++}</td>
+        <td class="left">${escFn(r.productName || '-')}</td>
+        <td>${escFn(Number.isFinite(ap) ? ap : '-')}</td>
+        <td>${escFn(Number.isFinite(mp) ? mp : '-')}</td>
+        <td>${escFn(Number.isFinite(ni) ? ni : '-')}</td>
+        <td>${escFn(r.shelfLife || '-')}</td>
+        <td>${escFn(r.fssaiCertified || '-')}</td>
+    </tr>`);
+        });
+    });
+    const bodyRows = lines.join('');
 
-    const emptyRow = rows.length === 0
+    const emptyRow = lines.length === 0
         ? `<tr><td colspan="8" class="nva-empty">No records found.</td></tr>`
         : '';
 
@@ -128,7 +139,6 @@ function buildTable2(rows, escFn) {
       <th>Net Income(Rs)</th>
       <th>Self-life of Produce</th>
       <th>FSSAI Certification</th>
-      <th>FSSAI Certification No.</th>
     </tr>
   </thead>
   <tbody>

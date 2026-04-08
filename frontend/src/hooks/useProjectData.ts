@@ -1,137 +1,187 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../services/api';
-import { ROUTE_PATHS } from '../constants/routePaths';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { ENTITY_TYPES } from '../constants/entityConstants'
+import { apiClient } from '../services/api'
+import { ROUTE_PATHS } from '../constants/routePaths'
 
-const EMPTY_ARRAY: any[] = [];
+const EMPTY_ARRAY: any[] = []
 
 /**
  * Generic hook for project data when specific hooks are not yet implemented.
  * This allows the DataManagementView to render even if data is empty.
  */
 export function useProjectData(entityType: string) {
-    const queryClient = useQueryClient();
+    const queryClient = useQueryClient()
+    const P = ROUTE_PATHS.PROJECT_DATA_API
+    const NARI_FORM = ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.FORM_API
+    const A = ROUTE_PATHS.ACHIEVEMENTS
+
     // Map entity types to their specific backend endpoints
     const endpointMap: Record<string, string> = {
-        'achievement-award-kvk': '/forms/achievements/kvk-awards',
-        'achievement-award-scientist': '/forms/achievements/scientist-awards',
-        'achievement-award-farmer': '/forms/achievements/farmer-awards',
-        'achievement-extension': '/forms/achievements/extension-activities',
-        'achievement-other-extension': '/forms/achievements/other-extension-activities',
-        'achievement-technology-week': '/forms/achievements/technology-week',
-        'achievement-celebration-days': '/forms/achievements/celebration-days',
-        'achievement-production-supply': '/forms/achievements/production-supply',
-        'achievement-publication-details': '/forms/achievements/publication-details',
-        'project-cfld-technical-param': '/forms/achievements/cfld-technical-parameters',
-        'project-cfld-extension-activity': '/forms/achievements/cfld-extension-activities',
-        'project-cfld-budget': '/forms/achievements/cfld-budget-utilizations',
-        'achievement-soil-equipment': '/forms/achievements/soil-water/equipments',
-        'achievement-soil-analysis': '/forms/achievements/soil-water/analysis',
-        'achievement-world-soil-day': '/forms/achievements/soil-water/world-soil-day',
-        'achievement-hrd': '/forms/achievements/hrd',
-        'project-fpo-details': '/forms/achievements/projects/fpo/details',
-        'project-fpo-management': '/forms/achievements/projects/fpo/management',
-        'project-seed-hub': '/forms/achievements/projects/seed-hub',
-        'project-arya-current': '/forms/achievements/projects/arya/current',
-        'project-arya-evaluation': '/forms/achievements/projects/arya/previous',
-        'project-csisa': '/forms/achievements/projects/csisa',
-        'project-tsp-scsp': '/forms/achievements/projects/sub-plan-activity',
-        'project-agri-drone': '/forms/achievements/projects/agri-drone',
-        'project-agri-drone-demo': '/forms/achievements/projects/agri-drone/demonstrations',
-        'project-drmr-details': '/forms/achievements/projects/drmr/details',
-        'project-drmr-activity': '/forms/achievements/projects/drmr/activity',
-        'project-nicra-basic': '/forms/achievements/projects/nicra/basic',
-        'project-nicra-details': '/forms/achievements/projects/nicra/details',
-        'project-nicra-training': '/forms/achievements/projects/nicra/training',
-        'project-nicra-extension': '/forms/achievements/projects/nicra/extension',
-        'project-nicra-intervention': '/forms/achievements/projects/nicra/intervention',
-        'project-nicra-revenue': '/forms/achievements/projects/nicra/revenue',
-        'project-nicra-custom-hiring': '/forms/achievements/projects/nicra/farm-implement',
-        'project-nicra-vcrmc': '/forms/achievements/projects/nicra/vcrmc',
-        'project-nicra-soil-health': '/forms/achievements/projects/nicra/soil-health',
-        'project-nicra-convergence': '/forms/achievements/projects/nicra/convergence',
-        'project-nicra-dignitaries': '/forms/achievements/projects/nicra/dignitaries',
-        'project-nicra-pi-copi': '/forms/achievements/projects/nicra/pi-copi',
-        'project-cra-details': '/forms/achievements/projects/cra/details',
-        'project-cra-extension-activity': '/forms/achievements/projects/cra/extension',
-        // NARI
-        'project-nari-nutri-garden': '/forms/achievements/projects/nari/nutritional-garden',
-        'project-nari-bio-fortified': '/forms/achievements/projects/nari/bio-fortified-crop',
-        'project-nari-value-addition': '/forms/achievements/projects/nari/value-addition',
-        'project-nari-training': '/forms/achievements/projects/nari/training-programme',
-        'project-nari-extension': '/forms/achievements/projects/nari/extension-activity',
-        // Natural Farming
-        'project-natural-farming-geo': '/forms/achievements/projects/natural-farming/geographical',
-        'project-natural-farming-physical': '/forms/achievements/projects/natural-farming/physical',
-        'project-natural-farming-demo': '/forms/achievements/projects/natural-farming/demonstration',
-        'project-natural-farming-farmers': '/forms/achievements/projects/natural-farming/farmers',
-        'project-natural-farming-beneficiaries': '/forms/achievements/projects/natural-farming/beneficiaries',
-        'project-natural-farming-soil': '/forms/achievements/projects/natural-farming/soil',
-        'project-natural-farming-budget': '/forms/achievements/projects/natural-farming/budget',
-        'project-other': '/forms/achievements/other-program',
-        'achievement-oft': ROUTE_PATHS.ACHIEVEMENTS.OFT,
-        'achievement-fld': ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
-        'achievement-fld-extension-training': ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
-        'achievement-fld-technical-feedback': ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
-        'achievement-training': ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
-        // Miscellaneous
-        'misc-prevalent-diseases-crops': '/forms/miscellaneous/prevalent-diseases/crops',
-        'misc-prevalent-diseases-livestock': '/forms/miscellaneous/prevalent-diseases/livestock',
-        'misc-nyk-training': '/forms/miscellaneous/nyk-training',
-        'misc-ppv-fra-training': '/forms/miscellaneous/ppv-fra/training',
-        'misc-ppv-fra-plant-varieties': '/forms/miscellaneous/ppv-fra/plant-varieties',
-        'misc-rawe-fet': '/forms/miscellaneous/rawe-fet',
-        'misc-vip-visitors': '/forms/miscellaneous/vip-visitors',
-        'misc-swachhta-sewa': '/forms/miscellaneous/swachhta-bharat/sewa',
-        'misc-swachhta-pakhwada': '/forms/miscellaneous/swachhta-bharat/pakhwada',
-        'misc-swachhta-budget': '/forms/miscellaneous/swachhta-bharat/budget',
-        'misc-meetings-sac': '/forms/miscellaneous/meetings/sac',
-        'misc-meetings-other': '/forms/miscellaneous/meetings/other',
-        'performance-impact-kvk-activities': '/forms/performance/impact/kvk-activities',
-        'performance-impact-entrepreneurship': '/forms/performance/impact/entrepreneurship',
-        'performance-impact-success-stories': '/forms/performance/impact/success-stories',
-        'performance-demonstration-units': '/forms/performance/infrastructure/demonstration-units',
-        'performance-instructional-farm-crops': '/forms/performance/infrastructure/instructional-farm-crops',
-        'performance-production-units': '/forms/performance/infrastructure/production-units',
-        'performance-instructional-farm-livestock': '/forms/performance/infrastructure/instructional-farm-livestock',
-        'performance-hostel': '/forms/performance/infrastructure/hostel',
-        'performance-staff-quarters': '/forms/performance/infrastructure/staff-quarters',
-        'performance-rainwater-harvesting': '/forms/performance/infrastructure/rainwater-harvesting',
-        'performance-functional-linkage': '/forms/performance/linkages/functional-linkages',
-        'performance-special-programmes': '/forms/performance/linkages/special-programmes',
-        'performance-operational-area': '/forms/performance/district-village/operational-areas',
-        'performance-village-adoption': '/forms/performance/district-village/village-adoptions',
-        'performance-priority-thrust': '/forms/performance/district-village/priority-thrust-areas',
-        'performance-district-level': '/forms/performance/district-village/district-levels',
-        'performance-budget-details': '/forms/performance/financial/budget-details',
-        'performance-revolving-fund': '/forms/performance/financial/revolving-fund',
-        'performance-revenue-generation': '/forms/performance/financial/revenue-generation',
-        'performance-resource-generation': '/forms/performance/financial/resource-generation',
-        'performance-project-budget': '/forms/performance/financial/project-budget',
-        // Digital Information
-        'misc-digital-mobile-app': '/forms/achievements/digital-information/mobile-app',
-        'misc-digital-web-portal': '/forms/achievements/digital-information/web-portal',
-        'misc-digital-kisan-sarathi': '/forms/achievements/digital-information/kisan-sarathi',
-        'misc-digital-kisan-mobile-advisory': '/forms/achievements/digital-information/kmas',
-        'misc-digital-other-channels': '/forms/achievements/digital-information/msg-details',
-    };
+        [ENTITY_TYPES.ACHIEVEMENT_AWARD_KVK]: P.ACHIEVEMENTS.AWARD_KVK,
+        [ENTITY_TYPES.ACHIEVEMENT_AWARD_SCIENTIST]:
+            P.ACHIEVEMENTS.AWARD_SCIENTIST,
+        [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: P.ACHIEVEMENTS.AWARD_FARMER,
+        [ENTITY_TYPES.ACHIEVEMENT_EXTENSION]:
+            P.ACHIEVEMENTS.EXTENSION_ACTIVITIES,
+        [ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION]:
+            P.ACHIEVEMENTS.OTHER_EXTENSION_ACTIVITIES,
+        [ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK]:
+            P.ACHIEVEMENTS.TECHNOLOGY_WEEK,
+        [ENTITY_TYPES.ACHIEVEMENT_CELEBRATION_DAYS]:
+            P.ACHIEVEMENTS.CELEBRATION_DAYS,
+        [ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY]:
+            P.ACHIEVEMENTS.PRODUCTION_SUPPLY,
+        [ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS]:
+            P.ACHIEVEMENTS.PUBLICATION_DETAILS,
+        [ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM]:
+            P.ACHIEVEMENTS.CFLD.TECHNICAL_PARAMETERS,
+        [ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY]:
+            P.ACHIEVEMENTS.CFLD.EXTENSION_ACTIVITIES,
+        [ENTITY_TYPES.PROJECT_CFLD_BUDGET]:
+            P.ACHIEVEMENTS.CFLD.BUDGET_UTILIZATIONS,
+        [ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT]:
+            P.ACHIEVEMENTS.SOIL_WATER.EQUIPMENTS,
+        [ENTITY_TYPES.ACHIEVEMENT_SOIL_ANALYSIS]:
+            P.ACHIEVEMENTS.SOIL_WATER.ANALYSIS,
+        [ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY]:
+            P.ACHIEVEMENTS.SOIL_WATER.WORLD_SOIL_DAY,
+        [ENTITY_TYPES.ACHIEVEMENT_HRD]: P.ACHIEVEMENTS.HRD,
+        [ENTITY_TYPES.PROJECT_FPO_DETAILS]: P.PROJECTS.FPO_DETAILS,
+        [ENTITY_TYPES.PROJECT_FPO_MANAGEMENT]: P.PROJECTS.FPO_MANAGEMENT,
+        [ENTITY_TYPES.PROJECT_SEED_HUB]: P.PROJECTS.SEED_HUB,
+        [ENTITY_TYPES.PROJECT_ARYA_CURRENT]: P.PROJECTS.ARYA_CURRENT,
+        [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: P.PROJECTS.ARYA_EVALUATION,
+        [ENTITY_TYPES.PROJECT_CSISA]: P.PROJECTS.CSISA,
+        [ENTITY_TYPES.PROJECT_TSP_SCSP]: P.PROJECTS.TSP_SCSP,
+        [ENTITY_TYPES.PROJECT_AGRI_DRONE]: P.PROJECTS.AGRI_DRONE,
+        [ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO]: P.PROJECTS.AGRI_DRONE_DEMO,
+        [ENTITY_TYPES.PROJECT_DRMR_DETAILS]: P.PROJECTS.DRMR_DETAILS,
+        [ENTITY_TYPES.PROJECT_DRMR_ACTIVITY]: P.PROJECTS.DRMR_ACTIVITY,
+        [ENTITY_TYPES.PROJECT_NICRA_BASIC]: P.PROJECTS.NICRA.BASIC,
+        [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: P.PROJECTS.NICRA.DETAILS,
+        [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: P.PROJECTS.NICRA.TRAINING,
+        [ENTITY_TYPES.PROJECT_NICRA_EXTENSION]: P.PROJECTS.NICRA.EXTENSION,
+        [ENTITY_TYPES.PROJECT_NICRA_INTERVENTION]:
+            P.PROJECTS.NICRA.INTERVENTION,
+        [ENTITY_TYPES.PROJECT_NICRA_REVENUE]: P.PROJECTS.NICRA.REVENUE,
+        [ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING]:
+            P.PROJECTS.NICRA.CUSTOM_HIRING,
+        [ENTITY_TYPES.PROJECT_NICRA_VCRMC]: P.PROJECTS.NICRA.VCRMC,
+        [ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH]: P.PROJECTS.NICRA.SOIL_HEALTH,
+        [ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE]: P.PROJECTS.NICRA.CONVERGENCE,
+        [ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES]: P.PROJECTS.NICRA.DIGNITARIES,
+        [ENTITY_TYPES.PROJECT_NICRA_PI_COPI]: P.PROJECTS.NICRA.PI_COPI,
+        [ENTITY_TYPES.PROJECT_CRA_DETAILS]: P.PROJECTS.CRA_DETAILS,
+        [ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY]:
+            P.PROJECTS.CRA_EXTENSION_ACTIVITY,
+        [ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN]: NARI_FORM.NUTRITIONAL_GARDEN,
+        [ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED]: NARI_FORM.BIO_FORTIFIED_CROP,
+        [ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION]: NARI_FORM.VALUE_ADDITION,
+        [ENTITY_TYPES.PROJECT_NARI_TRAINING]: P.PROJECTS.NARI_TRAINING,
+        [ENTITY_TYPES.PROJECT_NARI_EXTENSION]: P.PROJECTS.NARI_EXTENSION,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: P.NATURAL_FARMING.GEO,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]:
+            P.NATURAL_FARMING.PHYSICAL,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: P.NATURAL_FARMING.DEMO,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]:
+            P.NATURAL_FARMING.FARMERS,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]:
+            P.NATURAL_FARMING.BENEFICIARIES,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL]: P.NATURAL_FARMING.SOIL,
+        [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET]: P.NATURAL_FARMING.BUDGET,
+        [ENTITY_TYPES.PROJECT_OTHER]: P.OTHER_PROGRAM,
+        [ENTITY_TYPES.ACHIEVEMENT_OFT]: A.OFT,
+        [ENTITY_TYPES.ACHIEVEMENT_FLD]: A.FLD.BASE,
+        [ENTITY_TYPES.ACHIEVEMENT_FLD_EXTENSION_TRAINING]:
+            A.FLD.EXTENSION_TRAINING,
+        [ENTITY_TYPES.ACHIEVEMENT_FLD_TECHNICAL_FEEDBACK]:
+            A.FLD.TECHNICAL_FEEDBACK,
+        [ENTITY_TYPES.ACHIEVEMENT_TRAINING]: A.TRAININGS,
+        [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]:
+            P.MISCELLANEOUS.PREVALENT_DISEASES_CROPS,
+        [ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK]:
+            P.MISCELLANEOUS.PREVALENT_DISEASES_LIVESTOCK,
+        [ENTITY_TYPES.MISC_NYK_TRAINING]: P.MISCELLANEOUS.NYK_TRAINING,
+        [ENTITY_TYPES.MISC_PPV_FRA_TRAINING]: P.MISCELLANEOUS.PPV_FRA_TRAINING,
+        [ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES]:
+            P.MISCELLANEOUS.PPV_FRA_PLANT_VARIETIES,
+        [ENTITY_TYPES.MISC_RAWE_FET]: P.MISCELLANEOUS.RAWE_FET,
+        [ENTITY_TYPES.MISC_VIP_VISITORS]: P.MISCELLANEOUS.VIP_VISITORS,
+        [ENTITY_TYPES.MISC_SWACHHTA_SEWA]: P.MISCELLANEOUS.SWACHHTA_SEWA,
+        [ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA]:
+            P.MISCELLANEOUS.SWACHHTA_PAKHWADA,
+        [ENTITY_TYPES.MISC_SWACHHTA_BUDGET]: P.MISCELLANEOUS.SWACHHTA_BUDGET,
+        [ENTITY_TYPES.MISC_MEETINGS_SAC]: P.MISCELLANEOUS.MEETINGS_SAC,
+        [ENTITY_TYPES.MISC_MEETINGS_OTHER]: P.MISCELLANEOUS.MEETINGS_OTHER,
+        [ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES]:
+            P.PERFORMANCE.IMPACT_KVK_ACTIVITIES,
+        [ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP]:
+            P.PERFORMANCE.IMPACT_ENTREPRENEURSHIP,
+        [ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES]:
+            P.PERFORMANCE.IMPACT_SUCCESS_STORIES,
+        [ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS]:
+            P.PERFORMANCE.DEMONSTRATION_UNITS,
+        [ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS]:
+            P.PERFORMANCE.INSTRUCTIONAL_FARM_CROPS,
+        [ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS]:
+            P.PERFORMANCE.PRODUCTION_UNITS,
+        [ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK]:
+            P.PERFORMANCE.INSTRUCTIONAL_FARM_LIVESTOCK,
+        [ENTITY_TYPES.PERFORMANCE_HOSTEL]: P.PERFORMANCE.HOSTEL,
+        [ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS]: P.PERFORMANCE.STAFF_QUARTERS,
+        [ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING]:
+            P.PERFORMANCE.RAINWATER_HARVESTING,
+        [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]:
+            P.PERFORMANCE.FUNCTIONAL_LINKAGE,
+        [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]:
+            P.PERFORMANCE.SPECIAL_PROGRAMMES,
+        [ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA]:
+            P.PERFORMANCE.OPERATIONAL_AREA,
+        [ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION]:
+            P.PERFORMANCE.VILLAGE_ADOPTION,
+        [ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST]:
+            P.PERFORMANCE.PRIORITY_THRUST,
+        [ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL]: P.PERFORMANCE.DISTRICT_LEVEL,
+        [ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS]: P.PERFORMANCE.BUDGET_DETAILS,
+        [ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND]: P.PERFORMANCE.REVOLVING_FUND,
+        [ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION]:
+            P.PERFORMANCE.REVENUE_GENERATION,
+        [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]:
+            P.PERFORMANCE.RESOURCE_GENERATION,
+        [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: P.PERFORMANCE.PROJECT_BUDGET,
+        [ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP]:
+            P.DIGITAL_INFORMATION.MOBILE_APP,
+        [ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL]:
+            P.DIGITAL_INFORMATION.WEB_PORTAL,
+        [ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI]:
+            P.DIGITAL_INFORMATION.KISAN_SARATHI,
+        [ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY]:
+            P.DIGITAL_INFORMATION.KMAS,
+        [ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS]:
+            P.DIGITAL_INFORMATION.MSG_DETAILS,
+    }
 
-    const endpoint = endpointMap[entityType] || `/forms/achievements/${entityType}s`;
+    const endpoint =
+        endpointMap[entityType] || `/forms/achievements/${entityType}s`
 
     const query = useQuery({
         queryKey: ['project-data', entityType],
         queryFn: async () => {
             try {
-                const res = await apiClient.get<any>(endpoint);
+                const res = await apiClient.get<any>(endpoint)
                 // Handle both { success: true, data: [...] } and direct array responses
-                const data = res?.data || (Array.isArray(res) ? res : null);
-                return data || EMPTY_ARRAY;
+                const data = res?.data || (Array.isArray(res) ? res : null)
+                return data || EMPTY_ARRAY
             } catch (err) {
-                console.warn(`No API or error for ${entityType}, returning empty array:`, err);
-                return EMPTY_ARRAY;
+                console.warn(
+                    `No API or error for ${entityType}, returning empty array:`,
+                    err
+                )
+                return EMPTY_ARRAY
             }
         },
         retry: false,
-    });
+    })
 
     const createMutation = useMutation({
         mutationFn: (data: any) => apiClient.post(endpoint, data),
@@ -140,9 +190,9 @@ export function useProjectData(entityType: string) {
                 queryKey: ['project-data', entityType],
                 exact: true,
                 refetchType: 'active',
-            });
+            })
         },
-    });
+    })
 
     const updateMutation = useMutation({
         mutationFn: ({ id, data }: { id: number | string; data: any }) =>
@@ -152,20 +202,21 @@ export function useProjectData(entityType: string) {
                 queryKey: ['project-data', entityType],
                 exact: true,
                 refetchType: 'active',
-            });
+            })
         },
-    });
+    })
 
     const deleteMutation = useMutation({
-        mutationFn: (id: number | string) => apiClient.delete(`${endpoint}/${id}`),
+        mutationFn: (id: number | string) =>
+            apiClient.delete(`${endpoint}/${id}`),
         onSuccess: async () => {
             await queryClient.invalidateQueries({
                 queryKey: ['project-data', entityType],
                 exact: true,
                 refetchType: 'active',
-            });
+            })
         },
-    });
+    })
 
     return {
         data: query.data || EMPTY_ARRAY,
@@ -177,5 +228,5 @@ export function useProjectData(entityType: string) {
         isCreating: createMutation.isPending,
         isUpdating: updateMutation.isPending,
         isDeleting: deleteMutation.isPending,
-    };
+    }
 }

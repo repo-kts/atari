@@ -33,6 +33,19 @@ function buildWhere(kvkId, filters = {}) {
     return where;
 }
 
+function mapResultRow(r) {
+    return {
+        cropName: r.cropName || '',
+        variety: r.variety || '',
+        areaSqm: Number(r.areaSqm || 0),
+        productionKg: Number(r.productionKg || 0),
+        consumptionKg: Number(r.consumptionKg || 0),
+        sellKg: Number(r.sellKg || 0),
+        income: Number(r.income || 0),
+        reportingYear: r.reportingYear || null,
+    };
+}
+
 function mapRecord(record) {
     const generalM = Number(record.generalM || 0);
     const generalF = Number(record.generalF || 0);
@@ -68,6 +81,7 @@ function mapRecord(record) {
         totalF,
         totalT: totalM + totalF,
         reportingYear: record.reportingYear || null,
+        results: Array.isArray(record.results) ? record.results.map(mapResultRow) : [],
     };
 }
 
@@ -85,6 +99,9 @@ async function getNariNutritionGardenData(kvkId, filters = {}) {
             },
             activity: { select: { activityName: true } },
             typeOfNutritionalGarden: { select: { name: true } },
+            results: {
+                orderBy: { nariNutritionalGardenResultId: 'asc' },
+            },
         },
         orderBy: [{ reportingYear: 'asc' }, { nariNutritionalGardenId: 'asc' }],
     });

@@ -73,6 +73,7 @@ const nariValueAdditionRepository = {
             include: {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
+                results: { orderBy: { nariValueAdditionResultId: 'asc' } },
             },
             orderBy: { nariValueAdditionId: 'desc' }
         });
@@ -131,7 +132,8 @@ const nariValueAdditionRepository = {
     // Result Methods
     getResultById: async (id) => {
         return await prisma.nariValueAdditionResult.findFirst({
-            where: { nariValueAdditionId: parseInt(id) }
+            where: { nariValueAdditionId: parseInt(id) },
+            orderBy: { nariValueAdditionResultId: 'desc' },
         });
     },
 
@@ -163,7 +165,8 @@ const nariValueAdditionRepository = {
     updateResult: async (id, data) => {
         const valueAdditionId = parseInt(id);
         const existingResult = await prisma.nariValueAdditionResult.findFirst({
-            where: { nariValueAdditionId: valueAdditionId }
+            where: { nariValueAdditionId: valueAdditionId },
+            orderBy: { nariValueAdditionResultId: 'desc' },
         });
 
         if (!existingResult) throw new Error('Result not found');
@@ -222,7 +225,21 @@ function _mapResponse(r) {
         scMale: r.scM,
         scFemale: r.scF,
         stMale: r.stM,
-        stFemale: r.stF
+        stFemale: r.stF,
+
+        results: Array.isArray(r.results)
+            ? r.results.map((row) => ({
+                  nariValueAdditionResultId: row.nariValueAdditionResultId,
+                  reportingYear: row.reportingYear,
+                  productName: row.productName,
+                  amountProduced: row.amountProduced,
+                  marketPrice: row.marketPrice,
+                  netIncome: row.netIncome,
+                  shelfLife: row.shelfLife,
+                  fssaiCertified: row.fssaiCertified,
+              }))
+            : [],
+        resultCount: Array.isArray(r.results) ? r.results.length : 0,
     };
 }
 

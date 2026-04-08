@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { DatePicker } from '@/components/ui/date-picker'
@@ -14,9 +14,14 @@ export interface NariValueAdditionResultValue {
     fssaiCertified: 'Yes' | 'No' | ''
 }
 
+/** API row may include this id; not submitted as form fields */
+type NariValueAdditionResultInitial = Partial<NariValueAdditionResultValue> & {
+    nariValueAdditionResultId?: number
+}
+
 interface NariValueAdditionResultFormProps {
     mode?: 'create' | 'edit'
-    initialValue?: Partial<NariValueAdditionResultValue>
+    initialValue?: NariValueAdditionResultInitial | null
     onClose: () => void
     onSubmit: (value: NariValueAdditionResultValue) => Promise<void>
 }
@@ -31,9 +36,50 @@ const defaultValue: NariValueAdditionResultValue = {
     fssaiCertified: '',
 }
 
+function mapApiToForm(
+    initial: NariValueAdditionResultInitial | null | undefined,
+): NariValueAdditionResultValue {
+    if (initial == null) return { ...defaultValue }
+    const ry = initial.reportingYear
+    let reportingYear = ''
+    if (ry != null && ry !== '') {
+        reportingYear =
+            typeof ry === 'string' ? ry.split('T')[0] : String(ry)
+    }
+    const fssai = initial.fssaiCertified
+    const fssaiCertified: NariValueAdditionResultValue['fssaiCertified'] =
+        fssai === 'Yes' || fssai === 'No' ? fssai : ''
+
+    return {
+        reportingYear,
+        productName: initial.productName != null ? String(initial.productName) : '',
+        amountProduced: initial.amountProduced ?? '',
+        marketPrice: initial.marketPrice ?? '',
+        netIncome: initial.netIncome ?? '',
+        shelfLife: initial.shelfLife != null ? String(initial.shelfLife) : '',
+        fssaiCertified,
+    }
+}
+
 export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormProps> = ({ mode = 'create', initialValue, onClose, onSubmit }) => {
     const [submitting, setSubmitting] = useState(false)
-    const [value, setValue] = useState<NariValueAdditionResultValue>({ ...defaultValue, ...(initialValue || {}) })
+    const [value, setValue] = useState<NariValueAdditionResultValue>(() =>
+        mapApiToForm(initialValue ?? null),
+    )
+
+    const syncKey = useMemo(() => {
+        if (initialValue === undefined) return 'loading'
+        if (initialValue === null) return 'empty'
+        return String(
+            (initialValue as NariValueAdditionResultInitial)
+                .nariValueAdditionResultId ?? 'new',
+        )
+    }, [initialValue])
+
+    useEffect(() => {
+        if (initialValue === undefined) return
+        setValue(mapApiToForm(initialValue))
+    }, [syncKey]) // eslint-disable-line react-hooks/exhaustive-deps -- initialValue read when syncKey changes
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

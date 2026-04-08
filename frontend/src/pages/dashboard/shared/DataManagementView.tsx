@@ -1460,17 +1460,24 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     </div>
                 ) : isNariValueResultPageOpen ? (
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                        <NariValueAdditionResultForm
-                            mode={
-                                nariValueResult.resultData ? 'edit' : 'create'
-                            }
-                            initialValue={nariValueResult.resultData}
-                            onClose={() => {
-                                setIsNariValueResultPageOpen(false)
-                                setSelectedNariValueId(null)
-                            }}
-                            onSubmit={handleSubmitNariValueResult}
-                        />
+                        {nariValueResult.isLoading ? (
+                            <LoadingState message="Loading result…" />
+                        ) : (
+                            <NariValueAdditionResultForm
+                                key={String(selectedNariValueId ?? '')}
+                                mode={
+                                    nariValueResult.resultData
+                                        ? 'edit'
+                                        : 'create'
+                                }
+                                initialValue={nariValueResult.resultData}
+                                onClose={() => {
+                                    setIsNariValueResultPageOpen(false)
+                                    setSelectedNariValueId(null)
+                                }}
+                                onSubmit={handleSubmitNariValueResult}
+                            />
+                        )}
                     </div>
                 ) : (
                     <>

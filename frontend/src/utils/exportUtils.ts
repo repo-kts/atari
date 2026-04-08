@@ -15,6 +15,7 @@ const CUSTOM_LABELS: Record<string, string> = {
     'maxTemperature': 'Max. Temperature 0C',
     'minTemperature': 'Min. Temperature 0C',
     'kvkName': 'KVK',
+    'nutritionGardenCropResults': 'Crop production & consumption (results)',
 }
 
 export function formatHeaderLabel(field: string): string {
