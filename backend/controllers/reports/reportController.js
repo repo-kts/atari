@@ -1,6 +1,38 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
 const { generateExcel, generateWord } = require('../../utils/exportHelper.js');
+const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
+
+/**
+ * Resolve KVK id for single-KVK report endpoints.
+ * KVK-bound users may omit kvkId in the body; JWT user.kvkId is used.
+ * Compares ids as normalized integers so string "5" matches number 5.
+ */
+function resolveSingleKvkReportTarget(user, kvkIdFromBody, options = {}) {
+    const forbiddenMessage =
+        options.forbiddenMessage || 'Access denied: You can only access your own KVK data';
+    const targetKvkId = normalizeReportKvkId(
+        user.kvkId != null && user.kvkId !== '' ? user.kvkId : kvkIdFromBody,
+    );
+    if (targetKvkId == null) {
+        return { error: { status: 400, message: 'KVK ID is required' } };
+    }
+    if (user.kvkId != null && user.kvkId !== '') {
+        const userKvk = normalizeReportKvkId(user.kvkId);
+        if (kvkIdFromBody != null && kvkIdFromBody !== '') {
+            const bodyKvk = normalizeReportKvkId(kvkIdFromBody);
+            if (bodyKvk != null && userKvk !== bodyKvk) {
+                return {
+                    error: {
+                        status: 403,
+                        message: forbiddenMessage,
+                    },
+                };
+            }
+        }
+    }
+    return { targetKvkId };
+}
 
 /**
  * Report Controller
@@ -19,24 +51,16 @@ const generateKvkReport = async (req, res) => {
         if (format === 'doc' || format === 'word') format = 'docx';
         if (format === 'xls') format = 'excel';
 
-        // Validate KVK ID
-        if (!kvkId) {
-            return res.status(400).json({
+        const resolved = resolveSingleKvkReportTarget(user, kvkId, {
+            forbiddenMessage: 'Access denied: You can only generate reports for your own KVK',
+        });
+        if (resolved.error) {
+            return res.status(resolved.error.status).json({
                 success: false,
-                error: 'KVK ID is required',
+                error: resolved.error.message,
             });
         }
-
-        // Authorization: KVK admin can only generate reports for their KVK
-        if (user.kvkId && user.kvkId !== kvkId) {
-            return res.status(403).json({
-                success: false,
-                error: 'Access denied: You can only generate reports for your own KVK',
-            });
-        }
-
-        // Use user's KVK ID if they are KVK admin
-        const targetKvkId = user.kvkId || kvkId;
+        const { targetKvkId } = resolved;
         const generatedBy = user.name || user.email || 'Unknown User';
 
         if (format === 'excel' || format === 'docx') {
@@ -144,25 +168,15 @@ const getReportData = async (req, res) => {
             });
         }
 
-        // Single KVK report
-        // Validate KVK ID
-        if (!kvkId) {
-            return res.status(400).json({
+        // Single KVK report (KVK-bound users may omit kvkId; use JWT user.kvkId)
+        const resolved = resolveSingleKvkReportTarget(user, kvkId);
+        if (resolved.error) {
+            return res.status(resolved.error.status).json({
                 success: false,
-                error: 'KVK ID is required',
+                error: resolved.error.message,
             });
         }
-
-        // Authorization: KVK admin can only access their KVK data
-        if (user.kvkId && user.kvkId !== kvkId) {
-            return res.status(403).json({
-                success: false,
-                error: 'Access denied: You can only access your own KVK data',
-            });
-        }
-
-        // Use user's KVK ID if they are KVK admin
-        const targetKvkId = user.kvkId || kvkId;
+        const { targetKvkId } = resolved;
 
         // Get report data
         const data = await reportService.getReportData(targetKvkId, {
@@ -372,25 +386,17 @@ const generateKvkReportUpdated = async (req, res) => {
             return generateAggregatedReport(req, res);
         }
 
-        // Single KVK report (original logic)
-        // Validate KVK ID
-        if (!kvkId) {
-            return res.status(400).json({
+        // Single KVK report (original logic; KVK-bound users may omit kvkId)
+        const resolved = resolveSingleKvkReportTarget(user, kvkId, {
+            forbiddenMessage: 'Access denied: You can only generate reports for your own KVK',
+        });
+        if (resolved.error) {
+            return res.status(resolved.error.status).json({
                 success: false,
-                error: 'KVK ID is required',
+                error: resolved.error.message,
             });
         }
-
-        // Authorization: KVK admin can only generate reports for their KVK
-        if (user.kvkId && user.kvkId !== kvkId) {
-            return res.status(403).json({
-                success: false,
-                error: 'Access denied: You can only generate reports for your own KVK',
-            });
-        }
-
-        // Use user's KVK ID if they are KVK admin
-        const targetKvkId = user.kvkId || kvkId;
+        const { targetKvkId } = resolved;
         const generatedBy = user.name || user.email || 'Unknown User';
 
         // Generate report

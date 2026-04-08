@@ -17,6 +17,7 @@ class ExportApi {
         format: 'pdf' | 'excel' | 'word';
         templateKey?: string;
         rawData?: any[] | Record<string, any>;
+        isAggregatedReport?: boolean;
     }, pathname?: string): Promise<Blob> {
         const baseUrl = this.getBaseUrl(pathname);
         const response = await fetch(`${API_BASE_URL}${baseUrl}`, {

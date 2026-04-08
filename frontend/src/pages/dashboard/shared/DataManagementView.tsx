@@ -23,6 +23,7 @@ import {
     getSiblingRoutes,
 } from '@/config/route'
 import { DataManagementFormPage } from './DataManagementFormPage'
+import { getExportTemplateKey } from './dataManagementExportTemplateKeys'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import {
     getEntityTypeFromPath,
@@ -43,8 +44,6 @@ import { useAlert } from '@/hooks/useAlert'
 import { useDeleteHandler } from '@/hooks/useDeleteHandler'
 import { useEditHandler } from '@/hooks/useEditHandler'
 import { useExportHandler } from '@/hooks/useExportHandler'
-import { formatHeaderLabel } from '@/utils/exportUtils'
-import { exportApi } from '@/services/exportApi'
 import { useToast } from '@/hooks/useToast'
 import {
     useTransferOftToNextYear,
@@ -1086,209 +1085,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }
 
     const handleExport = async (format: 'pdf' | 'excel' | 'word' | 'csv') => {
-        const templateKey =
-            entityType === ENTITY_TYPES.KVKS
-                ? 'about-kvk-view'
-                : entityType === ENTITY_TYPES.KVK_BANK_ACCOUNTS
-                  ? 'about-kvk-bank-accounts'
-                  : entityType === ENTITY_TYPES.KVK_EMPLOYEES
-                    ? 'about-kvk-employees-full'
-                    : entityType === ENTITY_TYPES.KVK_VEHICLES
-                      ? 'about-kvk-vehicles'
-                      : entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS
-                        ? 'about-kvk-vehicle-details'
-                        : entityType === ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
-                          ? 'about-kvk-equipment-records'
-                          : entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
-                            ? 'oft-combined'
-                            : entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
-                              ? 'fld-page-report'
-                              : entityType ===
-                                  ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
-                                ? 'cfld-combined'
-                                : entityType ===
-                                    ENTITY_TYPES.PROJECT_CRA_DETAILS
-                                  ? 'cra-details-state-wise'
-                                  : entityType ===
-                                      ENTITY_TYPES.PROJECT_CRA_EXTENSION_ACTIVITY
-                                    ? 'cra-extension-activity'
-                                    : entityType ===
-                                        ENTITY_TYPES.PROJECT_FPO_DETAILS
-                                      ? 'fpo-cbbo-details'
-                                      : entityType ===
-                                          ENTITY_TYPES.PROJECT_FPO_MANAGEMENT
-                                        ? 'fpo-management-details'
-                                        : entityType ===
-                                            ENTITY_TYPES.PROJECT_DRMR_DETAILS
-                                          ? 'drmr-details'
-                                          : entityType ===
-                                              ENTITY_TYPES.PROJECT_DRMR_ACTIVITY
-                                            ? 'drmr-activity'
-                                            : entityType ===
-                                                ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                                              ? 'nari-nutrition-garden'
-                                              : entityType ===
-                                                  ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                                                ? 'nari-bio-fortified'
-                                                : entityType ===
-                                                    ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                                                  ? 'nari-value-addition'
-                                                  : entityType ===
-                                                      ENTITY_TYPES.PROJECT_NARI_TRAINING
-                                                    ? 'nari-training'
-                                                    : entityType ===
-                                                        ENTITY_TYPES.PROJECT_NARI_EXTENSION
-                                                      ? 'nari-extension'
-                                                      : entityType ===
-                                                          ENTITY_TYPES.PROJECT_ARYA_CURRENT
-                                                        ? 'arya-current'
-                                                        : entityType ===
-                                                            ENTITY_TYPES.PROJECT_ARYA_EVALUATION
-                                                          ? 'arya-prev-year'
-                                                          : entityType ===
-                                                              ENTITY_TYPES.PROJECT_NICRA_BASIC
-                                                            ? 'nicra-basic'
-                                                            : entityType ===
-                                                                ENTITY_TYPES.PROJECT_SEED_HUB
-                                                              ? 'seed-hub'
-                                                              : entityType ===
-                                                                  ENTITY_TYPES.PROJECT_OTHER
-                                                                ? 'other-programmes'
-                                                                : entityType ===
-                                                                    ENTITY_TYPES.PROJECT_NICRA_TRAINING
-                                                                  ? 'nicra-training'
-                                                                  : entityType ===
-                                                                      ENTITY_TYPES.PROJECT_NICRA_INTERVENTION
-                                                                    ? 'nicra-intervention'
-                                                                    : entityType ===
-                                                                        ENTITY_TYPES.PROJECT_NICRA_EXTENSION
-                                                                      ? 'nicra-extension'
-                                                                      : entityType ===
-                                                                          ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING
-                                                                        ? 'nicra-farm-implement'
-                                                                        : entityType ===
-                                                                            ENTITY_TYPES.PROJECT_NICRA_VCRMC
-                                                                          ? 'nicra-vcrmc'
-                                                                          : entityType ===
-                                                                              ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH
-                                                                            ? 'nicra-soil-health'
-                                                                            : entityType ===
-                                                                                ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL
-                                                                              ? 'natural-farming-physical'
-                                                                              : entityType ===
-                                                                                  ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO
-                                                                                ? 'nf-demonstration-information'
-                                                                                : entityType ===
-                                                                                    ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS
-                                                                                  ? 'nf-farmers-practicing-information'
-                                                                                  : entityType ===
-                                                                                      ENTITY_TYPES.PROJECT_NATURAL_FARMING_SOIL
-                                                                                    ? 'nf-soil-data-information'
-                                                                                    : entityType ===
-                                                                                        ENTITY_TYPES.PROJECT_NATURAL_FARMING_BUDGET
-                                                                                      ? 'nf-budget-expenditure-information'
-                                                                                      : entityType ===
-                                                                                          ENTITY_TYPES.PROJECT_AGRI_DRONE
-                                                                                        ? 'agri-drone-introduction'
-                                                                                        : entityType ===
-                                                                                            ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO
-                                                                                          ? 'agri-drone-demonstration-details'
-                                                                                          : entityType ===
-                                                                                              ENTITY_TYPES.PROJECT_CSISA
-                                                                                            ? 'csisa'
-                                                                                            : entityType ===
-                                                                                                ENTITY_TYPES.PROJECT_TSP_SCSP
-                                                                                              ? 'tsp-scsp'
-                                                                                              : entityType ===
-                                                                                                  ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY
-                                                                                                ? 'cfld-extension-activity'
-                                                                                                : entityType ===
-                                                                                                    ENTITY_TYPES.PROJECT_CFLD_BUDGET
-                                                                                                  ? 'cfld-budget-utilization'
-                                                                                                  : entityType ===
-                                                                                                      ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES
-                                                                                                    ? 'special-programme'
-                                                                                                    : entityType ===
-                                                                                                        ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE
-                                                                                                      ? 'functional-linkage'
-                                                                                                      : entityType ===
-                                                                                                          ENTITY_TYPES.PERFORMANCE_IMPACT_SUCCESS_STORIES
-                                                                                                        ? 'success-story'
-                                                                                                        : entityType ===
-                                                                                                            ENTITY_TYPES.PERFORMANCE_IMPACT_ENTREPRENEURSHIP
-                                                                                                          ? 'entrepreneurship'
-                                                                                                          : entityType ===
-                                                                                                              ENTITY_TYPES.PERFORMANCE_IMPACT_KVK_ACTIVITIES
-                                                                                                            ? 'kvk-impact-activity'
-                                                                                                            : entityType ===
-                                                                                                                ENTITY_TYPES.PERFORMANCE_DEMONSTRATION_UNITS
-                                                                                                              ? 'demonstration-unit'
-                                                                                                              : entityType ===
-                                                                                                                  ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_CROPS
-                                                                                                                ? 'instructional-farm-crop'
-                                                                                                                : entityType ===
-                                                                                                                    ENTITY_TYPES.PERFORMANCE_PRODUCTION_UNITS
-                                                                                                                  ? 'production-unit'
-                                                                                                                  : entityType ===
-                                                                                                                      ENTITY_TYPES.PERFORMANCE_INSTRUCTIONAL_FARM_LIVESTOCK
-                                                                                                                    ? 'instructional-farm-livestock'
-                                                                                                                    : entityType ===
-                                                                                                                        ENTITY_TYPES.PERFORMANCE_HOSTEL
-                                                                                                                      ? 'hostel-utilization'
-                                                                                                                      : entityType ===
-                                                                                                                          ENTITY_TYPES.PERFORMANCE_STAFF_QUARTERS
-                                                                                                                        ? 'staff-quarters'
-                                                                                                                        : entityType ===
-                                                                                                                            ENTITY_TYPES.PERFORMANCE_RAINWATER_HARVESTING
-                                                                                                                          ? 'rainwater-harvesting'
-                                                                                                                          : entityType ===
-                                                                                                                              ENTITY_TYPES.ACHIEVEMENT_TRAINING
-                                                                                                                            ? 'trainings-page-report'
-                                                                                                                            : entityType ===
-                                                                                                                                ENTITY_TYPES.ACHIEVEMENT_EXTENSION
-                                                                                                                              ? 'extension-activities-page-report'
-                                                                                                                              : entityType ===
-                                                                                                                                  ENTITY_TYPES.ACHIEVEMENT_OTHER_EXTENSION
-                                                                                                                                ? 'other-extension-content-page-report'
-                                                                                                                                : entityType ===
-                                                                                                                                    ENTITY_TYPES.ACHIEVEMENT_TECHNOLOGY_WEEK
-                                                                                                                                  ? 'technology-week-celebration-page-report'
-                                                                                                                                  : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS
-                                                                                                                                    ? 'misc-prevalent-diseases-crops'
-                                                                                                                                    : entityType === ENTITY_TYPES.MISC_PREVALENT_DISEASES_LIVESTOCK
-                                                                                                                                      ? 'misc-prevalent-diseases-livestock'
-                                                                                                                                      : entityType === ENTITY_TYPES.MISC_NYK_TRAINING
-                                                                                                                                        ? 'misc-nyk-training'
-                                                                                                                                        : entityType === ENTITY_TYPES.MISC_PPV_FRA_PLANT_VARIETIES
-                                                                                                                                          ? 'misc-ppv-fra-plant-varieties'
-                                                                                                                                          : entityType === ENTITY_TYPES.MISC_PPV_FRA_TRAINING
-                                                                                                                                            ? 'misc-ppv-fra-training'
-                                                                                                                                            : entityType === ENTITY_TYPES.MISC_VIP_VISITORS
-                                                                                                                                              ? 'misc-vip-visitors'
-                                                                                                                                              : entityType === ENTITY_TYPES.MISC_RAWE_FET
-                                                                                                                                                ? 'misc-rawe-fet-fit'
-                                                                                                                                                : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI
-                                                                                                                                                  ? 'di-kisan-sarathi'
-                                                                                                                                                  : entityType === ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP
-                                                                                                                                                    ? 'di-mobile-app'
-                                                                                                                                                    : entityType === ENTITY_TYPES.MISC_DIGITAL_KISAN_MOBILE_ADVISORY
-                                                                                                                                                      ? 'di-kmas'
-                                                                                                                                                      : entityType === ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL
-                                                                                                                                                        ? 'di-web-portal'
-                                                                                                                                                        : entityType === ENTITY_TYPES.MISC_DIGITAL_OTHER_CHANNELS
-                                                                                                                                                          ? 'di-msg-details'
-                                                                                                                                                          : entityType === ENTITY_TYPES.MISC_SWACHHTA_SEWA
-                                                                                                                                                            ? 'swachhta-sewa'
-                                                                                                                                                            : entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA
-                                                                                                                                                              ? 'swachhta-pakhwada'
-                                                                                                                                                              : entityType === ENTITY_TYPES.MISC_SWACHHTA_BUDGET
-                                                                                                                                                                ? 'swachhta-budget'
-                                                                                                                                                                : entityType === ENTITY_TYPES.MISC_MEETINGS_SAC
-                                                                                                                                                                  ? 'meetings-sac'
-                                                                                                                                                                  : entityType === ENTITY_TYPES.MISC_MEETINGS_OTHER
-                                                                                                                                                                    ? 'meetings-other'
-                                                                                                                                                                    : undefined
-
+        const templateKey = getExportTemplateKey(entityType)
         // Prevent empty custom-template exports when transient UI filters narrow to zero rows.
         const exportDataSource =
             templateKey && filteredData.length === 0 && items.length > 0
@@ -1301,50 +1098,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             data: exportDataSource,
             pathname: location.pathname,
             templateKey,
+            ...(templateKey === 'world-soil-day-page-report'
+                ? {
+                      isAggregatedReport:
+                          user?.role !== 'kvk_admin' &&
+                          user?.role !== 'kvk_user',
+                  }
+                : {}),
         })
-    }
-
-    // State-wise template key mapping (only modules that support it)
-    const statewiseTemplateKey = useMemo(() => {
-        if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC) return 'meetings-sac-statewise'
-        if (entityType === ENTITY_TYPES.MISC_SWACHHTA_PAKHWADA) return 'swachhta-pakhwada-statewise'
-        return null
-    }, [entityType])
-
-    const [statewiseLoading, setStatewiseLoading] = useState(false)
-
-    const handleStatewiseExport = async () => {
-        if (!statewiseTemplateKey || statewiseLoading) return
-        setStatewiseLoading(true)
-        try {
-            const exportDataSource = filteredData.length === 0 && items.length > 0 ? items : filteredData
-            const headerLabels = fields.map(formatHeaderLabel)
-            const rows = exportDataSource.map(item => fields.map(field => getFieldValue(item, field)))
-
-            const blob = await exportApi.exportData(
-                {
-                    title,
-                    headers: headerLabels,
-                    rows,
-                    format: 'pdf',
-                    templateKey: statewiseTemplateKey,
-                    rawData: exportDataSource,
-                },
-                location.pathname
-            )
-
-            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-statewise-${Date.now()}.pdf`
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = filename
-            a.click()
-            URL.revokeObjectURL(url)
-        } catch (error: any) {
-            console.error('State-wise export failed:', error)
-        } finally {
-            setStatewiseLoading(false)
-        }
     }
 
     const multiFormNote = useMemo(() => {
@@ -1776,27 +1537,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     : opt.label}
                                             </button>
                                         ))}
-                                        {statewiseTemplateKey && (
-                                            <button
-                                                type="button"
-                                                onClick={handleStatewiseExport}
-                                                disabled={exportLoadingState !== null || statewiseLoading}
-                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${statewiseLoading
-                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
-                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
-                                                } ${exportLoadingState !== null ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                            >
-                                                {statewiseLoading ? (
-                                                    <svg className="w-4 h-4 animate-spin text-[#487749]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 008 12H4z"></path>
-                                                    </svg>
-                                                ) : (
-                                                    <Download className="w-4 h-4" />
-                                                )}
-                                                {statewiseLoading ? 'Downloading...' : 'State-wise'}
-                                            </button>
-                                        )}
                                     </div>
 
                                     <div
@@ -1865,21 +1605,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                             </span>
                                                         </button>
                                                     )
-                                                )}
-                                                {statewiseTemplateKey && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setIsExportMenuOpen(false)
-                                                            handleStatewiseExport()
-                                                        }}
-                                                        className="w-full text-left px-3 py-2 text-sm rounded-xl border border-transparent text-[#212121] hover:bg-[#E8F5E9] hover:text-[#2e5a31] hover:border-[#C8E6C9] transition-colors"
-                                                    >
-                                                        <span className="inline-flex items-center gap-2">
-                                                            <Download className="w-4 h-4 text-[#487749]" />
-                                                            State-wise
-                                                        </span>
-                                                    </button>
                                                 )}
                                             </div>
                                         )}

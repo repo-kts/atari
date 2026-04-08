@@ -55,7 +55,7 @@ model CfldTechnicalParameter {
   @@index([seasonId])
   @@index([typeId])
   @@index([reportingYear])
-  @@map("cfl cfld_technical_parameter")
+  @@map("cfl_cfld_technical_parameter")
 }
 
 model CfldEconomicParameters {
@@ -83,7 +83,7 @@ model CfldEconomicParameters {
 
   @@unique([cfldTechId])
   @@index([cfldTechId])
-  @@map("cfl cfld_economic_parameters")
+  @@map("cfl_cfld_economic_parameters")
 }
 
 model CfldSocioEconomicParameters {
@@ -107,7 +107,7 @@ model CfldSocioEconomicParameters {
 
   @@unique([cfldTechId])
   @@index([cfldTechId])
-  @@map("cfl cfld_socio_economic_parameters")
+  @@map("cfl_cfld_socio_economic_parameters")
 }
 
 model CfldFarmersPerceptionParameters {
@@ -131,5 +131,5 @@ model CfldFarmersPerceptionParameters {
 
   @@unique([cfldTechId])
   @@index([cfldTechId])
-  @@map("cfl cfld_farmers_perception_parameters")
+  @@map("cfl_cfld_farmers_perception_parameters")
 }

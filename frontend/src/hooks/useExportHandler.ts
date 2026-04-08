@@ -29,6 +29,8 @@ export interface ExportOptions {
     data: any[];
     pathname: string;
     templateKey?: string;
+    /** When true, World Soil Day (and similar) exports use aggregated/state-wise layout */
+    isAggregatedReport?: boolean;
 }
 
 /**
@@ -67,7 +69,7 @@ export function useExportHandler(): UseExportHandlerReturn {
      */
     const handleServerExport = useCallback(
         async (format: ExportFormat, options: ExportOptions) => {
-            const { title, fields, data, pathname, templateKey } = options;
+            const { title, fields, data, pathname, templateKey, isAggregatedReport } = options;
             const headerLabels = fields.map(formatHeaderLabel);
             const rows = data.map(item => fields.map(field => getFieldValue(item, field)));
 
@@ -80,6 +82,9 @@ export function useExportHandler(): UseExportHandlerReturn {
                         format: format as 'pdf' | 'excel' | 'word',
                         templateKey,
                         rawData: templateKey ? data : undefined,
+                        ...(templateKey === 'world-soil-day-page-report' && isAggregatedReport !== undefined
+                            ? { isAggregatedReport }
+                            : {}),
                     },
                     pathname
                 );

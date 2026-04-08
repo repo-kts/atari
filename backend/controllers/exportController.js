@@ -44,6 +44,26 @@ const {
     generateTechnologyWeekCelebrationPageExcelBuffer,
     generateTechnologyWeekCelebrationPageWordBuffer,
 } = require('../utils/technologyWeekCelebrationPageExport.js');
+const { resolveCelebrationDaysPagePayload } = require('../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+const {
+    generateCelebrationDaysPageExcelBuffer,
+    generateCelebrationDaysPageWordBuffer,
+} = require('../utils/celebrationDaysPageExport.js');
+const { resolveProductionSupplyPagePayload } = require('../repositories/reports/productionSupplyPageReport/productionSupplyPageReportRepository.js');
+const {
+    generateProductionSupplyPageExcelBuffer,
+    generateProductionSupplyPageWordBuffer,
+} = require('../utils/productionSupplyPageExport.js');
+const { resolveSoilWaterEquipmentPagePayload } = require('../repositories/reports/soilWaterEquipmentReport/soilWaterEquipmentReportRepository.js');
+const {
+    generateSoilWaterEquipmentPageExcelBuffer,
+    generateSoilWaterEquipmentPageWordBuffer,
+} = require('../utils/soilWaterEquipmentPageExport.js');
+const { resolveWorldSoilDayPagePayload } = require('../repositories/reports/worldSoilDayReport/worldSoilDayReportRepository.js');
+const {
+    generateWorldSoilDayPageExcelBuffer,
+    generateWorldSoilDayPageWordBuffer,
+} = require('../utils/worldSoilDayPageExport.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -67,7 +87,8 @@ const exportData = async (req, res) => {
             rows,
             format,
             templateKey,
-            rawData
+            rawData,
+            isAggregatedReport,
         } = req.body;
 
         if (!title || !headers || !rows || !format) {
@@ -103,6 +124,24 @@ const exportData = async (req, res) => {
         if (templateKey === 'technology-week-celebration-page-report' && rawData) {
             effectiveRawData = rawData;
         }
+        if (templateKey === 'celebration-days-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'production-supply-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'soil-water-equipment-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'soil-water-samples-b-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'soil-water-analysis-state-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'world-soil-day-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
 
         const tabularData = (templateKey && rawData)
             ? buildTabularDataFromTemplate(templateKey, effectiveRawData, headers, rows, format)
@@ -114,7 +153,7 @@ const exportData = async (req, res) => {
         switch (format.toLowerCase()) {
             case 'pdf':
                 const html = templateKey
-                    ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title)
+                    ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport))
                     : generateHTML(title, headers, rows);
 
                 buffer = await exportHelper.generatePDF(html);
@@ -146,6 +185,26 @@ const exportData = async (req, res) => {
                     buffer = await generateTechnologyWeekCelebrationPageExcelBuffer(
                         title,
                         resolveTechnologyWeekPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'celebration-days-page-report') {
+                    buffer = await generateCelebrationDaysPageExcelBuffer(
+                        title,
+                        resolveCelebrationDaysPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'production-supply-page-report') {
+                    buffer = await generateProductionSupplyPageExcelBuffer(
+                        title,
+                        resolveProductionSupplyPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'soil-water-equipment-page-report') {
+                    buffer = await generateSoilWaterEquipmentPageExcelBuffer(
+                        title,
+                        resolveSoilWaterEquipmentPagePayload(effectiveRawData, { isAggregatedReport: false }),
+                    );
+                } else if (templateKey === 'world-soil-day-page-report') {
+                    buffer = await generateWorldSoilDayPageExcelBuffer(
+                        title,
+                        resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
                     );
                 } else {
                     buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
@@ -179,6 +238,26 @@ const exportData = async (req, res) => {
                         title,
                         resolveTechnologyWeekPagePayload(effectiveRawData),
                     );
+                } else if (templateKey === 'celebration-days-page-report') {
+                    buffer = await generateCelebrationDaysPageWordBuffer(
+                        title,
+                        resolveCelebrationDaysPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'production-supply-page-report') {
+                    buffer = await generateProductionSupplyPageWordBuffer(
+                        title,
+                        resolveProductionSupplyPagePayload(effectiveRawData),
+                    );
+                } else if (templateKey === 'soil-water-equipment-page-report') {
+                    buffer = await generateSoilWaterEquipmentPageWordBuffer(
+                        title,
+                        resolveSoilWaterEquipmentPagePayload(effectiveRawData, { isAggregatedReport: false }),
+                    );
+                } else if (templateKey === 'world-soil-day-page-report') {
+                    buffer = await generateWorldSoilDayPageWordBuffer(
+                        title,
+                        resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
+                    );
                 } else {
                     buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
                 }
@@ -199,7 +278,7 @@ const exportData = async (req, res) => {
     }
 };
 
-async function generateCustomTemplateHTML(templateKey, rawData, title) {
+async function generateCustomTemplateHTML(templateKey, rawData, title, isAggregatedReport = false) {
     const normalizedData = Array.isArray(rawData)
         ? rawData
         : (rawData ? [rawData] : []);
@@ -215,9 +294,16 @@ async function generateCustomTemplateHTML(templateKey, rawData, title) {
                     : templateKey === 'trainings-page-report' ? 'trainings-page'
                         : templateKey === 'extension-activities-page-report' ? 'extension-activities-page'
                             : templateKey === 'other-extension-content-page-report' ? 'other-extension-content-page'
-                                : templateKey === 'technology-week-celebration-page-report' ? 'technology-week-celebration-page' : '1.1'),
+                                : templateKey === 'technology-week-celebration-page-report' ? 'technology-week-celebration-page'
+                                    : templateKey === 'celebration-days-page-report' ? 'celebration-days-page'
+                                        : templateKey === 'production-supply-page-report' ? 'production-supply-page'
+                                            : templateKey === 'soil-water-equipment-page-report' ? 'soil-water-equipment-page'
+                                            : templateKey === 'soil-water-samples-b-page-report' ? 'soil-water-samples-b-page'
+                                                : templateKey === 'soil-water-analysis-state-report' ? '2.10.3'
+                                                    : templateKey === 'world-soil-day-page-report' ? '2.10.2' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
+            isAggregatedReport,
         }
     );
 }
@@ -226,7 +312,13 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report'
         || templateKey === 'extension-activities-page-report'
         || templateKey === 'other-extension-content-page-report'
-        || templateKey === 'technology-week-celebration-page-report') {
+        || templateKey === 'technology-week-celebration-page-report'
+        || templateKey === 'celebration-days-page-report'
+        || templateKey === 'production-supply-page-report'
+        || templateKey === 'soil-water-equipment-page-report'
+        || templateKey === 'soil-water-samples-b-page-report'
+        || templateKey === 'soil-water-analysis-state-report'
+        || templateKey === 'world-soil-day-page-report') {
         return { headers: fallbackHeaders, rows: fallbackRows };
     }
     if (templateKey === 'cra-details-state-wise') {
@@ -365,315 +457,7 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'rainwater-harvesting') {
         return buildRainwaterHarvestingTabularData(rawData, format, fallbackHeaders, fallbackRows);
-    }
 
-    // ── Swachhta + Meetings Excel/Word exports ──────────────────
-    if (templateKey === 'swachhta-sewa' || templateKey === 'swachhta-pakhwada') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'Date/ Duration of Observation', 'Total No of Activities undertaken', 'Staffs', 'Farmers', 'Others', 'total'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(r.observationDate, format),
-            r.totalActivities || 0,
-            r.staffCount || 0,
-            r.farmerCount || 0,
-            r.othersCount || 0,
-            (r.staffCount || 0) + (r.farmerCount || 0) + (r.othersCount || 0),
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'swachhta-budget') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'Vermi - No of village covered', 'Vermi - Total Expenditure(Rs.in Lakhs)', 'Other - No of village covered', 'Other - Total Expenditure(Rs.in Lakhs)'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            r.vermiVillageCovered || 0,
-            r.vermiTotalExpenditure || 0,
-            r.otherVillageCovered || 0,
-            r.otherTotalExpenditure || 0,
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'meetings-sac') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'Start Date', 'End Date', 'No of participants', 'Total statutory members present (sate line department)', 'Salient recommendations', 'Action Taken', 'If not, State reason'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(r.startDate, format),
-            formatExportValue(r.endDate, format),
-            r.numberOfParticipants || 0,
-            r.statutoryMembersPresent || 0,
-            formatExportValue(r.salientRecommendations, format),
-            r.actionTaken === 'YES' ? 'yes' : r.actionTaken === 'NO' ? 'no' : '-',
-            formatExportValue(r.reason, format),
-        ]);
-        return { headers, rows };
-    }
-    // ── Miscellaneous Excel/Word exports ──────────────────────
-    if (templateKey === 'misc-prevalent-diseases-crops') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Name of the disease', 'Crop', 'Date of outbreak', 'Area affected (in ha)', '% Commodity loss', 'Preventive measures taken for area (in ha)'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-            formatExportValue(r.diseaseName, format),
-            formatExportValue(r.crop, format),
-            formatExportValue(r.dateOfOutbreak, format),
-            r.areaAffected != null ? r.areaAffected : 0,
-            r.commodityLossPercent != null ? r.commodityLossPercent : 0,
-            r.preventiveMeasuresArea != null ? r.preventiveMeasuresArea : 0,
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-prevalent-diseases-livestock') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Name of the disease', 'Species affected', 'Date of outbreak', 'Number of death/ Morbidity rate (%)', 'Number of animals vaccinated', 'Preventive measures taken for area (in ha)'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-            formatExportValue(r.diseaseName, format),
-            formatExportValue(r.livestockType, format),
-            formatExportValue(r.dateOfOutbreak, format),
-            r.mortalityCount != null ? r.mortalityCount : 0,
-            r.animalsTreated != null ? r.animalsTreated : 0,
-            formatExportValue(r.preventiveMeasures, format),
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-nyk-training') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Title of the training programme', 'From', 'To',
-            'General M', 'General F', 'General T', 'OBC M', 'OBC F', 'OBC T',
-            'SC M', 'SC F', 'SC T', 'ST M', 'ST F', 'ST T',
-            'Total M', 'Total F', 'Total T', 'Amount of Fund Received (Rs)'];
-        const rows = d.map((r, i) => {
-            const gM = r.generalM || 0, gF = r.generalF || 0;
-            const oM = r.obcM || 0, oF = r.obcF || 0;
-            const sM = r.scM || 0, sF = r.scF || 0;
-            const tM = r.stM || 0, tF = r.stF || 0;
-            const totalM = gM + oM + sM + tM, totalF = gF + oF + sF + tF;
-            return [
-                i + 1,
-                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-                formatExportValue(r.title, format),
-                formatExportValue(r.startDate, format),
-                formatExportValue(r.endDate, format),
-                gM, gF, gM + gF, oM, oF, oM + oF, sM, sF, sM + sF, tM, tF, tM + tF,
-                totalM, totalF, totalM + totalF,
-                r.fundReceived != null ? r.fundReceived : 0,
-            ];
-        });
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-ppv-fra-plant-varieties') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'KVK', 'Year of Registration', 'Crop Name', 'Registration No.', 'Farmer Name', 'Mobile No.', 'District', 'Block', 'Village', 'Characteristics'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-            r.reportingYear != null ? r.reportingYear : '-',
-            formatExportValue(r.cropName, format),
-            formatExportValue(r.registrationNo, format),
-            formatExportValue(r.farmerName, format),
-            formatExportValue(r.mobile, format),
-            formatExportValue(r.district, format),
-            formatExportValue(r.block, format),
-            formatExportValue(r.village, format),
-            formatExportValue(r.characteristics, format),
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-ppv-fra-training') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Date of training/awareness programme', 'Title', 'Type', 'Venue', 'Resource Person',
-            'General M', 'General F', 'General T', 'OBC M', 'OBC F', 'OBC T',
-            'SC M', 'SC F', 'SC T', 'ST M', 'ST F', 'ST T',
-            'Total M', 'Total F', 'Total T'];
-        const rows = d.map((r, i) => {
-            const gM = r.generalM || 0, gF = r.generalF || 0;
-            const oM = r.obcM || 0, oF = r.obcF || 0;
-            const sM = r.scM || 0, sF = r.scF || 0;
-            const tM = r.stM || 0, tF = r.stF || 0;
-            const totalM = gM + oM + sM + tM, totalF = gF + oF + sF + tF;
-            const typeLabel = r.trainingType?.typeName || (r.type === 'TRAINING' ? 'Training' : r.type === 'AWARENESS' ? 'Awareness' : r.type || '-');
-            return [
-                i + 1,
-                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-                formatExportValue(r.programmeDate, format),
-                formatExportValue(r.title, format),
-                typeLabel,
-                formatExportValue(r.venue, format),
-                formatExportValue(r.resourcePerson, format),
-                gM, gF, gM + gF, oM, oF, oM + oF, sM, sF, sM + sF, tM, tF, tM + tF,
-                totalM, totalF, totalM + totalF,
-            ];
-        });
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-vip-visitors') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Date', 'Name of the person', 'Purpose of visit'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-            formatExportValue(r.dateOfVisit, format),
-            formatExportValue(r.ministerName, format),
-            formatExportValue(r.salientPoints, format),
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'misc-rawe-fet-fit') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.No.', 'State', 'District', 'KVK', 'Start Date', 'End Date', 'Type of attachment',
-            'Male Students', 'Female Students', 'Total Students',
-            'Male Participants', 'Female Participants', 'Total Participants', 'No of days stayed'];
-        const rows = d.map((r, i) => {
-            const male = Number(r.maleStudents) || 0;
-            const female = Number(r.femaleStudents) || 0;
-            const totalStudents = male + female;
-            const startD = r.startDate ? new Date(r.startDate) : null;
-            const endD = r.endDate ? new Date(r.endDate) : null;
-            let days = '-';
-            if (startD && endD && !isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
-                days = Math.max(0, Math.round((endD - startD) / (1000 * 60 * 60 * 24)) + 1);
-            }
-            return [
-                i + 1,
-                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.kvkName'), format),
-                formatExportValue(r.startDate, format),
-                formatExportValue(r.endDate, format),
-                formatExportValue(r.attachmentType?.name, format),
-                male, female, totalStudents,
-                male, female, totalStudents,
-                days,
-            ];
-        });
-        return { headers, rows };
-    }
-
-    // ── Digital Information Excel/Word exports ────────────────
-    if (templateKey === 'di-kisan-sarathi') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of farmers registered on KSP portal', 'Phone call addressed', 'Answered call'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            r.noOfFarmersRegisteredOnKspPortal || 0,
-            r.phoneCallAddressed || 0,
-            r.phoneCallAnswered || 0,
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'di-mobile-app') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'Number of Mobile Apps developed by KVK', 'Name of the Apps', 'Language of the Apps', 'Meant for crop/ livestock/ fishery/ others', 'No. of times downloaded'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            r.numberOfAppsDeveloped || 0,
-            formatExportValue(r.nameOfApp, format),
-            formatExportValue(r.languageOfApp, format),
-            formatExportValue(r.meantFor, format),
-            r.numberOfTimesDownloaded || 0,
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'di-kmas') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of farmers covered', 'No of advisories sent', 'Crop', 'Livestock', 'Weather', 'Marketing', 'Awareness', 'Other Enterprises', 'Any other'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            r.noOfFarmersCovered || 0,
-            r.noOfAdvisoriesSent || 0,
-            formatExportValue(r.crop, format),
-            formatExportValue(r.livestock, format),
-            formatExportValue(r.weather, format),
-            formatExportValue(r.marketing, format),
-            formatExportValue(r.awareness, format),
-            formatExportValue(r.otherEnterprises, format),
-            formatExportValue(r.anyOther, format),
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'di-web-portal') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'No. of visitors visited the portal', 'No. of farmers registered on the portal'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            r.noOfVisitors || 0,
-            r.noOfFarmersRegistered || 0,
-        ]);
-        return { headers, rows };
-    }
-    if (templateKey === 'di-msg-details') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const channels = [
-            { label: 'Advisories through Text messages', prefix: 'text' },
-            { label: 'Advisories through WhatsApp', prefix: 'whatsapp' },
-            { label: 'Advisories through weather advisory bulletin', prefix: 'weather' },
-            { label: 'Advisories through social media/FB/Twitter/Instagram/Other', prefix: 'social' },
-        ];
-        const chFields = ['NoOfFarmersCovered', 'NoOfAdvisoriesSent', 'Crop', 'Livestock', 'Weather', 'Marketing', 'Awareness', 'OtherEnterprises'];
-        const chHeaders = [];
-        channels.forEach(ch => {
-            chFields.forEach(f => chHeaders.push(`${ch.label} - ${f}`));
-        });
-        const headers = ['S.no.', 'Name of State', 'Name of District', ...chHeaders];
-        const rows = d.map((r, i) => {
-            const vals = [
-                i + 1,
-                formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-                formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            ];
-            channels.forEach(ch => {
-                chFields.forEach(f => {
-                    const key = ch.prefix + f;
-                    vals.push(formatExportValue(r[key], format));
-                });
-            });
-            return vals;
-        });
-        return { headers, rows };
-    }
-
-    if (templateKey === 'meetings-other') {
-        const d = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-        const headers = ['S.no.', 'Name of State', 'Name of District', 'Date', 'Type of Meeting', 'Agenda', 'Representative from ATARI'];
-        const rows = d.map((r, i) => [
-            i + 1,
-            formatExportValue(getNestedValue(r, 'kvk.state.stateName'), format),
-            formatExportValue(getNestedValue(r, 'kvk.district.districtName'), format),
-            formatExportValue(r.meetingDate, format),
-            formatExportValue(r.typeOfMeeting, format),
-            formatExportValue(r.agenda, format),
-            formatExportValue(r.representativeFromAtari, format),
-        ]);
-        return { headers, rows };
     }
 
     const section = getSectionByCustomTemplate(templateKey) || getAllSections().find(s => s.customTemplate === templateKey);
@@ -682,13 +466,12 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
 
     const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-    const mappedHeaders = ['S.no.', ...section.fields.map(field => field.displayName)];
-    const mappedRows = normalizedData.map((record, idx) => {
-        const fieldValues = section.fields.map(field => {
+    const mappedHeaders = section.fields.map(field => field.displayName);
+    const mappedRows = normalizedData.map(record => {
+        return section.fields.map(field => {
             const value = getNestedValue(record, field.dbField);
             return formatExportValue(value, format);
         });
-        return [idx + 1, ...fieldValues];
     });
 
     return { headers: mappedHeaders, rows: mappedRows };

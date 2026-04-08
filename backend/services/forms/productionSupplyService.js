@@ -1,5 +1,6 @@
 const productionSupplyRepository = require('../../repositories/forms/productionSupplyRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * Production Supply Service
@@ -14,7 +15,10 @@ class ProductionSupplyService {
      */
     async createProductionSupply(data, user) {
         try {
-            return await productionSupplyRepository.create(data, user);
+            const result = await productionSupplyRepository.create(data, user);
+            const kvkId = result?.kvkId ?? user?.kvkId;
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('productionSupplyReport', kvkId);
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -66,7 +70,10 @@ class ProductionSupplyService {
      */
     async updateProductionSupply(id, data, user) {
         try {
-            return await productionSupplyRepository.update(id, data, user);
+            const result = await productionSupplyRepository.update(id, data, user);
+            const kvkId = result?.kvkId ?? user?.kvkId;
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('productionSupplyReport', kvkId);
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -83,7 +90,10 @@ class ProductionSupplyService {
      */
     async deleteProductionSupply(id, user) {
         try {
-            return await productionSupplyRepository.delete(id, user);
+            const existing = await productionSupplyRepository.findById(id, user);
+            const result = await productionSupplyRepository.delete(id, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk('productionSupplyReport', existing.kvkId);
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
