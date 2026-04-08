@@ -57,7 +57,7 @@ async function generatePDF(html) {
                     '--disable-dev-shm-usage',
                     '--disable-accelerated-2d-canvas',
                     '--disable-gpu',
-                    '--single-process', // Important for serverless
+                    // '--single-process', // Removed for local stability on Windows
                 ]
             });
         }
@@ -72,9 +72,15 @@ async function generatePDF(html) {
 
     try {
         const page = await browser.newPage();
+        
+        // Log HTML size for debugging
+        if (html) {
+            console.log(`Generating PDF for HTML of size: ${Math.round(html.length / 1024)} KB`);
+        }
+
         await page.setContent(html, { 
-            waitUntil: 'networkidle0',
-            timeout: 30000 // 30 second timeout
+            waitUntil: 'domcontentloaded',
+            timeout: 60000 // Increased timeout for larger content
         });
         // Ensure print media so header/footer render consistently
         try {
@@ -113,7 +119,7 @@ async function generatePDF(html) {
                 </div>
             `,
             margin: { top: '6mm', right: '6mm', bottom: `${bottomMarginMm}mm`, left: '6mm' },
-            timeout: 30000
+            timeout: 60000 // Increased timeout for PDF rendering
         });
         
         await browser.close();

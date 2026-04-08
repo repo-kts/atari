@@ -8,6 +8,9 @@ const nariValueAdditionRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        const activityId = parseInt(data.activityId);
+        if (isNaN(activityId)) throw new Error('Activity is required');
+
         const result = await prisma.nariValueAddition.create({
             data: {
                 kvkId,
@@ -16,10 +19,10 @@ const nariValueAdditionRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                activityId: data.activityId ? parseInt(data.activityId) : null,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                nameOfCrop: data.nameOfCrop || '',
-                nameOfValueAddedProduct: data.nameOfValueAddedProduct || '',
+                activityId,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || '',
+                nameOfCrop: data.nameOfCrop || data.cropName || '',
+                nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || '',
                 generalM: parseInt(data.generalM || data.genMale || 0),
                 generalF: parseInt(data.generalF || data.genFemale || 0),
                 obcM: parseInt(data.obcM || data.obcMale || 0),
@@ -30,7 +33,7 @@ const nariValueAdditionRepository = {
                 stF: parseInt(data.stF || data.stFemale || 0),
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -68,7 +71,7 @@ const nariValueAdditionRepository = {
         const results = await prisma.nariValueAddition.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             },
             orderBy: { nariValueAdditionId: 'desc' }
@@ -80,7 +83,7 @@ const nariValueAdditionRepository = {
         const result = await prisma.nariValueAddition.findUnique({
             where: { nariValueAdditionId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -99,20 +102,20 @@ const nariValueAdditionRepository = {
                     })()
                     : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
-                nameOfCrop: data.nameOfCrop !== undefined ? data.nameOfCrop : undefined,
-                nameOfValueAddedProduct: data.nameOfValueAddedProduct !== undefined ? data.nameOfValueAddedProduct : undefined,
-                generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
-                generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,
-                obcM: data.obcM !== undefined || data.obcMale !== undefined ? parseInt(data.obcM ?? data.obcMale) : undefined,
-                obcF: data.obcF !== undefined || data.obcFemale !== undefined ? parseInt(data.obcF ?? data.obcFemale) : undefined,
-                scM: data.scM !== undefined || data.scMale !== undefined ? parseInt(data.scM ?? data.scMale) : undefined,
-                scF: data.scF !== undefined || data.scFemale !== undefined ? parseInt(data.scF ?? data.scFemale) : undefined,
-                stM: data.stM !== undefined || data.stMale !== undefined ? parseInt(data.stM ?? data.stMale) : undefined,
-                stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
+                nameOfCrop: data.nameOfCrop || data.cropName || undefined,
+                nameOfValueAddedProduct: data.nameOfValueAddedProduct || data.productName || undefined,
+                generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
+                generalF: (data.generalF !== undefined || data.genFemale !== undefined) ? (parseInt(data.generalF ?? data.genFemale) || 0) : undefined,
+                obcM: (data.obcM !== undefined || data.obcMale !== undefined) ? (parseInt(data.obcM ?? data.obcMale) || 0) : undefined,
+                obcF: (data.obcF !== undefined || data.obcFemale !== undefined) ? (parseInt(data.obcF ?? data.obcFemale) || 0) : undefined,
+                scM: (data.scM !== undefined || data.scMale !== undefined) ? (parseInt(data.scM ?? data.scMale) || 0) : undefined,
+                scF: (data.scF !== undefined || data.scFemale !== undefined) ? (parseInt(data.scF ?? data.scFemale) || 0) : undefined,
+                stM: (data.stM !== undefined || data.stMale !== undefined) ? (parseInt(data.stM ?? data.stMale) || 0) : undefined,
+                stF: (data.stF !== undefined || data.stFemale !== undefined) ? (parseInt(data.stF ?? data.stFemale) || 0) : undefined,
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -122,6 +125,60 @@ const nariValueAdditionRepository = {
     delete: async (id) => {
         return await prisma.nariValueAddition.delete({
             where: { nariValueAdditionId: parseInt(id) }
+        });
+    },
+
+    // Result Methods
+    getResultById: async (id) => {
+        return await prisma.nariValueAdditionResult.findFirst({
+            where: { nariValueAdditionId: parseInt(id) }
+        });
+    },
+
+    createResult: async (id, data) => {
+        const valueAdditionId = parseInt(id);
+        return await prisma.$transaction(async (tx) => {
+            const result = await tx.nariValueAdditionResult.create({
+                data: {
+                    nariValueAdditionId: valueAdditionId,
+                    reportingYear: data.reportingYear ? new Date(data.reportingYear) : null,
+                    productName: data.productName || '',
+                    amountProduced: parseFloat(data.amountProduced || 0),
+                    marketPrice: parseFloat(data.marketPrice || 0),
+                    netIncome: parseFloat(data.netIncome || 0),
+                    shelfLife: data.shelfLife || '',
+                    fssaiCertified: data.fssaiCertified || '',
+                }
+            });
+
+            await tx.nariValueAddition.update({
+                where: { nariValueAdditionId: valueAdditionId },
+                data: { status: 'COMPLETED' }
+            });
+
+            return result;
+        });
+    },
+
+    updateResult: async (id, data) => {
+        const valueAdditionId = parseInt(id);
+        const existingResult = await prisma.nariValueAdditionResult.findFirst({
+            where: { nariValueAdditionId: valueAdditionId }
+        });
+
+        if (!existingResult) throw new Error('Result not found');
+
+        return await prisma.nariValueAdditionResult.update({
+            where: { nariValueAdditionResultId: existingResult.nariValueAdditionResultId },
+            data: {
+                reportingYear: data.reportingYear ? new Date(data.reportingYear) : undefined,
+                productName: data.productName !== undefined ? data.productName : undefined,
+                amountProduced: data.amountProduced !== undefined ? parseFloat(data.amountProduced) : undefined,
+                marketPrice: data.marketPrice !== undefined ? parseFloat(data.marketPrice) : undefined,
+                netIncome: data.netIncome !== undefined ? parseFloat(data.netIncome) : undefined,
+                shelfLife: data.shelfLife !== undefined ? data.shelfLife : undefined,
+                fssaiCertified: data.fssaiCertified !== undefined ? data.fssaiCertified : undefined,
+            }
         });
     }
 };
@@ -134,6 +191,8 @@ function _mapResponse(r) {
         id: r.nariValueAdditionId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
+        stateName: r.kvk?.state?.stateName || '',
+        districtName: r.kvk?.district?.districtName || '',
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
@@ -150,7 +209,8 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+        status: r.status,
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         cropName: r.nameOfCrop,

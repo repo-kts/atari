@@ -167,7 +167,7 @@ if (isAccelerate) {
         accelerateUrl: process.env.DATABASE_URL,
         log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
     });
-} else {    
+} else {
     // Create a PostgreSQL connection pool configured for Neon serverless
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL,
@@ -179,8 +179,8 @@ if (isAccelerate) {
         allowExitOnIdle: true, // Allow pool to wind down when idle
         keepAlive: true, // Keep connections alive to prevent unexpected drops
         keepAliveInitialDelayMillis: 10000,
-        statement_timeout: 10000, // 10 second query timeout
-        query_timeout: 10000, // 10 second query timeout
+        statement_timeout: 60000, // INCREASED: Allow 60s for multi-image uploads
+        query_timeout: 60000,     // INCREASED: Allow 60s
     });
 
     // Handle pool errors (e.g. Neon/serverless closes idle connections)

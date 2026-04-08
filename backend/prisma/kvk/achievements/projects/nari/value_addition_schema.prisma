@@ -22,7 +22,31 @@ model NariValueAddition {
   stM      Int @default(0) @map("st_m")
   stF      Int @default(0) @map("st_f")
 
+  status String @default("ONGOING") @map("status")
+  results NariValueAdditionResult[]
+
   @@index([kvkId])
   @@index([activityId])
   @@map("nari_value_addition")
+}
+
+model NariValueAdditionResult {
+  nariValueAdditionResultId Int @id @default(autoincrement()) @map("nari_value_addition_result_id")
+
+  nariValueAdditionId Int @map("nari_value_addition_id")
+  nariValueAddition   NariValueAddition @relation(fields: [nariValueAdditionId], references: [nariValueAdditionId], onDelete: Cascade)
+
+  reportingYear  DateTime? @map("reporting_year")
+  productName    String    @map("name_of_product")
+  amountProduced Float     @map("amount_produced_kg")
+  marketPrice    Float     @map("market_price_rs_kg")
+  netIncome      Float     @map("net_income_rs")
+  shelfLife      String    @map("shelf_life")
+  fssaiCertified String    @map("fssai_certification")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([nariValueAdditionId])
+  @@map("nari_value_addition_result")
 }

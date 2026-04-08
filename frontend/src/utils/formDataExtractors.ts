@@ -381,11 +381,12 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
         if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]: (item: any, formData: any) => {
-        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
-        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
-        if (item.season?.seasonId) formData.seasonId = item.season.seasonId;
-        if (item.croppingPattern) formData.croppingSystem = item.croppingPattern;
-        if (item.areaInHa !== undefined) formData.area = item.areaInHa;
+        if (item.practicingYearsOfNaturalFarming != null) {
+            formData.practicingYearOfNaturalFarming = item.practicingYearsOfNaturalFarming;
+        }
+        if (item.areaCoveredUnderNaturalFarming != null) {
+            formData.areaCoveredUnderNaturalFarming = item.areaCoveredUnderNaturalFarming;
+        }
         if (item.farmerFeedback) formData.farmersFeedback = item.farmerFeedback;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_BENEFICIARIES]: (item: any, formData: any) => {

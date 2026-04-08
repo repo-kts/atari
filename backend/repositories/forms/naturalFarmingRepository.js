@@ -264,7 +264,12 @@ const physicalInfoRepository = {
         const records = await prisma.physicalInfo.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: {
+                    select: {
+                        kvkName: true,
+                        state: { select: { stateName: true } },
+                    },
+                },
                 activityMaster: true,
             },
             orderBy: { physicalInfoId: 'desc' }
@@ -274,6 +279,7 @@ const physicalInfoRepository = {
             ...r,
             id: r.physicalInfoId,
             kvkName: r.kvk?.kvkName,
+            stateName: r.kvk?.state?.stateName || '',
             activityName: r.activityMaster?.activityName || null,
             genMale: r.generalM,
             genFemale: r.generalF,
@@ -474,7 +480,7 @@ const demonstrationInfoRepository = {
         const records = await prisma.demonstrationInfo.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true, stateId: true } },
+                kvk: { select: { kvkName: true, stateId: true, state: { select: { stateName: true } } } },
                 season: true,
                 staffCategory: { select: { categoryName: true } },
             },
@@ -487,6 +493,7 @@ const demonstrationInfoRepository = {
             reportingYear: formatReportingYear(r.reportingYear),
             kvkName: r.kvk?.kvkName,
             stateId: r.kvk?.stateId,
+            stateName: r.kvk?.state?.stateName || null,
             staffCategoryId: r.staffCategoryId,
             staffCategoryName: r.staffCategory?.categoryName || null,
             category: r.category === 'GENERAL' ? 'General' : r.category,
@@ -593,7 +600,7 @@ const demonstrationInfoRepository = {
         const r = await prisma.demonstrationInfo.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true, stateId: true } },
+                kvk: { select: { kvkName: true, stateId: true, state: { select: { stateName: true } } } },
                 season: true,
                 staffCategory: { select: { categoryName: true } },
             }
@@ -606,6 +613,7 @@ const demonstrationInfoRepository = {
             reportingYear: formatReportingYear(r.reportingYear),
             kvkName: r.kvk?.kvkName,
             stateId: r.kvk?.stateId,
+            stateName: r.kvk?.state?.stateName || null,
             staffCategoryId: r.staffCategoryId,
             staffCategoryName: r.staffCategory?.categoryName || null,
             category: r.category === 'GENERAL' ? 'General' : r.category,
@@ -921,6 +929,7 @@ const soilDataRepository = {
             season: r.season?.seasonName,
             seasonId: r.seasonId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
+            parameterName: r.soilParameterMaster?.parameterName || null,
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,
@@ -961,6 +970,7 @@ const soilDataRepository = {
             season: r.season?.seasonName,
             seasonId: r.seasonId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
+            parameterName: r.soilParameterMaster?.parameterName || null,
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,

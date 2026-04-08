@@ -30,7 +30,7 @@ const nariExtensionActivityRepository = {
                 stF: parseInt(data.stF || data.stFemale || 0),
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -68,7 +68,7 @@ const nariExtensionActivityRepository = {
         const results = await prisma.nariExtensionActivity.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             },
             orderBy: { nariExtensionActivityId: 'desc' }
@@ -80,7 +80,7 @@ const nariExtensionActivityRepository = {
         const result = await prisma.nariExtensionActivity.findUnique({
             where: { nariExtensionActivityId: parseInt(id) },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -112,7 +112,7 @@ const nariExtensionActivityRepository = {
                 stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
             },
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
             }
         });
@@ -134,6 +134,8 @@ function _mapResponse(r) {
         id: r.nariExtensionActivityId,
         kvkId: r.kvkId,
         kvkName: r.kvk?.kvkName,
+        stateName: r.kvk?.state?.stateName || '',
+        districtName: r.kvk?.district?.districtName || '',
         reportingYear: r.reportingYear,
         yearName: formatReportingYear(r.reportingYear),
         activityId: r.activityId,
@@ -150,7 +152,7 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         activityName: r.nameOfActivity,

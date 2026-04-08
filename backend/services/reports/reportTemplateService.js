@@ -6,6 +6,85 @@ const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/veh
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
+const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
+const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
+const { renderOftCombinedSection } = require('./formsTemplate/oftTemplates/oftCombinedTemplate.js');
+const { renderPrevalentDiseasesCropsSection, renderPrevalentDiseasesLivestockSection } = require('./formsTemplate/miscTemplates/prevalentDiseasesTemplate.js');
+const { renderNykTrainingSection } = require('./formsTemplate/miscTemplates/nykTrainingTemplate.js');
+const { renderPpvFraPlantVarietiesSection } = require('./formsTemplate/miscTemplates/ppvFraPlantVarietiesTemplate.js');
+const { renderPpvFraTrainingSection } = require('./formsTemplate/miscTemplates/ppvFraTrainingTemplate.js');
+const { renderVipVisitorsSection } = require('./formsTemplate/miscTemplates/vipVisitorsTemplate.js');
+const { renderRaweFetFitSection } = require('./formsTemplate/miscTemplates/raweFetFitTemplate.js');
+const { renderKisanSarathiSection } = require('./formsTemplate/digitalInfoTemplates/kisanSarathiTemplate.js');
+const { renderMobileAppSection } = require('./formsTemplate/digitalInfoTemplates/mobileAppTemplate.js');
+const { renderKmasSection } = require('./formsTemplate/digitalInfoTemplates/kmasTemplate.js');
+const { renderWebPortalSection } = require('./formsTemplate/digitalInfoTemplates/webPortalTemplate.js');
+const { renderMsgDetailsSection } = require('./formsTemplate/digitalInfoTemplates/msgDetailsTemplate.js');
+const { renderSwachhtaSewaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaSewaTemplate.js');
+const { renderSwachhtaPakhwadaSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaTemplate.js');
+const { renderSwachhtaBudgetSection } = require('./formsTemplate/swachhtaTemplates/swachhtaBudgetTemplate.js');
+const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/sacMeetingTemplate.js');
+const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
+const { renderSacMeetingStatewiseSection } = require('./formsTemplate/meetingsTemplates/sacMeetingStatewiseTemplate.js');
+const { renderSwachhtaPakhwadaStatewiseSection } = require('./formsTemplate/swachhtaTemplates/swachhtaPakhwadaStatewiseTemplate.js');
+const { renderCfldCombinedSection } = require('./formsTemplate/projectTemplates/cfldCombinedTemplate.js');
+const { renderCfldExtensionActivitySection } = require('./formsTemplate/projectTemplates/cfldExtensionActivityTemplate.js');
+const { renderCfldBudgetUtilizationSection } = require('./formsTemplate/projectTemplates/cfldBudgetUtilizationTemplate.js');
+const { renderCraDetailsStateWiseSection } = require('./formsTemplate/projectTemplates/craDetailsStateWiseTemplate.js');
+const { renderCraExtensionActivitySection } = require('./formsTemplate/projectTemplates/craExtensionActivityTemplate.js');
+const { renderFpoCbboDetailsSection } = require('./formsTemplate/projectTemplates/fpoCbboDetailsTemplate.js');
+const { renderFpoManagementDetailsSection } = require('./formsTemplate/projectTemplates/fpoManagementDetailsTemplate.js');
+const { renderDrmrDetailsSection } = require('./formsTemplate/projectTemplates/drmrDetailsTemplate.js');
+const { renderDrmrActivitySection } = require('./formsTemplate/projectTemplates/drmrActivityTemplate.js');
+const { renderNariBioFortifiedSection } = require('./formsTemplate/projectTemplates/nariBioFortifiedTemplate.js');
+const { renderNariTrainingSection } = require('./formsTemplate/projectTemplates/nariTrainingTemplate.js');
+const { renderCsisaSection } = require('./formsTemplate/projectTemplates/csisaTemplate.js');
+const { renderNariExtensionSection } = require('./formsTemplate/projectTemplates/nariExtensionTemplate.js');
+const { renderNariNutritionGardenSection } = require('./formsTemplate/projectTemplates/nariNutritionGardenTemplate.js');
+const { renderNariValueAdditionSection } = require('./formsTemplate/projectTemplates/nariValueAdditionTemplate.js');
+const { renderNicraBasicSection } = require('./formsTemplate/projectTemplates/nicraBasicTemplate.js');
+const { renderAryaCurrentSection } = require('./formsTemplate/projectTemplates/aryaCurrentTemplate.js');
+const { renderAryaPrevYearSection } = require('./formsTemplate/projectTemplates/aryaPrevYearTemplate.js');
+const { renderTspSection } = require('./formsTemplate/projectTemplates/tspTemplate.js');
+const { renderScspSection } = require('./formsTemplate/projectTemplates/scspTemplate.js');
+const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspScspTemplate.js');
+const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
+const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
+const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
+const { renderSpecialProgrammeSection } = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
+const { renderFunctionalLinkageSection } = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
+const { renderSuccessStorySection } = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
+const { renderEntrepreneurshipSection } = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
+const { renderKvkImpactActivitySection } = require('./formsTemplate/projectTemplates/kvkImpactActivityTemplate.js');
+const { renderDemonstrationUnitSection } = require('./formsTemplate/projectTemplates/demonstrationUnitTemplate.js');
+const { renderInstructionalFarmCropSection } = require('./formsTemplate/projectTemplates/instructionalFarmCropTemplate.js');
+const { renderProductionUnitSection } = require('./formsTemplate/projectTemplates/productionUnitTemplate.js');
+const { renderInstructionalFarmLivestockSection } = require('./formsTemplate/projectTemplates/instructionalFarmLivestockTemplate.js');
+const { renderHostelUtilizationSection } = require('./formsTemplate/projectTemplates/hostelUtilizationTemplate.js');
+const { renderStaffQuartersUtilizationSection } = require('./formsTemplate/projectTemplates/staffQuartersTemplate.js');
+const { renderRainwaterHarvestingSection } = require('./formsTemplate/projectTemplates/rainwaterHarvestingTemplate.js');
+const { renderNicraInterventionSection } = require('./formsTemplate/projectTemplates/nicraInterventionTemplate.js');
+const { renderNicraExtensionSection } = require('./formsTemplate/projectTemplates/nicraExtensionTemplate.js');
+const { renderNicraFarmImplementSection } = require('./formsTemplate/projectTemplates/nicraFarmImplementTemplate.js');
+const { renderNicraVcrmcSection } = require('./formsTemplate/projectTemplates/nicraVcrmcTemplate.js');
+const { renderNicraSoilHealthSection } = require('./formsTemplate/projectTemplates/nicraSoilHealthTemplate.js');
+const { renderNaturalFarmingPhysicalSection } = require('./formsTemplate/projectTemplates/naturalFarmingPhysicalTemplate.js');
+const { renderNfDemonstrationInformationSection } = require('./formsTemplate/projectTemplates/nfDemonstrationInformationTemplate.js');
+const { renderNfFarmersPracticingInformationSection } = require('./formsTemplate/projectTemplates/nfFarmersPracticingInformationTemplate.js');
+const { renderNfSoilDataInformationSection } = require('./formsTemplate/projectTemplates/nfSoilDataInformationTemplate.js');
+const { renderNfBudgetExpenditureInformationSection } = require('./formsTemplate/projectTemplates/nfBudgetExpenditureInformationTemplate.js');
+const { renderFldPageReportSection } = require('./formsTemplate/achievementTemplates/fldPageReportTemplate.js');
+const { renderFldStateCategoryReportSection } = require('./formsTemplate/achievementTemplates/fldStateCategoryReportTemplate.js');
+const { renderTrainingCapacityReportSection } = require('./formsTemplate/achievementTemplates/trainingCapacityReportTemplate.js');
+const { renderTrainingsPageReportSection } = require('./formsTemplate/achievementTemplates/trainingsPageReportTemplate.js');
+const { renderExtensionOutreachReportSection } = require('./formsTemplate/achievementTemplates/extensionOutreachReportTemplate.js');
+const { renderExtensionActivityPageReportSection } = require('./formsTemplate/achievementTemplates/extensionActivityPageReportTemplate.js');
+const { renderOtherExtensionContentPageReportSection } = require('./formsTemplate/achievementTemplates/otherExtensionContentPageReportTemplate.js');
+const { renderOtherExtensionContentMatrixReportSection } = require('./formsTemplate/achievementTemplates/otherExtensionContentMatrixReportTemplate.js');
+const { renderTechnologyWeekCelebrationPageReportSection } = require('./formsTemplate/achievementTemplates/technologyWeekCelebrationPageReportTemplate.js');
+const { renderTechnologyWeekStateSummaryReportSection } = require('./formsTemplate/achievementTemplates/technologyWeekStateSummaryReportTemplate.js');
+const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
+const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
 
 /**
  * Report Template Service
@@ -23,6 +102,88 @@ class ReportTemplateService {
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'oft-summary': renderOftSummarySection.bind(this),
+            'oft-detail-cards': renderOftDetailCardsSection.bind(this),
+            'oft-combined': renderOftCombinedSection.bind(this),
+            'misc-prevalent-diseases-crops': renderPrevalentDiseasesCropsSection.bind(this),
+            'misc-prevalent-diseases-livestock': renderPrevalentDiseasesLivestockSection.bind(this),
+            'misc-nyk-training': renderNykTrainingSection.bind(this),
+            'misc-ppv-fra-plant-varieties': renderPpvFraPlantVarietiesSection.bind(this),
+            'misc-ppv-fra-training': renderPpvFraTrainingSection.bind(this),
+            'misc-vip-visitors': renderVipVisitorsSection.bind(this),
+            'misc-rawe-fet-fit': renderRaweFetFitSection.bind(this),
+            'di-kisan-sarathi': renderKisanSarathiSection.bind(this),
+            'di-mobile-app': renderMobileAppSection.bind(this),
+            'di-kmas': renderKmasSection.bind(this),
+            'di-web-portal': renderWebPortalSection.bind(this),
+            'di-msg-details': renderMsgDetailsSection.bind(this),
+            'swachhta-sewa': renderSwachhtaSewaSection.bind(this),
+            'swachhta-pakhwada': renderSwachhtaPakhwadaSection.bind(this),
+            'swachhta-budget': renderSwachhtaBudgetSection.bind(this),
+            'meetings-sac': renderSacMeetingSection.bind(this),
+            'meetings-other': renderOtherMeetingSection.bind(this),
+            'meetings-sac-statewise': renderSacMeetingStatewiseSection.bind(this),
+            'swachhta-pakhwada-statewise': renderSwachhtaPakhwadaStatewiseSection.bind(this),
+            'cfld-combined': renderCfldCombinedSection.bind(this),
+            'cfld-extension-activity': renderCfldExtensionActivitySection.bind(this),
+            'cfld-budget-utilization': renderCfldBudgetUtilizationSection.bind(this),
+            'cra-details-state-wise': renderCraDetailsStateWiseSection.bind(this),
+            'cra-extension-activity': renderCraExtensionActivitySection.bind(this),
+            'fpo-cbbo-details': renderFpoCbboDetailsSection.bind(this),
+            'fpo-management-details': renderFpoManagementDetailsSection.bind(this),
+            'drmr-details': renderDrmrDetailsSection.bind(this),
+            'drmr-activity': renderDrmrActivitySection.bind(this),
+            'nari-nutrition-garden': renderNariNutritionGardenSection.bind(this),
+            'nari-bio-fortified': renderNariBioFortifiedSection.bind(this),
+            'nari-training': renderNariTrainingSection.bind(this),
+            'csisa': renderCsisaSection.bind(this),
+            'nari-extension': renderNariExtensionSection.bind(this),
+            'nari-value-addition': renderNariValueAdditionSection.bind(this),
+            'arya-current': renderAryaCurrentSection.bind(this),
+            'arya-prev-year': renderAryaPrevYearSection.bind(this),
+            'nicra-basic': renderNicraBasicSection.bind(this),
+            'nicra-training': renderNicraTrainingSection.bind(this),
+            'nicra-intervention': renderNicraInterventionSection.bind(this),
+            'nicra-extension': renderNicraExtensionSection.bind(this),
+            'nicra-farm-implement': renderNicraFarmImplementSection.bind(this),
+            'nicra-vcrmc': renderNicraVcrmcSection.bind(this),
+            'nicra-soil-health': renderNicraSoilHealthSection.bind(this),
+            'tsp': renderTspSection.bind(this),
+            'scsp': renderScspSection.bind(this),
+            'tsp-scsp': renderTspScspSection.bind(this),
+            'seed-hub': renderSeedHubSection.bind(this),
+            'other-programmes': renderOtherProgrammesSection.bind(this),
+            'natural-farming-physical': renderNaturalFarmingPhysicalSection.bind(this),
+            'nf-demonstration-information': renderNfDemonstrationInformationSection.bind(this),
+            'nf-farmers-practicing-information': renderNfFarmersPracticingInformationSection.bind(this),
+            'nf-soil-data-information': renderNfSoilDataInformationSection.bind(this),
+            'nf-budget-expenditure-information': renderNfBudgetExpenditureInformationSection.bind(this),
+            'fld-page-report': renderFldPageReportSection.bind(this),
+            'fld-state-category-report': renderFldStateCategoryReportSection.bind(this),
+            'training-capacity-report': renderTrainingCapacityReportSection.bind(this),
+            'trainings-page-report': renderTrainingsPageReportSection.bind(this),
+            'extension-outreach-report': renderExtensionOutreachReportSection.bind(this),
+            'extension-activities-page-report': renderExtensionActivityPageReportSection.bind(this),
+            'other-extension-content-page-report': renderOtherExtensionContentPageReportSection.bind(this),
+            'other-extension-content-matrix-report': renderOtherExtensionContentMatrixReportSection.bind(this),
+            'technology-week-celebration-page-report': renderTechnologyWeekCelebrationPageReportSection.bind(this),
+            'technology-week-state-summary-report': renderTechnologyWeekStateSummaryReportSection.bind(this),
+            'agri-drone-introduction': renderAgriDroneIntroductionSection.bind(this),
+            'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
+            'arya-current': renderAryaCurrentSection.bind(this),
+            'arya-prev-year': renderAryaPrevYearSection.bind(this),
+            'special-programme': renderSpecialProgrammeSection.bind(this),
+            'functional-linkage': renderFunctionalLinkageSection.bind(this),
+            'success-story': renderSuccessStorySection.bind(this),
+            'entrepreneurship': renderEntrepreneurshipSection.bind(this),
+            'kvk-impact-activity': renderKvkImpactActivitySection.bind(this),
+            'demonstration-unit': renderDemonstrationUnitSection.bind(this),
+            'instructional-farm-crop': renderInstructionalFarmCropSection.bind(this),
+            'production-unit': renderProductionUnitSection.bind(this),
+            'instructional-farm-livestock': renderInstructionalFarmLivestockSection.bind(this),
+            'hostel-utilization': renderHostelUtilizationSection.bind(this),
+            'staff-quarters': renderStaffQuartersUtilizationSection.bind(this),
+            'rainwater-harvesting': renderRainwaterHarvestingSection.bind(this),
         };
     }
 
@@ -31,6 +192,10 @@ class ReportTemplateService {
      */
     generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
         const sections = getAllSections();
+        const reportContext = {
+            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isStandalone: false,
+        };
         // Filter sections that have valid data (not errors, not null/undefined)
         const selectedSections = sections.filter(s => {
             const sectionData = sectionsData[s.id];
@@ -53,7 +218,7 @@ class ReportTemplateService {
     ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
     ${this._generateTableOfContents(selectedSections)}
     <div class="sections-container">
-        ${this._generateSectionPages(selectedSections, sectionsData)}
+        ${this._generateSectionPages(selectedSections, sectionsData, reportContext)}
     </div>
 </body>
 </html>`;
@@ -65,17 +230,27 @@ class ReportTemplateService {
      * Generate standalone HTML document for a custom template.
      * Reuses the same custom-template handlers used by all-reports flow.
      */
-    generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
+    async generateStandaloneCustomTemplateHTML(templateKey, data, options = {}) {
         const { sectionId = '1.1', title = 'Custom Report' } = options;
-        const pseudoSection = { id: sectionId, title };
+        const fullSection = getSectionConfig(sectionId);
+        const pseudoSection = {
+            id: sectionId,
+            title,
+            ...(fullSection?.fields?.length ? { fields: fullSection.fields } : {}),
+        };
         const sectionConfig = { customTemplate: templateKey };
         const sectionAnchorId = `section-${sectionId.replace(/\./g, '-')}`;
-        const renderedSection = this._generateCustomSection(
+        const reportContext = {
+            isAggregatedReport: false,
+            isStandalone: true,
+        };
+        const renderedSection = await this._generateCustomSection(
             pseudoSection,
             data,
             sectionConfig,
             sectionAnchorId,
-            true
+            true,
+            reportContext
         );
 
         return `
@@ -166,7 +341,7 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    _generateSectionPages(selectedSections, sectionsData) {
+    _generateSectionPages(selectedSections, sectionsData, reportContext = {}) {
         let html = '';
         let isFirstSection = true;
 
@@ -192,7 +367,7 @@ class ReportTemplateService {
 
             // Generate section based on format
             if (sectionConfig.format === 'custom') {
-                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection);
+                html += this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext);
             } else if (sectionConfig.format === 'formatted-text') {
                 html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
             } else if (sectionConfig.format === 'table') {
@@ -210,7 +385,7 @@ class ReportTemplateService {
     /**
      * Generate custom section using dedicated template keys
      */
-    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection) {
+    _generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext = {}) {
         const customTemplateKey = sectionConfig?.customTemplate;
         if (!customTemplateKey) {
             return this._generateEmptySection(section, 'Custom template key is missing', sectionId, isFirstSection);
@@ -226,7 +401,8 @@ class ReportTemplateService {
             );
         }
 
-        return customTemplateHandler(section, data, sectionId, isFirstSection);
+        // Handler may return a string or a Promise (async handlers like oft-combined)
+        return customTemplateHandler(section, data, sectionId, isFirstSection, reportContext);
     }
 
     /**
@@ -868,7 +1044,7 @@ class ReportTemplateService {
         margin-bottom: 10px;
         border: 0.2px solid #000000;
         font-size: 8pt;
-        page-break-inside: avoid;
+        page-break-inside: auto;
     }
 
     .data-table th,
@@ -967,7 +1143,7 @@ class ReportTemplateService {
         margin-bottom: 14px;
         border: 0.2px solid #000000;
         font-size: 8pt;
-        page-break-inside: avoid;
+        page-break-inside: auto;
     }
 
     .about-kvk-table th,
@@ -1053,7 +1229,7 @@ class ReportTemplateService {
         
         .data-table,
         .grouped-table {
-            page-break-inside: avoid;
+            page-break-inside: auto;
         }
         
         .section-title {

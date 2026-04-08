@@ -279,6 +279,7 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                             return null;
                                         })}
                                     </div>
+                                    
                                     {normalizedSearchTerm && (
                                         (() => {
                                             const visibleCount = mainSections.reduce((count, parent) => {

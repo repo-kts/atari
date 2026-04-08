@@ -7,6 +7,7 @@ model PpvFraPlantVarieties {
   reportingYear   Int     @map("reporting_year")
   reportingYearDate DateTime? @map("reporting_year_date")
   cropName        String  @map("crop_name")
+  registrationNo  String? @map("registration_no")
   farmerName      String  @map("farmer_name")
   mobile          String  @map("mobile")
   village         String  @map("village")

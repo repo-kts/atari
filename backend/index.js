@@ -1,4 +1,8 @@
 require('dotenv').config();
+require('dns').setDefaultResultOrder('ipv4first');
+// Node's Happy Eyeballs default 250ms per-address timeout is too short for
+// high-latency routes to Neon (AWS). Give it 5s so TCP can actually complete.
+require('net').setDefaultAutoSelectFamilyAttemptTimeout(5000);
 
 const express = require('express');
 const cors = require('cors');
@@ -69,10 +73,38 @@ if (process.env.VERCEL !== '1' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   });
 
   // Graceful shutdown
-  process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
+  const gracefulShutdown = async (signal) => {
+    console.log(`${signal} signal received: closing HTTP server`);
     server.close(() => {
       console.log('HTTP server closed');
     });
-  });
+
+    try {
+      // Disconnect Prisma (and its underlying pg pool)
+      const prisma = require('./config/prisma.js');
+      if (prisma?.$disconnect) {
+        await prisma.$disconnect();
+        console.log('Prisma disconnected');
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      // Close Redis
+      const cacheService = require('./services/cache/redisCacheService.js');
+      if (cacheService?.close) {
+        await cacheService.close();
+        console.log('Redis closed');
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Force exit after a short delay in case something still holds the event loop
+    setTimeout(() => process.exit(0), 500).unref();
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }

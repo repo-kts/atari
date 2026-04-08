@@ -5,11 +5,29 @@ const nicraSoilHealthRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
+        const parseDate = (d) => {
+            if (!d) return new Date();
+            const date = new Date(d);
+            return isNaN(date.getTime()) ? new Date() : date;
+        };
+
+        const stringifyPhotos = (photos) => {
+            if (!photos) return '';
+            if (typeof photos === 'string') return photos;
+            if (Array.isArray(photos)) {
+                return JSON.stringify(photos.map(p => ({
+                    image: p.image || p.preview || p.url || '',
+                    caption: p.caption || ''
+                })));
+            }
+            return JSON.stringify(photos);
+        };
+
         return await prisma.nicraSoilHealthCard.create({
             data: {
                 kvkId,
-                startDate: new Date(data.startDate),
-                endDate: new Date(data.endDate),
+                startDate: parseDate(data.startDate),
+                endDate: parseDate(data.endDate),
                 noOfSoilSamplesCollected: parseInt(data.noOfSoilSamplesCollected || 0),
                 noOfSamplesAnalysed: parseInt(data.noOfSamplesAnalysed || 0),
                 shcIssued: parseInt(data.shcIssued || 0),
@@ -21,7 +39,7 @@ const nicraSoilHealthRepository = {
                 scF: parseInt(data.scFemale || data.scF || 0),
                 stM: parseInt(data.stMale || data.stM || 0),
                 stF: parseInt(data.stFemale || data.stF || 0),
-                photographs: data.photographs ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : '',
+                photographs: stringifyPhotos(data.photographs),
             }
         });
     },
@@ -96,23 +114,42 @@ const nicraSoilHealthRepository = {
         const existing = await prisma.nicraSoilHealthCard.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
+        const parseDate = (d) => {
+            if (!d) return undefined;
+            const date = new Date(d);
+            return isNaN(date.getTime()) ? undefined : date;
+        };
+
+        const stringifyPhotos = (photos) => {
+            if (photos === undefined) return undefined;
+            if (!photos) return '';
+            if (typeof photos === 'string') return photos;
+            if (Array.isArray(photos)) {
+                return JSON.stringify(photos.map(p => ({
+                    image: p.image || p.preview || p.url || '',
+                    caption: p.caption || ''
+                })));
+            }
+            return JSON.stringify(photos);
+        };
+
         const updated = await prisma.nicraSoilHealthCard.update({
             where: { nicraSoilHealthCardId: parseInt(id) },
             data: {
-                startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
-                endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
-                noOfSoilSamplesCollected: data.noOfSoilSamplesCollected !== undefined ? parseInt(data.noOfSoilSamplesCollected) : existing.noOfSoilSamplesCollected,
-                noOfSamplesAnalysed: data.noOfSamplesAnalysed !== undefined ? parseInt(data.noOfSamplesAnalysed) : existing.noOfSamplesAnalysed,
-                shcIssued: data.shcIssued !== undefined ? parseInt(data.shcIssued) : existing.shcIssued,
-                generalM: data.genMale !== undefined ? parseInt(data.genMale) : (data.generalM !== undefined ? parseInt(data.generalM) : existing.generalM),
-                generalF: data.genFemale !== undefined ? parseInt(data.genFemale) : (data.generalF !== undefined ? parseInt(data.generalF) : existing.generalF),
-                obcM: data.obcMale !== undefined ? parseInt(data.obcMale) : (data.obcM !== undefined ? parseInt(data.obcM) : existing.obcM),
-                obcF: data.obcFemale !== undefined ? parseInt(data.obcFemale) : (data.obcF !== undefined ? parseInt(data.obcF) : existing.obcF),
-                scM: data.scMale !== undefined ? parseInt(data.scMale) : (data.scM !== undefined ? parseInt(data.scM) : existing.scM),
-                scF: data.scFemale !== undefined ? parseInt(data.scFemale) : (data.scF !== undefined ? parseInt(data.scF) : existing.scF),
-                stM: data.stMale !== undefined ? parseInt(data.stMale) : (data.stM !== undefined ? parseInt(data.stM) : existing.stM),
-                stF: data.stFemale !== undefined ? parseInt(data.stFemale) : (data.stF !== undefined ? parseInt(data.stF) : existing.stF),
-                photographs: data.photographs !== undefined ? (typeof data.photographs === 'string' ? data.photographs : JSON.stringify(data.photographs)) : (existing.photographs || ''),
+                startDate: parseDate(data.startDate),
+                endDate: parseDate(data.endDate),
+                noOfSoilSamplesCollected: data.noOfSoilSamplesCollected !== undefined ? parseInt(data.noOfSoilSamplesCollected) : undefined,
+                noOfSamplesAnalysed: data.noOfSamplesAnalysed !== undefined ? parseInt(data.noOfSamplesAnalysed) : undefined,
+                shcIssued: data.shcIssued !== undefined ? parseInt(data.shcIssued) : undefined,
+                generalM: data.genMale !== undefined ? parseInt(data.genMale) : (data.generalM !== undefined ? parseInt(data.generalM) : undefined),
+                generalF: data.genFemale !== undefined ? parseInt(data.genFemale) : (data.generalF !== undefined ? parseInt(data.generalF) : undefined),
+                obcM: data.obcMale !== undefined ? parseInt(data.obcMale) : (data.obcM !== undefined ? parseInt(data.obcM) : undefined),
+                obcF: data.obcFemale !== undefined ? parseInt(data.obcFemale) : (data.obcF !== undefined ? parseInt(data.obcF) : undefined),
+                scM: data.scMale !== undefined ? parseInt(data.scMale) : (data.scM !== undefined ? parseInt(data.scM) : undefined),
+                scF: data.scFemale !== undefined ? parseInt(data.scFemale) : (data.scF !== undefined ? parseInt(data.scF) : undefined),
+                stM: data.stMale !== undefined ? parseInt(data.stMale) : (data.stM !== undefined ? parseInt(data.stM) : undefined),
+                stF: data.stFemale !== undefined ? parseInt(data.stFemale) : (data.stF !== undefined ? parseInt(data.stF) : undefined),
+                photographs: stringifyPhotos(data.photographs),
             }
         });
         return nicraSoilHealthRepository._mapResponse(updated);

@@ -27,6 +27,7 @@ model Kvk {
   cfldTechnicalParameters       CfldTechnicalParameter[]
   csisa                         Csisa[]
   demonstrationInfo             DemonstrationInfo[]
+  farmersPracticingNaturalFarming FarmersPracticingNaturalFarming[]
   drmrActivity                  DrmrActivity[]
   drmrDetails                   DrmrDetails[]
   extensionActivityOrganized    ExtensionActivityOrganized[]

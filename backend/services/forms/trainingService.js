@@ -1,4 +1,5 @@
 const trainingRepository = require('../../repositories/forms/trainingRepository.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * Training Service
@@ -11,7 +12,10 @@ const trainingService = {
      * Create a new Training Achievement
      */
     createTraining: async (data, user) => {
-        return await trainingRepository.create(data, null, user);
+        const result = await trainingRepository.create(data, null, user);
+        const kvkId = result?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('trainingCapacityReport', kvkId);
+        return result;
     },
 
     /**
@@ -43,7 +47,9 @@ const trainingService = {
                 // Ensure display names are available
                 kvkName: training.kvkName || (training.kvk ? training.kvk.kvkName : ''),
                 clientele: training.clientele || (training.clientele ? training.clientele.name : ''),
-                trainingType: training.trainingType || (training.trainingType ? training.trainingType.name : ''),
+                trainingType: typeof training.trainingType === 'string'
+                    ? training.trainingType
+                    : (training.trainingType?.trainingTypeName ?? ''),
                 trainingArea: training.trainingArea || (training.trainingArea ? training.trainingArea.name : ''),
                 thematicArea: training.thematicArea || (training.thematicArea ? training.thematicArea.name : ''),
                 coordinator: training.coordinator || (training.coordinator ? training.coordinator.name : ''),
@@ -63,14 +69,21 @@ const trainingService = {
      * Update Training Achievement
      */
     updateTraining: async (id, data, user) => {
-        return await trainingRepository.update(id, data, user);
+        const result = await trainingRepository.update(id, data, user);
+        const kvkId = result?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('trainingCapacityReport', kvkId);
+        return result;
     },
 
     /**
      * Delete Training Achievement
      */
     deleteTraining: async (id, user) => {
-        return await trainingRepository.delete(id, user);
+        const existing = await trainingRepository.findById(id, user);
+        const result = await trainingRepository.delete(id, user);
+        const kvkId = existing?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('trainingCapacityReport', kvkId);
+        return result;
     },
 };
 

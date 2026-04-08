@@ -8,6 +8,20 @@ const nariBioFortifiedCropRepository = {
 
         if (isNaN(kvkId)) throw new Error('Valid kvkId is required');
 
+        // Validation for mandatory fields
+        const seasonId = parseInt(data.seasonId);
+        const activityId = parseInt(data.activityId);
+        const cropCategoryId = parseInt(data.cropCategoryId);
+        const villageName = data.nameOfNutriSmartVillage || data.villageName || '';
+        const cropName = data.nameOfCrop || data.cropName || '';
+
+        if (isNaN(seasonId)) throw new Error('Season is required');
+        if (isNaN(activityId)) throw new Error('Activity is required');
+        if (isNaN(cropCategoryId)) throw new Error('Category of Crop is required');
+        if (!villageName) throw new Error('Name of Nutri-Smart Village is required');
+        if (!cropName) throw new Error('Name of Crop is required');
+        if (!data.variety) throw new Error('Variety is required');
+
         const result = await prisma.nariBioFortifiedCrop.create({
             data: {
                 kvkId,
@@ -16,13 +30,13 @@ const nariBioFortifiedCropRepository = {
                     ensureNotFutureDate(d);
                     return d;
                 })(),
-                seasonId: data.seasonId ? parseInt(data.seasonId) : null,
-                activityId: data.activityId ? parseInt(data.activityId) : null,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || '',
-                cropCategoryId: data.cropCategoryId ? parseInt(data.cropCategoryId) : null,
-                nameOfCrop: data.nameOfCrop || '',
+                seasonId,
+                activityId,
+                nameOfNutriSmartVillage: villageName,
+                cropCategoryId,
+                nameOfCrop: cropName,
                 variety: data.variety || '',
-                areaHa: data.areaHa ? parseFloat(data.areaHa) : 0,
+                areaHa: parseFloat(data.areaHa || 0),
                 generalM: parseInt(data.generalM || data.genMale || 0),
                 generalF: parseInt(data.generalF || data.genFemale || 0),
                 obcM: parseInt(data.obcM || data.obcMale || 0),
@@ -109,19 +123,19 @@ const nariBioFortifiedCropRepository = {
                     : undefined,
                 seasonId: data.seasonId ? parseInt(data.seasonId) : undefined,
                 activityId: data.activityId ? parseInt(data.activityId) : undefined,
-                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage !== undefined ? data.nameOfNutriSmartVillage : undefined,
+                nameOfNutriSmartVillage: data.nameOfNutriSmartVillage || data.villageName || undefined,
                 cropCategoryId: data.cropCategoryId ? parseInt(data.cropCategoryId) : undefined,
-                nameOfCrop: data.nameOfCrop !== undefined ? data.nameOfCrop : undefined,
+                nameOfCrop: data.nameOfCrop || data.cropName || undefined,
                 variety: data.variety !== undefined ? data.variety : undefined,
                 areaHa: data.areaHa !== undefined ? parseFloat(data.areaHa) : undefined,
-                generalM: data.generalM !== undefined || data.genMale !== undefined ? parseInt(data.generalM ?? data.genMale) : undefined,
-                generalF: data.generalF !== undefined || data.genFemale !== undefined ? parseInt(data.generalF ?? data.genFemale) : undefined,
-                obcM: data.obcM !== undefined || data.obcMale !== undefined ? parseInt(data.obcM ?? data.obcMale) : undefined,
-                obcF: data.obcF !== undefined || data.obcFemale !== undefined ? parseInt(data.obcF ?? data.obcFemale) : undefined,
-                scM: data.scM !== undefined || data.scMale !== undefined ? parseInt(data.scM ?? data.scMale) : undefined,
-                scF: data.scF !== undefined || data.scFemale !== undefined ? parseInt(data.scF ?? data.scFemale) : undefined,
-                stM: data.stM !== undefined || data.stMale !== undefined ? parseInt(data.stM ?? data.stMale) : undefined,
-                stF: data.stF !== undefined || data.stFemale !== undefined ? parseInt(data.stF ?? data.stFemale) : undefined,
+                generalM: (data.generalM !== undefined || data.genMale !== undefined) ? (parseInt(data.generalM ?? data.genMale) || 0) : undefined,
+                generalF: (data.generalF !== undefined || data.genFemale !== undefined) ? (parseInt(data.generalF ?? data.genFemale) || 0) : undefined,
+                obcM: (data.obcM !== undefined || data.obcMale !== undefined) ? (parseInt(data.obcM ?? data.obcMale) || 0) : undefined,
+                obcF: (data.obcF !== undefined || data.obcFemale !== undefined) ? (parseInt(data.obcF ?? data.obcFemale) || 0) : undefined,
+                scM: (data.scM !== undefined || data.scMale !== undefined) ? (parseInt(data.scM ?? data.scMale) || 0) : undefined,
+                scF: (data.scF !== undefined || data.scFemale !== undefined) ? (parseInt(data.scF ?? data.scFemale) || 0) : undefined,
+                stM: (data.stM !== undefined || data.stMale !== undefined) ? (parseInt(data.stM ?? data.stMale) || 0) : undefined,
+                stF: (data.stF !== undefined || data.stFemale !== undefined) ? (parseInt(data.stF ?? data.stFemale) || 0) : undefined,
             },
             include: {
                 kvk: { select: { kvkName: true } },
@@ -136,6 +150,65 @@ const nariBioFortifiedCropRepository = {
     delete: async (id) => {
         return await prisma.nariBioFortifiedCrop.delete({
             where: { nariBioFortifiedCropId: parseInt(id) }
+        });
+    },
+
+    // Result Methods
+    getResultById: async (id) => {
+        return await prisma.nariBioFortifiedCropResult.findFirst({
+            where: { nariBioFortifiedCropId: parseInt(id) }
+        });
+    },
+
+    createResult: async (id, data) => {
+        const bioFortifiedCropId = parseInt(id);
+        return await prisma.$transaction(async (tx) => {
+            const result = await tx.nariBioFortifiedCropResult.create({
+                data: {
+                    nariBioFortifiedCropId: bioFortifiedCropId,
+                    reportingYear: data.reportingYear ? new Date(data.reportingYear) : null,
+                    cropName: data.cropName || '',
+                    variety: data.variety || '',
+                    areaHa: parseFloat(data.areaHa || 0),
+                    productionKg: parseFloat(data.productionYield || data.productionKg || 0),
+                    consumptionGm: parseFloat(data.consumptionGmPerDay || data.consumptionGm || 0),
+                    formOfConsumption: data.formOfConsumption || '',
+                    daysInYear: parseInt(data.daysOfConsumption || data.daysInYear || 0),
+                }
+            });
+
+            await tx.nariBioFortifiedCrop.update({
+                where: { nariBioFortifiedCropId: bioFortifiedCropId },
+                data: { status: 'COMPLETED' }
+            });
+
+            return result;
+        });
+    },
+
+    updateResult: async (id, data) => {
+        const bioFortifiedCropId = parseInt(id);
+        const existingResult = await prisma.nariBioFortifiedCropResult.findFirst({
+            where: { nariBioFortifiedCropId: bioFortifiedCropId }
+        });
+
+        if (!existingResult) throw new Error('Result not found');
+
+        return await prisma.nariBioFortifiedCropResult.update({
+            where: { nariBioFortifiedCropResultId: existingResult.nariBioFortifiedCropResultId },
+            data: {
+                reportingYear: data.reportingYear ? new Date(data.reportingYear) : undefined,
+                cropName: data.cropName !== undefined ? data.cropName : undefined,
+                variety: data.variety !== undefined ? data.variety : undefined,
+                areaHa: data.areaHa !== undefined ? parseFloat(data.areaHa) : undefined,
+                productionKg: data.productionYield !== undefined || data.productionKg !== undefined
+                    ? parseFloat(data.productionYield ?? data.productionKg) : undefined,
+                consumptionGm: data.consumptionGmPerDay !== undefined || data.consumptionGm !== undefined
+                    ? parseFloat(data.consumptionGmPerDay ?? data.consumptionGm) : undefined,
+                formOfConsumption: data.formOfConsumption !== undefined ? data.formOfConsumption : undefined,
+                daysInYear: data.daysOfConsumption !== undefined || data.daysInYear !== undefined
+                    ? parseInt(data.daysOfConsumption ?? data.daysInYear) : undefined,
+            }
         });
     }
 };
@@ -169,7 +242,8 @@ function _mapResponse(r) {
         stM: r.stM,
         stF: r.stF,
         totalBeneficiaries,
-        
+        status: r.status,
+
         // Aliases for frontend consistency
         villageName: r.nameOfNutriSmartVillage,
         cropCategory: r.cropCategory?.name,
