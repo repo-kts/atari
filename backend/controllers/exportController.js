@@ -64,6 +64,7 @@ const {
     generateWorldSoilDayPageExcelBuffer,
     generateWorldSoilDayPageWordBuffer,
 } = require('../utils/worldSoilDayPageExport.js');
+const { buildPublicationDetailsTabularData } = require('../services/reports/formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -140,6 +141,9 @@ const exportData = async (req, res) => {
             effectiveRawData = rawData;
         }
         if (templateKey === 'world-soil-day-page-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'publication-details-detailed' && rawData) {
             effectiveRawData = rawData;
         }
 
@@ -300,7 +304,8 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
                                             : templateKey === 'soil-water-equipment-page-report' ? 'soil-water-equipment-page'
                                             : templateKey === 'soil-water-samples-b-page-report' ? 'soil-water-samples-b-page'
                                                 : templateKey === 'soil-water-analysis-state-report' ? '2.10.3'
-                                                    : templateKey === 'world-soil-day-page-report' ? '2.10.2' : '1.1'),
+                                                    : templateKey === 'world-soil-day-page-report' ? '2.10.2'
+                                                        : templateKey === 'publication-details-detailed' ? '2.55' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
             isAggregatedReport,
@@ -309,6 +314,9 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
 }
 
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
+    if (templateKey === 'publication-details-detailed') {
+        return buildPublicationDetailsTabularData(rawData);
+    }
     if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report'
         || templateKey === 'extension-activities-page-report'
         || templateKey === 'other-extension-content-page-report'

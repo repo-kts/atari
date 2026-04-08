@@ -12,6 +12,7 @@ const SECTION_TH = 'px-2 py-2 border border-[#D6D6D6] text-center font-semibold 
 const TH = 'px-1.5 py-1 border border-[#D6D6D6] text-center font-semibold text-[12px] leading-tight'
 const TH_NOWRAP = `${TH} whitespace-nowrap`
 const TD = 'px-1.5 py-1 border border-[#D6D6D6] text-center text-[12px] whitespace-nowrap'
+const TD_PUB = 'px-1.5 py-1 border border-[#D6D6D6] text-left text-[12px]'
 
 const emptyParticipant: ParticipantAchievement = {
     general: { m: 0, f: 0 },
@@ -83,7 +84,10 @@ function ParticipantCells({ value }: { value: ParticipantAchievement }) {
 interface ExportTable {
     title: string
     headers: string[]
-    row: Array<string | number>
+    /** Single-row tables (legacy sections) */
+    row?: Array<string | number>
+    /** Multi-row section (e.g. publications summary) */
+    rows?: Array<Array<string | number>>
 }
 
 const PARTICIPANT_EXPORT_HEADERS = [
@@ -200,6 +204,14 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
                 ...participantRow(sections.soilWater.participants),
             ],
         },
+        {
+            title: '4. Publications Details',
+            headers: ['Publication', 'No (Counts)'],
+            rows:
+                (sections.publications?.rows ?? []).length > 0
+                    ? (sections.publications?.rows ?? []).map((r) => [r.publication, r.count])
+                    : [['—', 0]],
+        },
     ]
 }
 
@@ -289,17 +301,24 @@ export const TechnicalAchievementSummary: React.FC = () => {
             const html2pdf = html2pdfModule.default || html2pdfModule
             const tables = buildExportTables(summaryData.sections)
 
-            const tableHtml = tables.map((table) => `
+            const tableHtml = tables.map((table) => {
+                const bodyRows = table.rows ?? (table.row ? [table.row] : [])
+                const tbody = bodyRows
+                    .map(
+                        (line) =>
+                            `<tr>${line.map((value) => `<td>${escapeHtml(String(value ?? ''))}</td>`).join('')}</tr>`,
+                    )
+                    .join('')
+                return `
         <table class="tas-table">
           <thead>
             <tr><th class="table-title" colspan="${table.headers.length}">${escapeHtml(table.title)}</th></tr>
             <tr>${table.headers.map((header) => `<th>${escapeHtml(String(header))}</th>`).join('')}</tr>
           </thead>
-          <tbody>
-            <tr>${table.row.map((value) => `<td>${escapeHtml(String(value ?? ''))}</td>`).join('')}</tr>
-          </tbody>
+          <tbody>${tbody}</tbody>
         </table>
-      `).join('')
+      `
+            }).join('')
 
             const reportElement = document.createElement('div')
             reportElement.innerHTML = `
@@ -373,8 +392,12 @@ export const TechnicalAchievementSummary: React.FC = () => {
                 XLSX.utils.sheet_add_aoa(sheet, [table.headers], { origin: { r: row, c: 0 } })
                 row += 1
 
-                XLSX.utils.sheet_add_aoa(sheet, [table.row], { origin: { r: row, c: 0 } })
-                row += 2
+                const dataRows = table.rows ?? (table.row ? [table.row] : [])
+                dataRows.forEach((line) => {
+                    XLSX.utils.sheet_add_aoa(sheet, [line], { origin: { r: row, c: 0 } })
+                    row += 1
+                })
+                row += 1
             })
 
             sheet['!merges'] = merges
@@ -694,6 +717,36 @@ export const TechnicalAchievementSummary: React.FC = () => {
                                         <td className={TD}>{formatInt(sections?.soilWater.achievement)}</td>
                                         <ParticipantCells value={sections?.soilWater.participants || emptyParticipant} />
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full max-w-2xl border-collapse bg-white">
+                                <thead className="text-[#2F3443]">
+                                    <tr>
+                                        <th colSpan={2} className={SECTION_TH}>4. Publications Details</th>
+                                    </tr>
+                                    <tr>
+                                        <th className={`${TH} text-left`}>Publication</th>
+                                        <th className={TH}>No (Counts)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(sections?.publications?.rows ?? []).length > 0 ? (
+                                        (sections?.publications?.rows ?? []).map((r) => (
+                                            <tr key={`${r.publication}-${r.count}`}>
+                                                <td className={TD_PUB}>{r.publication}</td>
+                                                <td className={TD}>{formatInt(r.count)}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={2} className={`${TD_PUB} text-center text-[#757575]`}>
+                                                No publication records in this period.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>

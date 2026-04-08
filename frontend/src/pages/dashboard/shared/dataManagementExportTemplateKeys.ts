@@ -77,6 +77,7 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.ACHIEVEMENT_SOIL_EQUIPMENT]:
         'soil-water-equipment-page-report',
     [ENTITY_TYPES.ACHIEVEMENT_WORLD_SOIL_DAY]: 'world-soil-day-page-report',
+    [ENTITY_TYPES.ACHIEVEMENT_PUBLICATION_DETAILS]: 'publication-details-detailed',
 }
 
 export function getExportTemplateKey(

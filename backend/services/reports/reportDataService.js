@@ -39,6 +39,7 @@ const miscReportRepository = require('../../repositories/reports/miscReport/inde
 const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
 const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
 const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
+const publicationDetailsReportRepository = require('../../repositories/reports/publicationDetailsReportRepository.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 const cacheService = require('../cache/redisCacheService.js');
@@ -352,6 +353,12 @@ class ReportDataService {
             case 'otherMeetings':
                 rawData = await meetingsReportRepository.getOtherMeetings(effectiveKvkId, sectionFilters);
                 break;
+            case 'kvkPublicationDetails':
+                rawData = await publicationDetailsReportRepository.getKvPublicationDetailsReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -434,7 +441,8 @@ class ReportDataService {
             || dataSource === 'instructionalFarmLivestock'
             || dataSource === 'hostelUtilization'
             || dataSource === 'staffQuartersUtilization'
-            || dataSource === 'rainwaterHarvesting';
+            || dataSource === 'rainwaterHarvesting'
+            || dataSource === 'kvkPublicationDetails';
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);

@@ -459,6 +459,27 @@ const reportConfig = {
             },
             fields: [],
         },
+
+        {
+            id: '2.55',
+            title: 'Publications Details',
+            description: 'Publication counts by type (summary for modular all-report)',
+            subsection: true,
+            parentSectionId: '2',
+            dataSource: 'kvkPublicationDetails',
+            format: 'custom',
+            customTemplate: 'publication-page-report',
+            filters: {
+                dateFields: ['reportingYear'],
+                yearFields: ['reportingYear'],
+            },
+            fields: [
+                { dbField: 'category', displayName: 'Category' },
+                { dbField: 'authorName', displayName: 'Authors' },
+                { dbField: 'title', displayName: 'Title' },
+                { dbField: 'journalName', displayName: 'Journal Name' },
+            ],
+        },
         {
             id: '2.16',
             title: 'Performance of Demonstration under CFLD',

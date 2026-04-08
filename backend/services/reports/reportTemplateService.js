@@ -72,6 +72,8 @@ const { renderSoilWaterEquipmentPageReportSection } = require('./formsTemplate/a
 const { renderSoilWaterSamplesBPageReportSection } = require('./formsTemplate/achievementTemplates/soilWaterSamplesBPageReportTemplate.js');
 const { renderSoilWaterAnalysisDetailStateReportSection } = require('./formsTemplate/achievementTemplates/soilWaterAnalysisDetailStateReportTemplate.js');
 const { renderWorldSoilDayPageReportSection } = require('./formsTemplate/achievementTemplates/worldSoilDayPageReportTemplate.js');
+const { renderPublicationDetailsDetailedSection } = require('./formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
+const { renderPublicationPageReportSection } = require('./formsTemplate/achievementTemplates/publicationPageReportTemplate.js');
 const {
     renderPrevalentDiseasesCropsSection,
     renderPrevalentDiseasesLivestockSection,
@@ -164,6 +166,8 @@ class ReportTemplateService {
             'soil-water-samples-b-page-report': renderSoilWaterSamplesBPageReportSection.bind(this),
             'soil-water-analysis-state-report': renderSoilWaterAnalysisDetailStateReportSection.bind(this),
             'world-soil-day-page-report': renderWorldSoilDayPageReportSection.bind(this),
+            'publication-details-detailed': renderPublicationDetailsDetailedSection.bind(this),
+            'publication-page-report': renderPublicationPageReportSection.bind(this),
             'agri-drone-introduction': renderAgriDroneIntroductionSection.bind(this),
             'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),
