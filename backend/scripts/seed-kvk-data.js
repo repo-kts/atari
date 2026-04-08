@@ -129,14 +129,14 @@ async function getOrCreateOftSubject(name) {
 
 async function getOrCreateOftThematicArea(name, oftSubjectId) {
   let area = await prisma.oftThematicArea.findFirst({
-    where: { thematicAreaName: name }
+    where: { thematicAreaName: name, oftSubjectId },
   });
   if (!area) {
     area = await prisma.oftThematicArea.create({
       data: {
         thematicAreaName: name,
-        subject: { connect: { oftSubjectId } }
-      }
+        subject: { connect: { oftSubjectId } },
+      },
     });
   }
   return area;
@@ -240,8 +240,13 @@ async function seedKvks() {
   const post1 = await getOrCreateSanctionedPost('Programme Coordinator');
   const post2 = await getOrCreateSanctionedPost('Subject Matter Specialist');
 
-  const oftSubject1 = await getOrCreateOftSubject('Crop Production');
-  const oftThematicArea1 = await getOrCreateOftThematicArea('Sustainable Agriculture', oftSubject1.oftSubjectId);
+  const oftSubject1 = await getOrCreateOftSubject(
+    'Technologies Assessed under Various Crops by KVKs (Crop Production)'
+  );
+  const oftThematicArea1 = await getOrCreateOftThematicArea(
+    'Integrated Nutrient Management',
+    oftSubject1.oftSubjectId
+  );
 
   const techType1 = await getOrCreateOftTechnologyType('Variety Testing');
   const techType2 = await getOrCreateOftTechnologyType('Nutrient Management');

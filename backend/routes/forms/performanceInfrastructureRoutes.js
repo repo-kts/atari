@@ -8,6 +8,7 @@ const hostelUtilizationRepository = require('../../repositories/forms/hostelUtil
 const staffQuartersUtilizationRepository = require('../../repositories/forms/staffQuartersUtilizationRepository');
 const rainwaterHarvestingRepository = require('../../repositories/forms/rainwaterHarvestingRepository');
 const { authenticateToken, requireRole } = require('../../middleware/auth');
+const { sendFormRouteError } = require('../../utils/errorHandler.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService');
 
 // All routes require authentication
@@ -24,7 +25,7 @@ const createRoutes = (path, repository) => {
             const data = await repository.findAll(req.query, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 
@@ -33,7 +34,7 @@ const createRoutes = (path, repository) => {
             const data = await repository.create(req.body, req.user);
             res.status(201).json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 
@@ -42,7 +43,7 @@ const createRoutes = (path, repository) => {
             const data = await repository.update(req.params.id, req.body, req.user);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     };
     router.put(`/${path}/:id`, requireRole([...kvkRoles, 'super_admin']), updateHandler);
@@ -53,7 +54,7 @@ const createRoutes = (path, repository) => {
             await repository.delete(req.params.id, req.user);
             res.json({ message: 'Deleted successfully' });
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            sendFormRouteError(res, error);
         }
     });
 };
@@ -64,7 +65,7 @@ router.get('/demonstration-units', requireRole(allRoles), async (req, res) => {
         const data = await demonstrationUnitRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -74,7 +75,7 @@ router.post('/demonstration-units', requireRole([...kvkRoles, 'super_admin']), a
         await reportCacheInvalidationService.invalidateDataSourceForKvk('demonstrationUnit', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -84,7 +85,7 @@ const updateDemonstrationUnit = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('demonstrationUnit', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/demonstration-units/:id', requireRole([...kvkRoles, 'super_admin']), updateDemonstrationUnit);
@@ -97,7 +98,7 @@ router.delete('/demonstration-units/:id', requireRole([...kvkRoles, 'super_admin
         await reportCacheInvalidationService.invalidateDataSourceForKvk('demonstrationUnit', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -107,7 +108,7 @@ router.get('/instructional-farm-crops', requireRole(allRoles), async (req, res) 
         const data = await instructionalFarmCropRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -117,7 +118,7 @@ router.post('/instructional-farm-crops', requireRole([...kvkRoles, 'super_admin'
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmCrop', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -127,7 +128,7 @@ const updateInstructionalFarmCrop = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmCrop', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/instructional-farm-crops/:id', requireRole([...kvkRoles, 'super_admin']), updateInstructionalFarmCrop);
@@ -140,7 +141,7 @@ router.delete('/instructional-farm-crops/:id', requireRole([...kvkRoles, 'super_
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmCrop', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -150,7 +151,7 @@ router.get('/production-units', requireRole(allRoles), async (req, res) => {
         const data = await productionUnitRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -160,7 +161,7 @@ router.post('/production-units', requireRole([...kvkRoles, 'super_admin']), asyn
         await reportCacheInvalidationService.invalidateDataSourceForKvk('productionUnit', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -170,7 +171,7 @@ const updateProductionUnit = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('productionUnit', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/production-units/:id', requireRole([...kvkRoles, 'super_admin']), updateProductionUnit);
@@ -183,7 +184,7 @@ router.delete('/production-units/:id', requireRole([...kvkRoles, 'super_admin'])
         await reportCacheInvalidationService.invalidateDataSourceForKvk('productionUnit', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -193,7 +194,7 @@ router.get('/instructional-farm-livestock', requireRole(allRoles), async (req, r
         const data = await instructionalFarmLivestockRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -203,7 +204,7 @@ router.post('/instructional-farm-livestock', requireRole([...kvkRoles, 'super_ad
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmLivestock', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -213,7 +214,7 @@ const updateInstructionalFarmLivestock = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmLivestock', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/instructional-farm-livestock/:id', requireRole([...kvkRoles, 'super_admin']), updateInstructionalFarmLivestock);
@@ -226,7 +227,7 @@ router.delete('/instructional-farm-livestock/:id', requireRole([...kvkRoles, 'su
         await reportCacheInvalidationService.invalidateDataSourceForKvk('instructionalFarmLivestock', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -236,7 +237,7 @@ router.get('/hostel', requireRole(allRoles), async (req, res) => {
         const data = await hostelUtilizationRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -246,7 +247,7 @@ router.post('/hostel', requireRole([...kvkRoles, 'super_admin']), async (req, re
         await reportCacheInvalidationService.invalidateDataSourceForKvk('hostelUtilization', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -256,7 +257,7 @@ const updateHostelUtilization = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('hostelUtilization', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/hostel/:id', requireRole([...kvkRoles, 'super_admin']), updateHostelUtilization);
@@ -269,7 +270,7 @@ router.delete('/hostel/:id', requireRole([...kvkRoles, 'super_admin']), async (r
         await reportCacheInvalidationService.invalidateDataSourceForKvk('hostelUtilization', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -279,7 +280,7 @@ router.get('/staff-quarters', requireRole(allRoles), async (req, res) => {
         const data = await staffQuartersUtilizationRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -289,7 +290,7 @@ router.post('/staff-quarters', requireRole([...kvkRoles, 'super_admin']), async 
         await reportCacheInvalidationService.invalidateDataSourceForKvk('staffQuartersUtilization', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -299,7 +300,7 @@ const updateStaffQuarters = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('staffQuartersUtilization', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/staff-quarters/:id', requireRole([...kvkRoles, 'super_admin']), updateStaffQuarters);
@@ -312,7 +313,7 @@ router.delete('/staff-quarters/:id', requireRole([...kvkRoles, 'super_admin']), 
         await reportCacheInvalidationService.invalidateDataSourceForKvk('staffQuartersUtilization', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -322,7 +323,7 @@ router.get('/rainwater-harvesting', requireRole(allRoles), async (req, res) => {
         const data = await rainwaterHarvestingRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -332,7 +333,7 @@ router.post('/rainwater-harvesting', requireRole([...kvkRoles, 'super_admin']), 
         await reportCacheInvalidationService.invalidateDataSourceForKvk('rainwaterHarvesting', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -342,7 +343,7 @@ const updateRainwaterHarvesting = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('rainwaterHarvesting', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/rainwater-harvesting/:id', requireRole([...kvkRoles, 'super_admin']), updateRainwaterHarvesting);
@@ -355,7 +356,7 @@ router.delete('/rainwater-harvesting/:id', requireRole([...kvkRoles, 'super_admi
         await reportCacheInvalidationService.invalidateDataSourceForKvk('rainwaterHarvesting', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 

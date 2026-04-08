@@ -5,6 +5,7 @@ import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/Form
 import { useYears, useSeasons } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { parseEstablishmentYearInput } from '@/utils/formNumericGuards'
 
 interface InfrastructurePerformanceFormsProps {
     entityType: ExtendedEntityType | null
@@ -164,6 +165,13 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
         [formData, setFormData]
     )
 
+    const handleDemonstrationEstablishmentYearChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData({ ...formData, yearOfEstablishment: parseEstablishmentYearInput(e.target.value) })
+        },
+        [formData, setFormData]
+    )
+
     const handleYearChange = useCallback(
         (value: string | number) => {
             setFormData({ ...formData, reportingYear: value })
@@ -234,10 +242,11 @@ export const InfrastructurePerformanceForms: React.FC<InfrastructurePerformanceF
                         <FormInput
                             label="Year of Establishment"
                             required
-                            type="number"
+                            inputMode="numeric"
+                            autoComplete="off"
                             value={formData.yearOfEstablishment ?? ''}
-                            onChange={handleNumberChange('yearOfEstablishment')}
-                            placeholder="Enter year"
+                            onChange={handleDemonstrationEstablishmentYearChange}
+                            placeholder="e.g. 2018 (4 digits)"
                         />
 
                         <FormInput

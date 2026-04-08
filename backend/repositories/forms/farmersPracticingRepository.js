@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const {
     ValidationError,
     NotFoundError,
@@ -95,7 +96,7 @@ function mapFarmersFormToCreate(data) {
     return {
         reportingYear: parseReportingYearDate(data.reportingYear || data.year),
         farmerName: data.farmerName || '',
-        contactNumber: String(data.contactNumber || ''),
+        contactNumber: normalizeRequiredIndianMobile(data.contactNumber, 'Contact number'),
         villageName: data.villageName || '',
         address: data.address || '',
         noOfIndigenousCows: (data.noOfIndigenousCows || data.noOfAnimals) ? safeInt(data.noOfIndigenousCows || data.noOfAnimals, null) : null,
@@ -289,7 +290,9 @@ const farmersPracticingRepository = {
                         ? parseReportingYearDate(data.reportingYear || data.year)
                         : existing.reportingYear,
                     farmerName: data.farmerName !== undefined ? data.farmerName : existing.farmerName,
-                    contactNumber: data.contactNumber !== undefined ? String(data.contactNumber) : existing.contactNumber,
+                    contactNumber: data.contactNumber !== undefined
+                        ? normalizeRequiredIndianMobile(data.contactNumber, 'Contact number')
+                        : existing.contactNumber,
                     villageName: data.villageName !== undefined ? data.villageName : existing.villageName,
                     address: data.address !== undefined ? data.address : existing.address,
                     noOfIndigenousCows: (data.noOfIndigenousCows !== undefined || data.noOfAnimals !== undefined)

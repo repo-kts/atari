@@ -301,6 +301,15 @@ function errorHandlerMiddleware(error, req, res, next) {
     handleError(error, res, resource, operation);
 }
 
+/**
+ * For simple route try/catch handlers that respond with JSON { message }.
+ * Uses error.statusCode when present (e.g. ValidationError → 400).
+ */
+function sendFormRouteError(res, error) {
+    const status = (error && typeof error.statusCode === 'number') ? error.statusCode : 500;
+    res.status(status).json({ message: error.message || 'An error occurred' });
+}
+
 module.exports = {
     ValidationError,
     NotFoundError,
@@ -311,4 +320,5 @@ module.exports = {
     handleError,
     asyncHandler,
     errorHandlerMiddleware,
+    sendFormRouteError,
 };
