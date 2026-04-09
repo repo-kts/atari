@@ -4,6 +4,27 @@ model DistrictLevelData {
   reportingYear       DateTime?   @map("reporting_year")
   items               String      @map("account_type")
   information         String      @map("information")
+  
+  // Crop related fields
+  season              String?
+  type                String?
+  cropName            String?     @map("crop_name")
+  area                Float?
+  production          Float?
+  productivity        Float?
+
+  // Climate related fields
+  month               String?
+  rainfall            Float?
+  maxTemp             Float?      @map("max_temp")
+  minTemp             Float?      @map("min_temp")
+  maxRH               Float?      @map("max_rh")
+  minRH               Float?      @map("min_rh")
+
+  // Livestock related fields
+  livestockName       String?     @map("livestock_name")
+  number              Int?
+
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
   kvk                 Kvk         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
