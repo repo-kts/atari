@@ -346,6 +346,17 @@ const PROGRAMME_TYPE_MASTER = [
   'Other Activities',
 ];
 
+/** Account Type master (`account_type_master`) — Performance Indicators / District Level line items */
+const ACCOUNT_TYPE_MASTER = [
+  'Major Farming System/Enterprise',
+  'Agro Climatic Zone',
+  'Agro Ecological Situation',
+  'Soil Type',
+  'Productivity of major 2-3 crops under cereal, pulses, oilseed, vegetables, fruits and others',
+  'Mean yearly temperature, rainfall, humidity of the district',
+  'Production of major livestock products like milk, egg, meat etc',
+];
+
 /** Publication master (`publication` table) */
 const PUBLICATION_MASTER = [
   'Research Paper Published',
@@ -1136,6 +1147,23 @@ async function seedProgrammeTypeMasters() {
   console.log('   ✅ Done\n');
 }
 
+async function seedAccountTypeMasters() {
+  console.log('🌱 Account type master...');
+
+  for (const accountType of ACCOUNT_TYPE_MASTER) {
+    const existing = await prisma.accountTypeMaster.findFirst({
+      where: { accountType },
+    });
+    if (!existing) {
+      await prisma.accountTypeMaster.create({
+        data: { accountType },
+      });
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
 async function seedPublicationMasters() {
   console.log('🌱 Publication master...');
 
@@ -1477,6 +1505,7 @@ async function run() {
   await seedEnterpriseTypeMasters();
   await seedImpactSpecificAreaMasters();
   await seedProgrammeTypeMasters();
+  await seedAccountTypeMasters();
   await seedPublicationMasters();
   await seedUniversities();
   await seedAttachmentTypes();

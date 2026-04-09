@@ -80,6 +80,7 @@ const { renderScientistAwardDetailedSection } = require('./formsTemplate/achieve
 const { renderScientistAwardSummarySection } = require('./formsTemplate/achievementTemplates/scientistAwardSummaryTemplate.js');
 const { renderFarmerAwardSummarySection } = require('./formsTemplate/achievementTemplates/farmerAwardSummaryTemplate.js');
 const { renderHrdProgrammesSection } = require('./formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
+const { renderDistrictLevelDataSection } = require('./formsTemplate/districtVillageTemplates/districtLevelDataTemplate.js');
 const { renderOperationalAreaDetailsSection } = require('./formsTemplate/districtVillageTemplates/operationalAreaDetailsTemplate.js');
 const { renderVillageAdoptionProgrammeSection } = require('./formsTemplate/districtVillageTemplates/villageAdoptionProgrammeTemplate.js');
 const { renderPriorityThrustAreaSection } = require('./formsTemplate/districtVillageTemplates/priorityThrustAreaTemplate.js');
@@ -188,6 +189,7 @@ class ReportTemplateService {
             'scientist-award-summary-report': renderScientistAwardSummarySection.bind(this),
             'farmer-award-summary-report': renderFarmerAwardSummarySection.bind(this),
             'hrd-programmes-report': renderHrdProgrammesSection.bind(this),
+            'district-level-data-report': renderDistrictLevelDataSection.bind(this),
             'operational-area-details-report': renderOperationalAreaDetailsSection.bind(this),
             'village-adoption-programme-report': renderVillageAdoptionProgrammeSection.bind(this),
             'priority-thrust-area-report': renderPriorityThrustAreaSection.bind(this),

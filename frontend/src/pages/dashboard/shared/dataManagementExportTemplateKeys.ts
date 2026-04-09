@@ -83,6 +83,7 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: 'farmer-award-summary-report',
     [ENTITY_TYPES.ACHIEVEMENT_HRD]: 'hrd-programmes-report',
     [ENTITY_TYPES.PERFORMANCE_OPERATIONAL_AREA]: 'operational-area-details-report',
+    [ENTITY_TYPES.PERFORMANCE_DISTRICT_LEVEL]: 'district-level-data-report',
     [ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION]: 'village-adoption-programme-report',
     [ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST]: 'priority-thrust-area-report',
     [ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS]: 'financial-budget-details-report',

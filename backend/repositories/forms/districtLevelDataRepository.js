@@ -1,4 +1,6 @@
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const prisma = require('../../config/prisma.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const safeParseFloat = (val) => {
     const parsed = parseFloat(val);
@@ -15,7 +17,7 @@ const districtLevelDataRepository = {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.districtLevelData.create({
+        const created = await prisma.districtLevelData.create({
             data: {
                 kvkId,
                 reportingYear: (() => {
@@ -41,6 +43,8 @@ const districtLevelDataRepository = {
                 number: safeParseInt(data.number),
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('districtLevelData', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -82,7 +86,7 @@ const districtLevelDataRepository = {
         const existing = await prisma.districtLevelData.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.districtLevelData.update({
+        const updated = await prisma.districtLevelData.update({
             where: { districtLevelDataId: id },
             data: {
                 reportingYear: data.reportingYear !== undefined
@@ -110,6 +114,8 @@ const districtLevelDataRepository = {
                 number: data.number !== undefined ? safeParseInt(data.number) : existing.number,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('districtLevelData', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -120,9 +126,11 @@ const districtLevelDataRepository = {
         const existing = await prisma.districtLevelData.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.districtLevelData.delete({
+        const removed = await prisma.districtLevelData.delete({
             where: { districtLevelDataId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('districtLevelData', existing.kvkId);
+        return removed;
     }
 };
 

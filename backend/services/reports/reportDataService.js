@@ -44,6 +44,7 @@ const kvkAwardReportRepository = require('../../repositories/reports/kvkAwardRep
 const scientistAwardReportRepository = require('../../repositories/reports/scientistAwardReportRepository.js');
 const farmerAwardReportRepository = require('../../repositories/reports/farmerAwardReportRepository.js');
 const hrdProgramReportRepository = require('../../repositories/reports/hrdProgramReportRepository.js');
+const districtLevelDataReportRepository = require('../../repositories/reports/districtLevelDataReportRepository.js');
 const operationalAreaReportRepository = require('../../repositories/reports/operationalAreaReportRepository.js');
 const villageAdoptionReportRepository = require('../../repositories/reports/villageAdoptionReportRepository.js');
 const priorityThrustAreaReportRepository = require('../../repositories/reports/priorityThrustAreaReportRepository.js');
@@ -398,6 +399,12 @@ class ReportDataService {
                     sectionFilters,
                 );
                 break;
+            case 'districtLevelData':
+                rawData = await districtLevelDataReportRepository.getDistrictLevelDataReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
             case 'villageAdoption':
                 rawData = await villageAdoptionReportRepository.getVillageAdoptionReportData(
                     effectiveKvkId,
@@ -528,6 +535,7 @@ class ReportDataService {
             || dataSource === 'scientistAward'
             || dataSource === 'farmerAward'
             || dataSource === 'hrdProgram'
+            || dataSource === 'districtLevelData'
             || dataSource === 'operationalArea'
             || dataSource === 'villageAdoption'
             || dataSource === 'priorityThrustArea'

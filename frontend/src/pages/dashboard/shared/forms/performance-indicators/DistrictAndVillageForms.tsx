@@ -6,6 +6,18 @@ import { useYears, useAccountTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
+/** `items` holds account type; API or legacy payloads may send non-strings. */
+function normalizeAccountTypeItems(value: unknown): string {
+    if (value == null || value === '') return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+    if (Array.isArray(value)) {
+        const first = value[0]
+        return first == null ? '' : typeof first === 'string' ? first : String(first)
+    }
+    return String(value)
+}
+
 interface DistrictLevelDataFormsProps {
     entityType: ExtendedEntityType | null
     formData: any
@@ -32,6 +44,8 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
         () => createMasterDataOptions(accountTypes, 'accountType', 'accountType'),
         [accountTypes]
     )
+
+    const accountTypeValue = normalizeAccountTypeItems(formData.items)
 
     // Optimized onChange handlers using useCallback
     const handleFieldChange = useCallback(
@@ -70,8 +84,10 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Account Type"
                             required
-                            value={formData.items ?? ''}
-                            onChange={(value) => setFormData({ ...formData, items: value })}
+                            value={accountTypeValue}
+                            onChange={(value) =>
+                                setFormData({ ...formData, items: String(value) })
+                            }
                             options={accountTypeOptions}
                             isLoading={isLoadingAccountTypes}
                             emptyMessage="No account types available"
@@ -79,7 +95,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                     </div>
 
                     {/* Conditional Section: Crops */}
-                    {formData.items?.toLowerCase().includes('productivity of major') && (
+                    {accountTypeValue.toLowerCase().includes('productivity of major') && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <MasterDataDropdown
                                 label="Season"
@@ -134,7 +150,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                     )}
 
                     {/* Conditional Section: Climate */}
-                    {formData.items?.toLowerCase().includes('mean yearly temperature') && (
+                    {accountTypeValue.toLowerCase().includes('mean yearly temperature') && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <MasterDataDropdown
                                 label="Month"
@@ -195,7 +211,7 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                     )}
 
                     {/* Conditional Section: Livestock */}
-                    {formData.items?.toLowerCase().includes('production of major livestock') && (
+                    {accountTypeValue.toLowerCase().includes('production of major livestock') && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <FormInput
                                 label="Name of Livestock"

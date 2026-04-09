@@ -70,6 +70,7 @@ const { buildScientistAwardSummaryTabularData } = require('../services/reports/f
 const { buildScientistAwardDetailedTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardDetailedTemplate.js');
 const { buildFarmerAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/farmerAwardSummaryTemplate.js');
 const { buildHrdProgrammesTabularData } = require('../services/reports/formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
+const { buildDistrictLevelDataTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/districtLevelDataTemplate.js');
 const { buildOperationalAreaDetailsTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/operationalAreaDetailsTemplate.js');
 const { buildVillageAdoptionProgrammeTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/villageAdoptionProgrammeTemplate.js');
 const { buildPriorityThrustAreaTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/priorityThrustAreaTemplate.js');
@@ -176,6 +177,7 @@ const exportData = async (req, res) => {
         }
         if (
             (templateKey === 'operational-area-details-report'
+                || templateKey === 'district-level-data-report'
                 || templateKey === 'village-adoption-programme-report'
                 || templateKey === 'priority-thrust-area-report')
             && rawData
@@ -357,6 +359,7 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
                                                                     : templateKey === 'farmer-award-summary-report' ? '2.58'
                                                                         : templateKey === 'hrd-programmes-report' ? '2.59'
                                                                             : templateKey === 'operational-area-details-report' ? '4.22'
+                                                                                : templateKey === 'district-level-data-report' ? '4.21.1'
                                                                                 : templateKey === 'village-adoption-programme-report' ? '4.23'
                                                                                     : templateKey === 'priority-thrust-area-report' ? '4.24'
                                                                                         : templateKey === 'financial-budget-details-report' ? '4.25'
@@ -393,6 +396,9 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
     }
     if (templateKey === 'operational-area-details-report') {
         return buildOperationalAreaDetailsTabularData(rawData);
+    }
+    if (templateKey === 'district-level-data-report') {
+        return buildDistrictLevelDataTabularData(rawData);
     }
     if (templateKey === 'village-adoption-programme-report') {
         return buildVillageAdoptionProgrammeTabularData(rawData);
