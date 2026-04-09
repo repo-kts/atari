@@ -91,6 +91,9 @@ export interface TechnicalAchievementSummaryData {
       achievement: number
       participants: ParticipantAchievement
     }
+    publications?: {
+      rows: Array<{ publication: string; count: number }>
+    }
   }
 }
 

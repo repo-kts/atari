@@ -1,7 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const reportDataService = require('./reportDataService.js');
 const { getRoleLevel } = require('../../constants/roleHierarchy.js');
-const cacheService = require('../cache/redisCacheService.js');
+const cacheService = require('../cache/redisCacheService.js'); 
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
 const { getAggregatedReportTTL } = require('../../config/cacheConfig.js');
 
@@ -290,6 +290,198 @@ class ReportAggregationService {
                 data: allRows,
                 metadata: {
                     recordCount: allRows.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'fldStateCategoryReport') {
+            const { buildPayloadFromRecords } = require('../../repositories/reports/fldStateCategoryReport/fldStateCategoryReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const payload = buildPayloadFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { payload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'trainingCapacityReport') {
+            const { buildPayloadFromRecords } = require('../../repositories/reports/trainingCapacityReport/trainingCapacityReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const payload = buildPayloadFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { payload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'extensionOutreachReport') {
+            const { buildPayloadFromRecords } = require('../../repositories/reports/extensionOutreachReport/extensionOutreachReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const payload = buildPayloadFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { payload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'otherExtensionContentReport') {
+            const { buildMatrixPayloadFromRecords } = require('../../repositories/reports/otherExtensionContentReport/otherExtensionContentReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const matrixPayload = buildMatrixPayloadFromRecords(allRecords, null);
+            return {
+                sectionId,
+                data: { matrixPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'technologyWeekCelebrationReport') {
+            const { buildStateSummaryFromRecords } = require('../../repositories/reports/technologyWeekCelebrationReport/technologyWeekCelebrationReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const stateSummaryPayload = buildStateSummaryFromRecords(allRecords);
+            return {
+                sectionId,
+                data: { stateSummaryPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'celebrationDaysReport') {
+            const { buildStateMatrixFromRecords } = require('../../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const matrixPayload = buildStateMatrixFromRecords(allRecords, null);
+            return {
+                sectionId,
+                data: { matrixPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'productionSupplyReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'soilWaterEquipmentReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'worldSoilDayReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'soilWaterAnalysisReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
                     lastUpdated: new Date(),
                     filters: {},
                 },

@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
 const isKvkUser = (user) => user && (KVK_ROLES.includes(user.roleName) || user.kvkId);
@@ -264,7 +265,12 @@ const physicalInfoRepository = {
         const records = await prisma.physicalInfo.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true } },
+                kvk: {
+                    select: {
+                        kvkName: true,
+                        state: { select: { stateName: true } },
+                    },
+                },
                 activityMaster: true,
             },
             orderBy: { physicalInfoId: 'desc' }
@@ -274,6 +280,7 @@ const physicalInfoRepository = {
             ...r,
             id: r.physicalInfoId,
             kvkName: r.kvk?.kvkName,
+            stateName: r.kvk?.state?.stateName || '',
             activityName: r.activityMaster?.activityName || null,
             genMale: r.generalM,
             genFemale: r.generalF,
@@ -378,7 +385,7 @@ const demonstrationInfoRepository = {
             farmerName: data.farmerName || '',
             villageName: data.villageName || '',
             address: data.address || '',
-            contactNumber: String(data.contactNumber || ''),
+            contactNumber: normalizeRequiredIndianMobile(data.contactNumber, 'Contact number'),
             staffCategoryId: await resolveStaffCategory(data.staffCategoryId || data.staffCategoryName),
             noOfIndigenousCows: (data.noOfIndigenousCows || data.noOfAnimals) ? safeInt(data.noOfIndigenousCows || data.noOfAnimals, null) : null,
             landHolding: data.landHolding ? safeFloat(data.landHolding, null) : null,
@@ -474,7 +481,7 @@ const demonstrationInfoRepository = {
         const records = await prisma.demonstrationInfo.findMany({
             where,
             include: {
-                kvk: { select: { kvkName: true, stateId: true } },
+                kvk: { select: { kvkName: true, stateId: true, state: { select: { stateName: true } } } },
                 season: true,
                 staffCategory: { select: { categoryName: true } },
             },
@@ -487,6 +494,7 @@ const demonstrationInfoRepository = {
             reportingYear: formatReportingYear(r.reportingYear),
             kvkName: r.kvk?.kvkName,
             stateId: r.kvk?.stateId,
+            stateName: r.kvk?.state?.stateName || null,
             staffCategoryId: r.staffCategoryId,
             staffCategoryName: r.staffCategory?.categoryName || null,
             category: r.category === 'GENERAL' ? 'General' : r.category,
@@ -593,7 +601,7 @@ const demonstrationInfoRepository = {
         const r = await prisma.demonstrationInfo.findFirst({
             where,
             include: {
-                kvk: { select: { kvkName: true, stateId: true } },
+                kvk: { select: { kvkName: true, stateId: true, state: { select: { stateName: true } } } },
                 season: true,
                 staffCategory: { select: { categoryName: true } },
             }
@@ -606,6 +614,7 @@ const demonstrationInfoRepository = {
             reportingYear: formatReportingYear(r.reportingYear),
             kvkName: r.kvk?.kvkName,
             stateId: r.kvk?.stateId,
+            stateName: r.kvk?.state?.stateName || null,
             staffCategoryId: r.staffCategoryId,
             staffCategoryName: r.staffCategory?.categoryName || null,
             category: r.category === 'GENERAL' ? 'General' : r.category,
@@ -722,7 +731,9 @@ const demonstrationInfoRepository = {
                 farmerName: data.farmerName !== undefined ? data.farmerName : existing.farmerName,
                 villageName: data.villageName !== undefined ? data.villageName : existing.villageName,
                 address: data.address !== undefined ? data.address : existing.address,
-                contactNumber: data.contactNumber !== undefined ? String(data.contactNumber) : existing.contactNumber,
+                contactNumber: data.contactNumber !== undefined
+                    ? normalizeRequiredIndianMobile(data.contactNumber, 'Contact number')
+                    : existing.contactNumber,
                 staffCategoryId: (data.staffCategoryId !== undefined || data.staffCategoryName !== undefined) ? await resolveStaffCategory(data.staffCategoryId ?? data.staffCategoryName) : existing.staffCategoryId,
                 noOfIndigenousCows: (data.noOfIndigenousCows || data.noOfAnimals) !== undefined ? safeInt(data.noOfIndigenousCows || data.noOfAnimals, null) : existing.noOfIndigenousCows,
                 landHolding: data.landHolding !== undefined ? safeFloat(data.landHolding, null) : existing.landHolding,
@@ -921,6 +932,7 @@ const soilDataRepository = {
             season: r.season?.seasonName,
             seasonId: r.seasonId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
+            parameterName: r.soilParameterMaster?.parameterName || null,
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,
@@ -961,6 +973,7 @@ const soilDataRepository = {
             season: r.season?.seasonName,
             seasonId: r.seasonId,
             reportingYear: formatLegacyYearResponse(r.reportingYearDate, r.year),
+            parameterName: r.soilParameterMaster?.parameterName || null,
             type: r.soilParameterMaster?.parameterName || null,
             soilParameter: r.soilParameterMaster?.parameterName || null,
             soilParameterId: r.soilParameterId,

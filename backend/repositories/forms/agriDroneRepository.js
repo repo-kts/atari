@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { normalizeOptionalIndianMobile } = require('../../utils/validation.js');
 
 const agriDroneRepository = {
     create: async (data, user) => {
@@ -13,6 +14,16 @@ const agriDroneRepository = {
 
         const reportingYear = parseReportingYearDate(data.reportingYear);
         ensureNotFutureDate(reportingYear);
+
+        let pilotContact = '';
+        const rawPilot = data.pilotContact ?? '';
+        if (String(rawPilot).trim() !== '') {
+            try {
+                pilotContact = normalizeOptionalIndianMobile(rawPilot, 'Pilot contact') || '';
+            } catch (e) {
+                throw new Error(e.message);
+            }
+        }
 
         const result = await prisma.$queryRawUnsafe(`
             INSERT INTO kvk_agri_drone (
@@ -38,7 +49,7 @@ const agriDroneRepository = {
             data.droneCompany ?? '',
             data.droneModel ?? '',
             data.pilotName ?? '',
-            data.pilotContact ?? '',
+            pilotContact,
             parseFloat(data.targetArea ?? data.targetAreaHa ?? 0),
             parseFloat(data.demoAmountSanctioned || 0),
             parseFloat(data.demoAmountUtilised || 0),
@@ -111,7 +122,18 @@ const agriDroneRepository = {
         if (data.droneCompany !== undefined) updateData.drone_company = data.droneCompany;
         if (data.droneModel !== undefined) updateData.drone_model = data.droneModel;
         if (data.pilotName !== undefined) updateData.pilot_name = data.pilotName;
-        if (data.pilotContact !== undefined) updateData.pilot_contact = data.pilotContact;
+        if (data.pilotContact !== undefined) {
+            const raw = data.pilotContact;
+            if (String(raw ?? '').trim() === '') {
+                updateData.pilot_contact = '';
+            } else {
+                try {
+                    updateData.pilot_contact = normalizeOptionalIndianMobile(raw, 'Pilot contact') || '';
+                } catch (e) {
+                    throw new Error(e.message);
+                }
+            }
+        }
         const targetArea = data.targetArea ?? data.targetAreaHa;
         if (targetArea !== undefined) updateData.target_area_ha = parseFloat(targetArea);
         if (data.demoAmountSanctioned !== undefined) updateData.demo_amount_sanctioned = parseFloat(data.demoAmountSanctioned);

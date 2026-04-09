@@ -1,10 +1,12 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { parseYearOfEstablishment, parseBoundedCountInt } = require('../../utils/formIntValidation.js');
+const { ValidationError } = require('../../utils/errorHandler.js');
 
 const entrepreneurshipRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
-        if (!kvkId) throw new Error('Valid kvkId is required');
+        if (!kvkId) throw new ValidationError('Valid kvkId is required', 'kvkId');
 
         return await prisma.entrepreneurship.create({
             data: {
@@ -16,9 +18,9 @@ const entrepreneurshipRepository = {
                 })(),
                 entrepreneurName: data.entrepreneurName,
                 registeredAddress: data.registeredAddress,
-                yearOfEstablishment: parseInt(data.yearOfEstablishment || 0),
+                yearOfEstablishment: parseYearOfEstablishment(data.yearOfEstablishment),
                 enterpriseType: data.enterpriseType,
-                membersAssociated: parseInt(data.membersAssociated || 0),
+                membersAssociated: parseBoundedCountInt(data.membersAssociated, 'Members associated'),
                 registrationDetails: data.registrationDetails,
                 technicalComponents: data.technicalComponents,
                 kvkRole: data.kvkRole,
@@ -83,9 +85,13 @@ const entrepreneurshipRepository = {
                     : existing.reportingYear,
                 entrepreneurName: data.entrepreneurName !== undefined ? data.entrepreneurName : existing.entrepreneurName,
                 registeredAddress: data.registeredAddress !== undefined ? data.registeredAddress : existing.registeredAddress,
-                yearOfEstablishment: data.yearOfEstablishment !== undefined ? parseInt(data.yearOfEstablishment || 0) : existing.yearOfEstablishment,
+                yearOfEstablishment: data.yearOfEstablishment !== undefined
+                    ? parseYearOfEstablishment(data.yearOfEstablishment)
+                    : existing.yearOfEstablishment,
                 enterpriseType: data.enterpriseType !== undefined ? data.enterpriseType : existing.enterpriseType,
-                membersAssociated: data.membersAssociated !== undefined ? parseInt(data.membersAssociated || 0) : existing.membersAssociated,
+                membersAssociated: data.membersAssociated !== undefined
+                    ? parseBoundedCountInt(data.membersAssociated, 'Members associated')
+                    : existing.membersAssociated,
                 registrationDetails: data.registrationDetails !== undefined ? data.registrationDetails : existing.registrationDetails,
                 technicalComponents: data.technicalComponents !== undefined ? data.technicalComponents : existing.technicalComponents,
                 kvkRole: data.kvkRole !== undefined ? data.kvkRole : existing.kvkRole,

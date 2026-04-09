@@ -6,6 +6,7 @@ import { useFileHandling } from '@/hooks/useFileHandling'
 import { useYears, usePpvFraTrainingTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface PPVFRASensitizationFormsProps {
     entityType: ExtendedEntityType | null
@@ -239,6 +240,13 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                         />
 
                         <FormInput
+                            label="Registration No."
+                            value={formData.registrationNo ?? ''}
+                            onChange={handleFieldChange('registrationNo')}
+                            placeholder="e.g. REG/2024/0732"
+                        />
+
+                        <FormInput
                             label="Farmer Name"
                             required
                             value={formData.farmerName ?? ''}
@@ -252,8 +260,12 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                             label="Mobile No."
                             required
                             value={formData.mobile ?? ''}
-                            onChange={handleFieldChange('mobile')}
-                            placeholder="Enter mobile number"
+                            onChange={(e) =>
+                                setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                            }
+                            placeholder="10-digit mobile"
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
 
                         <FormInput

@@ -33,6 +33,18 @@ function buildWhere(kvkId, filters = {}) {
     return where;
 }
 
+function mapResultRow(r) {
+    return {
+        productName: r.productName || '',
+        amountProduced: Number(r.amountProduced || 0),
+        marketPrice: Number(r.marketPrice || 0),
+        netIncome: Number(r.netIncome || 0),
+        shelfLife: r.shelfLife || '',
+        fssaiCertified: r.fssaiCertified || '',
+        reportingYear: r.reportingYear || null,
+    };
+}
+
 function mapRecord(record) {
     const generalM = Number(record.generalM || 0);
     const generalF = Number(record.generalF || 0);
@@ -44,6 +56,7 @@ function mapRecord(record) {
     const stF = Number(record.stF || 0);
     const totalM = generalM + obcM + scM + stM;
     const totalF = generalF + obcF + scF + stF;
+    const nameOfCrop = record.nameOfCrop || '';
 
     return {
         nariValueAdditionId: record.nariValueAdditionId,
@@ -52,7 +65,8 @@ function mapRecord(record) {
         stateName: record.kvk?.state?.stateName || '',
         districtName: record.kvk?.district?.districtName || '',
         nameOfNutriSmartVillage: record.nameOfNutriSmartVillage || '',
-        nameOfCrop: record.nameOfCrop || '',
+        nameOfCrop,
+        cropName: nameOfCrop,
         nameOfValueAddedProduct: record.nameOfValueAddedProduct || '',
         activityName: record.activity?.activityName || '',
         generalM,
@@ -67,6 +81,7 @@ function mapRecord(record) {
         totalF,
         totalT: totalM + totalF,
         reportingYear: record.reportingYear || null,
+        results: Array.isArray(record.results) ? record.results.map(mapResultRow) : [],
     };
 }
 
@@ -83,6 +98,7 @@ async function getNariValueAdditionData(kvkId, filters = {}) {
                 },
             },
             activity: { select: { activityName: true } },
+            results: { orderBy: { nariValueAdditionResultId: 'asc' } },
         },
         orderBy: [{ reportingYear: 'asc' }, { nariValueAdditionId: 'asc' }],
     });

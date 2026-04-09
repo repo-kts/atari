@@ -113,6 +113,7 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             options={analysisOptions}
                             emptyMessage="No soil water analysis types available. Add them from All Masters."
                         />
+                        {/* hard coded options for samples analyzed through */}
                         <FormSelect
                             label="Samples analyzed Through"
                             required

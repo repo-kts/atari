@@ -1,12 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const priorityThrustAreaRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.priorityThrustArea.create({
+        const created = await prisma.priorityThrustArea.create({
             data: {
                 kvkId,
                 reportingYear: (() => {
@@ -17,6 +18,8 @@ const priorityThrustAreaRepository = {
                 thrustArea: data.thrustArea,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('priorityThrustArea', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -58,7 +61,7 @@ const priorityThrustAreaRepository = {
         const existing = await prisma.priorityThrustArea.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.priorityThrustArea.update({
+        const updated = await prisma.priorityThrustArea.update({
             where: { priorityThrustAreaId: id },
             data: {
                 reportingYear: data.reportingYear !== undefined
@@ -71,6 +74,8 @@ const priorityThrustAreaRepository = {
                 thrustArea: data.thrustArea !== undefined ? data.thrustArea : existing.thrustArea,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('priorityThrustArea', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -81,9 +86,11 @@ const priorityThrustAreaRepository = {
         const existing = await prisma.priorityThrustArea.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.priorityThrustArea.delete({
+        const removed = await prisma.priorityThrustArea.delete({
             where: { priorityThrustAreaId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('priorityThrustArea', existing.kvkId);
+        return removed;
     }
 };
 

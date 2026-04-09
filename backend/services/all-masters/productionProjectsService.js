@@ -15,9 +15,10 @@ class ProductionProjectsService {
     async getAll(entityName, options = {}) {
         const result = await productionProjectsRepository.findAll(entityName, options);
         return {
-            ...result,
-            page: options.page || 1,
-            limit: options.limit || 100,
+            data: result.data,
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
         };
     }
 

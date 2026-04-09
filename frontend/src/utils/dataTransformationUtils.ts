@@ -419,6 +419,18 @@ const ENTITY_TRANSFORMATION_RULES: Partial<Record<ExtendedEntityType, Transforma
             return transformed;
         }
     },
+    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]: {
+        transform: (data: any) => {
+            const transformed = { ...data };
+            if (Array.isArray(data.images)) {
+                transformed.images = JSON.stringify(data.images.map((p: any) => ({
+                    image: p.image,
+                    caption: p.caption || ''
+                })));
+            }
+            return transformed;
+        }
+    },
     [ENTITY_TYPES.ACHIEVEMENT_AWARD_FARMER]: {
         transform: (data: any) => {
             const transformed = { ...data };

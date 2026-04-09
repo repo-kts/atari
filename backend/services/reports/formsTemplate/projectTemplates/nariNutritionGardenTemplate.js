@@ -48,7 +48,25 @@ function renderNariNutritionGardenSection(section, data, sectionId, isFirstSecti
         `;
     }).join('');
 
+    // Second table: crop-level rows from NariNutritionalGardenResult (per garden header row)
+    let productionSr = 1;
     const productionRows = [];
+    rows.forEach((row) => {
+        const resultList = Array.isArray(row.results) ? row.results : [];
+        resultList.forEach((r) => {
+            productionRows.push(`
+            <tr>
+                <td>${productionSr++}</td>
+                <td>${this._escapeHtml(r.cropName || '-')}</td>
+                <td>${this._escapeHtml(r.variety || '-')}</td>
+                <td>${formatNum(r.areaSqm)}</td>
+                <td>${formatNum(r.productionKg)}</td>
+                <td>${formatNum(r.consumptionKg)}</td>
+                <td>${formatNum(r.sellKg)}</td>
+                <td>${formatNum(r.income)}</td>
+            </tr>`);
+        });
+    });
     const productionBody = productionRows.length > 0
         ? productionRows.join('')
         : `<tr><td colspan="8" style="text-align:center;">No record found</td></tr>`;
@@ -105,7 +123,7 @@ function renderNariNutritionGardenSection(section, data, sectionId, isFirstSecti
                 <th>Production(kg)</th>
                 <th>Consumption(kg)</th>
                 <th>Sell of Produce(kg)</th>
-                <th>Income from Sell of Produce(kg)</th>
+                <th>Income from Sell of Produce (Rs)</th>
             </tr>
         </thead>
         <tbody>${productionBody}</tbody>

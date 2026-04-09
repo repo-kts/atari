@@ -1,0 +1,56 @@
+model FarmersPracticingNaturalFarming {
+  farmersPracticingId String @id @default(uuid()) @map("farmers_practicing_id") @db.Uuid
+  kvkId               Int @map("kvk_id")
+
+  reportingYear                              DateTime? @map("reporting_year")
+  farmerName                                 String    @map("farmer_name")
+  contactNumber                              String    @map("contact_number")
+  villageName                                String    @map("village_name")
+  address                                    String
+  noOfIndigenousCows                         Int?      @map("no_of_indigenous_cows")
+  landHolding                                Float?    @map("land_holding")
+  normalCropsGrown                           Int?      @map("normal_crops_grown")
+  practicingYearsOfNaturalFarming            String?   @map("practicing_years_of_natural_farming")
+  areaCoveredUnderNaturalFarming             Float     @default(0) @map("area_covered_under_natural_farming")
+  cropGrownUnderNaturalFarming               String    @default("") @map("crop_grown_under_natural_farming")
+  naturalFarmingTechnologyPracticingAdopted  String    @default("") @map("natural_farming_technology_practicing_adopted")
+
+  plantHeightWithout            Float? @map("plant_height_without")
+  plantHeightWith               Float? @map("plant_height_with")
+  otherRelevantParameterWithout Float? @map("other_relevant_parameter_without")
+  otherRelevantParameterWith    Float? @map("other_relevant_parameter_with")
+  yieldWithout                  Float? @map("yield_without")
+  yieldWith                     Float? @map("yield_with")
+  costWithout                   Float? @map("cost_without")
+  costWith                      Float? @map("cost_with")
+  grossReturnWithout            Float? @map("gross_return_without")
+  grossReturnWith               Float? @map("gross_return_with")
+  netReturnWithout              Float? @map("net_return_without")
+  netReturnWith                 Float? @map("net_return_with")
+  bcRatioWithout                Float? @map("bc_ratio_without")
+  bcRatioWith                   Float? @map("bc_ratio_with")
+  soilPhWithout                 Float? @map("soil_ph_without")
+  soilPhWith                    Float? @map("soil_ph_with")
+  soilOcWithout                 Float? @map("soil_oc_without")
+  soilOcWith                    Float? @map("soil_oc_with")
+  soilEcWithout                 Float? @map("soil_ec_without")
+  soilEcWith                    Float? @map("soil_ec_with")
+  availableNWithout             Float? @map("available_n_without")
+  availableNWith                Float? @map("available_n_with")
+  availablePWithout             Float? @map("available_p_without")
+  availablePWith                Float? @map("available_p_with")
+  availableKWithout             Float? @map("available_k_without")
+  availableKWith                Float? @map("available_k_with")
+  soilMicrobesWithout           Float? @map("soil_microbes_without")
+  soilMicrobesWith              Float? @map("soil_microbes_with")
+  anyOtherWithout               Float? @map("any_other_without")
+  anyOtherWith                  Float? @map("any_other_with")
+
+  farmerFeedback String  @default("") @map("farmer_feedback")
+  images         String?
+
+  kvk Kvk @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+
+  @@index([kvkId])
+  @@map("farmers_practicing_natural_farming")
+}

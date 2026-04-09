@@ -26,6 +26,7 @@ import type {
     CfldCropFormData,
     OftFldStats,
 } from '../types/oftFld';
+import { masterListQuery } from '../config/masterListPagination';
 
 const BASE_URL = '/admin/masters';
 
@@ -37,7 +38,7 @@ export const oftFldApi = {
     // OFT Subject APIs
     // ============================================
     getOftSubjects: () =>
-        apiClient.get<PaginatedResponse<OftSubject>>(`${BASE_URL}/oft/subjects`),
+        apiClient.get<PaginatedResponse<OftSubject>>(`${BASE_URL}/oft/subjects${masterListQuery()}`),
 
     getOftSubjectById: (id: number) =>
         apiClient.get<ApiResponse<OftSubject>>(`${BASE_URL}/oft/subjects/${id}`),
@@ -55,7 +56,7 @@ export const oftFldApi = {
     // OFT Thematic Area APIs
     // ============================================
     getOftThematicAreas: () =>
-        apiClient.get<PaginatedResponse<OftThematicArea>>(`${BASE_URL}/oft/thematic-areas`),
+        apiClient.get<PaginatedResponse<OftThematicArea>>(`${BASE_URL}/oft/thematic-areas${masterListQuery()}`),
 
     getOftThematicAreaById: (id: number) =>
         apiClient.get<ApiResponse<OftThematicArea>>(`${BASE_URL}/oft/thematic-areas/${id}`),
@@ -76,7 +77,7 @@ export const oftFldApi = {
     // FLD Sector APIs
     // ============================================
     getSectors: () =>
-        apiClient.get<PaginatedResponse<Sector>>(`${BASE_URL}/fld/sectors`),
+        apiClient.get<PaginatedResponse<Sector>>(`${BASE_URL}/fld/sectors${masterListQuery()}`),
 
     getSectorById: (id: number) =>
         apiClient.get<ApiResponse<Sector>>(`${BASE_URL}/fld/sectors/${id}`),
@@ -94,7 +95,7 @@ export const oftFldApi = {
     // FLD Thematic Area APIs
     // ============================================
     getFldThematicAreas: () =>
-        apiClient.get<PaginatedResponse<FldThematicArea>>(`${BASE_URL}/fld/thematic-areas`),
+        apiClient.get<PaginatedResponse<FldThematicArea>>(`${BASE_URL}/fld/thematic-areas${masterListQuery()}`),
 
     getFldThematicAreaById: (id: number) =>
         apiClient.get<ApiResponse<FldThematicArea>>(`${BASE_URL}/fld/thematic-areas/${id}`),
@@ -115,7 +116,7 @@ export const oftFldApi = {
     // FLD Category APIs
     // ============================================
     getFldCategories: () =>
-        apiClient.get<PaginatedResponse<FldCategory>>(`${BASE_URL}/fld/categories`),
+        apiClient.get<PaginatedResponse<FldCategory>>(`${BASE_URL}/fld/categories${masterListQuery()}`),
 
     getFldCategoryById: (id: number) =>
         apiClient.get<ApiResponse<FldCategory>>(`${BASE_URL}/fld/categories/${id}`),
@@ -136,7 +137,7 @@ export const oftFldApi = {
     // FLD Subcategory APIs
     // ============================================
     getFldSubcategories: () =>
-        apiClient.get<PaginatedResponse<FldSubcategory>>(`${BASE_URL}/fld/subcategories`),
+        apiClient.get<PaginatedResponse<FldSubcategory>>(`${BASE_URL}/fld/subcategories${masterListQuery()}`),
 
     getFldSubcategoryById: (id: number) =>
         apiClient.get<ApiResponse<FldSubcategory>>(`${BASE_URL}/fld/subcategories/${id}`),
@@ -157,7 +158,7 @@ export const oftFldApi = {
     // FLD Crop APIs
     // ============================================
     getFldCrops: () =>
-        apiClient.get<PaginatedResponse<FldCrop>>(`${BASE_URL}/fld/crops`),
+        apiClient.get<PaginatedResponse<FldCrop>>(`${BASE_URL}/fld/crops${masterListQuery()}`),
 
     getFldCropById: (id: number) =>
         apiClient.get<ApiResponse<FldCrop>>(`${BASE_URL}/fld/crops/${id}`),
@@ -178,7 +179,7 @@ export const oftFldApi = {
     // FLD Activity APIs
     // ============================================
     getFldActivities: () =>
-        apiClient.get<PaginatedResponse<FldActivity>>(`${BASE_URL}/fld/activities`),
+        apiClient.get<PaginatedResponse<FldActivity>>(`${BASE_URL}/fld/activities${masterListQuery()}`),
 
     getFldActivityById: (id: number) =>
         apiClient.get<ApiResponse<FldActivity>>(`${BASE_URL}/fld/activities/${id}`),
@@ -196,7 +197,7 @@ export const oftFldApi = {
     // Season APIs
     // ============================================
     getSeasons: () =>
-        apiClient.get<PaginatedResponse<Season>>(`${BASE_URL}/seasons`),
+        apiClient.get<PaginatedResponse<Season>>(`${BASE_URL}/seasons${masterListQuery()}`),
 
     getSeasonById: (id: number) =>
         apiClient.get<ApiResponse<Season>>(`${BASE_URL}/seasons/${id}`),
@@ -214,7 +215,7 @@ export const oftFldApi = {
     // CropType APIs
     // ============================================
     getCropTypes: () =>
-        apiClient.get<PaginatedResponse<CropType>>(`${BASE_URL}/crop-types`),
+        apiClient.get<PaginatedResponse<CropType>>(`${BASE_URL}/crop-types${masterListQuery()}`),
 
     getCropTypeById: (id: number) =>
         apiClient.get<ApiResponse<CropType>>(`${BASE_URL}/crop-types/${id}`),
@@ -232,7 +233,7 @@ export const oftFldApi = {
     // CFLD Crop APIs
     // ============================================
     getCfldCrops: () =>
-        apiClient.get<PaginatedResponse<CfldCrop>>(`${BASE_URL}/cfld/crops`),
+        apiClient.get<PaginatedResponse<CfldCrop>>(`${BASE_URL}/cfld/crops${masterListQuery()}`),
 
     getCfldCropById: (id: number) =>
         apiClient.get<ApiResponse<CfldCrop>>(`${BASE_URL}/cfld/crops/${id}`),

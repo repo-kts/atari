@@ -115,10 +115,53 @@ function validatePhoneNumber(phoneNumber) {
   };
 }
 
+/**
+ * Normalize optional Indian mobile: empty → null; otherwise 10 digits [6-9]…
+ * @param {*} value
+ * @param {string} [fieldName]
+ * @returns {string|null}
+ * @throws {Error} if non-empty but invalid
+ */
+function normalizeOptionalIndianMobile(value, fieldName = 'Mobile') {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const cleaned = String(value).replace(/[\s\-()]/g, '');
+  if (cleaned === '') {
+    return null;
+  }
+  const r = validatePhoneNumber(cleaned);
+  if (!r.valid) {
+    throw new Error(`${fieldName}: ${r.errors[0]}`);
+  }
+  return cleaned;
+}
+
+/**
+ * Required Indian mobile (10 digits, starts with 6–9).
+ * @param {*} value
+ * @param {string} [fieldName]
+ * @returns {string}
+ * @throws {Error}
+ */
+function normalizeRequiredIndianMobile(value, fieldName = 'Mobile') {
+  const cleaned = String(value ?? '').replace(/[\s\-()]/g, '');
+  if (!cleaned) {
+    throw new Error(`${fieldName} is required`);
+  }
+  const r = validatePhoneNumber(cleaned);
+  if (!r.valid) {
+    throw new Error(`${fieldName}: ${r.errors[0]}`);
+  }
+  return cleaned;
+}
+
 module.exports = {
   validateEmail,
   validatePassword,
   sanitizeInput,
   validateRoleId,
   validatePhoneNumber,
+  normalizeOptionalIndianMobile,
+  normalizeRequiredIndianMobile,
 };

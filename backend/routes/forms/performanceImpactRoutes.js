@@ -5,6 +5,7 @@ const entrepreneurshipRepository = require('../../repositories/forms/entrepreneu
 const successStoryRepository = require('../../repositories/forms/successStoryRepository');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService');
 const { authenticateToken, requireRole } = require('../../middleware/auth');
+const { sendFormRouteError } = require('../../utils/errorHandler.js');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -19,7 +20,7 @@ router.get('/kvk-activities', requireRole(allRoles), async (req, res) => {
         const data = await kvkImpactActivityRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -29,7 +30,7 @@ router.post('/kvk-activities', requireRole([...kvkRoles, 'super_admin']), async 
         await reportCacheInvalidationService.invalidateDataSourceForKvk('kvkImpactActivity', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -39,7 +40,7 @@ const updateKvkActivities = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('kvkImpactActivity', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), updateKvkActivities);
@@ -52,7 +53,7 @@ router.delete('/kvk-activities/:id', requireRole([...kvkRoles, 'super_admin']), 
         await reportCacheInvalidationService.invalidateDataSourceForKvk('kvkImpactActivity', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -62,7 +63,7 @@ router.get('/entrepreneurship', requireRole(allRoles), async (req, res) => {
         const data = await entrepreneurshipRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -72,7 +73,7 @@ router.post('/entrepreneurship', requireRole([...kvkRoles, 'super_admin']), asyn
         await reportCacheInvalidationService.invalidateDataSourceForKvk('entrepreneurship', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -82,7 +83,7 @@ const updateEntrepreneurship = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('entrepreneurship', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin']), updateEntrepreneurship);
@@ -95,7 +96,7 @@ router.delete('/entrepreneurship/:id', requireRole([...kvkRoles, 'super_admin'])
         await reportCacheInvalidationService.invalidateDataSourceForKvk('entrepreneurship', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -105,7 +106,7 @@ router.get('/success-stories', requireRole(allRoles), async (req, res) => {
         const data = await successStoryRepository.findAll(req.query, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -115,7 +116,7 @@ router.post('/success-stories', requireRole([...kvkRoles, 'super_admin']), async
         await reportCacheInvalidationService.invalidateDataSourceForKvk('successStory', data?.kvkId || req.user?.kvkId);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 
@@ -125,7 +126,7 @@ const updateSuccessStories = async (req, res) => {
         await reportCacheInvalidationService.invalidateDataSourceForKvk('successStory', data?.kvkId || req.user?.kvkId);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 };
 router.put('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']), updateSuccessStories);
@@ -138,7 +139,7 @@ router.delete('/success-stories/:id', requireRole([...kvkRoles, 'super_admin']),
         await reportCacheInvalidationService.invalidateDataSourceForKvk('successStory', existing?.kvkId || req.user?.kvkId);
         res.json({ message: 'Deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        sendFormRouteError(res, error);
     }
 });
 

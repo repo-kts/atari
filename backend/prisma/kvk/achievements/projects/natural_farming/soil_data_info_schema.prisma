@@ -32,7 +32,7 @@ model SoilDataInformation {
   @@map("soil_data_information")
 }
 
-model NaturalFarmingSoilParameterMaster {
+model NaturalFarmingSoilParameterMaster { 
   naturalFarmingSoilParameterId Int                   @id @default(autoincrement()) @map("natural_farming_soil_parameter_id")
   parameterName                 String                @unique @map("parameter_name")
   soilDataInformations          SoilDataInformation[]

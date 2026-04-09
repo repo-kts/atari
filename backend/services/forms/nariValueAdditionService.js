@@ -1,5 +1,18 @@
+const prisma = require('../../config/prisma.js');
 const nariValueAdditionRepository = require('../../repositories/forms/nariValueAdditionRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+
+async function invalidateReportCacheForValueAdditionId(valueAdditionId) {
+    const id = parseInt(String(valueAdditionId), 10);
+    if (!Number.isFinite(id)) return;
+    const row = await prisma.nariValueAddition.findUnique({
+        where: { nariValueAdditionId: id },
+        select: { kvkId: true },
+    });
+    if (row?.kvkId != null) {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nariValueAddition', row.kvkId);
+    }
+}
 
 const nariValueAdditionService = {
     create: async (data, user) => {
@@ -35,12 +48,16 @@ const nariValueAdditionService = {
     },
 
     createResult: async (id, data) => {
-        return await nariValueAdditionRepository.createResult(id, data);
+        const result = await nariValueAdditionRepository.createResult(id, data);
+        await invalidateReportCacheForValueAdditionId(id);
+        return result;
     },
 
     updateResult: async (id, data) => {
-        return await nariValueAdditionRepository.updateResult(id, data);
-    }
+        const result = await nariValueAdditionRepository.updateResult(id, data);
+        await invalidateReportCacheForValueAdditionId(id);
+        return result;
+    },
 };
 
 module.exports = nariValueAdditionService;

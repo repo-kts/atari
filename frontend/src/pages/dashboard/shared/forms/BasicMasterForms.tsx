@@ -6,6 +6,7 @@ import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { Zone, State, District, Organization } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { masterDataApi } from '@/services/masterDataApi'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface BasicMasterFormsProps {
     entityType: ExtendedEntityType | null
@@ -379,8 +380,15 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         <FormInput
                             label="Mobile Number"
                             value={formData.hostMobile ?? ''}
-                            onChange={(e) => setFormData((prev: any) => ({ ...prev, hostMobile: e.target.value }))}
-                            placeholder="Enter mobile number"
+                            onChange={(e) =>
+                                setFormData((prev: any) => ({
+                                    ...prev,
+                                    hostMobile: cleanIndianMobileInput(e.target.value),
+                                }))
+                            }
+                            placeholder="10-digit mobile"
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
                         <FormInput
                             label="Landline"

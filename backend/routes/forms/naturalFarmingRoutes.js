@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const naturalFarmingService = require('../../services/forms/naturalFarmingService');
 const { authenticateToken, requireRole } = require('../../middleware/auth');
+const { handleError } = require('../../utils/errorHandler');
 
 router.use(authenticateToken);
 
@@ -99,35 +100,34 @@ router.delete('/demonstration/:id', requireRole([...kvkRoles, 'super_admin']), a
     }
 });
 
-// ───── Farmers Practicing (uses Demonstration Info model, different endpoint) ─
-// Note: Farmers Practicing uses the same DemonstrationInfo model via a type flag.
-// You can extend this if a separate FarmersPracticing model exists.
+// ───── Farmers Practicing (dedicated farmers_practicing_natural_farming table, UUID PK) ─
 router.get('/farmers', requireRole(allRoles), async (req, res) => {
-    try { res.json(await naturalFarmingService.getAllDemo({ ...req.query, type: 'PRACTICING' }, req.user)); }
-    catch (e) {
-        console.error("Natural Farming API Error:", e);
-        res.status(500).json({ message: e.message });
+    try {
+        res.json(await naturalFarmingService.getAllFarmersPracticing(req.query, req.user));
+    } catch (e) {
+        handleError(e, res, 'Farmers practicing records', 'list');
     }
 });
 router.post('/farmers', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
-    try { res.status(201).json(await naturalFarmingService.createDemo({ ...req.body, type: 'PRACTICING' }, req.user)); }
-    catch (e) {
-        console.error("Natural Farming API Error:", e);
-        res.status(500).json({ message: e.message });
+    try {
+        res.status(201).json(await naturalFarmingService.createFarmersPracticing(req.body, req.user));
+    } catch (e) {
+        handleError(e, res, 'Farmers practicing record', 'create');
     }
 });
 router.put('/farmers/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
-    try { res.json(await naturalFarmingService.updateDemo(req.params.id, req.body, req.user)); }
-    catch (e) {
-        console.error("Natural Farming API Error:", e);
-        res.status(500).json({ message: e.message });
+    try {
+        res.json(await naturalFarmingService.updateFarmersPracticing(req.params.id, req.body, req.user));
+    } catch (e) {
+        handleError(e, res, 'Farmers practicing record', 'update');
     }
 });
 router.delete('/farmers/:id', requireRole([...kvkRoles, 'super_admin']), async (req, res) => {
-    try { await naturalFarmingService.deleteDemo(req.params.id, req.user); res.json({ message: 'Deleted successfully' }); }
-    catch (e) {
-        console.error("Natural Farming API Error:", e);
-        res.status(500).json({ message: e.message });
+    try {
+        await naturalFarmingService.deleteFarmersPracticing(req.params.id, req.user);
+        res.json({ message: 'Deleted successfully' });
+    } catch (e) {
+        handleError(e, res, 'Farmers practicing record', 'delete');
     }
 });
 

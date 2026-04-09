@@ -16,6 +16,7 @@ import type { Kvk } from '../../types/aboutKvk'
 import { useMasterData } from '../../hooks/useMasterData'
 import { useRoles } from '../../hooks/useUserManagement'
 import type { RoleInfo } from '../../services/userApi'
+import { cleanIndianMobileInput, indianMobileFieldError } from '../../utils/indianPhone'
 
 const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
     { value: 'VIEW', label: 'View' },
@@ -208,12 +209,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             newErrors.email = 'Invalid email format'
         }
 
-        // Phone number validation (optional)
-        if (formData.phoneNumber.trim()) {
-            const cleaned = formData.phoneNumber.replace(/[\s\-()]/g, '')
-            if (!/^[6-9]\d{9}$/.test(cleaned)) {
-                newErrors.phoneNumber = 'Invalid phone number (10 digits starting with 6-9)'
-            }
+        const phoneErr = indianMobileFieldError(formData.phoneNumber, false)
+        if (phoneErr) {
+            newErrors.phoneNumber = phoneErr
         }
 
         // Password validation
@@ -314,7 +312,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             const userData: CreateUserData = {
                 name: formData.name.trim(),
                 email: formData.email.trim().toLowerCase(),
-                phoneNumber: formData.phoneNumber.trim() || null,
+                phoneNumber: cleanIndianMobileInput(formData.phoneNumber) || null,
                 password: formData.password,
                 roleId: effectiveRoleId,
                 // Sub-admins: inherit fields at their level, use form selections for levels below
@@ -411,8 +409,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                     label="Phone Number (Optional)"
                     type="tel"
                     value={formData.phoneNumber}
-                    onChange={e => handleChange('phoneNumber', e.target.value)}
-                    placeholder="9876543210"
+                    onChange={e => handleChange('phoneNumber', cleanIndianMobileInput(e.target.value))}
+                    placeholder="10-digit mobile (6–9…)"
                     error={errors.phoneNumber}
                     disabled={isSubmitting || submitSuccess}
                 />

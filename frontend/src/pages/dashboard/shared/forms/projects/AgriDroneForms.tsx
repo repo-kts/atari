@@ -3,6 +3,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface AgriDroneFormsProps {
     entityType: string
@@ -88,9 +89,16 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormInput
                             label="Contact No of Agri Drone Pilot"
                             required
-                            placeholder="Mobile number"
+                            placeholder="10-digit mobile"
                             value={formData.pilotContact ?? ''}
-                            onChange={(e) => setFormData({ ...formData, pilotContact: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    pilotContact: cleanIndianMobileInput(e.target.value),
+                                })
+                            }
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
                     </div>
 

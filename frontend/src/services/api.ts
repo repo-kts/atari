@@ -10,11 +10,15 @@ export class ApiError extends Error {
     public data?: any,
   ) {
     // Extract error message from API response structure
-    // API returns: { success: false, error: { message: "...", code: "..." } }
-    const errorMessage =
-      (data?.error && typeof data.error === 'object' && data.error.message)
-        ? data.error.message
-        : (typeof data?.error === 'string' ? data.error : statusText);
+    // Common shapes: { error: "..." }, { error: { message } }, { message: "..." }
+    let errorMessage = statusText;
+    if (data?.error && typeof data.error === 'object' && data.error.message) {
+      errorMessage = data.error.message;
+    } else if (typeof data?.error === 'string') {
+      errorMessage = data.error;
+    } else if (typeof data?.message === 'string' && data.message.trim() !== '') {
+      errorMessage = data.message;
+    }
     super(errorMessage);
     this.name = 'ApiError';
   }

@@ -1,0 +1,1208 @@
+[
+  {
+    "sno": "1",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Apiculture",
+    "crop": ""
+  },
+  {
+    "sno": "2",
+    "category": "Livestock Production and Management",
+    "subcategory": "Animal Nutrition Management",
+    "crop": ""
+  },
+  {
+    "sno": "3",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Balance Use of fertilizer",
+    "crop": ""
+  },
+  {
+    "sno": "4",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Training and Pruning",
+    "crop": ""
+  },
+  {
+    "sno": "5",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Exotic vegetables",
+    "crop": ""
+  },
+  {
+    "sno": "6",
+    "category": "Agro forestry",
+    "subcategory": "Others",
+    "crop": ""
+  },
+  {
+    "sno": "7",
+    "category": "Agro forestry",
+    "subcategory": "Integrated Farming Systems",
+    "crop": ""
+  },
+  {
+    "sno": "8",
+    "category": "Agro forestry",
+    "subcategory": "Nursery management",
+    "crop": ""
+  },
+  {
+    "sno": "9",
+    "category": "Agro forestry",
+    "subcategory": "Production technologies",
+    "crop": ""
+  },
+  {
+    "sno": "10",
+    "category": "Rural Youth",
+    "subcategory": "Rural Craft",
+    "crop": ""
+  },
+  {
+    "sno": "11",
+    "category": "Extension Personnel",
+    "subcategory": "Any Other",
+    "crop": ""
+  },
+  {
+    "sno": "12",
+    "category": "Extension Personnel",
+    "subcategory": "Gender Mainstreaming through SHGs or FPOs",
+    "crop": ""
+  },
+  {
+    "sno": "13",
+    "category": "Extension Personnel",
+    "subcategory": "Production and Use of Organic Inputs",
+    "crop": ""
+  },
+  {
+    "sno": "14",
+    "category": "Extension Personnel",
+    "subcategory": "Low Cost and Nutrient Efficient Diet Designing",
+    "crop": ""
+  },
+  {
+    "sno": "15",
+    "category": "Extension Personnel",
+    "subcategory": "Women and Child Care",
+    "crop": ""
+  },
+  {
+    "sno": "16",
+    "category": "Extension Personnel",
+    "subcategory": "Household Food Security",
+    "crop": ""
+  },
+  {
+    "sno": "17",
+    "category": "Extension Personnel",
+    "subcategory": "Livestock Feed and Fodder Production",
+    "crop": ""
+  },
+  {
+    "sno": "18",
+    "category": "Extension Personnel",
+    "subcategory": "Management in Farm Animals",
+    "crop": ""
+  },
+  {
+    "sno": "19",
+    "category": "Extension Personnel",
+    "subcategory": "WTO and IPR Issues",
+    "crop": ""
+  },
+  {
+    "sno": "20",
+    "category": "Extension Personnel",
+    "subcategory": "Care and Maintenance of Farm Machinery and Implements",
+    "crop": ""
+  },
+  {
+    "sno": "21",
+    "category": "Extension Personnel",
+    "subcategory": "Capacity Building for ICT Application",
+    "crop": ""
+  },
+  {
+    "sno": "22",
+    "category": "Extension Personnel",
+    "subcategory": "Information Networking among Farmers",
+    "crop": ""
+  },
+  {
+    "sno": "23",
+    "category": "Extension Personnel",
+    "subcategory": "Group Dynamics and Farmers Organization SHG or FPO or FIG or Other group",
+    "crop": ""
+  },
+  {
+    "sno": "24",
+    "category": "Extension Personnel",
+    "subcategory": "Formation and Management of SHG or FPOs",
+    "crop": ""
+  },
+  {
+    "sno": "25",
+    "category": "Extension Personnel",
+    "subcategory": "Protected Cultivation Technology",
+    "crop": ""
+  },
+  {
+    "sno": "26",
+    "category": "Extension Personnel",
+    "subcategory": "Rejuvenation of Old Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "27",
+    "category": "Extension Personnel",
+    "subcategory": "Integrated Nutrient Management",
+    "crop": ""
+  },
+  {
+    "sno": "28",
+    "category": "Extension Personnel",
+    "subcategory": "Integrated Pest Management",
+    "crop": ""
+  },
+  {
+    "sno": "29",
+    "category": "Extension Personnel",
+    "subcategory": "Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "30",
+    "category": "Extension Personnel",
+    "subcategory": "Productivity Enhancement In Field Crops",
+    "crop": ""
+  },
+  {
+    "sno": "31",
+    "category": "Rural Youth",
+    "subcategory": "Any Other",
+    "crop": ""
+  },
+  {
+    "sno": "32",
+    "category": "Extension Personnel",
+    "subcategory": "Rural Crafts",
+    "crop": ""
+  },
+  {
+    "sno": "33",
+    "category": "Rural Youth",
+    "subcategory": "Tailoring and Stitching",
+    "crop": ""
+  },
+  {
+    "sno": "34",
+    "category": "Rural Youth",
+    "subcategory": "Post-Harvest Technology",
+    "crop": ""
+  },
+  {
+    "sno": "35",
+    "category": "Rural Youth",
+    "subcategory": "Small Scale Processing",
+    "crop": ""
+  },
+  {
+    "sno": "36",
+    "category": "Rural Youth",
+    "subcategory": "Fry and Fingerling Rearing",
+    "crop": ""
+  },
+  {
+    "sno": "37",
+    "category": "Rural Youth",
+    "subcategory": "Fish Harvest and Processing Technology",
+    "crop": ""
+  },
+  {
+    "sno": "38",
+    "category": "Rural Youth",
+    "subcategory": "Cold Water Fisheries",
+    "crop": ""
+  },
+  {
+    "sno": "39",
+    "category": "Rural Youth",
+    "subcategory": "Pearl Culture",
+    "crop": ""
+  },
+  {
+    "sno": "40",
+    "category": "Rural Youth",
+    "subcategory": "Shrimp Farming",
+    "crop": ""
+  },
+  {
+    "sno": "41",
+    "category": "Rural Youth",
+    "subcategory": "Freshwater Prawn Culture",
+    "crop": ""
+  },
+  {
+    "sno": "42",
+    "category": "Rural Youth",
+    "subcategory": "Composite Fish Culture",
+    "crop": ""
+  },
+  {
+    "sno": "43",
+    "category": "Rural Youth",
+    "subcategory": "Para Extension Workers",
+    "crop": ""
+  },
+  {
+    "sno": "44",
+    "category": "Rural Youth",
+    "subcategory": "Para Vets",
+    "crop": ""
+  },
+  {
+    "sno": "45",
+    "category": "Rural Youth",
+    "subcategory": "Enterprise Development",
+    "crop": ""
+  },
+  {
+    "sno": "46",
+    "category": "Rural Youth",
+    "subcategory": "Ornamental Fisheries",
+    "crop": ""
+  },
+  {
+    "sno": "47",
+    "category": "Rural Youth",
+    "subcategory": "Poultry Production",
+    "crop": ""
+  },
+  {
+    "sno": "48",
+    "category": "Rural Youth",
+    "subcategory": "Rabbit Farming",
+    "crop": ""
+  },
+  {
+    "sno": "49",
+    "category": "Rural Youth",
+    "subcategory": "Piggery",
+    "crop": ""
+  },
+  {
+    "sno": "50",
+    "category": "Rural Youth",
+    "subcategory": "Quail Farming",
+    "crop": ""
+  },
+  {
+    "sno": "51",
+    "category": "Rural Youth",
+    "subcategory": "Sheep and Goat Rearing",
+    "crop": ""
+  },
+  {
+    "sno": "52",
+    "category": "Rural Youth",
+    "subcategory": "Dairying",
+    "crop": ""
+  },
+  {
+    "sno": "53",
+    "category": "Rural Youth",
+    "subcategory": "Production of Quality Animal Products",
+    "crop": ""
+  },
+  {
+    "sno": "54",
+    "category": "Rural Youth",
+    "subcategory": "Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "55",
+    "category": "Rural Youth",
+    "subcategory": "Training on Pruning of Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "56",
+    "category": "Rural Youth",
+    "subcategory": "Nursery Management Of Horticulture Crops",
+    "crop": ""
+  },
+  {
+    "sno": "57",
+    "category": "Rural Youth",
+    "subcategory": "Repair and Maintenance of Farm Machinery and Implements",
+    "crop": ""
+  },
+  {
+    "sno": "58",
+    "category": "Rural Youth",
+    "subcategory": "Commercial Fruit Production",
+    "crop": ""
+  },
+  {
+    "sno": "59",
+    "category": "Rural Youth",
+    "subcategory": "Protected Cultivation of Vegetable Crops",
+    "crop": ""
+  },
+  {
+    "sno": "60",
+    "category": "Rural Youth",
+    "subcategory": "Sericulture",
+    "crop": ""
+  },
+  {
+    "sno": "61",
+    "category": "Rural Youth",
+    "subcategory": "Vermi-Culture",
+    "crop": ""
+  },
+  {
+    "sno": "62",
+    "category": "Rural Youth",
+    "subcategory": "Planting Material Production",
+    "crop": ""
+  },
+  {
+    "sno": "63",
+    "category": "Rural Youth",
+    "subcategory": "Integrated Farming",
+    "crop": ""
+  },
+  {
+    "sno": "64",
+    "category": "Rural Youth",
+    "subcategory": "Production of Organic Inputs",
+    "crop": ""
+  },
+  {
+    "sno": "65",
+    "category": "Rural Youth",
+    "subcategory": "Seed Production",
+    "crop": ""
+  },
+  {
+    "sno": "66",
+    "category": "Rural Youth",
+    "subcategory": "Integrated Farming",
+    "crop": ""
+  },
+  {
+    "sno": "67",
+    "category": "Rural Youth",
+    "subcategory": "Bee-Keeping",
+    "crop": ""
+  },
+  {
+    "sno": "68",
+    "category": "Rural Youth",
+    "subcategory": "Mushroom Production",
+    "crop": ""
+  },
+  {
+    "sno": "69",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Integrated Farming Systems",
+    "crop": ""
+  },
+  {
+    "sno": "70",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Nursery Management",
+    "crop": ""
+  },
+  {
+    "sno": "71",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Production Technologies",
+    "crop": ""
+  },
+  {
+    "sno": "72",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Agro-Forestry",
+    "crop": ""
+  },
+  {
+    "sno": "73",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "74",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Wto And Ipr Issues",
+    "crop": ""
+  },
+  {
+    "sno": "75",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Entrepreneurial Development Of Farmers/Youths",
+    "crop": ""
+  },
+  {
+    "sno": "76",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Mobilization Of Social Capital",
+    "crop": ""
+  },
+  {
+    "sno": "77",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Formation And Management Of Shgs",
+    "crop": ""
+  },
+  {
+    "sno": "78",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Group Dynamics",
+    "crop": ""
+  },
+  {
+    "sno": "79",
+    "category": "Capacity Building and Group Dynamics",
+    "subcategory": "Leadership Development",
+    "crop": ""
+  },
+  {
+    "sno": "80",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "81",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Production Of Fish Feed",
+    "crop": ""
+  },
+  {
+    "sno": "82",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Production Of Livestock Feed And Fodder",
+    "crop": ""
+  },
+  {
+    "sno": "83",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Small Tools And Implements",
+    "crop": ""
+  },
+  {
+    "sno": "84",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Production Of Bee-Colonies And Wax Sheets",
+    "crop": ""
+  },
+  {
+    "sno": "85",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Production Of Fry And Fingerlings",
+    "crop": ""
+  },
+  {
+    "sno": "86",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Organic Manures Production",
+    "crop": ""
+  },
+  {
+    "sno": "87",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Vermi-Compost Production",
+    "crop": ""
+  },
+  {
+    "sno": "88",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Bio-Fertilizer Production",
+    "crop": ""
+  },
+  {
+    "sno": "89",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Bio-Pesticides Production",
+    "crop": ""
+  },
+  {
+    "sno": "90",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Bio-Agents Production",
+    "crop": ""
+  },
+  {
+    "sno": "91",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Planting Material Production",
+    "crop": ""
+  },
+  {
+    "sno": "92",
+    "category": "Production of Inputs at Site",
+    "subcategory": "Seed Production",
+    "crop": ""
+  },
+  {
+    "sno": "93",
+    "category": "Fisheries",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "94",
+    "category": "Fisheries",
+    "subcategory": "Fish Processing And Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "95",
+    "category": "Fisheries",
+    "subcategory": "Pearl Culture",
+    "crop": ""
+  },
+  {
+    "sno": "96",
+    "category": "Fisheries",
+    "subcategory": "Edible Oyster Farming",
+    "crop": ""
+  },
+  {
+    "sno": "97",
+    "category": "Fisheries",
+    "subcategory": "Shrimp Farming",
+    "crop": ""
+  },
+  {
+    "sno": "98",
+    "category": "Fisheries",
+    "subcategory": "Pen Culture Of Fish And Prawn",
+    "crop": ""
+  },
+  {
+    "sno": "99",
+    "category": "Fisheries",
+    "subcategory": "Portable Plastic Carp Hatchery",
+    "crop": ""
+  },
+  {
+    "sno": "100",
+    "category": "Fisheries",
+    "subcategory": "Breeding And Culture Of Ornamental Fishes",
+    "crop": ""
+  },
+  {
+    "sno": "101",
+    "category": "Fisheries",
+    "subcategory": "Hatchery Management And Culture Of Freshwater Prawn",
+    "crop": ""
+  },
+  {
+    "sno": "102",
+    "category": "Fisheries",
+    "subcategory": "Fish Feed Preparation &Amp; Its Application To Fish Pond, Like Nursery, Rearing &Amp; Stocking Pond",
+    "crop": ""
+  },
+  {
+    "sno": "103",
+    "category": "Fisheries",
+    "subcategory": "Composite Fish Culture &Amp; Fish Disease",
+    "crop": ""
+  },
+  {
+    "sno": "104",
+    "category": "Fisheries",
+    "subcategory": "Carp Fry And Fingerling Rearing",
+    "crop": ""
+  },
+  {
+    "sno": "105",
+    "category": "Fisheries",
+    "subcategory": "Carp Breeding And Hatchery Management",
+    "crop": ""
+  },
+  {
+    "sno": "106",
+    "category": "Fisheries",
+    "subcategory": "Integrated Fish Farming",
+    "crop": ""
+  },
+  {
+    "sno": "107",
+    "category": "Plant Protection",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "108",
+    "category": "Plant Protection",
+    "subcategory": "Production Of Bio Control Agents And Bio Pesticides",
+    "crop": ""
+  },
+  {
+    "sno": "109",
+    "category": "Plant Protection",
+    "subcategory": "Bio-Control Of Pests And Diseases",
+    "crop": ""
+  },
+  {
+    "sno": "110",
+    "category": "Plant Protection",
+    "subcategory": "Integrated Disease Management",
+    "crop": ""
+  },
+  {
+    "sno": "111",
+    "category": "Plant Protection",
+    "subcategory": "Integrated Pest Management",
+    "crop": ""
+  },
+  {
+    "sno": "112",
+    "category": "Agril. Engineering",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "113",
+    "category": "Agril. Engineering",
+    "subcategory": "Post-Harvest Technology",
+    "crop": ""
+  },
+  {
+    "sno": "114",
+    "category": "Agril. Engineering",
+    "subcategory": "Small Scale Processing And Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "115",
+    "category": "Agril. Engineering",
+    "subcategory": "Repair And Maintenance Of Farm Machinery And Implements",
+    "crop": ""
+  },
+  {
+    "sno": "116",
+    "category": "Agril. Engineering",
+    "subcategory": "Production Of Small Tools And Implements",
+    "crop": ""
+  },
+  {
+    "sno": "117",
+    "category": "Agril. Engineering",
+    "subcategory": "Use Of Plastics In Farming Practices",
+    "crop": ""
+  },
+  {
+    "sno": "118",
+    "category": "Agril. Engineering",
+    "subcategory": "Installation And Maintenance Of Micro Irrigation Systems",
+    "crop": ""
+  },
+  {
+    "sno": "119",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "120",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Women And Child Care",
+    "crop": ""
+  },
+  {
+    "sno": "121",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Capacity Building",
+    "crop": ""
+  },
+  {
+    "sno": "122",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Rural Crafts",
+    "crop": ""
+  },
+  {
+    "sno": "123",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Location Specific Drudgery Reduction Technologies",
+    "crop": ""
+  },
+  {
+    "sno": "124",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Income Generation Activities For Empowerment Of Rural Women",
+    "crop": ""
+  },
+  {
+    "sno": "125",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "126",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Enterprise Development",
+    "crop": ""
+  },
+  {
+    "sno": "127",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Storage Loss Minimization Techniques",
+    "crop": ""
+  },
+  {
+    "sno": "128",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Gender Mainstreaming Through Shgs",
+    "crop": ""
+  },
+  {
+    "sno": "129",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Minimization Of Nutrient Loss In Processing",
+    "crop": ""
+  },
+  {
+    "sno": "130",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Designing And Development For High Nutrient Efficiency Diet",
+    "crop": ""
+  },
+  {
+    "sno": "131",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Design And Development Of Low/Minimum Cost Diet",
+    "crop": ""
+  },
+  {
+    "sno": "132",
+    "category": "Home Science/Women Empowerment",
+    "subcategory": "Household Food Security By Kitchen Gardening And Nutrition Gardening",
+    "crop": ""
+  },
+  {
+    "sno": "133",
+    "category": "Livestock Production and Management",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "134",
+    "category": "Livestock Production and Management",
+    "subcategory": "Goat Farming",
+    "crop": ""
+  },
+  {
+    "sno": "135",
+    "category": "Livestock Production and Management",
+    "subcategory": "Production Of Quality Animal Products",
+    "crop": ""
+  },
+  {
+    "sno": "136",
+    "category": "Livestock Production and Management",
+    "subcategory": "Feed Management",
+    "crop": ""
+  },
+  {
+    "sno": "137",
+    "category": "Livestock Production and Management",
+    "subcategory": "Disease Management",
+    "crop": ""
+  },
+  {
+    "sno": "138",
+    "category": "Livestock Production and Management",
+    "subcategory": "Rabbit Management",
+    "crop": ""
+  },
+  {
+    "sno": "139",
+    "category": "Livestock Production and Management",
+    "subcategory": "Piggery Management",
+    "crop": ""
+  },
+  {
+    "sno": "140",
+    "category": "Livestock Production and Management",
+    "subcategory": "Poultry Management",
+    "crop": ""
+  },
+  {
+    "sno": "141",
+    "category": "Livestock Production and Management",
+    "subcategory": "Dairy Management",
+    "crop": ""
+  },
+  {
+    "sno": "142",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "143",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Soil And Water Testing",
+    "crop": ""
+  },
+  {
+    "sno": "144",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Nutrient Use Efficiency",
+    "crop": ""
+  },
+  {
+    "sno": "145",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Micro Nutrient Deficiency In Crops",
+    "crop": ""
+  },
+  {
+    "sno": "146",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Management Of Problematic Soils",
+    "crop": ""
+  },
+  {
+    "sno": "147",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Production And Use Of Organic Inputs",
+    "crop": ""
+  },
+  {
+    "sno": "148",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Integrated Nutrient Management",
+    "crop": ""
+  },
+  {
+    "sno": "149",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Soil And Water Conservation",
+    "crop": ""
+  },
+  {
+    "sno": "150",
+    "category": "Soil Health and Fertility Management",
+    "subcategory": "Soil Fertility Management",
+    "crop": ""
+  },
+  {
+    "sno": "151",
+    "category": "Horticulture (Medicinal And Aromatic Plants)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "152",
+    "category": "Horticulture (Medicinal And Aromatic Plants)",
+    "subcategory": "Post-Harvest Technology And Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "153",
+    "category": "Horticulture (Medicinal And Aromatic Plants)",
+    "subcategory": "Production And Management Technology",
+    "crop": ""
+  },
+  {
+    "sno": "154",
+    "category": "Horticulture (Medicinal And Aromatic Plants)",
+    "subcategory": "Nursery Management",
+    "crop": ""
+  },
+  {
+    "sno": "155",
+    "category": "Horticulture (Spices)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "156",
+    "category": "Horticulture (Spices)",
+    "subcategory": "Processing And Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "157",
+    "category": "Horticulture (Spices)",
+    "subcategory": "Production And Management Technology",
+    "crop": ""
+  },
+  {
+    "sno": "158",
+    "category": "Horticulture (Tuber Crops)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "159",
+    "category": "Horticulture (Tuber Crops)",
+    "subcategory": "Processing And Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "160",
+    "category": "Horticulture (Tuber Crops)",
+    "subcategory": "Production and Management Technology",
+    "crop": ""
+  },
+  {
+    "sno": "161",
+    "category": "Horticulture (Plantation Crops)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "162",
+    "category": "Horticulture (Plantation Crops)",
+    "subcategory": "Processing and Value Addition",
+    "crop": ""
+  },
+  {
+    "sno": "163",
+    "category": "Horticulture (Plantation Crops)",
+    "subcategory": "Production and Management Technology",
+    "crop": ""
+  },
+  {
+    "sno": "164",
+    "category": "Horticulture (Ornamental Plants)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "165",
+    "category": "Horticulture (Ornamental Plants)",
+    "subcategory": "Propagation Techniques Of Ornamental Plants",
+    "crop": ""
+  },
+  {
+    "sno": "166",
+    "category": "Horticulture (Ornamental Plants)",
+    "subcategory": "Export Potential of Ornamental Plants",
+    "crop": ""
+  },
+  {
+    "sno": "167",
+    "category": "Horticulture (Ornamental Plants)",
+    "subcategory": "Management of Potted Plants",
+    "crop": ""
+  },
+  {
+    "sno": "168",
+    "category": "Horticulture (Ornamental Plants)",
+    "subcategory": "Nursery Management",
+    "crop": ""
+  },
+  {
+    "sno": "169",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Others, If Any",
+    "crop": ""
+  },
+  {
+    "sno": "170",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Plant Propagation Techniques",
+    "crop": ""
+  },
+  {
+    "sno": "171",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Micro Irrigation Systems Of Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "172",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Export Potential Fruits",
+    "crop": ""
+  },
+  {
+    "sno": "173",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Rejuvenation Of Old Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "174",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Management Of Young Plants/Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "175",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Cultivation Of Fruit",
+    "crop": ""
+  },
+  {
+    "sno": "176",
+    "category": "Horticulture (Fruits)",
+    "subcategory": "Layout and Management of Orchards",
+    "crop": ""
+  },
+  {
+    "sno": "177",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Others, If Any (Cultivation Of Vegetable)",
+    "crop": ""
+  },
+  {
+    "sno": "178",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Training on Pruning",
+    "crop": ""
+  },
+  {
+    "sno": "179",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Protective Cultivation (Green Houses, Shade Net Etc.)",
+    "crop": ""
+  },
+  {
+    "sno": "180",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Grading and Standardization",
+    "crop": ""
+  },
+  {
+    "sno": "181",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Export Potential Vegetables",
+    "crop": ""
+  },
+  {
+    "sno": "182",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Nursery Raising",
+    "crop": ""
+  },
+  {
+    "sno": "183",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Off-Season Vegetables",
+    "crop": ""
+  },
+  {
+    "sno": "184",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Production of Low Volume and High Value Crops",
+    "crop": ""
+  },
+  {
+    "sno": "185",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Yield Increment",
+    "crop": ""
+  },
+  {
+    "sno": "186",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Skill Development",
+    "crop": ""
+  },
+  {
+    "sno": "187",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Enterprise Development",
+    "crop": ""
+  },
+  {
+    "sno": "188",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Water Management",
+    "crop": ""
+  },
+  {
+    "sno": "189",
+    "category": "Horticulture (Vegetable Crops)",
+    "subcategory": "Integrated Nutrient Management",
+    "crop": ""
+  },
+  {
+    "sno": "190",
+    "category": "Crop Production",
+    "subcategory": "Any Others (If Any)",
+    "crop": ""
+  },
+  {
+    "sno": "191",
+    "category": "Crop Production",
+    "subcategory": "Production of Organic Inputs",
+    "crop": ""
+  },
+  {
+    "sno": "192",
+    "category": "Crop Production",
+    "subcategory": "Fodder Production",
+    "crop": ""
+  },
+  {
+    "sno": "193",
+    "category": "Crop Production",
+    "subcategory": "Integrated Crop Management",
+    "crop": ""
+  },
+  {
+    "sno": "194",
+    "category": "Crop Production",
+    "subcategory": "Nursery Management",
+    "crop": ""
+  },
+  {
+    "sno": "195",
+    "category": "Crop Production",
+    "subcategory": "Seed Production",
+    "crop": ""
+  },
+  {
+    "sno": "196",
+    "category": "Crop Production",
+    "subcategory": "Water Management",
+    "crop": ""
+  },
+  {
+    "sno": "197",
+    "category": "Crop Production",
+    "subcategory": "Integrated Farming",
+    "crop": ""
+  },
+  {
+    "sno": "198",
+    "category": "Crop Production",
+    "subcategory": "Crop Diversification",
+    "crop": ""
+  },
+  {
+    "sno": "199",
+    "category": "Crop Production",
+    "subcategory": "Cropping Systems",
+    "crop": ""
+  },
+  {
+    "sno": "200",
+    "category": "Crop Production",
+    "subcategory": "Resource Conservation Technologies",
+    "crop": ""
+  },
+  {
+    "sno": "201",
+    "category": "Crop Production",
+    "subcategory": "Weed Management",
+    "crop": ""
+  }
+]

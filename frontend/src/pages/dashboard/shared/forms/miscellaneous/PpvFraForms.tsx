@@ -3,6 +3,7 @@ import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
 import { ENTITY_TYPES } from '../../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../../utils/masterUtils'
 import { useMasterData } from '../../../../../hooks/useMasterData'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface PpvFraTrainingFormProps {
     formData: any
@@ -178,7 +179,12 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                     label="Mobile No."
                     required
                     value={formData.mobile ?? ''}
-                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    onChange={(e) =>
+                        setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                    }
+                    placeholder="10-digit mobile"
+                    inputMode="numeric"
+                    autoComplete="tel"
                 />
                 <FormInput
                     label="Village"

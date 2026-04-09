@@ -1,5 +1,18 @@
+const prisma = require('../../config/prisma.js');
 const nariNutritionalGardenRepository = require('../../repositories/forms/nariNutritionalGardenRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+
+async function invalidateReportCacheForGardenId(gardenId) {
+    const id = parseInt(String(gardenId), 10);
+    if (!Number.isFinite(id)) return;
+    const garden = await prisma.nariNutritionalGarden.findUnique({
+        where: { nariNutritionalGardenId: id },
+        select: { kvkId: true },
+    });
+    if (garden?.kvkId != null) {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('nariNutritionGarden', garden.kvkId);
+    }
+}
 
 const nariNutritionalGardenService = {
     create: async (data, user) => {
@@ -35,12 +48,16 @@ const nariNutritionalGardenService = {
     },
 
     createResult: async (id, data) => {
-        return await nariNutritionalGardenRepository.createResult(id, data);
+        const result = await nariNutritionalGardenRepository.createResult(id, data);
+        await invalidateReportCacheForGardenId(id);
+        return result;
     },
 
     updateResult: async (id, data) => {
-        return await nariNutritionalGardenRepository.updateResult(id, data);
-    }
+        const result = await nariNutritionalGardenRepository.updateResult(id, data);
+        await invalidateReportCacheForGardenId(id);
+        return result;
+    },
 };
 
 module.exports = nariNutritionalGardenService;

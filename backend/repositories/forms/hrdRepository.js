@@ -89,6 +89,7 @@ const _mapResponse = (r) => {
         kvkName: r.kvk?.kvkName,
         staff: r.staff?.staffName,
         staffName: r.staff?.staffName,
+        postName: r.staff?.sanctionedPost?.postName,
         course: r.courseName,
         courseName: r.courseName,
         startDate: r.startDate,
@@ -149,7 +150,12 @@ const hrdRepository = {
                 data: createData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    staff: { select: { staffName: true } },
+                    staff: {
+                        select: {
+                            staffName: true,
+                            sanctionedPost: { select: { postName: true } },
+                        },
+                    },
                 }
             });
 
@@ -193,7 +199,12 @@ const hrdRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    staff: { select: { staffName: true } },
+                    staff: {
+                        select: {
+                            staffName: true,
+                            sanctionedPost: { select: { postName: true } },
+                        },
+                    },
                 },
                 orderBy: { createdAt: 'desc' },
             });
@@ -226,7 +237,12 @@ const hrdRepository = {
                 where,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    staff: { select: { staffName: true } },
+                    staff: {
+                        select: {
+                            staffName: true,
+                            sanctionedPost: { select: { postName: true } },
+                        },
+                    },
                 },
             });
 
@@ -311,7 +327,12 @@ const hrdRepository = {
                 data: updateData,
                 include: {
                     kvk: { select: { kvkName: true } },
-                    staff: { select: { staffName: true } },
+                    staff: {
+                        select: {
+                            staffName: true,
+                            sanctionedPost: { select: { postName: true } },
+                        },
+                    },
                 },
             });
 

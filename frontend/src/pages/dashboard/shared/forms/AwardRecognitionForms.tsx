@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { useKvkEmployees } from '@/hooks/forms/useAboutKvkData'
 import { createMasterDataOptions, createStaffOptions } from '@/utils/formHelpers'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface AwardRecognitionProps {
     entityType: ExtendedEntityType | null
@@ -38,12 +39,10 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
         }
 
         // Filter out invalid entries
-        const excludedNames = ['dsfo', 'Dr. Anil Kumar Ravi']
         const validEmployees = employees.filter(
             (emp: any) =>
                 emp.staffName &&
-                emp.staffName !== 'undefined' &&
-                !excludedNames.includes(emp.staffName)
+                emp.staffName !== 'undefined'
         )
 
         // Use createStaffOptions for consistent formatting
@@ -154,7 +153,10 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
 
     const handleContactNoChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData((prev: any) => ({ ...prev, contactNo: e.target.value }))
+            setFormData((prev: any) => ({
+                ...prev,
+                contactNo: cleanIndianMobileInput(e.target.value),
+            }))
         },
         [setFormData]
     )

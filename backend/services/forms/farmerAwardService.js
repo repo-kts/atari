@@ -1,5 +1,6 @@
 const farmerAwardRepository = require('../../repositories/forms/farmerAwardRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * Farmer Award Service
@@ -14,7 +15,12 @@ class FarmerAwardService {
      */
     async createFarmerAward(data, user) {
         try {
-            return await farmerAwardRepository.create(data, user);
+            const result = await farmerAwardRepository.create(data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'farmerAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -66,7 +72,12 @@ class FarmerAwardService {
      */
     async updateFarmerAward(id, data, user) {
         try {
-            return await farmerAwardRepository.update(id, data, user);
+            const result = await farmerAwardRepository.update(id, data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'farmerAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -83,7 +94,13 @@ class FarmerAwardService {
      */
     async deleteFarmerAward(id, user) {
         try {
-            return await farmerAwardRepository.delete(id, user);
+            const existing = await farmerAwardRepository.findById(id, user);
+            const result = await farmerAwardRepository.delete(id, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'farmerAward',
+                existing?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;

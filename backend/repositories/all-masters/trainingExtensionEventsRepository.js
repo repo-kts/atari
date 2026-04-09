@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
 
 /**
@@ -127,17 +128,17 @@ function getEntityConfig(entityName) {
 async function findAll(entityName, options = {}) {
     const config = getEntityConfig(entityName);
     const {
-        page = 1,
-        limit = 100,
         search = '',
         sortBy,
         sortOrder = 'asc',
         filters = {},
     } = options;
 
+    const page = Math.max(1, parseInt(options.page, 10) || 1);
+    const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
     const actualSortBy = sortBy || config.idField;
     const skip = (page - 1) * limit;
-    const take = Math.min(limit, 100);
+    const take = limit;
 
     // Build where clause
     const where = { ...filters };
@@ -164,7 +165,7 @@ async function findAll(entityName, options = {}) {
         prisma[config.model].count({ where }),
     ]);
 
-    return { data, total };
+    return { data, total, page, limit: take };
 }
 
 /**

@@ -1,11 +1,15 @@
 const extensionActivityRepository = require('../../repositories/forms/extensionActivityRepository.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const extensionActivityService = {
     /**
      * Create a new Extension Activity
      */
     createExtensionActivity: async (data, user) => {
-        return await extensionActivityRepository.create(data, null, user);
+        const result = await extensionActivityRepository.create(data, null, user);
+        const kvkId = result?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('extensionOutreachReport', kvkId);
+        return result;
     },
 
     /**
@@ -57,14 +61,21 @@ const extensionActivityService = {
      * Update Extension Activity
      */
     updateExtensionActivity: async (id, data, user) => {
-        return await extensionActivityRepository.update(id, data, user);
+        const result = await extensionActivityRepository.update(id, data, user);
+        const kvkId = result?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('extensionOutreachReport', kvkId);
+        return result;
     },
 
     /**
      * Delete Extension Activity
      */
     deleteExtensionActivity: async (id, user) => {
-        return await extensionActivityRepository.delete(id, user);
+        const existing = await extensionActivityRepository.findById(id, user);
+        const result = await extensionActivityRepository.delete(id, user);
+        const kvkId = existing?.kvkId ?? user?.kvkId;
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('extensionOutreachReport', kvkId);
+        return result;
     },
 };
 

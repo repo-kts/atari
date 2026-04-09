@@ -37,9 +37,9 @@ model TrainingAchievement {
   coordinator           CourseCoordinatorMaster @relation(fields: [coordinatorId], references: [coordinatorId])
   fundingSource         FundingSourceMaster?    @relation(fields: [fundingSourceId], references: [fundingSourceId])
   kvk                   Kvk                     @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  thematicArea          ThematicAreaMaster      @relation(fields: [thematicAreaId], references: [thematicAreaId])
-  trainingArea          TrainingAreaMaster?     @relation(fields: [trainingAreaId], references: [trainingAreaId])
-  trainingType          TrainingTypeMaster?     @relation(fields: [trainingTypeId], references: [trainingTypeId])
+  trainingArea          TrainingArea?           @relation(fields: [trainingAreaId], references: [trainingAreaId], onDelete: SetNull)
+  trainingThematicArea  TrainingThematicArea    @relation(fields: [thematicAreaId], references: [trainingThematicAreaId], onDelete: Restrict)
+  trainingType          TrainingType?           @relation(fields: [trainingTypeId], references: [trainingTypeId], onDelete: SetNull)
 
   @@map("training_achievement")
 }

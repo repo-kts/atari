@@ -1,4 +1,5 @@
 const oftFldRepository = require('../../repositories/all-masters/oftFldRepository.js');
+const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
 
 /**
@@ -19,23 +20,20 @@ class OftFldService {
             throw new ValidationError('Entity name is required');
         }
         
-        // Validate pagination options
-        const page = parseInt(options.page) || 1;
-        const limit = parseInt(options.limit) || 100;
-        
+        const page = Math.max(1, parseInt(options.page, 10) || 1);
+        const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
+
         if (page < 1) {
             throw new ValidationError('Page must be a positive number');
         }
-        if (limit < 1 || limit > 1000) {
-            throw new ValidationError('Limit must be between 1 and 1000');
-        }
-        
+
         try {
             const result = await oftFldRepository.findAll(entityName, { ...options, page, limit });
             return {
-                ...result,
-                page,
-                limit,
+                data: result.data,
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
             };
         } catch (error) {
             if (error instanceof ValidationError) {

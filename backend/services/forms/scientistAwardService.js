@@ -1,5 +1,6 @@
 const scientistAwardRepository = require('../../repositories/forms/scientistAwardRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * Scientist Award Service
@@ -14,7 +15,12 @@ class ScientistAwardService {
      */
     async createScientistAward(data, user) {
         try {
-            return await scientistAwardRepository.create(data, user);
+            const result = await scientistAwardRepository.create(data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'scientistAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -66,7 +72,12 @@ class ScientistAwardService {
      */
     async updateScientistAward(id, data, user) {
         try {
-            return await scientistAwardRepository.update(id, data, user);
+            const result = await scientistAwardRepository.update(id, data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'scientistAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -83,7 +94,13 @@ class ScientistAwardService {
      */
     async deleteScientistAward(id, user) {
         try {
-            return await scientistAwardRepository.delete(id, user);
+            const existing = await scientistAwardRepository.findById(id, user);
+            const result = await scientistAwardRepository.delete(id, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'scientistAward',
+                existing?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;

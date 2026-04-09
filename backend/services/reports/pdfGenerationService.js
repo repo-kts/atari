@@ -11,8 +11,8 @@ class PDFGenerationService {
      */
     async generateReportPDF(kvkInfo, sectionsData, filters, generatedBy) {
         try {
-            // Generate HTML from template
-            const html = reportTemplateService.generateReportHTML(
+            // Generate HTML from template (async: awaits custom sections that return Promises)
+            const html = await reportTemplateService.generateReportHTML(
                 kvkInfo,
                 sectionsData,
                 filters,
