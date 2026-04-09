@@ -65,6 +65,19 @@ const {
     generateWorldSoilDayPageWordBuffer,
 } = require('../utils/worldSoilDayPageExport.js');
 const { buildPublicationDetailsTabularData } = require('../services/reports/formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
+const { buildKvkAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
+const { buildScientistAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardSummaryTemplate.js');
+const { buildScientistAwardDetailedTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardDetailedTemplate.js');
+const { buildFarmerAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/farmerAwardSummaryTemplate.js');
+const { buildHrdProgrammesTabularData } = require('../services/reports/formsTemplate/achievementTemplates/hrdProgrammesTemplate.js');
+const { buildOperationalAreaDetailsTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/operationalAreaDetailsTemplate.js');
+const { buildVillageAdoptionProgrammeTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/villageAdoptionProgrammeTemplate.js');
+const { buildPriorityThrustAreaTabularData } = require('../services/reports/formsTemplate/districtVillageTemplates/priorityThrustAreaTemplate.js');
+const { buildBudgetDetailsTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/budgetDetailsTemplate.js');
+const { buildProjectBudgetTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/projectBudgetTemplate.js');
+const { buildRevolvingFundTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/revolvingFundTemplate.js');
+const { buildRevenueGenerationTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/revenueGenerationTemplate.js');
+const { buildResourceGenerationTabularData } = require('../services/reports/formsTemplate/financialPerformanceTemplates/resourceGenerationTemplate.js');
 
 const DRMR_ACTIVITY_ROW_CONFIG = [
     { activityType: 'TRAINING', itemLabel: 'Training (Capacity building /skill development etc)', unitFallback: 'Days', valueKey: 'training_count', prefix: 'training_count_' },
@@ -144,6 +157,39 @@ const exportData = async (req, res) => {
             effectiveRawData = rawData;
         }
         if (templateKey === 'publication-details-detailed' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'kvk-award-summary-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (
+            (templateKey === 'scientist-award-detailed' || templateKey === 'scientist-award-summary-report')
+            && rawData
+        ) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'farmer-award-summary-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (templateKey === 'hrd-programmes-report' && rawData) {
+            effectiveRawData = rawData;
+        }
+        if (
+            (templateKey === 'operational-area-details-report'
+                || templateKey === 'village-adoption-programme-report'
+                || templateKey === 'priority-thrust-area-report')
+            && rawData
+        ) {
+            effectiveRawData = rawData;
+        }
+        if (
+            (templateKey === 'financial-budget-details-report'
+                || templateKey === 'financial-project-budget-report'
+                || templateKey === 'financial-revolving-fund-report'
+                || templateKey === 'financial-revenue-generation-report'
+                || templateKey === 'financial-resource-generation-report')
+            && rawData
+        ) {
             effectiveRawData = rawData;
         }
 
@@ -305,7 +351,20 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
                                             : templateKey === 'soil-water-samples-b-page-report' ? 'soil-water-samples-b-page'
                                                 : templateKey === 'soil-water-analysis-state-report' ? '2.10.3'
                                                     : templateKey === 'world-soil-day-page-report' ? '2.10.2'
-                                                        : templateKey === 'publication-details-detailed' ? '2.55' : '1.1'),
+                                                        : templateKey === 'publication-details-detailed' ? '2.55'
+                                                            : templateKey === 'scientist-award-detailed' ? '2.57'
+                                                                : templateKey === 'scientist-award-summary-report' ? '2.57'
+                                                                    : templateKey === 'farmer-award-summary-report' ? '2.58'
+                                                                        : templateKey === 'hrd-programmes-report' ? '2.59'
+                                                                            : templateKey === 'operational-area-details-report' ? '4.22'
+                                                                                : templateKey === 'village-adoption-programme-report' ? '4.23'
+                                                                                    : templateKey === 'priority-thrust-area-report' ? '4.24'
+                                                                                        : templateKey === 'financial-budget-details-report' ? '4.25'
+                                                                                            : templateKey === 'financial-project-budget-report' ? '4.26'
+                                                                                                : templateKey === 'financial-revolving-fund-report' ? '4.27'
+                                                                                                    : templateKey === 'financial-revenue-generation-report' ? '4.28'
+                                                                                                        : templateKey === 'financial-resource-generation-report' ? '4.29'
+                                                                                                            : templateKey === 'kvk-award-summary-report' ? '2.56' : '1.1'),
             title: matchedSection?.title || title,
             customSectionLabel: matchedSection?.customSectionLabel,
             isAggregatedReport,
@@ -316,6 +375,45 @@ async function generateCustomTemplateHTML(templateKey, rawData, title, isAggrega
 function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fallbackRows, format) {
     if (templateKey === 'publication-details-detailed') {
         return buildPublicationDetailsTabularData(rawData);
+    }
+    if (templateKey === 'kvk-award-summary-report') {
+        return buildKvkAwardSummaryTabularData(rawData);
+    }
+    if (templateKey === 'scientist-award-detailed') {
+        return buildScientistAwardDetailedTabularData(rawData);
+    }
+    if (templateKey === 'scientist-award-summary-report') {
+        return buildScientistAwardSummaryTabularData(rawData);
+    }
+    if (templateKey === 'farmer-award-summary-report') {
+        return buildFarmerAwardSummaryTabularData(rawData);
+    }
+    if (templateKey === 'hrd-programmes-report') {
+        return buildHrdProgrammesTabularData(rawData);
+    }
+    if (templateKey === 'operational-area-details-report') {
+        return buildOperationalAreaDetailsTabularData(rawData);
+    }
+    if (templateKey === 'village-adoption-programme-report') {
+        return buildVillageAdoptionProgrammeTabularData(rawData);
+    }
+    if (templateKey === 'priority-thrust-area-report') {
+        return buildPriorityThrustAreaTabularData(rawData);
+    }
+    if (templateKey === 'financial-budget-details-report') {
+        return buildBudgetDetailsTabularData(rawData);
+    }
+    if (templateKey === 'financial-project-budget-report') {
+        return buildProjectBudgetTabularData(rawData);
+    }
+    if (templateKey === 'financial-revolving-fund-report') {
+        return buildRevolvingFundTabularData(rawData);
+    }
+    if (templateKey === 'financial-revenue-generation-report') {
+        return buildRevenueGenerationTabularData(rawData);
+    }
+    if (templateKey === 'financial-resource-generation-report') {
+        return buildResourceGenerationTabularData(rawData);
     }
     if (templateKey === 'fld-page-report' || templateKey === 'trainings-page-report'
         || templateKey === 'extension-activities-page-report'

@@ -1,11 +1,12 @@
 const prisma = require('../../config/prisma.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const revenueGenerationRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.revenueGeneration.create({
+        const created = await prisma.revenueGeneration.create({
             data: {
                 kvkId,
                 startDate: new Date(data.startDate),
@@ -15,6 +16,8 @@ const revenueGenerationRepository = {
                 sponsoringAgency: data.sponsoringAgency,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revenueGeneration', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -56,7 +59,7 @@ const revenueGenerationRepository = {
         const existing = await prisma.revenueGeneration.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.revenueGeneration.update({
+        const updated = await prisma.revenueGeneration.update({
             where: { revenueGenerationId: id },
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
@@ -66,6 +69,8 @@ const revenueGenerationRepository = {
                 sponsoringAgency: data.sponsoringAgency !== undefined ? data.sponsoringAgency : existing.sponsoringAgency,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revenueGeneration', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -76,9 +81,11 @@ const revenueGenerationRepository = {
         const existing = await prisma.revenueGeneration.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.revenueGeneration.delete({
+        const removed = await prisma.revenueGeneration.delete({
             where: { revenueGenerationId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revenueGeneration', existing.kvkId);
+        return removed;
     }
 };
 

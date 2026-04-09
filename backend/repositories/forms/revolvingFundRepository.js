@@ -1,12 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const revolvingFundRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.revolvingFund.create({
+        const created = await prisma.revolvingFund.create({
             data: {
                 kvkId,
                 reportingYear: (() => {
@@ -20,6 +21,8 @@ const revolvingFundRepository = {
                 kind: data.kind || null,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revolvingFund', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -61,7 +64,7 @@ const revolvingFundRepository = {
         const existing = await prisma.revolvingFund.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.revolvingFund.update({
+        const updated = await prisma.revolvingFund.update({
             where: { revolvingFundId: id },
             data: {
                 reportingYear: data.reportingYear !== undefined
@@ -77,6 +80,8 @@ const revolvingFundRepository = {
                 kind: data.kind !== undefined ? data.kind : existing.kind,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revolvingFund', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -87,9 +92,11 @@ const revolvingFundRepository = {
         const existing = await prisma.revolvingFund.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.revolvingFund.delete({
+        const removed = await prisma.revolvingFund.delete({
             where: { revolvingFundId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('revolvingFund', existing.kvkId);
+        return removed;
     }
 };
 

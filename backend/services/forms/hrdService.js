@@ -1,5 +1,6 @@
 const hrdRepository = require('../../repositories/forms/hrdRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * HRD Program Service
@@ -14,7 +15,12 @@ class HrdService {
      */
     async create(data, user) {
         try {
-            return await hrdRepository.create(data, user);
+            const result = await hrdRepository.create(data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'hrdProgram',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -66,7 +72,12 @@ class HrdService {
      */
     async update(id, data, user) {
         try {
-            return await hrdRepository.update(id, data, user);
+            const result = await hrdRepository.update(id, data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'hrdProgram',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -83,7 +94,13 @@ class HrdService {
      */
     async delete(id, user) {
         try {
-            return await hrdRepository.delete(id, user);
+            const existing = await hrdRepository.findById(id, user);
+            const result = await hrdRepository.delete(id, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'hrdProgram',
+                existing?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;

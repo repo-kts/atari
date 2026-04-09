@@ -40,6 +40,18 @@ const digitalInfoReportRepository = require('../../repositories/reports/digitalI
 const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
 const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
 const publicationDetailsReportRepository = require('../../repositories/reports/publicationDetailsReportRepository.js');
+const kvkAwardReportRepository = require('../../repositories/reports/kvkAwardReportRepository.js');
+const scientistAwardReportRepository = require('../../repositories/reports/scientistAwardReportRepository.js');
+const farmerAwardReportRepository = require('../../repositories/reports/farmerAwardReportRepository.js');
+const hrdProgramReportRepository = require('../../repositories/reports/hrdProgramReportRepository.js');
+const operationalAreaReportRepository = require('../../repositories/reports/operationalAreaReportRepository.js');
+const villageAdoptionReportRepository = require('../../repositories/reports/villageAdoptionReportRepository.js');
+const priorityThrustAreaReportRepository = require('../../repositories/reports/priorityThrustAreaReportRepository.js');
+const budgetDetailReportRepository = require('../../repositories/reports/budgetDetailReportRepository.js');
+const projectBudgetReportRepository = require('../../repositories/reports/projectBudgetReportRepository.js');
+const revolvingFundReportRepository = require('../../repositories/reports/revolvingFundReportRepository.js');
+const revenueGenerationReportRepository = require('../../repositories/reports/revenueGenerationReportRepository.js');
+const resourceGenerationReportRepository = require('../../repositories/reports/resourceGenerationReportRepository.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 const cacheService = require('../cache/redisCacheService.js');
@@ -359,6 +371,75 @@ class ReportDataService {
                     sectionFilters,
                 );
                 break;
+            case 'kvkAward':
+                rawData = await kvkAwardReportRepository.getKvkAwardReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'scientistAward':
+                rawData = await scientistAwardReportRepository.getScientistAwardReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'farmerAward':
+                rawData = await farmerAwardReportRepository.getFarmerAwardReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'hrdProgram':
+                rawData = await hrdProgramReportRepository.getHrdProgramReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'operationalArea':
+                rawData = await operationalAreaReportRepository.getOperationalAreaReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'villageAdoption':
+                rawData = await villageAdoptionReportRepository.getVillageAdoptionReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'priorityThrustArea':
+                rawData = await priorityThrustAreaReportRepository.getPriorityThrustAreaReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'budgetDetail':
+                rawData = await budgetDetailReportRepository.getBudgetDetailReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'projectBudget':
+                rawData = await projectBudgetReportRepository.getProjectBudgetReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'revolvingFund':
+                rawData = await revolvingFundReportRepository.getRevolvingFundReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'revenueGeneration':
+                rawData = await revenueGenerationReportRepository.getRevenueGenerationReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'resourceGeneration':
+                rawData = await resourceGenerationReportRepository.getResourceGenerationReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
@@ -442,7 +523,19 @@ class ReportDataService {
             || dataSource === 'hostelUtilization'
             || dataSource === 'staffQuartersUtilization'
             || dataSource === 'rainwaterHarvesting'
-            || dataSource === 'kvkPublicationDetails';
+            || dataSource === 'kvkPublicationDetails'
+            || dataSource === 'kvkAward'
+            || dataSource === 'scientistAward'
+            || dataSource === 'farmerAward'
+            || dataSource === 'hrdProgram'
+            || dataSource === 'operationalArea'
+            || dataSource === 'villageAdoption'
+            || dataSource === 'priorityThrustArea'
+            || dataSource === 'budgetDetail'
+            || dataSource === 'projectBudget'
+            || dataSource === 'revolvingFund'
+            || dataSource === 'revenueGeneration'
+            || dataSource === 'resourceGeneration';
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
