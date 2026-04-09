@@ -1,5 +1,14 @@
-const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+
+const safeParseFloat = (val) => {
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? null : parsed;
+};
+
+const safeParseInt = (val) => {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? null : parsed;
+};
 
 const districtLevelDataRepository = {
     create: async (data, user) => {
@@ -16,6 +25,20 @@ const districtLevelDataRepository = {
                 })(),
                 items: data.items,
                 information: data.information,
+                season: data.season,
+                type: data.type,
+                cropName: data.cropName,
+                area: safeParseFloat(data.area),
+                production: safeParseFloat(data.production),
+                productivity: safeParseFloat(data.productivity),
+                month: data.month,
+                rainfall: safeParseFloat(data.rainfall),
+                maxTemp: safeParseFloat(data.maxTemp),
+                minTemp: safeParseFloat(data.minTemp),
+                maxRH: safeParseFloat(data.maxRH),
+                minRH: safeParseFloat(data.minRH),
+                livestockName: data.livestockName,
+                number: safeParseInt(data.number),
             }
         });
     },
@@ -71,6 +94,20 @@ const districtLevelDataRepository = {
                     : existing.reportingYear,
                 items: data.items !== undefined ? data.items : existing.items,
                 information: data.information !== undefined ? data.information : existing.information,
+                season: data.season !== undefined ? data.season : existing.season,
+                type: data.type !== undefined ? data.type : existing.type,
+                cropName: data.cropName !== undefined ? data.cropName : existing.cropName,
+                area: data.area !== undefined ? safeParseFloat(data.area) : existing.area,
+                production: data.production !== undefined ? safeParseFloat(data.production) : existing.production,
+                productivity: data.productivity !== undefined ? safeParseFloat(data.productivity) : existing.productivity,
+                month: data.month !== undefined ? data.month : existing.month,
+                rainfall: data.rainfall !== undefined ? safeParseFloat(data.rainfall) : existing.rainfall,
+                maxTemp: data.maxTemp !== undefined ? safeParseFloat(data.maxTemp) : existing.maxTemp,
+                minTemp: data.minTemp !== undefined ? safeParseFloat(data.minTemp) : existing.minTemp,
+                maxRH: data.maxRH !== undefined ? safeParseFloat(data.maxRH) : existing.maxRH,
+                minRH: data.minRH !== undefined ? safeParseFloat(data.minRH) : existing.minRH,
+                livestockName: data.livestockName !== undefined ? data.livestockName : existing.livestockName,
+                number: data.number !== undefined ? safeParseInt(data.number) : existing.number,
             }
         });
     },

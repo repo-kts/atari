@@ -1,5 +1,15 @@
 const prisma = require('../../config/prisma.js');
-const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { parseReportingYearDate, ensureNotFutureDate, parsePositiveInteger } = require('../../utils/reportingYearUtils.js');
+
+const safeParseFloat = (val) => {
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? 0 : parsed;
+};
+
+const safeParseInt = (val) => {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? 0 : parsed;
+};
 
 const nicraDetailsRepository = {
     create: async (data, user) => {
@@ -16,21 +26,21 @@ const nicraDetailsRepository = {
                 seasonId: data.seasonId ? parseInt(data.seasonId) : null,
                 month: (data.month || 'JANUARY').toUpperCase(),
                 technologyDemonstrated: data.technologyDemonstrated || '',
-                areaOrUnit: parseFloat(data.areaOrUnit || 0),
-                bodyWeight: parseFloat(data.bodyWeight || 0),
-                yield: parseFloat(data.yield || 0),
-                generalM: parseInt(data.genMale || 0),
-                generalF: parseInt(data.genFemale || 0),
-                obcM: parseInt(data.obcMale || 0),
-                obcF: parseInt(data.obcFemale || 0),
-                scM: parseInt(data.scMale || 0),
-                scF: parseInt(data.scFemale || 0),
-                stM: parseInt(data.stMale || 0),
-                stF: parseInt(data.stFemale || 0),
-                grossCost: parseFloat(data.grossCost || 0),
-                grossReturn: parseFloat(data.grossReturn || 0),
-                netReturn: parseFloat(data.netReturn || 0),
-                bcrRatio: parseFloat(data.bcrRatio || 0),
+                areaOrUnit: safeParseFloat(data.areaOrUnit),
+                bodyWeight: safeParseFloat(data.bodyWeight),
+                yield: safeParseFloat(data.yield),
+                generalM: safeParseInt(data.genMale),
+                generalF: safeParseInt(data.genFemale),
+                obcM: safeParseInt(data.obcMale),
+                obcF: safeParseInt(data.obcFemale),
+                scM: safeParseInt(data.scMale),
+                scF: safeParseInt(data.scFemale),
+                stM: safeParseInt(data.stMale),
+                stF: safeParseInt(data.stFemale),
+                grossCost: safeParseFloat(data.grossCost),
+                grossReturn: safeParseFloat(data.grossReturn),
+                netReturn: safeParseFloat(data.netReturn),
+                bcrRatio: safeParseFloat(data.bcrRatio),
                 reportingYear: (() => {
                     const d = parseReportingYearDate(data.reportingYear);
                     ensureNotFutureDate(d);
@@ -117,21 +127,21 @@ const nicraDetailsRepository = {
                 seasonId: data.seasonId !== undefined ? (data.seasonId ? parseInt(data.seasonId) : null) : existing.seasonId,
                 month: data.month !== undefined ? data.month.toUpperCase() : existing.month,
                 technologyDemonstrated: data.technologyDemonstrated !== undefined ? data.technologyDemonstrated : existing.technologyDemonstrated,
-                areaOrUnit: data.areaOrUnit !== undefined ? parseFloat(data.areaOrUnit || 0) : existing.areaOrUnit,
-                bodyWeight: data.bodyWeight !== undefined ? parseFloat(data.bodyWeight || 0) : existing.bodyWeight,
-                yield: data.yield !== undefined ? parseFloat(data.yield || 0) : existing.yield,
-                generalM: data.genMale !== undefined ? parseInt(data.genMale || 0) : (data.generalM !== undefined ? parseInt(data.generalM || 0) : existing.generalM),
-                generalF: data.genFemale !== undefined ? parseInt(data.genFemale || 0) : (data.generalF !== undefined ? parseInt(data.generalF || 0) : existing.generalF),
-                obcM: data.obcMale !== undefined ? parseInt(data.obcMale || 0) : (data.obcM !== undefined ? parseInt(data.obcM || 0) : existing.obcM),
-                obcF: data.obcFemale !== undefined ? parseInt(data.obcFemale || 0) : (data.obcF !== undefined ? parseInt(data.obcF || 0) : existing.obcF),
-                scM: data.scMale !== undefined ? parseInt(data.scMale || 0) : (data.scM !== undefined ? parseInt(data.scM || 0) : existing.scM),
-                scF: data.scFemale !== undefined ? parseInt(data.scFemale || 0) : (data.scF !== undefined ? parseInt(data.scF || 0) : existing.scF),
-                stM: data.stMale !== undefined ? parseInt(data.stMale || 0) : (data.stM !== undefined ? parseInt(data.stM || 0) : existing.stM),
-                stF: data.stFemale !== undefined ? parseInt(data.stFemale || 0) : (data.stF !== undefined ? parseInt(data.stF || 0) : existing.stF),
-                grossCost: data.grossCost !== undefined ? parseFloat(data.grossCost) : existing.grossCost,
-                grossReturn: data.grossReturn !== undefined ? parseFloat(data.grossReturn) : existing.grossReturn,
-                netReturn: data.netReturn !== undefined ? parseFloat(data.netReturn) : existing.netReturn,
-                bcrRatio: data.bcrRatio !== undefined ? parseFloat(data.bcrRatio) : existing.bcrRatio,
+                areaOrUnit: data.areaOrUnit !== undefined ? safeParseFloat(data.areaOrUnit) : existing.areaOrUnit,
+                bodyWeight: data.bodyWeight !== undefined ? safeParseFloat(data.bodyWeight) : existing.bodyWeight,
+                yield: data.yield !== undefined ? safeParseFloat(data.yield) : existing.yield,
+                generalM: data.genMale !== undefined ? safeParseInt(data.genMale) : (data.generalM !== undefined ? safeParseInt(data.generalM) : existing.generalM),
+                generalF: data.genFemale !== undefined ? safeParseInt(data.genFemale) : (data.generalF !== undefined ? safeParseInt(data.generalF) : existing.generalF),
+                obcM: data.obcMale !== undefined ? safeParseInt(data.obcMale) : (data.obcM !== undefined ? safeParseInt(data.obcM) : existing.obcM),
+                obcF: data.obcFemale !== undefined ? safeParseInt(data.obcFemale) : (data.obcF !== undefined ? safeParseInt(data.obcF) : existing.obcF),
+                scM: data.scMale !== undefined ? safeParseInt(data.scMale) : (data.scM !== undefined ? safeParseInt(data.scM) : existing.scM),
+                scF: data.scFemale !== undefined ? safeParseInt(data.scFemale) : (data.scF !== undefined ? safeParseInt(data.scF) : existing.scF),
+                stM: data.stMale !== undefined ? safeParseInt(data.stMale) : (data.stM !== undefined ? safeParseInt(data.stM) : existing.stM),
+                stF: data.stFemale !== undefined ? safeParseInt(data.stFemale) : (data.stF !== undefined ? safeParseInt(data.stF) : existing.stF),
+                grossCost: data.grossCost !== undefined ? safeParseFloat(data.grossCost) : existing.grossCost,
+                grossReturn: data.grossReturn !== undefined ? safeParseFloat(data.grossReturn) : existing.grossReturn,
+                netReturn: data.netReturn !== undefined ? safeParseFloat(data.netReturn) : existing.netReturn,
+                bcrRatio: data.bcrRatio !== undefined ? safeParseFloat(data.bcrRatio) : existing.bcrRatio,
                 reportingYear: data.reportingYear !== undefined
                     ? (() => {
                         const d = parseReportingYearDate(data.reportingYear);
