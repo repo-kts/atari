@@ -1,13 +1,13 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import * as Popover from "@radix-ui/react-popover"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 
 import { Calendar } from "@/components/ui/calendar"
 
-interface DatePickerProps {
+export interface DatePickerProps {
   value?: string
   onChange: (value: string) => void
   label?: string
@@ -20,6 +20,8 @@ interface DatePickerProps {
   className?: string
   ariaLabel?: string
   clearLabel?: string
+  /** Extra top padding on the trigger when a parent wraps a long floating label (FormInput). */
+  contentPaddingTop?: number
 }
 
 function parseIsoDate(value?: string): Date | undefined {
@@ -40,7 +42,7 @@ function formatIso(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export const DatePicker: React.FC<DatePickerProps> = ({
+export function DatePicker({
   value,
   onChange,
   label,
@@ -53,9 +55,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className = "",
   ariaLabel,
   clearLabel = "Clear",
-}) => {
+  contentPaddingTop,
+}: DatePickerProps) {
   const [open, setOpen] = useState(false)
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => new Date())
   const selectedDate = useMemo(() => parseIsoDate(value), [value])
+
+  // When opening the popover, show the month of the saved value (or today if empty).
+  useEffect(() => {
+    if (open) {
+      setDisplayMonth(selectedDate ?? new Date())
+    }
+  }, [open, selectedDate])
   const minDate = useMemo(() => parseIsoDate(min), [min])
   const maxDate = useMemo(() => {
     if (max) return parseIsoDate(max)
@@ -78,7 +89,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             type="button"
             disabled={disabled}
             aria-label={ariaLabel}
-            className={`w-full h-11 px-4 py-3 border border-[#E0E0E0] rounded-xl bg-white text-base text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] disabled:opacity-50 ${className}`}
+            style={
+              contentPaddingTop != null
+                ? { paddingTop: contentPaddingTop, paddingBottom: 12 }
+                : undefined
+            }
+            className={`w-full px-4 border border-[#E0E0E0] rounded-xl bg-white text-base text-[#212121] text-left inline-flex items-center justify-between gap-2 hover:border-[#BDBDBD] focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] disabled:opacity-50 ${
+              contentPaddingTop != null ? "min-h-11 h-auto py-0" : "h-11 py-3"
+            } ${className}`}
           >
             <span className={selectedDate ? "text-[#212121]" : "text-[#9E9E9E]"}>
               {selectedDate ? format(selectedDate, "dd-MM-yyyy") : placeholder}
@@ -96,6 +114,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               <Calendar
                 mode="single"
                 captionLayout="dropdown"
+                month={displayMonth}
+                onMonthChange={setDisplayMonth}
                 startMonth={startMonth}
                 endMonth={endMonth}
                 selected={selectedDate}
@@ -130,4 +150,3 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     </div>
   )
 }
-

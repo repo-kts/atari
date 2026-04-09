@@ -9,6 +9,7 @@ import {
     FilePlus2,
     FilePenLine,
     ChevronDown,
+    RotateCcw,
 } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
@@ -333,6 +334,23 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     useEffect(() => {
         setCurrentPage(1)
+    }, [reportingYearFrom, reportingYearTo])
+
+    const reportingRangeTodayIso = new Date().toISOString().split('T')[0]
+    const reportingFromMaxIso = !reportingYearTo
+        ? reportingRangeTodayIso
+        : reportingYearTo < reportingRangeTodayIso
+          ? reportingYearTo
+          : reportingRangeTodayIso
+
+    useEffect(() => {
+        if (
+            reportingYearFrom &&
+            reportingYearTo &&
+            reportingYearFrom > reportingYearTo
+        ) {
+            setReportingYearTo('')
+        }
     }, [reportingYearFrom, reportingYearTo])
 
     // Filter data based on search - memoized for performance
@@ -1642,11 +1660,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <DatePicker
                                         value={reportingYearFrom}
                                         onChange={setReportingYearFrom}
-                                        max={
-                                            new Date()
-                                                .toISOString()
-                                                .split('T')[0]
-                                        }
+                                        max={reportingFromMaxIso}
                                         placeholder="From date"
                                         ariaLabel="Reporting year from"
                                         className="h-10 px-3 py-2 text-sm sm:w-[170px]"
@@ -1654,15 +1668,28 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <DatePicker
                                         value={reportingYearTo}
                                         onChange={setReportingYearTo}
-                                        max={
-                                            new Date()
-                                                .toISOString()
-                                                .split('T')[0]
+                                        min={
+                                            reportingYearFrom.trim()
+                                                ? reportingYearFrom
+                                                : undefined
                                         }
+                                        max={reportingRangeTodayIso}
                                         placeholder="To date"
                                         ariaLabel="Reporting year to"
                                         className="h-10 px-3 py-2 text-sm sm:w-[170px]"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setReportingYearFrom('')
+                                            setReportingYearTo('')
+                                        }}
+                                        className="h-11 inline-flex items-center gap-1.5 px-3 text-white rounded-xl bg-[#487749] text-sm hover:bg-[#3d6540] transition-colors cursor-pointer"
+                                        title="Clear from and to dates"
+                                    >
+                                        <RotateCcw className="w-4 h-4 text-white" />
+                                        Reset dates
+                                    </button>
                                 </div>
                             </div>
                         </div>

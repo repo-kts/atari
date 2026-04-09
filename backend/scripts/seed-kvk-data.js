@@ -230,6 +230,41 @@ async function seedKvks() {
   const university1 = await getOrCreateUniversity('Punjab Agricultural University', org1.orgId, 'PAU');
   const university2 = await getOrCreateUniversity('Karnataka State Agricultural University', org2.orgId, 'UAS Bangalore');
 
+  // Zone IV - Patna / Bihar / Patna / ICAR / Patna University (demo KVK kvkpatna; aligns with seed-data.js hierarchy)
+  const zonePatna = await getOrCreateZone('Zone IV - Patna');
+  const stateBihar = await getOrCreateState(zonePatna.zoneId, 'Bihar');
+  const districtPatna = await getOrCreateDistrict(stateBihar.stateId, zonePatna.zoneId, 'Patna');
+  let orgIcarPatna = await prisma.orgMaster.findFirst({
+    where: { orgName: 'ICAR', districtId: districtPatna.districtId },
+  });
+  if (!orgIcarPatna) {
+    orgIcarPatna = await prisma.orgMaster.create({
+      data: { orgName: 'ICAR', districtId: districtPatna.districtId },
+    });
+  }
+  let universityPatna = await prisma.universityMaster.findFirst({
+    where: { universityName: 'Patna University' },
+  });
+  if (!universityPatna) {
+    universityPatna = await getOrCreateUniversity(
+      'Patna University',
+      orgIcarPatna.orgId,
+      'Patna University'
+    );
+  }
+  universityPatna = await prisma.universityMaster.update({
+    where: { universityId: universityPatna.universityId },
+    data: {
+      orgId: orgIcarPatna.orgId,
+      hostOrg: 'Patna University',
+      hostMobile: '9826123456',
+      hostLandline: '0612-2670001',
+      hostFax: null,
+      hostEmail: 'registrar@patnauniversity.ac.in',
+      hostAddress: 'Patna University, Ashok Rajpath, Patna - 800005, Bihar',
+    },
+  });
+
   const season1 = await getOrCreateSeason('Kharif');
   const season2 = await getOrCreateSeason('Rabi');
 
@@ -303,7 +338,38 @@ async function seedKvks() {
       address: 'Bangalore, Karnataka',
       yearOfSanction: 2015,
     },
+    {
+      kvkName: 'kvkpatna',
+      zoneId: zonePatna.zoneId,
+      stateId: stateBihar.stateId,
+      districtId: districtPatna.districtId,
+      orgId: orgIcarPatna.orgId,
+      universityId: universityPatna.universityId,
+      hostOrg: 'Patna University',
+      mobile: '9876501234',
+      landline: '0612-2500123',
+      fax: null,
+      email: 'kvk.patna@icar.gov.in',
+      address: 'Krishi Vigyan Kendra, Patna, Bihar - 800001',
+      hostMobile: '9826123456',
+      hostLandline: '0612-2670001',
+      hostFax: null,
+      hostEmail: 'registrar@patnauniversity.ac.in',
+      hostAddress: 'Patna University, Ashok Rajpath, Patna - 800005, Bihar',
+      yearOfSanction: 2018,
+    },
   ];
+
+  // Older runs created this KVK as "KVK Patna"; canonical name is kvkpatna
+  const legacyPatnaName = await prisma.kvk.findFirst({ where: { kvkName: 'KVK Patna' } });
+  const hasKvkpatna = await prisma.kvk.findFirst({ where: { kvkName: 'kvkpatna' } });
+  if (legacyPatnaName && !hasKvkpatna) {
+    await prisma.kvk.update({
+      where: { kvkId: legacyPatnaName.kvkId },
+      data: { kvkName: 'kvkpatna' },
+    });
+    console.log('   ✅ Renamed legacy KVK Patna → kvkpatna');
+  }
 
   const kvks = [];
   for (const data of kvkData) {
@@ -313,6 +379,13 @@ async function seedKvks() {
     if (!kvk) {
       kvk = await prisma.kvk.create({ data });
       console.log(`   ✅ Created KVK: ${kvk.kvkName}`);
+    } else if (data.kvkName === 'kvkpatna') {
+      await prisma.kvk.update({
+        where: { kvkId: kvk.kvkId },
+        data,
+      });
+      kvk = await prisma.kvk.findUnique({ where: { kvkId: kvk.kvkId } });
+      console.log(`   ✅ Updated KVK: ${kvk.kvkName}`);
     } else {
       console.log(`   ⏭️  KVK already exists: ${kvk.kvkName}`);
     }
@@ -843,6 +916,7 @@ async function seedKvkUsers(kvks) {
     const users = [];
     for (let i = 0; i < kvks.length; i++) {
       const kvk = kvks[i];
+      if (kvk.kvkName === 'kvkpatna') continue;
       const userData = {
         name: `KVK Admin - ${kvk.kvkName}`,
         email: `admin.${kvk.kvkId}@kvk.test`,
@@ -924,6 +998,40 @@ async function seedKvkUsers(kvks) {
       } else {
         console.log(`   ⏭️  User already exists: ${data.email}`);
       }
+    }
+
+    const kvkPatna = kvks.find((k) => k.kvkName === 'kvkpatna');
+    if (kvkPatna) {
+      const patnaPasswordHash = await hashPassword('Atari@123');
+      const patnaEmail = 'kvkpatna@atari.gov.in';
+      await prisma.user.upsert({
+        where: { email: patnaEmail },
+        create: {
+          name: 'KVK Patna Admin',
+          email: patnaEmail,
+          passwordHash: patnaPasswordHash,
+          roleId: kvkRole.roleId,
+          zoneId: kvkPatna.zoneId,
+          stateId: kvkPatna.stateId,
+          districtId: kvkPatna.districtId,
+          orgId: kvkPatna.orgId,
+          universityId: kvkPatna.universityId,
+          kvkId: kvkPatna.kvkId,
+          phoneNumber: kvkPatna.mobile,
+        },
+        update: {
+          passwordHash: patnaPasswordHash,
+          roleId: kvkRole.roleId,
+          zoneId: kvkPatna.zoneId,
+          stateId: kvkPatna.stateId,
+          districtId: kvkPatna.districtId,
+          orgId: kvkPatna.orgId,
+          universityId: kvkPatna.universityId,
+          kvkId: kvkPatna.kvkId,
+          phoneNumber: kvkPatna.mobile,
+        },
+      });
+      console.log(`   ✅ Upserted user: ${patnaEmail} (kvk_admin → kvkpatna)`);
     }
 
   console.log(`\n✅ Created ${users.length} users mapped to KVKs\n`);

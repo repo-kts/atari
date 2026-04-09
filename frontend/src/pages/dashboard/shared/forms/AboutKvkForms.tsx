@@ -926,7 +926,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     readOnly
                                     disabled
                                     helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
-                                    placeholder="Enter host organization name"
+                                    placeholder="Populated from university (host organisation)"
                                 />
                             </div>
                             <FormInput
