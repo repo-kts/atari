@@ -6,7 +6,7 @@ import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown';
 import { DependentDropdown } from '@/components/common/DependentDropdown';
 import { createMasterDataOptions } from '@/utils/formHelpers';
-import { useSeasons, useCropTypes, useCfldExtensionActivityTypes } from '@/hooks/useOtherMastersData';
+import { useSeasons, useCropTypes, useCfldExtensionActivityTypes, useBudgetItems } from '@/hooks/useOtherMastersData';
 import { useCfldCrops } from '@/hooks/useOftFldData';
 import { calculatePercentIncrease } from '@/utils/cfldCalculations';
 
@@ -31,6 +31,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     type CfldSection = 'technical' | 'economic' | 'socio' | 'perception'
     const [cfldSection, setCfldSection] = useState<CfldSection>('technical')
     const [isPercentIncreaseManuallyEdited, setIsPercentIncreaseManuallyEdited] = useState(false)
+    const normalizeItemKey = useCallback(
+        (value: any) =>
+            String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .split(/\s+/)
+                .map((part: string, idx: number) => idx === 0 ? part : `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+                .join(''),
+        []
+    )
 
     useEffect(() => {
         const active = (formData?.cfldActiveSection || '').toString().toLowerCase()
@@ -246,6 +258,45 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
     const { data: cropTypes = [] } = useCropTypes();
     const { data: extensionActivityTypes = [] } = useCfldExtensionActivityTypes();
     const { data: cfldCrops = [] } = useCfldCrops();
+    const { data: budgetItemMasters = [] } = useBudgetItems({
+        enabled: entityType === ENTITY_TYPES.PROJECT_CFLD_BUDGET,
+    });
+
+    const budgetItemRows = useMemo(() => {
+        const byId = new Map(
+            (Array.isArray(formData?.budgetItems) ? formData.budgetItems : [])
+                .map((item: any) => [Number(item?.budgetItemId), item])
+        );
+
+        return budgetItemMasters.map((master: any) => {
+            const current: any = byId.get(Number(master.budgetItemId));
+            const aliasKey = normalizeItemKey(master.itemName);
+            const aliasReceived = formData?.[`${aliasKey}Received`];
+            const aliasUtilized = formData?.[`${aliasKey}Utilized`];
+
+            return {
+                budgetItemId: master.budgetItemId,
+                itemName: master.itemName,
+                budgetReceived: current?.budgetReceived ?? aliasReceived ?? '',
+                budgetUtilized: current?.budgetUtilized ?? aliasUtilized ?? '',
+            };
+        });
+    }, [budgetItemMasters, formData?.budgetItems, formData, normalizeItemKey]);
+
+    const handleBudgetItemValueChange = useCallback(
+        (budgetItemId: number, field: 'budgetReceived' | 'budgetUtilized', value: any) => {
+            setFormData((prev: any) => {
+                const prevItems = Array.isArray(prev?.budgetItems) ? [...prev.budgetItems] : [];
+                const idx = prevItems.findIndex((it: any) => Number(it?.budgetItemId) === Number(budgetItemId));
+                const existing = idx >= 0 ? prevItems[idx] : { budgetItemId };
+                const nextItem = { ...existing, [field]: value };
+                if (idx >= 0) prevItems[idx] = nextItem;
+                else prevItems.push(nextItem);
+                return { ...prev, budgetItems: prevItems };
+            });
+        },
+        [setFormData]
+    );
 
     // Memoized options for dropdowns
     const seasonOptions = useMemo(
@@ -1047,90 +1098,29 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E0E0E0]">
-                        <tr>
-                            <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">Critical input</td>
-                            <td className="px-4 py-3 border-r border-[#E0E0E0]">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.criticalInputReceived ?? ''}
-                                    onChange={(e) => handleFieldChange('criticalInputReceived', e.target.value)}
-                                />
-                            </td>
-                            <td className="px-4 py-3">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.criticalInputUtilized ?? ''}
-                                    onChange={(e) => handleFieldChange('criticalInputUtilized', e.target.value)}
-                                />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">TA/DA/POL etc. for monitoring</td>
-                            <td className="px-4 py-3 border-r border-[#E0E0E0]">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.taDaReceived ?? ''}
-                                    onChange={(e) => handleFieldChange('taDaReceived', e.target.value)}
-                                />
-                            </td>
-                            <td className="px-4 py-3">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.taDaUtilized ?? ''}
-                                    onChange={(e) => handleFieldChange('taDaUtilized', e.target.value)}
-                                />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">Extension Activities (Field Day)</td>
-                            <td className="px-4 py-3 border-r border-[#E0E0E0]">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.extensionActivitiesReceived ?? ''}
-                                    onChange={(e) => handleFieldChange('extensionActivitiesReceived', e.target.value)}
-                                />
-                            </td>
-                            <td className="px-4 py-3">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.extensionActivitiesUtilized ?? ''}
-                                    onChange={(e) => handleFieldChange('extensionActivitiesUtilized', e.target.value)}
-                                />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">Publication of literature</td>
-                            <td className="px-4 py-3 border-r border-[#E0E0E0]">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.publicationReceived ?? ''}
-                                    onChange={(e) => handleFieldChange('publicationReceived', e.target.value)}
-                                />
-                            </td>
-                            <td className="px-4 py-3">
-                                <FormInput
-                                    label=""
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.publicationUtilized ?? ''}
-                                    onChange={(e) => handleFieldChange('publicationUtilized', e.target.value)}
-                                />
-                            </td>
-                        </tr>
+                        {budgetItemRows.map((item) => (
+                            <tr key={item.budgetItemId}>
+                                <td className="px-4 py-3 text-[#212121] font-medium border-r border-[#E0E0E0]">{item.itemName}</td>
+                                <td className="px-4 py-3 border-r border-[#E0E0E0]">
+                                    <FormInput
+                                        label=""
+                                        type="number"
+                                        step="0.01"
+                                        value={item.budgetReceived ?? ''}
+                                        onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetReceived', e.target.value)}
+                                    />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <FormInput
+                                        label=""
+                                        type="number"
+                                        step="0.01"
+                                        value={item.budgetUtilized ?? ''}
+                                        onChange={(e) => handleBudgetItemValueChange(item.budgetItemId, 'budgetUtilized', e.target.value)}
+                                    />
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

@@ -8,6 +8,7 @@
 
 import { ENTITY_TYPES } from '../constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
+import { formatLocalDateYmd } from './dateLocalYmd';
 
 // ============================================
 // Type Definitions
@@ -66,7 +67,7 @@ function toDateOnlyString(value: any): string | null {
     if (value === null || value === undefined || value === '') return null;
 
     if (value instanceof Date) {
-        return Number.isNaN(value.getTime()) ? null : value.toISOString().split('T')[0];
+        return Number.isNaN(value.getTime()) ? null : formatLocalDateYmd(value);
     }
 
     if (typeof value === 'number' && Number.isInteger(value) && value >= 1900 && value <= 3000) {
@@ -99,7 +100,7 @@ function toDateOnlyString(value: any): string | null {
     }
 
     const parsed = new Date(trimmed);
-    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+    return Number.isNaN(parsed.getTime()) ? null : formatLocalDateYmd(parsed);
 }
 
 // ============================================
@@ -818,7 +819,7 @@ export function normalizeStartEndDateRanges(data: any): any {
     if (!data || typeof data !== 'object') return data;
 
     const normalized = { ...data };
-    const todayYmd = new Date().toISOString().slice(0, 10);
+    const todayYmd = formatLocalDateYmd();
 
     Object.keys(normalized).forEach((key) => {
         const lowerKey = key.toLowerCase();

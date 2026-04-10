@@ -153,6 +153,18 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'budget-item': {
+        model: 'budgetItem',
+        idField: 'budgetItemId',
+        nameField: 'itemName',
+        includes: {
+            _count: {
+                select: {
+                    utilizations: true,
+                },
+            },
+        },
+    },
     'infrastructure-master': {
         model: 'kvkInfrastructureMaster',
         idField: 'infraMasterId',

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
+import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
@@ -256,7 +257,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         }
     }, [formData, setFormData]);
 
-    const todayYmd = new Date().toISOString().slice(0, 10);
+    const todayYmd = formatLocalDateYmd();
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (

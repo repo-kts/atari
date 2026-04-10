@@ -221,6 +221,12 @@ exports.createCropType = create('crop-type');
 exports.updateCropType = update('crop-type');
 exports.deleteCropType = deleteEntity('crop-type');
 
+exports.getAllBudgetItems = getAll('budget-item');
+exports.getBudgetItemById = getById('budget-item');
+exports.createBudgetItem = create('budget-item');
+exports.updateBudgetItem = update('budget-item');
+exports.deleteBudgetItem = deleteEntity('budget-item');
+
 exports.getAllInfrastructureMasters = getAll('infrastructure-master');
 exports.getInfrastructureMasterById = getById('infrastructure-master');
 exports.createInfrastructureMaster = create('infrastructure-master');

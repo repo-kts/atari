@@ -49,5 +49,6 @@ model KvkBudgetUtilizationItem {
 
   @@index([budgetId])
   @@index([budgetItemId])
+  @@unique([budgetId, budgetItemId])
   @@map("kvk_budget_utilization_item")
 }

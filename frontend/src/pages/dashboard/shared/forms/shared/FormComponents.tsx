@@ -1,5 +1,6 @@
 import React from 'react'
 import { DatePicker } from '@/components/ui/date-picker'
+import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
 
 /** Keeps the outlined label on the border while reserving space so wrapped text does not cover the control. */
 function useFloatingLabelPadding(labelText: string) {
@@ -67,7 +68,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                 const type = props.type
                 const lowerLabel = displayLabel.toLowerCase()
                 const today = new Date()
-                const todayStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
+                const todayStr = formatLocalDateYmd(today)
 
                 const stepFromProps = props.step
                 const isInteger =

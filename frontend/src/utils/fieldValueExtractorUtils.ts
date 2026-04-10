@@ -69,7 +69,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.END_DATE]: {
         extractor: (item: any) => {
-            const dateVal = item.endDate || item.end_date;
+            // Keep END_DATE column, but fall back to first completion date when end date is absent.
+            const dateVal =
+                item.endDate ||
+                item.end_date ||
+                item.completedAt ||
+                item.completed_at;
             if (!dateVal) return null;
             try {
                 const date = new Date(dateVal);
