@@ -4,6 +4,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface NaturalFarmingFormsProps {
     entityType: string
@@ -403,7 +404,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Contact Number"
                             required
                             value={formData.contactNumber ?? ''}
-                            onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    contactNumber: cleanIndianMobileInput(e.target.value),
+                                })
+                            }
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
                         <FormSelect
                             label="State"
@@ -588,7 +596,14 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                             label="Contact Number"
                             required
                             value={formData.contactNumber ?? ''}
-                            onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    contactNumber: cleanIndianMobileInput(e.target.value),
+                                })
+                            }
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
                         <FormInput
                             label="Village Name"

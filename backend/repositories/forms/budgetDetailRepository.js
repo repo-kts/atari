@@ -1,11 +1,12 @@
 const prisma = require('../../config/prisma.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const budgetDetailRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.budgetDetail.create({
+        const created = await prisma.budgetDetail.create({
             data: {
                 kvkId,
                 startDate: new Date(data.startDate),
@@ -26,6 +27,8 @@ const budgetDetailRepository = {
                 capitalScspGrantExpenditure: parseFloat(data.capitalScspGrantExpenditure || 0),
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('budgetDetail', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -67,7 +70,7 @@ const budgetDetailRepository = {
         const existing = await prisma.budgetDetail.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.budgetDetail.update({
+        const updated = await prisma.budgetDetail.update({
             where: { budgetDetailId: id },
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
@@ -88,6 +91,8 @@ const budgetDetailRepository = {
                 capitalScspGrantExpenditure: data.capitalScspGrantExpenditure !== undefined ? parseFloat(data.capitalScspGrantExpenditure) : existing.capitalScspGrantExpenditure,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('budgetDetail', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -98,9 +103,11 @@ const budgetDetailRepository = {
         const existing = await prisma.budgetDetail.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.budgetDetail.delete({
+        const removed = await prisma.budgetDetail.delete({
             where: { budgetDetailId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('budgetDetail', existing.kvkId);
+        return removed;
     }
 };
 

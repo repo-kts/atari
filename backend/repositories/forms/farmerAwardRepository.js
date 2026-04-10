@@ -6,6 +6,7 @@ const {
     validateKvkExists,
     validateUUID,
 } = require('../../utils/repositoryHelpers');
+const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 /**
@@ -164,7 +165,10 @@ const farmerAwardRepository = {
 
             // Validate required fields
             const farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
-            const contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
+            const contactNumber = normalizeRequiredIndianMobile(
+                _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false),
+                'Contact Number',
+            );
             const address = _normalizeString(data.address, 'Address', false);
             const awardName = _normalizeString(data.awardName, 'Award Name', false);
             const amount = _parseInteger(data.amount, 'Amount', false);
@@ -341,7 +345,10 @@ const farmerAwardRepository = {
                 updateData.farmerName = _normalizeString(data.farmerName, 'Farmer Name', false);
             }
             if (data.contactNumber !== undefined || data.contactNo !== undefined) {
-                updateData.contactNumber = _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false);
+                updateData.contactNumber = normalizeRequiredIndianMobile(
+                    _normalizeString(data.contactNumber || data.contactNo, 'Contact Number', false),
+                    'Contact Number',
+                );
             }
             if (data.image !== undefined) {
                 updateData.image = data.image ? (typeof data.image === 'string' ? data.image : JSON.stringify(data.image)) : null;

@@ -17,7 +17,7 @@ export const ROUTE_PATHS = {
     ABOUT_KVK: {
         BASE: '/forms/about-kvk',
         VIEW_KVKS: {
-            BASE: '/forms/about-kvk/view-kvks',
+            BASE: '/forms/about-kvk/view-kvks', 
             DETAILS: '/forms/about-kvk/view-kvks/:id',
             BANK: '/forms/about-kvk/view-kvks/:id/bank',
             EMPLOYEES: '/forms/about-kvk/view-kvks/:id/employees',
@@ -76,6 +76,15 @@ export const ROUTE_PATHS = {
                 VALUE_ADDITION: '/forms/achievements/projects/nari/value-addition',
                 TRAINING_PROGRAMM: '/forms/achievements/projects/nari/training-programm',
                 EXTENSION_ACTIVITIES: '/forms/achievements/projects/nari/extension-activities',
+                /** Backend form API base paths (apiClient); align with useProjectData / Express routes */
+                FORM_API: {
+                    NUTRITIONAL_GARDEN:
+                        '/forms/achievements/projects/nari/nutritional-garden',
+                    BIO_FORTIFIED_CROP:
+                        '/forms/achievements/projects/nari/bio-fortified-crop',
+                    VALUE_ADDITION:
+                        '/forms/achievements/projects/nari/value-addition',
+                },
             },
             ARYA: {
                 CURRENT: '/forms/achievements/projects/arya',
@@ -187,5 +196,139 @@ export const ROUTE_PATHS = {
         BASE: '/forms/meetings',
         SAC: '/forms/meetings/sac',
         OTHER: '/forms/meetings/other',
+    },
+    /**
+     * Backend REST bases for useProjectData / apiClient. Must match Express routes;
+     * paths may differ from browser routes elsewhere in this file.
+     */
+    PROJECT_DATA_API: {
+        ACHIEVEMENTS: {
+            AWARD_KVK: '/forms/achievements/kvk-awards',
+            AWARD_SCIENTIST: '/forms/achievements/scientist-awards',
+            AWARD_FARMER: '/forms/achievements/farmer-awards',
+            EXTENSION_ACTIVITIES: '/forms/achievements/extension-activities',
+            OTHER_EXTENSION_ACTIVITIES:
+                '/forms/achievements/other-extension-activities',
+            TECHNOLOGY_WEEK: '/forms/achievements/technology-week',
+            CELEBRATION_DAYS: '/forms/achievements/celebration-days',
+            PRODUCTION_SUPPLY: '/forms/achievements/production-supply',
+            PUBLICATION_DETAILS: '/forms/achievements/publication-details',
+            CFLD: {
+                TECHNICAL_PARAMETERS:
+                    '/forms/achievements/cfld-technical-parameters',
+                EXTENSION_ACTIVITIES:
+                    '/forms/achievements/cfld-extension-activities',
+                BUDGET_UTILIZATIONS:
+                    '/forms/achievements/cfld-budget-utilizations',
+            },
+            SOIL_WATER: {
+                EQUIPMENTS: '/forms/achievements/soil-water/equipments',
+                ANALYSIS: '/forms/achievements/soil-water/analysis',
+                WORLD_SOIL_DAY: '/forms/achievements/soil-water/world-soil-day',
+            },
+            HRD: '/forms/achievements/hrd',
+        },
+        PROJECTS: {
+            FPO_DETAILS: '/forms/achievements/projects/fpo/details',
+            FPO_MANAGEMENT: '/forms/achievements/projects/fpo/management',
+            SEED_HUB: '/forms/achievements/projects/seed-hub',
+            ARYA_CURRENT: '/forms/achievements/projects/arya/current',
+            ARYA_EVALUATION: '/forms/achievements/projects/arya/previous',
+            CSISA: '/forms/achievements/projects/csisa',
+            TSP_SCSP: '/forms/achievements/projects/sub-plan-activity',
+            AGRI_DRONE: '/forms/achievements/projects/agri-drone',
+            AGRI_DRONE_DEMO: '/forms/achievements/projects/agri-drone/demonstrations',
+            DRMR_DETAILS: '/forms/achievements/projects/drmr/details',
+            DRMR_ACTIVITY: '/forms/achievements/projects/drmr/activity',
+            NICRA: {
+                BASIC: '/forms/achievements/projects/nicra/basic',
+                DETAILS: '/forms/achievements/projects/nicra/details',
+                TRAINING: '/forms/achievements/projects/nicra/training',
+                EXTENSION: '/forms/achievements/projects/nicra/extension',
+                INTERVENTION: '/forms/achievements/projects/nicra/intervention',
+                REVENUE: '/forms/achievements/projects/nicra/revenue',
+                CUSTOM_HIRING: '/forms/achievements/projects/nicra/farm-implement',
+                VCRMC: '/forms/achievements/projects/nicra/vcrmc',
+                SOIL_HEALTH: '/forms/achievements/projects/nicra/soil-health',
+                CONVERGENCE: '/forms/achievements/projects/nicra/convergence',
+                DIGNITARIES: '/forms/achievements/projects/nicra/dignitaries',
+                PI_COPI: '/forms/achievements/projects/nicra/pi-copi',
+            },
+            CRA_DETAILS: '/forms/achievements/projects/cra/details',
+            CRA_EXTENSION_ACTIVITY: '/forms/achievements/projects/cra/extension',
+            NARI_TRAINING: '/forms/achievements/projects/nari/training-programme',
+            NARI_EXTENSION: '/forms/achievements/projects/nari/extension-activity',
+        },
+        NATURAL_FARMING: {
+            GEO: '/forms/achievements/projects/natural-farming/geographical',
+            PHYSICAL: '/forms/achievements/projects/natural-farming/physical',
+            DEMO: '/forms/achievements/projects/natural-farming/demonstration',
+            FARMERS: '/forms/achievements/projects/natural-farming/farmers',
+            BENEFICIARIES: '/forms/achievements/projects/natural-farming/beneficiaries',
+            SOIL: '/forms/achievements/projects/natural-farming/soil',
+            BUDGET: '/forms/achievements/projects/natural-farming/budget',
+        },
+        OTHER_PROGRAM: '/forms/achievements/other-program',
+        MISCELLANEOUS: {
+            PREVALENT_DISEASES_CROPS:
+                '/forms/miscellaneous/prevalent-diseases/crops',
+            PREVALENT_DISEASES_LIVESTOCK:
+                '/forms/miscellaneous/prevalent-diseases/livestock',
+            NYK_TRAINING: '/forms/miscellaneous/nyk-training',
+            PPV_FRA_TRAINING: '/forms/miscellaneous/ppv-fra/training',
+            PPV_FRA_PLANT_VARIETIES:
+                '/forms/miscellaneous/ppv-fra/plant-varieties',
+            RAWE_FET: '/forms/miscellaneous/rawe-fet',
+            VIP_VISITORS: '/forms/miscellaneous/vip-visitors',
+            SWACHHTA_SEWA: '/forms/miscellaneous/swachhta-bharat/sewa',
+            SWACHHTA_PAKHWADA: '/forms/miscellaneous/swachhta-bharat/pakhwada',
+            SWACHHTA_BUDGET: '/forms/miscellaneous/swachhta-bharat/budget',
+            MEETINGS_SAC: '/forms/miscellaneous/meetings/sac',
+            MEETINGS_OTHER: '/forms/miscellaneous/meetings/other',
+        },
+        PERFORMANCE: {
+            IMPACT_KVK_ACTIVITIES: '/forms/performance/impact/kvk-activities',
+            IMPACT_ENTREPRENEURSHIP:
+                '/forms/performance/impact/entrepreneurship',
+            IMPACT_SUCCESS_STORIES: '/forms/performance/impact/success-stories',
+            DEMONSTRATION_UNITS:
+                '/forms/performance/infrastructure/demonstration-units',
+            INSTRUCTIONAL_FARM_CROPS:
+                '/forms/performance/infrastructure/instructional-farm-crops',
+            PRODUCTION_UNITS:
+                '/forms/performance/infrastructure/production-units',
+            INSTRUCTIONAL_FARM_LIVESTOCK:
+                '/forms/performance/infrastructure/instructional-farm-livestock',
+            HOSTEL: '/forms/performance/infrastructure/hostel',
+            STAFF_QUARTERS: '/forms/performance/infrastructure/staff-quarters',
+            RAINWATER_HARVESTING:
+                '/forms/performance/infrastructure/rainwater-harvesting',
+            FUNCTIONAL_LINKAGE:
+                '/forms/performance/linkages/functional-linkages',
+            SPECIAL_PROGRAMMES:
+                '/forms/performance/linkages/special-programmes',
+            OPERATIONAL_AREA:
+                '/forms/performance/district-village/operational-areas',
+            VILLAGE_ADOPTION:
+                '/forms/performance/district-village/village-adoptions',
+            PRIORITY_THRUST:
+                '/forms/performance/district-village/priority-thrust-areas',
+            DISTRICT_LEVEL:
+                '/forms/performance/district-village/district-levels',
+            BUDGET_DETAILS: '/forms/performance/financial/budget-details',
+            REVOLVING_FUND: '/forms/performance/financial/revolving-fund',
+            REVENUE_GENERATION:
+                '/forms/performance/financial/revenue-generation',
+            RESOURCE_GENERATION:
+                '/forms/performance/financial/resource-generation',
+            PROJECT_BUDGET: '/forms/performance/financial/project-budget',
+        },
+        DIGITAL_INFORMATION: {
+            MOBILE_APP: '/forms/achievements/digital-information/mobile-app',
+            WEB_PORTAL: '/forms/achievements/digital-information/web-portal',
+            KISAN_SARATHI: '/forms/achievements/digital-information/kisan-sarathi',
+            KMAS: '/forms/achievements/digital-information/kmas',
+            MSG_DETAILS: '/forms/achievements/digital-information/msg-details',
+        },
     },
 } as const;

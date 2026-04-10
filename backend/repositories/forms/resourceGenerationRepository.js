@@ -1,11 +1,12 @@
 const prisma = require('../../config/prisma.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const resourceGenerationRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.resourceGeneration.create({
+        const created = await prisma.resourceGeneration.create({
             data: {
                 kvkId,
                 startDate: new Date(data.startDate),
@@ -17,6 +18,8 @@ const resourceGenerationRepository = {
                 infrastructureCreated: data.infrastructureCreated,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('resourceGeneration', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -58,7 +61,7 @@ const resourceGenerationRepository = {
         const existing = await prisma.resourceGeneration.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.resourceGeneration.update({
+        const updated = await prisma.resourceGeneration.update({
             where: { resourceGenerationId: id },
             data: {
                 startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
@@ -70,6 +73,8 @@ const resourceGenerationRepository = {
                 infrastructureCreated: data.infrastructureCreated !== undefined ? data.infrastructureCreated : existing.infrastructureCreated,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('resourceGeneration', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -80,9 +85,11 @@ const resourceGenerationRepository = {
         const existing = await prisma.resourceGeneration.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.resourceGeneration.delete({
+        const removed = await prisma.resourceGeneration.delete({
             where: { resourceGenerationId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('resourceGeneration', existing.kvkId);
+        return removed;
     }
 };
 

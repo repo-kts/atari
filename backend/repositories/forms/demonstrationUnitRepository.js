@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const { parseYearOfEstablishment } = require('../../utils/formIntValidation.js');
 
 const demonstrationUnitRepository = {
     create: async (data, user) => {
@@ -15,7 +16,7 @@ const demonstrationUnitRepository = {
                     return d;
                 })(),
                 demoUnitName: data.demoUnitName,
-                yearOfEstablishment: parseInt(data.yearOfEstablishment || 0),
+                yearOfEstablishment: parseYearOfEstablishment(data.yearOfEstablishment, 'Year of establishment'),
                 area: parseFloat(data.area || 0),
                 varietyBreed: data.varietyBreed,
                 produce: data.produce,
@@ -77,7 +78,9 @@ const demonstrationUnitRepository = {
                     })()
                     : existing.reportingYear,
                 demoUnitName: data.demoUnitName !== undefined ? data.demoUnitName : existing.demoUnitName,
-                yearOfEstablishment: data.yearOfEstablishment !== undefined ? parseInt(data.yearOfEstablishment || 0) : existing.yearOfEstablishment,
+                yearOfEstablishment: data.yearOfEstablishment !== undefined
+                    ? parseYearOfEstablishment(data.yearOfEstablishment, 'Year of establishment')
+                    : existing.yearOfEstablishment,
                 area: data.area !== undefined ? parseFloat(data.area || 0) : existing.area,
                 varietyBreed: data.varietyBreed !== undefined ? data.varietyBreed : existing.varietyBreed,
                 produce: data.produce !== undefined ? data.produce : existing.produce,

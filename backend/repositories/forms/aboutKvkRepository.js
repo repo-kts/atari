@@ -1,6 +1,8 @@
 const prisma = require('../../config/prisma.js');
 const { sanitizeString, sanitizeInteger, safeGet, removeIdFieldsForUpdate } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { normalizeOptionalIndianMobile, normalizeRequiredIndianMobile } = require('../../utils/validation.js');
+const { parseYearOfEstablishment } = require('../../utils/formIntValidation.js');
 const { parseReportingYearDate, ensureNotFutureDate, normalizeDateRange } = require('../../utils/reportingYearUtils.js');
 
 /**
@@ -684,7 +686,15 @@ function sanitizeData(entityName, data) {
             sanitized.hostOrg = sanitizeString(safeGet(data, 'hostOrg'), { allowEmpty: true });
         }
         if (sanitized.hostMobile !== undefined) {
-            sanitized.hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { allowEmpty: true });
+            const rawHost = safeGet(data, 'hostMobile');
+            try {
+                sanitized.hostMobile =
+                    rawHost === null || rawHost === undefined || String(rawHost).trim() === ''
+                        ? null
+                        : normalizeOptionalIndianMobile(rawHost, 'Host mobile');
+            } catch (e) {
+                throw new ValidationError(e.message, 'hostMobile');
+            }
         }
         if (sanitized.hostLandline !== undefined) {
             sanitized.hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { allowEmpty: true });
@@ -699,7 +709,11 @@ function sanitizeData(entityName, data) {
             sanitized.hostAddress = sanitizeString(safeGet(data, 'hostAddress'), { allowEmpty: true });
         }
         if (sanitized.mobile !== undefined) {
-            sanitized.mobile = sanitizeString(safeGet(data, 'mobile'), { allowEmpty: true });
+            try {
+                sanitized.mobile = normalizeRequiredIndianMobile(safeGet(data, 'mobile'), 'Mobile');
+            } catch (e) {
+                throw new ValidationError(e.message, 'mobile');
+            }
         }
         if (sanitized.email !== undefined) {
             sanitized.email = sanitizeString(safeGet(data, 'email'), { allowEmpty: true });
@@ -708,7 +722,14 @@ function sanitizeData(entityName, data) {
             sanitized.address = sanitizeString(safeGet(data, 'address'), { allowEmpty: true });
         }
         if (sanitized.yearOfSanction !== undefined) {
-            sanitized.yearOfSanction = sanitizeInteger(safeGet(data, 'yearOfSanction'));
+            try {
+                sanitized.yearOfSanction = parseYearOfEstablishment(
+                    safeGet(data, 'yearOfSanction'),
+                    'Year of sanction',
+                );
+            } catch (e) {
+                throw new ValidationError(e.message, 'yearOfSanction');
+            }
         }
 
         // Sanitize relation IDs (will be converted to relations in update/create)
@@ -790,6 +811,13 @@ function sanitizeData(entityName, data) {
 
     if (entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred') {
         keepOnlyAllowedFields(sanitized, KVK_STAFF_ALLOWED_FIELDS);
+        if (sanitized.mobile !== undefined && sanitized.mobile !== null) {
+            try {
+                sanitized.mobile = normalizeRequiredIndianMobile(sanitized.mobile, 'Mobile');
+            } catch (e) {
+                throw new ValidationError(e.message, 'mobile');
+            }
+        }
     }
 
     if (entityName === 'kvk-infrastructure') {

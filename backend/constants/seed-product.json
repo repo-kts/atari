@@ -1,0 +1,3158 @@
+[
+  {
+    "sno": "1",
+    "category": "Other",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "2",
+    "category": "Makhana",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "3",
+    "category": "Dragon Fruit",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "4",
+    "category": "Cow Urine",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "5",
+    "category": "Cow Dung",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "6",
+    "category": "Compost",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "7",
+    "category": "Coir Pith",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "8",
+    "category": "Spawn Culture",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "9",
+    "category": "Mushroom",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "10",
+    "category": "Others",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "11",
+    "category": "Subabul",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "12",
+    "category": "Other Fodder Grasses",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "13",
+    "category": "Gajaraj",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "14",
+    "category": "Sudan Chari",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "15",
+    "category": "Sesbania",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "16",
+    "category": "Setaria",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "17",
+    "category": "Others",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "18",
+    "category": "Nutmeg graft",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "19",
+    "category": "Curry Leaf",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "20",
+    "category": "Cardamom",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "21",
+    "category": "Bush Pepper",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "22",
+    "category": "Ginger",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "23",
+    "category": "Fennel",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "24",
+    "category": "Peppar",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "25",
+    "category": "Cinnamon",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "26",
+    "category": "Black pepgper",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "27",
+    "category": "Chilli",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "28",
+    "category": "Tapioca",
+    "subcategory": "Tuber Elephant Yams",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "29",
+    "category": "Others",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "30",
+    "category": "Rubber",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "31",
+    "category": "Coffee",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "32",
+    "category": "Cachew",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "33",
+    "category": "Drumstick",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "34",
+    "category": "Fodder Toussek",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "35",
+    "category": "Karanj",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "36",
+    "category": "Cashew",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "37",
+    "category": "Beetlenut",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "38",
+    "category": "Neem",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "39",
+    "category": "Acacia",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "40",
+    "category": "Siris",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "41",
+    "category": "Teak",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "42",
+    "category": "Jetropha",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "43",
+    "category": "Shisham",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "44",
+    "category": "Polpar",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "45",
+    "category": "Fodder",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "46",
+    "category": "Cardamom",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "47",
+    "category": "Coconut",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "48",
+    "category": "Arecanut",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "49",
+    "category": "Others",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "50",
+    "category": "Pipli",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "51",
+    "category": "Aloevera",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "52",
+    "category": "Citronella",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "53",
+    "category": "Akarkara",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "54",
+    "category": "Butch",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "55",
+    "category": "Satawer",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "56",
+    "category": "Mentha",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "57",
+    "category": "Lemon grass",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "58",
+    "category": "Senecio",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "59",
+    "category": "Surruria",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "60",
+    "category": "Peomia",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "61",
+    "category": "Dioscorea",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "62",
+    "category": "Rose",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "63",
+    "category": "Lavender",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "64",
+    "category": "Seabuckthorn",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "65",
+    "category": "Herbs",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "66",
+    "category": "Chakramuni",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "67",
+    "category": "Amruthaballi",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "68",
+    "category": "Orchid",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "69",
+    "category": "Taberna",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "70",
+    "category": "Heliconia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "71",
+    "category": "Foliage Plants",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "72",
+    "category": "Flowering Plants",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "73",
+    "category": "Exocaria",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "74",
+    "category": "Euphorbia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "75",
+    "category": "Coleus",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "76",
+    "category": "Bush Jasmine",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "77",
+    "category": "Arelia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "78",
+    "category": "Anthurium",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "79",
+    "category": "Allamanda",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "80",
+    "category": "Gladiolus corms",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "81",
+    "category": "Rat rani",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "82",
+    "category": "Mandarin",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "83",
+    "category": "Gladioli",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "84",
+    "category": "Tikoma",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "85",
+    "category": "Iryfine",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "86",
+    "category": "Duranta",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "87",
+    "category": "Chandni",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "88",
+    "category": "Cassia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "89",
+    "category": "Ashok",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "90",
+    "category": "Nishigandha",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "91",
+    "category": "Gaillardia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "92",
+    "category": "Boganvelia",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "93",
+    "category": "Bamboo",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "94",
+    "category": "Aster",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "95",
+    "category": "Acalifa",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "96",
+    "category": "Bush Plants",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "97",
+    "category": "Lilly",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "98",
+    "category": "China Palm",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "99",
+    "category": "Crotan",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "100",
+    "category": "Daheliya",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "101",
+    "category": "Rose",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "102",
+    "category": "Sesanal Flower",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "103",
+    "category": "Chrysenthemum",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "104",
+    "category": "Ornamental",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "105",
+    "category": "Mari gold",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "106",
+    "category": "Others",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "107",
+    "category": "Watermelon",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "108",
+    "category": "West Indian cherry",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "109",
+    "category": "Rambootan",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "110",
+    "category": "Mangosteen",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "111",
+    "category": "loveloli",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "112",
+    "category": "Bitter Lime",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "113",
+    "category": "Javel",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "114",
+    "category": "Jamba",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "115",
+    "category": "Indian gooseberry",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "116",
+    "category": "Egg Fruit",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "117",
+    "category": "Chinese Orange",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "118",
+    "category": "Chamba",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "119",
+    "category": "Carambole",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "120",
+    "category": "Bilumbi",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "121",
+    "category": "Papaya seedlings",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "122",
+    "category": "Lemon graft",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "123",
+    "category": "E apple",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "124",
+    "category": "Sweet orange",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "125",
+    "category": "Lasoda",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "126",
+    "category": "Kinnow",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "127",
+    "category": "Gunda",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "128",
+    "category": "Date palm",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "129",
+    "category": "Budded Ber",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "130",
+    "category": "Tamarind",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "131",
+    "category": "Kokum",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "132",
+    "category": "Jamun",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "133",
+    "category": "Jamberi",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "134",
+    "category": "Grape",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "135",
+    "category": "Fig",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "136",
+    "category": "Drumstick",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "137",
+    "category": "Coconut",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "138",
+    "category": "Malta",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "139",
+    "category": "Sahjan",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "140",
+    "category": "Karonda",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "141",
+    "category": "Koruna",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "142",
+    "category": "Causterd Apple",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "143",
+    "category": "Tree bean",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "144",
+    "category": "Rough lemon",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "145",
+    "category": "Passion fruit",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "146",
+    "category": "Mango graft",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "147",
+    "category": "Gauva Grafted",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "148",
+    "category": "Citrus Lemon",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "149",
+    "category": "Sapota",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "150",
+    "category": "Cashewnut",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "151",
+    "category": "Orange",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "152",
+    "category": "Citrus",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "153",
+    "category": "Woodapple",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "154",
+    "category": "Guava",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "155",
+    "category": "Litchi",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "156",
+    "category": "Banana",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "157",
+    "category": "Quince",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "158",
+    "category": "Strawberry",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "159",
+    "category": "Almond",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "160",
+    "category": "Walnut",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "161",
+    "category": "Perssimon",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "162",
+    "category": "Pecan nut",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "163",
+    "category": "Peach",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "164",
+    "category": "Pear",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "165",
+    "category": "Plum",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "166",
+    "category": "Apricot",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "167",
+    "category": "Cherry",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "168",
+    "category": "Pomegranate",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "169",
+    "category": "Apple",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "170",
+    "category": "Bel",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "171",
+    "category": "Ber",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "172",
+    "category": "Lasora",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "173",
+    "category": "Aonla",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "174",
+    "category": "Jack fruit",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "175",
+    "category": "Lemon",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "176",
+    "category": "Pineapple",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "177",
+    "category": "Potato",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "178",
+    "category": "Erythrina",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "179",
+    "category": "Aonla Sapota",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "180",
+    "category": "Annona",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "181",
+    "category": "Amla",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "182",
+    "category": "Acidlime",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "183",
+    "category": "Ivy Gourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "184",
+    "category": "Annual Moringa",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "185",
+    "category": "Amaranthus",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "186",
+    "category": "Agathi",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "187",
+    "category": "Pointed gourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "188",
+    "category": "Chiller",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "189",
+    "category": "Ridgegourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "190",
+    "category": "Muskmelon",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "191",
+    "category": "Drumstick",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "192",
+    "category": "Curry leaf",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "193",
+    "category": "Summer squash",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "194",
+    "category": "Pumpkin",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "195",
+    "category": "Sponge gourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "196",
+    "category": "Bitter gourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "197",
+    "category": "Winter vegetables",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "198",
+    "category": "Elephant foot yam",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "199",
+    "category": "Dioscorea",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "200",
+    "category": "Colocassia",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "201",
+    "category": "Radish",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "202",
+    "category": "Cucurbits",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "203",
+    "category": "Kale",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "204",
+    "category": "Lettuce",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "205",
+    "category": "Celery",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "206",
+    "category": "Parsley",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "207",
+    "category": "Knol khol",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "208",
+    "category": "Capsicum",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "209",
+    "category": "Cucumber",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "210",
+    "category": "Bottle Gourd",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "211",
+    "category": "Broccoli",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "212",
+    "category": "Bell Pepper",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "213",
+    "category": "EM",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "214",
+    "category": "VAM or AMF",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "215",
+    "category": "ZSB",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "216",
+    "category": "KMB",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "217",
+    "category": "Phosphate Solubilizing Bacteria PSB",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "218",
+    "category": "Azospirillum based Biofertilizer",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "219",
+    "category": "Rhizobium based Biofertilizer",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "220",
+    "category": "Azotobacter based Biofertilizer",
+    "subcategory": "Bio Fertilizers",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "221",
+    "category": "Agroc Waste",
+    "subcategory": "Vermicompost",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "222",
+    "category": "Cow Dung",
+    "subcategory": "Vermicompost",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "223",
+    "category": "Others",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "224",
+    "category": "Cow dung wet",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "225",
+    "category": "Cow dung dry",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "226",
+    "category": "Coir pith compost",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "227",
+    "category": "Mineral Mixture",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "228",
+    "category": "Cuelure",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "229",
+    "category": "Mushroom spawn",
+    "subcategory": "Others Please Specify",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "230",
+    "category": "Others",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "231",
+    "category": "Metarrhizium anisopliae Metchnikoff",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "232",
+    "category": "Beauveria bassiana Balsamo Vuillemin",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "233",
+    "category": "Trichoderma viridae",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "234",
+    "category": "NADEP",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "235",
+    "category": "Crysoparla",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "236",
+    "category": "Agro Derma",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "237",
+    "category": "Vermi cocoons",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "238",
+    "category": "Azotobactor",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "239",
+    "category": "Rhizobium",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "240",
+    "category": "PSB",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "241",
+    "category": "Verticillium",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "242",
+    "category": "Pseudomonas fluerensence",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "243",
+    "category": "Trichoderma",
+    "subcategory": "Biofungicide",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "244",
+    "category": "Epiricania melanolauca",
+    "subcategory": "Biocontrol Agent",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "245",
+    "category": "Ooincirtus papilionis",
+    "subcategory": "Biocontrol Agent",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "246",
+    "category": "Earth worm",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "247",
+    "category": "Eisenia foetida",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "248",
+    "category": "Euclnia Uginae",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "249",
+    "category": "Others",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "250",
+    "category": "Eudrilus eugeniae",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "251",
+    "category": "Assinia foetida",
+    "subcategory": "Worms Earthworm Silk Worms Etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "252",
+    "category": "Others",
+    "subcategory": "Bioagents Trichocard etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "253",
+    "category": "Tricho card",
+    "subcategory": "Bioagents Trichocard etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "254",
+    "category": "Chrysoperla carnea",
+    "subcategory": "Bioagents Trichocard etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "255",
+    "category": "Trichogramma chilonis",
+    "subcategory": "Bioagents Trichocard etc",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "256",
+    "category": "Others",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "257",
+    "category": "Trichogramma chilonis",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "258",
+    "category": "Pseudomonas fluorescens",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "259",
+    "category": "Trichoderma",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "260",
+    "category": "NPV",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "261",
+    "category": "Agroneem",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "262",
+    "category": "Trichoderma harjinum",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "263",
+    "category": "Verticillium",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "264",
+    "category": "Panchagavya",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "265",
+    "category": "Paeciliomyces",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "266",
+    "category": "NSKE",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "267",
+    "category": "Neumoria",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "268",
+    "category": "Neem powder",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "269",
+    "category": "Leucin Lures",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "270",
+    "category": "Heli Lures",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "271",
+    "category": "Baco Lures",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "272",
+    "category": "Azatobactor",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "273",
+    "category": "GF1",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "274",
+    "category": "Ha NPV",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "275",
+    "category": "Sl NPV",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "276",
+    "category": "Metarhizium anisopliae",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "277",
+    "category": "Beauveria bassiana",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "278",
+    "category": "Trichoderma viride",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "279",
+    "category": "Tobacco extract",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "280",
+    "category": "Neem extract",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "281",
+    "category": "Others",
+    "subcategory": "Biofood",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "282",
+    "category": "Spirulina",
+    "subcategory": "Biofood",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "283",
+    "category": "Napier",
+    "subcategory": "Fodder Crop Sampling",
+    "crop": "Fodder Crop Sampling"
+  },
+  {
+    "sno": "284",
+    "category": "Ducks",
+    "subcategory": "Ducks",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "285",
+    "category": "Rehum emodi",
+    "subcategory": "Medicinal",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "286",
+    "category": "Arnebia benthani",
+    "subcategory": "Medicinal",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "287",
+    "category": "Walnut",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "288",
+    "category": "Azolla",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "289",
+    "category": "Mushroom",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "290",
+    "category": "Mushroom spawn",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "291",
+    "category": "Sisbania",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "292",
+    "category": "Elephant Footyam",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "293",
+    "category": "Broom Stick",
+    "subcategory": "Others",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "294",
+    "category": "Tamarind",
+    "subcategory": "Forest Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "295",
+    "category": "Pongamia clabra",
+    "subcategory": "Forest Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "296",
+    "category": "Mesta",
+    "subcategory": "Fibre Crops",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "297",
+    "category": "Cotton",
+    "subcategory": "Fibre Crops",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "298",
+    "category": "Dhaincha",
+    "subcategory": "Fibre Crops",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "299",
+    "category": "Sunhemp",
+    "subcategory": "Fibre Crops",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "300",
+    "category": "Jute",
+    "subcategory": "Fibre Crops",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "301",
+    "category": "Sweet Orange",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "302",
+    "category": "Walnut",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "303",
+    "category": "Mango",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "304",
+    "category": "Lime",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "305",
+    "category": "Guava",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "306",
+    "category": "Cashew",
+    "subcategory": "Fruits",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "307",
+    "category": "Subabul",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "308",
+    "category": "Fodder Maize",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "309",
+    "category": "Fodder cowpea",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "310",
+    "category": "Anjan grass seed",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "311",
+    "category": "Fodder Sorghum",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "312",
+    "category": "Desmanthus",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "313",
+    "category": "Dhaman",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "314",
+    "category": "Napier",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "315",
+    "category": "Fodder slips",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "316",
+    "category": "Napier Grass",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "317",
+    "category": "Fodder",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "318",
+    "category": "Rice Bean",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "319",
+    "category": "Oats",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "320",
+    "category": "Barseem",
+    "subcategory": "Fodder",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "321",
+    "category": "Onion",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "322",
+    "category": "Chilli",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "323",
+    "category": "Isabgol",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "324",
+    "category": "Cumin",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "325",
+    "category": "Garlic",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "326",
+    "category": "Sonf",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "327",
+    "category": "Fenugreek",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "328",
+    "category": "Turmeric",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "329",
+    "category": "Methi",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "330",
+    "category": "Ginger",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "331",
+    "category": "Coriander",
+    "subcategory": "Spices",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "332",
+    "category": "Flower Seeds",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "333",
+    "category": "Aster",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "334",
+    "category": "Seasonal",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "335",
+    "category": "Others",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "336",
+    "category": "Marigold",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "337",
+    "category": "Gaillardia",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "338",
+    "category": "Chrysanthemum",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "339",
+    "category": "Tube rose",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "340",
+    "category": "Gerbera",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "341",
+    "category": "Flower",
+    "subcategory": "Ornamental or Flowers",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "342",
+    "category": "Winged Bean",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "343",
+    "category": "Snake Gourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "344",
+    "category": "Ridge Gourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "345",
+    "category": "Pumpkin",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "346",
+    "category": "Moringa",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "347",
+    "category": "Dolichos Bean",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "348",
+    "category": "Cucumber",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "349",
+    "category": "Cowpea Bush",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "350",
+    "category": "Capsicum",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "351",
+    "category": "Bush type lablab",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "352",
+    "category": "Bush Cowpea",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "353",
+    "category": "Beet Root",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "354",
+    "category": "Ash Gourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "355",
+    "category": "Yam",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "356",
+    "category": "Cowpea",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "357",
+    "category": "Watermelon",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "358",
+    "category": "Snapmelon",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "359",
+    "category": "Muskmelon",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "360",
+    "category": "Ribbed gourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "361",
+    "category": "Kachari",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "362",
+    "category": "Drumstick",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "363",
+    "category": "Cluster bean",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "364",
+    "category": "Bottlegourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "365",
+    "category": "Amaranths",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "366",
+    "category": "Cauliflower",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "367",
+    "category": "Cabbage",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "368",
+    "category": "Garlic",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "369",
+    "category": "Vegetable pea",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "370",
+    "category": "TPS",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "371",
+    "category": "Garden pea",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "372",
+    "category": "Coriander",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "373",
+    "category": "Brinjal",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "374",
+    "category": "Lobia",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "375",
+    "category": "Tomato",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "376",
+    "category": "Turnip",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "377",
+    "category": "Tinda",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "378",
+    "category": "Spinach",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "379",
+    "category": "Radish",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "380",
+    "category": "Peas",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "381",
+    "category": "Onion",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "382",
+    "category": "Okra",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "383",
+    "category": "Methi",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "384",
+    "category": "Leafy Mustard",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "385",
+    "category": "French bean",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "386",
+    "category": "Colocasia",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "387",
+    "category": "Chinese Sarson",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "388",
+    "category": "Chinese Cabbage",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "389",
+    "category": "Chilli",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "390",
+    "category": "Carrot",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "391",
+    "category": "Brocolli",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "392",
+    "category": "Bitter Gourd",
+    "subcategory": "Vegetables",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "393",
+    "category": "Cotton",
+    "subcategory": "Commercial Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "394",
+    "category": "Clusterbean",
+    "subcategory": "Commercial Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "395",
+    "category": "Potato",
+    "subcategory": "Commercial Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "396",
+    "category": "Sugarcane",
+    "subcategory": "Commercial Crop",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "397",
+    "category": "Valvet bean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "398",
+    "category": "Dolichos",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "399",
+    "category": "Mothbean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "400",
+    "category": "Field bean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "401",
+    "category": "Black soybean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "402",
+    "category": "Urd",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "403",
+    "category": "Rice bean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "404",
+    "category": "Pea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "405",
+    "category": "Rajmash",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "406",
+    "category": "Pigeonpea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "407",
+    "category": "Moong",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "408",
+    "category": "Clusterbean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "409",
+    "category": "Frenchbean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "410",
+    "category": "Fieldpea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "411",
+    "category": "Cowpea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "412",
+    "category": "Blackgram",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "413",
+    "category": "Beans",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "414",
+    "category": "Others",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "415",
+    "category": "Dhaincha",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "416",
+    "category": "Sunhemp",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "417",
+    "category": "Castor Hybrid",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "418",
+    "category": "Castor",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "419",
+    "category": "Yellow Sarson",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "420",
+    "category": "Rai",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "421",
+    "category": "Sesamum",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "422",
+    "category": "Rapeseed",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "423",
+    "category": "Toria",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "424",
+    "category": "Niger",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "425",
+    "category": "Linseed",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "426",
+    "category": "Raya",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "427",
+    "category": "Karan Raya",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "428",
+    "category": "Gobhi Sarson",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "429",
+    "category": "Brown Sarson",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "430",
+    "category": "Navane",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "431",
+    "category": "Kodo",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "432",
+    "category": "Little Millet",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "433",
+    "category": "Maize Hybrid",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "434",
+    "category": "Pearl millet",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "435",
+    "category": "Amaranth",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "436",
+    "category": "Finger millets",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "437",
+    "category": "Barnyard millet",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "438",
+    "category": "Sorghum",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "439",
+    "category": "Foxtail millet",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "440",
+    "category": "Buck Wheat",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "441",
+    "category": "Millet",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "442",
+    "category": "Oat",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "443",
+    "category": "Barley",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "444",
+    "category": "Hyacinth Bean",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "445",
+    "category": "Jack Bean",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "446",
+    "category": "Velvet Bean",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "447",
+    "category": "Sunnhemp",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "448",
+    "category": "Tephrosia",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "449",
+    "category": "Sesbania",
+    "subcategory": "Green Manure",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "450",
+    "category": "Moth Bean",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "451",
+    "category": "Horse Gram",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "452",
+    "category": "Red Lentil",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "453",
+    "category": "Pigeon Pea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "454",
+    "category": "Green Gram",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "455",
+    "category": "Black Gram",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "456",
+    "category": "Gram",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "457",
+    "category": "Safflower",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "458",
+    "category": "Castor Bean",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "459",
+    "category": "Soybean",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "460",
+    "category": "Sunflower",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "461",
+    "category": "Sesame",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "462",
+    "category": "Groundnut",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "463",
+    "category": "Jowar",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "464",
+    "category": "Bajra",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "465",
+    "category": "Maize",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "466",
+    "category": "Ragi",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "467",
+    "category": "Others Please Specify",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "468",
+    "category": "Spawn",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "469",
+    "category": "Fish Fingerlings",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "470",
+    "category": "Mixed Carp",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "471",
+    "category": "Exotic Carp",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "472",
+    "category": "Indian Carp",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "473",
+    "category": "Other Please Specify",
+    "subcategory": "Piggery",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "474",
+    "category": "Hog",
+    "subcategory": "Piggery",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "475",
+    "category": "other Please Specify",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "476",
+    "category": "Ducks",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "477",
+    "category": "Emu",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "478",
+    "category": "Turkey",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "479",
+    "category": "Japanese Quail",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "480",
+    "category": "Duals broilers and layers",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "481",
+    "category": "Layers",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "482",
+    "category": "Other Please Specify",
+    "subcategory": "Small Ruminants",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "483",
+    "category": "Goat",
+    "subcategory": "Small Ruminants",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "484",
+    "category": "Others Please Specify",
+    "subcategory": "Dairy Animals",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "485",
+    "category": "Calves",
+    "subcategory": "Dairy Animals",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "486",
+    "category": "Buffaloes",
+    "subcategory": "Dairy Animals",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "487",
+    "category": "Others",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "488",
+    "category": "Tuberose",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "489",
+    "category": "Annual Chrysanthemum",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "490",
+    "category": "Guava",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "491",
+    "category": "Others",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "492",
+    "category": "Zinger",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "493",
+    "category": "Turmeric",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "494",
+    "category": "Sweet Potato",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "495",
+    "category": "Others",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "496",
+    "category": "Brinjal",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "497",
+    "category": "Fisheries",
+    "subcategory": "Fisheries",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "498",
+    "category": "Rabbit",
+    "subcategory": "Rabbitry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "499",
+    "category": "Piglet",
+    "subcategory": "Piggery",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "500",
+    "category": "Broilers",
+    "subcategory": "Poultry",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "501",
+    "category": "Sheep",
+    "subcategory": "Small Ruminants",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "502",
+    "category": "Cow",
+    "subcategory": "Dairy Animals",
+    "crop": "Production of Livestock and Fisheries Material"
+  },
+  {
+    "sno": "503",
+    "category": "Biopest",
+    "subcategory": "Biopesticide Nimast Brahmastr Jeevamrit",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "504",
+    "category": "Bio Food",
+    "subcategory": "Biofood",
+    "crop": "Production of Bio Product"
+  },
+  {
+    "sno": "505",
+    "category": "Spices",
+    "subcategory": "Spices",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "506",
+    "category": "Tuber Elephant Yams",
+    "subcategory": "Tuber Elephant Yams",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "507",
+    "category": "Plantation",
+    "subcategory": "Plantation",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "508",
+    "category": "Tulsi",
+    "subcategory": "Medicinal And Aromatic",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "509",
+    "category": "Marigold",
+    "subcategory": "Ornamental Plants",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "510",
+    "category": "Papaya",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "511",
+    "category": "Lime",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "512",
+    "category": "Mango",
+    "subcategory": "Fruits Planting Material",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "513",
+    "category": "Sugarcane",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "514",
+    "category": "Mulberry",
+    "subcategory": "Commercial Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "515",
+    "category": "Onion",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "516",
+    "category": "Chilli",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "517",
+    "category": "Tomato",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "518",
+    "category": "Cabbage",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "519",
+    "category": "Cauliflower",
+    "subcategory": "Vegetable Seedlings",
+    "crop": "Production of Planting Material"
+  },
+  {
+    "sno": "520",
+    "category": "Commercial Crop",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "521",
+    "category": "Green Manure",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "522",
+    "category": "Lentil",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "523",
+    "category": "Chickpea",
+    "subcategory": "Pulses",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "524",
+    "category": "Mustard",
+    "subcategory": "Oil Seed",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "525",
+    "category": "Wheat",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  },
+  {
+    "sno": "526",
+    "category": "Paddy",
+    "subcategory": "Cereals",
+    "crop": "Production of Seed"
+  }
+]

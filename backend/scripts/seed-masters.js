@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 /**
  * Seed all master data tables: staff categories, pay levels, training masters,
- * extension activity types, funding sources, products, CRA systems, etc.
+ * extension activity types, events, funding sources, products, CRA, CFLD crops, enterprises, publications, OFT/FLD masters, etc.
  * Run: node scripts/seed-masters.js   or   npm run seed:masters
  */
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 const prisma = require('../config/prisma');
 
@@ -18,18 +20,36 @@ const PAY_LEVELS = [
   'Level 13', 'Level 14', 'Level 15', 'Level 16', 'Level 17', 'Level 18'
 ];
 
-// Training Masters
+// Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
-  'On-Campus Training', 'Off-Campus Training', 'Field Day', 'Exhibition',
-  'Demonstration', 'Workshop', 'Seminar', 'Conference', 'Exposure Visit',
-  'Kisan Mela', 'Farmers Fair', 'Technology Week'
+  'Extension Personnel',
+  'Rural Youth',
+  'Farmers and Farm Women',
 ];
 
-const TRAINING_AREAS = [
-  'Crop Production', 'Horticulture', 'Animal Husbandry', 'Fisheries',
-  'Agricultural Engineering', 'Home Science', 'Natural Resource Management',
-  'Agricultural Extension', 'Agribusiness', 'Organic Farming', 'Integrated Farming System'
-];
+const TRAINING_AREAS_BY_TYPE = {
+  'Extension Personnel': ['Extension Personnel'],
+  'Rural Youth': ['Rural Youth'],
+  'Farmers and Farm Women': [
+    'Agro forestry',
+    'Capacity Building and Group Dynamics',
+    'Production of Inputs at Site',
+    'Fisheries',
+    'Plant Protection',
+    'Agril. Engineering',
+    'Home Science/Women Empowerment',
+    'Livestock Production and Management',
+    'Soil Health and Fertility Management',
+    'Horticulture (Medicinal And Aromatic Plants)',
+    'Horticulture (Spices)',
+    'Horticulture (Tuber Crops)',
+    'Horticulture (Plantation Crops)',
+    'Horticulture (Ornamental Plants)',
+    'Horticulture (Fruits)',
+    'Horticulture (Vegetable Crops)',
+    'Crop Production',
+  ],
+};
 
 const TRAINING_CLIENTELE = [
   'Farmers', 'Rural Youth', 'Farm Women', 'Extension Personnel',
@@ -37,25 +57,44 @@ const TRAINING_CLIENTELE = [
   'Agri-Entrepreneurs', 'Others'
 ];
 
-const THEMATIC_AREAS = [
-  'Sustainable Agriculture', 'Climate Resilient Agriculture', 'Organic Farming',
-  'Integrated Pest Management', 'Water Management', 'Soil Health Management',
-  'Livestock Management', 'Fisheries Development', 'Agri-Entrepreneurship',
-  'Value Addition', 'Post-Harvest Management', 'Marketing', 'Digital Agriculture'
-];
-
-// Extension Activity Masters
+// Extension Activity Masters (KVK extension activities + other extension)
 const EXTENSION_ACTIVITY_TYPES = [
-  'Field Visit', 'Farmers Meeting', 'Group Discussion', 'Demonstration',
-  'Exhibition', 'Field Day', 'Kisan Mela', 'Technology Transfer',
-  'Advisory Service', 'Mass Media', 'Print Media', 'Electronic Media',
-  'Social Media', 'Mobile Advisory', 'Call Center', 'Video Conference'
+  'Exposure Visit',
+  'Others',
+  'Mahila Mandals Conveners Meetings',
+  'Self Help Group Conveners Meetings',
+  'Farm Science Club Conveners Meet',
+  'Soil Test Campaigns',
+  'Agri Mobile Clinic',
+  'Animal Health Camp',
+  'Soil Health Camp',
+  'Ex-Trainees Sammelan',
+  'Diagnostic Visits',
+  'Farmers Visit To Kvk',
+  'Scientific Visit To Farmers Field',
+  'Advisory Services',
+  'Lectures Delivered As Resource Persons',
+  'Group Discussion',
+  'Workshop',
+  'Farmers Seminar',
+  'Method Demonstrations',
+  'Film Show',
+  'Participation In Exhibition',
+  'Exhibition Organized',
+  'Kisan Ghosthi',
+  'Field Day',
+  'Kisan Mela Participated',
+  'Kisan Mela Organized',
 ];
 
 const OTHER_EXTENSION_ACTIVITY_TYPES = [
-  'Radio Program', 'TV Program', 'Newsletter', 'Pamphlet Distribution',
-  'Wall Painting', 'Hoarding', 'Poster', 'Leaflet', 'Booklet',
-  'Success Story', 'Case Study', 'Documentary', 'Social Media Campaign'
+  'Any Other',
+  'Electronic Media',
+  'Extension Literature',
+  'Popular Articles Published',
+  'TV Talks',
+  'Radio Talks',
+  'Newspaper Coverage',
 ];
 
 // Important Days
@@ -66,6 +105,45 @@ const IMPORTANT_DAYS = [
   'Biodiversity Day', 'Forest Day', 'Wetlands Day'
 ];
 
+/** Events master (`Event` model — e.g. KVK celebrations / national programmes) */
+const EVENTS_MASTER = [
+  'Viksit Krishi Sankalp Abhiyan (VKSA)',
+  'Socio Economic Development & Awareness',
+  'Rastriy Ekta Diwas Sardar Patel Jayanti',
+  'Janjatiya Gaurav Diwas',
+  'World Dairy Day',
+  'World No Tobacco Day',
+  'Earth Day',
+  'Poshan Maha',
+  'Yoga Day',
+  'Poshan Mela',
+  'PM Live Telecast',
+  'Kisan Diwas',
+  'World Soil Day',
+  'National Constitution Day',
+  'National Education Day',
+  'World Science Day',
+  'National Unity Day',
+  'Vigilance Awareness Week',
+  'World Food Day',
+  'Mahila Kisan Diwas',
+  'Gandhi Jayanti',
+  'Vanijya Mahotsava',
+  'Tree Plantation / Van Mahotsava',
+  'Nutrition Week',
+  'Parthenium Awareness Week',
+  'Sadbhavna Pledge',
+  'Independence Day',
+  'Har Med pe Ek Ped',
+  'World Environment Day',
+  'World Milk Day',
+  'World Bee Day',
+  'World Health Day',
+  'World Water Day',
+  'International Women Day',
+  'Republic Day',
+];
+
 // Funding Sources
 const FUNDING_SOURCES = [
   'ICAR', 'State Government', 'Central Government', 'KVK Funds',
@@ -73,57 +151,226 @@ const FUNDING_SOURCES = [
   'International Organization', 'Private Sector', 'Corporate CSR'
 ];
 
-// Product Categories and Types
+/**
+ * Product category → types (production supply master).
+ * `seed-product.json` uses: crop = category name, subcategory = type, category = product name.
+ */
 const PRODUCT_CATEGORIES = [
   {
-    categoryName: 'Seeds',
-    types: ['Cereal Seeds', 'Pulse Seeds', 'Oilseed Seeds', 'Vegetable Seeds', 'Fruit Seeds']
+    categoryName: 'Fodder Crop Sampling',
+    types: ['Fodder Crop Sampling', 'Others Please Specify'],
   },
   {
-    categoryName: 'Biofertilizers',
-    types: ['Rhizobium', 'Azotobacter', 'Azospirillum', 'PSB', 'VAM']
+    categoryName: 'Forest Species',
+    types: ['Forest Species'],
   },
   {
-    categoryName: 'Biopesticides',
-    types: ['Trichoderma', 'Pseudomonas', 'Beauveria', 'Metarhizium', 'Neem Based']
+    categoryName: 'Seed Production at Seed Village',
+    types: [],
   },
   {
-    categoryName: 'Vermicompost',
-    types: ['Standard Vermicompost', 'Enriched Vermicompost', 'Vermiwash']
+    categoryName: 'Production of Livestock and Fisheries Material',
+    types: [
+      'Ducks',
+      'Fisheries',
+      'Rabbitry',
+      'Piggery',
+      'Poultry',
+      'Small Ruminants',
+      'Dairy Animals',
+    ],
   },
   {
-    categoryName: 'Planting Material',
-    types: ['Saplings', 'Seedlings', 'Grafts', 'Cuttings', 'Tissue Culture Plants']
+    categoryName: 'Production of Bio Product',
+    types: [
+      'Biocontrol Agent',
+      'Bio Fertilizers',
+      'Biofungicide',
+      'Vermicompost',
+      'Worms Earthworm Silk Worms Etc',
+      'Bioagents Trichocard etc',
+      'Biopesticide Nimast Brahmastr Jeevamrit',
+      'Biofood',
+    ],
   },
   {
-    categoryName: 'Livestock Products',
-    types: ['Milk', 'Eggs', 'Honey', 'Meat', 'Wool']
+    categoryName: 'Production of Planting Material',
+    types: [
+      'Spices',
+      'Tuber Elephant Yams',
+      'Plantation',
+      'Medicinal And Aromatic',
+      'Ornamental Plants',
+      'Fruits Planting Material',
+      'Commercial Seedlings',
+      'Vegetable Seedlings',
+    ],
   },
   {
-    categoryName: 'Processed Products',
-    types: ['Pickles', 'Jam', 'Jelly', 'Squash', 'Juice', 'Powder', 'Flour']
-  }
+    categoryName: 'Production of Seed',
+    types: [
+      'Others',
+      'Fibre Crops',
+      'Ornamental or Flowers',
+      'Commercial Crop',
+      'Green Manure',
+      'Medicinal',
+      'Forest Crop',
+      'Fruits',
+      'Spices',
+      'Fodder',
+      'Vegetables',
+      'Pulses',
+      'Oil Seed',
+      'Cereals',
+    ],
+  },
 ];
 
-// CRA Cropping Systems (sample crops per season)
+// CRA Cropping System master (season → crop names)
 const CRA_CROPPING_SYSTEMS = {
-  'Rabi': ['Wheat', 'Mustard', 'Gram', 'Pea', 'Potato', 'Onion', 'Garlic'],
-  'Kharif': ['Rice', 'Maize', 'Soybean', 'Groundnut', 'Cotton', 'Sugarcane', 'Turmeric'],
-  'Summer': ['Vegetables', 'Pulses', 'Oilseeds', 'Fodder Crops']
+  Rabi: ['Cabbage', 'Maize'],
+  Kharif: ['Vermicomposting', 'Horticulture'],
 };
 
-// CRA Farming Systems
+// CRA Farming System master (season → system names)
 const CRA_FARMING_SYSTEMS = {
-  'Rabi': ['Wheat-Mustard', 'Wheat-Potato', 'Wheat-Vegetables', 'Mustard-Potato'],
-  'Kharif': ['Rice-Pulse', 'Rice-Fish', 'Rice-Duck', 'Maize-Pulse', 'Cotton-Pulse'],
-  'Summer': ['Vegetable-Vegetable', 'Pulse-Pulse', 'Fodder-Fodder']
+  Summer: [
+    'Proso Millet',
+    'Maize',
+    'Til',
+    'Pearl millet',
+    'Black gram',
+    'Green Gram',
+  ],
+  Rabi: [
+    'Chickpea',
+    'Vegetable Pea',
+    'Onion',
+    'Coriander',
+    'Cabbage',
+    'Mushroom',
+    'Maize',
+    'Lathyrus',
+    'Potato',
+    'Lentil',
+    'Mustard',
+    'Wheat',
+  ],
+  Kharif: [
+    'Green Gram',
+    'Pigoen Pea',
+    'Sorghum',
+    'Soyabean',
+    'Perl Millet',
+    'Finger millet',
+    'Maize',
+    'Paddy',
+    'Dairy',
+    'Fishery',
+    'Fish Seed Production',
+    'Duckery',
+    'Broiler & Dual-Purpose Poultry',
+    'Goatery',
+  ],
 };
 
-// ARYA Enterprises
-const ARYA_ENTERPRISES = [
-  'Poultry', 'Dairy', 'Goat Rearing', 'Pig Rearing', 'Fisheries',
-  'Mushroom Cultivation', 'Beekeeping', 'Vermicompost', 'Nursery',
-  'Food Processing', 'Value Addition', 'Agri-Entrepreneurship'
+/**
+ * CFLD crop master (`fld_crop_master`). Type names map to `crop_type`: Pulses, Oilseed (seed-data).
+ */
+const CFLD_CROP_MASTER = [
+  { seasonName: 'Summer', typeName: 'Oilseed', cropName: 'Sesame' },
+  { seasonName: 'Summer', typeName: 'Pulses', cropName: 'Other' },
+  { seasonName: 'Summer', typeName: 'Pulses', cropName: 'Rajmash' },
+  { seasonName: 'Summer', typeName: 'Pulses', cropName: 'Greengram' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Other' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Bengal gram' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Lathyrus' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Rajmash' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Fieldpea' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Chickpea' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Other' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Mothbean' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Rajmash' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Cowpea' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Horsegram' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Greengram' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Blackgram' },
+  { seasonName: 'Summer', typeName: 'Pulses', cropName: 'Green Gram' },
+  { seasonName: 'Kharif', typeName: 'Oilseed', cropName: 'Niger' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Grasspea Lathyrus' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Field Pea' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Lentil' },
+  { seasonName: 'Rabi', typeName: 'Pulses', cropName: 'Chickpea Gram' },
+  { seasonName: 'Rabi', typeName: 'Oilseed', cropName: 'Linseed' },
+  { seasonName: 'Rabi', typeName: 'Oilseed', cropName: 'Sunflower' },
+  { seasonName: 'Rabi', typeName: 'Oilseed', cropName: 'Rapeseed' },
+  { seasonName: 'Rabi', typeName: 'Oilseed', cropName: 'Mustard' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Urad' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Moong' },
+  { seasonName: 'Kharif', typeName: 'Pulses', cropName: 'Pigeonpea' },
+  { seasonName: 'Kharif', typeName: 'Oilseed', cropName: 'Sesame' },
+  { seasonName: 'Kharif', typeName: 'Oilseed', cropName: 'Soybean' },
+  { seasonName: 'Kharif', typeName: 'Oilseed', cropName: 'Groundnut' },
+];
+
+/** Enterprise master — seeds `arya_enterprise` and `enterprise_type_master` */
+const ENTERPRISE_MASTER = [
+  'Others',
+  'Seed Production',
+  'Nursery Management',
+  'Processing and Value Addition(Product Name)',
+  'Bee keeping',
+  'Fish Farming',
+  'Duck Farming',
+  'Quail Farming',
+  'Poultry Farming',
+  'Mushroom Production',
+  'Lac Farming',
+  'Food Processing',
+  'Goat Farming',
+  'Banana Fibre Extraction',
+  'Pig Farming',
+];
+
+/** Impact Specific Area master (`impact_specific_area_master`) — All Masters / Performance Indicators */
+const IMPACT_SPECIFIC_AREAS = [
+  'Technology',
+  'Training',
+  'Entrepreneurship Generated',
+];
+
+/** Programme Type master (`programme_type_master`) — Performance Indicator Linkages / Special Programmes */
+const PROGRAMME_TYPE_MASTER = [
+  'Infrastructure Development',
+  'Other Activities',
+];
+
+/** Account Type master (`account_type_master`) — Performance Indicators / District Level line items */
+const ACCOUNT_TYPE_MASTER = [
+  'Major Farming System/Enterprise',
+  'Agro Climatic Zone',
+  'Agro Ecological Situation',
+  'Soil Type',
+  'Productivity of major 2-3 crops under cereal, pulses, oilseed, vegetables, fruits and others',
+  'Mean yearly temperature, rainfall, humidity of the district',
+  'Production of major livestock products like milk, egg, meat etc',
+];
+
+/** Publication master (`publication` table) */
+const PUBLICATION_MASTER = [
+  'Research Paper Published',
+  'Abstracts Published in Seminar or Conference or Symposia',
+  'Books Published',
+  'Book Chapter Published',
+  'Popular Articles Published',
+  'Success Story Published',
+  'Extension Bulletins Published',
+  'Extension Folders or Leaflet or Pamphlets',
+  'Technical Reports',
+  'News Letter',
+  'Electronic Publication CD or DVD',
+  'E Publication',
 ];
 
 const COURSE_COORDINATORS = [
@@ -143,6 +390,251 @@ const NARI_CROP_CATEGORIES = [
 const FINANCIAL_PROJECTS = [
   'CFLD Oilseed', 'CFLD Pulses', 'Model Village Oilseed', 'Model Village Pulses',
   'NICRA', 'ARYA', 'FPO', 'Natural Farming', 'DRMR', 'NARI', 'IIPR', 'TSP', 'SCSP', 'SAP', 'Others'
+];
+
+/**
+ * OFT Subject Master + thematic areas (official KVK OFT mapping).
+ * Order: Crop Production → Livestock → Enterprises → Women Empowerment → Horticulture.
+ */
+const OFT_SUBJECTS_AND_THEMATIC_AREAS = [
+  {
+    subjectName: 'Technologies Assessed under Various Crops by KVKs (Crop Production)',
+    thematicAreas: [
+      'Others Thematic Area Upload By ATARI',
+      'Farm Mechanization',
+      'Cropping Systems',
+      'Storage Technique',
+      'Drudgery Reduction',
+      'Post Harvest Technology / Value Addition',
+      'Seed / Plant Production',
+      'Integrated Farming System',
+      'Farm Machineries',
+      'Resource Conservation Technology',
+      'Weed Management',
+      'Small Scale Income Generation Enterprises',
+      'Integrated Disease Management',
+      'Integrated Crop Management',
+      'Integrated Pest Management',
+      'Varietal Evaluation',
+      'Integrated Nutrient Management',
+    ],
+  },
+  {
+    subjectName: 'Technologies Assessed under Livestock and Fisheries by KVKs',
+    thematicAreas: [
+      'Others',
+      'Fisheries Management',
+      'Nutrient Management',
+      'Diseases and Health Management',
+      'Horticulture Crop',
+      'Processing and Value Addition of livestock products',
+      'Production And Management',
+      'Feed And Fodder Management',
+      'Breeding Management/Evaluation of Breed',
+      'Disease Management',
+    ],
+  },
+  {
+    subjectName: 'Technologies Assessed under various Enterprises by KVKs',
+    thematicAreas: [
+      'Others',
+      'Value Addition',
+      'Resource Conservation Technology',
+      'Mechanization',
+      'Agroforestry Management',
+      'Organic Farming',
+      'Household Food Security',
+      'Storage Techniques',
+      'Small-Scale Income Generation',
+      'Energy Conservation',
+      'Processing and Value Addition',
+      'Health And Nutrition',
+      'Entrepreneurship Development',
+      'Drudgery Reduction',
+    ],
+  },
+  {
+    subjectName: 'Technologies Assessed under various Enterprises for Women Empowerment',
+    thematicAreas: [
+      'Others',
+      'Value Addition',
+      'Health and Nutrition',
+      'Entrepreneurship Development',
+      'Drudgery Reduction',
+    ],
+  },
+  {
+    subjectName: 'Technologies Assessed under various Crops (Horticulture crops.)',
+    thematicAreas: [
+      'Others if any specify',
+      'Post-harvest Technology / Value addition',
+      'Resource Conservation Technology',
+      'Weed Management',
+      'Small Scale Income Generation Enterprises',
+      'Integrated Disease Management',
+      'Integrated Crop Management',
+      'Integrated Pest Management',
+      'Varietal Evaluation',
+      'Integrated Nutrient Management',
+    ],
+  },
+];
+
+/** Subcategory sets reused for farm-machinery categories (matches official FLD list). */
+const FLD_FARM_MACHINERY_SUBCATEGORIES = [
+  'Others',
+  'Millets',
+  'Flowers',
+  'Oilseed',
+  'Fruits',
+  'Vegetables',
+  'Pulses',
+  'Cereals',
+];
+
+const FLD_OTHER_CROPS_SUBCATEGORIES = [
+  'Coconut',
+  'Plantation Crops',
+  'Fodder Crops',
+  'Fibre Crops',
+  'Commercial Crops',
+  'Medicinal And Aromatic Plants',
+  'Spices And Condiments',
+  'Fruit Crops',
+  'Flower Crops',
+  'Tuber Crops',
+];
+
+/**
+ * FLD sector → thematic areas, categories, subcategories (official KVK FLD mapping).
+ * Sector order matches S.No. 1–7. Crop Production row 1 source had placeholder "aa" → "Others".
+ */
+const FLD_SECTOR_DATA = [
+  {
+    sectorName: 'Crop Hybrid Varieties',
+    thematicAreas: ['Crop Production'],
+    categories: [
+      {
+        categoryName: 'Other Crops of Crop Hybrid Varieties',
+        subcategories: FLD_OTHER_CROPS_SUBCATEGORIES,
+      },
+      { categoryName: 'Pulses of Crop Hybrid Varieties', subcategories: ['Pulses Other Than Cfld'] },
+      { categoryName: 'Oilseeds of Crop Hybrid Varieties', subcategories: ['Oilseeds Other Than Cfld'] },
+      {
+        categoryName: 'Cereals of Crop Hybrid Varieties',
+        subcategories: ['Millets', 'Cereals'],
+      },
+    ],
+  },
+  {
+    sectorName: 'Farm Implements and Machinery',
+    thematicAreas: ['Farm Implements And Machinery'],
+    categories: [
+      { categoryName: 'Others', subcategories: ['Others'] },
+      {
+        categoryName: 'Total mechanization tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Postharvest processing tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Harvesting tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Plant protection tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Irrigation management tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Intercultural operation tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+      {
+        categoryName: 'Sowing and planting tools and machineries',
+        subcategories: FLD_FARM_MACHINERY_SUBCATEGORIES,
+      },
+    ],
+  },
+  {
+    sectorName: 'Women Empowerment',
+    thematicAreas: ['Women Empowerment'],
+    categories: [
+      { categoryName: 'Women Empowerment', subcategories: ['Children', 'Women'] },
+    ],
+  },
+  {
+    sectorName: 'Other Enterprises',
+    thematicAreas: [
+      'Storage techniques',
+      'Small Scale Income Generation Enterprises',
+      'Entrepreneurship Development',
+    ],
+    categories: [{ categoryName: 'Other Enterprises', subcategories: ['Enterprises'] }],
+  },
+  {
+    sectorName: 'Livestock & Fisheries',
+    thematicAreas: [
+      'Breeding management/Evaluation of Breeds',
+      'Production and Management',
+      'Nutrition Management',
+      'Fisheries management',
+      'Feed and Fodder management',
+      'Disease & Health Management',
+    ],
+    categories: [
+      { categoryName: 'Fisheries', subcategories: ['Fishery'] },
+      {
+        categoryName: 'Livestock',
+        subcategories: ['Pigs', 'Poultry', 'Sheep And Goats', 'Dairy And Cattle'],
+      },
+    ],
+  },
+  {
+    sectorName: 'Horticultural Crops',
+    thematicAreas: [
+      'Others',
+      'Post-Harvest Management',
+      'Integrated Pest Management',
+      'Integrated Nutrient Management',
+      'Integrated Disease Management',
+      'Integrated Crop Management',
+    ],
+    categories: [
+      { categoryName: 'Horticultural Crops', subcategories: ['Fruits', 'Vegetable Crops'] },
+    ],
+  },
+  {
+    sectorName: 'Crop Production',
+    thematicAreas: [
+      'Others',
+      'Farm Mechanization',
+      'Weed Management',
+      'Varietal Evaluation',
+      'Resource Conservation Technology',
+      'Integrated Pest Management',
+      'Integrated Nutrient Management',
+      'Integrated Disease Management',
+      'Integrated Crop Management',
+    ],
+    categories: [
+      {
+        categoryName: 'Other Crops of Crop Production',
+        subcategories: FLD_OTHER_CROPS_SUBCATEGORIES,
+      },
+      { categoryName: 'Pulses of Crop Production', subcategories: ['Pulses Other Than Cfld'] },
+      { categoryName: 'Oilseeds of Crop Production', subcategories: ['Oilseeds Other Than Cfld'] },
+      {
+        categoryName: 'Cereals of Crop Production',
+        subcategories: ['Millets', 'Cereals'],
+      },
+    ],
+  },
 ];
 
 const FUNDING_AGENCIES = [
@@ -171,6 +663,15 @@ async function seedStaffMasters() {
   console.log('   ✅ Done\n');
 }
 
+/**
+ * JSON `category` matches TrainingArea.trainingAreaName; maps to parent TrainingType.
+ */
+function resolveTrainingTypeNameForAreaCategory(categoryName) {
+  if (categoryName === 'Extension Personnel') return 'Extension Personnel';
+  if (categoryName === 'Rural Youth') return 'Rural Youth';
+  return 'Farmers and Farm Women';
+}
+
 async function seedTrainingMasters() {
   console.log('🌱 Training masters...');
 
@@ -190,37 +691,84 @@ async function seedTrainingMasters() {
     });
   }
 
-  const firstType = await prisma.trainingType.findFirst({ orderBy: { trainingTypeId: 'asc' } });
-  if (firstType) {
-    for (const trainingAreaName of TRAINING_AREAS) {
+  const typeByName = new Map(
+    (await prisma.trainingType.findMany()).map((t) => [t.trainingTypeName, t])
+  );
+
+  for (const [typeName, areaNames] of Object.entries(TRAINING_AREAS_BY_TYPE)) {
+    const trainingType = typeByName.get(typeName);
+    if (!trainingType) continue;
+
+    for (const trainingAreaName of areaNames) {
       const existing = await prisma.trainingArea.findFirst({
-        where: { trainingAreaName, trainingTypeId: firstType.trainingTypeId },
+        where: { trainingAreaName, trainingTypeId: trainingType.trainingTypeId },
       });
       if (!existing) {
         await prisma.trainingArea.create({
-          data: { trainingAreaName, trainingTypeId: firstType.trainingTypeId },
+          data: { trainingAreaName, trainingTypeId: trainingType.trainingTypeId },
         });
-      }
-    }
-    const areas = await prisma.trainingArea.findMany({
-      where: { trainingTypeId: firstType.trainingTypeId },
-      orderBy: { trainingAreaId: 'asc' },
-    });
-    if (areas.length > 0) {
-      for (let i = 0; i < THEMATIC_AREAS.length; i++) {
-        const trainingThematicAreaName = THEMATIC_AREAS[i];
-        const area = areas[i % areas.length];
-        const exists = await prisma.trainingThematicArea.findFirst({
-          where: { trainingThematicAreaName, trainingAreaId: area.trainingAreaId },
-        });
-        if (!exists) {
-          await prisma.trainingThematicArea.create({
-            data: { trainingThematicAreaName, trainingAreaId: area.trainingAreaId },
-          });
-        }
       }
     }
   }
+
+  const thematicPath = path.join(__dirname, '../constants/seed-training-thematic-area.json');
+  const thematicRows = JSON.parse(fs.readFileSync(thematicPath, 'utf8'));
+
+  const areas = await prisma.trainingArea.findMany({
+    include: { trainingType: true },
+  });
+  const areaByTypeAndName = new Map(
+    areas.map((a) => [`${a.trainingTypeId}\t${a.trainingAreaName}`, a])
+  );
+
+  let thematicCreated = 0;
+  let thematicSkipped = 0;
+
+  for (const row of thematicRows) {
+    const category = (row.category || '').trim();
+    const sub = (row.subcategory || '').trim();
+    if (!category || !sub) {
+      thematicSkipped += 1;
+      continue;
+    }
+
+    const typeName = resolveTrainingTypeNameForAreaCategory(category);
+    const trainingType = typeByName.get(typeName);
+    if (!trainingType) {
+      thematicSkipped += 1;
+      continue;
+    }
+
+    const area = areaByTypeAndName.get(`${trainingType.trainingTypeId}\t${category}`);
+    if (!area) {
+      console.warn(`   ⚠️  training thematic: no TrainingArea "${category}" for type "${typeName}" — skipped`);
+      thematicSkipped += 1;
+      continue;
+    }
+
+    const exists = await prisma.trainingThematicArea.findFirst({
+      where: {
+        trainingThematicAreaName: sub,
+        trainingAreaId: area.trainingAreaId,
+      },
+    });
+    if (exists) {
+      thematicSkipped += 1;
+      continue;
+    }
+
+    await prisma.trainingThematicArea.create({
+      data: {
+        trainingThematicAreaName: sub,
+        trainingAreaId: area.trainingAreaId,
+      },
+    });
+    thematicCreated += 1;
+  }
+
+  console.log(
+    `   ✅ Training thematic areas: ${thematicCreated} created, ${thematicSkipped} skipped\n`
+  );
 
   for (const name of COURSE_COORDINATORS) {
     await prisma.courseCoordinatorMaster.upsert({
@@ -287,6 +835,23 @@ async function seedExtensionMasters() {
   console.log('   ✅ Done\n');
 }
 
+async function seedEventsMasters() {
+  console.log('🌱 Events master...');
+
+  for (const eventName of EVENTS_MASTER) {
+    const existing = await prisma.event.findFirst({
+      where: { eventName },
+    });
+    if (!existing) {
+      await prisma.event.create({
+        data: { eventName },
+      });
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
 async function seedFundingSources() {
   console.log('🌱 Funding sources...');
 
@@ -302,7 +867,7 @@ async function seedFundingSources() {
 }
 
 async function seedProducts() {
-  console.log('🌱 Products (categories, types, products)...');
+  console.log('🌱 Products (categories, types, seed-product.json)...');
 
   for (const category of PRODUCT_CATEGORIES) {
     const productCategory = await prisma.productCategory.upsert({
@@ -312,44 +877,113 @@ async function seedProducts() {
     });
 
     for (const typeName of category.types) {
-      let productType = await prisma.productType.findFirst({
+      const existingType = await prisma.productType.findFirst({
         where: {
           productCategoryType: typeName,
           productCategoryId: productCategory.productCategoryId,
         },
       });
 
-      if (!productType) {
-        productType = await prisma.productType.create({
+      if (!existingType) {
+        await prisma.productType.create({
           data: {
             productCategoryType: typeName,
             productCategoryId: productCategory.productCategoryId,
           },
         });
       }
-
-      // Create a sample product for each type (only if doesn't exist)
-      const productName = `${typeName} - Sample Product`;
-      const existingProduct = await prisma.product.findFirst({
-        where: {
-          productName,
-          productCategoryId: productCategory.productCategoryId,
-          productTypeId: productType.productTypeId,
-        },
-      });
-
-      if (!existingProduct) {
-        await prisma.product.create({
-          data: {
-            productName,
-            productCategoryId: productCategory.productCategoryId,
-            productTypeId: productType.productTypeId,
-          },
-        });
-      }
     }
   }
 
+  const productJsonPath = path.join(__dirname, '../constants/seed-product.json');
+  if (!fs.existsSync(productJsonPath)) {
+    console.log('   ⚠️  seed-product.json not found; categories/types only\n');
+    console.log('   ✅ Done\n');
+    return;
+  }
+
+  const productRows = JSON.parse(fs.readFileSync(productJsonPath, 'utf8'));
+  const allCategories = await prisma.productCategory.findMany();
+  const categoryByName = new Map(
+    allCategories.map((c) => [c.productCategoryName, c])
+  );
+
+  const allTypes = await prisma.productType.findMany();
+  const typeByCategoryAndName = new Map(
+    allTypes.map((t) => [`${t.productCategoryId}\t${t.productCategoryType}`, t])
+  );
+
+  const existingProducts = await prisma.product.findMany({
+    select: {
+      productName: true,
+      productCategoryId: true,
+      productTypeId: true,
+    },
+  });
+  const productKey = (name, categoryId, typeId) =>
+    `${categoryId}\t${typeId}\t${name}`;
+  const existingProductKeys = new Set(
+    existingProducts.map((p) =>
+      productKey(p.productName, p.productCategoryId, p.productTypeId)
+    )
+  );
+
+  let productsCreated = 0;
+  let productsSkipped = 0;
+
+  for (const row of productRows) {
+    const productCategoryName = (row.crop || '').trim();
+    const productTypeName = (row.subcategory || '').trim();
+    const productName = (row.category || '').trim();
+    if (!productCategoryName || !productTypeName || !productName) {
+      productsSkipped += 1;
+      continue;
+    }
+
+    const productCategory = categoryByName.get(productCategoryName);
+    if (!productCategory) {
+      console.warn(
+        `   ⚠️  seed-product.json: unknown category (crop) "${productCategoryName}" — skipped`
+      );
+      productsSkipped += 1;
+      continue;
+    }
+
+    const productType = typeByCategoryAndName.get(
+      `${productCategory.productCategoryId}\t${productTypeName}`
+    );
+    if (!productType) {
+      console.warn(
+        `   ⚠️  seed-product.json: unknown type "${productTypeName}" under "${productCategoryName}" — skipped`
+      );
+      productsSkipped += 1;
+      continue;
+    }
+
+    const pk = productKey(
+      productName,
+      productCategory.productCategoryId,
+      productType.productTypeId
+    );
+    if (existingProductKeys.has(pk)) {
+      productsSkipped += 1;
+      continue;
+    }
+
+    await prisma.product.create({
+      data: {
+        productName,
+        productCategoryId: productCategory.productCategoryId,
+        productTypeId: productType.productTypeId,
+      },
+    });
+    existingProductKeys.add(pk);
+    productsCreated += 1;
+  }
+
+  console.log(
+    `   ✅ Product rows: ${productsCreated} created, ${productsSkipped} skipped\n`
+  );
   console.log('   ✅ Done\n');
 }
 
@@ -401,10 +1035,63 @@ async function seedCRASystems() {
   console.log('   ✅ Done\n');
 }
 
-async function seedARYAEnterprises() {
-  console.log('🌱 ARYA enterprises...');
+async function seedCfldCropMasters() {
+  console.log('🌱 CFLD crop master (fld_crop_master)...');
 
-  for (const enterpriseName of ARYA_ENTERPRISES) {
+  for (const seasonName of ['Rabi', 'Kharif', 'Summer']) {
+    await prisma.season.upsert({
+      where: { seasonName },
+      update: {},
+      create: { seasonName },
+    });
+  }
+
+  for (const typeName of ['Pulses', 'Oilseed']) {
+    await prisma.cropType.upsert({
+      where: { typeName },
+      update: {},
+      create: { typeName },
+    });
+  }
+
+  const seasons = await prisma.season.findMany();
+  const seasonByName = new Map(seasons.map((s) => [s.seasonName, s]));
+  const cropTypes = await prisma.cropType.findMany();
+  const typeByName = new Map(cropTypes.map((t) => [t.typeName, t]));
+
+  for (const row of CFLD_CROP_MASTER) {
+    const season = seasonByName.get(row.seasonName);
+    const cropType = typeByName.get(row.typeName);
+    if (!season || !cropType) {
+      console.warn(`   ⚠️  CFLD crop: missing season or type for ${JSON.stringify(row)}`);
+      continue;
+    }
+
+    const existing = await prisma.fLDCropMaster.findFirst({
+      where: {
+        seasonId: season.seasonId,
+        typeId: cropType.typeId,
+        cropName: row.cropName,
+      },
+    });
+    if (!existing) {
+      await prisma.fLDCropMaster.create({
+        data: {
+          cropName: row.cropName,
+          seasonId: season.seasonId,
+          typeId: cropType.typeId,
+        },
+      });
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedARYAEnterprises() {
+  console.log('🌱 ARYA enterprises (arya_enterprise)...');
+
+  for (const enterpriseName of ENTERPRISE_MASTER) {
     await prisma.aryaEnterprise.upsert({
       where: { enterpriseName },
       update: {},
@@ -413,6 +1100,85 @@ async function seedARYAEnterprises() {
   }
 
   console.log('   ✅ Done\n');
+}
+
+async function seedEnterpriseTypeMasters() {
+  console.log('🌱 Enterprise type master...');
+
+  for (const enterpriseTypeName of ENTERPRISE_MASTER) {
+    await prisma.enterpriseTypeMaster.upsert({
+      where: { enterpriseTypeName },
+      update: {},
+      create: { enterpriseTypeName },
+    });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedImpactSpecificAreaMasters() {
+  console.log('🌱 Impact specific area master...');
+
+  for (const specificAreaName of IMPACT_SPECIFIC_AREAS) {
+    const existing = await prisma.impactSpecificAreaMaster.findFirst({
+      where: { specificAreaName },
+    });
+    if (!existing) {
+      await prisma.impactSpecificAreaMaster.create({
+        data: { specificAreaName },
+      });
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedProgrammeTypeMasters() {
+  console.log('🌱 Programme type master...');
+
+  for (const programmeType of PROGRAMME_TYPE_MASTER) {
+    await prisma.programmeTypeMaster.upsert({
+      where: { programmeType },
+      update: {},
+      create: { programmeType },
+    });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedAccountTypeMasters() {
+  console.log('🌱 Account type master...');
+
+  for (const accountType of ACCOUNT_TYPE_MASTER) {
+    const existing = await prisma.accountTypeMaster.findFirst({
+      where: { accountType },
+    });
+    if (!existing) {
+      await prisma.accountTypeMaster.create({
+        data: { accountType },
+      });
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedPublicationMasters() {
+  console.log('🌱 Publication master...');
+
+  for (const publicationName of PUBLICATION_MASTER) {
+    const existing = await prisma.publication.findFirst({
+      where: { publicationName },
+    });
+    if (!existing) {
+      await prisma.publication.create({
+        data: { publicationName },
+      });
+    }
+  }
+
+  console.log('   ✅ Donew\n');
 }
 
 async function seedUniversities() {
@@ -548,20 +1314,206 @@ async function seedFinancialProjects() {
   console.log('   ✅ Done\n');
 }
 
+async function seedOftMasters() {
+  console.log('🌱 OFT subject & thematic area masters...');
+
+  for (const { subjectName, thematicAreas } of OFT_SUBJECTS_AND_THEMATIC_AREAS) {
+    let subject = await prisma.oftSubject.findFirst({
+      where: { subjectName },
+    });
+    if (!subject) {
+      subject = await prisma.oftSubject.create({
+        data: { subjectName },
+      });
+    }
+
+    for (const thematicAreaName of thematicAreas) {
+      const existing = await prisma.oftThematicArea.findFirst({
+        where: {
+          thematicAreaName,
+          oftSubjectId: subject.oftSubjectId,
+        },
+      });
+      if (!existing) {
+        await prisma.oftThematicArea.create({
+          data: {
+            thematicAreaName,
+            oftSubjectId: subject.oftSubjectId,
+          },
+        });
+      }
+    }
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+/**
+ * Build category name → sector name map from FLD_SECTOR_DATA (for crops.json rows).
+ */
+function buildFldCategoryToSectorMap() {
+  const map = {};
+  for (const sector of FLD_SECTOR_DATA) {
+    for (const { categoryName } of sector.categories) {
+      map[categoryName] = sector.sectorName;
+    }
+  }
+  return map;
+}
+
+async function seedFldMasters() {
+  console.log('🌱 FLD sector, thematic area, category, subcategory & crop masters...');
+
+  for (const { sectorName, thematicAreas, categories } of FLD_SECTOR_DATA) {
+    const sector = await prisma.sector.upsert({
+      where: { sectorName },
+      update: {},
+      create: { sectorName },
+    });
+
+    for (const thematicAreaName of thematicAreas) {
+      const existingTa = await prisma.fldThematicArea.findFirst({
+        where: { sectorId: sector.sectorId, thematicAreaName },
+      });
+      if (!existingTa) {
+        await prisma.fldThematicArea.create({
+          data: { thematicAreaName, sectorId: sector.sectorId },
+        });
+      }
+    }
+
+    for (const { categoryName, subcategories } of categories) {
+      let category = await prisma.fldCategory.findFirst({
+        where: { sectorId: sector.sectorId, categoryName },
+      });
+      if (!category) {
+        category = await prisma.fldCategory.create({
+          data: { categoryName, sectorId: sector.sectorId },
+        });
+      }
+
+      for (const subCategoryName of subcategories) {
+        const existingSub = await prisma.fldSubcategory.findFirst({
+          where: { categoryId: category.categoryId, subCategoryName },
+        });
+        if (!existingSub) {
+          await prisma.fldSubcategory.create({
+            data: {
+              subCategoryName,
+              categoryId: category.categoryId,
+              sectorId: sector.sectorId,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  const categoryToSector = buildFldCategoryToSectorMap();
+  const cropsPath = path.join(__dirname, '../constants/seed-crops.json');
+  const cropsRows = JSON.parse(fs.readFileSync(cropsPath, 'utf8'));
+
+  const sectors = await prisma.sector.findMany();
+  const sectorByName = new Map(sectors.map((s) => [s.sectorName, s]));
+
+  const allCategories = await prisma.fldCategory.findMany();
+  const categoryBySectorAndName = new Map(
+    allCategories.map((c) => [`${c.sectorId}\t${c.categoryName}`, c])
+  );
+
+  const allSubs = await prisma.fldSubcategory.findMany();
+  const subByCategoryAndName = new Map(
+    allSubs.map((sc) => [`${sc.categoryId}\t${sc.subCategoryName}`, sc])
+  );
+
+  const existingCrops = await prisma.fldCrop.findMany({
+    select: { categoryId: true, subCategoryId: true, cropName: true },
+  });
+  const cropKey = (categoryId, subCategoryId, name) =>
+    `${categoryId}\t${subCategoryId}\t${name}`;
+  const existingCropKeys = new Set(existingCrops.map((r) => cropKey(r.categoryId, r.subCategoryId, r.cropName)));
+
+  let cropsCreated = 0;
+  let cropsSkipped = 0;
+
+  for (const row of cropsRows) {
+    const categoryName = row.category;
+    const subCategoryName = row.subcategory;
+    const cropName = row.crop;
+    if (!categoryName || !subCategoryName || cropName == null || cropName === '') {
+      cropsSkipped += 1;
+      continue;
+    }
+
+    const sectorName = categoryToSector[categoryName];
+    if (!sectorName) {
+      console.warn(`   ⚠️  crops.json: unknown category "${categoryName}" — skipped`);
+      cropsSkipped += 1;
+      continue;
+    }
+
+    const sector = sectorByName.get(sectorName);
+    if (!sector) {
+      cropsSkipped += 1;
+      continue;
+    }
+
+    const category = categoryBySectorAndName.get(`${sector.sectorId}\t${categoryName}`);
+    const subCategory = category
+      ? subByCategoryAndName.get(`${category.categoryId}\t${subCategoryName}`)
+      : null;
+
+    if (!category || !subCategory) {
+      console.warn(
+        `   ⚠️  crops.json: missing category/subcategory "${categoryName}" / "${subCategoryName}" — skipped`
+      );
+      cropsSkipped += 1;
+      continue;
+    }
+
+    const ck = cropKey(category.categoryId, subCategory.subCategoryId, cropName);
+    if (existingCropKeys.has(ck)) {
+      cropsSkipped += 1;
+      continue;
+    }
+
+    await prisma.fldCrop.create({
+      data: {
+        cropName,
+        categoryId: category.categoryId,
+        subCategoryId: subCategory.subCategoryId,
+      },
+    });
+    existingCropKeys.add(ck);
+    cropsCreated += 1;
+  }
+
+  console.log(`   ✅ FLD crops: ${cropsCreated} created, ${cropsSkipped} skipped (already present or invalid)\n`);
+}
+
 async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
   await seedTrainingMasters();
   await seedExtensionMasters();
+  await seedEventsMasters();
   await seedFundingSources();
   await seedProducts();
   await seedCRASystems();
+  await seedCfldCropMasters();
   await seedARYAEnterprises();
+  await seedEnterpriseTypeMasters();
+  await seedImpactSpecificAreaMasters();
+  await seedProgrammeTypeMasters();
+  await seedAccountTypeMasters();
+  await seedPublicationMasters();
   await seedUniversities();
   await seedAttachmentTypes();
   await seedNariMasters();
   await seedFundingAgencies();
   await seedFinancialProjects();
+  await seedOftMasters();
+  await seedFldMasters();
   console.log('✅ All masters seeded successfully!');
 }
 

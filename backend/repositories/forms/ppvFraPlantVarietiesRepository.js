@@ -1,5 +1,6 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
+const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 
 const parseYearFromInput = (value, fallback = null) => {
     if (value === undefined || value === null || value === '') return fallback;
@@ -57,6 +58,8 @@ const ppvFraPlantVarietiesRepository = {
 
         const yearInfo = resolveReportingYearInput(data.reportingYear ?? data.year, new Date().getUTCFullYear(), null);
 
+        const mobile = normalizeRequiredIndianMobile(data.mobile, 'Mobile');
+
         const record = await prisma.ppvFraPlantVarieties.create({
             data: {
                 kvkId,
@@ -65,7 +68,7 @@ const ppvFraPlantVarietiesRepository = {
                 cropName: data.cropName || '',
                 registrationNo: data.registrationNo || null,
                 farmerName: data.farmerName || '',
-                mobile: data.mobile || '',
+                mobile,
                 village: data.village || '',
                 block: data.block || '',
                 district: data.district || '',
@@ -125,6 +128,11 @@ const ppvFraPlantVarietiesRepository = {
             ? resolveReportingYearInput(data.reportingYear ?? data.year, existing.reportingYear, existing.reportingYearDate || null)
             : { year: existing.reportingYear, reportingYearDate: existing.reportingYearDate || buildDateFromYear(existing.reportingYear) };
 
+        let mobileValue = existing.mobile;
+        if (data.mobile !== undefined) {
+            mobileValue = normalizeRequiredIndianMobile(data.mobile, 'Mobile');
+        }
+
         const record = await prisma.ppvFraPlantVarieties.update({
             where: { ppvFraPlantVarietiesID: parseInt(id) },
             data: {
@@ -133,7 +141,7 @@ const ppvFraPlantVarietiesRepository = {
                 cropName: data.cropName !== undefined ? data.cropName : existing.cropName,
                 registrationNo: data.registrationNo !== undefined ? data.registrationNo : existing.registrationNo,
                 farmerName: data.farmerName !== undefined ? data.farmerName : existing.farmerName,
-                mobile: data.mobile !== undefined ? data.mobile : existing.mobile,
+                mobile: mobileValue,
                 village: data.village !== undefined ? data.village : existing.village,
                 block: data.block !== undefined ? data.block : existing.block,
                 district: data.district !== undefined ? data.district : existing.district,

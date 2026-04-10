@@ -82,6 +82,7 @@ const nariNutritionalGardenRepository = {
                 kvk: { select: { kvkName: true, state: { select: { stateName: true } }, district: { select: { districtName: true } } } },
                 activity: { select: { activityName: true } },
                 typeOfNutritionalGarden: { select: { name: true } },
+                results: { orderBy: { nariNutritionalGardenResultId: 'asc' } },
             },
             orderBy: { nariNutritionalGardenId: 'desc' }
         });
@@ -237,7 +238,22 @@ function _mapResponse(r) {
         scMale: r.scM,
         scFemale: r.scF,
         stMale: r.stM,
-        stFemale: r.stF
+        stFemale: r.stF,
+
+        results: Array.isArray(r.results)
+            ? r.results.map((row) => ({
+                  nariNutritionalGardenResultId: row.nariNutritionalGardenResultId,
+                  reportingYear: row.reportingYear,
+                  cropName: row.cropName,
+                  variety: row.variety,
+                  areaSqm: row.areaSqm,
+                  productionKg: row.productionKg,
+                  consumptionKg: row.consumptionKg,
+                  sellKg: row.sellKg,
+                  income: row.income,
+              }))
+            : [],
+        resultCount: Array.isArray(r.results) ? r.results.length : 0,
     };
 }
 

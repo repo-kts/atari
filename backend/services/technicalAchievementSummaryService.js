@@ -227,7 +227,8 @@ const technicalAchievementSummaryService = {
       getTargetAggregate(baseWhere, year, TARGET_TYPE.SOIL_WATER),
     ]);
 
-    const [oftAgg, fldAgg, trainingAgg, extensionAgg, seedAgg, plantingAgg, livestockAgg, soilAgg] = await Promise.all([
+    const [oftAgg, fldAgg, trainingAgg, extensionAgg, seedAgg, plantingAgg, livestockAgg, soilAgg, publicationGroupBy] =
+        await Promise.all([
       prisma.kvkoft.aggregate({
         where: {
           ...baseWhere,
@@ -396,7 +397,34 @@ const technicalAchievementSummaryService = {
           stF: true,
         },
       }),
+
+      prisma.kvkPublicationDetails.groupBy({
+        by: ['publicationId'],
+        where: {
+          ...baseWhere,
+          reportingYear: { gte: start, lt: endExclusive },
+        },
+        _count: { _all: true },
+      }),
     ]);
+
+    const publicationIdList = publicationGroupBy.map((g) => g.publicationId).filter((id) => id != null);
+    const publicationMasters =
+      publicationIdList.length > 0
+        ? await prisma.publication.findMany({
+            where: { publicationId: { in: publicationIdList } },
+            select: { publicationId: true, publicationName: true },
+          })
+        : [];
+    const publicationNameById = new Map(publicationMasters.map((p) => [p.publicationId, p.publicationName]));
+    const publicationSummaryRows = publicationGroupBy
+      .map((g) => {
+        const label =
+          g.publicationId == null ? 'Not categorized' : publicationNameById.get(g.publicationId) || 'Unknown';
+        return { publication: label, count: g._count._all };
+      })
+      .filter((r) => r.count > 0)
+      .sort((a, b) => a.publication.localeCompare(b.publication));
 
     const extensionBreakdown = buildBreakdown({
       generalM: toNumber(extensionAgg?._sum?.farmersGeneralM) + toNumber(extensionAgg?._sum?.officialsGeneralM),
@@ -540,6 +568,10 @@ const technicalAchievementSummaryService = {
             stM: soilAgg?._sum?.stM,
             stF: soilAgg?._sum?.stF,
           }),
+        },
+
+        publications: {
+          rows: publicationSummaryRows,
         },
       },
     };

@@ -1,12 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const operationalAreaRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.operationalArea.create({
+        const created = await prisma.operationalArea.create({
             data: {
                 kvkId,
                 reportingYear: (() => {
@@ -22,6 +23,8 @@ const operationalAreaRepository = {
                 thrustAreas: data.thrustAreas,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('operationalArea', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -63,7 +66,7 @@ const operationalAreaRepository = {
         const existing = await prisma.operationalArea.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.operationalArea.update({
+        const updated = await prisma.operationalArea.update({
             where: { operationalAreaId: id },
             data: {
                 reportingYear: data.reportingYear !== undefined
@@ -81,6 +84,8 @@ const operationalAreaRepository = {
                 thrustAreas: data.thrustAreas !== undefined ? data.thrustAreas : existing.thrustAreas,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('operationalArea', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -91,9 +96,11 @@ const operationalAreaRepository = {
         const existing = await prisma.operationalArea.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.operationalArea.delete({
+        const removed = await prisma.operationalArea.delete({
             where: { operationalAreaId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('operationalArea', existing.kvkId);
+        return removed;
     }
 };
 

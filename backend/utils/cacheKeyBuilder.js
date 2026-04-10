@@ -17,7 +17,8 @@ class CacheKeyBuilder {
      */
     static sectionData(kvkId, sectionId, filters = {}) {
         const filterHash = this._hashFilters(filters);
-        return `report:kvk:section:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
+        // v2: bust stale entries after payload shape changes (e.g. nested result rows)
+        return `report:kvk:section:v2:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
     }
 
     /**
@@ -39,14 +40,14 @@ class CacheKeyBuilder {
      * Build pattern for invalidating all sections of a KVK
      */
     static kvkSectionsPattern(kvkId) {
-        return `report:kvk:section:${kvkId}:*`;
+        return `report:kvk:section:v2:${kvkId}:*`;
     }
 
     /**
      * Build pattern for invalidating all sections of a KVK for a specific section
      */
     static kvkSectionPattern(kvkId, sectionId) {
-        return `report:kvk:section:${kvkId}:${sectionId}*`;
+        return `report:kvk:section:v2:${kvkId}:${sectionId}*`;
     }
 
     /**

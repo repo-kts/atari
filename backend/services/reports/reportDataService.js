@@ -1,9 +1,5 @@
 const reportRepository = require('../../repositories/reports/reportRepository.js');
 const oftReportRepository = require('../../repositories/reports/oftReport/index.js');
-const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
-const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
-const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
-const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
 const cfldReportRepository = require('../../repositories/reports/cfldReport/index.js');
 const craReportRepository = require('../../repositories/reports/craReport/index.js');
 const fpoReportRepository = require('../../repositories/reports/fpoReport/index.js');
@@ -34,7 +30,31 @@ const trainingCapacityReportRepository = require('../../repositories/reports/tra
 const extensionOutreachReportRepository = require('../../repositories/reports/extensionOutreachReport/index.js');
 const otherExtensionContentReportRepository = require('../../repositories/reports/otherExtensionContentReport/index.js');
 const technologyWeekCelebrationReportRepository = require('../../repositories/reports/technologyWeekCelebrationReport/index.js');
+const celebrationDaysReportRepository = require('../../repositories/reports/celebrationDaysReport/index.js');
+const productionSupplyPageReportRepository = require('../../repositories/reports/productionSupplyPageReport/index.js');
+const soilWaterEquipmentReportRepository = require('../../repositories/reports/soilWaterEquipmentReport/index.js');
+const soilWaterAnalysisReportRepository = require('../../repositories/reports/soilWaterAnalysisReport/index.js');
+const worldSoilDayReportRepository = require('../../repositories/reports/worldSoilDayReport/index.js');
+const miscReportRepository = require('../../repositories/reports/miscReport/index.js');
+const digitalInfoReportRepository = require('../../repositories/reports/digitalInfoReport/index.js');
+const swachhtaReportRepository = require('../../repositories/reports/swachhtaReport/index.js');
+const meetingsReportRepository = require('../../repositories/reports/meetingsReport/index.js');
+const publicationDetailsReportRepository = require('../../repositories/reports/publicationDetailsReportRepository.js');
+const kvkAwardReportRepository = require('../../repositories/reports/kvkAwardReportRepository.js');
+const scientistAwardReportRepository = require('../../repositories/reports/scientistAwardReportRepository.js');
+const farmerAwardReportRepository = require('../../repositories/reports/farmerAwardReportRepository.js');
+const hrdProgramReportRepository = require('../../repositories/reports/hrdProgramReportRepository.js');
+const districtLevelDataReportRepository = require('../../repositories/reports/districtLevelDataReportRepository.js');
+const operationalAreaReportRepository = require('../../repositories/reports/operationalAreaReportRepository.js');
+const villageAdoptionReportRepository = require('../../repositories/reports/villageAdoptionReportRepository.js');
+const priorityThrustAreaReportRepository = require('../../repositories/reports/priorityThrustAreaReportRepository.js');
+const budgetDetailReportRepository = require('../../repositories/reports/budgetDetailReportRepository.js');
+const projectBudgetReportRepository = require('../../repositories/reports/projectBudgetReportRepository.js');
+const revolvingFundReportRepository = require('../../repositories/reports/revolvingFundReportRepository.js');
+const revenueGenerationReportRepository = require('../../repositories/reports/revenueGenerationReportRepository.js');
+const resourceGenerationReportRepository = require('../../repositories/reports/resourceGenerationReportRepository.js');
 const { getSectionConfig } = require('../../config/reportConfig.js');
+const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 const cacheService = require('../cache/redisCacheService.js');
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
 const { getSectionDataTTL, getKvkInfoTTL } = require('../../config/cacheConfig.js');
@@ -53,12 +73,17 @@ class ReportDataService {
             throw new Error(`Section ${sectionId} not found`);
         }
 
+        const effectiveKvkId = normalizeReportKvkId(kvkId);
+        if (effectiveKvkId == null) {
+            throw new Error('Invalid or missing KVK ID');
+        }
+
         // Apply filters based on section configuration
         const sectionFilters = this._buildSectionFilters(sectionConfig, filters);
         const hasFilters = Object.keys(sectionFilters).length > 0;
 
         // Build cache key
-        const cacheKey = CacheKeyBuilder.sectionData(kvkId, sectionId, sectionFilters);
+        const cacheKey = CacheKeyBuilder.sectionData(effectiveKvkId, sectionId, sectionFilters);
         const ttl = getSectionDataTTL(hasFilters);
 
         // Try to get from cache first
@@ -73,283 +98,362 @@ class ReportDataService {
 
         switch (dataSource) {
             case 'kvk':
-                rawData = await reportRepository.getKvkBasicInfo(kvkId);
+                rawData = await reportRepository.getKvkBasicInfo(effectiveKvkId);
                 break;
             case 'kvkBankAccounts':
-                rawData = await reportRepository.getKvkBankAccounts(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkBankAccounts(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkEmployees':
-                rawData = await reportRepository.getKvkEmployees(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkEmployees(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkEmployeesHeads':
-                rawData = await reportRepository.getKvkEmployeeHeads(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkEmployeeHeads(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkStaffTransferred':
-                rawData = await reportRepository.getKvkStaffTransferred(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkStaffTransferred(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkInfrastructure':
-                rawData = await reportRepository.getKvkInfrastructure(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkInfrastructure(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkVehicles':
-                rawData = await reportRepository.getKvkVehicles(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkVehicles(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkVehicleDetails':
-                rawData = await reportRepository.getKvkVehicleDetails(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkVehicleDetails(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkEquipments':
-                rawData = await reportRepository.getKvkEquipments(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkEquipments(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkEquipmentRecords':
-                rawData = await reportRepository.getKvkEquipmentRecords(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkEquipmentRecords(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkFarmImplements':
-                rawData = await reportRepository.getKvkFarmImplements(kvkId, sectionFilters);
+                rawData = await reportRepository.getKvkFarmImplements(effectiveKvkId, sectionFilters);
                 break;
             case 'oftSummary': {
                 const [summaryRecords, subjects] = await Promise.all([
-                    oftReportRepository.getOftSummaryData(kvkId, sectionFilters),
+                    oftReportRepository.getOftSummaryData(effectiveKvkId, sectionFilters),
                     oftReportRepository.getOftSubjectsWithThematicAreas(),
                 ]);
                 rawData = { records: summaryRecords, subjects };
                 break;
             }
             case 'oftDetailCards':
-                rawData = await oftReportRepository.getOftDetailCards(kvkId, sectionFilters);
-                break;
-            case 'prevalentDiseasesCrops':
-                rawData = await miscReportRepository.getPrevalentDiseasesCrops(kvkId, sectionFilters);
-                break;
-            case 'prevalentDiseasesLivestock':
-                rawData = await miscReportRepository.getPrevalentDiseasesLivestock(kvkId, sectionFilters);
-                break;
-            case 'nykTraining':
-                rawData = await miscReportRepository.getNykTraining(kvkId, sectionFilters);
-                break;
-            case 'ppvFraPlantVarieties':
-                rawData = await miscReportRepository.getPpvFraPlantVarieties(kvkId, sectionFilters);
-                break;
-            case 'ppvFraTraining':
-                rawData = await miscReportRepository.getPpvFraTraining(kvkId, sectionFilters);
-                break;
-            case 'vipVisitors':
-                rawData = await miscReportRepository.getVipVisitors(kvkId, sectionFilters);
-                break;
-            case 'raweFetFit':
-                rawData = await miscReportRepository.getRaweFetFit(kvkId, sectionFilters);
-                break;
-            case 'kisanSarathi':
-                rawData = await digitalInfoReportRepository.getKisanSarathi(kvkId, sectionFilters);
-                break;
-            case 'mobileApp':
-                rawData = await digitalInfoReportRepository.getMobileApp(kvkId, sectionFilters);
-                break;
-            case 'kmas':
-                rawData = await digitalInfoReportRepository.getKmas(kvkId, sectionFilters);
-                break;
-            case 'webPortal':
-                rawData = await digitalInfoReportRepository.getWebPortal(kvkId, sectionFilters);
-                break;
-            case 'msgDetails':
-                rawData = await digitalInfoReportRepository.getMsgDetails(kvkId, sectionFilters);
-                break;
-            case 'swachhtaSewa':
-                rawData = await swachhtaReportRepository.getSwachhtaSewa(kvkId, sectionFilters);
-                break;
-            case 'swachhtaPakhwada':
-                rawData = await swachhtaReportRepository.getSwachhtaPakhwada(kvkId, sectionFilters);
-                break;
-            case 'swachhtaBudget':
-                rawData = await swachhtaReportRepository.getSwachhtaBudget(kvkId, sectionFilters);
-                break;
-            case 'sacMeetings':
-                rawData = await meetingsReportRepository.getSacMeetings(kvkId, sectionFilters);
-                break;
-            case 'otherMeetings':
-                rawData = await meetingsReportRepository.getOtherMeetings(kvkId, sectionFilters);
+                rawData = await oftReportRepository.getOftDetailCards(effectiveKvkId, sectionFilters);
                 break;
             case 'cfldCombined':
-                rawData = await cfldReportRepository.getCfldCombinedData(kvkId, sectionFilters);
+                rawData = await cfldReportRepository.getCfldCombinedData(effectiveKvkId, sectionFilters);
                 break;
             case 'cfldExtensionActivity':
-                rawData = await cfldReportRepository.getCfldExtensionActivityData(kvkId, sectionFilters);
+                rawData = await cfldReportRepository.getCfldExtensionActivityData(effectiveKvkId, sectionFilters);
                 break;
             case 'cfldBudgetUtilization':
-                rawData = await cfldReportRepository.getCfldBudgetUtilizationData(kvkId, sectionFilters);
+                rawData = await cfldReportRepository.getCfldBudgetUtilizationData(effectiveKvkId, sectionFilters);
                 break;
             case 'craDetails':
-                rawData = await craReportRepository.getCraDetailsData(kvkId, sectionFilters);
+                rawData = await craReportRepository.getCraDetailsData(effectiveKvkId, sectionFilters);
                 break;
             case 'craExtensionActivity':
-                rawData = await craReportRepository.getCraExtensionActivityData(kvkId, sectionFilters);
+                rawData = await craReportRepository.getCraExtensionActivityData(effectiveKvkId, sectionFilters);
                 break;
             case 'fpoCbboDetails':
-                rawData = await fpoReportRepository.getFpoCbboDetailsData(kvkId, sectionFilters);
+                rawData = await fpoReportRepository.getFpoCbboDetailsData(effectiveKvkId, sectionFilters);
                 break;
             case 'fpoManagement':
-                rawData = await fpoReportRepository.getFpoManagementData(kvkId, sectionFilters);
+                rawData = await fpoReportRepository.getFpoManagementData(effectiveKvkId, sectionFilters);
                 break;
             case 'drmrDetails':
-                rawData = await drmrReportRepository.getDrmrDetailsData(kvkId, sectionFilters);
+                rawData = await drmrReportRepository.getDrmrDetailsData(effectiveKvkId, sectionFilters);
                 break;
             case 'drmrActivity':
-                rawData = await drmrReportRepository.getDrmrActivityData(kvkId, sectionFilters);
+                rawData = await drmrReportRepository.getDrmrActivityData(effectiveKvkId, sectionFilters);
                 break;
             case 'nariBioFortified':
-                rawData = await nariReportRepository.getNariBioFortifiedData(kvkId, sectionFilters);
+                rawData = await nariReportRepository.getNariBioFortifiedData(effectiveKvkId, sectionFilters);
                 break;
             case 'nariValueAddition':
-                rawData = await nariReportRepository.getNariValueAdditionData(kvkId, sectionFilters);
+                rawData = await nariReportRepository.getNariValueAdditionData(effectiveKvkId, sectionFilters);
                 break;
             case 'nariNutritionGarden':
-                rawData = await nariReportRepository.getNariNutritionGardenData(kvkId, sectionFilters);
+                rawData = await nariReportRepository.getNariNutritionGardenData(effectiveKvkId, sectionFilters);
                 break;
             case 'nariTraining':
-                rawData = await nariReportRepository.getNariTrainingData(kvkId, sectionFilters);
+                rawData = await nariReportRepository.getNariTrainingData(effectiveKvkId, sectionFilters);
                 break;
             case 'nariExtension':
-                rawData = await nariReportRepository.getNariExtensionData(kvkId, sectionFilters);
+                rawData = await nariReportRepository.getNariExtensionData(effectiveKvkId, sectionFilters);
                 break;
             case 'aryaCurrent':
-                rawData = await aryaReportRepository.getAryaCurrentData(kvkId, sectionFilters);
+                rawData = await aryaReportRepository.getAryaCurrentData(effectiveKvkId, sectionFilters);
                 break;
             case 'aryaPrevYear':
-                rawData = await aryaReportRepository.getAryaPrevData(kvkId, sectionFilters);
+                rawData = await aryaReportRepository.getAryaPrevData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraBasic':
-                rawData = await nicraReportRepository.getNicraBasicData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraBasicData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraTraining':
-                rawData = await nicraReportRepository.getNicraTrainingData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraTrainingData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraIntervention':
-                rawData = await nicraReportRepository.getNicraInterventionData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraInterventionData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraExtensionActivity':
-                rawData = await nicraReportRepository.getNicraExtensionActivityData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraExtensionActivityData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraFarmImplement':
-                rawData = await nicraReportRepository.getNicraFarmImplementData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraFarmImplementData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraVcrmc':
-                rawData = await nicraReportRepository.getNicraVcrmcData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraVcrmcData(effectiveKvkId, sectionFilters);
                 break;
             case 'nicraSoilHealth':
-                rawData = await nicraReportRepository.getNicraSoilHealthData(kvkId, sectionFilters);
+                rawData = await nicraReportRepository.getNicraSoilHealthData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingPhysical':
-                rawData = await naturalFarmingReportRepository.getNaturalFarmingPhysicalInfoData(kvkId, sectionFilters);
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingPhysicalInfoData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingDemonstration':
-                rawData = await naturalFarmingReportRepository.getNaturalFarmingDemonstrationData(kvkId, sectionFilters);
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingDemonstrationData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingFarmersPracticing':
-                rawData = await naturalFarmingReportRepository.getNaturalFarmingFarmersPracticingData(kvkId, sectionFilters);
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingFarmersPracticingData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingSoilData':
-                rawData = await naturalFarmingReportRepository.getNaturalFarmingSoilData(kvkId, sectionFilters);
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingSoilData(effectiveKvkId, sectionFilters);
                 break;
             case 'naturalFarmingBudgetExpenditure':
-                rawData = await naturalFarmingReportRepository.getNaturalFarmingBudgetExpenditureData(kvkId, sectionFilters);
+                rawData = await naturalFarmingReportRepository.getNaturalFarmingBudgetExpenditureData(effectiveKvkId, sectionFilters);
                 break;
             case 'agriDroneIntroduction':
-                rawData = await agriDroneReportRepository.getAgriDroneIntroductionData(kvkId, sectionFilters);
+                rawData = await agriDroneReportRepository.getAgriDroneIntroductionData(effectiveKvkId, sectionFilters);
                 break;
             case 'agriDroneDemonstrationDetails':
-                rawData = await agriDroneReportRepository.getAgriDroneDemonstrationDetailsData(kvkId, sectionFilters);
+                rawData = await agriDroneReportRepository.getAgriDroneDemonstrationDetailsData(effectiveKvkId, sectionFilters);
                 break;
             case 'csisa':
-                rawData = await csisaReportRepository.getCsisaData(kvkId, sectionFilters);
+                rawData = await csisaReportRepository.getCsisaData(effectiveKvkId, sectionFilters);
                 break;
             case 'tspScsp':
-                rawData = await tspScspReportRepository.getCombinedTspScspData(kvkId, sectionFilters);
+                rawData = await tspScspReportRepository.getCombinedTspScspData(effectiveKvkId, sectionFilters);
                 break;
             case 'tsp':
-                rawData = await tspScspReportRepository.getTspData(kvkId, sectionFilters);
+                rawData = await tspScspReportRepository.getTspData(effectiveKvkId, sectionFilters);
                 break;
             case 'scsp':
-                rawData = await tspScspReportRepository.getScspData(kvkId, sectionFilters);
+                rawData = await tspScspReportRepository.getScspData(effectiveKvkId, sectionFilters);
                 break;
             case 'seedHub':
-                rawData = await seedHubReportRepository.getSeedHubData(kvkId, sectionFilters);
+                rawData = await seedHubReportRepository.getSeedHubData(effectiveKvkId, sectionFilters);
                 break;
             case 'otherProgrammes':
-                rawData = await otherProgrammeReportRepository.getOtherProgrammeData(kvkId, sectionFilters);
+                rawData = await otherProgrammeReportRepository.getOtherProgrammeData(effectiveKvkId, sectionFilters);
                 break;
             case 'specialProgramme':
-                rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(kvkId, sectionFilters);
+                rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(effectiveKvkId, sectionFilters);
                 break;
             case 'functionalLinkage':
-                rawData = await functionalLinkageReportRepository.getFunctionalLinkageData(kvkId, sectionFilters);
+                rawData = await functionalLinkageReportRepository.getFunctionalLinkageData(effectiveKvkId, sectionFilters);
                 break;
             case 'successStory':
-                rawData = await successStoryReportRepository.getSuccessStoryData(kvkId, sectionFilters);
+                rawData = await successStoryReportRepository.getSuccessStoryData(effectiveKvkId, sectionFilters);
                 break;
             case 'entrepreneurship':
-                rawData = await entrepreneurshipReportRepository.getEntrepreneurshipData(kvkId, sectionFilters);
+                rawData = await entrepreneurshipReportRepository.getEntrepreneurshipData(effectiveKvkId, sectionFilters);
                 break;
             case 'kvkImpactActivity':
-                rawData = await kvkImpactActivityReportRepository.getKvkImpactActivityData(kvkId, sectionFilters);
+                rawData = await kvkImpactActivityReportRepository.getKvkImpactActivityData(effectiveKvkId, sectionFilters);
                 break;
             case 'demonstrationUnit':
-                rawData = await demonstrationUnitReportRepository.getDemonstrationUnitData(kvkId, sectionFilters);
+                rawData = await demonstrationUnitReportRepository.getDemonstrationUnitData(effectiveKvkId, sectionFilters);
                 break;
             case 'instructionalFarmCrop':
-                rawData = await instructionalFarmCropReportRepository.getInstructionalFarmCropData(kvkId, sectionFilters);
+                rawData = await instructionalFarmCropReportRepository.getInstructionalFarmCropData(effectiveKvkId, sectionFilters);
                 break;
             case 'productionUnit':
-                rawData = await productionUnitReportRepository.getProductionUnitData(kvkId, sectionFilters);
+                rawData = await productionUnitReportRepository.getProductionUnitData(effectiveKvkId, sectionFilters);
                 break;
             case 'instructionalFarmLivestock':
-                rawData = await instructionalFarmLivestockReportRepository.getInstructionalFarmLivestockData(kvkId, sectionFilters);
+                rawData = await instructionalFarmLivestockReportRepository.getInstructionalFarmLivestockData(effectiveKvkId, sectionFilters);
                 break;
             case 'hostelUtilization':
-                rawData = await hostelUtilizationReportRepository.getHostelUtilizationData(kvkId, sectionFilters);
+                rawData = await hostelUtilizationReportRepository.getHostelUtilizationData(effectiveKvkId, sectionFilters);
                 break;
             case 'staffQuartersUtilization':
-                rawData = await staffQuartersUtilizationReportRepository.getStaffQuartersUtilizationData(kvkId, sectionFilters);
+                rawData = await staffQuartersUtilizationReportRepository.getStaffQuartersUtilizationData(effectiveKvkId, sectionFilters);
                 break;
             case 'rainwaterHarvesting':
-                rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(kvkId, sectionFilters);
+                rawData = await rainwaterHarvestingReportRepository.getRainwaterHarvestingData(effectiveKvkId, sectionFilters);
                 break;
             case 'fldStateCategoryReport':
-                rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(kvkId, sectionFilters);
+                rawData = await fldStateCategoryReportRepository.getFldStateCategoryReportData(effectiveKvkId, sectionFilters);
                 break;
             case 'trainingCapacityReport':
-                rawData = await trainingCapacityReportRepository.getTrainingCapacityReportData(kvkId, sectionFilters);
+                rawData = await trainingCapacityReportRepository.getTrainingCapacityReportData(effectiveKvkId, sectionFilters);
                 break;
             case 'extensionOutreachReport':
-                rawData = await extensionOutreachReportRepository.getExtensionOutreachReportData(kvkId, sectionFilters);
+                rawData = await extensionOutreachReportRepository.getExtensionOutreachReportData(effectiveKvkId, sectionFilters);
                 break;
             case 'otherExtensionContentReport':
-                rawData = await otherExtensionContentReportRepository.getOtherExtensionContentReportData(kvkId, sectionFilters);
+                rawData = await otherExtensionContentReportRepository.getOtherExtensionContentReportData(effectiveKvkId, sectionFilters);
                 break;
             case 'technologyWeekCelebrationReport':
-                rawData = await technologyWeekCelebrationReportRepository.getTechnologyWeekCelebrationReportData(kvkId, sectionFilters);
+                rawData = await technologyWeekCelebrationReportRepository.getTechnologyWeekCelebrationReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'celebrationDaysReport':
+                rawData = await celebrationDaysReportRepository.getCelebrationDaysReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'productionSupplyReport':
+                rawData = await productionSupplyPageReportRepository.getProductionSupplyReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'soilWaterEquipmentReport':
+                rawData = await soilWaterEquipmentReportRepository.getSoilWaterEquipmentReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'soilWaterAnalysisReport':
+                rawData = await soilWaterAnalysisReportRepository.getSoilWaterAnalysisReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'worldSoilDayReport':
+                rawData = await worldSoilDayReportRepository.getWorldSoilDayReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesCrops':
+                rawData = await miscReportRepository.getPrevalentDiseasesCrops(effectiveKvkId, sectionFilters);
+                break;
+            case 'prevalentDiseasesLivestock':
+                rawData = await miscReportRepository.getPrevalentDiseasesLivestock(effectiveKvkId, sectionFilters);
+                break;
+            case 'nykTraining':
+                rawData = await miscReportRepository.getNykTraining(effectiveKvkId, sectionFilters);
+                break;
+            case 'ppvFraPlantVarieties':
+                rawData = await miscReportRepository.getPpvFraPlantVarieties(effectiveKvkId, sectionFilters);
+                break;
+            case 'ppvFraTraining':
+                rawData = await miscReportRepository.getPpvFraTraining(effectiveKvkId, sectionFilters);
+                break;
+            case 'vipVisitors':
+                rawData = await miscReportRepository.getVipVisitors(effectiveKvkId, sectionFilters);
+                break;
+            case 'raweFetFit':
+                rawData = await miscReportRepository.getRaweFetFit(effectiveKvkId, sectionFilters);
+                break;
+            case 'kisanSarathi':
+                rawData = await digitalInfoReportRepository.getKisanSarathi(effectiveKvkId, sectionFilters);
+                break;
+            case 'mobileApp':
+                rawData = await digitalInfoReportRepository.getMobileApp(effectiveKvkId, sectionFilters);
+                break;
+            case 'kmas':
+                rawData = await digitalInfoReportRepository.getKmas(effectiveKvkId, sectionFilters);
+                break;
+            case 'webPortal':
+                rawData = await digitalInfoReportRepository.getWebPortal(effectiveKvkId, sectionFilters);
+                break;
+            case 'msgDetails':
+                rawData = await digitalInfoReportRepository.getMsgDetails(effectiveKvkId, sectionFilters);
+                break;
+            case 'swachhtaSewa':
+                rawData = await swachhtaReportRepository.getSwachhtaSewa(effectiveKvkId, sectionFilters);
+                break;
+            case 'swachhtaPakhwada':
+                rawData = await swachhtaReportRepository.getSwachhtaPakhwada(effectiveKvkId, sectionFilters);
+                break;
+            case 'swachhtaBudget':
+                rawData = await swachhtaReportRepository.getSwachhtaBudget(effectiveKvkId, sectionFilters);
+                break;
+            case 'sacMeetings':
+                rawData = await meetingsReportRepository.getSacMeetings(effectiveKvkId, sectionFilters);
+                break;
+            case 'otherMeetings':
+                rawData = await meetingsReportRepository.getOtherMeetings(effectiveKvkId, sectionFilters);
+                break;
+            case 'kvkPublicationDetails':
+                rawData = await publicationDetailsReportRepository.getKvPublicationDetailsReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'kvkAward':
+                rawData = await kvkAwardReportRepository.getKvkAwardReportData(effectiveKvkId, sectionFilters);
+                break;
+            case 'scientistAward':
+                rawData = await scientistAwardReportRepository.getScientistAwardReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'farmerAward':
+                rawData = await farmerAwardReportRepository.getFarmerAwardReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'hrdProgram':
+                rawData = await hrdProgramReportRepository.getHrdProgramReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'operationalArea':
+                rawData = await operationalAreaReportRepository.getOperationalAreaReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'districtLevelData':
+                rawData = await districtLevelDataReportRepository.getDistrictLevelDataReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'villageAdoption':
+                rawData = await villageAdoptionReportRepository.getVillageAdoptionReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'priorityThrustArea':
+                rawData = await priorityThrustAreaReportRepository.getPriorityThrustAreaReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'budgetDetail':
+                rawData = await budgetDetailReportRepository.getBudgetDetailReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'projectBudget':
+                rawData = await projectBudgetReportRepository.getProjectBudgetReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'revolvingFund':
+                rawData = await revolvingFundReportRepository.getRevolvingFundReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'revenueGeneration':
+                rawData = await revenueGenerationReportRepository.getRevenueGenerationReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
+                break;
+            case 'resourceGeneration':
+                rawData = await resourceGenerationReportRepository.getResourceGenerationReportData(
+                    effectiveKvkId,
+                    sectionFilters,
+                );
                 break;
             default:
                 throw new Error(`Unknown data source: ${dataSource}`);
         }
 
-        // Custom template sections pass raw data directly (complex nested structures)
+        // OFT sections pass raw data to templates (complex nested structures)
         const skipTransform = dataSource === 'oftSummary'
             || dataSource === 'oftDetailCards'
-            || dataSource === 'prevalentDiseasesCrops'
-            || dataSource === 'prevalentDiseasesLivestock'
-            || dataSource === 'nykTraining'
-            || dataSource === 'ppvFraPlantVarieties'
-            || dataSource === 'ppvFraTraining'
-            || dataSource === 'vipVisitors'
-            || dataSource === 'raweFetFit'
-            || dataSource === 'kisanSarathi'
-            || dataSource === 'mobileApp'
-            || dataSource === 'kmas'
-            || dataSource === 'webPortal'
-            || dataSource === 'msgDetails'
-            || dataSource === 'swachhtaSewa'
-            || dataSource === 'swachhtaPakhwada'
-            || dataSource === 'swachhtaBudget'
-            || dataSource === 'sacMeetings'
-            || dataSource === 'otherMeetings'
             || dataSource === 'cfldCombined'
             || dataSource === 'cfldExtensionActivity'
             || dataSource === 'cfldBudgetUtilization'
@@ -388,7 +492,29 @@ class ReportDataService {
             || dataSource === 'trainingCapacityReport'
             || dataSource === 'extensionOutreachReport'
             || dataSource === 'otherExtensionContentReport'
-            || dataSource === 'technologyWeekCelebrationReport';
+            || dataSource === 'technologyWeekCelebrationReport'
+            || dataSource === 'celebrationDaysReport'
+            || dataSource === 'productionSupplyReport'
+            || dataSource === 'soilWaterEquipmentReport'
+            || dataSource === 'soilWaterAnalysisReport'
+            || dataSource === 'worldSoilDayReport'
+            || dataSource === 'prevalentDiseasesCrops'
+            || dataSource === 'prevalentDiseasesLivestock'
+            || dataSource === 'nykTraining'
+            || dataSource === 'ppvFraPlantVarieties'
+            || dataSource === 'ppvFraTraining'
+            || dataSource === 'vipVisitors'
+            || dataSource === 'raweFetFit'
+            || dataSource === 'kisanSarathi'
+            || dataSource === 'mobileApp'
+            || dataSource === 'kmas'
+            || dataSource === 'webPortal'
+            || dataSource === 'msgDetails'
+            || dataSource === 'swachhtaSewa'
+            || dataSource === 'swachhtaPakhwada'
+            || dataSource === 'swachhtaBudget'
+            || dataSource === 'sacMeetings'
+            || dataSource === 'otherMeetings';
         const skipTransformWithSeedHub = skipTransform
             || dataSource === 'seedHub'
             || dataSource === 'otherProgrammes'
@@ -403,7 +529,21 @@ class ReportDataService {
             || dataSource === 'instructionalFarmLivestock'
             || dataSource === 'hostelUtilization'
             || dataSource === 'staffQuartersUtilization'
-            || dataSource === 'rainwaterHarvesting';
+            || dataSource === 'rainwaterHarvesting'
+            || dataSource === 'kvkPublicationDetails'
+            || dataSource === 'kvkAward'
+            || dataSource === 'scientistAward'
+            || dataSource === 'farmerAward'
+            || dataSource === 'hrdProgram'
+            || dataSource === 'districtLevelData'
+            || dataSource === 'operationalArea'
+            || dataSource === 'villageAdoption'
+            || dataSource === 'priorityThrustArea'
+            || dataSource === 'budgetDetail'
+            || dataSource === 'projectBudget'
+            || dataSource === 'revolvingFund'
+            || dataSource === 'revenueGeneration'
+            || dataSource === 'resourceGeneration';
 
         // Transform data according to section configuration
         const transformedData = skipTransformWithSeedHub ? rawData : this._transformSectionData(rawData, sectionConfig);
@@ -481,7 +621,9 @@ class ReportDataService {
         const sectionFilters = {};
 
         // Only apply filters if section has date/year fields
-        if (sectionConfig.filters.dateFields.length > 0 || sectionConfig.filters.yearFields?.length > 0) {
+        const dateFieldsLen = sectionConfig.filters?.dateFields?.length ?? 0;
+        const yearFieldsLen = sectionConfig.filters?.yearFields?.length ?? 0;
+        if (dateFieldsLen > 0 || yearFieldsLen > 0) {
             if (globalFilters.startDate) {
                 sectionFilters.startDate = globalFilters.startDate;
             }
@@ -605,7 +747,12 @@ class ReportDataService {
      * Get KVK basic info for report header (with caching)
      */
     async getKvkInfoForHeader(kvkId) {
-        const cacheKey = CacheKeyBuilder.kvkInfo(kvkId);
+        const effectiveKvkId = normalizeReportKvkId(kvkId);
+        if (effectiveKvkId == null) {
+            throw new Error('Invalid or missing KVK ID');
+        }
+
+        const cacheKey = CacheKeyBuilder.kvkInfo(effectiveKvkId);
         const ttl = getKvkInfoTTL();
 
         // Try to get from cache first
@@ -615,9 +762,9 @@ class ReportDataService {
         }
 
         // Fetch from database
-        const kvk = await reportRepository.getKvkBasicInfo(kvkId);
+        const kvk = await reportRepository.getKvkBasicInfo(effectiveKvkId);
         if (!kvk) {
-            throw new Error(`KVK with ID ${kvkId} not found`);
+            throw new Error(`KVK with ID ${effectiveKvkId} not found`);
         }
 
         const result = {

@@ -21,6 +21,8 @@ import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOth
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
+import { cleanIndianMobileInput } from '@/utils/indianPhone'
+import { parseEstablishmentYearInput } from '@/utils/formNumericGuards'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -234,8 +236,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Mobile"
                             required
                             value={formData.mobile ?? ''}
-                            onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                            placeholder="Mobile number"
+                            onChange={(e) =>
+                                setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                            }
+                            placeholder="10-digit mobile"
+                            inputMode="numeric"
+                            autoComplete="tel"
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -724,8 +730,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Mobile Number"
                                 required
                                 value={formData.mobile ?? ''}
-                                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                                placeholder="+91"
+                                onChange={(e) =>
+                                    setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                                }
+                                placeholder="10-digit mobile"
+                                inputMode="numeric"
+                                autoComplete="tel"
                             />
                             <FormInput
                                 label="Landline"
@@ -752,9 +762,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormInput
                                 label="Year of Sanction"
                                 required
-                                type="number"
+                                inputMode="numeric"
+                                autoComplete="off"
                                 value={formData.yearOfSanction ?? ''}
-                                onChange={(e) => setFormData({ ...formData, yearOfSanction: parseInt(e.target.value) })}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        yearOfSanction: parseEstablishmentYearInput(e.target.value),
+                                    })
+                                }
                                 placeholder="e.g. 2004"
                             />
                         </div>
@@ -910,7 +926,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     readOnly
                                     disabled
                                     helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
-                                    placeholder="Enter host organization name"
+                                    placeholder="Populated from university (host organisation)"
                                 />
                             </div>
                             <FormInput

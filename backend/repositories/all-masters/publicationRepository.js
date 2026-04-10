@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 
 /**
  * Publication Master Repository
@@ -24,9 +25,11 @@ const findAll = async (entityType, options = {}) => {
     const config = ENTITY_CONFIG[entityType];
     if (!config) throw new Error(`Unknown entity type: ${entityType}`);
 
-    const { page = 1, limit = 10, search = '', sortBy = 'id', sortOrder = 'desc' } = options;
+    const page = Math.max(1, parseInt(options.page, 10) || 1);
+    const limit = normalizeListLimit(options.limit, DEFAULT_MASTER_LIST_PAGE_SIZE);
+    const { search = '', sortBy = 'id', sortOrder = 'desc' } = options;
     const skip = (page - 1) * limit;
-    const take = parseInt(limit);
+    const take = limit;
 
     // Build filtering
     const where = {};
@@ -60,9 +63,9 @@ const findAll = async (entityType, options = {}) => {
             data,
             pagination: {
                 total,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(total / limit),
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit) || 1,
             },
         };
     } catch (error) {

@@ -6,6 +6,18 @@ import { useYears, useAccountTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
+/** `items` holds account type; API or legacy payloads may send non-strings. */
+function normalizeAccountTypeItems(value: unknown): string {
+    if (value == null || value === '') return ''
+    if (typeof value === 'string') return value
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+    if (Array.isArray(value)) {
+        const first = value[0]
+        return first == null ? '' : typeof first === 'string' ? first : String(first)
+    }
+    return String(value)
+}
+
 interface DistrictLevelDataFormsProps {
     entityType: ExtendedEntityType | null
     formData: any
@@ -32,6 +44,8 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
         () => createMasterDataOptions(accountTypes, 'accountType', 'accountType'),
         [accountTypes]
     )
+
+    const accountTypeValue = normalizeAccountTypeItems(formData.items)
 
     // Optimized onChange handlers using useCallback
     const handleFieldChange = useCallback(
@@ -70,13 +84,150 @@ export const DistrictLevelDataForms: React.FC<DistrictLevelDataFormsProps> = ({
                         <MasterDataDropdown
                             label="Account Type"
                             required
-                            value={formData.items ?? ''}
-                            onChange={(value) => setFormData({ ...formData, items: value })}
+                            value={accountTypeValue}
+                            onChange={(value) =>
+                                setFormData({ ...formData, items: String(value) })
+                            }
                             options={accountTypeOptions}
                             isLoading={isLoadingAccountTypes}
                             emptyMessage="No account types available"
                         />
                     </div>
+
+                    {/* Conditional Section: Crops */}
+                    {accountTypeValue.toLowerCase().includes('productivity of major') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <MasterDataDropdown
+                                label="Season"
+                                required
+                                value={formData.season ?? ''}
+                                onChange={(value) => setFormData({ ...formData, season: value })}
+                                options={[
+                                    { value: 'Kharif', label: 'Kharif' },
+                                    { value: 'Rabi', label: 'Rabi' },
+                                    { value: 'Summer', label: 'Summer' },
+                                    { value: 'Annual', label: 'Annual' },
+                                ]}
+                            />
+                            <MasterDataDropdown
+                                label="Type"
+                                required
+                                value={formData.type ?? ''}
+                                onChange={(value) => setFormData({ ...formData, type: value })}
+                                options={[
+                                    { value: 'Field Crop', label: 'Field Crop' },
+                                    { value: 'Horticulture Crop', label: 'Horticulture Crop' },
+                                ]}
+                            />
+                            <FormInput
+                                label="Name of Crop"
+                                required
+                                value={formData.cropName ?? ''}
+                                onChange={handleFieldChange('cropName')}
+                            />
+                            <FormInput
+                                label="Area (ha)"
+                                required
+                                type="number"
+                                value={formData.area ?? ''}
+                                onChange={handleFieldChange('area')}
+                            />
+                            <FormInput
+                                label="Production (MT)"
+                                required
+                                type="number"
+                                value={formData.production ?? ''}
+                                onChange={handleFieldChange('production')}
+                            />
+                            <FormInput
+                                label="Productivity (q/ha)"
+                                required
+                                type="number"
+                                value={formData.productivity ?? ''}
+                                onChange={handleFieldChange('productivity')}
+                            />
+                        </div>
+                    )}
+
+                    {/* Conditional Section: Climate */}
+                    {accountTypeValue.toLowerCase().includes('mean yearly temperature') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <MasterDataDropdown
+                                label="Month"
+                                required
+                                value={formData.month ?? ''}
+                                onChange={(value) => setFormData({ ...formData, month: value })}
+                                options={[
+                                    { value: 'January', label: 'January' },
+                                    { value: 'February', label: 'February' },
+                                    { value: 'March', label: 'March' },
+                                    { value: 'April', label: 'April' },
+                                    { value: 'May', label: 'May' },
+                                    { value: 'June', label: 'June' },
+                                    { value: 'July', label: 'July' },
+                                    { value: 'August', label: 'August' },
+                                    { value: 'September', label: 'September' },
+                                    { value: 'October', label: 'October' },
+                                    { value: 'November', label: 'November' },
+                                    { value: 'December', label: 'December' },
+                                ]}
+                            />
+                            <FormInput
+                                label="Rainfall(mm)"
+                                required
+                                type="number"
+                                value={formData.rainfall ?? ''}
+                                onChange={handleFieldChange('rainfall')}
+                            />
+                            <FormInput
+                                label="Max. Tem.(0C)"
+                                required
+                                type="number"
+                                value={formData.maxTemp ?? ''}
+                                onChange={handleFieldChange('maxTemp')}
+                            />
+                            <FormInput
+                                label="Min. Tem.(0C)"
+                                required
+                                type="number"
+                                value={formData.minTemp ?? ''}
+                                onChange={handleFieldChange('minTemp')}
+                            />
+                            <FormInput
+                                label="Max. R.H.(%)"
+                                required
+                                type="number"
+                                value={formData.maxRH ?? ''}
+                                onChange={handleFieldChange('maxRH')}
+                            />
+                            <FormInput
+                                label="Min. R.H.(%)"
+                                required
+                                type="number"
+                                value={formData.minRH ?? ''}
+                                onChange={handleFieldChange('minRH')}
+                            />
+                        </div>
+                    )}
+
+                    {/* Conditional Section: Livestock */}
+                    {accountTypeValue.toLowerCase().includes('production of major livestock') && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <FormInput
+                                label="Name of Livestock"
+                                required
+                                value={formData.livestockName ?? ''}
+                                onChange={handleFieldChange('livestockName')}
+                            />
+                            <FormInput
+                                label="Number"
+                                required
+                                type="number"
+                                value={formData.number ?? ''}
+                                onChange={handleFieldChange('number')}
+                            />
+                        </div>
+                    )}
 
                     <FormTextArea
                         label="Information"

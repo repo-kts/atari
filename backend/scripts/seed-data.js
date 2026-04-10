@@ -51,10 +51,21 @@ const SOIL_WATER_ANALYSIS = [
 ];
 
 const ARYA_ENTERPRISES = [
-  "Pig Farming", "Banana Fibre Extraction", "Goat Farming", "Food Processing",
-  "Lac Farming", "Mushroom Production", "Poultry Farming", "Quail Farming",
-  "Duck Farming", "Fish Farming", "Bee keeping", "Processing and Value Addition(Product Name)",
-  "Nursery Management", "Seed Production", "Others"
+  'Others',
+  'Seed Production',
+  'Nursery Management',
+  'Processing and Value Addition(Product Name)',
+  'Bee keeping',
+  'Fish Farming',
+  'Duck Farming',
+  'Quail Farming',
+  'Poultry Farming',
+  'Mushroom Production',
+  'Lac Farming',
+  'Food Processing',
+  'Goat Farming',
+  'Banana Fibre Extraction',
+  'Pig Farming',
 ];
 
 async function seedHierarchy() {

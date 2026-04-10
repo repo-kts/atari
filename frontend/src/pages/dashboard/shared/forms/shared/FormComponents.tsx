@@ -1,6 +1,31 @@
 import React from 'react'
 import { DatePicker } from '@/components/ui/date-picker'
 
+/** Keeps the outlined label on the border while reserving space so wrapped text does not cover the control. */
+function useFloatingLabelPadding(labelText: string) {
+    const labelRef = React.useRef<HTMLLabelElement>(null)
+    const [paddingTopPx, setPaddingTopPx] = React.useState(12)
+
+    React.useLayoutEffect(() => {
+        const el = labelRef.current
+        if (!el || !labelText.trim()) {
+            setPaddingTopPx(12)
+            return
+        }
+        const sync = () => {
+            const h = el.offsetHeight
+            // ~8px: label sits slightly above the border (notch); remainder must clear wrapped lines.
+            setPaddingTopPx(Math.max(12, h - 8))
+        }
+        sync()
+        const ro = new ResizeObserver(sync)
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [labelText])
+
+    return { labelRef, paddingTopPx }
+}
+
 function formatFormLabel(label: string): string {
     return String(label || '')
         .replace(/_/g, ' ')
@@ -19,6 +44,7 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const FormInput: React.FC<FormInputProps> = ({ label, required, error, helperText, wholeNumberOnly, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
+    const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (wholeNumberOnly && (e.key === '-' || e.key === '.' || e.key === 'e')) {
@@ -30,7 +56,10 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
     return (
         <div className={`relative ${displayLabel ? 'pt-2' : ''}`}>
             {displayLabel && (
-                <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+                <label
+                    ref={labelRef}
+                    className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[calc(100%-2rem)]"
+                >
                     {displayLabel} {required && <span className="text-red-500">*</span>}
                 </label>
             )}
@@ -109,6 +138,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                             placeholder={datePlaceholder}
                             ariaLabel={displayLabel}
                             className={className}
+                            contentPaddingTop={displayLabel ? paddingTopPx : undefined}
                         />
                     )
                 }
@@ -124,7 +154,11 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         onChange={handleChange}
                         onKeyDown={wholeNumberOnly ? handleKeyDown : props.onKeyDown}
                         inputMode={type === 'number' ? (isInteger || wholeNumberOnly ? 'numeric' : 'decimal') : props.inputMode}
-                        className={`w-full px-4 py-3 border border-[#E0E0E0] ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
+                        style={{
+                            ...props.style,
+                            ...(displayLabel ? { paddingTop: paddingTopPx, paddingBottom: 12 } : {}),
+                        }}
+                        className={`w-full px-4 border border-[#E0E0E0] ${displayLabel ? 'pb-3' : 'py-3'} ${helperText ? 'rounded-t-xl rounded-b-none' : 'rounded-xl'} focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
                     />
                 )
             })()}
@@ -148,16 +182,25 @@ interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> 
 
 export const FormSelect: React.FC<FormSelectProps> = ({ label, options, required, error, placeholder, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
+    const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     return (
         <div className="relative pt-2">
-            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+            <label
+                ref={labelRef}
+                className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[calc(100%-2rem)]"
+            >
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <select
                 {...props}
                 required={required}
-                className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base h-[48px] ${className}`}
+                style={{
+                    ...props.style,
+                    paddingTop: paddingTopPx,
+                    paddingBottom: 12,
+                }}
+                className={`w-full px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all bg-white text-base min-h-[48px] h-auto ${className}`}
             >
                 <option value="">{placeholder || `Select`}</option>
                 {options.map((opt) => (
@@ -201,16 +244,25 @@ interface FormTextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaEle
 
 export const FormTextArea: React.FC<FormTextAreaProps> = ({ label, required, error, className = '', ...props }) => {
     const displayLabel = formatFormLabel(label)
+    const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     return (
         <div className="relative pt-2">
-            <label className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[95%]">
+            <label
+                ref={labelRef}
+                className="absolute -top-1.5 left-4 px-1 bg-white text-sm font-semibold text-gray-700 z-10 leading-snug max-w-[calc(100%-2rem)]"
+            >
                 {displayLabel} {required && <span className="text-red-500">*</span>}
             </label>
             <textarea
                 {...props}
                 required={required}
-                className={`w-full px-4 py-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
+                style={{
+                    ...props.style,
+                    paddingTop: paddingTopPx,
+                    paddingBottom: 12,
+                }}
+                className={`w-full px-4 pb-3 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] transition-all resize-none text-base placeholder:text-gray-400 ${props.disabled ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'} ${className}`}
             />
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
         </div>

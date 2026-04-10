@@ -1,7 +1,7 @@
 const prisma = require('../../config/prisma.js');
 const reportDataService = require('./reportDataService.js');
 const { getRoleLevel } = require('../../constants/roleHierarchy.js');
-const cacheService = require('../cache/redisCacheService.js');
+const cacheService = require('../cache/redisCacheService.js'); 
 const CacheKeyBuilder = require('../../utils/cacheKeyBuilder.js');
 const { getAggregatedReportTTL } = require('../../config/cacheConfig.js');
 
@@ -388,6 +388,98 @@ class ReportAggregationService {
             return {
                 sectionId,
                 data: { stateSummaryPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'celebrationDaysReport') {
+            const { buildStateMatrixFromRecords } = require('../../repositories/reports/celebrationDaysReport/celebrationDaysReportRepository.js');
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            const matrixPayload = buildStateMatrixFromRecords(allRecords, null);
+            return {
+                sectionId,
+                data: { matrixPayload, records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'productionSupplyReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'soilWaterEquipmentReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'worldSoilDayReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
+                metadata: {
+                    recordCount: allRecords.length,
+                    lastUpdated: new Date(),
+                    filters: {},
+                },
+            };
+        }
+
+        if (sectionConfig.dataSource === 'soilWaterAnalysisReport') {
+            const allRecords = [];
+            validData.forEach((sd) => {
+                if (sd.data?.records && Array.isArray(sd.data.records)) {
+                    allRecords.push(...sd.data.records);
+                }
+            });
+            return {
+                sectionId,
+                data: { records: allRecords },
                 metadata: {
                     recordCount: allRecords.length,
                     lastUpdated: new Date(),

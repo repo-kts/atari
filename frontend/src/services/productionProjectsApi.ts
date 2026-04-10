@@ -26,6 +26,7 @@ import type {
     AgriDroneDemonstrationsOnFormData,
     ProductionProjectsStats,
 } from '../types/productionProjects';
+import { masterListQuery } from '../config/masterListPagination';
 
 const BASE_URL = '/admin/masters';
 
@@ -37,7 +38,7 @@ export const productionProjectsApi = {
     // Product Category APIs
     // ============================================
     getProductCategories: () =>
-        apiClient.get<PaginatedResponse<ProductCategory>>(`${BASE_URL}/product-categories`),
+        apiClient.get<PaginatedResponse<ProductCategory>>(`${BASE_URL}/product-categories${masterListQuery()}`),
 
     getProductCategoryById: (id: number) =>
         apiClient.get<ApiResponse<ProductCategory>>(`${BASE_URL}/product-categories/${id}`),
@@ -55,7 +56,7 @@ export const productionProjectsApi = {
     // Product Type APIs
     // ============================================
     getProductTypes: () =>
-        apiClient.get<PaginatedResponse<ProductType>>(`${BASE_URL}/product-types`),
+        apiClient.get<PaginatedResponse<ProductType>>(`${BASE_URL}/product-types${masterListQuery()}`),
 
     getProductTypeById: (id: number) =>
         apiClient.get<ApiResponse<ProductType>>(`${BASE_URL}/product-types/${id}`),
@@ -76,7 +77,7 @@ export const productionProjectsApi = {
     // Product APIs
     // ============================================
     getProducts: () =>
-        apiClient.get<PaginatedResponse<Product>>(`${BASE_URL}/products`),
+        apiClient.get<PaginatedResponse<Product>>(`${BASE_URL}/products${masterListQuery()}`),
 
     getProductById: (id: number) =>
         apiClient.get<ApiResponse<Product>>(`${BASE_URL}/products/${id}`),
@@ -94,7 +95,7 @@ export const productionProjectsApi = {
     // CRA Cropping System APIs
     // ============================================
     getCraCroppingSystems: () =>
-        apiClient.get<PaginatedResponse<CraCroppingSystem>>(`${BASE_URL}/cra-cropping-systems`),
+        apiClient.get<PaginatedResponse<CraCroppingSystem>>(`${BASE_URL}/cra-cropping-systems${masterListQuery()}`),
 
     getCraCroppingSystemById: (id: number) =>
         apiClient.get<ApiResponse<CraCroppingSystem>>(`${BASE_URL}/cra-cropping-systems/${id}`),
@@ -112,7 +113,7 @@ export const productionProjectsApi = {
     // CRA Farming System APIs
     // ============================================
     getCraFarmingSystems: () =>
-        apiClient.get<PaginatedResponse<CraFarmingSystem>>(`${BASE_URL}/cra-farming-systems`),
+        apiClient.get<PaginatedResponse<CraFarmingSystem>>(`${BASE_URL}/cra-farming-systems${masterListQuery()}`),
 
     getCraFarmingSystemById: (id: number) =>
         apiClient.get<ApiResponse<CraFarmingSystem>>(`${BASE_URL}/cra-farming-systems/${id}`),
@@ -130,7 +131,7 @@ export const productionProjectsApi = {
     // Arya Enterprise APIs
     // ============================================
     getAryaEnterprises: () =>
-        apiClient.get<PaginatedResponse<AryaEnterprise>>(`${BASE_URL}/arya-enterprises`),
+        apiClient.get<PaginatedResponse<AryaEnterprise>>(`${BASE_URL}/arya-enterprises${masterListQuery()}`),
 
     getAryaEnterpriseById: (id: number) =>
         apiClient.get<ApiResponse<AryaEnterprise>>(`${BASE_URL}/arya-enterprises/${id}`),
@@ -148,7 +149,7 @@ export const productionProjectsApi = {
     // TSP/SCSP Type APIs
     // ============================================
     getTspScspTypes: () =>
-        apiClient.get<PaginatedResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types`),
+        apiClient.get<PaginatedResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types${masterListQuery()}`),
     getTspScspTypeById: (id: number) =>
         apiClient.get<ApiResponse<TspScspType>>(`${BASE_URL}/tsp-scsp-types/${id}`),
     createTspScspType: (data: TspScspTypeFormData) =>
@@ -162,7 +163,7 @@ export const productionProjectsApi = {
     // TSP/SCSP Activity APIs
     // ============================================
     getTspScspActivities: () =>
-        apiClient.get<PaginatedResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities`),
+        apiClient.get<PaginatedResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities${masterListQuery()}`),
     getTspScspActivityById: (id: number) =>
         apiClient.get<ApiResponse<TspScspActivity>>(`${BASE_URL}/tsp-scsp-activities/${id}`),
     createTspScspActivity: (data: TspScspActivityFormData) =>
@@ -176,7 +177,7 @@ export const productionProjectsApi = {
     // Natural Farming Activity APIs
     // ============================================
     getNaturalFarmingActivities: () =>
-        apiClient.get<PaginatedResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities`),
+        apiClient.get<PaginatedResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities${masterListQuery()}`),
     getNaturalFarmingActivityById: (id: number) =>
         apiClient.get<ApiResponse<NaturalFarmingActivity>>(`${BASE_URL}/natural-farming-activities/${id}`),
     createNaturalFarmingActivity: (data: NaturalFarmingActivityFormData) =>
@@ -187,7 +188,7 @@ export const productionProjectsApi = {
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/natural-farming-activities/${id}`),
 
     getNaturalFarmingSoilParameters: () =>
-        apiClient.get<PaginatedResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters`),
+        apiClient.get<PaginatedResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters${masterListQuery()}`),
     getNaturalFarmingSoilParameterById: (id: number) =>
         apiClient.get<ApiResponse<NaturalFarmingSoilParameter>>(`${BASE_URL}/natural-farming-soil-parameters/${id}`),
     createNaturalFarmingSoilParameter: (data: NaturalFarmingSoilParameterFormData) =>
@@ -201,7 +202,7 @@ export const productionProjectsApi = {
     // Agri Drone Masters
     // ============================================
     getAgriDroneDemonstrationsOn: () =>
-        apiClient.get<PaginatedResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on`),
+        apiClient.get<PaginatedResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on${masterListQuery()}`),
     getAgriDroneDemonstrationsOnById: (id: number) =>
         apiClient.get<ApiResponse<AgriDroneDemonstrationsOn>>(`${BASE_URL}/agri-drone-demonstrations-on/${id}`),
     createAgriDroneDemonstrationsOn: (data: AgriDroneDemonstrationsOnFormData) =>

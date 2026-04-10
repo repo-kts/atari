@@ -34,14 +34,14 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
         const files = e.target.files;
         if (files && files.length > 0) {
             const newFiles = Array.from(files);
-            
+
             // Generic file processor (handles both compression for images and Base64 for others)
             const processFile = (file: File): Promise<any> => {
                 return new Promise((resolve) => {
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const content = event.target?.result as string;
-                        
+
                         // If it's an image, we attempt compression for the gallery
                         if (file.type.startsWith('image/')) {
                             const img = new Image();
@@ -189,9 +189,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                 />
                 {formData.uploadFile && (
                     <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-100 flex items-center gap-2">
-                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                         File Selected
-                         {typeof formData.uploadFile === 'string' && formData.uploadFile.length > 100 && " (Base64 ready)"}
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                        File Selected
+                        {typeof formData.uploadFile === 'string' && formData.uploadFile.length > 100 && " (Base64 ready)"}
                     </div>
                 )}
             </div>
@@ -446,6 +446,26 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             options={createMasterDataOptions(seasons, 'seasonId', 'seasonName')}
                             emptyMessage="No seasons available"
                         />
+                        <FormSelect
+                            label="Month"
+                            required
+                            value={formData.month ?? ''}
+                            onChange={(e) => setFormData({ ...formData, month: e.target.value })}
+                            options={[
+                                { value: 'JANUARY', label: 'January' },
+                                { value: 'FEBRUARY', label: 'February' },
+                                { value: 'MARCH', label: 'March' },
+                                { value: 'APRIL', label: 'April' },
+                                { value: 'MAY', label: 'May' },
+                                { value: 'JUNE', label: 'June' },
+                                { value: 'JULY', label: 'July' },
+                                { value: 'AUGUST', label: 'August' },
+                                { value: 'SEPTEMBER', label: 'September' },
+                                { value: 'OCTOBER', label: 'October' },
+                                { value: 'NOVEMBER', label: 'November' },
+                                { value: 'DECEMBER', label: 'December' },
+                            ]}
+                        />
                         <FormInput
                             label="Technology demonstrated"
                             required
@@ -453,10 +473,17 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, technologyDemonstrated: e.target.value })}
                         />
                         <FormInput
-                            label="Area (ha)/ Unit"
+                            label="Area (ha) / Unit"
                             required
                             value={formData.areaOrUnit ?? ''}
                             onChange={(e) => setFormData({ ...formData, areaOrUnit: e.target.value })}
+                        />
+                        <FormInput
+                            label="Variety (kg / animal)"
+                            required
+                            type="number"
+                            value={formData.bodyWeight ?? ''}
+                            onChange={(e) => setFormData({ ...formData, bodyWeight: e.target.value })}
                         />
                         <FormInput
                             label="Yield (q/ ha)"
@@ -534,13 +561,20 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
 
                     <div className="space-y-6">
                         <h3 className="text-xl font-semibold text-gray-800">Economics of demonstration (Rs/ha)</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
                                 label="Gross Cost"
                                 required
                                 type="number"
                                 value={formData.grossCost ?? ''}
                                 onChange={(e) => setFormData({ ...formData, grossCost: e.target.value })}
+                            />
+                            <FormInput
+                                label="Gross return"
+                                required
+                                type="number"
+                                value={formData.grossReturn ?? ''}
+                                onChange={(e) => setFormData({ ...formData, grossReturn: e.target.value })}
                             />
                             <FormInput
                                 label="Net return"

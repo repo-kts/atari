@@ -6,6 +6,7 @@ import { useYears, useImpactSpecificAreas, useEnterpriseTypes } from '@/hooks/us
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { X } from 'lucide-react'
+import { parseBoundedCountInput, parseEstablishmentYearInput } from '@/utils/formNumericGuards'
 
 interface ImpactFormsProps {
     entityType: ExtendedEntityType | null
@@ -63,6 +64,20 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
         (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
             const value = e.target.value === '' ? '' : parseFloat(e.target.value)
             setFormData({ ...formData, [field]: value })
+        },
+        [formData, setFormData]
+    )
+
+    const handleEstablishmentYearChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData({ ...formData, yearOfEstablishment: parseEstablishmentYearInput(e.target.value) })
+        },
+        [formData, setFormData]
+    )
+
+    const handleMembersAssociatedChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData({ ...formData, membersAssociated: parseBoundedCountInput(e.target.value) })
         },
         [formData, setFormData]
     )
@@ -383,10 +398,11 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormInput
                             label="Year of establishment"
                             required
-                            type="number"
+                            inputMode="numeric"
+                            autoComplete="off"
                             value={formData.yearOfEstablishment ?? ''}
-                            onChange={handleNumberChange('yearOfEstablishment')}
-                            placeholder="Enter year"
+                            onChange={handleEstablishmentYearChange}
+                            placeholder="e.g. 2018 (4 digits)"
                         />
 
                         <MasterDataDropdown
@@ -402,10 +418,11 @@ export const ImpactForms: React.FC<ImpactFormsProps> = ({
                         <FormInput
                             label="No of Members Associated"
                             required
-                            type="number"
+                            inputMode="numeric"
+                            autoComplete="off"
                             value={formData.membersAssociated ?? ''}
-                            onChange={handleNumberChange('membersAssociated')}
-                            placeholder="Enter number"
+                            onChange={handleMembersAssociatedChange}
+                            placeholder="Number of members"
                         />
                     </div>
 

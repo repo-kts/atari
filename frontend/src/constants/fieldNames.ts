@@ -375,6 +375,8 @@ export const FIELD_NAMES = {
     TYPE_OF_NUTRITIONAL_GARDEN: 'typeOfNutritionalGarden',
     NUMBERS: 'numbers',
     AREA_SQM: 'areaSqm',
+    /** Summarizes NariNutritionalGardenResult rows for list/table */
+    NUTRITION_GARDEN_CROP_RESULTS: 'nutritionGardenCropResults',
     CATEGORY_OF_CROP: 'categoryOfCrop',
     NAME_OF_VALUE_ADDED_PRODUCT: 'nameOfValueAddedProduct',
     AREA_OF_TRAINING: 'areaOfTraining',
@@ -889,6 +891,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TYPE_OF_NUTRITIONAL_GARDEN,
         FIELD_NAMES.NUMBERS,
         FIELD_NAMES.AREA_SQM,
+        FIELD_NAMES.NUTRITION_GARDEN_CROP_RESULTS,
     ] as const,
     NARI_BIO_FORTIFIED: [
         FIELD_NAMES.KVK_NAME,

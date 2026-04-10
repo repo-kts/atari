@@ -62,7 +62,6 @@ function _mapWorldSoilDayResponse(r) {
         kvkName: r.kvk_name,
         activitiesConducted: r.activities_conducted,
         soilHealthCardDistributed: r.soil_health_card_distributed,
-        noOfVips: r.no_of_vips,
         vipNames: r.vip_names,
         participants: r.participants,
         generalM: r.general_m,

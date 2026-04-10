@@ -1,5 +1,6 @@
 const kvkAwardRepository = require('../../repositories/forms/kvkAwardRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**
  * KVK Award Service
@@ -14,7 +15,12 @@ class KvkAwardService {
      */
     async createKvkAward(data, user) {
         try {
-            return await kvkAwardRepository.create(data, user);
+            const result = await kvkAwardRepository.create(data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'kvkAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -66,7 +72,12 @@ class KvkAwardService {
      */
     async updateKvkAward(id, data, user) {
         try {
-            return await kvkAwardRepository.update(id, data, user);
+            const result = await kvkAwardRepository.update(id, data, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'kvkAward',
+                result?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -83,7 +94,13 @@ class KvkAwardService {
      */
     async deleteKvkAward(id, user) {
         try {
-            return await kvkAwardRepository.delete(id, user);
+            const existing = await kvkAwardRepository.findById(id, user);
+            const result = await kvkAwardRepository.delete(id, user);
+            await reportCacheInvalidationService.invalidateDataSourceForKvk(
+                'kvkAward',
+                existing?.kvkId || user?.kvkId,
+            );
+            return result;
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;

@@ -5,6 +5,7 @@ import { Input } from '../ui/Input'
 import { Modal } from '../ui/Modal'
 import { LoadingButton } from '../common/LoadingButton'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { cleanIndianMobileInput, indianMobileFieldError } from '../../utils/indianPhone'
 
 const PERMISSION_ACTIONS: { value: PermissionAction; label: string }[] = [
     { value: 'VIEW', label: 'View' },
@@ -94,11 +95,9 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             newErrors.email = 'Invalid email format'
         }
 
-        if (phoneNumber.trim()) {
-            const cleaned = phoneNumber.replace(/[\s\-()]/g, '')
-            if (!/^[6-9]\d{9}$/.test(cleaned)) {
-                newErrors.phoneNumber = 'Invalid phone number (10 digits starting with 6-9)'
-            }
+        const phoneErr = indianMobileFieldError(phoneNumber, false)
+        if (phoneErr) {
+            newErrors.phoneNumber = phoneErr
         }
 
         if (isUserRole && permissions.length === 0) {
@@ -124,7 +123,7 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             if (name.trim() !== user.name) updateData.name = name.trim()
             if (email.trim().toLowerCase() !== (user.email || '').toLowerCase()) updateData.email = email.trim().toLowerCase()
 
-            const cleanedPhone = phoneNumber.replace(/[\s\-()]/g, '') || null
+            const cleanedPhone = cleanIndianMobileInput(phoneNumber) || null
             if (cleanedPhone !== (user.phoneNumber || null)) updateData.phoneNumber = cleanedPhone
 
             if (isUserRole) {
@@ -220,11 +219,11 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                     type="tel"
                     value={phoneNumber}
                     onChange={e => {
-                        setPhoneNumber(e.target.value)
+                        setPhoneNumber(cleanIndianMobileInput(e.target.value))
                         if (errors.phoneNumber) setErrors(prev => ({ ...prev, phoneNumber: '' }))
                         setSubmitError(null)
                     }}
-                    placeholder="9876543210"
+                    placeholder="10-digit mobile (6–9…)"
                     error={errors.phoneNumber}
                     disabled={isSubmitting || submitSuccess}
                 />

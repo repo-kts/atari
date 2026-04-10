@@ -1,12 +1,13 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const villageAdoptionRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
         if (!kvkId) throw new Error('Valid kvkId is required');
 
-        return await prisma.villageAdoption.create({
+        const created = await prisma.villageAdoption.create({
             data: {
                 kvkId,
                 reportingYear: (() => {
@@ -19,6 +20,8 @@ const villageAdoptionRepository = {
                 actionTaken: data.actionTaken,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('villageAdoption', kvkId);
+        return created;
     },
 
     findAll: async (filters = {}, user) => {
@@ -60,7 +63,7 @@ const villageAdoptionRepository = {
         const existing = await prisma.villageAdoption.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.villageAdoption.update({
+        const updated = await prisma.villageAdoption.update({
             where: { villageAdoptionId: id },
             data: {
                 reportingYear: data.reportingYear !== undefined
@@ -75,6 +78,8 @@ const villageAdoptionRepository = {
                 actionTaken: data.actionTaken !== undefined ? data.actionTaken : existing.actionTaken,
             }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('villageAdoption', existing.kvkId);
+        return updated;
     },
 
     delete: async (id, user) => {
@@ -85,9 +90,11 @@ const villageAdoptionRepository = {
         const existing = await prisma.villageAdoption.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.villageAdoption.delete({
+        const removed = await prisma.villageAdoption.delete({
             where: { villageAdoptionId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('villageAdoption', existing.kvkId);
+        return removed;
     }
 };
 

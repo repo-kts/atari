@@ -1,4 +1,5 @@
 const trainingExtensionEventsService = require('../../services/all-masters/trainingExtensionEventsService.js');
+const { DEFAULT_MASTER_LIST_PAGE_SIZE, normalizeListLimit } = require('../../constants/masterListPagination.js');
 const { asyncHandler } = require('../../utils/errorHandler');
 
 /**
@@ -11,8 +12,8 @@ const { asyncHandler } = require('../../utils/errorHandler');
  */
 const getAll = (entityName) => asyncHandler(async (req, res) => {
     const options = {
-        page: parseInt(req.query.page) || 1,
-        limit: parseInt(req.query.limit) || 100,
+        page: parseInt(req.query.page, 10) || 1,
+        limit: normalizeListLimit(req.query.limit, DEFAULT_MASTER_LIST_PAGE_SIZE),
         search: req.query.search || '',
         sortBy: req.query.sortBy,
         sortOrder: req.query.sortOrder || 'asc',

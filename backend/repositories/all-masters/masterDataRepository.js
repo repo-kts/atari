@@ -1,6 +1,8 @@
 const prisma = require('../../config/prisma.js');
+const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 const { sanitizeString, sanitizeInteger, safeGet } = require('../../utils/dataSanitizer.js');
 const { ValidationError, translatePrismaError } = require('../../utils/errorHandler.js');
+const { normalizeOptionalIndianMobile } = require('../../utils/validation.js');
 
 /**
  * Generic Master Data Repository 
@@ -237,19 +239,25 @@ function parseRequiredEntityId(id, idField, action = 'process') {
 async function findAll(entityName, options = {}) {
     const config = getEntityConfig(entityName);
     const {
-        page = 1,
-        limit = 20,
         search = '',
         sortBy,
         sortOrder = 'asc',
         filters = {},
     } = options;
 
+    const page = Math.max(1, parseInt(options.page, 10) || 1);
+    const limit = normalizeListLimit(
+        options.limit !== undefined && options.limit !== null && options.limit !== ''
+            ? options.limit
+            : 20,
+        DEFAULT_MASTER_LIST_PAGE_SIZE
+    );
+
     // Use the entity's ID field as default sort if not provided
     const actualSortBy = sortBy || config.idField;
 
     const skip = (page - 1) * limit;
-    const take = Math.min(limit, 100); // Max 100 items per page
+    const take = limit;
 
     // Build where clause
     const where = { ...filters };
@@ -366,7 +374,15 @@ function sanitizeAndValidateData(entityName, data) {
                 throw new Error('orgId is required');
             }
             // Optionals
-            const hostMobile = sanitizeString(safeGet(data, 'hostMobile'), { maxLength: 30 });
+            const hostMobileRaw = safeGet(data, 'hostMobile');
+            let hostMobile = null;
+            if (hostMobileRaw !== undefined && hostMobileRaw !== null && String(hostMobileRaw).trim() !== '') {
+                try {
+                    hostMobile = normalizeOptionalIndianMobile(String(hostMobileRaw).trim(), 'Host mobile');
+                } catch (e) {
+                    throw new Error(e.message);
+                }
+            }
             const hostLandline = sanitizeString(safeGet(data, 'hostLandline'), { maxLength: 30 });
             const hostFax = sanitizeString(safeGet(data, 'hostFax'), { maxLength: 30 });
             const hostEmail = sanitizeString(safeGet(data, 'hostEmail'), { maxLength: 200 });
@@ -506,7 +522,16 @@ function sanitizeUpdateData(entityName, data) {
                 sanitized.orgId = parseInt(data.orgId);
             }
             if (data.hostMobile !== undefined) {
-                sanitized.hostMobile = sanitizeString(data.hostMobile, { maxLength: 30 });
+                const raw = data.hostMobile;
+                if (raw === null || raw === '' || String(raw).trim() === '') {
+                    sanitized.hostMobile = null;
+                } else {
+                    try {
+                        sanitized.hostMobile = normalizeOptionalIndianMobile(String(raw).trim(), 'Host mobile');
+                    } catch (e) {
+                        throw new Error(e.message);
+                    }
+                }
             }
             if (data.hostLandline !== undefined) {
                 sanitized.hostLandline = sanitizeString(data.hostLandline, { maxLength: 30 });

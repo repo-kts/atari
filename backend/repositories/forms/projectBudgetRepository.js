@@ -1,4 +1,5 @@
 const prisma = require('../../config/prisma.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const projectBudgetRepository = {
     create: async (data, user) => {
@@ -22,9 +23,10 @@ const projectBudgetRepository = {
             }
         });
 
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('projectBudget', kvkId);
         return {
             ...record,
-            unspentBalance: (record.budgetReleased || 0) - (record.expenditure || 0)
+            unspentBalance: (record.budgetAllocated || 0) - (record.expenditure || 0)
         };
     },
 
@@ -48,7 +50,7 @@ const projectBudgetRepository = {
 
         return records.map(record => ({
             ...record,
-            unspentBalance: (record.budgetReleased || 0) - (record.expenditure || 0)
+            unspentBalance: (record.budgetAllocated || 0) - (record.expenditure || 0)
         }));
     },
 
@@ -70,7 +72,7 @@ const projectBudgetRepository = {
 
         return {
             ...record,
-            unspentBalance: (record.budgetReleased || 0) - (record.expenditure || 0)
+            unspentBalance: (record.budgetAllocated || 0) - (record.expenditure || 0)
         };
     },
 
@@ -100,9 +102,10 @@ const projectBudgetRepository = {
             }
         });
 
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('projectBudget', existing.kvkId);
         return {
             ...updated,
-            unspentBalance: (updated.budgetReleased || 0) - (updated.expenditure || 0)
+            unspentBalance: (updated.budgetAllocated || 0) - (updated.expenditure || 0)
         };
     },
 
@@ -114,9 +117,11 @@ const projectBudgetRepository = {
         const existing = await prisma.projectBudget.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
 
-        return await prisma.projectBudget.delete({
+        const removed = await prisma.projectBudget.delete({
             where: { projectBudgetId: id }
         });
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('projectBudget', existing.kvkId);
+        return removed;
     }
 };
 
