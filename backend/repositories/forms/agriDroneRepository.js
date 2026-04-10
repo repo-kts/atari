@@ -1,188 +1,316 @@
 const prisma = require('../../config/prisma.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 const { normalizeOptionalIndianMobile } = require('../../utils/validation.js');
+const {
+    ValidationError,
+    UnauthorizedError,
+    translatePrismaError,
+} = require('../../utils/errorHandler.js');
+
+const KVK_SCOPED_ROLES = ['kvk_admin', 'kvk_user'];
+const PRISMA_RESOURCE = 'Agri drone introduction';
+
+function isKvkScopedUser(user) {
+    return Boolean(user && KVK_SCOPED_ROLES.includes(user.roleName));
+}
+
+function isPrismaClientError(error) {
+    return typeof error?.code === 'string' && /^P\d{4}$/.test(error.code);
+}
+
+/**
+ * Maps Prisma and unexpected errors to app errors; rethrows domain errors as-is.
+ */
+async function withAgriDroneRepoErrors(operation, fn) {
+    try {
+        return await fn();
+    } catch (error) {
+        if (
+            error instanceof ValidationError ||
+            error instanceof UnauthorizedError ||
+            (typeof error.statusCode === 'number' && error.statusCode < 500)
+        ) {
+            throw error;
+        }
+        if (isPrismaClientError(error)) {
+            throw translatePrismaError(error, PRISMA_RESOURCE, operation);
+        }
+        throw error;
+    }
+}
+
+function parseRequiredKvkId(data, user) {
+    const source = isKvkScopedUser(user) ? user.kvkId : data.kvkId;
+    const kvkId = source !== undefined && source !== null ? parseInt(source, 10) : NaN;
+    if (Number.isNaN(kvkId) || kvkId < 1) {
+        throw new ValidationError('Valid kvkId is required', 'kvkId');
+    }
+    return kvkId;
+}
+
+/** @returns {number} positive integer DB id */
+function parseAgriDroneId(id) {
+    if (id === undefined || id === null || id === '') {
+        throw new ValidationError('Valid agriDroneId is required', 'agriDroneId');
+    }
+    const n = parseInt(id, 10);
+    if (Number.isNaN(n) || n < 1) {
+        throw new ValidationError('Valid agriDroneId is required', 'agriDroneId');
+    }
+    return n;
+}
+
+function accessWhereForAgriDroneId(id, user) {
+    const where = { agriDroneId: parseAgriDroneId(id) };
+    if (isKvkScopedUser(user)) {
+        const kvkId = parseInt(user.kvkId, 10);
+        if (Number.isNaN(kvkId) || kvkId < 1) {
+            throw new ValidationError('Valid kvkId is required', 'kvkId');
+        }
+        where.kvkId = kvkId;
+    }
+    return where;
+}
+
+function normalizePilotContact(rawPilot) {
+    if (String(rawPilot ?? '').trim() === '') {
+        return '';
+    }
+    try {
+        return normalizeOptionalIndianMobile(rawPilot, 'Pilot contact') || '';
+    } catch (e) {
+        if (e instanceof ValidationError) {
+            throw e;
+        }
+        throw new ValidationError(e.message || 'Invalid pilot contact', 'pilotContact');
+    }
+}
+
+function parseNonNegativeInt(value, defaultValue, field) {
+    const raw = value === undefined || value === null || value === '' ? defaultValue : value;
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n)) {
+        throw new ValidationError(`${field} must be a valid whole number`, field);
+    }
+    if (n < 0) {
+        throw new ValidationError(`${field} cannot be negative`, field);
+    }
+    return n;
+}
+
+function parseNonNegativeFloat(value, defaultValue, field) {
+    const raw = value === undefined || value === null || value === '' ? defaultValue : value;
+    const n = parseFloat(raw);
+    if (Number.isNaN(n)) {
+        throw new ValidationError(`${field} must be a valid number`, field);
+    }
+    if (n < 0) {
+        throw new ValidationError(`${field} cannot be negative`, field);
+    }
+    return n;
+}
+
+function parseOptionalNonNegativeInt(value, field) {
+    const n = parseInt(value, 10);
+    if (Number.isNaN(n)) {
+        throw new ValidationError(`${field} must be a valid whole number`, field);
+    }
+    if (n < 0) {
+        throw new ValidationError(`${field} cannot be negative`, field);
+    }
+    return n;
+}
+
+function parseOptionalNonNegativeFloat(value, field) {
+    const n = parseFloat(value);
+    if (Number.isNaN(n)) {
+        throw new ValidationError(`${field} must be a valid number`, field);
+    }
+    if (n < 0) {
+        throw new ValidationError(`${field} cannot be negative`, field);
+    }
+    return n;
+}
+
+function buildCreateData(data, kvkId, reportingYear) {
+    return {
+        kvkId,
+        reportingYear,
+        projectImplementingCentre: data.picName ?? data.projectImplementingCentre ?? '',
+        dronesSanctioned: parseNonNegativeInt(data.dronesSanctioned, 0, 'dronesSanctioned'),
+        dronesPurchased: parseNonNegativeInt(data.dronesPurchased, 0, 'dronesPurchased'),
+        amountSanctioned: parseNonNegativeFloat(data.amountSanctioned, 0, 'amountSanctioned'),
+        costPerDrone: parseNonNegativeFloat(data.droneCost ?? data.costPerDrone, 0, 'costPerDrone'),
+        droneCompany: data.droneCompany ?? '',
+        droneModel: data.droneModel ?? '',
+        pilotName: data.pilotName ?? '',
+        pilotContact: normalizePilotContact(data.pilotContact ?? ''),
+        targetAreaHa: parseNonNegativeFloat(data.targetArea ?? data.targetAreaHa, 0, 'targetAreaHa'),
+        demoAmountSanctioned: parseNonNegativeFloat(data.demoAmountSanctioned, 0, 'demoAmountSanctioned'),
+        demoAmountUtilised: parseNonNegativeFloat(data.demoAmountUtilised, 0, 'demoAmountUtilised'),
+        operationType: data.operations ?? data.operationType ?? '',
+        advantagesObserved: data.advantages ?? data.advantagesObserved ?? '',
+    };
+}
+
+function buildUpdateData(data) {
+    const prismaData = {};
+
+    if (data.reportingYear !== undefined) {
+        const reportingYearDate = parseReportingYearDate(data.reportingYear);
+        ensureNotFutureDate(reportingYearDate);
+        prismaData.reportingYear = reportingYearDate;
+    }
+
+    const picName = data.picName ?? data.projectImplementingCentre;
+    if (picName !== undefined) {
+        prismaData.projectImplementingCentre = picName;
+    }
+    if (data.dronesSanctioned !== undefined) {
+        prismaData.dronesSanctioned = parseOptionalNonNegativeInt(data.dronesSanctioned, 'dronesSanctioned');
+    }
+    if (data.dronesPurchased !== undefined) {
+        prismaData.dronesPurchased = parseOptionalNonNegativeInt(data.dronesPurchased, 'dronesPurchased');
+    }
+    if (data.amountSanctioned !== undefined) {
+        prismaData.amountSanctioned = parseOptionalNonNegativeFloat(data.amountSanctioned, 'amountSanctioned');
+    }
+    const droneCost = data.droneCost ?? data.costPerDrone;
+    if (droneCost !== undefined) {
+        prismaData.costPerDrone = parseOptionalNonNegativeFloat(droneCost, 'costPerDrone');
+    }
+    if (data.droneCompany !== undefined) {
+        prismaData.droneCompany = data.droneCompany;
+    }
+    if (data.droneModel !== undefined) {
+        prismaData.droneModel = data.droneModel;
+    }
+    if (data.pilotName !== undefined) {
+        prismaData.pilotName = data.pilotName;
+    }
+    if (data.pilotContact !== undefined) {
+        if (String(data.pilotContact ?? '').trim() === '') {
+            prismaData.pilotContact = '';
+        } else {
+            prismaData.pilotContact = normalizePilotContact(data.pilotContact);
+        }
+    }
+    const targetArea = data.targetArea ?? data.targetAreaHa;
+    if (targetArea !== undefined) {
+        prismaData.targetAreaHa = parseOptionalNonNegativeFloat(targetArea, 'targetAreaHa');
+    }
+    if (data.demoAmountSanctioned !== undefined) {
+        prismaData.demoAmountSanctioned = parseOptionalNonNegativeFloat(
+            data.demoAmountSanctioned,
+            'demoAmountSanctioned'
+        );
+    }
+    if (data.demoAmountUtilised !== undefined) {
+        prismaData.demoAmountUtilised = parseOptionalNonNegativeFloat(
+            data.demoAmountUtilised,
+            'demoAmountUtilised'
+        );
+    }
+    const operationType = data.operations ?? data.operationType;
+    if (operationType !== undefined) {
+        prismaData.operationType = operationType;
+    }
+    const advantages = data.advantages ?? data.advantagesObserved;
+    if (advantages !== undefined) {
+        prismaData.advantagesObserved = advantages;
+    }
+
+    return prismaData;
+}
+
+const kvkNameSelect = { kvk: { select: { kvkName: true } } };
 
 const agriDroneRepository = {
-    create: async (data, user) => {
-        const isKvkScoped = user && ['kvk_admin', 'kvk_user'].includes(user.roleName);
-        const kvkIdSource = isKvkScoped ? user.kvkId : data.kvkId;
-        const kvkId = kvkIdSource !== undefined && kvkIdSource !== null ? parseInt(kvkIdSource, 10) : NaN;
+    create: async (data, user) =>
+        withAgriDroneRepoErrors('create', async () => {
+            const kvkId = parseRequiredKvkId(data, user);
+            const reportingYear = parseReportingYearDate(data.reportingYear);
+            ensureNotFutureDate(reportingYear);
 
-        if (isNaN(kvkId)) {
-            throw new Error('Valid kvkId is required');
-        }
+            const created = await prisma.kvkAgriDrone.create({
+                data: buildCreateData(data, kvkId, reportingYear),
+                include: kvkNameSelect,
+            });
 
-        const reportingYear = parseReportingYearDate(data.reportingYear);
-        ensureNotFutureDate(reportingYear);
+            return agriDroneRepository._mapResponse(created);
+        }),
 
-        let pilotContact = '';
-        const rawPilot = data.pilotContact ?? '';
-        if (String(rawPilot).trim() !== '') {
-            try {
-                pilotContact = normalizeOptionalIndianMobile(rawPilot, 'Pilot contact') || '';
-            } catch (e) {
-                throw new Error(e.message);
-            }
-        }
-
-        const result = await prisma.$queryRawUnsafe(`
-            INSERT INTO kvk_agri_drone (
-                "kvkId", reporting_year, project_implementing_centre, 
-                drones_sanctioned, drones_purchased, amount_sanctioned, 
-                cost_per_drone, drone_company, drone_model, 
-                pilot_name, pilot_contact, target_area_ha, 
-                demo_amount_sanctioned, demo_amount_utilised, 
-                operation_type, advantages_observed,
-                created_at, updated_at
-            ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16,
-                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-            ) RETURNING agri_drone_id
-        `,
-            kvkId,
-            reportingYear,
-            data.picName ?? data.projectImplementingCentre ?? '',
-            parseInt(data.dronesSanctioned || 0),
-            parseInt(data.dronesPurchased || 0),
-            parseFloat(data.amountSanctioned || 0),
-            parseFloat(data.droneCost ?? data.costPerDrone ?? 0),
-            data.droneCompany ?? '',
-            data.droneModel ?? '',
-            data.pilotName ?? '',
-            pilotContact,
-            parseFloat(data.targetArea ?? data.targetAreaHa ?? 0),
-            parseFloat(data.demoAmountSanctioned || 0),
-            parseFloat(data.demoAmountUtilised || 0),
-            data.operations ?? data.operationType ?? '',
-            data.advantages ?? data.advantagesObserved ?? '');
-
-        return await agriDroneRepository.findById(result[0].agri_drone_id, user);
-    },
-
-    findAll: async (filters = {}, user) => {
-        const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId);
-        } else if (filters.kvkId) {
-            where.kvkId = parseInt(filters.kvkId);
-        }
-
-        const records = await prisma.kvkAgriDrone.findMany({
-            where,
-            include: {
-                kvk: { select: { kvkName: true } },
-            },
-            orderBy: { agriDroneId: 'desc' }
-        });
-
-        return records.map(r => agriDroneRepository._mapResponse(r));
-    },
-
-    findById: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId);
-        }
-
-        const record = await prisma.kvkAgriDrone.findFirst({
-            where,
-            include: {
-                kvk: { select: { kvkName: true } },
-            }
-        });
-        return agriDroneRepository._mapResponse(record);
-    },
-
-    update: async (id, data, user) => {
-        const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId);
-        }
-
-        const existing = await prisma.kvkAgriDrone.findFirst({
-            where,
-            select: { agriDroneId: true }
-        });
-
-        if (!existing) throw new Error("Record not found or unauthorized");
-
-        const updateData = {};
-        if (data.reportingYear !== undefined) {
-            const reportingYearDate = parseReportingYearDate(data.reportingYear);
-            ensureNotFutureDate(reportingYearDate);
-            updateData.reporting_year = reportingYearDate;
-        }
-        const picName = data.picName ?? data.projectImplementingCentre;
-        if (picName !== undefined) updateData.project_implementing_centre = picName;
-        if (data.dronesSanctioned !== undefined) updateData.drones_sanctioned = parseInt(data.dronesSanctioned);
-        if (data.dronesPurchased !== undefined) updateData.drones_purchased = parseInt(data.dronesPurchased);
-        if (data.amountSanctioned !== undefined) updateData.amount_sanctioned = parseFloat(data.amountSanctioned);
-        const droneCost = data.droneCost ?? data.costPerDrone;
-        if (droneCost !== undefined) updateData.cost_per_drone = parseFloat(droneCost);
-        if (data.droneCompany !== undefined) updateData.drone_company = data.droneCompany;
-        if (data.droneModel !== undefined) updateData.drone_model = data.droneModel;
-        if (data.pilotName !== undefined) updateData.pilot_name = data.pilotName;
-        if (data.pilotContact !== undefined) {
-            const raw = data.pilotContact;
-            if (String(raw ?? '').trim() === '') {
-                updateData.pilot_contact = '';
-            } else {
-                try {
-                    updateData.pilot_contact = normalizeOptionalIndianMobile(raw, 'Pilot contact') || '';
-                } catch (e) {
-                    throw new Error(e.message);
+    findAll: async (filters = {}, user) =>
+        withAgriDroneRepoErrors('findMany', async () => {
+            const where = {};
+            if (isKvkScopedUser(user)) {
+                const kvkId = parseInt(user.kvkId, 10);
+                if (Number.isNaN(kvkId) || kvkId < 1) {
+                    throw new ValidationError('Valid kvkId is required', 'kvkId');
                 }
-            }
-        }
-        const targetArea = data.targetArea ?? data.targetAreaHa;
-        if (targetArea !== undefined) updateData.target_area_ha = parseFloat(targetArea);
-        if (data.demoAmountSanctioned !== undefined) updateData.demo_amount_sanctioned = parseFloat(data.demoAmountSanctioned);
-        if (data.demoAmountUtilised !== undefined) updateData.demo_amount_utilised = parseFloat(data.demoAmountUtilised);
-        const operationType = data.operations ?? data.operationType;
-        if (operationType !== undefined) updateData.operation_type = operationType;
-        const advantages = data.advantages ?? data.advantagesObserved;
-        if (advantages !== undefined) updateData.advantages_observed = advantages;
-
-        const updates = [];
-        const values = [];
-        let index = 1;
-
-        for (const [key, val] of Object.entries(updateData)) {
-            updates.push(`${key} = $${index++}`);
-            values.push(val);
-        }
-
-        if (updates.length > 0) {
-            updates.push(`updated_at = CURRENT_TIMESTAMP`);
-            let sql = `UPDATE kvk_agri_drone SET ${updates.join(', ')} WHERE agri_drone_id = $${index++}`;
-            const params = [...values, agriDroneId];
-
-            if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-                sql += ` AND "kvkId" = $${index++}`;
-                params.push(parseInt(user.kvkId));
+                where.kvkId = kvkId;
+            } else if (filters.kvkId !== undefined && filters.kvkId !== null && filters.kvkId !== '') {
+                const k = parseInt(filters.kvkId, 10);
+                if (Number.isNaN(k) || k < 1) {
+                    throw new ValidationError('Valid kvkId is required', 'kvkId');
+                }
+                where.kvkId = k;
             }
 
-            const result = await prisma.$executeRawUnsafe(sql, ...params);
-            if (result === 0) throw new Error("Record not found or unauthorized");
-        }
+            const records = await prisma.kvkAgriDrone.findMany({
+                where,
+                include: kvkNameSelect,
+                orderBy: { agriDroneId: 'desc' },
+            });
 
-        return await agriDroneRepository.findById(id, user);
-    },
+            return records.map((r) => agriDroneRepository._mapResponse(r));
+        }),
 
-    delete: async (id, user) => {
-        const where = { agriDroneId: parseInt(id) };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
-            where.kvkId = parseInt(user.kvkId);
-        }
+    findById: async (id, user) =>
+        withAgriDroneRepoErrors('findFirst', async () => {
+            const record = await prisma.kvkAgriDrone.findFirst({
+                where: accessWhereForAgriDroneId(id, user),
+                include: kvkNameSelect,
+            });
+            return agriDroneRepository._mapResponse(record);
+        }),
 
-        const result = await prisma.kvkAgriDrone.deleteMany({
-            where
-        });
+    update: async (id, data, user) =>
+        withAgriDroneRepoErrors('update', async () => {
+            const where = accessWhereForAgriDroneId(id, user);
 
-        if (result.count === 0) throw new Error("Record not found or unauthorized");
+            const existing = await prisma.kvkAgriDrone.findFirst({
+                where,
+                select: { agriDroneId: true },
+            });
 
-        return { success: true };
-    },
+            if (!existing) {
+                throw new UnauthorizedError('Record not found or unauthorized');
+            }
+
+            const prismaData = buildUpdateData(data);
+            if (Object.keys(prismaData).length > 0) {
+                await prisma.kvkAgriDrone.update({
+                    where: { agriDroneId: existing.agriDroneId },
+                    data: prismaData,
+                });
+            }
+
+            return agriDroneRepository.findById(id, user);
+        }),
+
+    delete: async (id, user) =>
+        withAgriDroneRepoErrors('delete', async () => {
+            const result = await prisma.kvkAgriDrone.deleteMany({
+                where: accessWhereForAgriDroneId(id, user),
+            });
+
+            if (result.count === 0) {
+                throw new UnauthorizedError('Record not found or unauthorized');
+            }
+
+            return { success: true };
+        }),
 
     _mapResponse: (r) => {
         if (!r) return null;
@@ -203,9 +331,9 @@ const agriDroneRepository = {
             demoAmountSanctioned: r.demoAmountSanctioned,
             demoAmountUtilised: r.demoAmountUtilised,
             operationType: r.operationType,
-            advantagesObserved: r.advantagesObserved
+            advantagesObserved: r.advantagesObserved,
         };
-    }
+    },
 };
 
 module.exports = agriDroneRepository;

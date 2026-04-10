@@ -365,6 +365,24 @@ export function useCfldExtensionActivityTypes() {
     };
 }
 
+export function useBudgetItems(options?: { enabled?: boolean }) {
+    const enabled = options?.enabled !== undefined ? options.enabled : true;
+    const query = useQuery({
+        queryKey: ['budget-items'],
+        queryFn: async () => {
+            const { apiClient } = await import('../services/api');
+            const res = await apiClient.get('/admin/masters/budget-item') as any;
+            return res.data || [];
+        },
+        staleTime: 10 * 60 * 1000,
+        enabled,
+    });
+    return {
+        data: (query.data || []) as Array<{ budgetItemId: number; itemName: string }>,
+        isLoading: query.isLoading,
+    };
+}
+
 export function useOtherExtensionActivityTypes() {
     const queryClient = useQueryClient();
 

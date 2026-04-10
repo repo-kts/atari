@@ -652,6 +652,8 @@ const fldRepository = {
  */
 function _mapResponse(r) {
     if (!r) return null;
+    const isCompleted = r.ongoingCompleted === FLD_STATUS.COMPLETED;
+    const completionDate = isCompleted ? (r.updatedAt || null) : null;
 
     return {
         id: r.kvkFldId,
@@ -681,6 +683,7 @@ function _mapResponse(r) {
         demoCount: r.noOfDemonstration,
         noOfDemonstration: r.noOfDemonstration,
         startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : undefined,
+        completedAt: completionDate,
         area: r.areaHa,
         areaHa: r.areaHa,
         gen_m: r.generalM,

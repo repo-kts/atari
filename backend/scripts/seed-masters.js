@@ -151,6 +151,14 @@ const FUNDING_SOURCES = [
   'International Organization', 'Private Sector', 'Corporate CSR'
 ];
 
+// CFLD budget item master (used by kvk_budget_utilization_item mappings)
+const CFLD_BUDGET_ITEM_MASTER = [
+  'Critical Input',
+  'TA/DA',
+  'Extension Activities',
+  'Publication',
+];
+
 /**
  * Product category → types (production supply master).
  * `seed-product.json` uses: crop = category name, subcategory = type, category = product name.
@@ -641,6 +649,93 @@ const FUNDING_AGENCIES = [
   'ICAR', 'State Govt. Ministry of A&FW', 'Central Govt.', 'Others'
 ];
 
+const DIGNITARY_TYPES = [
+  'Minister',
+  'MP',
+  'MLA',
+  'DM',
+  'VC',
+  'Zila Sabhadipati',
+  'Other Head of Organization',
+  'Foreigners',
+];
+
+const PPV_FRA_TRAINING_TYPES = [
+  'Training',
+  'Awareness',
+];
+
+const TSP_SCSP_TYPE_MASTER = [
+  'TSP',
+  'SCSP',
+];
+
+const TSP_SCSP_ACTIVITY_MASTER = [
+  'Trainings',
+  'OFT',
+  'FLD',
+  'Mobile agro- advisory to farmers',
+  'Other activities',
+];
+
+const NICRA_CATEGORY_SUBCATEGORY_MASTER = {
+  NRM: [
+    'Performances of demonstration of in-situ moisture conservation technologies',
+    'Performances of water harvesting and recycling for supplemental irrigation',
+    'Performance of ZTD in various crops',
+    'Performance of artificial ground water recharge technologies demonstrated',
+    'Performance of different water saving irrigation methods',
+    'Rainwater harvesting structures developed',
+  ],
+  'Crop production': [
+    'Performance of different drought tolerant varieties',
+    'Performance of different short duration rice varieties',
+    'Performance of different flood tolerant varieties',
+    'Performance of advancement of planting dates in different crops',
+    'Performances of water saving technologies for rice cultivation',
+    'Integration of cropping system with other farming',
+    'Performance of Community nurseries',
+    'Performance of different location specific intercropping systems',
+    'Performance of different crop diversification in NICRA villages',
+    'Performance of other demonstration',
+  ],
+  'Livestock & Fisheries': [
+    'Performance of different fodder demonstration in community lands',
+    'Performance of improved fodder',
+    'Performance of various vaccination camps organized',
+    'For Goat/ sheep/ pig',
+    'For poultry',
+    'Performance of fish in the ponds/ water bodies',
+    'Performance of livestock demonstration in NICRA adopted villages (Buffalo/ Cow)',
+    'Performance of livestock demonstration in NICRA adopted villages (Goat/ sheep/ Pig)',
+    'Performance of livestock demonstration in NICRA adopted villages (poultry)',
+    'Performance of improved shelters for poultry and dairy animals',
+  ],
+};
+
+const NICRA_SEED_BANK_FODDER_BANK_MASTER = [
+  'Seed bank',
+  'Fodder bank',
+];
+
+const NICRA_PI_TYPE_MASTER = [
+  'PI',
+  'CO PI',
+];
+
+const NATURAL_FARMING_ACTIVITY_MASTER = [
+  'Training',
+  'Awareness',
+  'Other activities',
+];
+
+const NATURAL_FARMING_SOIL_PARAMETER_MASTER = [
+  'Soil Parameter for Demo plot at KVK Farm',
+  'Soil Parameter for Non-Demo plot at KVK Farm',
+  'Soil Parameter for Demo plot at Farmers Field',
+  'Soil Parameter for Non-Demo plot at Farmers Field',
+];
+
 async function seedStaffMasters() {
   console.log('🌱 Staff masters...');
 
@@ -863,6 +958,29 @@ async function seedFundingSources() {
     });
   }
 
+  console.log('   ✅ Done\n');
+}
+
+async function seedCfldBudgetItemMasters() {
+  console.log('🌱 CFLD budget item master...');
+
+  // Cleanup legacy row that should not appear in CFLD budget items.
+  // If referenced by utilization rows, keep data intact and warn.
+  try {
+    await prisma.budgetItem.deleteMany({
+      where: { itemName: 'Equipment' },
+    });
+  } catch (error) {
+    console.warn('   ⚠️  Could not remove legacy "Equipment" budget item:', error?.message || error);
+  }
+
+  for (const itemName of CFLD_BUDGET_ITEM_MASTER) {
+    await prisma.budgetItem.upsert({
+      where: { itemName },
+      update: {},
+      create: { itemName },
+    });
+  }
   console.log('   ✅ Done\n');
 }
 
@@ -1281,6 +1399,129 @@ async function seedFundingAgencies() {
   console.log('   ✅ Done\n');
 }
 
+async function seedDignitaryTypeMasters() {
+  console.log('🌱 Dignitary type masters...');
+  for (const name of DIGNITARY_TYPES) {
+    await prisma.dignitaryType.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+    await prisma.nicraDignitaryTypeMaster.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedPpvFraTrainingTypeMasters() {
+  console.log('🌱 PPV & FRA training type masters...');
+  for (const typeName of PPV_FRA_TRAINING_TYPES) {
+    await prisma.ppvFraTrainingTypeMaster.upsert({
+      where: { typeName },
+      update: {},
+      create: { typeName },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedTspScspMasters() {
+  console.log('🌱 TSP/SCSP type & activity masters...');
+  for (const typeName of TSP_SCSP_TYPE_MASTER) {
+    await prisma.tspScspTypeMaster.upsert({
+      where: { typeName },
+      update: {},
+      create: { typeName },
+    });
+  }
+
+  for (const activityName of TSP_SCSP_ACTIVITY_MASTER) {
+    await prisma.tspScspActivities.upsert({
+      where: { activityName },
+      update: {},
+      create: { activityName },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedNicraCategorySubCategoryMasters() {
+  console.log('🌱 NICRA category & sub-category masters...');
+  for (const [categoryName, subcategories] of Object.entries(NICRA_CATEGORY_SUBCATEGORY_MASTER)) {
+    const category = await prisma.nicraCategory.upsert({
+      where: { categoryName },
+      update: {},
+      create: { categoryName },
+    });
+
+    for (const subCategoryName of subcategories) {
+      const existing = await prisma.nicraSubCategory.findFirst({
+        where: { subCategoryName, nicraCategoryId: category.nicraCategoryId },
+      });
+      if (!existing) {
+        await prisma.nicraSubCategory.create({
+          data: {
+            subCategoryName,
+            nicraCategoryId: category.nicraCategoryId,
+          },
+        });
+      }
+    }
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedNicraSeedBankFodderBankMasters() {
+  console.log('🌱 NICRA seed bank/fodder bank masters...');
+  for (const name of NICRA_SEED_BANK_FODDER_BANK_MASTER) {
+    await prisma.nicraSeedBankFodderBankMaster.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedNicraPiTypeMasters() {
+  console.log('🌱 NICRA PI/CO-PI type masters...');
+  for (const name of NICRA_PI_TYPE_MASTER) {
+    await prisma.nicraPiTypeMaster.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedNaturalFarmingActivityMasters() {
+  console.log('🌱 Natural farming activity masters...');
+  for (const activityName of NATURAL_FARMING_ACTIVITY_MASTER) {
+    await prisma.naturalFarmingActivityMaster.upsert({
+      where: { activityName },
+      update: {},
+      create: { activityName },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
+async function seedNaturalFarmingSoilParameterMasters() {
+  console.log('🌱 Natural farming soil parameter masters...');
+  for (const parameterName of NATURAL_FARMING_SOIL_PARAMETER_MASTER) {
+    await prisma.naturalFarmingSoilParameterMaster.upsert({
+      where: { parameterName },
+      update: {},
+      create: { parameterName },
+    });
+  }
+  console.log('   ✅ Done\n');
+}
+
 async function seedFinancialProjects() {
   console.log('🌱 Financial projects...');
   
@@ -1498,6 +1739,7 @@ async function run() {
   await seedExtensionMasters();
   await seedEventsMasters();
   await seedFundingSources();
+  await seedCfldBudgetItemMasters();
   await seedProducts();
   await seedCRASystems();
   await seedCfldCropMasters();
@@ -1511,6 +1753,14 @@ async function run() {
   await seedAttachmentTypes();
   await seedNariMasters();
   await seedFundingAgencies();
+  await seedDignitaryTypeMasters();
+  await seedPpvFraTrainingTypeMasters();
+  await seedTspScspMasters();
+  await seedNicraCategorySubCategoryMasters();
+  await seedNicraSeedBankFodderBankMasters();
+  await seedNicraPiTypeMasters();
+  await seedNaturalFarmingActivityMasters();
+  await seedNaturalFarmingSoilParameterMasters();
   await seedFinancialProjects();
   await seedOftMasters();
   await seedFldMasters();

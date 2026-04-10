@@ -26,11 +26,14 @@ export interface DatePickerProps {
 
 function parseIsoDate(value?: string): Date | undefined {
   if (!value) return undefined
-  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  const trimmed = value.trim()
+  // Accept YYYY-MM-DD or any ISO-like string that starts with a date (API often returns ...T00:00:00.000Z)
+  const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (!m) return undefined
   const y = Number(m[1])
   const mo = Number(m[2]) - 1
   const d = Number(m[3])
+  if (mo < 0 || mo > 11 || d < 1 || d > 31) return undefined
   const date = new Date(y, mo, d, 0, 0, 0, 0)
   return Number.isNaN(date.getTime()) ? undefined : date
 }

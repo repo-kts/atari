@@ -1,12 +1,26 @@
 const agriDroneService = require('../../services/forms/agriDroneService.js');
 
+function agriDroneErrorStatus(error) {
+    if (typeof error?.statusCode === 'number') {
+        return error.statusCode;
+    }
+    if (error?.message?.includes('Valid agriDroneId')) {
+        return 400;
+    }
+    if (error?.message?.includes('not found or unauthorized')) {
+        return 403;
+    }
+    return 500;
+}
+
 const agriDroneController = {
     create: async (req, res) => {
         try {
             const result = await agriDroneService.create(req.body, req.user);
             res.status(201).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            const status = agriDroneErrorStatus(error);
+            res.status(status).json({ success: false, message: error.message });
         }
     },
 
@@ -15,7 +29,8 @@ const agriDroneController = {
             const result = await agriDroneService.findAll(req.query, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            res.status(500).json({ success: false, message: error.message });
+            const status = agriDroneErrorStatus(error);
+            res.status(status).json({ success: false, message: error.message });
         }
     },
 
@@ -25,7 +40,7 @@ const agriDroneController = {
             if (!result) return res.status(404).json({ success: false, message: 'Record not found or unauthorized' });
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            const status = error.message.includes('Valid agriDroneId') ? 400 : 500;
+            const status = agriDroneErrorStatus(error);
             res.status(status).json({ success: false, message: error.message });
         }
     },
@@ -35,7 +50,7 @@ const agriDroneController = {
             const result = await agriDroneService.update(req.params.id, req.body, req.user);
             res.status(200).json({ success: true, data: result });
         } catch (error) {
-            const status = error.message.includes('Valid agriDroneId') ? 400 : (error.message.includes('not found or unauthorized') ? 403 : 500);
+            const status = agriDroneErrorStatus(error);
             res.status(status).json({ success: false, message: error.message });
         }
     },
@@ -45,7 +60,7 @@ const agriDroneController = {
             await agriDroneService.delete(req.params.id, req.user);
             res.status(200).json({ success: true, message: 'Deleted successfully' });
         } catch (error) {
-            const status = error.message.includes('Valid agriDroneId') ? 400 : (error.message.includes('not found or unauthorized') ? 403 : 500);
+            const status = agriDroneErrorStatus(error);
             res.status(status).json({ success: false, message: error.message });
         }
     }

@@ -66,6 +66,8 @@ import {
     FldResultValue,
 } from './forms/achievement/FldResultForm'
 import { DatePicker } from '@/components/ui/date-picker'
+import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
+import { itemMatchesDateRangeFilter } from '@/utils/itemDateFilter'
 import {
     NariNutritionalGardenResultForm,
     NariNutritionalGardenResultValue,
@@ -336,7 +338,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         setCurrentPage(1)
     }, [reportingYearFrom, reportingYearTo])
 
-    const reportingRangeTodayIso = new Date().toISOString().split('T')[0]
+    const reportingRangeTodayIso = formatLocalDateYmd()
     const reportingFromMaxIso = !reportingYearTo
         ? reportingRangeTodayIso
         : reportingYearTo < reportingRangeTodayIso
@@ -375,19 +377,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                     ? rawToDate
                     : rawFromDate
                 : rawToDate
-        const yearFiltered = items.filter((item: any) => {
-            const value =
-                item.reportingYear ||
-                item.reportingYearDate ||
-                item.reportingYear?.yearName
-            if (!value) return !fromDate && !toDate
-            const itemDate = new Date(value)
-            if (Number.isNaN(itemDate.getTime())) return !fromDate && !toDate
-            if (itemDate > maxDate) return false
-            if (fromDate && itemDate < fromDate) return false
-            if (toDate && itemDate > toDate) return false
-            return true
-        })
+        const yearFiltered = items.filter((item: any) =>
+            itemMatchesDateRangeFilter(item, fromDate, toDate, maxDate)
+        )
 
         if (!debouncedSearch.trim()) return yearFiltered
 

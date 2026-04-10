@@ -8,38 +8,23 @@ function formatNumber(value) {
     return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
 
-function resolveItemValue(items, matcher) {
-    const found = (items || []).find(item => matcher((item.itemName || '').toLowerCase()));
-    if (!found) {
-        return { budgetReceived: 0, budgetUtilized: 0, balance: 0 };
+function getDynamicItems(record) {
+    const srcItems = Array.isArray(record.items) ? record.items : [];
+    if (srcItems.length === 0) {
+        return [{ label: '-', budgetReceived: 0, budgetUtilized: 0, balance: 0 }];
     }
-    return {
-        budgetReceived: toNumber(found.budgetReceived),
-        budgetUtilized: toNumber(found.budgetUtilized),
-        balance: toNumber(found.balance),
-    };
-}
 
-function getFixedItems(record) {
-    const items = record.items || [];
-    return [
-        {
-            label: 'Critical input',
-            ...resolveItemValue(items, name => name.includes('critical input')),
-        },
-        {
-            label: 'TA/DA/POL etc. for monitoring',
-            ...resolveItemValue(items, name => name.includes('ta/da') || name.includes('ta da') || name.includes('monitor')),
-        },
-        {
-            label: 'Extension Activities (Field Day)',
-            ...resolveItemValue(items, name => name.includes('extension')),
-        },
-        {
-            label: 'Publication of literature',
-            ...resolveItemValue(items, name => name.includes('publication')),
-        },
-    ];
+    return srcItems.map((item) => {
+        const budgetReceived = toNumber(item.budgetReceived);
+        const budgetUtilized = toNumber(item.budgetUtilized);
+        const balance = toNumber(item.balance ?? (budgetReceived - budgetUtilized));
+        return {
+            label: item.itemName || '-',
+            budgetReceived,
+            budgetUtilized,
+            balance,
+        };
+    });
 }
 
 function renderCfldBudgetUtilizationSection(section, data, sectionId, isFirstSection) {
@@ -50,16 +35,17 @@ function renderCfldBudgetUtilizationSection(section, data, sectionId, isFirstSec
 
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
     const bodyRows = records.map((record, index) => {
-        const items = getFixedItems(record);
+        const items = getDynamicItems(record);
+        const rowSpan = items.length;
         return items.map((item, rowIndex) => {
             const sharedColumns = rowIndex === 0
                 ? `
-                    <td rowspan="4">${index + 1}</td>
-                    <td rowspan="4">${this._escapeHtml(record.seasonName || '-')}</td>
-                    <td rowspan="4">${this._escapeHtml(record.cropName || '-')}</td>
-                    <td rowspan="4">${formatNumber(record.overallFundAllocation)}</td>
-                    <td rowspan="4">${formatNumber(record.areaAllotted)}</td>
-                    <td rowspan="4">${formatNumber(record.areaAchieved)}</td>
+                    <td rowspan="${rowSpan}">${index + 1}</td>
+                    <td rowspan="${rowSpan}">${this._escapeHtml(record.seasonName || '-')}</td>
+                    <td rowspan="${rowSpan}">${this._escapeHtml(record.cropName || '-')}</td>
+                    <td rowspan="${rowSpan}">${formatNumber(record.overallFundAllocation)}</td>
+                    <td rowspan="${rowSpan}">${formatNumber(record.areaAllotted)}</td>
+                    <td rowspan="${rowSpan}">${formatNumber(record.areaAchieved)}</td>
                 `
                 : '';
             return `

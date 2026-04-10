@@ -5,6 +5,7 @@
 
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 import type { ExtendedEntityType } from './masterUtils';
+import { formatLocalDateYmd } from '@/utils/dateLocalYmd';
 
 const STRICT_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}(?:T.*)?$/;
 const YEAR_PATTERN = /^\d{4}$/;
@@ -13,7 +14,7 @@ function toDateInputValue(value: any): string | null {
     if (value === null || value === undefined || value === '') return null;
 
     if (value instanceof Date) {
-        return Number.isNaN(value.getTime()) ? null : value.toISOString().split('T')[0];
+        return Number.isNaN(value.getTime()) ? null : formatLocalDateYmd(value);
     }
 
     if (typeof value === 'number' && Number.isInteger(value) && value >= 1900 && value <= 3000) {
@@ -46,7 +47,7 @@ function toDateInputValue(value: any): string | null {
     }
 
     const parsed = new Date(trimmed);
-    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().split('T')[0];
+    return Number.isNaN(parsed.getTime()) ? null : formatLocalDateYmd(parsed);
 }
 
 /**
@@ -314,8 +315,10 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
     },
     [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: (item: any, formData: any) => {
         if (item.titleOfTraining) formData.trainingTitle = item.titleOfTraining;
-        if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
-        if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
+        const sd = toDateInputValue(item.startDate);
+        if (sd) formData.startDate = sd;
+        const ed = toDateInputValue(item.endDate);
+        if (ed) formData.endDate = ed;
         if (item.generalM !== undefined) formData.genMale = item.generalM;
         if (item.generalF !== undefined) formData.genFemale = item.generalF;
         if (item.obcM !== undefined) formData.obcMale = item.obcM;

@@ -169,19 +169,11 @@ async function getOrCreateInfraMaster(name) {
 }
 
 async function getOrCreateBudgetItem(name) {
-  let item = await prisma.budgetItem.findFirst({
-    where: { itemName: name }
+  return prisma.budgetItem.upsert({
+    where: { itemName: name },
+    update: {},
+    create: { itemName: name },
   });
-  if (!item) {
-    // Use existing budget item if available
-    const existing = await prisma.budgetItem.findFirst();
-    if (existing) {
-      item = existing;
-    } else {
-      item = await prisma.budgetItem.create({ data: { itemName: name } });
-    }
-  }
-  return item;
 }
 
 async function getOrCreateFldCrop(name) {
@@ -289,8 +281,8 @@ async function seedKvks() {
   const infra1 = await getOrCreateInfraMaster('Office Building');
   const infra2 = await getOrCreateInfraMaster('Laboratory');
 
-  const budgetItem1 = await getOrCreateBudgetItem('Equipment');
-  const budgetItem2 = await getOrCreateBudgetItem('Training');
+  const budgetItem1 = await getOrCreateBudgetItem('Critical Input');
+  const budgetItem2 = await getOrCreateBudgetItem('TA/DA');
 
   // Use existing FLD crops if available
   const existingFldCrops = await prisma.fldCrop.findMany({ take: 2 });

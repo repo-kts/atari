@@ -102,11 +102,11 @@ function validatePhoneNumber(phoneNumber) {
   // Remove spaces, dashes, and common separators
   const cleaned = phoneNumber.replace(/[\s\-()]/g, '');
 
-  // Check if it's a valid Indian phone number (10 digits, starting with 6-9)
+  // Check if it's a valid Indian phone number (10 digits, starting with 6/7/8/9)
   const phoneRegex = /^[6-9]\d{9}$/;
   
   if (!phoneRegex.test(cleaned)) {
-    errors.push('Phone number must be a valid 10-digit Indian mobile number starting with 6-9');
+    errors.push('Phone number must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9');
   }
 
   return {

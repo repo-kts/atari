@@ -24,6 +24,13 @@ async function resolveNicraPiTypeId(rawValue) {
     return created.nicraPiTypeId;
 }
 
+function formatYmd(d) {
+    if (!d) return '';
+    if (d instanceof Date) return d.toISOString().split('T')[0];
+    const s = String(d);
+    return s.includes('T') ? s.split('T')[0] : s;
+}
+
 const nicraPiCopiRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -63,6 +70,8 @@ const nicraPiCopiRepository = {
         return results.map(r => ({
             ...r,
             type: r.piType?.name || null,
+            startDate: formatYmd(r.startDate),
+            endDate: formatYmd(r.endDate),
         }));
     },
 
@@ -82,6 +91,8 @@ const nicraPiCopiRepository = {
         return {
             ...result,
             type: result.piType?.name || null,
+            startDate: formatYmd(result.startDate),
+            endDate: formatYmd(result.endDate),
         };
     },
 
@@ -112,6 +123,8 @@ const nicraPiCopiRepository = {
         return {
             ...updated,
             type: updated.piType?.name || null,
+            startDate: formatYmd(updated.startDate),
+            endDate: formatYmd(updated.endDate),
         };
     },
 

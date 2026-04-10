@@ -124,6 +124,9 @@ router.post('/crop-type',    requirePermission('all_masters_crop_type_master', '
 router.put('/crop-type/:id', requirePermission('all_masters_crop_type_master', 'EDIT'),   otherMastersController.updateCropType);
 router.delete('/crop-type/:id', requirePermission('all_masters_crop_type_master', 'DELETE'), otherMastersController.deleteCropType);
 
+router.get('/budget-item', otherMastersController.getAllBudgetItems);
+router.get('/budget-item/:id', otherMastersController.getBudgetItemById);
+
 router.get('/infrastructure-master',     otherMastersController.getAllInfrastructureMasters);
 router.get('/infrastructure-master/:id', otherMastersController.getInfrastructureMasterById);
 router.post('/infrastructure-master',    requirePermission('all_masters_infrastructure_master', 'ADD'),    otherMastersController.createInfrastructureMaster);
