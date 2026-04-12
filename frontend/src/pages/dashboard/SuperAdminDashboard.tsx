@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent } from '../../components/ui/Card'
 import {
     Users,
@@ -6,152 +8,18 @@ import {
     BarChart3,
     GraduationCap,
     Tag,
+    Activity,
+    Loader2,
 } from 'lucide-react'
-
-// Mock data for Super Admin - Year-wise data
-const mockDataByYear: Record<string, {
-    kpiData: { organization: number; kvk: number; totalOFT: number; totalFLD: number; training: number; totalStaff: number };
-    oftData: { kvk: string; completed: number; total: number; status: string }[];
-    fldData: { kvk: string; completed: number; total: number; status: string }[];
-    trainingData: { kvk: string; count: number; status: string }[];
-    extensionActivity: { kvk: string; count: number; status: string }[];
-}> = {
-    'All': {
-        kpiData: { organization: 9, kvk: 66, totalOFT: 462, totalFLD: 788, training: 7284, totalStaff: 636 },
-        oftData: [
-            { kvk: 'KVK Araria', completed: 2, total: 2, status: 'complete' },
-            { kvk: 'KVK Arwal', completed: 3, total: 5, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 7, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 3, total: 4, status: 'in-progress' },
-        ],
-        fldData: [
-            { kvk: 'KVK Araria', completed: 5, total: 8, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 19, total: 23, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 5, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 5, total: 9, status: 'in-progress' },
-        ],
-        trainingData: [
-            { kvk: 'KVK Araria', count: 140, status: 'active' },
-            { kvk: 'KVK Arwal', count: 89, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 45, status: 'active' },
-            { kvk: 'KVK Banka', count: 120, status: 'active' },
-        ],
-        extensionActivity: [
-            { kvk: 'KVK Araria', count: 45, status: 'active' },
-            { kvk: 'KVK Arwal', count: 114, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 67, status: 'active' },
-            { kvk: 'KVK Banka', count: 89, status: 'active' },
-        ],
-    },
-    '2023': {
-        kpiData: { organization: 8, kvk: 58, totalOFT: 320, totalFLD: 540, training: 5120, totalStaff: 580 },
-        oftData: [
-            { kvk: 'KVK Araria', completed: 1, total: 2, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 3, total: 3, status: 'complete' },
-            { kvk: 'KVK Aurangabad', completed: 2, total: 5, status: 'in-progress' },
-            { kvk: 'KVK Banka', completed: 2, total: 4, status: 'in-progress' },
-        ],
-        fldData: [
-            { kvk: 'KVK Araria', completed: 4, total: 5, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 12, total: 15, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 3, total: 8, status: 'in-progress' },
-            { kvk: 'KVK Banka', completed: 6, total: 6, status: 'complete' },
-        ],
-        trainingData: [
-            { kvk: 'KVK Araria', count: 98, status: 'active' },
-            { kvk: 'KVK Arwal', count: 67, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 32, status: 'active' },
-            { kvk: 'KVK Banka', count: 85, status: 'active' },
-        ],
-        extensionActivity: [
-            { kvk: 'KVK Araria', count: 32, status: 'active' },
-            { kvk: 'KVK Arwal', count: 78, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 45, status: 'active' },
-            { kvk: 'KVK Banka', count: 56, status: 'active' },
-        ],
-    },
-    '2024': {
-        kpiData: { organization: 9, kvk: 62, totalOFT: 398, totalFLD: 650, training: 6450, totalStaff: 610 },
-        oftData: [
-            { kvk: 'KVK Araria', completed: 2, total: 2, status: 'complete' },
-            { kvk: 'KVK Arwal', completed: 2, total: 4, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 3, total: 6, status: 'in-progress' },
-            { kvk: 'KVK Banka', completed: 3, total: 3, status: 'complete' },
-        ],
-        fldData: [
-            { kvk: 'KVK Araria', completed: 4, total: 6, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 15, total: 18, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 4, total: 7, status: 'in-progress' },
-            { kvk: 'KVK Banka', completed: 7, total: 8, status: 'in-progress' },
-        ],
-        trainingData: [
-            { kvk: 'KVK Araria', count: 125, status: 'active' },
-            { kvk: 'KVK Arwal', count: 78, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 38, status: 'active' },
-            { kvk: 'KVK Banka', count: 105, status: 'active' },
-        ],
-        extensionActivity: [
-            { kvk: 'KVK Araria', count: 38, status: 'active' },
-            { kvk: 'KVK Arwal', count: 95, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 52, status: 'active' },
-            { kvk: 'KVK Banka', count: 72, status: 'active' },
-        ],
-    },
-    '2025': {
-        kpiData: { organization: 9, kvk: 66, totalOFT: 462, totalFLD: 788, training: 7284, totalStaff: 636 },
-        oftData: [
-            { kvk: 'KVK Araria', completed: 2, total: 2, status: 'complete' },
-            { kvk: 'KVK Arwal', completed: 4, total: 5, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 7, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 3, total: 4, status: 'in-progress' },
-        ],
-        fldData: [
-            { kvk: 'KVK Araria', completed: 6, total: 10, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 19, total: 23, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 5, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 5, total: 9, status: 'in-progress' },
-        ],
-        trainingData: [
-            { kvk: 'KVK Araria', count: 140, status: 'active' },
-            { kvk: 'KVK Arwal', count: 89, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 45, status: 'active' },
-            { kvk: 'KVK Banka', count: 120, status: 'active' },
-        ],
-        extensionActivity: [
-            { kvk: 'KVK Araria', count: 45, status: 'active' },
-            { kvk: 'KVK Arwal', count: 114, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 67, status: 'active' },
-            { kvk: 'KVK Banka', count: 89, status: 'active' },
-        ],
-    },
-    '2026': {
-        kpiData: { organization: 9, kvk: 68, totalOFT: 185, totalFLD: 290, training: 2850, totalStaff: 645 },
-        oftData: [
-            { kvk: 'KVK Araria', completed: 1, total: 3, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 2, total: 2, status: 'complete' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 4, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 1, total: 2, status: 'in-progress' },
-        ],
-        fldData: [
-            { kvk: 'KVK Araria', completed: 2, total: 4, status: 'in-progress' },
-            { kvk: 'KVK Arwal', completed: 5, total: 8, status: 'in-progress' },
-            { kvk: 'KVK Aurangabad', completed: 0, total: 3, status: 'pending' },
-            { kvk: 'KVK Banka', completed: 2, total: 5, status: 'in-progress' },
-        ],
-        trainingData: [
-            { kvk: 'KVK Araria', count: 52, status: 'active' },
-            { kvk: 'KVK Arwal', count: 35, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 18, status: 'active' },
-            { kvk: 'KVK Banka', count: 48, status: 'active' },
-        ],
-        extensionActivity: [
-            { kvk: 'KVK Araria', count: 18, status: 'active' },
-            { kvk: 'KVK Arwal', count: 42, status: 'active' },
-            { kvk: 'KVK Aurangabad', count: 25, status: 'active' },
-            { kvk: 'KVK Banka', count: 32, status: 'active' },
-        ],
-    },
-}
+import { useAuth } from '../../contexts/AuthContext'
+import { dashboardApi } from '../../services/dashboardApi'
+import { ROUTE_PATHS } from '../../constants/routePaths'
+import { ENTITY_PATHS } from '../../constants/entityConstants'
+import { DashboardStaffAndLogs } from './shared/DashboardStaffAndLogs'
+import {
+    DashboardKpiSkeleton,
+    DashboardPanelsSkeleton,
+} from './shared/DashboardSkeletons'
 
 const getProgressColor = (status: string) => {
     switch (status) {
@@ -185,319 +53,431 @@ const getBadgeColor = (status: string) => {
     }
 }
 
+function formatLogTime(iso: string) {
+    try {
+        const d = new Date(iso)
+        return d.toLocaleString(undefined, {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        })
+    } catch {
+        return iso
+    }
+}
+
+function progressCompletedOverCreated(completed: number, created: number) {
+    if (created <= 0) return 0
+    return Math.min((completed / created) * 100, 100)
+}
+
 export const SuperAdminDashboard: React.FC = () => {
-    const [selectedYear, setSelectedYear] = useState('All')
-    const [selectedKVK, setSelectedKVK] = useState('All')
+    const { user } = useAuth()
+    const canPickKvk = user?.role === 'super_admin'
+    const [selectedYear, setSelectedYear] = useState<string>('all')
+    const [selectedKvk, setSelectedKvk] = useState<string>('all')
 
-    // Get data based on selected year
-    const currentData = mockDataByYear[selectedYear] || mockDataByYear['All']
-    const { kpiData, oftData, fldData, trainingData, extensionActivity } = currentData
+    const defaultYears = useMemo(() => {
+        const y = new Date().getFullYear()
+        return Array.from({ length: 20 }, (_, i) => y - i)
+    }, [])
 
-    // Filter by KVK if selected
-    const filteredOFTData = selectedKVK === 'All'
-        ? oftData
-        : oftData.filter(item => item.kvk === selectedKVK)
-    const filteredFLDData = selectedKVK === 'All'
-        ? fldData
-        : fldData.filter(item => item.kvk === selectedKVK)
-    const filteredTrainingData = selectedKVK === 'All'
-        ? trainingData
-        : trainingData.filter(item => item.kvk === selectedKVK)
-    const filteredExtensionData = selectedKVK === 'All'
-        ? extensionActivity
-        : extensionActivity.filter(item => item.kvk === selectedKVK)
+    const { data, isPending, isFetching, isError, error } = useQuery({
+        queryKey: ['dashboard', selectedYear, selectedKvk, canPickKvk],
+        queryFn: () =>
+            dashboardApi.getDashboard({
+                reportingYear:
+                    selectedYear === 'all' ? 'all' : Number(selectedYear),
+                kvkId:
+                    canPickKvk && selectedKvk !== 'all'
+                        ? Number(selectedKvk)
+                        : undefined,
+            }),
+        placeholderData: previousData => previousData,
+    })
 
-    const kpiCards = [
-        {
-            label: 'Organization',
-            value: kpiData.organization,
-            icon: <FileText className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-        {
-            label: 'KVK',
-            value: kpiData.kvk,
-            icon: <BarChart3 className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-        {
-            label: 'Total OFT',
-            value: kpiData.totalOFT,
-            icon: <Users className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-        {
-            label: 'Total FLD',
-            value: kpiData.totalFLD,
-            icon: <FileText className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-        {
-            label: 'Training',
-            value: kpiData.training.toLocaleString(),
-            icon: <GraduationCap className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-        {
-            label: 'Total Staff',
-            value: kpiData.totalStaff,
-            icon: <Tag className="w-6 h-6" />,
-            bgColor: 'bg-[#E8F5E9]',
-            iconColor: 'text-[#487749]',
-        },
-    ]
+    const yearOptions = data?.yearOptions?.length
+        ? data.yearOptions
+        : defaultYears
+    const showData = !!data
 
-    const calculateProgress = (completed: number, total: number) => {
-        if (total === 0) return 0
-        return Math.min((completed / total) * 100, 100)
+    const kpiCards = data
+        ? [
+              {
+                  label: 'Organization',
+                  value: data.kpis.organizationCount,
+                  to: ENTITY_PATHS.ORGANIZATIONS,
+                  icon: <FileText className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'KVK',
+                  value: data.kpis.kvkCount,
+                  to: ENTITY_PATHS.KVK_MASTER,
+                  icon: <BarChart3 className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'Total OFT',
+                  value: data.kpis.totalOft,
+                  to: ROUTE_PATHS.ACHIEVEMENTS.OFT,
+                  icon: <Users className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'Total FLD',
+                  value: data.kpis.totalFld,
+                  to: ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
+                  icon: <FileText className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'Training',
+                  value: data.kpis.training.toLocaleString(),
+                  to: ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
+                  icon: <GraduationCap className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'Ext. Activity',
+                  value: data.kpis.extension.toLocaleString(),
+                  to: ROUTE_PATHS.ACHIEVEMENTS.EXTENSION_ACTIVITIES,
+                  icon: <Activity className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+              {
+                  label: 'Total Staff',
+                  value: data.kpis.totalStaff,
+                  to: ENTITY_PATHS.KVK_EMPLOYEES,
+                  icon: <Tag className="w-6 h-6" />,
+                  bgColor: 'bg-[#E8F5E9]',
+                  iconColor: 'text-[#487749]',
+              },
+          ]
+        : []
+
+    if (isError) {
+        return (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                {(error as Error).message || 'Failed to load dashboard'}
+            </div>
+        )
     }
 
     return (
-        <div className="space-y-6">
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-end bg-[#FAF9F6] p-4 rounded-xl mb-6">
-                <div className="w-full sm:w-48">
-                    <label className="block text-xs font-bold text-[#487749] uppercase tracking-wider mb-2">
+        <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] px-2 py-1.5">
+                <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
                         Year
-                    </label>
+                    </span>
                     <select
                         value={selectedYear}
                         onChange={e => setSelectedYear(e.target.value)}
-                        className="w-full h-11 px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] bg-white text-[#212121] text-sm font-medium transition-all duration-200 hover:border-[#487749]/50"
+                        disabled={isPending && !data}
+                        className="h-8 min-w-[88px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
                     >
-                        <option value="All">All Years</option>
-                        <option value="2023">2023</option>
-                        <option value="2024">2024</option>
-                        <option value="2025">2025</option>
-                        <option value="2026">2026</option>
+                        <option value="all">All</option>
+                        {yearOptions.map(y => (
+                            <option key={y} value={String(y)}>
+                                {y}
+                            </option>
+                        ))}
                     </select>
                 </div>
-                <div className="w-full sm:w-64">
-                    <label className="block text-xs font-bold text-[#487749] uppercase tracking-wider mb-2">
-                        Filter by KVK
-                    </label>
-                    <select
-                        value={selectedKVK}
-                        onChange={e => setSelectedKVK(e.target.value)}
-                        className="w-full h-11 px-4 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#487749]/20 focus:border-[#487749] bg-white text-[#212121] text-sm font-medium transition-all duration-200 hover:border-[#487749]/50"
-                    >
-                        <option value="All">All KVKs</option>
-                        <option value="KVK Araria">KVK Araria</option>
-                        <option value="KVK Arwal">KVK Arwal</option>
-                        <option value="KVK Aurangabad">KVK Aurangabad</option>
-                        <option value="KVK Banka">KVK Banka</option>
-                    </select>
-                </div>
-                <div className="ml-auto">
-                    <button
-                        onClick={() => { setSelectedYear('All'); setSelectedKVK('All'); }}
-                        className="px-4 py-2 text-sm font-medium text-[#757575] hover:text-[#487749] transition-colors"
-                    >
-                        Reset Filters
-                    </button>
-                </div>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-                {kpiCards.map((card, index) => (
-                    <Card key={index} className="border-[#E0E0E0] hover:border-[#487749]/30 transition-all duration-300 group  hover:shadow-sm">
-                        <CardContent className="p-5">
-                            <div className="flex flex-col gap-3">
-                                <div
-                                    className={`${card.bgColor} ${card.iconColor} w-10 h-10 rounded-xl border border-[#E0E0E0] flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
-                                >
-                                    {React.cloneElement(card.icon as React.ReactElement, { className: 'w-5 h-5' } as any)}
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-[#757575] uppercase tracking-wider mb-1">
-                                        {card.label}
-                                    </p>
-                                    <p className="text-2xl font-bold text-[#212121]">
-                                        {card.value}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-
-            {/* Data Progress Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-2">
-                {/* OFT Table */}
-                <Card className="border-[#E0E0E0] ">
-                    <CardContent className="p-0">
-                        <div className="p-5 border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                            <h3 className="text-base font-bold text-[#487749] uppercase tracking-wider">
-                                On-Farm Testing (OFT) Progress
-                            </h3>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            {filteredOFTData.map((item, index) => {
-                                const progress = calculateProgress(
-                                    item.completed,
-                                    item.total
-                                )
-                                return (
-                                    <div key={index} className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-bold text-[#212121]">
-                                                {item.kvk}
-                                            </span>
-                                            <span
-                                                className={`px-3 py-1 rounded-xl text-xs font-bold ${getBadgeColor(
-                                                    item.status
-                                                )}`}
-                                            >
-                                                {item.completed} / {item.total}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-[#F5F5F5] rounded-full h-2 border border-[#E0E0E0]/50">
-                                            <div
-                                                className={`h-2 rounded-full ${getProgressColor(
-                                                    item.status
-                                                )} transition-all duration-1000 ease-out`}
-                                                style={{ width: `${progress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* FLD Table */}
-                <Card className="border-[#E0E0E0] ">
-                    <CardContent className="p-0">
-                        <div className="p-5 border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                            <h3 className="text-base font-bold text-[#487749] uppercase tracking-wider">
-                                Front Line Demonstration (FLD) Progress
-                            </h3>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            {filteredFLDData.map((item, index) => {
-                                const progress = calculateProgress(
-                                    item.completed,
-                                    item.total
-                                )
-                                return (
-                                    <div key={index} className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-bold text-[#212121]">
-                                                {item.kvk}
-                                            </span>
-                                            <span
-                                                className={`px-3 py-1 rounded-xl text-xs font-bold ${getBadgeColor(
-                                                    item.status
-                                                )}`}
-                                            >
-                                                {item.completed} / {item.total}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-[#F5F5F5] rounded-full h-2 border border-[#E0E0E0]/50">
-                                            <div
-                                                className={`h-2 rounded-full ${getProgressColor(
-                                                    item.status
-                                                )} transition-all duration-1000 ease-out`}
-                                                style={{ width: `${progress}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Training Table */}
-                <Card className="border-[#E0E0E0] ">
-                    <CardContent className="p-0">
-                        <div className="p-5 border-b border-[#E0E0E0] bg-[#FAF9F6] flex items-center justify-between">
-                            <h3 className="text-base font-bold text-[#487749] uppercase tracking-wider">
-                                Training Activities
-                            </h3>
-                            <div className="flex gap-2">
-                                <select className="text-[10px] font-bold uppercase tracking-wider border border-[#E0E0E0] rounded-lg px-2 py-1 focus:outline-none focus:border-[#487749] bg-white text-[#757575]">
-                                    <option>Categories</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            {filteredTrainingData.map((item, index) => (
-                                <div key={index} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-bold text-[#212121]">
-                                            {item.kvk}
-                                        </span>
-                                        <span
-                                            className={`px-3 py-1 rounded-xl text-xs font-bold ${getBadgeColor(
-                                                item.status
-                                            )}`}
-                                        >
-                                            {item.count} Sessions
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-[#F5F5F5] rounded-full h-2 border border-[#E0E0E0]/50">
-                                        <div
-                                            className={`h-2 rounded-full ${getProgressColor(
-                                                item.status
-                                            )} transition-all duration-1000 ease-out`}
-                                            style={{ width: '100%' }}
-                                        />
-                                    </div>
-                                </div>
+                {canPickKvk && (
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-[#487749] uppercase tracking-wide whitespace-nowrap">
+                            KVK
+                        </span>
+                        <select
+                            value={selectedKvk}
+                            onChange={e => setSelectedKvk(e.target.value)}
+                            disabled={isPending && !data}
+                            className="h-8 min-w-[120px] max-w-[200px] px-2 text-xs font-medium border border-[#E0E0E0] rounded-md bg-white text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#487749]/30"
+                        >
+                            <option value="all">All</option>
+                            {(data?.kvkOptions ?? []).map(k => (
+                                <option key={k.kvkId} value={String(k.kvkId)}>
+                                    {k.kvkName}
+                                </option>
                             ))}
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Extension Activity Table */}
-                <Card className="border-[#E0E0E0] ">
-                    <CardContent className="p-0">
-                        <div className="p-5 border-b border-[#E0E0E0] bg-[#FAF9F6] flex items-center justify-between">
-                            <h3 className="text-base font-bold text-[#487749] uppercase tracking-wider">
-                                Extension Activities
-                            </h3>
-                            <button className="text-[10px] font-bold uppercase tracking-wider text-[#487749] hover:underline">
-                                View Details
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-5">
-                            {filteredExtensionData.map((item, index) => (
-                                <div key={index} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-sm font-bold text-[#212121]">
-                                            {item.kvk}
-                                        </span>
-                                        <span
-                                            className={`px-3 py-1 rounded-xl text-xs font-bold ${getBadgeColor(
-                                                item.status
-                                            )}`}
-                                        >
-                                            {item.count} Activities
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-[#F5F5F5] rounded-full h-2 border border-[#E0E0E0]/50">
-                                        <div
-                                            className={`h-2 rounded-full ${getProgressColor(
-                                                item.status
-                                            )} transition-all duration-1000 ease-out`}
-                                            style={{ width: '100%' }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                        </select>
+                    </div>
+                )}
+                <button
+                    type="button"
+                    onClick={() => {
+                        setSelectedYear('all')
+                        setSelectedKvk('all')
+                    }}
+                    className="text-[11px] font-semibold text-[#757575] hover:text-[#487749] ml-auto"
+                >
+                    Reset
+                </button>
+                {isFetching && (
+                    <Loader2
+                        className="w-4 h-4 text-[#487749] animate-spin shrink-0"
+                        aria-label="Updating"
+                    />
+                )}
             </div>
+
+            {isPending && !data && <DashboardKpiSkeleton count={7} />}
+
+            {showData && (
+                <>
+                    <div
+                        className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-2 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
+                    >
+                        {kpiCards.map(card => (
+                            <Link
+                                key={card.label}
+                                to={card.to}
+                                className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#487749] focus-visible:ring-offset-1"
+                            >
+                                <Card className="border-[#E0E0E0] hover:border-[#487749]/30 transition-colors shadow-none h-full cursor-pointer">
+                                    <CardContent className="p-3">
+                                        <div className="flex flex-col gap-2">
+                                            <div
+                                                className={`${card.bgColor} ${card.iconColor} w-8 h-8 rounded-lg border border-[#E0E0E0] flex items-center justify-center`}
+                                            >
+                                                {React.cloneElement(
+                                                    card.icon as React.ReactElement,
+                                                    {
+                                                        className: 'w-4 h-4',
+                                                    } as object
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#757575] uppercase tracking-wide mb-0.5 leading-tight">
+                                                    {card.label}
+                                                </p>
+                                                <p className="text-xl font-bold text-[#212121] leading-tight">
+                                                    {card.value}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div
+                        className={`grid grid-cols-1 lg:grid-cols-2 gap-3 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
+                    >
+                        <Card className="border-[#E0E0E0] shadow-none">
+                            <CardContent className="p-0">
+                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
+                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
+                                        OFT progress
+                                    </h3>
+                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
+                                        Completed OFTs vs total created (same
+                                        scope as filters)
+                                    </p>
+                                </div>
+                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
+                                    {data.perKvk.map(row => {
+                                        const progress =
+                                            progressCompletedOverCreated(
+                                                row.oft.completed,
+                                                row.oft.created
+                                            )
+                                        return (
+                                            <div
+                                                key={row.kvkId}
+                                                className="space-y-1"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <span className="text-xs font-bold text-[#212121] line-clamp-2">
+                                                        {row.kvkName}
+                                                    </span>
+                                                    <div className="text-right shrink-0">
+                                                        <span
+                                                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${getBadgeColor(row.oft.status)}`}
+                                                        >
+                                                            {row.oft.completed}{' '}
+                                                            / {row.oft.created}
+                                                        </span>
+                                                        <p className="text-[9px] text-[#757575] mt-0.5 leading-tight">
+                                                            completed / created
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
+                                                    <div
+                                                        className={`h-1.5 rounded-full ${getProgressColor(row.oft.status)} transition-all duration-700 ease-out`}
+                                                        style={{
+                                                            width: `${progress}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-[#E0E0E0] shadow-none">
+                            <CardContent className="p-0">
+                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
+                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
+                                        FLD progress
+                                    </h3>
+                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
+                                        Completed FLDs vs total created
+                                    </p>
+                                </div>
+                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
+                                    {data.perKvk.map(row => {
+                                        const progress =
+                                            progressCompletedOverCreated(
+                                                row.fld.completed,
+                                                row.fld.created
+                                            )
+                                        return (
+                                            <div
+                                                key={row.kvkId}
+                                                className="space-y-1"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <span className="text-xs font-bold text-[#212121] line-clamp-2">
+                                                        {row.kvkName}
+                                                    </span>
+                                                    <div className="text-right shrink-0">
+                                                        <span
+                                                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${getBadgeColor(row.fld.status)}`}
+                                                        >
+                                                            {row.fld.completed}{' '}
+                                                            / {row.fld.created}
+                                                        </span>
+                                                        <p className="text-[9px] text-[#757575] mt-0.5 leading-tight">
+                                                            completed / created
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
+                                                    <div
+                                                        className={`h-1.5 rounded-full ${getProgressColor(row.fld.status)} transition-all duration-700 ease-out`}
+                                                        style={{
+                                                            width: `${progress}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-[#E0E0E0] shadow-none">
+                            <CardContent className="p-0">
+                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
+                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
+                                        Training
+                                    </h3>
+                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
+                                        Count
+                                    </p>
+                                </div>
+                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
+                                    {data.perKvk.map(row => (
+                                        <div
+                                            key={row.kvkId}
+                                            className="space-y-1"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-xs font-bold text-[#212121] line-clamp-2">
+                                                    {row.kvkName}
+                                                </span>
+                                                <span
+                                                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${getBadgeColor(row.training.status)}`}
+                                                >
+                                                    {row.training.count}{' '}
+                                                    sessions
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
+                                                <div
+                                                    className={`h-1.5 rounded-full ${getProgressColor(row.training.status)} transition-all duration-700`}
+                                                    style={{ width: '100%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-[#E0E0E0] shadow-none">
+                            <CardContent className="p-0">
+                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
+                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
+                                        Extension activities
+                                    </h3>
+                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
+                                        Count
+                                    </p>
+                                </div>
+                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
+                                    {data.perKvk.map(row => (
+                                        <div
+                                            key={row.kvkId}
+                                            className="space-y-1"
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-xs font-bold text-[#212121] line-clamp-2">
+                                                    {row.kvkName}
+                                                </span>
+                                                <span
+                                                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${getBadgeColor(row.extension.status)}`}
+                                                >
+                                                    {row.extension.count}{' '}
+                                                    activities
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
+                                                <div
+                                                    className={`h-1.5 rounded-full ${getProgressColor(row.extension.status)} transition-all duration-700`}
+                                                    style={{ width: '100%' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div
+                        className={
+                            isFetching ? 'opacity-70 transition-opacity' : ''
+                        }
+                    >
+                        <DashboardStaffAndLogs
+                            staffByPost={data.staffByPost}
+                            recentLogs={data.recentLogs}
+                            getProgressColor={getProgressColor}
+                            formatLogTime={formatLogTime}
+                        />
+                    </div>
+                </>
+            )}
+
+            {isPending && !data && (
+                <div className="space-y-3">
+                    <DashboardPanelsSkeleton />
+                </div>
+            )}
         </div>
     )
 }
