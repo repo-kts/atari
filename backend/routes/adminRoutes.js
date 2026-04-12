@@ -8,6 +8,7 @@ const notificationController = require('../controllers/notificationController.js
 const moduleImageController = require('../controllers/moduleImageController.js');
 const targetController = require('../controllers/targetController.js');
 const technicalAchievementSummaryController = require('../controllers/technicalAchievementSummaryController.js');
+const dashboardController = require('../controllers/dashboardController.js');
 const prisma = require('../config/prisma.js');
 const { authenticateToken, requirePermission } = require('../middleware/auth.js');
 const { strictRateLimiter, apiRateLimiter } = require('../middleware/rateLimiter.js');
@@ -27,6 +28,9 @@ const HIDDEN_ROLE_NAMES = new Set(['zone_admin']);
 // Individual routes use requirePermission for granular access control
 // driven by the Role Permission Editor — no blanket role gate needed.
 router.use(authenticateToken);
+
+// Dashboard metrics (scoped by role; any authenticated user)
+router.get('/dashboard', apiRateLimiter, dashboardController.getDashboard);
 
 // List users (with filters) – requires VIEW
 router.get('/users', apiRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'), userManagementController.getUsers);
