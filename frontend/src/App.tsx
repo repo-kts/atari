@@ -23,6 +23,7 @@ import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
+import { FormSummary } from './pages/features/FormSummary'
 import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 import {
@@ -69,6 +70,14 @@ function AppRoutes() {
                 >
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route
+                        path="/form-summary"
+                        element={
+                            <ProtectedRoute requiredModuleCode="form_summary_status">
+                                <FormSummary />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* All Masters Routes - each route guards its own module permission */}
                     {allMastersRoutes.map(route => (

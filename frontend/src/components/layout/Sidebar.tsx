@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
     LayoutDashboard,
+    LayoutList,
     FileText,
     Menu,
     X,
@@ -44,6 +45,12 @@ const superAdminMenuItems: MenuItem[] = [
         label: 'Dashboard',
         path: '/dashboard',
         icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+        label: 'Form Summary',
+        path: '/form-summary',
+        icon: <LayoutList className="w-5 h-5" />,
+        moduleCode: 'form_summary_status',
     },
     {
         label: 'All Masters',

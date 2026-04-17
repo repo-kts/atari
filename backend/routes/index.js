@@ -55,6 +55,7 @@ const nariRoutes = require('./forms/nariRoutes.js');
 const digitalInformationRoutes = require('./forms/digitalInformationRoutes.js');
 const tspScspRoutes = require('./forms/tspScspRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
+const formSummaryRoutes = require('./formSummaryRoutes.js');
 const { validateFormRobustness } = require('../middleware/validateFormRobustness.js');
 
 // Mount routes
@@ -71,6 +72,7 @@ router.use('/users', userRoutes);
 // Robust payload validation for all form saves (numbers + dates).
 router.use('/forms', validateFormRobustness);
 router.use('/forms', normalizeReportingYearRequest);
+router.use('/forms/summary', formSummaryRoutes);
 router.use('/forms/about-kvk', aboutKvkRoutes);
 router.use('/forms/achievements/kvk-awards', kvkAwardRoutes);
 router.use('/forms/achievements/scientist-awards', scientistAwardRoutes);

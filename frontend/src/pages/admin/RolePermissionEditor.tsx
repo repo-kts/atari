@@ -11,6 +11,7 @@ import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 
 /** Display order of menus to match the design (Role Permissions UI) */
 const MENU_DISPLAY_ORDER = [
+    'Form Summary',
     'All Masters',
     'Role Management',
     'User Management',
