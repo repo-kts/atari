@@ -118,3 +118,40 @@ export function useUpdateRolePermissions() {
         },
     });
 }
+
+/**
+ * Hook to fetch a user's permission matrix.
+ */
+export function useUserPermissions(userId: number | null) {
+    return useQuery({
+        queryKey: ['userPermissions', userId],
+        queryFn: () => userApi.getUserPermissions(userId!),
+        enabled: userId != null,
+        staleTime: 2 * 60 * 1000,
+    });
+}
+
+/**
+ * Hook to replace a user's per-module permission grants.
+ */
+export function useUpdateUserPermissions() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            userId,
+            permissionIds,
+            allowEmpty,
+        }: {
+            userId: number
+            permissionIds: number[]
+            allowEmpty?: boolean
+        }) => userApi.updateUserPermissions(userId, permissionIds, { allowEmpty }),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            // Refresh current user's permissions in case the admin just edited themselves.
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
+    });
+}

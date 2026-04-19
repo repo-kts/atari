@@ -18,6 +18,7 @@ import { DataManagementView } from './pages/dashboard/shared/DataManagementView'
 import { RoleManagement } from './pages/admin/RoleManagement'
 import { RolePermissionEditor } from './pages/admin/RolePermissionEditor'
 import { UserManagement } from './pages/admin/UserManagement'
+import { UserPermissionEditor } from './pages/admin/UserPermissionEditor'
 import { ModuleImages } from './pages/features/ModuleImages'
 import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
@@ -127,6 +128,14 @@ function AppRoutes() {
                         element={
                             <ProtectedRoute requiredModuleCode="user_management_users">
                                 <UserManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-users/:userId/permissions"
+                        element={
+                            <ProtectedRoute requiredModuleCode="user_management_users">
+                                <UserPermissionEditor />
                             </ProtectedRoute>
                         }
                     />
