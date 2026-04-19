@@ -112,10 +112,16 @@ export const UserPermissionEditor: React.FC = () => {
     }, [data?.modules])
 
     const menuEntries = useMemo(() => {
-        return MENU_DISPLAY_ORDER.map((menuName) => [
-            menuName,
-            orderedModules.filter((m) => m.menuName === menuName),
-        ]).filter(([, mods]) => mods.length > 0) as [string, UserModuleWithPermissions[]][]
+        // Group by actual menus present in the payload so an unknown menu
+        // (e.g. one added to the backend but not yet listed in
+        // MENU_DISPLAY_ORDER) is appended at the end instead of dropped.
+        const groups = new Map<string, UserModuleWithPermissions[]>()
+        for (const mod of orderedModules) {
+            const arr = groups.get(mod.menuName) ?? []
+            arr.push(mod)
+            groups.set(mod.menuName, arr)
+        }
+        return Array.from(groups.entries()) as [string, UserModuleWithPermissions[]][]
     }, [orderedModules])
 
     // Only the role-granted permission IDs are toggleable. Header/group
@@ -185,15 +191,26 @@ export const UserPermissionEditor: React.FC = () => {
     const handleSave = async () => {
         if (!userId || !data) return
         setSuccessMessage(null)
+
+        const isEmpty = selectedPermissions.size === 0
+        if (isEmpty) {
+            const ok = window.confirm(
+                `${data.name} will have no access after this save. Continue?`
+            )
+            if (!ok) return
+        }
+
         try {
             await updateMutation.mutateAsync({
                 userId: Number(userId),
                 permissionIds: Array.from(selectedPermissions),
+                allowEmpty: isEmpty,
             })
             setSuccessMessage('User permissions updated successfully')
             setTimeout(() => setSuccessMessage(null), 3000)
         } catch {
-            // mutation error state drives the banner
+            // Mutation failure surfaces through updateMutation.error →
+            // the top-level error banner; nothing to handle here.
         }
     }
 

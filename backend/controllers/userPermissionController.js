@@ -15,7 +15,7 @@ const userPermissionController = {
       const data = await userPermissionService.getUserPermissionsMatrix(id, req.user.userId);
       res.status(200).json(data);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(error.statusCode || 400).json({ error: error.message });
     }
   },
 
@@ -30,7 +30,7 @@ const userPermissionController = {
         return res.status(400).json({ error: 'Invalid user ID' });
       }
 
-      const { permissionIds } = req.body;
+      const { permissionIds, allowEmpty } = req.body;
       if (!Array.isArray(permissionIds)) {
         return res.status(400).json({ error: 'permissionIds must be an array' });
       }
@@ -38,7 +38,8 @@ const userPermissionController = {
       const result = await userPermissionService.updateUserPermissions(
         id,
         permissionIds,
-        req.user.userId
+        req.user.userId,
+        { allowEmpty: allowEmpty === true }
       );
 
       res.status(200).json({
@@ -46,7 +47,7 @@ const userPermissionController = {
         count: result.count,
       });
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(error.statusCode || 400).json({ error: error.message });
     }
   },
 };

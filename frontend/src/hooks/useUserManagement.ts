@@ -138,8 +138,15 @@ export function useUpdateUserPermissions() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ userId, permissionIds }: { userId: number; permissionIds: number[] }) =>
-            userApi.updateUserPermissions(userId, permissionIds),
+        mutationFn: ({
+            userId,
+            permissionIds,
+            allowEmpty,
+        }: {
+            userId: number
+            permissionIds: number[]
+            allowEmpty?: boolean
+        }) => userApi.updateUserPermissions(userId, permissionIds, { allowEmpty }),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['userPermissions', variables.userId] });
             queryClient.invalidateQueries({ queryKey: ['users'] });

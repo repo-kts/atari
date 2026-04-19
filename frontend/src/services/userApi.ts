@@ -303,10 +303,19 @@ export const userApi = {
 
   /**
    * Replace a user's per-module permission grants.
+   * Pass `allowEmpty: true` when intentionally stripping all access — the
+   * backend otherwise rejects an empty set to guard against accidental wipes.
    */
-  updateUserPermissions: async (userId: number, permissionIds: number[]): Promise<void> => {
+  updateUserPermissions: async (
+    userId: number,
+    permissionIds: number[],
+    options: { allowEmpty?: boolean } = {}
+  ): Promise<void> => {
     try {
-      await apiClient.put(`/admin/users/${userId}/permissions`, { permissionIds });
+      await apiClient.put(`/admin/users/${userId}/permissions`, {
+        permissionIds,
+        allowEmpty: options.allowEmpty === true,
+      });
     } catch (error) {
       if (error instanceof ApiError) {
         throw new Error(error.data?.error || 'Failed to update user permissions');
