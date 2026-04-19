@@ -83,12 +83,20 @@ async function getUserPermissionsMatrix(userId, callerUserId) {
       }),
     }));
 
+  // 'per_module' = real per-module rows exist (strict intersection)
+  // 'ceiling'    = only legacy USER_SCOPE rows (resolver fallback path)
+  // 'none'       = no UserPermission rows at all
+  let mode = 'none';
+  if (hasPerModuleGrants) mode = 'per_module';
+  else if (userScopeActions.size > 0) mode = 'ceiling';
+
   return {
     userId: targetUser.userId,
     name: targetUser.name,
     email: targetUser.email,
     roleId: targetUser.roleId,
     roleName: targetRoleName,
+    mode,
     modules,
   };
 }

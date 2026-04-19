@@ -11,6 +11,22 @@ const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 const VALID_PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 
 /**
+ * Uppercase + trim + dedupe + filter to the four valid actions.
+ * @param {string[]} actions
+ * @returns {string[]}
+ */
+function normalizeActions(actions) {
+  if (!Array.isArray(actions)) return [];
+  const out = new Set();
+  for (const raw of actions) {
+    if (typeof raw !== 'string') continue;
+    const a = raw.trim().toUpperCase();
+    if (VALID_PERMISSION_ACTIONS.includes(a)) out.add(a);
+  }
+  return [...out];
+}
+
+/**
  * Derive the full geographic hierarchy from whichever IDs are already present.
  * Walks KVK → District → Org → State, filling in missing parents via Prisma lookups.
  * Uses ?? consistently so an explicit 0/null is never silently overwritten.
@@ -206,8 +222,10 @@ const userManagementService = {
     // Hash password
     const passwordHash = await hashPassword(password);
 
-    // Pre-validate and resolve permissions for _user roles before creating the user
-    // Reuse requestedRole fetched above for non-super_admin path; fetch for super_admin
+    // Pre-validate and resolve permissions for _user roles before creating the user.
+    // Per-module rows are written directly (one row per role-allowed module/action),
+    // so the resolver runs the strict per-module path immediately — no legacy
+    // USER_SCOPE rows are produced for newly-created users.
     const targetRoleRecord = requestedRole ?? await prisma.role.findUnique({ where: { roleId: effectiveRoleId } });
     const targetRoleName = targetRoleRecord?.roleName || '';
     const isTargetUserRole = targetRoleName.endsWith('_user');
@@ -218,12 +236,14 @@ const userManagementService = {
       if (!options.permissions || !options.permissions.length) {
         throw new Error('At least one permission (VIEW, ADD, EDIT, DELETE) is required when creating a _user role');
       }
-      permissionActions = options.permissions.map((a) => (typeof a === 'string' ? a.toUpperCase().trim() : a));
-      const invalid = permissionActions.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-      if (invalid.length > 0) {
-        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
+      permissionActions = normalizeActions(options.permissions);
+      if (!permissionActions.length) {
+        throw new Error(`Invalid permission(s). Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
       }
-      resolvedPermissionIds = await userManagementService.getPermissionIdsForActions(permissionActions);
+      resolvedPermissionIds = await userManagementService.getRolePermissionIdsForActions(
+        effectiveRoleId,
+        permissionActions,
+      );
     }
 
     // Create user and assign permissions atomically
@@ -282,6 +302,134 @@ const userManagementService = {
     });
     if (!module) return [];
     return module.permissions.map((p) => p.permissionId);
+  },
+
+  /**
+   * For the given role and action set, return all per-module permission IDs
+   * the role grants for those actions. Used to translate "tick VIEW in
+   * EditUserModal" into concrete per-module rows on the role's ceiling.
+   *
+   * @param {number} roleId
+   * @param {string[]} actions
+   * @returns {Promise<number[]>}
+   */
+  getRolePermissionIdsForActions: async (roleId, actions) => {
+    if (!actions?.length) return [];
+    const rows = await prisma.rolePermission.findMany({
+      where: {
+        roleId,
+        permission: { action: { in: actions } },
+      },
+      select: { permissionId: true },
+    });
+    return rows.map((r) => r.permissionId);
+  },
+
+  /**
+   * Apply a per-action delta to the user's permission rows.
+   *
+   *   add:    grant the action on every module the role allows.
+   *   remove: drop every row (per-module + USER_SCOPE) that carries the action.
+   *
+   * If the user is still in legacy USER_SCOPE-ceiling mode and the delta is
+   * non-empty, this materialises the ceiling into per-module rows first
+   * (semantically a no-op) so we never end up in a half-and-half state.
+   *
+   * Idempotent: an empty delta is a no-op.
+   *
+   * @param {number} userId
+   * @param {number} roleId
+   * @param {{ add?: string[], remove?: string[] }} delta
+   * @returns {Promise<{ added: number, removed: number }>}
+   */
+  applyPermissionsDelta: async (userId, roleId, delta = {}) => {
+    const add = Array.isArray(delta.add) ? normalizeActions(delta.add) : [];
+    const remove = Array.isArray(delta.remove) ? normalizeActions(delta.remove) : [];
+
+    if (!add.length && !remove.length) {
+      return { added: 0, removed: 0 };
+    }
+
+    const removeSet = new Set(remove);
+    const addSet = new Set(add);
+
+    return prisma.$transaction(async (tx) => {
+      // Read the current rows once, with module info, so we can decide
+      // whether the user is in legacy ceiling mode.
+      const currentRows = await tx.userPermission.findMany({
+        where: { userId },
+        select: {
+          permissionId: true,
+          permission: {
+            select: {
+              action: true,
+              module: { select: { moduleCode: true } },
+            },
+          },
+        },
+      });
+
+      const userScopeRows = currentRows.filter(
+        (r) => r.permission?.module?.moduleCode === USER_SCOPE_MODULE_CODE,
+      );
+
+      // 1. Materialise legacy ceiling → per-module rows so we don't lose
+      //    actions the user implicitly has via USER_SCOPE. Steps 2 + 3
+      //    re-query the DB, so we don't need to track in-memory state here.
+      if (userScopeRows.length > 0) {
+        const ceilingActions = [...new Set(userScopeRows.map((r) => r.permission.action))];
+        const expanded = await tx.rolePermission.findMany({
+          where: {
+            roleId,
+            permission: { action: { in: ceilingActions } },
+          },
+          select: { permissionId: true },
+        });
+        if (expanded.length) {
+          await tx.userPermission.createMany({
+            data: expanded.map((rp) => ({ userId, permissionId: rp.permissionId })),
+            skipDuplicates: true,
+          });
+        }
+        await tx.userPermission.deleteMany({
+          where: { userId, permissionId: { in: userScopeRows.map((r) => r.permissionId) } },
+        });
+      }
+
+      // 2. REMOVE: drop every per-module row carrying any removed action.
+      let removedCount = 0;
+      if (removeSet.size > 0) {
+        const result = await tx.userPermission.deleteMany({
+          where: {
+            userId,
+            permission: { action: { in: [...removeSet] } },
+          },
+        });
+        removedCount = result.count;
+      }
+
+      // 3. ADD: grant action on every role-allowed module that doesn't
+      //    already have a row.
+      let addedCount = 0;
+      if (addSet.size > 0) {
+        const expanded = await tx.rolePermission.findMany({
+          where: {
+            roleId,
+            permission: { action: { in: [...addSet] } },
+          },
+          select: { permissionId: true },
+        });
+        if (expanded.length) {
+          const result = await tx.userPermission.createMany({
+            data: expanded.map((rp) => ({ userId, permissionId: rp.permissionId })),
+            skipDuplicates: true,
+          });
+          addedCount = result.count;
+        }
+      }
+
+      return { added: addedCount, removed: removedCount };
+    });
   },
 
   /**
@@ -721,22 +869,20 @@ const userManagementService = {
     // Update user
     const updatedUser = await userRepository.update(userId, sanitizedData);
 
-    // Update permissions if provided
-    let permissionActions = [];
-    if (Array.isArray(userData.permissions)) {
-      const normalized = userData.permissions.map((a) =>
-        typeof a === 'string' ? a.toUpperCase().trim() : a
-      );
-      const invalid = normalized.filter((a) => !VALID_PERMISSION_ACTIONS.includes(a));
-      if (invalid.length > 0) {
-        throw new Error(`Invalid permission(s): ${invalid.join(', ')}. Allowed: ${VALID_PERMISSION_ACTIONS.join(', ')}`);
-      }
-      const permissionIds = await userManagementService.getPermissionIdsForActions(normalized);
-      await userPermissionRepository.setUserPermissions(userId, permissionIds);
-      permissionActions = normalized;
-    } else {
-      permissionActions = await userPermissionRepository.getUserPermissionActions(userId);
+    // Permission writes from EditUserModal arrive as a delta:
+    //   { add: ['EDIT'], remove: ['DELETE'] }
+    // Each tick/untick maps to "select-all"/"deselect-all" for that action,
+    // applied per-module against the role's ceiling. Untouched checkboxes
+    // produce no entries in the delta and therefore no writes — partial
+    // per-module customisations set in the matrix are preserved.
+    const targetRoleId = updatedUser.roleId;
+    if (userData.permissionsDelta && typeof userData.permissionsDelta === 'object') {
+      await userManagementService.applyPermissionsDelta(userId, targetRoleId, userData.permissionsDelta);
     }
+
+    // Always echo back the user's current distinct actions so the modal
+    // can re-render without a second round-trip.
+    const permissionActions = await userPermissionRepository.getDistinctActions(userId);
 
     // Best-effort cache invalidation (covers role changes and user-level permission changes).
     try {

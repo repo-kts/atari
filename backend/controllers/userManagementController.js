@@ -104,7 +104,7 @@ const userManagementController = {
       );
 
       const userIds = users.map((u) => u.userId);
-      const permissionsMap = await userPermissionRepository.getPermissionsForUserIds(userIds);
+      const permissionsMap = await userPermissionRepository.getDistinctActionsForUserIds(userIds);
 
       // Map to safe response: flat roleName, include phoneNumber and permissions
       const safeUsers = users.map((u) => ({
@@ -150,7 +150,7 @@ const userManagementController = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const permissions = await userPermissionRepository.getUserPermissionActions(user.userId);
+      const permissions = await userPermissionRepository.getDistinctActions(user.userId);
 
       const safeUser = {
         userId: user.userId,
