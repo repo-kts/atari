@@ -6,7 +6,8 @@ import { useUsers, useDeleteUser } from '../../hooks/useUserManagement'
 import { CreateUserModal } from '@/components/admin/CreateUserModal'
 import { EditUserModal } from '@/components/admin/EditUserModal'
 import type { EditUser } from '@/components/admin/EditUserModal'
-import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft } from 'lucide-react'
+import { Search, Plus, Edit, Trash2, AlertCircle, ChevronLeft, UserCog } from 'lucide-react'
+import { outranks } from '../../constants/roleHierarchy'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
@@ -36,7 +37,7 @@ interface User {
 export const UserManagement: React.FC = () => {
     const navigate = useNavigate()
     const location = useLocation()
-    const { hasPermission, canActOnRole } = useAuth()
+    const { user: currentUser, hasPermission, canActOnRole } = useAuth()
     const [searchTerm, setSearchTerm] = useState('')
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -71,7 +72,15 @@ export const UserManagement: React.FC = () => {
     const canCreateUsers = hasPermission('ADD', 'user_management_users')
     const canEditUser = hasPermission('EDIT', 'user_management_users')
     const canDeleteUser = hasPermission('DELETE', 'user_management_users')
-    const showActionsColumn = (canEditUser || canDeleteUser) && users.some(u => canActOnRole(u.roleName))
+    // Per-user permission editor is only offered for *_user target roles and
+    // when the caller strictly outranks them (matches backend hierarchy gate).
+    const canManagePermsFor = (u: User) =>
+        canEditUser &&
+        u.roleName?.endsWith('_user') &&
+        (currentUser?.role === 'super_admin' || outranks(currentUser?.role || '', u.roleName))
+    const showActionsColumn =
+        (canEditUser || canDeleteUser) &&
+        users.some(u => canActOnRole(u.roleName) || canManagePermsFor(u))
 
     // Handle delete user
     const handleDelete = async (userId: number) => {
@@ -273,6 +282,20 @@ export const UserManagement: React.FC = () => {
                                                 {showActionsColumn && (
                                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                                         <div className="flex items-center justify-end gap-2">
+                                                            {canManagePermsFor(user) && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        navigate(
+                                                                            `/view-users/${user.userId}/permissions`
+                                                                        )
+                                                                    }
+                                                                    className="p-1.5 text-[#487749] hover:bg-[#F5F5F5] rounded-xl border border-[#E0E0E0] transition-all duration-200"
+                                                                    aria-label="Manage permissions"
+                                                                    title="Manage permissions"
+                                                                >
+                                                                    <UserCog className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                             {canEditUser && canActOnRole(user.roleName) && (
                                                                 <button
                                                                     onClick={() => {

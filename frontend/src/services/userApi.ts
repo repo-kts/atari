@@ -96,6 +96,33 @@ export interface RolePermissionsResponse {
   modules: ModuleWithPermissions[];
 }
 
+/** Per-user permission cell: carries both the user's grant and the role ceiling. */
+export interface UserModulePermission {
+  permissionId: number;
+  action: 'VIEW' | 'ADD' | 'EDIT' | 'DELETE';
+  /** Whether the user currently has this permission. */
+  hasPermission: boolean;
+  /** Whether the user's role grants this permission (the ceiling). */
+  roleGrants: boolean;
+}
+
+export interface UserModuleWithPermissions {
+  moduleId: number;
+  menuName: string;
+  subMenuName: string;
+  moduleCode: string;
+  permissions: UserModulePermission[];
+}
+
+export interface UserPermissionsResponse {
+  userId: number;
+  name: string;
+  email: string;
+  roleId: number;
+  roleName: string;
+  modules: UserModuleWithPermissions[];
+}
+
 export const userApi = {
   /**
    * Create a new role (super_admin only)
@@ -254,6 +281,35 @@ export const userApi = {
     } catch (error) {
       if (error instanceof ApiError) {
         throw new Error(error.data?.error || 'Failed to delete user');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get the per-user permission matrix (role ceiling + user grants).
+   * Only valid for *_user roles.
+   */
+  getUserPermissions: async (userId: number): Promise<UserPermissionsResponse> => {
+    try {
+      return await apiClient.get<UserPermissionsResponse>(`/admin/users/${userId}/permissions`);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to fetch user permissions');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Replace a user's per-module permission grants.
+   */
+  updateUserPermissions: async (userId: number, permissionIds: number[]): Promise<void> => {
+    try {
+      await apiClient.put(`/admin/users/${userId}/permissions`, { permissionIds });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to update user permissions');
       }
       throw error;
     }

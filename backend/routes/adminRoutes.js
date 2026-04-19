@@ -3,6 +3,7 @@ const router = express.Router();
 
 const userManagementController = require('../controllers/userManagementController.js');
 const rolePermissionController = require('../controllers/rolePermissionController.js');
+const userPermissionController = require('../controllers/userPermissionController.js');
 const logHistoryController = require('../controllers/logHistoryController.js');
 const notificationController = require('../controllers/notificationController.js');
 const moduleImageController = require('../controllers/moduleImageController.js');
@@ -46,6 +47,22 @@ router.put('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MO
 
 // Delete user (soft delete) – requires DELETE
 router.delete('/users/:id', strictRateLimiter, requirePermission(USER_MANAGEMENT_MODULE, 'DELETE'), userManagementController.deleteUser);
+
+// Per-user permission matrix – VIEW to read, EDIT to write.
+// Guarded by user_management_users module; the service layer additionally
+// enforces role hierarchy and that the target is a *_user role.
+router.get(
+  '/users/:id/permissions',
+  apiRateLimiter,
+  requirePermission(USER_MANAGEMENT_MODULE, 'VIEW'),
+  userPermissionController.getUserPermissions,
+);
+router.put(
+  '/users/:id/permissions',
+  strictRateLimiter,
+  requirePermission(USER_MANAGEMENT_MODULE, 'EDIT'),
+  userPermissionController.updateUserPermissions,
+);
 
 // Login activity logs – requires VIEW
 router.get('/log-history', apiRateLimiter, requirePermission(LOG_HISTORY_MODULE, 'VIEW'), logHistoryController.getLogHistory);
