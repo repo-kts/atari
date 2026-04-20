@@ -4,7 +4,7 @@
  * Renders within the existing layout (sidebar and header remain visible)
  */
 
-import React, { useEffect, useCallback } from 'react'
+import React, { useCallback } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
