@@ -162,6 +162,44 @@ const userPermissionRepository = {
       return { count: result.count };
     });
   },
+
+  /**
+   * Distinct action names a user has, computed from per-module rows
+   * (preferred) and USER_SCOPE rows (legacy fallback).
+   *
+   * @param {number} userId
+   * @returns {Promise<string[]>}
+   */
+  getDistinctActions: async (userId) => {
+    const rows = await prisma.userPermission.findMany({
+      where: { userId },
+      select: { permission: { select: { action: true } } },
+    });
+    return [...new Set(rows.map((r) => r.permission?.action).filter(Boolean))];
+  },
+
+  /**
+   * Same as getDistinctActions, batched. Avoids N+1 in the user-list endpoint.
+   *
+   * @param {number[]} userIds
+   * @returns {Promise<Record<number, string[]>>}
+   */
+  getDistinctActionsForUserIds: async (userIds) => {
+    if (!userIds?.length) return {};
+    const rows = await prisma.userPermission.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, permission: { select: { action: true } } },
+    });
+    const sets = {};
+    for (const uid of userIds) sets[uid] = new Set();
+    for (const r of rows) {
+      const action = r.permission?.action;
+      if (action) sets[r.userId]?.add(action);
+    }
+    return Object.fromEntries(
+      Object.entries(sets).map(([uid, set]) => [uid, [...set]]),
+    );
+  },
 };
 
 module.exports = userPermissionRepository;

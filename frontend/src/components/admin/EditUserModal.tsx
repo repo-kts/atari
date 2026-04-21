@@ -47,6 +47,11 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
     const [email, setEmail] = useState('')
     const [phoneNumber, setPhoneNumber] = useState('')
     const [permissions, setPermissions] = useState<PermissionAction[]>([])
+    // Snapshot of the user's permission set when the modal opened, so Save
+    // can send a delta of only the actions the admin actually toggled.
+    // Untouched checkboxes produce no writes — the matrix's per-module
+    // distribution stays intact.
+    const [initialPermissions, setInitialPermissions] = useState<PermissionAction[]>([])
 
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -64,7 +69,9 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
             const allowedActions: PermissionAction[] = NON_ADMIN_ROLES_WITH_ADD.includes(user.roleName as typeof NON_ADMIN_ROLES_WITH_ADD[number])
                 ? ['VIEW', 'ADD', 'EDIT', 'DELETE']
                 : ['VIEW', 'EDIT', 'DELETE']
-            setPermissions((user.permissions || []).filter(p => allowedActions.includes(p)))
+            const seeded = (user.permissions || []).filter(p => allowedActions.includes(p))
+            setPermissions(seeded)
+            setInitialPermissions(seeded)
             setErrors({})
             setSubmitError(null)
             setSubmitSuccess(false)
@@ -130,7 +137,16 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                 const allowedActions: PermissionAction[] = NON_ADMIN_ROLES_WITH_ADD.includes(user.roleName as typeof NON_ADMIN_ROLES_WITH_ADD[number])
                     ? ['VIEW', 'ADD', 'EDIT', 'DELETE']
                     : ['VIEW', 'EDIT', 'DELETE']
-                updateData.permissions = permissions.filter(p => allowedActions.includes(p))
+                const current = new Set(permissions.filter(p => allowedActions.includes(p)))
+                const initial = new Set(initialPermissions.filter(p => allowedActions.includes(p)))
+                const add = [...current].filter(p => !initial.has(p))
+                const remove = [...initial].filter(p => !current.has(p))
+                if (add.length || remove.length) {
+                    updateData.permissionsDelta = {
+                        ...(add.length ? { add } : {}),
+                        ...(remove.length ? { remove } : {}),
+                    }
+                }
             }
 
             await userApi.updateUser(user.userId, updateData)

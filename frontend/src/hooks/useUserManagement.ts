@@ -81,8 +81,14 @@ export function useUpdateUser() {
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: UpdateUserData }) =>
             userApi.updateUser(id, data),
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            // Matrix page reads from this key — refresh so the editor mirrors
+            // whatever the modal just changed.
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', variables.id] });
+            // If the admin edited themselves, sidebar/button gating must
+            // re-evaluate against the new effective set.
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });
 }
@@ -95,8 +101,10 @@ export function useDeleteUser() {
 
     return useMutation({
         mutationFn: (userId: number) => userApi.deleteUser(userId),
-        onSuccess: () => {
+        onSuccess: (_, userId) => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', userId] });
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });
 }

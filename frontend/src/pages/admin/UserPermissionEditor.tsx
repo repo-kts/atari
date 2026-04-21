@@ -299,6 +299,12 @@ export const UserPermissionEditor: React.FC = () => {
                         </div>
                     )}
 
+                    {data.mode === 'ceiling' && (
+                        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+                            This user is on coarse role-derived permissions. Saving below will switch them to fine-grained per-module control.
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-xl border border-[#E0E0E0] overflow-hidden mt-4">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">

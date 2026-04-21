@@ -22,6 +22,14 @@ export interface CreateUserData {
   permissions?: PermissionAction[];
 }
 
+/** Delta sent by EditUserModal: only actions the admin actually toggled. */
+export interface PermissionsDelta {
+  /** Tick: grant the action on every role-allowed module (matrix select-all). */
+  add?: PermissionAction[];
+  /** Untick: revoke everywhere (per-module + legacy ceiling rows). */
+  remove?: PermissionAction[];
+}
+
 export interface UpdateUserData {
   name?: string;
   email?: string;
@@ -32,7 +40,7 @@ export interface UpdateUserData {
   districtId?: number | null;
   orgId?: number | null;
   kvkId?: number | null;
-  permissions?: PermissionAction[];
+  permissionsDelta?: PermissionsDelta;
 }
 
 export interface RoleInfo {
@@ -114,12 +122,22 @@ export interface UserModuleWithPermissions {
   permissions: UserModulePermission[];
 }
 
+/**
+ * 'per_module' = real per-module rows exist (strict intersection).
+ * 'ceiling'    = only legacy USER_SCOPE rows; matrix shows the role's
+ *                ceiling-derived effective set. First save in either UI
+ *                converts to per-module mode.
+ * 'none'       = no UserPermission rows at all.
+ */
+export type UserPermissionMode = 'per_module' | 'ceiling' | 'none';
+
 export interface UserPermissionsResponse {
   userId: number;
   name: string;
   email: string;
   roleId: number;
   roleName: string;
+  mode: UserPermissionMode;
   modules: UserModuleWithPermissions[];
 }
 
