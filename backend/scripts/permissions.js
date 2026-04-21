@@ -14,6 +14,7 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Organization Master', moduleCode: 'all_masters_organization_master' },
   { menuName: 'All Masters', subMenuName: 'Districts Master', moduleCode: 'all_masters_districts_master' },
   { menuName: 'All Masters', subMenuName: 'University Master', moduleCode: 'all_masters_university_master' },
+  { menuName: 'All Masters', subMenuName: 'KVK Master', moduleCode: 'all_masters_kvks' },
   { menuName: 'All Masters', subMenuName: 'OFT Master', moduleCode: 'all_masters_oft_master' },
   { menuName: 'All Masters', subMenuName: 'FLD Master', moduleCode: 'all_masters_fld_master' },
   { menuName: 'All Masters', subMenuName: 'CFLD Master', moduleCode: 'all_masters_cfld_master' },
@@ -123,7 +124,7 @@ const BASE_USER_MODULES = [
   'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors',
   'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory',
   'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada',
-  'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'all_masters_nicra_master', 'all_masters_natural_farming_master', 'module_images', 'notifications',
+  'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'all_masters_nicra_master', 'all_masters_natural_farming_master', 'module_images', 'notifications', 'form_summary_status',
 ];
 
 const USER_ACTIONS = PERMISSION_ACTIONS;
@@ -132,32 +133,32 @@ const ROLE_PERMISSIONS = {
   super_admin: { permissions: 'ALL' },
   zone_admin: {
     permissions: {
-      modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
   },
   state_admin: {
     permissions: {
-      modules: ['all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'performance_indicators_impact', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      modules: ['all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'performance_indicators_impact', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
   },
   district_admin: {
     permissions: {
-      modules: ['all_masters_districts_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      modules: ['all_masters_districts_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
       actions: ['VIEW', 'ADD', 'EDIT'],
     },
   },
   org_admin: {
     permissions: {
-      modules: ['all_masters_organization_master', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      modules: ['all_masters_organization_master', 'all_masters_kvks', 'user_management_users', 'about_kvks_view_kvks', 'about_kvks_employee_details', 'achievements_technical_achievement_summary', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
       actions: ['VIEW', 'ADD', 'EDIT'],
     },
   },
   kvk_admin: {
     permissions: {
       modules: [
-        'all_masters_zone_master', 'all_masters_states_master', 'all_masters_organization_master', 'all_masters_districts_master', 'all_masters_university_master',
+        'all_masters_zone_master', 'all_masters_states_master', 'all_masters_organization_master', 'all_masters_districts_master', 'all_masters_university_master', 'all_masters_kvks',
         'all_masters_oft_master', 'all_masters_fld_master', 'all_masters_cfld_master', 'all_masters_training_master', 'all_masters_extension_activity_master',
         'all_masters_other_extension_activity_master', 'all_masters_events_master', 'all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master',
         'all_masters_tsp_scsp_master', 'all_masters_natural_farming_master',
@@ -171,24 +172,35 @@ const ROLE_PERMISSIONS = {
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
   },
+  // _user roles: role permissions define the CEILING (maximum possible access).
+  // Actual access is the intersection of role permissions ∩ user-level permissions
+  // (either USER_SCOPE legacy rows or per-module rows set via the editor).
+  // All 4 actions are included so admins can grant any combination when creating
+  // users. Admin-tier masters are deliberately excluded — *_user roles see only
+  // the work-surface modules (About KVKs / Achievements / Performance / etc.)
+  // plus the user-tier masters (NICRA, natural farming).
   kvk_user: {
-    // _user roles: role permissions define the CEILING (maximum possible access).
-    // Actual access is the intersection of role permissions ∩ user-level permissions (granted during user creation).
-    // All 4 actions are included so admins can grant any combination when creating users.
     permissions: {
-      modules: [
-        'all_masters_zone_master', 'all_masters_states_master', 'all_masters_organization_master', 'all_masters_districts_master', 'all_masters_university_master',
-        'all_masters_oft_master', 'all_masters_fld_master', 'all_masters_cfld_master', 'all_masters_training_master', 'all_masters_extension_activity_master',
-        'all_masters_other_extension_activity_master', 'all_masters_events_master', 'all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master',
-        'all_masters_tsp_scsp_master', 'all_masters_natural_farming_master',
-        'all_masters_publication_master', 'all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master',
-        'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master',
-        'all_masters_soil_water_analysis_master', 'all_masters_nari_activity_master', 'all_masters_nari_garden_type_master', 'all_masters_nicra_master',
-        'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master',
-        'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master',
-        'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'module_images', 'notifications', 'form_summary_status'
-      ],
-      actions: ['VIEW', 'ADD', 'EDIT'],
+      modules: [...BASE_USER_MODULES],
+      actions: USER_ACTIONS,
+    },
+  },
+  state_user: {
+    permissions: {
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
+    },
+  },
+  district_user: {
+    permissions: {
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
+    },
+  },
+  org_user: {
+    permissions: {
+      modules: [...BASE_USER_MODULES, 'reports'],
+      actions: USER_ACTIONS,
     },
   },
 };
