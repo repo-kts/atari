@@ -17,7 +17,7 @@ import {
     AccountTypeEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, useDisciplines } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, useDisciplines, useFundingSources } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -45,6 +45,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: infraMasters = [] } = useInfraMasters()
     const { data: staffCategories = [] } = useStaffCategories()
     const { data: payLevels = [] } = usePayLevels()
+    const { data: fundingSources = [] } = useFundingSources()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
@@ -422,51 +423,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             label="Completed upto plinth level"
                             required
                             value={formData.completedPlinthLevel !== undefined ? (formData.completedPlinthLevel ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, completedPlinthLevel: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
-                        />
-                        <FormSelect
-                            label="Completed upto lintel level"
-                            required
-                            value={formData.completedLintelLevel !== undefined ? (formData.completedLintelLevel ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, completedLintelLevel: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Completed upto roof level"
-                            required
-                            value={formData.completedRoofLevel !== undefined ? (formData.completedRoofLevel ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, completedRoofLevel: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
-                        />
-                        <FormSelect
-                            label="Not Yet Started"
-                            required
-                            value={formData.notYetStarted !== undefined ? (formData.notYetStarted ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, notYetStarted: e.target.value === 'Yes' })}
-                            options={[
-                                { value: 'Yes', label: 'Yes' },
-                                { value: 'No', label: 'No' }
-                            ]}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Totally Completed"
-                            required
-                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
-                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                            onChange={(e) => {
+                                const isYes = e.target.value === 'Yes'
+                                setFormData({
+                                    ...formData,
+                                    completedPlinthLevel: isYes,
+                                    // When No, force plinth area to 0 (disabled input below)
+                                    plinthAreaSqM: isYes ? formData.plinthAreaSqM : 0,
+                                })
+                            }}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
                                 { value: 'No', label: 'No' }
@@ -477,8 +442,57 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             type="number"
                             step="0.01"
-                            value={formData.plinthAreaSqM ?? ''}
+                            disabled={formData.completedPlinthLevel === false}
+                            value={
+                                formData.completedPlinthLevel === false
+                                    ? 0
+                                    : formData.plinthAreaSqM ?? ''
+                            }
                             onChange={(e) => setFormData({ ...formData, plinthAreaSqM: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Completed upto lintel level"
+                            required
+                            value={formData.completedLintelLevel !== undefined ? (formData.completedLintelLevel ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, completedLintelLevel: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                        <FormSelect
+                            label="Completed upto roof level"
+                            required
+                            value={formData.completedRoofLevel !== undefined ? (formData.completedRoofLevel ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, completedRoofLevel: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Not Yet Started"
+                            required
+                            value={formData.notYetStarted !== undefined ? (formData.notYetStarted ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, notYetStarted: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
+                        />
+                        <FormSelect
+                            label="Totally Completed"
+                            required
+                            value={formData.totallyCompleted !== undefined ? (formData.totallyCompleted ? 'Yes' : 'No') : ''}
+                            onChange={(e) => setFormData({ ...formData, totallyCompleted: e.target.value === 'Yes' })}
+                            options={[
+                                { value: 'Yes', label: 'Yes' },
+                                { value: 'No', label: 'No' }
+                            ]}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -492,12 +506,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 { value: 'No', label: 'No' }
                             ]}
                         />
-                        <FormInput
+                        <FormSelect
                             label="Source of Funding"
                             required
                             value={formData.sourceOfFunding ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
-                            placeholder="Enter source of funding"
+                            options={fundingSources.map((f: any) => ({
+                                value: f.name,
+                                label: f.name,
+                            }))}
                         />
                     </div>
                 </div>
