@@ -613,6 +613,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {/* Vehicle Details Form */}
             {entityType === ENTITY_TYPES.KVK_VEHICLE_DETAILS && (
                 <div className="space-y-4">
+                    {!formData.reportingYear && (
+                        <div
+                            role="status"
+                            className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800"
+                        >
+                            Please select reporting date first.
+                        </div>
+                    )}
                     <FormInput
                         label="Reporting Year Date"
                         required
@@ -644,6 +652,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.totalRun ?? ''}
                             onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
                             placeholder="Enter total run"
+                            disabled={!formData.reportingYear}
                         />
                         <FormSelect
                             label="Present Status"
@@ -651,6 +660,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.vehicleStatusId ?? ''}
                             onChange={(e) => setFormData({ ...formData, vehicleStatusId: parseInt(e.target.value) })}
                             options={vehicleStatuses.map((status: any) => ({ value: status.vehicleStatusId, label: status.statusLabel }))}
+                            disabled={!formData.reportingYear}
                         />
                     </div>
                     <FormInput
@@ -659,12 +669,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.repairingCost ?? ''}
                         onChange={(e) => setFormData({ ...formData, repairingCost: parseFloat(e.target.value) })}
                         placeholder="Enter repairing cost (optional)"
+                        disabled={!formData.reportingYear}
                     />
                     <FormInput
                         label="Source of Funding"
                         value={formData.sourceOfFunding ?? ''}
                         onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
                         placeholder="Enter source of funding"
+                        disabled={!formData.reportingYear}
                     />
                 </div>
             )}
