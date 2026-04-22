@@ -167,6 +167,12 @@ exports.createPayLevel = create('pay-level');
 exports.updatePayLevel = update('pay-level');
 exports.deletePayLevel = deleteEntity('pay-level');
 
+exports.getAllPayScales = getAll('pay-scale');
+exports.getPayScaleById = getById('pay-scale');
+exports.createPayScale = create('pay-scale');
+exports.updatePayScale = update('pay-scale');
+exports.deletePayScale = deleteEntity('pay-scale');
+
 exports.getAllDisciplines = getAll('discipline');
 exports.getDisciplineById = getById('discipline');
 exports.createDiscipline = create('discipline');

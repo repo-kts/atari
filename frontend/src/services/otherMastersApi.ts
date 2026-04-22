@@ -66,6 +66,14 @@ export interface PayLevel {
     };
 }
 
+export interface PayScale {
+    payScaleId: number;
+    scaleName: string;
+    _count?: {
+        staff: number;
+    };
+}
+
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
@@ -141,6 +149,10 @@ export interface StaffCategoryFormData {
 
 export interface PayLevelFormData {
     levelName: string;
+}
+
+export interface PayScaleFormData {
+    scaleName: string;
 }
 
 export interface DisciplineFormData {
@@ -441,6 +453,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<PayLevel>>(`${BASE_URL}/pay-level/${id}`, data),
     deletePayLevel: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-level/${id}`),
+
+    getPayScales: () =>
+        apiClient.get<PaginatedResponse<PayScale>>(`${BASE_URL}/pay-scale`),
+    getPayScaleById: (id: number) =>
+        apiClient.get<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale/${id}`),
+    createPayScale: (data: PayScaleFormData) =>
+        apiClient.post<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale`, data),
+    updatePayScale: (id: number, data: Partial<PayScaleFormData>) =>
+        apiClient.put<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale/${id}`, data),
+    deletePayScale: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-scale/${id}`),
 
     getDisciplines: () =>
         apiClient.get<PaginatedResponse<Discipline>>(`${BASE_URL}/discipline`),

@@ -7,6 +7,7 @@ import type {
     SanctionedPostFormData,
     StaffCategoryFormData,
     PayLevelFormData,
+    PayScaleFormData,
     DisciplineFormData,
     ExtensionActivityTypeFormData,
     OtherExtensionActivityTypeFormData,
@@ -240,6 +241,50 @@ export function usePayLevels() {
         mutationFn: (id: number) => otherMastersApi.deletePayLevel(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.PAY_LEVEL);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function usePayScales() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['pay-scales'],
+        queryFn: () => otherMastersApi.getPayScales().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: PayScaleFormData) => otherMastersApi.createPayScale(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<PayScaleFormData> }) =>
+            otherMastersApi.updatePayScale(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deletePayScale(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
         },
     });
 

@@ -53,6 +53,18 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                 />
             )}
 
+            {entityType === ENTITY_TYPES.PAY_SCALE && (
+                <FormInput
+                    label="Scale Name"
+                    required
+                    value={formData.scaleName ?? ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, scaleName: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="e.g. 15600-39100"
+                />
+            )}
+
             {entityType === ENTITY_TYPES.SANCTIONED_POST && (
                 <FormInput
                     label="Post Name"

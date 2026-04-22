@@ -37,7 +37,7 @@ const BANK_ACCOUNT_ALLOWED_KEYS = [
 
 const STAFF_ALLOWED_KEYS = [
     'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
-    'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScale', 'dateOfJoining',
+    'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScaleId', 'dateOfJoining',
     'jobType', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
     'staffCategoryId', 'payLevelId',
 ] as const;
