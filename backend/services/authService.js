@@ -1,50 +1,41 @@
 const authRepository = require('../repositories/authRepository.js');
-const userPermissionRepository = require('../repositories/userPermissionRepository.js');
-const rolePermissionRepository = require('../repositories/rolePermissionRepository.js');
 const logHistoryService = require('./logHistoryService.js');
+const permissionResolverService = require('./auth/permissionResolverService.js');
 const { comparePassword } = require('../utils/password.js');
 const { generateAccessToken, generateRefreshToken, verifyToken, decodeToken } = require('../utils/jwt.js');
 const { validateEmail } = require('../utils/validation.js');
 
 /**
- * Build the permissionsByModule map for a user.
+ * Resolve the permissionsByModule map for the login / /me response.
  *
- * For *_user roles (state_user, district_user, org_user):
- *   The role defines the ceiling (which modules/actions are available).
- *   The user's individual actions (set at creation time) act as a filter.
- *   Effective = role permissions  ∩  user-level actions.
- *   Modules where no actions survive the intersection are dropped entirely.
+ * Single source of truth: permissionResolverService.getEffectivePermissions.
+ * Same function the authenticateToken middleware uses on every request, so
+ * the frontend's cached permissions always match what the backend enforces.
  *
- * For all other roles (admins, kvk, etc.):
- *   Role permissions are returned as-is — no user-level filtering.
+ * For *_user roles the resolver handles both per-module rows (strict
+ * intersection) and legacy USER_SCOPE rows (flat ceiling fallback). Admin
+ * roles return their role permissions as-is.
+ *
+ * The flat `userActions` field is preserved for backward compatibility
+ * with older login response consumers, but is derived from the effective
+ * module map rather than from raw UserPermission rows — previously it was
+ * "user has some row carrying action X" which silently widened access to
+ * every module in the role's ceiling.
  *
  * @param {number} roleId
  * @param {string} roleName
  * @param {number} userId
- * @returns {{ permissionsByModule: Record<string, string[]>, userActions: string[] }}
+ * @returns {Promise<{ permissionsByModule: Record<string, string[]>, userActions: string[] }>}
  */
-async function buildPermissionsByModule(roleId, roleName, userId) {
-    const permissionsByModule = await rolePermissionRepository.getRolePermissionsByModule(roleId);
-    let userActions = [];
-
-    if (roleName.endsWith('_user')) {
-        userActions = await userPermissionRepository.getUserPermissionActions(userId);
-        // Guard is intentional policy: empty userActions means "no individual restrictions
-        // have been configured for this user", so the role's full permission set is used
-        // unchanged. Removing the guard would cause _user accounts without explicit action
-        // assignments to lose all access, which is not the intended behaviour.
-        // See: docs/GRANULAR_PERMISSIONS_IMPLEMENTATION_PLAN.md § Phase 1.2
-        if (userActions.length > 0) {
-            // Intersection: keep only the actions the individual user was granted
-            for (const code of Object.keys(permissionsByModule)) {
-                permissionsByModule[code] = permissionsByModule[code].filter(a => userActions.includes(a));
-                if (permissionsByModule[code].length === 0) {
-                    delete permissionsByModule[code];
-                }
-            }
-        }
-    }
-
+async function resolvePermissionsForResponse(roleId, roleName, userId) {
+    const permissionsByModule = await permissionResolverService.getEffectivePermissions({
+        userId,
+        roleId,
+        roleName,
+    });
+    const userActions = Array.from(
+        new Set(Object.values(permissionsByModule).flat()),
+    );
     return { permissionsByModule, userActions };
 }
 
@@ -81,10 +72,10 @@ const authService = {
             throw new Error('Invalid email or password');
         }
 
-        // Build permissions before generating the token so they can be embedded in it.
-        // For *_user roles the result is the intersection of role-level permissions
-        // and the user's individually assigned actions.
-        const { permissionsByModule, userActions } = await buildPermissionsByModule(
+        // Build permissions via the shared resolver so the login response
+        // reflects exactly what the authenticateToken middleware will enforce
+        // on subsequent requests.
+        const { permissionsByModule, userActions } = await resolvePermissionsForResponse(
             user.roleId,
             user.role.roleName,
             user.userId,
@@ -307,9 +298,9 @@ const authService = {
             throw new Error('User account has been deleted');
         }
 
-        // Build permissions: for *_user roles the result is the intersection of
-        // role-level permissions and the user's individually assigned actions.
-        const { permissionsByModule, userActions } = await buildPermissionsByModule(
+        // Shared resolver — same function the middleware uses on every request,
+        // so /auth/me and permission gates can never disagree.
+        const { permissionsByModule, userActions } = await resolvePermissionsForResponse(
             user.roleId,
             user.role.roleName,
             user.userId,
