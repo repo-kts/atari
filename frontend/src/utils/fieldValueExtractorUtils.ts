@@ -738,6 +738,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+    [FIELD_NAMES.PAY_SCALE]: {
+        extractor: (item: any) => {
+            if (item?.payScale?.scaleName) return item.payScale.scaleName;
+            if (typeof item?.payScale === 'string' && item.payScale) return item.payScale;
+            return null;
+        },
+        priority: 7,
+    },
     [FIELD_NAMES.RESUME_PATH]: {
         extractor: (item: any) => {
             // Handle resumePath - show value even if it's "NA" or empty string

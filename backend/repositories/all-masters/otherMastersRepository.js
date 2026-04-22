@@ -62,6 +62,19 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'pay-scale': {
+        model: 'payScaleMaster',
+        idField: 'payScaleId',
+        nameField: 'scaleName',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    staff: true,
+                },
+            },
+        },
+    },
     'discipline': {
         model: 'discipline',
         idField: 'disciplineId',

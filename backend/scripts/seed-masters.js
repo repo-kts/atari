@@ -20,6 +20,12 @@ const PAY_LEVELS = [
   'Level 13', 'Level 14', 'Level 15', 'Level 16', 'Level 17', 'Level 18'
 ];
 
+const PAY_SCALES = [
+  '15600-39100',
+  '9300-34800',
+  '5200-20200',
+];
+
 // Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
   'Extension Personnel',
@@ -752,6 +758,14 @@ async function seedStaffMasters() {
       where: { levelName },
       update: {},
       create: { levelName },
+    });
+  }
+
+  for (const scaleName of PAY_SCALES) {
+    await prisma.payScaleMaster.upsert({
+      where: { scaleName },
+      update: {},
+      create: { scaleName },
     });
   }
 

@@ -73,6 +73,7 @@ export const FIELD_NAMES = {
 
     // Other Master Fields
     LEVEL_NAME: 'levelName',
+    SCALE_NAME: 'scaleName',
     DISCIPLINE_NAME: 'disciplineName',
     POST_NAME: 'postName',
     YEAR_NAME: 'yearName',
@@ -690,6 +691,7 @@ export const FIELD_GROUPS = {
     // All Masters - Other Masters
     STAFF_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
     PAY_LEVEL_MASTER: [FIELD_NAMES.LEVEL_NAME] as const,
+    PAY_SCALE_MASTER: [FIELD_NAMES.SCALE_NAME] as const,
     DISCIPLINE_MASTER: [FIELD_NAMES.DISCIPLINE_NAME] as const,
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,

@@ -92,7 +92,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Other Masters',
                 path: '/all-master/other-masters',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_vehicle_present_status_master', 'all_masters_equipment_present_status_master', 'all_masters_events_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master'],
+                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_pay_scale_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_vehicle_present_status_master', 'all_masters_equipment_present_status_master', 'all_masters_events_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master'],
             },
         ],
     },

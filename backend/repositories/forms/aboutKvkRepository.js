@@ -69,6 +69,9 @@ const ENTITY_CONFIG = {
             },
             payLevel: {
                 select: { payLevelId: true, levelName: true }
+            },
+            payScale: {
+                select: { payScaleId: true, scaleName: true }
             }
         }
     },
@@ -95,6 +98,9 @@ const ENTITY_CONFIG = {
             },
             payLevel: {
                 select: { payLevelId: true, levelName: true }
+            },
+            payScale: {
+                select: { payScaleId: true, scaleName: true }
             }
         }
     },
@@ -526,6 +532,15 @@ function convertRelationFieldsForStaff(data) {
         delete converted.payLevelId;
     }
 
+    if (converted.payScaleId !== undefined) {
+        if (converted.payScaleId === null || converted.payScaleId === '') {
+            converted.payScale = { disconnect: true };
+        } else {
+            converted.payScale = { connect: { payScaleId: converted.payScaleId } };
+        }
+        delete converted.payScaleId;
+    }
+
     if (converted.originalKvkId !== undefined) {
         if (converted.originalKvkId === null || converted.originalKvkId === '') {
             converted.originalKvk = { disconnect: true };
@@ -579,7 +594,7 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'sanctionedPostId',
     'positionOrder',
     'disciplineId',
-    'payScale',
+    'payScaleId',
     'dateOfJoining',
     'jobType',
     'allowances',

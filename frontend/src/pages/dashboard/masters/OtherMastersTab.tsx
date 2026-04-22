@@ -9,6 +9,7 @@ const sections: FeatureSection[] = [
         items: [
             { label: 'Staff Category Master', path: '/all-master/staff-category' },
             { label: 'Pay Level Master', path: '/all-master/pay-level' },
+            { label: 'Pay Scale Master', path: '/all-master/pay-scale' },
             { label: 'Sanctioned Post Master', path: '/all-master/sanctioned-post' },
             { label: 'Discipline Master', path: '/all-master/discipline' },
         ],

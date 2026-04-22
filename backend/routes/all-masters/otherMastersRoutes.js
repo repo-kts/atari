@@ -62,6 +62,12 @@ router.post('/pay-level',    requirePermission('all_masters_pay_level_master', '
 router.put('/pay-level/:id', requirePermission('all_masters_pay_level_master', 'EDIT'),   otherMastersController.updatePayLevel);
 router.delete('/pay-level/:id', requirePermission('all_masters_pay_level_master', 'DELETE'), otherMastersController.deletePayLevel);
 
+router.get('/pay-scale',     otherMastersController.getAllPayScales);
+router.get('/pay-scale/:id', otherMastersController.getPayScaleById);
+router.post('/pay-scale',    requirePermission('all_masters_pay_scale_master', 'ADD'),    otherMastersController.createPayScale);
+router.put('/pay-scale/:id', requirePermission('all_masters_pay_scale_master', 'EDIT'),   otherMastersController.updatePayScale);
+router.delete('/pay-scale/:id', requirePermission('all_masters_pay_scale_master', 'DELETE'), otherMastersController.deletePayScale);
+
 router.get('/discipline',     otherMastersController.getAllDisciplines);
 router.get('/discipline/:id', otherMastersController.getDisciplineById);
 router.post('/discipline',    requirePermission('all_masters_discipline_master', 'ADD'),    otherMastersController.createDiscipline);

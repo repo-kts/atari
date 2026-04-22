@@ -17,7 +17,7 @@ import {
     AccountTypeEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, useDisciplines, useFundingSources } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -45,6 +45,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: infraMasters = [] } = useInfraMasters()
     const { data: staffCategories = [] } = useStaffCategories()
     const { data: payLevels = [] } = usePayLevels()
+    const { data: payScales = [] } = usePayScales()
     const { data: fundingSources = [] } = useFundingSources()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
@@ -207,120 +208,52 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             )}
 
             {(entityType === ENTITY_TYPES.KVK_EMPLOYEES) && (
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Sanctioned Post"
-                            required
-                            value={formData.sanctionedPostId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
-                            options={sanctionedPosts.map((p: any) => ({ value: p.sanctionedPostId, label: p.postName }))}
-                        />
-                        <FormInput
-                            label="Staff Name"
-                            required
-                            value={formData.staffName ?? ''}
-                            onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
-                            placeholder="Enter staff name"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Position Order"
-                            required
-                            value={formData.positionOrder ?? ''}
-                            onChange={(e) => setFormData({ ...formData, positionOrder: parseInt(e.target.value) })}
-                            placeholder="Position Order"
-                        />
-                        <FormInput
-                            label="Mobile"
-                            required
-                            value={formData.mobile ?? ''}
-                            onChange={(e) =>
-                                setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
-                            }
-                            placeholder="10-digit mobile"
-                            inputMode="numeric"
-                            autoComplete="tel"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Email"
-                            type="email"
-                            value={formData.email ?? ''}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="Email address"
-                        />
-                        <FormSelect
-                            label="Pay Level"
-                            value={formData.payLevelId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
-                            options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Pay Scale"
-                            value={formData.payScale ?? ''}
-                            onChange={(e) => setFormData({ ...formData, payScale: e.target.value })}
-                            placeholder="e.g., 15600-39100"
-                        />
-                        <FormSelect
-                            label="Discipline"
-                            required
-                            value={formData.disciplineId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
-                            options={disciplines.map((d: any) => ({ value: d.disciplineId, label: d.disciplineName }))}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Date of Birth"
-                            required
-                            type="date"
-                            value={formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : ''}
-                            onChange={(e) => setFormData({ ...formData, dateOfBirth: new Date(e.target.value).toISOString() })}
-                        />
-                        <FormInput
-                            label="Date of Joining"
-                            required
-                            type="date"
-                            value={formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString().split('T')[0] : ''}
-                            onChange={(e) => setFormData({ ...formData, dateOfJoining: new Date(e.target.value).toISOString() })}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Job Type"
-                            value={formData.jobType ?? ''}
-                            onChange={(e) => setFormData({ ...formData, jobType: e.target.value || '' })}
-                            options={[
-                                { value: 'PERMANENT', label: 'Permanent' },
-                                { value: 'TEMPORARY', label: 'Temporary' }
-                            ]}
-                        />
-                        <FormInput
-                            label="Details of Allowances"
-                            value={formData.allowances ?? ''}
-                            onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
-                            placeholder="Allowances"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Category"
-                            required
-                            value={formData.staffCategoryId ?? ''}
-                            onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
-                            options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
-                        />
-                        <FormInput
-                            label="Resume"
-                            value={formData.resumePath ?? ''}
-                            onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
-                            placeholder="Resume link"
-                        />
+                <div className="space-y-6">
+                    <FormSection title="Personal Details">
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormInput
+                                label="Staff Name"
+                                required
+                                value={formData.staffName ?? ''}
+                                onChange={(e) => setFormData({ ...formData, staffName: e.target.value })}
+                                placeholder="Enter staff name"
+                            />
+                            <FormInput
+                                label="Date of Birth"
+                                required
+                                type="date"
+                                value={formData.dateOfBirth ? new Date(formData.dateOfBirth).toISOString().split('T')[0] : ''}
+                                onChange={(e) => setFormData({ ...formData, dateOfBirth: new Date(e.target.value).toISOString() })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormInput
+                                label="Mobile"
+                                required
+                                value={formData.mobile ?? ''}
+                                onChange={(e) =>
+                                    setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                                }
+                                placeholder="10-digit mobile"
+                                inputMode="numeric"
+                                autoComplete="tel"
+                            />
+                            <FormInput
+                                label="Email"
+                                type="email"
+                                value={formData.email ?? ''}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="Email address"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormInput
+                                label="Resume"
+                                value={formData.resumePath ?? ''}
+                                onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
+                                placeholder="Resume link"
+                            />
+                        </div>
                         <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
                             <FormInput
                                 label=""
@@ -404,8 +337,85 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 </div>
                             )}
                         </FormSection>
+                    </FormSection>
 
-                    </div>
+                    <FormSection title="Job Details">
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormSelect
+                                label="Sanctioned Post"
+                                required
+                                value={formData.sanctionedPostId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
+                                options={sanctionedPosts.map((p: any) => ({ value: p.sanctionedPostId, label: p.postName }))}
+                            />
+                            <FormSelect
+                                label="Position Order"
+                                required
+                                value={formData.positionOrder ?? ''}
+                                onChange={(e) => setFormData({ ...formData, positionOrder: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                                options={Array.from({ length: 20 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormSelect
+                                label="Discipline"
+                                required
+                                value={formData.disciplineId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
+                                options={disciplines.map((d: any) => ({ value: d.disciplineId, label: d.disciplineName }))}
+                            />
+                            <FormInput
+                                label="Date of Joining"
+                                required
+                                type="date"
+                                value={formData.dateOfJoining ? new Date(formData.dateOfJoining).toISOString().split('T')[0] : ''}
+                                onChange={(e) => setFormData({ ...formData, dateOfJoining: new Date(e.target.value).toISOString() })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormSelect
+                                label="Job Type"
+                                value={formData.jobType ?? ''}
+                                onChange={(e) => setFormData({ ...formData, jobType: e.target.value || '' })}
+                                options={[
+                                    { value: 'PERMANENT', label: 'Permanent' },
+                                    { value: 'TEMPORARY', label: 'Temporary' }
+                                ]}
+                            />
+                            <FormSelect
+                                label="Pay Level"
+                                value={formData.payLevelId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
+                                options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormSelect
+                                label="Pay Scale"
+                                value={formData.payScaleId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, payScaleId: e.target.value ? parseInt(e.target.value) : null })}
+                                options={payScales.map((p: any) => ({ value: p.payScaleId, label: p.scaleName }))}
+                            />
+                            <FormInput
+                                label="Details of Allowances"
+                                value={formData.allowances ?? ''}
+                                onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
+                                placeholder="Allowances"
+                            />
+                        </div>
+                    </FormSection>
+
+                    <FormSection title="Other">
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormSelect
+                                label="Category"
+                                required
+                                value={formData.staffCategoryId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
+                                options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
+                            />
+                        </div>
+                    </FormSection>
                 </div>
             )}
 

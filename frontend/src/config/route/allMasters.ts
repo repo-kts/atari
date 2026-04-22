@@ -444,6 +444,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_pay_level_master',
     },
     {
+        path: ENTITY_PATHS.PAY_SCALE,
+        title: 'Pay Scale Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.PAY_SCALE_MASTER,
+        moduleCode: 'all_masters_pay_scale_master',
+    },
+    {
         path: ENTITY_PATHS.DISCIPLINE,
         title: 'Discipline Master',
         category: 'All Masters',

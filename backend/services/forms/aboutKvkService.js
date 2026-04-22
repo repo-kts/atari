@@ -243,7 +243,7 @@ class AboutKvkService {
             // Nested objects (these are relations, not data fields)
             'kvk', 'zone', 'state', 'district', 'org', 'organization',
             'sanctionedPost', 'discipline', 'infraMaster', 'staffCategory', 'payLevel',
-            'vehicle', 'equipment'
+            'payScale', 'vehicle', 'equipment'
         ];
         // Allow updating geo/org fields for KVK entity itself
         // Note: universityId should also be updatable
