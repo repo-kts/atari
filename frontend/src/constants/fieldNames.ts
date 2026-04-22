@@ -175,6 +175,7 @@ export const FIELD_NAMES = {
     AREA_IN_ACRE: 'areaInAcre',
     AREA_PRACTICING: 'areaPracticing',
     PLINTH_AREA_SQ_M: 'plinthAreaSqM',
+    LAND_ITEM: 'item',
 
     // Yield Fields
     YIELD: 'yield',
@@ -797,6 +798,11 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TOTAL_COST_RS,
         FIELD_NAMES.PRESENT_STATUS,
         FIELD_NAMES.SOURCE_OF_FUND,
+    ] as const,
+    LAND_DETAILS: [
+        FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.LAND_ITEM,
+        FIELD_NAMES.AREA_HA,
     ] as const,
 
     // Projects Routes - CFLD

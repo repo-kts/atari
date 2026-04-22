@@ -193,6 +193,12 @@ exports.createKvkFarmImplement = create('kvk-farm-implements');
 exports.updateKvkFarmImplement = update('kvk-farm-implements');
 exports.deleteKvkFarmImplement = deleteEntity('kvk-farm-implements');
 
+exports.getAllKvkLandDetails = getAll('kvk-land-details');
+exports.getKvkLandDetailById = getById('kvk-land-details');
+exports.createKvkLandDetail = create('kvk-land-details');
+exports.updateKvkLandDetail = update('kvk-land-details');
+exports.deleteKvkLandDetail = deleteEntity('kvk-land-details');
+
 // ============================================
 // Master Data Controllers (for dropdowns)
 // ============================================

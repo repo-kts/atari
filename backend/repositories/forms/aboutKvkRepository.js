@@ -151,6 +151,14 @@ const ENTITY_CONFIG = {
             kvk: { select: { kvkId: true, kvkName: true } }
         }
     },
+    'kvk-land-details': {
+        model: 'kvkLandDetail',
+        idField: 'landId',
+        nameField: 'item',
+        includes: {
+            kvk: { select: { kvkId: true, kvkName: true } }
+        }
+    },
     'staff-transfer-history': {
         model: 'staffTransferHistory',
         idField: 'transferId',
@@ -870,6 +878,27 @@ function sanitizeData(entityName, data) {
                 delete sanitized[field];
             }
         });
+    }
+
+    if (entityName === 'kvk-land-details') {
+        const allowedFields = ['kvkId', 'item', 'areaHa'];
+
+        Object.keys(sanitized).forEach((field) => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+
+        if (sanitized.kvkId !== undefined) {
+            sanitized.kvkId = sanitizeInteger(safeGet(data, 'kvkId'));
+        }
+        if (sanitized.item !== undefined) {
+            sanitized.item = sanitizeString(safeGet(data, 'item'), { allowEmpty: false });
+        }
+        if (sanitized.areaHa !== undefined) {
+            const numericValue = Number(safeGet(data, 'areaHa'));
+            sanitized.areaHa = Number.isNaN(numericValue) ? 0 : numericValue;
+        }
     }
 
     return sanitized;

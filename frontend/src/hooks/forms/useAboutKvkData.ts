@@ -10,6 +10,7 @@ import type {
     KvkVehicleFormData,
     KvkEquipmentFormData,
     KvkFarmImplementFormData,
+    KvkLandDetailFormData,
 } from '../../types/aboutKvk';
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 
@@ -402,6 +403,30 @@ export function useKvkFarmImplements(params?: any) {
     };
 }
 
+export function useKvkLandDetails(params?: any) {
+    const { user } = useAuth();
+    const query = useQuery({
+        queryKey: buildQueryKey('kvk-land-details', params, user),
+        queryFn: () => aboutKvkApi.getKvkLandDetails(params).then(res => res.data),
+    });
+
+    const mutations = useEntityMutation<KvkLandDetailFormData>(
+        buildQueryKey('kvk-land-details', undefined, user),
+        {
+            create: aboutKvkApi.createKvkLandDetail,
+            update: aboutKvkApi.updateKvkLandDetail,
+            delete: aboutKvkApi.deleteKvkLandDetail,
+        }
+    );
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        ...mutations,
+    };
+}
+
 // ============================================
 // Staff Transfer Hooks
 // ============================================
@@ -455,6 +480,7 @@ export type AboutKvkEntity =
     | typeof ENTITY_TYPES.KVK_EMPLOYEES
     | typeof ENTITY_TYPES.KVK_STAFF_TRANSFERRED
     | typeof ENTITY_TYPES.KVK_INFRASTRUCTURE
+    | typeof ENTITY_TYPES.KVK_LAND_DETAILS
     | typeof ENTITY_TYPES.KVK_VEHICLES
     | typeof ENTITY_TYPES.KVK_VEHICLE_DETAILS
     | typeof ENTITY_TYPES.KVK_EQUIPMENTS
@@ -468,6 +494,7 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
     const employees = useKvkEmployees();
     const transferred = useKvkStaffTransferred();
     const infra = useKvkInfrastructure();
+    const landDetails = useKvkLandDetails();
     const vehicles = useKvkVehicles();
     const vehicleDetails = useKvkVehicleDetails();
     const equipments = useKvkEquipments();
@@ -491,6 +518,7 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
         case ENTITY_TYPES.KVK_EMPLOYEES: return employees;
         case ENTITY_TYPES.KVK_STAFF_TRANSFERRED: return transferred;
         case ENTITY_TYPES.KVK_INFRASTRUCTURE: return infra;
+        case ENTITY_TYPES.KVK_LAND_DETAILS: return landDetails;
         case ENTITY_TYPES.KVK_VEHICLES: return vehicles;
         case ENTITY_TYPES.KVK_VEHICLE_DETAILS: return vehicleDetails;
         case ENTITY_TYPES.KVK_EQUIPMENTS: return equipments;

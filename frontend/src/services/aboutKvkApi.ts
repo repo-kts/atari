@@ -11,6 +11,7 @@ import type {
     KvkVehicle,
     KvkEquipment,
     KvkFarmImplement,
+    KvkLandDetail,
     KvkFormData,
     KvkBankAccountFormData,
     KvkEmployeeFormData,
@@ -18,6 +19,7 @@ import type {
     KvkVehicleFormData,
     KvkEquipmentFormData,
     KvkFarmImplementFormData,
+    KvkLandDetailFormData,
 } from '../types/aboutKvk';
 
 const BASE_URL = '/forms/about-kvk';
@@ -63,6 +65,10 @@ const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
 
 const FARM_IMPLEMENT_ALLOWED_KEYS = [
     'kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund',
+] as const;
+
+const LAND_DETAIL_ALLOWED_KEYS = [
+    'kvkId', 'item', 'areaHa',
 ] as const;
 
 function normalizeBankAccountType(value: unknown): 'KVK' | 'REVOLVING_FUND' | 'OTHER' {
@@ -273,6 +279,15 @@ export const aboutKvkApi = {
     createKvkFarmImplement: createSanitizedPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
     updateKvkFarmImplement: createSanitizedPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkFarmImplement: createDeleteEndpoint('/farm-implements'),
+
+    // ============================================
+    // Land Details
+    // ============================================
+    getKvkLandDetails: createGetEndpoint<KvkLandDetail>('/land-details'),
+    getKvkLandDetailById: createGetByIdEndpoint<KvkLandDetail>('/land-details'),
+    createKvkLandDetail: createSanitizedPostEndpoint<KvkLandDetailFormData, KvkLandDetail>('/land-details', LAND_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkLandDetail: createSanitizedPutEndpoint<KvkLandDetailFormData, KvkLandDetail>('/land-details', LAND_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    deleteKvkLandDetail: createDeleteEndpoint('/land-details'),
 
     // ============================================
     // Master Data (for dropdowns)

@@ -66,6 +66,16 @@ router.put('/infrastructure/:id', requirePermission('about_kvks_infrastructure_d
 router.delete('/infrastructure/:id', requirePermission('about_kvks_infrastructure_details', 'DELETE'), aboutKvkController.deleteKvkInfrastructure);
 
 // ============================================
+// KVK Land Details Routes  (moduleCode: about_kvks_infrastructure_details)
+// ============================================
+
+router.get('/land-details', requirePermission('about_kvks_infrastructure_details', 'VIEW'), aboutKvkController.getAllKvkLandDetails);
+router.get('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'VIEW'), aboutKvkController.getKvkLandDetailById);
+router.post('/land-details', requirePermission('about_kvks_infrastructure_details', 'ADD'), aboutKvkController.createKvkLandDetail);
+router.put('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'EDIT'), aboutKvkController.updateKvkLandDetail);
+router.delete('/land-details/:id', requirePermission('about_kvks_infrastructure_details', 'DELETE'), aboutKvkController.deleteKvkLandDetail);
+
+// ============================================
 // KVK Vehicle Routes  (moduleCode: about_kvks_vehicle_details)
 // ============================================
 

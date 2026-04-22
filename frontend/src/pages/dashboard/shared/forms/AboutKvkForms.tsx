@@ -712,6 +712,31 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     </div>
                 </div>
             )}
+            {/* Land Details Form */}
+            {entityType === ENTITY_TYPES.KVK_LAND_DETAILS && (
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormInput
+                            label="Item"
+                            required
+                            value={formData.item ?? ''}
+                            onChange={(e) => setFormData({ ...formData, item: e.target.value })}
+                            placeholder="e.g. Main Farm"
+                        />
+                        <FormInput
+                            label="Area (Ha)"
+                            type="number"
+                            step="any"
+                            required
+                            value={formData.areaHa ?? ''}
+                            onChange={(e) =>
+                                setFormData({ ...formData, areaHa: e.target.value === '' ? '' : parseFloat(e.target.value) })
+                            }
+                            placeholder="0.00"
+                        />
+                    </div>
+                </div>
+            )}
             {entityType === ENTITY_TYPES.KVKS && (
                 <div className="space-y-6">
                     <FormSection title="KVK General Information">

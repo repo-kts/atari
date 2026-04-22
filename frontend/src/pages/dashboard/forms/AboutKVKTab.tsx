@@ -4,6 +4,7 @@ import {
     Truck,
     Wrench,
     FileText,
+    LandPlot,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
@@ -22,7 +23,14 @@ const sections: FeatureSection[] = [
             { label: 'Bank Account Details', path: '/forms/about-kvk/bank-account' },
             { label: 'Employee Details', path: '/forms/about-kvk/employee-details' },
             { label: 'Staff Transferred', path: '/forms/about-kvk/staff-transferred' },
+        ],
+    },
+    {
+        title: 'Infrastructure & Land Details',
+        icon: <LandPlot className="w-5 h-5" />,
+        items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
+            { label: 'Land Details', path: '/forms/about-kvk/land-details' },
         ],
     },
     {
