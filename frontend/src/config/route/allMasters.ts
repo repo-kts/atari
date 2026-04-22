@@ -37,7 +37,7 @@ export const allMastersRoutes: RouteConfig[] = [
     },
     {
         path: ENTITY_PATHS.ORGANIZATIONS,
-        title: 'Organization Master',
+        title: 'Institute Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
         parent: '/all-master',
@@ -48,7 +48,7 @@ export const allMastersRoutes: RouteConfig[] = [
     },
     {
         path: ENTITY_PATHS.UNIVERSITIES,
-        title: 'University Master',
+        title: 'Host Master',
         category: 'All Masters',
         subcategory: 'Basic Masters',
         parent: '/all-master',

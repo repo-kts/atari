@@ -248,7 +248,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 newErrors.districtId = 'District is required'
             }
             if (orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Organization is required'
+                newErrors.orgId = 'Institute is required'
             }
         } else {
             // Sub-admin: validate form-selected hierarchy fields below their level
@@ -540,7 +540,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 {/* Hierarchy info for sub-admins */}
                 {isSubAdmin && !showStateForSubAdmin && !showDistrictForSubAdmin && !showOrgForSubAdmin && selectedRole !== 'kvk_admin' && selectedRole !== 'kvk_user' && (
                     <p className="text-sm text-[#757575]">
-                        New user will inherit your <strong className="text-[#212121]">Zone, State, District &amp; Organization</strong>.
+                        New user will inherit your <strong className="text-[#212121]">Zone, State, District &amp; Institute</strong>.
                     </p>
                 )}
 
@@ -622,7 +622,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 {/* Sub-admin: Organization dropdown */}
                 {showOrgForSubAdmin && (
                     <DependentDropdown
-                        label="Organization"
+                        label="Institute"
                         required={orgRequired}
                         value={formData.orgId || ''}
                         onChange={(value) => {
@@ -670,7 +670,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 {/* Super Admin hierarchy dropdowns */}
                 {!isSubAdmin && showZoneField && (showStateField || showDistrictField || showOrgField) && (
                     <p className="text-xs text-[#757575]">
-                        Select <strong>Zone → State → District → Organization → KVK</strong> in order. Higher-level selections filter the options below.
+                        Select <strong>Zone → State → District → Institute → KVK</strong> in order. Higher-level selections filter the options below.
                     </p>
                 )}
 
@@ -775,7 +775,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
                 {!isSubAdmin && showOrgField && (
                     <DependentDropdown
-                        label="Organization"
+                        label="Institute"
                         required={orgRequired}
                         value={formData.orgId || ''}
                         onChange={(value) => {
@@ -823,7 +823,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 {/* University dropdown - only shown for KVK-level roles that need it */}
                 {(selectedRole === 'kvk_admin' || selectedRole === 'kvk_user') && !isKvkAdminCreating && ((!isSubAdmin && showOrgField) || showOrgForSubAdmin) && (
                     <DependentDropdown
-                        label="University"
+                        label="Host"
                         value={formData.universityId || ''}
                         onChange={(value) => {
                             const universityId = value ? Number(value) : ''
