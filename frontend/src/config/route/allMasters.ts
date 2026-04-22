@@ -66,7 +66,7 @@ export const allMastersRoutes: RouteConfig[] = [
         subcategoryPath: '/all-master/basic',
         siblings: MASTER_SIBLING_GROUPS.BASIC_MASTERS,
         fields: FIELD_GROUPS.VIEW_KVKS,
-        moduleCode: 'about_kvks_view_kvks',
+        moduleCode: 'all_masters_kvks',
         canCreate: ['super_admin'],
     },
     {
