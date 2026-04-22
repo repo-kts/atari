@@ -163,6 +163,14 @@ export interface KvkFarmImplement {
     kvk?: { kvkId: number; kvkName: string };
 }
 
+export interface KvkLandDetail {
+    landId: number;
+    kvkId: number;
+    item: string;
+    areaHa: number;
+    kvk?: { kvkId: number; kvkName: string };
+}
+
 // Form Data types (for creation/updates)
 export type KvkFormData = Omit<Kvk, 'kvkId' | 'zone' | 'state' | 'district' | 'org'>;
 export type KvkBankAccountFormData = Omit<KvkBankAccount, 'bankAccountId' | 'kvk' | 'createdAt' | 'updatedAt'>;
@@ -171,3 +179,4 @@ export type KvkInfrastructureFormData = Omit<KvkInfrastructure, 'infraId' | 'kvk
 export type KvkVehicleFormData = Omit<KvkVehicle, 'vehicleId' | 'kvk'>;
 export type KvkEquipmentFormData = Omit<KvkEquipment, 'equipmentId' | 'kvk'>;
 export type KvkFarmImplementFormData = Omit<KvkFarmImplement, 'implementId' | 'kvk' | 'createdAt' | 'updatedAt'>;
+export type KvkLandDetailFormData = Omit<KvkLandDetail, 'landId' | 'kvk'>;

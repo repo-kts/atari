@@ -351,6 +351,7 @@ class AboutKvkService {
             'kvk-equipments': ['kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding'],
             'kvk-equipment-details': ['kvkId', 'reportingYear', 'equipmentId', 'equipmentStatusId'],
             'kvk-farm-implements': ['kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund'],
+            'kvk-land-details': ['kvkId', 'item', 'areaHa'],
         };
 
         const required = requiredFields[entityName] || [];
