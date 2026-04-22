@@ -5,7 +5,7 @@ import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormC
 import { State, District, Organization, University } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
-import { Trash2, Plus, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import {
     useSanctionedPosts,
     useInfraMasters,
@@ -22,7 +22,6 @@ import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
-import { parseEstablishmentYearInput } from '@/utils/formNumericGuards'
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -727,27 +726,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 />
                             </div>
                             <FormInput
-                                label="Mobile Number"
+                                label="Year of Sanction"
+                                type="date"
                                 required
-                                value={formData.mobile ?? ''}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
-                                }
-                                placeholder="10-digit mobile"
-                                inputMode="numeric"
-                                autoComplete="tel"
-                            />
-                            <FormInput
-                                label="Landline"
-                                value={formData.landline ?? ''}
-                                onChange={(e) => setFormData({ ...formData, landline: e.target.value })}
-                                placeholder="Enter landline"
-                            />
-                            <FormInput
-                                label="Fax"
-                                value={formData.fax ?? ''}
-                                onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
-                                placeholder="Enter fax"
+                                value={formData.yearOfSanctionDate ?? (formData.yearOfSanction ? `${formData.yearOfSanction}-01-01` : '')}
+                                onChange={(e) => {
+                                    const raw = e.target.value
+                                    const year = raw ? new Date(raw).getFullYear() : ''
+                                    setFormData({
+                                        ...formData,
+                                        yearOfSanctionDate: raw,
+                                        yearOfSanction: typeof year === 'number' && !Number.isNaN(year) ? year : '',
+                                    })
+                                }}
+                                placeholder="Select date"
                             />
                             <div className="md:col-span-1 lg:col-span-2">
                                 <FormInput
@@ -760,18 +752,27 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 />
                             </div>
                             <FormInput
-                                label="Year of Sanction"
+                                label="Mobile Number"
                                 required
-                                inputMode="numeric"
-                                autoComplete="off"
-                                value={formData.yearOfSanction ?? ''}
+                                value={formData.mobile ?? ''}
                                 onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        yearOfSanction: parseEstablishmentYearInput(e.target.value),
-                                    })
+                                    setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
                                 }
-                                placeholder="e.g. 2004"
+                                placeholder="10-digit mobile"
+                                inputMode="numeric"
+                                autoComplete="tel"
+                            />
+                            <FormInput
+                                label="Fax"
+                                value={formData.fax ?? ''}
+                                onChange={(e) => setFormData({ ...formData, fax: e.target.value })}
+                                placeholder="Enter fax"
+                            />
+                            <FormInput
+                                label="Landline"
+                                value={formData.landline ?? ''}
+                                onChange={(e) => setFormData({ ...formData, landline: e.target.value })}
+                                placeholder="Enter landline"
                             />
                         </div>
 
@@ -982,61 +983,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         </div>
                     </FormSection>
 
-                    <FormSection title="Total Land with KVK">
-                        <div className="space-y-4">
-                            {(formData.landDetails || []).map((item: any, index: number) => (
-                                <div key={index} className="flex gap-4 items-center">
-                                    <div className="flex-1">
-                                        <FormInput
-                                            label={`Item ${index + 1}`}
-                                            value={item.item ?? ''}
-                                            onChange={(e) => {
-                                                const newList = [...formData.landDetails];
-                                                newList[index].item = e.target.value;
-                                                setFormData({ ...formData, landDetails: newList });
-                                            }}
-                                            placeholder="e.g. Main Farm"
-                                        />
-                                    </div>
-                                    <div className="w-32">
-                                        <FormInput
-                                            label="Area (Ha)"
-                                            type="number"
-                                            step="any"
-                                            value={item.areaHa ?? ''}
-                                            onChange={(e) => {
-                                                const newList = [...formData.landDetails];
-                                                newList[index].areaHa = e.target.value;
-                                                setFormData({ ...formData, landDetails: newList });
-                                            }}
-                                            placeholder="0.00"
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const newList = formData.landDetails.filter((_: any, i: number) => i !== index);
-                                            setFormData({ ...formData, landDetails: newList });
-                                        }}
-                                        className="mt-6 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const newList = [...(formData.landDetails || []), { item: '', areaHa: '' }];
-                                    setFormData({ ...formData, landDetails: newList });
-                                }}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#487749] border border-[#487749] rounded-xl hover:bg-[#487749] hover:text-white transition-all"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add More Item
-                            </button>
-                        </div>
-                    </FormSection>
                 </div>
             )}
         </div>
