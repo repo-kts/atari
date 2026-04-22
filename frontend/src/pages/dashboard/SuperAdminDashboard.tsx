@@ -104,7 +104,7 @@ export const SuperAdminDashboard: React.FC = () => {
     const kpiCards = data
         ? [
               {
-                  label: 'Organization',
+                  label: 'Institute',
                   value: data.kpis.organizationCount,
                   to: ENTITY_PATHS.ORGANIZATIONS,
                   icon: <FileText className="w-6 h-6" />,

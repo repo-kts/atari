@@ -200,7 +200,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
             {entityType === ENTITY_TYPES.ORGANIZATIONS && (
                 <div className="space-y-4">
                     <FormSelect
-                        label="Organization Name"
+                        label="Institute Name"
                         required
                         value={formData.orgName ?? ''}
                         onChange={(e) => setFormData((prev: any) => ({ ...prev, orgName: e.target.value }))}
@@ -278,13 +278,13 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
             {entityType === ENTITY_TYPES.UNIVERSITIES && (
                 <div className="space-y-4">
                     <FormInput
-                        label="University Name"
+                        label="Host Name"
                         required
                         value={formData.universityName ?? ''}
                         onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
                             setFormData((prev: any) => ({ ...prev, universityName: e.target.value }))
                         }, [setFormData])}
-                        placeholder="Enter university name"
+                        placeholder="Enter host name"
                     />
                     <FormSelect
                         label="Zone"
@@ -348,7 +348,7 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                         loadingMessage="Loading districts..."
                     />
                     <DependentDropdown
-                        label="Organization"
+                        label="Institute"
                         required
                         value={formData.orgId ?? ''}
                         onChange={(value) => {
@@ -373,8 +373,8 @@ export const BasicMasterForms: React.FC<BasicMasterFormsProps> = ({
                             }))
                         }}
                         cacheKey="organizations-by-district"
-                        emptyMessage="No organizations available for this district"
-                        loadingMessage="Loading organizations..."
+                        emptyMessage="No institutes available for this district"
+                        loadingMessage="Loading institutes..."
                     />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput

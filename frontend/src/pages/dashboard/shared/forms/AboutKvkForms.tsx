@@ -839,7 +839,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <DependentDropdown
-                                label="Organization"
+                                label="Institute"
                                 required
                                 value={formData.orgId ?? ''}
                                 onChange={(value) => {
@@ -872,7 +872,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 cacheKey="about-kvk-organizations-by-zone-state-district"
                             />
                             <DependentDropdown
-                                label="University"
+                                label="Host"
                                 required
                                 value={formData.universityId ?? ''}
                                 onChange={(value) => setFormData((prev: any) => ({
@@ -925,8 +925,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     onChange={() => {}}
                                     readOnly
                                     disabled
-                                    helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
-                                    placeholder="Populated from university (host organisation)"
+                                    helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
+                                    placeholder="Populated from host (host organisation)"
                                 />
                             </div>
                             <FormInput
@@ -935,7 +935,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={() => {}}
                                 readOnly
                                 disabled
-                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
+                                helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
                                 placeholder="+91"
                             />
                             <FormInput
@@ -944,7 +944,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={() => {}}
                                 readOnly
                                 disabled
-                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
+                                helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
                                 placeholder="Enter landline"
                             />
                             <FormInput
@@ -953,7 +953,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={() => {}}
                                 readOnly
                                 disabled
-                                helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
+                                helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
                                 placeholder="Enter fax"
                             />
                             <div className="md:col-span-3">
@@ -964,7 +964,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     onChange={() => {}}
                                     readOnly
                                     disabled
-                                    helperText={!selectedUniversityId ? 'Select University to populate host details' : undefined}
+                                    helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
                                     placeholder="Enter email address"
                                 />
                             </div>
