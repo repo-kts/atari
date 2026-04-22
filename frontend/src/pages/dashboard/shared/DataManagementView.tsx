@@ -233,6 +233,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const canUserCreate = () => {
         if (!user) return false
         if (moduleCode && !hasPermission('ADD', moduleCode)) return false
+        // Explicit opt-out via routeConfig wins for everyone, regardless of role.
+        if (routeConfig?.canCreate === 'none') return false
         // About KVK entities: check routeConfig.canCreate for KVKS, otherwise only KVK role can add details
         if (isAboutKvkEntity) {
             if (entityType === ENTITY_TYPES.KVKS) {
