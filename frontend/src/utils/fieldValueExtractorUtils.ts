@@ -167,11 +167,21 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 9,
     },
     [FIELD_NAMES.VEHICLE_NAME]: {
-        extractor: (item: any) => item.vehicleName || item.vehicle?.vehicleName || null,
+        extractor: (item: any) => {
+            const name = item.vehicleName || item.vehicle?.vehicleName;
+            if (!name) return null;
+            const reg = item.registrationNo || item.vehicle?.registrationNo;
+            return reg ? `${name} — ${reg}` : name;
+        },
         priority: 8,
     },
     [FIELD_NAMES.EQUIPMENT_NAME]: {
-        extractor: (item: any) => item.equipmentName || item.equipment?.equipmentName || null,
+        extractor: (item: any) => {
+            const name = item.equipmentName || item.equipment?.equipmentName;
+            if (!name) return null;
+            const code = item.identifierCode || item.equipment?.identifierCode;
+            return code ? `${name} — ${code}` : name;
+        },
         priority: 8,
     },
     [FIELD_NAMES.IMPLEMENT_NAME]: {

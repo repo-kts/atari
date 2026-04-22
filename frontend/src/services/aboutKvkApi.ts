@@ -56,7 +56,7 @@ const VEHICLE_DETAIL_ALLOWED_KEYS = [
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
-    'kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding', 'type',
+    'kvkId', 'equipmentName', 'identifierCode', 'yearOfPurchase', 'totalCost', 'sourceOfFunding', 'type',
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [

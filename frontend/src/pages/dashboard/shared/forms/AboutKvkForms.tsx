@@ -574,6 +574,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
                         placeholder="Enter name"
                     />
+                    <FormInput
+                        label="Identifier Code"
+                        value={formData.identifierCode ?? ''}
+                        onChange={(e) => setFormData({ ...formData, identifierCode: e.target.value })}
+                        placeholder="Unique code (serial no, tag, etc.)"
+                        helperText="Optional — helps distinguish equipments with the same name."
+                    />
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
                             label="Purchase Year"
@@ -623,7 +630,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.vehicleId ?? ''}
                         onChange={(e) => setFormData({ ...formData, vehicleId: parseInt(e.target.value) })}
                         disabled={!formData.reportingYear}
-                        options={vehicles.map((v: any) => ({ value: v.vehicleId, label: v.vehicleName }))}
+                        options={vehicles.map((v: any) => ({
+                            value: v.vehicleId,
+                            label: v.registrationNo
+                                ? `${v.vehicleName} — ${v.registrationNo}`
+                                : v.vehicleName,
+                        }))}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
@@ -677,7 +689,12 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.equipmentId ?? ''}
                         onChange={(e) => setFormData({ ...formData, equipmentId: parseInt(e.target.value) })}
                         disabled={!formData.reportingYear}
-                        options={equipments.map((eq: any) => ({ value: eq.equipmentId, label: eq.equipmentName }))}
+                        options={equipments.map((eq: any) => ({
+                            value: eq.equipmentId,
+                            label: eq.identifierCode
+                                ? `${eq.equipmentName} — ${eq.identifierCode}`
+                                : eq.equipmentName,
+                        }))}
                     />
                     <FormSelect
                         label="Present Status"

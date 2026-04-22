@@ -144,6 +144,7 @@ export interface KvkEquipment {
     equipmentId: number;
     kvkId: number;
     equipmentName: string;
+    identifierCode?: string | null;
     yearOfPurchase: number;
     totalCost: number;
     sourceOfFunding: string;
