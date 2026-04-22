@@ -796,6 +796,7 @@ function sanitizeData(entityName, data) {
         const allowedFields = [
             'kvkId',
             'equipmentName',
+            'identifierCode',
             'yearOfPurchase',
             'totalCost',
             'sourceOfFunding',
@@ -1444,7 +1445,7 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             kvkId: parsedKvkId,
             ...(hiddenAssetIds.length ? { equipmentId: { notIn: hiddenAssetIds } } : {}),
         },
-        select: { equipmentId: true, equipmentName: true },
+        select: { equipmentId: true, equipmentName: true, identifierCode: true },
         orderBy: { equipmentName: 'asc' },
     });
 }
