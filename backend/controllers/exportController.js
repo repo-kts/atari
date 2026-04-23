@@ -64,6 +64,11 @@ const {
     generateWorldSoilDayPageExcelBuffer,
     generateWorldSoilDayPageWordBuffer,
 } = require('../utils/worldSoilDayPageExport.js');
+const {
+    generateTechnicalSummaryPdfBuffer,
+    generateTechnicalSummaryExcelBuffer,
+    generateTechnicalSummaryWordBuffer,
+} = require('../utils/technicalSummaryExport.js');
 const { buildPublicationDetailsTabularData } = require('../services/reports/formsTemplate/achievementTemplates/publicationDetailsDetailedTemplate.js');
 const { buildKvkAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/kvkAwardSummaryTemplate.js');
 const { buildScientistAwardSummaryTabularData } = require('../services/reports/formsTemplate/achievementTemplates/scientistAwardSummaryTemplate.js');
@@ -204,11 +209,18 @@ const exportData = async (req, res) => {
 
         switch (format.toLowerCase()) {
             case 'pdf':
-                const html = templateKey
-                    ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport))
-                    : generateHTML(title, headers, rows);
+                if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
+                    // Standalone multi-section layout — doesn't fit the section-per-template
+                    // HTML path used by other reports, so its helper produces the PDF buffer
+                    // directly via Puppeteer.
+                    buffer = await generateTechnicalSummaryPdfBuffer(effectiveRawData);
+                } else {
+                    const html = templateKey
+                        ? await generateCustomTemplateHTML(templateKey, effectiveRawData, title, Boolean(isAggregatedReport))
+                        : generateHTML(title, headers, rows);
 
-                buffer = await exportHelper.generatePDF(html);
+                    buffer = await exportHelper.generatePDF(html);
+                }
                 contentType = 'application/pdf';
                 fileName += '.pdf';
                 break;
@@ -258,6 +270,8 @@ const exportData = async (req, res) => {
                         title,
                         resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
                     );
+                } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
+                    buffer = await generateTechnicalSummaryExcelBuffer(effectiveRawData);
                 } else {
                     buffer = await exportHelper.generateExcel(title, tabularData.headers, tabularData.rows);
                 }
@@ -310,6 +324,8 @@ const exportData = async (req, res) => {
                         title,
                         resolveWorldSoilDayPagePayload(effectiveRawData, { isAggregatedReport: Boolean(isAggregatedReport) }),
                     );
+                } else if (templateKey === 'technical-achievement-summary-report' && effectiveRawData) {
+                    buffer = await generateTechnicalSummaryWordBuffer(effectiveRawData);
                 } else {
                     buffer = await exportHelper.generateWord(title, tabularData.headers, tabularData.rows);
                 }

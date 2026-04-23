@@ -104,6 +104,102 @@ const userPermissionRepository = {
     }
     return map;
   },
+
+  /**
+   * Get a user's raw permission rows enriched with module info.
+   * Used by the permission resolver to decide whether the user has real
+   * per-module grants or only the legacy USER_SCOPE ceiling.
+   *
+   * @param {number} userId - User ID
+   * @returns {Promise<Array<{ permissionId: number, action: string, moduleCode: string }>>}
+   */
+  getUserPermissionsWithModule: async (userId) => {
+    const rows = await prisma.userPermission.findMany({
+      where: { userId },
+      select: {
+        permissionId: true,
+        permission: {
+          select: {
+            action: true,
+            module: { select: { moduleCode: true } },
+          },
+        },
+      },
+    });
+
+    return rows
+      .map((r) => ({
+        permissionId: r.permissionId,
+        action: r.permission?.action,
+        moduleCode: r.permission?.module?.moduleCode,
+      }))
+      .filter((r) => r.action && r.moduleCode);
+  },
+
+  /**
+   * Replace a user's per-module permission grants atomically.
+   * Also clears any legacy USER_SCOPE rows so the resolver switches from
+   * fallback (ceiling) semantics to strict per-module intersection.
+   *
+   * @param {number} userId - User ID
+   * @param {number[]} permissionIds - Real per-module permission IDs to assign
+   * @returns {Promise<{ count: number }>} Number of rows inserted
+   */
+  setUserModulePermissions: async (userId, permissionIds) => {
+    return prisma.$transaction(async (tx) => {
+      await tx.userPermission.deleteMany({ where: { userId } });
+      if (!permissionIds?.length) {
+        return { count: 0 };
+      }
+      const data = permissionIds.map((permissionId) => ({
+        userId,
+        permissionId,
+      }));
+      const result = await tx.userPermission.createMany({
+        data,
+        skipDuplicates: true,
+      });
+      return { count: result.count };
+    });
+  },
+
+  /**
+   * Distinct action names a user has, computed from per-module rows
+   * (preferred) and USER_SCOPE rows (legacy fallback).
+   *
+   * @param {number} userId
+   * @returns {Promise<string[]>}
+   */
+  getDistinctActions: async (userId) => {
+    const rows = await prisma.userPermission.findMany({
+      where: { userId },
+      select: { permission: { select: { action: true } } },
+    });
+    return [...new Set(rows.map((r) => r.permission?.action).filter(Boolean))];
+  },
+
+  /**
+   * Same as getDistinctActions, batched. Avoids N+1 in the user-list endpoint.
+   *
+   * @param {number[]} userIds
+   * @returns {Promise<Record<number, string[]>>}
+   */
+  getDistinctActionsForUserIds: async (userIds) => {
+    if (!userIds?.length) return {};
+    const rows = await prisma.userPermission.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, permission: { select: { action: true } } },
+    });
+    const sets = {};
+    for (const uid of userIds) sets[uid] = new Set();
+    for (const r of rows) {
+      const action = r.permission?.action;
+      if (action) sets[r.userId]?.add(action);
+    }
+    return Object.fromEntries(
+      Object.entries(sets).map(([uid, set]) => [uid, [...set]]),
+    );
+  },
 };
 
 module.exports = userPermissionRepository;

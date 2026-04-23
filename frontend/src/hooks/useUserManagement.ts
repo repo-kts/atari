@@ -81,8 +81,14 @@ export function useUpdateUser() {
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: UpdateUserData }) =>
             userApi.updateUser(id, data),
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            // Matrix page reads from this key — refresh so the editor mirrors
+            // whatever the modal just changed.
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', variables.id] });
+            // If the admin edited themselves, sidebar/button gating must
+            // re-evaluate against the new effective set.
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });
 }
@@ -95,8 +101,10 @@ export function useDeleteUser() {
 
     return useMutation({
         mutationFn: (userId: number) => userApi.deleteUser(userId),
-        onSuccess: () => {
+        onSuccess: (_, userId) => {
             queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', userId] });
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });
 }
@@ -114,6 +122,43 @@ export function useUpdateRolePermissions() {
             // Invalidate the specific role's permissions
             queryClient.invalidateQueries({ queryKey: ['rolePermissions', variables.roleId] });
             // Also refresh the logged-in user's permissions so sidebar/buttons update immediately
+            queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+        },
+    });
+}
+
+/**
+ * Hook to fetch a user's permission matrix.
+ */
+export function useUserPermissions(userId: number | null) {
+    return useQuery({
+        queryKey: ['userPermissions', userId],
+        queryFn: () => userApi.getUserPermissions(userId!),
+        enabled: userId != null,
+        staleTime: 2 * 60 * 1000,
+    });
+}
+
+/**
+ * Hook to replace a user's per-module permission grants.
+ */
+export function useUpdateUserPermissions() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            userId,
+            permissionIds,
+            allowEmpty,
+        }: {
+            userId: number
+            permissionIds: number[]
+            allowEmpty?: boolean
+        }) => userApi.updateUserPermissions(userId, permissionIds, { allowEmpty }),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['userPermissions', variables.userId] });
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            // Refresh current user's permissions in case the admin just edited themselves.
             queryClient.invalidateQueries({ queryKey: ['currentUser'] });
         },
     });

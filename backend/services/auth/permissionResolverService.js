@@ -5,6 +5,7 @@ const cacheService = require('../cache/redisCacheService.js');
 
 const CACHE_VERSION = 'v1';
 const DEFAULT_CACHE_TTL_SECONDS = 3600;
+const USER_SCOPE_MODULE_CODE = 'USER_SCOPE';
 
 const USER_PROFILE_FIELDS = {
   userId: true,
@@ -54,6 +55,29 @@ function intersectWithUserActions(rolePermissionsByModule, userActions) {
 
   for (const [moduleCode, actions] of Object.entries(rolePermissionsByModule)) {
     const filtered = actions.filter((action) => userActionSet.has(action));
+    if (filtered.length > 0) {
+      result[moduleCode] = filtered;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Strict per-module intersection between the role's permissions and the
+ * user's per-module grants. A user cannot exceed the role ceiling; a user
+ * missing a specific (module, action) pair simply does not get that cell.
+ *
+ * @param {Record<string, string[]>} rolePermissionsByModule
+ * @param {Array<{ moduleCode: string, action: string }>} userModuleGrants
+ * @returns {Record<string, string[]>}
+ */
+function intersectWithUserModuleGrants(rolePermissionsByModule, userModuleGrants) {
+  const userKeys = new Set(userModuleGrants.map((g) => `${g.moduleCode}:${g.action}`));
+  const result = {};
+
+  for (const [moduleCode, actions] of Object.entries(rolePermissionsByModule)) {
+    const filtered = actions.filter((action) => userKeys.has(`${moduleCode}:${action}`));
     if (filtered.length > 0) {
       result[moduleCode] = filtered;
     }
@@ -152,12 +176,30 @@ const permissionResolverService = {
     }
 
     const rolePermissionsByModule = await permissionResolverService.getRolePermissions(roleId, options);
-    const userActions = await userPermissionRepository.getUserPermissionActions(userId);
+    const userPermissionRows = await userPermissionRepository.getUserPermissionsWithModule(userId);
 
-    const effectivePermissions =
-      userActions.length > 0
-        ? intersectWithUserActions(rolePermissionsByModule, userActions)
-        : {};
+    // Split the user's raw rows into legacy ceiling (USER_SCOPE, flat action
+    // list) vs real per-module grants. If any per-module grant exists we
+    // switch to strict per-module intersection; otherwise we fall back to the
+    // legacy ceiling so pre-existing users keep their current effective access.
+    const userScopeActions = [];
+    const userModuleGrants = [];
+    for (const row of userPermissionRows) {
+      if (row.moduleCode === USER_SCOPE_MODULE_CODE) {
+        userScopeActions.push(row.action);
+      } else {
+        userModuleGrants.push({ moduleCode: row.moduleCode, action: row.action });
+      }
+    }
+
+    let effectivePermissions;
+    if (userModuleGrants.length > 0) {
+      effectivePermissions = intersectWithUserModuleGrants(rolePermissionsByModule, userModuleGrants);
+    } else if (userScopeActions.length > 0) {
+      effectivePermissions = intersectWithUserActions(rolePermissionsByModule, userScopeActions);
+    } else {
+      effectivePermissions = {};
+    }
 
     await cacheService.set(key, effectivePermissions, getCacheTtlSeconds());
     return clonePermissionsMap(effectivePermissions);

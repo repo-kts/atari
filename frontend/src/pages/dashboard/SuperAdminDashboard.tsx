@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { dashboardApi } from '../../services/dashboardApi'
 import { ROUTE_PATHS } from '../../constants/routePaths'
 import { ENTITY_PATHS } from '../../constants/entityConstants'
+import { getModuleCodeForPath } from '../../config/route'
 import { DashboardStaffAndLogs } from './shared/DashboardStaffAndLogs'
 import {
     DashboardKpiSkeleton,
@@ -71,7 +72,7 @@ function progressCompletedOverCreated(completed: number, created: number) {
 }
 
 export const SuperAdminDashboard: React.FC = () => {
-    const { user } = useAuth()
+    const { user, hasPermission } = useAuth()
     const canPickKvk = user?.role === 'super_admin'
     const [selectedYear, setSelectedYear] = useState<string>('all')
     const [selectedKvk, setSelectedKvk] = useState<string>('all')
@@ -158,7 +159,12 @@ export const SuperAdminDashboard: React.FC = () => {
                   bgColor: 'bg-[#E8F5E9]',
                   iconColor: 'text-[#487749]',
               },
-          ]
+          ].filter(card => {
+              // Hide the card entirely if the user lacks VIEW on the target
+              // route's module. Module code is derived from the route config.
+              const moduleCode = getModuleCodeForPath(card.to)
+              return !moduleCode || hasPermission('VIEW', moduleCode)
+          })
         : []
 
     if (isError) {

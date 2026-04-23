@@ -133,7 +133,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     }, [formData.kvkStaffId, formData.id, entityType, setFormData]);
     // Autofill host fields from selected University
     const selectedUniversityId = typeof formData.universityId === 'number' ? formData.universityId : undefined
-    const { data: uniHost, loading: uniLoading } = useUniversityHostFields(selectedUniversityId)
+    const { data: uniHost } = useUniversityHostFields(selectedUniversityId)
 
     React.useEffect(() => {
         if (selectedUniversityId && uniHost) {

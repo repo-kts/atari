@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
     LayoutDashboard,
+    LayoutList,
     FileText,
     Menu,
     X,
@@ -46,6 +47,12 @@ const superAdminMenuItems: MenuItem[] = [
         icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
+        label: 'Form Summary',
+        path: '/form-summary',
+        icon: <LayoutList className="w-5 h-5" />,
+        moduleCode: 'form_summary_status',
+    },
+    {
         label: 'All Masters',
         path: '/all-master',
         icon: <Database className="w-5 h-5" />,
@@ -55,7 +62,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Basic Masters',
                 path: '/all-master/basic',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'about_kvks_view_kvks'],
+                moduleCodes: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks'],
             },
             {
                 label: 'OFT & FLD Masters',

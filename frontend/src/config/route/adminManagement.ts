@@ -31,6 +31,14 @@ export const adminManagementRoutes: RouteConfig[] = [
         moduleCode: 'role_management_roles',
     },
     {
+        path: '/view-users/:userId/permissions',
+        title: 'User Permissions',
+        description: 'Edit per-user module permissions',
+        category: 'Admin',
+        parent: '/view-users',
+        moduleCode: 'user_management_users',
+    },
+    {
         path: '/view-log-history',
         title: 'Log History',
         description: 'View system activity logs',

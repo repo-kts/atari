@@ -1,12 +1,24 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Download } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTechnicalSummary, useTechnicalSummaryFilters } from '@/hooks/useTechnicalAchievementSummary'
 import { useAlert } from '@/hooks/useAlert'
 import { ParticipantAchievement, TechnicalAchievementSummaryData } from '@/services/technicalAchievementSummaryApi'
+import { exportApi } from '@/services/exportApi'
 import { DatePicker } from '@/components/ui/date-picker'
+
+/** Template key the backend dispatches on — see exportController.js. */
+const TAS_TEMPLATE_KEY = 'technical-achievement-summary-report'
+
+type ExportFormat = 'pdf' | 'excel' | 'word'
+
+const FORMAT_EXT: Record<ExportFormat, string> = {
+    pdf: 'pdf',
+    excel: 'xlsx',
+    word: 'docx',
+}
 
 const SECTION_TH = 'px-2 py-2 border border-[#D6D6D6] text-center font-semibold text-[13px] leading-tight bg-[#EEEEEE]'
 const TH = 'px-1.5 py-1 border border-[#D6D6D6] text-center font-semibold text-[12px] leading-tight'
@@ -215,15 +227,6 @@ function buildExportTables(sections: TechnicalAchievementSummaryData['sections']
     ]
 }
 
-function escapeHtml(value: string): string {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-}
-
 function getSafeFileLabel(value: string): string {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
@@ -241,8 +244,7 @@ export const TechnicalAchievementSummary: React.FC = () => {
     const [selectedKvkId, setSelectedKvkId] = useState<string>('')
     const [appliedYear, setAppliedYear] = useState<number | null>(null)
     const [appliedKvkId, setAppliedKvkId] = useState<number | undefined>(undefined)
-    const [isExportingPdf, setIsExportingPdf] = useState(false)
-    const [isExportingExcel, setIsExportingExcel] = useState(false)
+    const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null)
 
     const today = useMemo(() => new Date(), [])
     const todayIso = useMemo(() => {
@@ -293,129 +295,53 @@ export const TechnicalAchievementSummary: React.FC = () => {
         return filterOptions?.kvks.find((kvk) => kvk.kvkId === appliedKvkId)?.kvkName || `KVK ${appliedKvkId}`
     }, [canFilterByKvk, appliedKvkId, filterOptions?.kvks])
 
-    const handleDownloadReport = async () => {
+    /**
+     * Single export handler — posts the section payload to the backend, which
+     * produces the PDF/Excel/Word buffer from the shared template. Keeps
+     * format identical to the prior client-side output and avoids the
+     * html2pdf oklch() parsing issue that broke in production.
+     */
+    const handleExport = async (format: ExportFormat) => {
         if (!summaryData?.sections) return
-        setIsExportingPdf(true)
+        setExportingFormat(format)
         try {
-            const html2pdfModule = await import('html2pdf.js')
-            const html2pdf = html2pdfModule.default || html2pdfModule
-            const tables = buildExportTables(summaryData.sections)
+            const tables = buildExportTables(summaryData.sections).map((table) => ({
+                title: table.title,
+                headers: table.headers,
+                rows: table.rows ?? (table.row ? [table.row] : []),
+            }))
 
-            const tableHtml = tables.map((table) => {
-                const bodyRows = table.rows ?? (table.row ? [table.row] : [])
-                const tbody = bodyRows
-                    .map(
-                        (line) =>
-                            `<tr>${line.map((value) => `<td>${escapeHtml(String(value ?? ''))}</td>`).join('')}</tr>`,
-                    )
-                    .join('')
-                return `
-        <table class="tas-table">
-          <thead>
-            <tr><th class="table-title" colspan="${table.headers.length}">${escapeHtml(table.title)}</th></tr>
-            <tr>${table.headers.map((header) => `<th>${escapeHtml(String(header))}</th>`).join('')}</tr>
-          </thead>
-          <tbody>${tbody}</tbody>
-        </table>
-      `
-            }).join('')
+            const blob = await exportApi.exportData({
+                title: 'Technical Achievement Summary',
+                headers: [],
+                rows: [],
+                format,
+                templateKey: TAS_TEMPLATE_KEY,
+                rawData: {
+                    tables,
+                    reportingYear: summaryData.reportingYear,
+                    kvkLabel: appliedKvkLabel,
+                },
+            })
 
-            const reportElement = document.createElement('div')
-            reportElement.innerHTML = `
-        <div class="tas-report">
-          <style>
-            .tas-report { font-family: Arial, sans-serif; padding: 18px; color: #111; }
-            .tas-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-            .tas-meta { font-size: 12px; margin-bottom: 2px; }
-            .tas-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-            .tas-table th, .tas-table td { border: 1px solid #000; font-size: 9px; padding: 3px 4px; text-align: center; }
-            .tas-table .table-title { background: #f2f2f2; font-size: 11px; font-weight: 700; }
-          </style>
-          <div class="tas-title">Technical Achievement Summary</div>
-          <div class="tas-meta">Reporting Year: ${escapeHtml(String(summaryData.reportingYear))}</div>
-          <div class="tas-meta">KVK: ${escapeHtml(appliedKvkLabel)}</div>
-          ${tableHtml}
-        </div>
-      `
-
-            const filename = `technical-achievement-summary-${summaryData.reportingYear}-${getSafeFileLabel(appliedKvkLabel)}.pdf`
-            await html2pdf()
-                .set({
-                    margin: 0.2,
-                    filename,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
-                })
-                .from(reportElement)
-                .save()
+            const filename = `technical-achievement-summary-${summaryData.reportingYear}-${getSafeFileLabel(appliedKvkLabel)}.${FORMAT_EXT[format]}`
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = filename
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
         } catch (error) {
-            console.error('Failed to generate technical summary PDF:', error)
+            console.error(`Failed to generate technical summary ${format.toUpperCase()}:`, error)
             alert({
                 title: 'Export Failed',
-                message: 'Failed to generate PDF report. Please try again.',
+                message: `Failed to generate ${format.toUpperCase()} report. Please try again.`,
                 variant: 'error',
             })
         } finally {
-            setIsExportingPdf(false)
-        }
-    }
-
-    const handleDownloadExcel = async () => {
-        if (!summaryData?.sections) return
-        setIsExportingExcel(true)
-        try {
-            const XLSX = await import('xlsx')
-            const tables = buildExportTables(summaryData.sections)
-            const sheet = XLSX.utils.aoa_to_sheet([])
-            const merges: Array<{ s: { r: number; c: number }; e: { r: number; c: number } }> = []
-            const maxColumns = Math.max(...tables.map((table) => table.headers.length))
-            let row = 0
-
-            XLSX.utils.sheet_add_aoa(sheet, [['Technical Achievement Summary']], { origin: { r: row, c: 0 } })
-            merges.push({ s: { r: row, c: 0 }, e: { r: row, c: maxColumns - 1 } })
-            row += 1
-
-            XLSX.utils.sheet_add_aoa(sheet, [[`Reporting Year: ${summaryData.reportingYear}`]], { origin: { r: row, c: 0 } })
-            merges.push({ s: { r: row, c: 0 }, e: { r: row, c: maxColumns - 1 } })
-            row += 1
-
-            XLSX.utils.sheet_add_aoa(sheet, [[`KVK: ${appliedKvkLabel}`]], { origin: { r: row, c: 0 } })
-            merges.push({ s: { r: row, c: 0 }, e: { r: row, c: maxColumns - 1 } })
-            row += 2
-
-            tables.forEach((table) => {
-                XLSX.utils.sheet_add_aoa(sheet, [[table.title]], { origin: { r: row, c: 0 } })
-                merges.push({ s: { r: row, c: 0 }, e: { r: row, c: table.headers.length - 1 } })
-                row += 1
-
-                XLSX.utils.sheet_add_aoa(sheet, [table.headers], { origin: { r: row, c: 0 } })
-                row += 1
-
-                const dataRows = table.rows ?? (table.row ? [table.row] : [])
-                dataRows.forEach((line) => {
-                    XLSX.utils.sheet_add_aoa(sheet, [line], { origin: { r: row, c: 0 } })
-                    row += 1
-                })
-                row += 1
-            })
-
-            sheet['!merges'] = merges
-            sheet['!cols'] = Array.from({ length: maxColumns }, () => ({ wch: 12 }))
-
-            const workbook = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(workbook, sheet, 'Technical Summary')
-            const filename = `technical-achievement-summary-${summaryData.reportingYear}-${getSafeFileLabel(appliedKvkLabel)}.xlsx`
-            XLSX.writeFile(workbook, filename)
-        } catch (error) {
-            console.error('Failed to generate technical summary Excel:', error)
-            alert({
-                title: 'Export Failed',
-                message: 'Failed to generate Excel report. Please try again.',
-                variant: 'error',
-            })
-        } finally {
-            setIsExportingExcel(false)
+            setExportingFormat(null)
         }
     }
 
@@ -494,22 +420,24 @@ export const TechnicalAchievementSummary: React.FC = () => {
                     </div>
 
                     <div className="flex gap-3 mb-4">
-                        <button
-                            type="button"
-                            onClick={handleDownloadReport}
-                            disabled={!summaryData || isExportingPdf}
-                            className="px-4 py-2 bg-[#487749] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isExportingPdf ? 'Generating PDF...' : 'Download Report'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleDownloadExcel}
-                            disabled={!summaryData || isExportingExcel}
-                            className="px-4 py-2 bg-[#487749] text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isExportingExcel ? 'Generating Excel...' : 'Download Excel'}
-                        </button>
+                        {(
+                            [
+                                { format: 'pdf', label: 'PDF' },
+                                { format: 'excel', label: 'Excel' },
+                                { format: 'word', label: 'Word' },
+                            ] as const
+                        ).map(({ format, label }) => (
+                            <button
+                                key={format}
+                                type="button"
+                                onClick={() => handleExport(format)}
+                                disabled={!summaryData || exportingFormat !== null}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E0E0E0] bg-white text-[#487749] text-sm font-medium hover:bg-[#F5F5F5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <Download className="w-4 h-4" />
+                                {exportingFormat === format ? `${label}…` : label}
+                            </button>
+                        ))}
                     </div>
 
                     {(filterError || summaryError) && (

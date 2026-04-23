@@ -18,11 +18,13 @@ import { DataManagementView } from './pages/dashboard/shared/DataManagementView'
 import { RoleManagement } from './pages/admin/RoleManagement'
 import { RolePermissionEditor } from './pages/admin/RolePermissionEditor'
 import { UserManagement } from './pages/admin/UserManagement'
+import { UserPermissionEditor } from './pages/admin/UserPermissionEditor'
 import { ModuleImages } from './pages/features/ModuleImages'
 import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
 import { Reports } from './pages/features/Reports'
+import { FormSummary } from './pages/features/FormSummary'
 import { TechnicalAchievementSummary } from './pages/dashboard/forms/TechnicalAchievementSummary'
 import { AdminKVKRedirect } from './components/common/AdminKVKRedirect'
 import {
@@ -69,6 +71,14 @@ function AppRoutes() {
                 >
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
+                    <Route
+                        path="/form-summary"
+                        element={
+                            <ProtectedRoute requiredModuleCode="form_summary_status">
+                                <FormSummary />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* All Masters Routes - each route guards its own module permission */}
                     {allMastersRoutes.map(route => (
@@ -118,6 +128,14 @@ function AppRoutes() {
                         element={
                             <ProtectedRoute requiredModuleCode="user_management_users">
                                 <UserManagement />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/view-users/:userId/permissions"
+                        element={
+                            <ProtectedRoute requiredModuleCode="user_management_users">
+                                <UserPermissionEditor />
                             </ProtectedRoute>
                         }
                     />

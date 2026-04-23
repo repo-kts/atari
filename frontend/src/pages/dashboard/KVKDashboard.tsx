@@ -17,6 +17,7 @@ import {
 import { dashboardApi } from '../../services/dashboardApi'
 import { ROUTE_PATHS } from '../../constants/routePaths'
 import { ENTITY_PATHS } from '../../constants/entityConstants'
+import { getModuleCodeForPath } from '../../config/route'
 import { DashboardStaffAndLogs } from './shared/DashboardStaffAndLogs'
 import {
     DashboardKpiSkeleton,
@@ -74,7 +75,7 @@ function progressCompletedOverCreated(completed: number, created: number) {
 
 export const KVKDashboard: React.FC = () => {
     const navigate = useNavigate()
-    const { user } = useAuth()
+    const { user, hasPermission } = useAuth()
     const [selectedYear, setSelectedYear] = useState<string>('all')
 
     const defaultYears = useMemo(() => {
@@ -139,7 +140,10 @@ export const KVKDashboard: React.FC = () => {
                   bgColor: 'bg-[#E8F5E9]',
                   iconColor: 'text-[#487749]',
               },
-          ]
+          ].filter(card => {
+              const moduleCode = getModuleCodeForPath(card.to)
+              return !moduleCode || hasPermission('VIEW', moduleCode)
+          })
         : []
 
     if (isError) {
@@ -435,70 +439,69 @@ export const KVKDashboard: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <Card
-                            className="cursor-pointer border-[#E0E0E0] shadow-none hover:border-[#487749]/30 transition-colors"
-                            onClick={() => navigate('/kvk/details')}
-                        >
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-[#E8F5E9] p-3 rounded-lg border border-[#E0E0E0]">
-                                        <Building2 className="w-6 h-6 text-[#487749]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-[#212121]">
-                                            KVK details
-                                        </h3>
-                                        <p className="text-xs text-[#757575] font-medium">
-                                            Profile & assets
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card
-                            className="cursor-pointer border-[#E0E0E0] shadow-none hover:border-[#487749]/30 transition-colors"
-                            onClick={() => navigate('/kvk/bank-accounts')}
-                        >
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-[#E8F5E9] p-3 rounded-lg border border-[#E0E0E0]">
-                                        <CreditCard className="w-6 h-6 text-[#487749]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-[#212121]">
-                                            Bank accounts
-                                        </h3>
-                                        <p className="text-xs text-[#757575] font-medium">
-                                            Financial details
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card
-                            className="cursor-pointer border-[#E0E0E0] shadow-none hover:border-[#487749]/30 transition-colors"
-                            onClick={() => navigate('/kvk/staff')}
-                        >
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-[#E8F5E9] p-3 rounded-lg border border-[#E0E0E0]">
-                                        <UserCircle className="w-6 h-6 text-[#487749]" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-[#212121]">
-                                            Staff directory
-                                        </h3>
-                                        <p className="text-xs text-[#757575] font-medium">
-                                            Human resources
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    {/* Quick-link tiles — each is hidden when the user lacks VIEW
+                        on the target module, so the dashboard only shows tiles
+                        the user can actually open. */}
+                    {(() => {
+                        const quickLinks: Array<{
+                            to: string
+                            moduleCode: string
+                            icon: React.ReactNode
+                            title: string
+                            subtitle: string
+                        }> = [
+                            {
+                                to: '/kvk/details',
+                                moduleCode: 'about_kvks_view_kvks',
+                                icon: <Building2 className="w-6 h-6 text-[#487749]" />,
+                                title: 'KVK details',
+                                subtitle: 'Profile & assets',
+                            },
+                            {
+                                to: '/kvk/bank-accounts',
+                                moduleCode: 'about_kvks_bank_account_details',
+                                icon: <CreditCard className="w-6 h-6 text-[#487749]" />,
+                                title: 'Bank accounts',
+                                subtitle: 'Financial details',
+                            },
+                            {
+                                to: '/kvk/staff',
+                                moduleCode: 'about_kvks_employee_details',
+                                icon: <UserCircle className="w-6 h-6 text-[#487749]" />,
+                                title: 'Staff directory',
+                                subtitle: 'Human resources',
+                            },
+                        ]
+                        const visible = quickLinks.filter(ql => hasPermission('VIEW', ql.moduleCode))
+                        if (visible.length === 0) return null
+                        return (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                {visible.map(ql => (
+                                    <Card
+                                        key={ql.to}
+                                        className="cursor-pointer border-[#E0E0E0] shadow-none hover:border-[#487749]/30 transition-colors"
+                                        onClick={() => navigate(ql.to)}
+                                    >
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="bg-[#E8F5E9] p-3 rounded-lg border border-[#E0E0E0]">
+                                                    {ql.icon}
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-[#212121]">
+                                                        {ql.title}
+                                                    </h3>
+                                                    <p className="text-xs text-[#757575] font-medium">
+                                                        {ql.subtitle}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )
+                    })()}
                 </>
             )}
 

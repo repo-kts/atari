@@ -22,6 +22,14 @@ export interface CreateUserData {
   permissions?: PermissionAction[];
 }
 
+/** Delta sent by EditUserModal: only actions the admin actually toggled. */
+export interface PermissionsDelta {
+  /** Tick: grant the action on every role-allowed module (matrix select-all). */
+  add?: PermissionAction[];
+  /** Untick: revoke everywhere (per-module + legacy ceiling rows). */
+  remove?: PermissionAction[];
+}
+
 export interface UpdateUserData {
   name?: string;
   email?: string;
@@ -32,7 +40,7 @@ export interface UpdateUserData {
   districtId?: number | null;
   orgId?: number | null;
   kvkId?: number | null;
-  permissions?: PermissionAction[];
+  permissionsDelta?: PermissionsDelta;
 }
 
 export interface RoleInfo {
@@ -94,6 +102,43 @@ export interface RolePermissionsResponse {
   roleName: string;
   description: string | null;
   modules: ModuleWithPermissions[];
+}
+
+/** Per-user permission cell: carries both the user's grant and the role ceiling. */
+export interface UserModulePermission {
+  permissionId: number;
+  action: 'VIEW' | 'ADD' | 'EDIT' | 'DELETE';
+  /** Whether the user currently has this permission. */
+  hasPermission: boolean;
+  /** Whether the user's role grants this permission (the ceiling). */
+  roleGrants: boolean;
+}
+
+export interface UserModuleWithPermissions {
+  moduleId: number;
+  menuName: string;
+  subMenuName: string;
+  moduleCode: string;
+  permissions: UserModulePermission[];
+}
+
+/**
+ * 'per_module' = real per-module rows exist (strict intersection).
+ * 'ceiling'    = only legacy USER_SCOPE rows; matrix shows the role's
+ *                ceiling-derived effective set. First save in either UI
+ *                converts to per-module mode.
+ * 'none'       = no UserPermission rows at all.
+ */
+export type UserPermissionMode = 'per_module' | 'ceiling' | 'none';
+
+export interface UserPermissionsResponse {
+  userId: number;
+  name: string;
+  email: string;
+  roleId: number;
+  roleName: string;
+  mode: UserPermissionMode;
+  modules: UserModuleWithPermissions[];
 }
 
 export const userApi = {
@@ -254,6 +299,44 @@ export const userApi = {
     } catch (error) {
       if (error instanceof ApiError) {
         throw new Error(error.data?.error || 'Failed to delete user');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Get the per-user permission matrix (role ceiling + user grants).
+   * Only valid for *_user roles.
+   */
+  getUserPermissions: async (userId: number): Promise<UserPermissionsResponse> => {
+    try {
+      return await apiClient.get<UserPermissionsResponse>(`/admin/users/${userId}/permissions`);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to fetch user permissions');
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Replace a user's per-module permission grants.
+   * Pass `allowEmpty: true` when intentionally stripping all access — the
+   * backend otherwise rejects an empty set to guard against accidental wipes.
+   */
+  updateUserPermissions: async (
+    userId: number,
+    permissionIds: number[],
+    options: { allowEmpty?: boolean } = {}
+  ): Promise<void> => {
+    try {
+      await apiClient.put(`/admin/users/${userId}/permissions`, {
+        permissionIds,
+        allowEmpty: options.allowEmpty === true,
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to update user permissions');
       }
       throw error;
     }

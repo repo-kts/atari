@@ -35,7 +35,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useDataSave } from '@/hooks/useDataSave'
 import { useEntityHook, isBasicMasterEntity } from '@/hooks/useEntityHook'
 import { useFormState } from '@/hooks/useFormState'
-import { getHookLoading, getHookError } from '@/hooks/useHookState'
+import { getHookLoading } from '@/hooks/useHookState'
 import { getEntityTypeChecks } from '@/utils/entityTypeHelpers'
 import { TransferModal } from '@/components/forms/TransferModal'
 import { TransferHistoryModal } from '@/components/forms/TransferHistoryModal'
@@ -205,9 +205,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
-    const hasActiveFilters = Boolean(
-        searchQuery.trim() || reportingYearFrom || reportingYearTo
-    )
 
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
@@ -1171,7 +1168,6 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     }, [isMobileRouteMenuOpen, isExportMenuOpen, isOftFldTabMenuOpen])
 
     const loading = getHookLoading(activeHook)
-    const error = getHookError(activeHook)
 
     return (
         <div className="flex flex-col h-full bg-white sm:rounded-2xl p-1 overflow-hidden">
