@@ -87,6 +87,7 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.KVK_EMPLOYEES]: 'kvkStaffId',
     [ENTITY_TYPES.KVK_STAFF_TRANSFERRED]: 'kvkStaffId',
     [ENTITY_TYPES.KVK_INFRASTRUCTURE]: 'infraId',
+    [ENTITY_TYPES.KVK_LAND_DETAILS]: 'landId',
     [ENTITY_TYPES.KVK_VEHICLES]: 'vehicleId',
     [ENTITY_TYPES.KVK_VEHICLE_DETAILS]: 'vehicleId',
     [ENTITY_TYPES.KVK_EQUIPMENTS]: 'equipmentId',
