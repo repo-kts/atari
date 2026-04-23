@@ -21,6 +21,19 @@ import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
+import { toOptions, toFilteredOptions } from '@/utils/formOptions'
+
+// Label resolvers — pure, hoisted outside the component so they keep stable
+// identity across renders and don't pull closures from props.
+const equipmentOptionLabel = (eq: any): string => {
+    const primary = eq.companyBrandModel
+        || eq.equipmentMaster?.name
+        || eq.equipmentName
+        || `#${eq.equipmentId}`
+    return eq.identifierCode ? `${primary} — ${eq.identifierCode}` : primary
+}
+
+const vehicleOptionLabel = (v: any): string => v.vehicleName
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null
@@ -56,6 +69,93 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: equipments = [] } = useKvkEquipmentsForDropdown(activeKvkId, reportingYear)
     const { data: vehicleStatuses = [] } = useVehiclePresentStatuses()
     const { data: equipmentStatuses = [] } = useEquipmentPresentStatuses()
+
+    // Memoized option arrays — hoisted out of JSX so that each select only
+    // re-renders when the underlying master list actually changes.
+    const sanctionedPostOptions = React.useMemo(
+        () => toOptions(sanctionedPosts as any[], 'sanctionedPostId', 'postName'),
+        [sanctionedPosts],
+    )
+    const disciplineOptions = React.useMemo(
+        () => toOptions(disciplines as any[], 'disciplineId', 'disciplineName'),
+        [disciplines],
+    )
+    const staffCategoryOptions = React.useMemo(
+        () => toOptions(staffCategories as any[], 'staffCategoryId', 'categoryName'),
+        [staffCategories],
+    )
+    const payLevelOptions = React.useMemo(
+        () => toOptions(payLevels as any[], 'payLevelId', 'levelName'),
+        [payLevels],
+    )
+    const payScaleOptions = React.useMemo(
+        () => toOptions(payScales as any[], 'payScaleId', 'scaleName'),
+        [payScales],
+    )
+    // KvkInfrastructure.sourceOfFunding is still a string column — match by name.
+    const fundingSourceNameOptions = React.useMemo(
+        () => toOptions(fundingSources as any[], 'name', 'name'),
+        [fundingSources],
+    )
+    const assetFundingSourceOptions = React.useMemo(
+        () => toOptions(assetFundingSources as any[], 'assetFundingSourceId', 'name'),
+        [assetFundingSources],
+    )
+    const infraMasterOptions = React.useMemo(
+        () => toOptions(infraMasters as any[], 'infraMasterId', 'name'),
+        [infraMasters],
+    )
+    const equipmentTypeOptions = React.useMemo(
+        () => toOptions(equipmentTypes as any[], 'equipmentTypeId', 'name'),
+        [equipmentTypes],
+    )
+    // Equipment Masters filtered by the selected Equipment Type for the create-equipment form.
+    const equipmentMasterOptionsForForm = React.useMemo(
+        () => toFilteredOptions(
+            equipmentMasters as any[],
+            'equipmentMasterId',
+            'name',
+            'equipmentTypeId',
+            formData.equipmentTypeId,
+        ),
+        [equipmentMasters, formData.equipmentTypeId],
+    )
+    // Same master list but filtered by the Equipment Details selector filter.
+    const equipmentMasterOptionsForFilter = React.useMemo(
+        () => toFilteredOptions(
+            equipmentMasters as any[],
+            'equipmentMasterId',
+            'name',
+            'equipmentTypeId',
+            formData._filterEquipmentTypeId,
+        ),
+        [equipmentMasters, formData._filterEquipmentTypeId],
+    )
+    const vehicleOptions = React.useMemo(
+        () => toOptions(vehicles as any[], 'vehicleId', vehicleOptionLabel),
+        [vehicles],
+    )
+    const vehicleStatusOptions = React.useMemo(
+        () => toOptions(vehicleStatuses as any[], 'vehicleStatusId', 'statusLabel'),
+        [vehicleStatuses],
+    )
+    const equipmentStatusOptions = React.useMemo(
+        () => toOptions(equipmentStatuses as any[], 'equipmentStatusId', 'statusLabel'),
+        [equipmentStatuses],
+    )
+    const zoneOptions = React.useMemo(
+        () => toOptions(zones as any[], 'zoneId', 'zoneName'),
+        [zones],
+    )
+    const filteredEquipmentOptions = React.useMemo(() => {
+        const typeFilter = formData._filterEquipmentTypeId
+        const masterFilter = formData._filterEquipmentMasterId
+        const filtered = (equipments as any[]).filter((eq) =>
+            (!typeFilter || eq.equipmentTypeId === typeFilter) &&
+            (!masterFilter || eq.equipmentMasterId === masterFilter)
+        )
+        return toOptions(filtered, 'equipmentId', equipmentOptionLabel)
+    }, [equipments, formData._filterEquipmentTypeId, formData._filterEquipmentMasterId])
 
     // Sync kvkId from user when KVK role - use functional update to avoid dependency on formData
     React.useEffect(() => {
@@ -254,7 +354,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 required
                                 value={formData.staffCategoryId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
-                                options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
+                                options={staffCategoryOptions}
                             />
                             <FormInput
                                 label="Resume"
@@ -355,7 +455,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 required
                                 value={formData.sanctionedPostId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, sanctionedPostId: parseInt(e.target.value) })}
-                                options={sanctionedPosts.map((p: any) => ({ value: p.sanctionedPostId, label: p.postName }))}
+                                options={sanctionedPostOptions}
                             />
                             <FormSelect
                                 label="Position Order"
@@ -371,7 +471,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 required
                                 value={formData.disciplineId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, disciplineId: parseInt(e.target.value) })}
-                                options={disciplines.map((d: any) => ({ value: d.disciplineId, label: d.disciplineName }))}
+                                options={disciplineOptions}
                             />
                             <FormInput
                                 label="Date of Joining"
@@ -395,7 +495,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Pay Level"
                                 value={formData.payLevelId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, payLevelId: e.target.value ? parseInt(e.target.value) : null })}
-                                options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
+                                options={payLevelOptions}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-6 mt-6">
@@ -403,7 +503,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 label="Pay Scale"
                                 value={formData.payScaleId ?? ''}
                                 onChange={(e) => setFormData({ ...formData, payScaleId: e.target.value ? parseInt(e.target.value) : null })}
-                                options={payScales.map((p: any) => ({ value: p.payScaleId, label: p.scaleName }))}
+                                options={payScaleOptions}
                             />
                             <FormInput
                                 label="Details of Allowances"
@@ -423,7 +523,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         required
                         value={formData.infraMasterId ?? ''}
                         onChange={(e) => setFormData({ ...formData, infraMasterId: parseInt(e.target.value) })}
-                        options={infraMasters.map((i: any) => ({ value: i.infraMasterId, label: i.name }))}
+                        options={infraMasterOptions}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
@@ -518,10 +618,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             value={formData.sourceOfFunding ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
-                            options={fundingSources.map((f: any) => ({
-                                value: f.name,
-                                label: f.name,
-                            }))}
+                            options={fundingSourceNameOptions}
                         />
                     </div>
                 </div>
@@ -570,10 +667,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             value={formData.equipmentTypeId != null ? String(formData.equipmentTypeId) : ''}
                             onChange={(e) => setFormData({ ...formData, equipmentTypeId: e.target.value ? parseInt(e.target.value) : null, equipmentMasterId: null })}
-                            options={equipmentTypes.map((t: any) => ({
-                                value: String(t.equipmentTypeId),
-                                label: t.name,
-                            }))}
+                            options={equipmentTypeOptions}
                         />
                         <FormSelect
                             label="Equipment"
@@ -581,12 +675,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             value={formData.equipmentMasterId != null ? String(formData.equipmentMasterId) : ''}
                             onChange={(e) => setFormData({ ...formData, equipmentMasterId: e.target.value ? parseInt(e.target.value) : null })}
                             disabled={!formData.equipmentTypeId}
-                            options={equipmentMasters
-                                .filter((m: any) => m.equipmentTypeId === formData.equipmentTypeId)
-                                .map((m: any) => ({
-                                    value: String(m.equipmentMasterId),
-                                    label: m.name,
-                                }))}
+                            options={equipmentMasterOptionsForForm}
                         />
                     </div>
                     <FormInput
@@ -594,13 +683,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.companyBrandModel ?? ''}
                         onChange={(e) => setFormData({ ...formData, companyBrandModel: e.target.value })}
                         placeholder="e.g. John Deere 5050D, Kubota L3408"
-                    />
-                    <FormInput
-                        label="Identifier Code"
-                        value={formData.identifierCode ?? ''}
-                        onChange={(e) => setFormData({ ...formData, identifierCode: e.target.value })}
-                        placeholder="Unique code (serial no, tag, etc.)"
-                        helperText="Optional — helps distinguish equipments with the same name."
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
@@ -624,10 +706,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
                             onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
-                            options={assetFundingSources.map((s: any) => ({
-                                value: String(s.assetFundingSourceId),
-                                label: s.name,
-                            }))}
+                            options={assetFundingSourceOptions}
                         />
                     </div>
                 </div>
@@ -662,12 +741,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.vehicleId ?? ''}
                         onChange={(e) => setFormData({ ...formData, vehicleId: parseInt(e.target.value) })}
                         disabled={!formData.reportingYear}
-                        options={vehicles.map((v: any) => ({
-                            value: v.vehicleId,
-                            label: v.registrationNo
-                                ? `${v.vehicleName} — ${v.registrationNo}`
-                                : v.vehicleName,
-                        }))}
+                        options={vehicleOptions}
                     />
                     <div className="grid grid-cols-2 gap-4">
                         <FormInput
@@ -683,7 +757,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             required
                             value={formData.vehicleStatusId ?? ''}
                             onChange={(e) => setFormData({ ...formData, vehicleStatusId: parseInt(e.target.value) })}
-                            options={vehicleStatuses.map((status: any) => ({ value: status.vehicleStatusId, label: status.statusLabel }))}
+                            options={vehicleStatusOptions}
                             disabled={!formData.reportingYear}
                         />
                     </div>
@@ -700,10 +774,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
                         onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
                         disabled={!formData.reportingYear}
-                        options={assetFundingSources.map((s: any) => ({
-                            value: String(s.assetFundingSourceId),
-                            label: s.name,
-                        }))}
+                        options={assetFundingSourceOptions}
                     />
                 </div>
             )}
@@ -723,64 +794,60 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         }}
                     />
                     <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Equipment Type (filter)"
+                        <DependentDropdown
+                            label="Equipment Type"
+                            required
                             value={formData._filterEquipmentTypeId != null ? String(formData._filterEquipmentTypeId) : ''}
-                            onChange={(e) => setFormData({ ...formData, _filterEquipmentTypeId: e.target.value ? parseInt(e.target.value) : null, _filterEquipmentMasterId: null, equipmentId: null })}
-                            disabled={!formData.reportingYear}
-                            options={equipmentTypes.map((t: any) => ({
-                                value: String(t.equipmentTypeId),
-                                label: t.name,
-                            }))}
+                            onChange={(v) => setFormData({
+                                ...formData,
+                                _filterEquipmentTypeId: v ? Number(v) : null,
+                                _filterEquipmentMasterId: null,
+                                equipmentId: null,
+                            })}
+                            isDisabled={!formData.reportingYear}
+                            dependsOn={{ value: formData.reportingYear, field: 'reportingYear' }}
+                            emptyMessage="Select reporting date first"
+                            options={equipmentTypeOptions}
                         />
-                        <FormSelect
-                            label="Equipment Model (filter)"
+                        <DependentDropdown
+                            label="Equipment (Model / Brand)"
+                            required
                             value={formData._filterEquipmentMasterId != null ? String(formData._filterEquipmentMasterId) : ''}
-                            onChange={(e) => setFormData({ ...formData, _filterEquipmentMasterId: e.target.value ? parseInt(e.target.value) : null, equipmentId: null })}
-                            disabled={!formData.reportingYear || !formData._filterEquipmentTypeId}
-                            options={equipmentMasters
-                                .filter((m: any) => m.equipmentTypeId === formData._filterEquipmentTypeId)
-                                .map((m: any) => ({
-                                    value: String(m.equipmentMasterId),
-                                    label: m.name,
-                                }))}
+                            onChange={(v) => setFormData({
+                                ...formData,
+                                _filterEquipmentMasterId: v ? Number(v) : null,
+                                equipmentId: null,
+                            })}
+                            dependsOn={{ value: formData._filterEquipmentTypeId, field: 'equipmentTypeId' }}
+                            emptyMessage="No equipment models registered for this type"
+                            loadingMessage="Filtering models..."
+                            options={equipmentMasterOptionsForFilter}
                         />
                     </div>
-                    <FormSelect
-                        label="Equipment"
+                    <DependentDropdown
+                        label="Equipment (Company / Brand / Model)"
                         required
-                        value={formData.equipmentId ?? ''}
-                        onChange={(e) => setFormData({ ...formData, equipmentId: parseInt(e.target.value) })}
-                        disabled={!formData.reportingYear}
-                        options={equipments
-                            .filter((eq: any) =>
-                                (!formData._filterEquipmentTypeId || eq.equipmentTypeId === formData._filterEquipmentTypeId) &&
-                                (!formData._filterEquipmentMasterId || eq.equipmentMasterId === formData._filterEquipmentMasterId)
-                            )
-                            .map((eq: any) => {
-                                const nameParts = [eq.companyBrandModel, eq.equipmentName].filter(Boolean)
-                                const baseName = nameParts.join(' · ') || `#${eq.equipmentId}`
-                                return {
-                                    value: eq.equipmentId,
-                                    label: eq.identifierCode ? `${baseName} — ${eq.identifierCode}` : baseName,
-                                }
-                            })}
+                        value={formData.equipmentId != null ? String(formData.equipmentId) : ''}
+                        onChange={(v) => setFormData({ ...formData, equipmentId: v ? Number(v) : null })}
+                        dependsOn={[
+                            { value: formData._filterEquipmentTypeId, field: 'equipmentTypeId' },
+                            { value: formData._filterEquipmentMasterId, field: 'equipmentMasterId' },
+                        ]}
+                        emptyMessage="No data — register an equipment under this type/model first"
+                        options={filteredEquipmentOptions}
                     />
                     <FormSelect
                         label="Present Status"
                         required
                         value={formData.equipmentStatusId ?? ''}
                         onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
-                        options={equipmentStatuses.map((status: any) => ({ value: status.equipmentStatusId, label: status.statusLabel }))}
+                        options={equipmentStatusOptions}
                     />
                     <FormSelect
                         label="Source of Funding"
                         value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
                         onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
-                        options={assetFundingSources.map((s: any) => ({
-                            value: String(s.assetFundingSourceId),
-                            label: s.name,
-                        }))}
+                        options={assetFundingSourceOptions}
                     />
                 </div>
             )}
@@ -892,7 +959,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     orgId: '',
                                     universityId: '',
                                 })}
-                                options={(zones as any).map((z: any) => ({ value: z.zoneId, label: z.zoneName }))}
+                                options={zoneOptions}
                             />
                             <DependentDropdown
                                 label="State"

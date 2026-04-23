@@ -169,18 +169,23 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     [FIELD_NAMES.VEHICLE_NAME]: {
         extractor: (item: any) => {
             const name = item.vehicleName || item.vehicle?.vehicleName;
+            if (name) return name;
             if (!name) return null;
-            const reg = item.registrationNo || item.vehicle?.registrationNo;
-            return reg ? `${name} — ${reg}` : name;
         },
         priority: 8,
     },
     [FIELD_NAMES.EQUIPMENT_NAME]: {
         extractor: (item: any) => {
-            const name = item.equipmentName || item.equipment?.equipmentName;
-            if (!name) return null;
+            // Prefer joined EquipmentMaster name (new schema); fall back to
+            // legacy equipmentName column for rows created before the merge.
+            const masterName =
+                item.equipmentMaster?.name ||
+                item.equipment?.equipmentMaster?.name;
+            const legacy = item.equipmentName || item.equipment?.equipmentName;
+            const display = masterName || legacy;
+            if (!display) return null;
             const code = item.identifierCode || item.equipment?.identifierCode;
-            return code ? `${name} — ${code}` : name;
+            return code ? `${display} — ${code}` : display;
         },
         priority: 8,
     },
@@ -318,6 +323,17 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.CATEGORY_NAME]: {
         extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.EQUIPMENT_TYPE_NAME]: {
+        extractor: (item: any) => item.equipmentType?.name || item.equipmentTypeName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.COMPANY_BRAND_MODEL]: {
+        extractor: (item: any) =>
+            item.companyBrandModel ||
+            item.equipment?.companyBrandModel ||
+            null,
         priority: 5,
     },
     [FIELD_NAMES.SUB_CATEGORY_NAME]: {
@@ -864,7 +880,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.SOURCE_OF_FUND]: {
         extractor: (item: any) => {
-            // Map sourceOfFund to sourceOfFunding (for equipment and farm implements)
+            // Prefer joined AssetFundingSourceMaster name (new schema); fall back
+            // to legacy string columns for rows predating the migration.
+            if (item.assetFundingSource?.name) return item.assetFundingSource.name;
+            if (item.vehicle?.assetFundingSource?.name) return item.vehicle.assetFundingSource.name;
+            if (item.equipment?.assetFundingSource?.name) return item.equipment.assetFundingSource.name;
             if (item.sourceOfFunding) return item.sourceOfFunding;
             if (item.vehicle?.sourceOfFunding) return item.vehicle.sourceOfFunding;
             if (item.equipment?.sourceOfFunding) return item.equipment.sourceOfFunding;
