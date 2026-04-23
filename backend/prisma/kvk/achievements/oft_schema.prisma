@@ -41,8 +41,8 @@ model Kvkoft {
   oftSubjectId             Int?
   oftThematicAreaId        Int?
   disciplineId             Int?
-  unitId                   Int?                 @map("unit_id")
   sourceOfFundingId        Int?                 @map("source_of_funding_id")
+  unit                     String?              @map("unit")
   title                    String               @map("title_of_oft")
   problemDiagnosed         String               @map("problem_diagnosed")
   sourceOfTechnology       String               @map("source_of_technology")
@@ -74,7 +74,6 @@ model Kvkoft {
   oftThematicArea          OftThematicArea?     @relation(fields: [oftThematicAreaId], references: [oftThematicAreaId])
   season                   Season?              @relation(fields: [seasonId], references: [seasonId])
   staff                    KvkStaff             @relation(fields: [staffId], references: [kvkStaffId])
-  unit                     UnitMaster?          @relation(fields: [unitId], references: [unitId])
   sourceOfFunding          FundingSourceMaster? @relation(fields: [sourceOfFundingId], references: [fundingSourceId])
   technologies             KvkoftTechnology[]
   resultReport             OftResultReport?
@@ -87,7 +86,6 @@ model Kvkoft {
   @@index([disciplineId])
   @@index([oftSubjectId])
   @@index([oftThematicAreaId])
-  @@index([unitId])
   @@index([sourceOfFundingId])
   @@index([expectedCompletionDate])
   @@index([status])

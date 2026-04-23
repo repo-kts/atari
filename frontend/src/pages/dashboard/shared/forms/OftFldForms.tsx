@@ -19,7 +19,7 @@ import {
 } from '../../../../hooks/useOftFldData'
 import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
-import { useFundingSources, useUnits } from '../../../../hooks/useOtherMastersData'
+import { useFundingSources } from '../../../../hooks/useOtherMastersData'
 import { useAuth } from '../../../../contexts/AuthContext'
 import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
@@ -41,6 +41,16 @@ const createTechnologyOption = () => ({
     optionName: '',
     details: '',
 })
+
+const OFT_UNIT_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: 'ha', label: 'ha' },
+    { value: 'Number', label: 'Number' },
+    { value: 'Acre', label: 'Acre' },
+    { value: 'Kg', label: 'Kg' },
+    { value: 'Quintal', label: 'Quintal' },
+    { value: 'Ton', label: 'Ton' },
+    { value: 'Litre', label: 'Litre' },
+]
 
 const FIXED_TECHNOLOGY_OPTIONS = [
     'Farmer Practice',
@@ -166,7 +176,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     // We'll call them here. React Query hooks will trigger fetches if component is mounted.
 
     const { data: fundingSources = [] } = useFundingSources()
-    const { data: units = [] } = useUnits()
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
     const { data: fldCategories = [] } = useFldCategories()
@@ -701,13 +710,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             />
                         </div>
 
-                        <MasterDataDropdown
+                        <FormSelect
                             label="Unit"
                             required
-                            value={formData.unitId ?? ''}
-                            onChange={(value) => setFormData({ ...formData, unitId: value as number })}
-                            options={createMasterDataOptions(units as any[], 'unitId', 'name')}
-                            emptyMessage="No units available"
+                            value={formData.unit ?? ''}
+                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                            options={OFT_UNIT_OPTIONS}
                         />
                         <FormInput
                             label="Quantity"

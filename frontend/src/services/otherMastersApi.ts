@@ -608,17 +608,6 @@ export const otherMastersApi = {
     deleteFundingSource: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/funding-source/${id}`),
 
-    getUnits: () =>
-        apiClient.get<PaginatedResponse<{ unitId: number; name: string }>>(`${BASE_URL}/unit`),
-    getUnitById: (id: number) =>
-        apiClient.get<ApiResponse<{ unitId: number; name: string }>>(`${BASE_URL}/unit/${id}`),
-    createUnit: (data: { name: string }) =>
-        apiClient.post<ApiResponse<{ unitId: number; name: string }>>(`${BASE_URL}/unit`, data),
-    updateUnit: (id: number, data: { name: string }) =>
-        apiClient.put<ApiResponse<{ unitId: number; name: string }>>(`${BASE_URL}/unit/${id}`, data),
-    deleteUnit: (id: number) =>
-        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/unit/${id}`),
-
     // Other Masters
     getCropTypes: () =>
         apiClient.get<PaginatedResponse<CropType>>(`${BASE_URL}/crop-type`),
