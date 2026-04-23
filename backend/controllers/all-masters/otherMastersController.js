@@ -179,6 +179,12 @@ exports.createDiscipline = create('discipline');
 exports.updateDiscipline = update('discipline');
 exports.deleteDiscipline = deleteEntity('discipline');
 
+exports.getAllAssetFundingSources = getAll('asset-funding-source');
+exports.getAssetFundingSourceById = getById('asset-funding-source');
+exports.createAssetFundingSource = create('asset-funding-source');
+exports.updateAssetFundingSource = update('asset-funding-source');
+exports.deleteAssetFundingSource = deleteEntity('asset-funding-source');
+
 // ============================================
 // Extension Masters Controllers
 // ============================================

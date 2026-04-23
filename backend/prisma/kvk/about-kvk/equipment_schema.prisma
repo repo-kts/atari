@@ -1,38 +1,42 @@
 model KvkEquipment {
-  equipmentId     Int                    @id @default(autoincrement()) @map("equipment_id")
-  kvkId           Int
-  equipmentName   String                 @map("equipment_name")
-  identifierCode  String?                @map("identifier_code")
-  yearOfPurchase  Int                    @map("year_of_purchase")
-  totalCost       Float                  @map("total_cost")
-  sourceOfFunding String                 @map("source_of_funding")
-  type            EquipmentType          @default(EQUIPMENT) @map("type")
-  createdAt       DateTime               @default(now()) @map("created_at")
-  updatedAt       DateTime               @updatedAt @map("updated_at")
-  kvk             Kvk                    @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  equipmentDetails KvkEquipmentDetail[]
+  equipmentId          Int                        @id @default(autoincrement()) @map("equipment_id")
+  kvkId                Int
+  equipmentName        String                     @map("equipment_name")
+  identifierCode       String?                    @map("identifier_code")
+  yearOfPurchase       Int                        @map("year_of_purchase")
+  totalCost            Float                      @map("total_cost")
+  assetFundingSourceId Int?                       @map("asset_funding_source_id")
+  type                 EquipmentType              @default(EQUIPMENT) @map("type")
+  createdAt            DateTime                   @default(now()) @map("created_at")
+  updatedAt            DateTime                   @updatedAt @map("updated_at")
+  kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  assetFundingSource   AssetFundingSourceMaster?  @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
+  equipmentDetails     KvkEquipmentDetail[]
 
   @@index([kvkId])
+  @@index([assetFundingSourceId])
   @@map("kvk_equipment")
 }
 
 model KvkEquipmentDetail {
-  equipmentDetailId Int                          @id @default(autoincrement()) @map("equipment_detail_id")
-  kvkId             Int
-  equipmentId       Int                          @map("equipment_id")
-  reportingYear     DateTime                     @map("reporting_year")
-  sourceOfFunding   String?                      @map("source_of_funding")
-  equipmentStatusId Int                          @map("equipment_status_id")
-  createdAt         DateTime                     @default(now()) @map("created_at")
-  updatedAt         DateTime                     @updatedAt @map("updated_at")
-  kvk               Kvk                          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  equipment         KvkEquipment                 @relation(fields: [equipmentId], references: [equipmentId], onDelete: Cascade)
-  equipmentStatus   EquipmentPresentStatusMaster @relation(fields: [equipmentStatusId], references: [equipmentStatusId])
+  equipmentDetailId    Int                          @id @default(autoincrement()) @map("equipment_detail_id")
+  kvkId                Int
+  equipmentId          Int                          @map("equipment_id")
+  reportingYear        DateTime                     @map("reporting_year")
+  assetFundingSourceId Int?                         @map("asset_funding_source_id")
+  equipmentStatusId    Int                          @map("equipment_status_id")
+  createdAt            DateTime                     @default(now()) @map("created_at")
+  updatedAt            DateTime                     @updatedAt @map("updated_at")
+  kvk                  Kvk                          @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  equipment            KvkEquipment                 @relation(fields: [equipmentId], references: [equipmentId], onDelete: Cascade)
+  equipmentStatus      EquipmentPresentStatusMaster @relation(fields: [equipmentStatusId], references: [equipmentStatusId])
+  assetFundingSource   AssetFundingSourceMaster?    @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
 
   @@unique([equipmentId, reportingYear])
   @@index([kvkId, reportingYear])
   @@index([equipmentId, reportingYear])
   @@index([equipmentStatusId])
+  @@index([assetFundingSourceId])
   @@map("kvk_equipment_detail")
 }
 

@@ -455,6 +455,17 @@ export const allMastersRoutes: RouteConfig[] = [
         moduleCode: 'all_masters_pay_scale_master',
     },
     {
+        path: ENTITY_PATHS.ASSET_FUNDING_SOURCE,
+        title: 'Asset Funding Source Master',
+        category: 'All Masters',
+        subcategory: 'Other Masters',
+        parent: '/all-master',
+        subcategoryPath: ENTITY_PATHS.OTHER_MASTERS,
+        siblings: MASTER_SIBLING_GROUPS.EMPLOYEE_MASTERS,
+        fields: FIELD_GROUPS.ASSET_FUNDING_SOURCE_MASTER,
+        moduleCode: 'all_masters_asset_funding_source_master',
+    },
+    {
         path: ENTITY_PATHS.DISCIPLINE,
         title: 'Discipline Master',
         category: 'All Masters',

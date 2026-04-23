@@ -36,6 +36,7 @@ export const ENTITY_TYPES = {
     STAFF_CATEGORY: 'staff-category',
     PAY_LEVEL: 'pay-level',
     PAY_SCALE: 'pay-scale',
+    ASSET_FUNDING_SOURCE: 'asset-funding-source',
     DISCIPLINE: 'discipline',
 
     // Extension Masters
@@ -320,6 +321,7 @@ export const ENTITY_PATHS = {
     STAFF_CATEGORY: '/all-master/staff-category',
     PAY_LEVEL: '/all-master/pay-level',
     PAY_SCALE: '/all-master/pay-scale',
+    ASSET_FUNDING_SOURCE: '/all-master/asset-funding-source',
     DISCIPLINE: '/all-master/discipline',
 
     // Extension Masters

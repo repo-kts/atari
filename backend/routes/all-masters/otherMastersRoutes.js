@@ -74,6 +74,12 @@ router.post('/discipline',    requirePermission('all_masters_discipline_master',
 router.put('/discipline/:id', requirePermission('all_masters_discipline_master', 'EDIT'),   otherMastersController.updateDiscipline);
 router.delete('/discipline/:id', requirePermission('all_masters_discipline_master', 'DELETE'), otherMastersController.deleteDiscipline);
 
+router.get('/asset-funding-source',     otherMastersController.getAllAssetFundingSources);
+router.get('/asset-funding-source/:id', otherMastersController.getAssetFundingSourceById);
+router.post('/asset-funding-source',    requirePermission('all_masters_asset_funding_source_master', 'ADD'),    otherMastersController.createAssetFundingSource);
+router.put('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'EDIT'),   otherMastersController.updateAssetFundingSource);
+router.delete('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'DELETE'), otherMastersController.deleteAssetFundingSource);
+
 // ============================================
 // Extension Masters Routes
 // ============================================
