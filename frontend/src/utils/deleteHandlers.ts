@@ -24,25 +24,25 @@ const CASCADE_DELETE_CONFIGS: Record<string, CascadeDeleteConfig> = {
         affectedRecords: [
             'All states in this zone',
             'All districts in those states',
-            'All organizations in those districts',
+            'All institutes in those districts',
             'All KVKs in this zone',
             'User zone assignments will be cleared',
         ],
     },
     [ENTITY_TYPES.ORGANIZATIONS]: {
-        title: 'Delete Organization',
+        title: 'Delete Institute',
         affectedRecords: [
-            'All universities in this organization',
-            'All KVKs in this organization',
-            'User organization assignments will be cleared',
+            'All hosts in this institute',
+            'All KVKs in this institute',
+            'User institute assignments will be cleared',
         ],
     },
     [ENTITY_TYPES.STATES]: {
         title: 'Delete State',
         affectedRecords: [
             'All districts in this state',
-            'All organizations in those districts',
-            'All universities in those organizations',
+            'All institutes in those districts',
+            'All hosts in those institutes',
             'All KVKs in this state',
             'User state assignments will be cleared',
         ],
@@ -50,17 +50,17 @@ const CASCADE_DELETE_CONFIGS: Record<string, CascadeDeleteConfig> = {
     [ENTITY_TYPES.DISTRICTS]: {
         title: 'Delete District',
         affectedRecords: [
-            'All organizations in this district',
-            'All universities in those organizations',
+            'All institutes in this district',
+            'All hosts in those institutes',
             'All KVKs in this district',
             'User district assignments will be cleared',
         ],
     },
     [ENTITY_TYPES.UNIVERSITIES]: {
-        title: 'Delete University',
+        title: 'Delete Host',
         affectedRecords: [
-            'All KVKs in this university',
-            'User university assignments will be cleared',
+            'All KVKs in this host',
+            'User host assignments will be cleared',
         ],
     },
 };
