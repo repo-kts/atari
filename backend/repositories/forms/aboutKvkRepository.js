@@ -145,16 +145,8 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            equipment: { select: { equipmentId: true, equipmentName: true, yearOfPurchase: true, totalCost: true, sourceOfFunding: true } },
+            equipment: { select: { equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true, yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentMasterId: true, assetFundingSourceId: true } },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
-        }
-    },
-    'kvk-farm-implements': {
-        model: 'kvkFarmImplement',
-        idField: 'implementId',
-        nameField: 'implementName',
-        includes: {
-            kvk: { select: { kvkId: true, kvkName: true } }
         }
     },
     'kvk-land-details': {
@@ -795,12 +787,14 @@ function sanitizeData(entityName, data) {
     if (entityName === 'kvk-equipments') {
         const allowedFields = [
             'kvkId',
+            'equipmentTypeId',
+            'equipmentMasterId',
             'equipmentName',
+            'companyBrandModel',
             'identifierCode',
             'yearOfPurchase',
             'totalCost',
-            'sourceOfFunding',
-            'type',
+            'assetFundingSourceId',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -869,7 +863,7 @@ function sanitizeData(entityName, data) {
             'reportingYear',
             'totalRun',
             'repairingCost',
-            'sourceOfFunding',
+            'assetFundingSourceId',
             'vehicleStatusId',
         ];
 
@@ -885,7 +879,7 @@ function sanitizeData(entityName, data) {
             'kvkId',
             'equipmentId',
             'reportingYear',
-            'sourceOfFunding',
+            'assetFundingSourceId',
             'equipmentStatusId',
         ];
 

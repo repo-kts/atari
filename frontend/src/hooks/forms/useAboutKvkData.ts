@@ -9,7 +9,6 @@ import type {
     KvkInfrastructureFormData,
     KvkVehicleFormData,
     KvkEquipmentFormData,
-    KvkFarmImplementFormData,
     KvkLandDetailFormData,
 } from '../../types/aboutKvk';
 import { ENTITY_TYPES } from '@/constants/entityConstants';
@@ -379,30 +378,6 @@ export function useKvkEquipmentDetails(params?: any) {
     };
 }
 
-export function useKvkFarmImplements(params?: any) {
-    const { user } = useAuth();
-    const query = useQuery({
-        queryKey: buildQueryKey('kvk-farm-implements', params, user),
-        queryFn: () => aboutKvkApi.getKvkFarmImplements(params).then(res => res.data),
-    });
-
-    const mutations = useEntityMutation<KvkFarmImplementFormData>(
-        buildQueryKey('kvk-farm-implements', undefined, user),
-        {
-            create: aboutKvkApi.createKvkFarmImplement,
-            update: aboutKvkApi.updateKvkFarmImplement,
-            delete: aboutKvkApi.deleteKvkFarmImplement,
-        }
-    );
-
-    return {
-        data: query.data || [],
-        isLoading: query.isLoading,
-        error: query.error,
-        ...mutations,
-    };
-}
-
 export function useKvkLandDetails(params?: any) {
     const { user } = useAuth();
     const query = useQuery({
@@ -484,8 +459,7 @@ export type AboutKvkEntity =
     | typeof ENTITY_TYPES.KVK_VEHICLES
     | typeof ENTITY_TYPES.KVK_VEHICLE_DETAILS
     | typeof ENTITY_TYPES.KVK_EQUIPMENTS
-    | typeof ENTITY_TYPES.KVK_EQUIPMENT_DETAILS
-    | typeof ENTITY_TYPES.KVK_FARM_IMPLEMENTS;
+    | typeof ENTITY_TYPES.KVK_EQUIPMENT_DETAILS;
 
 export function useAboutKvkData(entityType: AboutKvkEntity | null) {
     // We must call all hooks unconditionally to satisfy React rules
@@ -499,7 +473,6 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
     const vehicleDetails = useKvkVehicleDetails();
     const equipments = useKvkEquipments();
     const equipmentDetails = useKvkEquipmentDetails();
-    const implements_ = useKvkFarmImplements();
 
     if (!entityType) {
         return {
@@ -523,7 +496,6 @@ export function useAboutKvkData(entityType: AboutKvkEntity | null) {
         case ENTITY_TYPES.KVK_VEHICLE_DETAILS: return vehicleDetails;
         case ENTITY_TYPES.KVK_EQUIPMENTS: return equipments;
         case ENTITY_TYPES.KVK_EQUIPMENT_DETAILS: return equipmentDetails;
-        case ENTITY_TYPES.KVK_FARM_IMPLEMENTS: return implements_;
         default: return kvks;
     }
 }

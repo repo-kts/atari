@@ -10,7 +10,6 @@ import type {
     KvkInfrastructure,
     KvkVehicle,
     KvkEquipment,
-    KvkFarmImplement,
     KvkLandDetail,
     KvkFormData,
     KvkBankAccountFormData,
@@ -18,7 +17,6 @@ import type {
     KvkInfrastructureFormData,
     KvkVehicleFormData,
     KvkEquipmentFormData,
-    KvkFarmImplementFormData,
     KvkLandDetailFormData,
 } from '../types/aboutKvk';
 
@@ -52,19 +50,15 @@ const VEHICLE_ALLOWED_KEYS = [
 ] as const;
 
 const VEHICLE_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'sourceOfFunding', 'vehicleStatusId',
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'vehicleStatusId',
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
-    'kvkId', 'equipmentName', 'identifierCode', 'yearOfPurchase', 'totalCost', 'sourceOfFunding', 'type',
+    'kvkId', 'equipmentTypeId', 'equipmentMasterId', 'equipmentName', 'companyBrandModel', 'identifierCode', 'yearOfPurchase', 'totalCost', 'assetFundingSourceId',
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'equipmentId', 'reportingYear', 'sourceOfFunding', 'equipmentStatusId',
-] as const;
-
-const FARM_IMPLEMENT_ALLOWED_KEYS = [
-    'kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund',
+    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'equipmentStatusId',
 ] as const;
 
 const LAND_DETAIL_ALLOWED_KEYS = [
@@ -270,15 +264,6 @@ export const aboutKvkApi = {
     createKvkEquipmentDetails: createSanitizedPostEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details', EQUIPMENT_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
     updateKvkEquipmentDetails: createSanitizedPutEndpoint<KvkEquipmentFormData, KvkEquipment>('/equipment-details', EQUIPMENT_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
     deleteKvkEquipmentDetails: createDeleteEndpoint('/equipment-details'),
-
-    // ============================================
-    // Farm Implements
-    // ============================================
-    getKvkFarmImplements: createGetEndpoint<KvkFarmImplement>('/farm-implements'),
-    getKvkFarmImplementById: createGetByIdEndpoint<KvkFarmImplement>('/farm-implements'),
-    createKvkFarmImplement: createSanitizedPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
-    updateKvkFarmImplement: createSanitizedPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
-    deleteKvkFarmImplement: createDeleteEndpoint('/farm-implements'),
 
     // ============================================
     // Land Details

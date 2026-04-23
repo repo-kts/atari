@@ -1,20 +1,26 @@
 model KvkEquipment {
   equipmentId          Int                        @id @default(autoincrement()) @map("equipment_id")
   kvkId                Int
-  equipmentName        String                     @map("equipment_name")
+  equipmentTypeId      Int?                       @map("equipment_type_id")
+  equipmentMasterId    Int?                       @map("equipment_master_id")
+  equipmentName        String?                    @map("equipment_name")
+  companyBrandModel    String?                    @map("company_brand_model")
   identifierCode       String?                    @map("identifier_code")
   yearOfPurchase       Int                        @map("year_of_purchase")
   totalCost            Float                      @map("total_cost")
   assetFundingSourceId Int?                       @map("asset_funding_source_id")
-  type                 EquipmentType              @default(EQUIPMENT) @map("type")
   createdAt            DateTime                   @default(now()) @map("created_at")
   updatedAt            DateTime                   @updatedAt @map("updated_at")
   kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  equipmentType        EquipmentTypeMaster?       @relation(fields: [equipmentTypeId], references: [equipmentTypeId], onDelete: SetNull)
+  equipmentMaster      EquipmentMaster?           @relation(fields: [equipmentMasterId], references: [equipmentMasterId], onDelete: SetNull)
   assetFundingSource   AssetFundingSourceMaster?  @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
   equipmentDetails     KvkEquipmentDetail[]
 
   @@index([kvkId])
   @@index([assetFundingSourceId])
+  @@index([equipmentTypeId])
+  @@index([equipmentMasterId])
   @@map("kvk_equipment")
 }
 
@@ -38,9 +44,4 @@ model KvkEquipmentDetail {
   @@index([equipmentStatusId])
   @@index([assetFundingSourceId])
   @@map("kvk_equipment_detail")
-}
-
-enum EquipmentType {
-  EQUIPMENT
-  FARM_IMPLEMENT
 }

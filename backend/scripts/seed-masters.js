@@ -35,6 +35,28 @@ const ASSET_FUNDING_SOURCES = [
   'Revolving Fund',
 ];
 
+const EQUIPMENT_TYPES = [
+  'Tractor',
+  'Sprayer',
+  'Trailer',
+  'Harvester',
+  'Thresher',
+  'Tiller',
+  'Generator',
+  'Other',
+];
+
+const EQUIPMENT_MASTERS_BY_TYPE = {
+  'Tractor': ['John Deere 5050D', 'Mahindra 475 DI', 'Kubota L3408'],
+  'Sprayer': ['Knapsack Sprayer', 'Power Sprayer', 'Boom Sprayer'],
+  'Trailer': ['Tipping Trailer', 'Flatbed Trailer'],
+  'Harvester': ['Combine Harvester', 'Reaper Binder'],
+  'Thresher': ['Multi-crop Thresher', 'Paddy Thresher'],
+  'Tiller': ['Power Tiller', 'Rotary Tiller'],
+  'Generator': ['Diesel Generator 5kVA', 'Diesel Generator 10kVA'],
+  'Other': ['Other'],
+};
+
 // Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
   'Extension Personnel',
@@ -790,6 +812,37 @@ async function seedAssetFundingSources() {
       update: {},
       create: { name },
     });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedEquipmentMasters() {
+  console.log('🌱 Equipment type + equipment masters...');
+
+  for (const typeName of EQUIPMENT_TYPES) {
+    const type = await prisma.equipmentTypeMaster.upsert({
+      where: { name: typeName },
+      update: {},
+      create: { name: typeName },
+    });
+
+    const children = EQUIPMENT_MASTERS_BY_TYPE[typeName] || [];
+    for (const childName of children) {
+      await prisma.equipmentMaster.upsert({
+        where: {
+          equipmentTypeId_name: {
+            equipmentTypeId: type.equipmentTypeId,
+            name: childName,
+          },
+        },
+        update: {},
+        create: {
+          equipmentTypeId: type.equipmentTypeId,
+          name: childName,
+        },
+      });
+    }
   }
 
   console.log('   ✅ Done\n');
@@ -1773,6 +1826,7 @@ async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
   await seedAssetFundingSources();
+  await seedEquipmentMasters();
   await seedTrainingMasters();
   await seedExtensionMasters();
   await seedEventsMasters();

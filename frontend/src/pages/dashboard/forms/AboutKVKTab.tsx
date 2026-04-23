@@ -49,13 +49,6 @@ const sections: FeatureSection[] = [
             { label: 'Equipment Details', path: '/forms/about-kvk/equipment-details' },
         ],
     },
-    {
-        title: 'Farm Implements',
-        icon: <Wrench className="w-5 h-5" />,
-        items: [
-            { label: 'Farm Implement Details', path: '/forms/about-kvk/farm-implements' },
-        ],
-    },
 ]
 
 export const AboutKVKTab: React.FC = () => {

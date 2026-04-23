@@ -166,18 +166,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_equipment_details',
     },
-    // Farm Implements
-    {
-        path: ENTITY_PATHS.KVK_FARM_IMPLEMENTS,
-        title: 'Farm Implement Details',
-        description: 'Manage farm implement details',
-        category: 'Form Management',
-        subcategory: 'About KVK',
-        parent: '/forms/about-kvk',
-        fields: FIELD_GROUPS.FARM_IMPLEMENT_DETAILS,
-        canCreate: ['kvk_admin', 'kvk_user'],
-        moduleCode: 'about_kvks_farm_implement_details',
-    },
 ]
 
 // View KVK Routes (Admin)
