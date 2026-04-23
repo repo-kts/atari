@@ -801,21 +801,26 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     placeholder="Enter KVK name"
                                 />
                             </div>
-                            <FormInput
+                            <FormSelect
                                 label="Year of Sanction"
-                                type="date"
                                 required
-                                value={formData.yearOfSanctionDate ?? (formData.yearOfSanction ? `${formData.yearOfSanction}-01-01` : '')}
+                                value={formData.yearOfSanction ?? ''}
                                 onChange={(e) => {
-                                    const raw = e.target.value
-                                    const year = raw ? new Date(raw).getFullYear() : ''
+                                    const v = e.target.value
+                                    const year = v === '' ? '' : parseInt(v, 10)
                                     setFormData({
                                         ...formData,
-                                        yearOfSanctionDate: raw,
                                         yearOfSanction: typeof year === 'number' && !Number.isNaN(year) ? year : '',
                                     })
                                 }}
-                                placeholder="Select date"
+                                placeholder="Select year"
+                                options={Array.from(
+                                    { length: new Date().getFullYear() - 1970 + 1 },
+                                    (_, i) => {
+                                        const y = new Date().getFullYear() - i
+                                        return { value: y, label: String(y) }
+                                    },
+                                )}
                             />
                             <div className="md:col-span-1 lg:col-span-2">
                                 <FormInput
