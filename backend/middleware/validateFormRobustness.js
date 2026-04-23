@@ -50,6 +50,10 @@ function shouldAllowDecimal(key) {
         k.includes('budget') ||
         k.includes('yield') ||
         k.includes('percentage') ||
+        k.includes('percent') ||
+        k.includes('return') ||
+        k.includes('bcr') ||
+        k.includes('quantity') ||
         k.includes('latitude') ||
         k.includes('longitude') ||
         // soil params
@@ -61,8 +65,15 @@ function shouldAllowDecimal(key) {
 
 function shouldAllowNegative(key) {
     const k = String(key || '').toLowerCase();
-    // Geographic coordinates can legitimately be negative.
-    return k.includes('latitude') || k.includes('longitude');
+    // Geographic coordinates and economic delta fields can legitimately be negative.
+    return (
+        k.includes('latitude') ||
+        k.includes('longitude') ||
+        k.includes('netreturn') ||
+        k.includes('net_return') ||
+        k.includes('percent') ||
+        k.includes('increase')
+    );
 }
 
 function isValidNumberString(v) {

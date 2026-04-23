@@ -341,8 +341,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const reportingFromMaxIso = !reportingYearTo
         ? reportingRangeTodayIso
         : reportingYearTo < reportingRangeTodayIso
-          ? reportingYearTo
-          : reportingRangeTodayIso
+            ? reportingYearTo
+            : reportingRangeTodayIso
 
     useEffect(() => {
         if (
@@ -613,8 +613,8 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
 
     const tabButtonClass = (active: boolean) =>
         active
-            ? 'px-4 py-2 bg-[#487749] text-white rounded-xl text-sm font-medium hover:bg-[#3d6540] transition-all'
-            : 'px-4 py-2 bg-white border border-[#E0E0E0] rounded-xl text-sm font-medium text-[#487749] hover:bg-[#F5F5F5] transition-all'
+            ? 'px-4 py-2 bg-white text-[#487749] rounded-xl text-sm font-medium transition-all'
+            : 'px-4 py-2 rounded-xl text-sm font-medium text-white hover:bg-[#487749]/80 transition-all'
 
     const renderOftFldTabs = (opts: {
         mode: 'edit' | 'add-result' | 'edit-result'
@@ -662,19 +662,19 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             label: string
             isVisible: boolean
         }> = [
-            { value: 'edit', label: labelEdit, isVisible: true },
-            { value: 'add-result', label: 'Add Result', isVisible: canAdd },
-            {
-                value: 'edit-result',
-                label: 'Edit Result',
-                isVisible: canEditResult,
-            },
-        ]
+                { value: 'edit', label: labelEdit, isVisible: true },
+                { value: 'add-result', label: 'Add Result', isVisible: canAdd },
+                {
+                    value: 'edit-result',
+                    label: 'Edit Result',
+                    isVisible: canEditResult,
+                },
+            ]
 
         return (
             <>
                 {/* Desktop tabs */}
-                <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#F5F5F5]">
+                <div className="hidden sm:flex mb-4 flex-wrap gap-2 w-fit rounded-2xl p-1 bg-[#3d6540]">
                     <button
                         type="button"
                         className={tabButtonClass(opts.mode === 'edit')}
@@ -748,11 +748,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     )
                                                         goEditResult()
                                                 }}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                    selected
-                                                        ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                        : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                }`}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                    }`}
                                             >
                                                 {o.label}
                                             </button>
@@ -867,199 +866,199 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const oftCustomActions =
         entityType === ENTITY_TYPES.ACHIEVEMENT_OFT
             ? [
-                  {
-                      key: 'transfer-next-year',
-                      label: 'Transfer',
-                      onClick: handleTransferOftToNextYear,
-                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                      icon: ArrowRight,
-                  },
-                  {
-                      key: 'add-result',
-                      label: 'Add Result',
-                      onClick: handleAddOftResult,
-                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                      icon: FilePlus2,
-                  },
-                  {
-                      key: 'edit-result',
-                      label: 'Edit Result',
-                      onClick: handleEditOftResult,
-                      isVisible: (item: any) =>
-                          statusValue(item) === 'COMPLETED',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-              ]
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferOftToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'add-result',
+                    label: 'Add Result',
+                    onClick: handleAddOftResult,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: handleEditOftResult,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'COMPLETED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
             : []
 
     const fldCustomActions =
         entityType === ENTITY_TYPES.ACHIEVEMENT_FLD
             ? [
-                  {
-                      key: 'transfer-next-year',
-                      label: 'Transfer',
-                      onClick: handleTransferFldToNextYear,
-                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                      icon: ArrowRight,
-                  },
-                  {
-                      key: 'add-result',
-                      label: 'Add Result',
-                      onClick: handleAddFldResult,
-                      isVisible: (item: any) => statusValue(item) === 'ONGOING',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                      icon: FilePlus2,
-                  },
-                  {
-                      key: 'edit-result',
-                      label: 'Edit Result',
-                      onClick: handleEditFldResult,
-                      isVisible: (item: any) =>
-                          statusValue(item) === 'COMPLETED',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-              ]
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferFldToNextYear,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'add-result',
+                    label: 'Add Result',
+                    onClick: handleAddFldResult,
+                    isVisible: (item: any) => statusValue(item) === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: handleEditFldResult,
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'COMPLETED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
             : []
     const cfldCustomActions =
         entityType === ENTITY_TYPES.PROJECT_CFLD_TECHNICAL_PARAM
             ? [
-                  {
-                      key: 'transfer-next-year',
-                      label: 'Transfer',
-                      onClick: handleTransferCfldToNextYear,
-                      isVisible: (item: any) => item?.status === 'ONGOING',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
-                      icon: ArrowRight,
-                  },
-                  {
-                      key: 'economic-params',
-                      label: 'Economic Parameters',
-                      onClick: (item: any) =>
-                          openCfldSectionForm(item, 'economic'),
-                      isVisible: (item: any) => {
-                          const normalized = normalizeOftStatus(item?.status)
-                          return (
-                              normalized !== 'TRANSFERRED' &&
-                              normalized !== 'COMPLETED'
-                          )
-                      },
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-                  {
-                      key: 'socio-params',
-                      label: 'Update Socio Economic Parameters',
-                      onClick: (item: any) =>
-                          openCfldSectionForm(item, 'socio'),
-                      isVisible: (item: any) => {
-                          const normalized = normalizeOftStatus(item?.status)
-                          return (
-                              normalized !== 'TRANSFERRED' &&
-                              normalized !== 'COMPLETED'
-                          )
-                      },
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-                  {
-                      key: 'perception-params',
-                      label: 'Farmers Perception Parameters',
-                      onClick: (item: any) =>
-                          openCfldSectionForm(item, 'perception'),
-                      isVisible: (item: any) => {
-                          const normalized = normalizeOftStatus(item?.status)
-                          return (
-                              normalized !== 'TRANSFERRED' &&
-                              normalized !== 'COMPLETED'
-                          )
-                      },
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-              ]
+                {
+                    key: 'transfer-next-year',
+                    label: 'Transfer',
+                    onClick: handleTransferCfldToNextYear,
+                    isVisible: (item: any) => item?.status === 'ONGOING',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-blue-300 text-blue-700 hover:bg-blue-50 transition-colors',
+                    icon: ArrowRight,
+                },
+                {
+                    key: 'economic-params',
+                    label: 'Economic Parameters',
+                    onClick: (item: any) =>
+                        openCfldSectionForm(item, 'economic'),
+                    isVisible: (item: any) => {
+                        const normalized = normalizeOftStatus(item?.status)
+                        return (
+                            normalized !== 'TRANSFERRED' &&
+                            normalized !== 'COMPLETED'
+                        )
+                    },
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePenLine,
+                },
+                {
+                    key: 'socio-params',
+                    label: 'Update Socio Economic Parameters',
+                    onClick: (item: any) =>
+                        openCfldSectionForm(item, 'socio'),
+                    isVisible: (item: any) => {
+                        const normalized = normalizeOftStatus(item?.status)
+                        return (
+                            normalized !== 'TRANSFERRED' &&
+                            normalized !== 'COMPLETED'
+                        )
+                    },
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePenLine,
+                },
+                {
+                    key: 'perception-params',
+                    label: 'Farmers Perception Parameters',
+                    onClick: (item: any) =>
+                        openCfldSectionForm(item, 'perception'),
+                    isVisible: (item: any) => {
+                        const normalized = normalizeOftStatus(item?.status)
+                        return (
+                            normalized !== 'TRANSFERRED' &&
+                            normalized !== 'COMPLETED'
+                        )
+                    },
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-green-300 text-green-700 hover:bg-green-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
             : []
 
     const nariCustomActions =
         entityType === ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN ||
-        entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED ||
-        entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+            entityType === ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED ||
+            entityType === ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
             ? [
-                  {
-                      key: 'create-result',
-                      label: 'Create Result',
-                      onClick: (item: any) => {
-                          if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                          ) {
-                              setSelectedNariNutriId(item.id)
-                              setIsNariNutriResultPageOpen(true)
-                          } else if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                          ) {
-                              setSelectedNariBioId(item.id)
-                              setIsNariBioResultPageOpen(true)
-                          } else if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                          ) {
-                              setSelectedNariValueId(item.id)
-                              setIsNariValueResultPageOpen(true)
-                          }
-                      },
-                      isVisible: (item: any) =>
-                          statusValue(item) !== 'COMPLETED',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
-                      icon: FilePlus2,
-                  },
-                  {
-                      key: 'edit-result',
-                      label: 'Edit Result',
-                      onClick: (item: any) => {
-                          if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
-                          ) {
-                              setSelectedNariNutriId(item.id)
-                              setIsNariNutriResultPageOpen(true)
-                          } else if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
-                          ) {
-                              setSelectedNariBioId(item.id)
-                              setIsNariBioResultPageOpen(true)
-                          } else if (
-                              entityType ===
-                              ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
-                          ) {
-                              setSelectedNariValueId(item.id)
-                              setIsNariValueResultPageOpen(true)
-                          }
-                      },
-                      isVisible: (item: any) =>
-                          statusValue(item) === 'COMPLETED',
-                      className:
-                          'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
-                      icon: FilePenLine,
-                  },
-              ]
+                {
+                    key: 'create-result',
+                    label: 'Create Result',
+                    onClick: (item: any) => {
+                        if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                        ) {
+                            setSelectedNariNutriId(item.id)
+                            setIsNariNutriResultPageOpen(true)
+                        } else if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                        ) {
+                            setSelectedNariBioId(item.id)
+                            setIsNariBioResultPageOpen(true)
+                        } else if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                        ) {
+                            setSelectedNariValueId(item.id)
+                            setIsNariValueResultPageOpen(true)
+                        }
+                    },
+                    isVisible: (item: any) =>
+                        statusValue(item) !== 'COMPLETED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-[#487749] text-[#487749] hover:bg-[#E8F5E9] transition-colors',
+                    icon: FilePlus2,
+                },
+                {
+                    key: 'edit-result',
+                    label: 'Edit Result',
+                    onClick: (item: any) => {
+                        if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_NUTRI_GARDEN
+                        ) {
+                            setSelectedNariNutriId(item.id)
+                            setIsNariNutriResultPageOpen(true)
+                        } else if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_BIO_FORTIFIED
+                        ) {
+                            setSelectedNariBioId(item.id)
+                            setIsNariBioResultPageOpen(true)
+                        } else if (
+                            entityType ===
+                            ENTITY_TYPES.PROJECT_NARI_VALUE_ADDITION
+                        ) {
+                            setSelectedNariValueId(item.id)
+                            setIsNariValueResultPageOpen(true)
+                        }
+                    },
+                    isVisible: (item: any) =>
+                        statusValue(item) === 'COMPLETED',
+                    className:
+                        'px-2 py-1 text-xs rounded-lg border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors',
+                    icon: FilePenLine,
+                },
+            ]
             : []
 
     // Custom hook for save operations with proper error handling
@@ -1109,10 +1108,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
             templateKey,
             ...(templateKey === 'world-soil-day-page-report'
                 ? {
-                      isAggregatedReport:
-                          user?.role !== 'kvk_admin' &&
-                          user?.role !== 'kvk_user',
-                  }
+                    isAggregatedReport:
+                        user?.role !== 'kvk_admin' &&
+                        user?.role !== 'kvk_user',
+                }
                 : {}),
         })
     }
@@ -1193,7 +1192,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             )
                                         } else if (
                                             routeConfig?.category ===
-                                                'All Masters' &&
+                                            'All Masters' &&
                                             breadcrumbs.length > 1
                                         ) {
                                             const subcategoryPath =
@@ -1294,11 +1293,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                                 )
                                                                 navigate(r.path)
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${
-                                                                selected
-                                                                    ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
-                                                                    : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
-                                                            }`}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-xl border transition-colors ${selected
+                                                                ? 'bg-[#E8F5E9] text-[#2e5a31] font-medium border-[#C8E6C9]'
+                                                                : 'text-[#212121] border-transparent hover:bg-[#F5F5F5] hover:border-[#E0E0E0]'
+                                                                }`}
                                                         >
                                                             {r.title}
                                                         </button>
@@ -1399,7 +1397,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                         </div>
                     </div>
                 ) : isFldResultPageOpen ? (
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className="flex-1 overflow-y-auto py-4">
                         <div className="space-y-6 min-h-[400px]">
                             {renderOftFldTabs({
                                 mode:
@@ -1421,6 +1419,10 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                     <ChevronLeft className="w-4 h-4" />
                                     Back
                                 </button>
+                                <h1 className='text-lg sm:text-xl md:text-2xl font-semibold text-[#487749] leading-tight'>
+                                    {fldResultMode === 'create' ? 'Create FLD Result' : 'Edit FLD Result'}
+                                </h1>
+
                             </div>
                             <div className="bg-white rounded-2xl shadow-sm border border-[#E0E0E0] min-h-[300px] p-6">
                                 <FldResultForm
@@ -1510,19 +1512,18 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                 }
                                                 disabled={
                                                     exportLoadingState !==
-                                                        null &&
+                                                    null &&
                                                     exportLoadingState !==
-                                                        opt.value
-                                                }
-                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${
-                                                    exportLoadingState ===
                                                     opt.value
-                                                        ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
-                                                        : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
-                                                } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
+                                                }
+                                                className={`h-10 inline-flex items-center gap-2 px-4 border rounded-xl text-sm font-medium transition-colors ${exportLoadingState ===
+                                                    opt.value
+                                                    ? 'border-[#487749] text-[#487749] bg-[#E8F5E9]'
+                                                    : 'border-[#E0E0E0] text-[#487749] bg-white hover:bg-[#F5F5F5]'
+                                                    } ${exportLoadingState !== null && exportLoadingState !== opt.value ? 'opacity-60 cursor-not-allowed' : ''}`}
                                             >
                                                 {exportLoadingState ===
-                                                opt.value ? (
+                                                    opt.value ? (
                                                     <svg
                                                         className="w-4 h-4 animate-spin text-[#487749]"
                                                         viewBox="0 0 24 24"
@@ -1547,7 +1548,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                                     <Download className="w-4 h-4" />
                                                 )}
                                                 {exportLoadingState ===
-                                                opt.value
+                                                    opt.value
                                                     ? 'Downloading...'
                                                     : opt.label}
                                             </button>
@@ -1740,14 +1741,14 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         canDeleteItem={canDeleteItem}
                                         onTransfer={
                                             isEmployeeDetails ||
-                                            entityType ===
+                                                entityType ===
                                                 ENTITY_TYPES.KVK_STAFF_TRANSFERRED
                                                 ? handleTransfer
                                                 : undefined
                                         }
                                         onViewHistory={
                                             isEmployeeDetails ||
-                                            entityType ===
+                                                entityType ===
                                                 ENTITY_TYPES.KVK_STAFF_TRANSFERRED
                                                 ? handleViewHistory
                                                 : undefined

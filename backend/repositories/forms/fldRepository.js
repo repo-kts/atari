@@ -64,10 +64,10 @@ const CREATE_FIELD_DEFINITIONS = {
         errorField: 'seasonId',
         optional: true, // Schema allows Int?
     },
-    reportingYear: {
-        fieldNames: ['reportingYear'],
-        errorMessage: 'Reporting Year is required',
-        errorField: 'reportingYear',
+    expectedCompletionDate: {
+        fieldNames: ['expectedCompletionDate'],
+        errorMessage: 'Expected Completion Date is required',
+        errorField: 'expectedCompletionDate',
         optional: true,
     },
     sectorId: {
@@ -119,10 +119,10 @@ const CREATE_FIELD_DEFINITIONS = {
         errorField: 'startDate',
         type: 'date',
     },
-    areaHa: {
-        fieldNames: ['area', 'areaHa'],
-        errorMessage: 'Area (ha) must be a valid non-negative number',
-        errorField: 'area',
+    quantity: {
+        fieldNames: ['quantity', 'area', 'areaHa'],
+        errorMessage: 'Quantity must be a valid non-negative number',
+        errorField: 'quantity',
         type: 'number',
         options: { allowNegative: false },
     },
@@ -212,12 +212,20 @@ const UPDATE_FIELD_DEFINITIONS = [
         errorField: 'startDate',
     },
     {
-        fieldNames: ['area', 'areaHa'],
+        fieldNames: ['quantity', 'area', 'areaHa'],
         type: 'number',
-        backendField: 'areaHa',
-        errorMessage: 'Area (ha) must be a valid non-negative number',
-        errorField: 'area',
+        backendField: 'quantity',
+        errorMessage: 'Quantity must be a valid non-negative number',
+        errorField: 'quantity',
         options: { allowNegative: false },
+    },
+    {
+        fieldNames: ['unit'],
+        type: 'string',
+        backendField: 'unit',
+        errorMessage: 'Unit is invalid',
+        errorField: 'unit',
+        options: { allowEmpty: true },
     },
 ];
 
@@ -243,11 +251,12 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorMessage,
                 CREATE_FIELD_DEFINITIONS.kvkStaffId.errorField
             ),
-            reportingYear: (() => {
-                const d = parseReportingYearDate(data.reportingYear);
-                ensureNotFutureDate(d);
-                return d;
+            expectedCompletionDate: (() => {
+                if (!data.expectedCompletionDate) return null;
+                const d = new Date(data.expectedCompletionDate);
+                return Number.isNaN(d.getTime()) ? null : d;
             })(),
+            unit: typeof data.unit === 'string' ? (data.unit.trim() || null) : null,
             seasonId: validateRequiredInteger(
                 data,
                 CREATE_FIELD_DEFINITIONS.seasonId.fieldNames,
@@ -309,11 +318,11 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.startDate.errorMessage,
                 CREATE_FIELD_DEFINITIONS.startDate.errorField
             ),
-            areaHa: validateRequiredNumber(
+            quantity: validateRequiredNumber(
                 data,
-                CREATE_FIELD_DEFINITIONS.areaHa.fieldNames,
-                CREATE_FIELD_DEFINITIONS.areaHa.errorMessage,
-                CREATE_FIELD_DEFINITIONS.areaHa.errorField,
+                CREATE_FIELD_DEFINITIONS.quantity.fieldNames,
+                CREATE_FIELD_DEFINITIONS.quantity.errorMessage,
+                CREATE_FIELD_DEFINITIONS.quantity.errorField,
                 { allowNegative: false }
             ),
             ongoingCompleted: FLD_STATUS.ONGOING,
@@ -379,22 +388,37 @@ const fldRepository = {
         if (where === null) return []; // User has no KVK access
 
         applyFilters(where, filters, FLD_CONFIG.filterableFields);
-        if (filters.reportingYearFrom || filters.reportingYearTo) {
-            where.reportingYear = {};
-            if (filters.reportingYearFrom) {
-                const from = parseReportingYearDate(filters.reportingYearFrom);
-                ensureNotFutureDate(from);
+        if (filters.expectedCompletionDateFrom || filters.expectedCompletionDateTo) {
+            where.expectedCompletionDate = {};
+            if (filters.expectedCompletionDateFrom) {
+                const from = parseReportingYearDate(filters.expectedCompletionDateFrom);
                 if (from) {
                     from.setHours(0, 0, 0, 0);
-                    where.reportingYear.gte = from;
+                    where.expectedCompletionDate.gte = from;
                 }
             }
-            if (filters.reportingYearTo) {
-                const to = parseReportingYearDate(filters.reportingYearTo);
-                ensureNotFutureDate(to);
+            if (filters.expectedCompletionDateTo) {
+                const to = parseReportingYearDate(filters.expectedCompletionDateTo);
                 if (to) {
                     to.setHours(23, 59, 59, 999);
-                    where.reportingYear.lte = to;
+                    where.expectedCompletionDate.lte = to;
+                }
+            }
+        }
+        if (filters.createdAtFrom || filters.createdAtTo) {
+            where.createdAt = {};
+            if (filters.createdAtFrom) {
+                const from = new Date(filters.createdAtFrom);
+                if (!isNaN(from.getTime())) {
+                    from.setHours(0, 0, 0, 0);
+                    where.createdAt.gte = from;
+                }
+            }
+            if (filters.createdAtTo) {
+                const to = new Date(filters.createdAtTo);
+                if (!isNaN(to.getTime())) {
+                    to.setHours(23, 59, 59, 999);
+                    where.createdAt.lte = to;
                 }
             }
         }
@@ -444,9 +468,9 @@ const fldRepository = {
 
         // Build update data using field definitions
         const updateData = buildUpdateData(data, UPDATE_FIELD_DEFINITIONS);
-        if (data.reportingYear !== undefined) {
-            updateData.reportingYear = parseReportingYearDate(data.reportingYear);
-            ensureNotFutureDate(updateData.reportingYear);
+        if (data.expectedCompletionDate !== undefined) {
+            const d = data.expectedCompletionDate ? new Date(data.expectedCompletionDate) : null;
+            updateData.expectedCompletionDate = d && !Number.isNaN(d.getTime()) ? d : null;
         }
         delete updateData.status;
         delete updateData.ongoingCompleted;
@@ -537,7 +561,7 @@ const fldRepository = {
         return prisma[FLD_CONFIG.model].findFirst({ where, include: FLD_CONFIG.includes });
     },
 
-    transferToNextYearTx: async (sourceFld, targetReportingYearId) => {
+    transferToNextYearTx: async (sourceFld, targetExpectedCompletionDate) => {
         return prisma.$transaction(async (tx) => {
             await tx.kvkFldIntroduction.update({
                 where: { kvkFldId: sourceFld.kvkFldId },
@@ -559,7 +583,8 @@ const fldRepository = {
                 cropId: sourceFld.cropId,
                 fldName: sourceFld.fldName,
                 noOfDemonstration: sourceFld.noOfDemonstration,
-                areaHa: sourceFld.areaHa,
+                quantity: sourceFld.quantity,
+                unit: sourceFld.unit,
                 startDate: nextStartDate,
                 generalM: sourceFld.generalM,
                 generalF: sourceFld.generalF,
@@ -570,7 +595,9 @@ const fldRepository = {
                 stM: sourceFld.stM,
                 stF: sourceFld.stF,
                 ongoingCompleted: FLD_STATUS.ONGOING,
-                reportingYear: parseReportingYearDate(targetReportingYearId),
+                expectedCompletionDate: targetExpectedCompletionDate instanceof Date
+                    ? targetExpectedCompletionDate
+                    : (targetExpectedCompletionDate ? new Date(targetExpectedCompletionDate) : null),
             }, ['kvkFldId', 'id']);
 
             const newRecord = await tx.kvkFldIntroduction.create({
@@ -663,7 +690,7 @@ function _mapResponse(r) {
         staffId: r.kvkStaffId,
         kvkStaffId: r.kvkStaffId,
         staffName: r.kvkStaff?.staffName,
-        reportingYear: formatReportingYear(r.reportingYear),
+        expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         seasonId: r.seasonId,
         seasonName: r.season?.seasonName,
         sectorId: r.sectorId,
@@ -683,9 +710,10 @@ function _mapResponse(r) {
         demoCount: r.noOfDemonstration,
         noOfDemonstration: r.noOfDemonstration,
         startDate: r.startDate ? r.startDate.toISOString().split('T')[0] : undefined,
+        startYear: r.startDate ? new Date(r.startDate).getFullYear() : null,
         completedAt: completionDate,
-        area: r.areaHa,
-        areaHa: r.areaHa,
+        quantity: r.quantity,
+        unit: r.unit,
         gen_m: r.generalM,
         generalM: r.generalM,
         gen_f: r.generalF,
@@ -702,6 +730,8 @@ function _mapResponse(r) {
         stM: r.stM,
         st_f: r.stF,
         stF: r.stF,
+        totalMale: (r.generalM || 0) + (r.obcM || 0) + (r.scM || 0) + (r.stM || 0),
+        totalFemale: (r.generalF || 0) + (r.obcF || 0) + (r.scF || 0) + (r.stF || 0),
         ongoingCompleted: normalizeFldStatus(r.ongoingCompleted),
         status: normalizeFldStatus(r.ongoingCompleted),
         createdAt: r.createdAt,

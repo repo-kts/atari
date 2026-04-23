@@ -24,6 +24,10 @@ export const aboutKvkRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.VIEW_KVKS,
         canCreate: ['super_admin'], // Only super_admin can create KVKs
         moduleCode: 'about_kvks_view_kvks',
+        siblings: [
+            ENTITY_PATHS.KVK_VIEW,
+            ENTITY_PATHS.KVK_BANK_ACCOUNT
+        ]
     },
     {
         path: ENTITY_PATHS.KVK_BANK_ACCOUNT,
@@ -33,9 +37,8 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         siblings: [
-            ENTITY_PATHS.KVK_BANK_ACCOUNT,
-            ENTITY_PATHS.KVK_EMPLOYEES,
-            ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
+            ENTITY_PATHS.KVK_VIEW,
+            ENTITY_PATHS.KVK_BANK_ACCOUNT
         ],
         fields: FIELD_GROUPS.BANK_ACCOUNT_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
@@ -49,7 +52,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         siblings: [
-            ENTITY_PATHS.KVK_BANK_ACCOUNT,
             ENTITY_PATHS.KVK_EMPLOYEES,
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
         ],
@@ -65,7 +67,6 @@ export const aboutKvkRoutes: RouteConfig[] = [
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
         siblings: [
-            ENTITY_PATHS.KVK_BANK_ACCOUNT,
             ENTITY_PATHS.KVK_EMPLOYEES,
             ENTITY_PATHS.KVK_STAFF_TRANSFERRED,
         ],

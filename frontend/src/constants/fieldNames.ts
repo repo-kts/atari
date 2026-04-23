@@ -116,6 +116,9 @@ export const FIELD_NAMES = {
 
     // Reporting Fields
     REPORTING_YEAR: 'reportingYear',
+    START_YEAR: 'startYear',
+    TOTAL_MALE: 'totalMale',
+    TOTAL_FEMALE: 'totalFemale',
 
     // Date Fields
     START_DATE: 'startDate',
@@ -1175,21 +1178,23 @@ export const FIELD_GROUPS = {
 
     // Achievements Routes - OFT & FLD
     OFT: [
-        FIELD_NAMES.REPORTING_YEAR,
+        FIELD_NAMES.START_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.STAFF,
         FIELD_NAMES.TRIAL_ON_FORM,
         FIELD_NAMES.PROBLEM_DIAGNOSED,
+        FIELD_NAMES.TOTAL_MALE,
+        FIELD_NAMES.TOTAL_FEMALE,
         FIELD_NAMES.ONGOING_COMPLETED,
     ] as const,
     FLD_BASE: [
-        FIELD_NAMES.REPORTING_YEAR,
-        FIELD_NAMES.START_DATE,
-        FIELD_NAMES.END_DATE,
+        FIELD_NAMES.START_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.CATEGORY,
         FIELD_NAMES.SUB_CATEGORY,
         FIELD_NAMES.NAME_OF_TECHNOLOGY_DEMONSTRATED,
+        FIELD_NAMES.TOTAL_MALE,
+        FIELD_NAMES.TOTAL_FEMALE,
         FIELD_NAMES.ONGOING_COMPLETED,
     ] as const,
     FLD_EXTENSION_TRAINING: [

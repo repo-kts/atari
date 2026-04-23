@@ -171,8 +171,8 @@ function resolveRecordTemporalShape(item: unknown): TemporalShape {
     if (!item || typeof item !== 'object') return { kind: 'unresolvable' }
     const rec = item as Record<string, unknown>
 
-    // OFT records are filtered by createdAt per stakeholder requirement.
-    if ('kvkOftId' in rec) {
+    // OFT and FLD records are filtered by createdAt per stakeholder requirement.
+    if ('kvkOftId' in rec || 'kvkFldId' in rec) {
         const created = parseDate(rec.createdAt)
         if (created) return { kind: 'point', date: startOfDay(created) }
     }

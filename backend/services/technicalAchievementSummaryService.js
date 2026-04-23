@@ -256,14 +256,14 @@ const technicalAchievementSummaryService = {
         where: {
           ...baseWhere,
           OR: [
-            { reportingYear: { gte: start, lt: endExclusive } },
-            { reportingYear: null, startDate: { gte: start, lt: endExclusive } },
+            { expectedCompletionDate: { gte: start, lt: endExclusive } },
+            { expectedCompletionDate: null, startDate: { gte: start, lt: endExclusive } },
           ],
         },
         _count: { _all: true },
         _sum: {
           noOfDemonstration: true,
-          areaHa: true,
+          quantity: true,
           generalM: true,
           generalF: true,
           obcM: true,
@@ -464,7 +464,7 @@ const technicalAchievementSummaryService = {
         fld: {
           target: fldTarget.target,
           achievement: toNumber(fldAgg?._sum?.noOfDemonstration),
-          area: toNumber(fldAgg?._sum?.areaHa),
+          area: toNumber(fldAgg?._sum?.quantity),
           farmers: {
             target: fldTarget.farmerTarget,
             achievement: buildBreakdown({

@@ -75,17 +75,17 @@ const fldService = {
             throw new ValidationError('Only ONGOING FLD records can be transferred');
         }
 
-        if (!source.reportingYear) {
-            throw new ValidationError('Cannot transfer FLD without reportingYear');
+        if (!source.expectedCompletionDate) {
+            throw new ValidationError('Cannot transfer FLD without expectedCompletionDate');
         }
 
-        const nextReportingYear = new Date(source.reportingYear);
-        if (Number.isNaN(nextReportingYear.getTime())) {
-            throw new ValidationError('Invalid source reportingYear for transfer');
+        const nextExpectedCompletionDate = new Date(source.expectedCompletionDate);
+        if (Number.isNaN(nextExpectedCompletionDate.getTime())) {
+            throw new ValidationError('Invalid source expectedCompletionDate for transfer');
         }
-        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
+        nextExpectedCompletionDate.setFullYear(nextExpectedCompletionDate.getFullYear() + 1);
 
-        const out = await fldRepository.transferToNextYearTx(source, nextReportingYear);
+        const out = await fldRepository.transferToNextYearTx(source, nextExpectedCompletionDate);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return out;
     },
