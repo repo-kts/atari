@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo } from 'react'
+import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
@@ -18,6 +19,7 @@ import {
 } from '../../../../hooks/useOftFldData'
 import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
+import { useFundingSources, useUnits } from '../../../../hooks/useOtherMastersData'
 import { useAuth } from '../../../../contexts/AuthContext'
 import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
@@ -40,6 +42,108 @@ const createTechnologyOption = () => ({
     details: '',
 })
 
+const FIXED_TECHNOLOGY_OPTIONS = [
+    'Farmer Practice',
+    'TO1',
+    'TO2',
+    'TO3',
+    'TO4',
+    'TO5',
+    'CV',
+    'CD',
+] as const
+
+const buildFixedTechnologyOptions = () =>
+    FIXED_TECHNOLOGY_OPTIONS.map((name) => ({
+        optionKey: `fixed_${name.toLowerCase().replace(/\s+/g, '_')}`,
+        optionName: name,
+        details: '',
+        isFixed: true,
+    }))
+
+const isFixedTechnologyName = (name: string) =>
+    (FIXED_TECHNOLOGY_OPTIONS as readonly string[]).includes(String(name).trim())
+
+const PerformanceIndicatorTagInput: React.FC<{
+    value: string
+    onChange: (value: string) => void
+}> = ({ value, onChange }) => {
+    const [draft, setDraft] = React.useState('')
+    const tags = React.useMemo(
+        () => String(value || '').split(',').map((s) => s.trim()).filter(Boolean),
+        [value],
+    )
+
+    const commit = (raw: string) => {
+        const next = raw.trim()
+        if (!next) return
+        if (tags.includes(next)) return
+        const merged = [...tags, next].join(', ')
+        onChange(merged)
+    }
+
+    const removeTag = (idx: number) => {
+        const next = tags.filter((_, i) => i !== idx).join(', ')
+        onChange(next)
+    }
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+                Performance indicators of the technology<span className="text-red-500"> *</span>
+            </label>
+            <div className="min-h-[44px] w-full rounded-lg border border-gray-300 px-2 py-1 flex flex-wrap gap-2 items-center">
+                {tags.map((tag, i) => (
+                    <span key={`${tag}-${i}`} className="inline-flex items-center gap-1 bg-[#E8F5E9] text-[#487749] px-2 py-1 rounded-full text-sm">
+                        {tag}
+                        <button
+                            type="button"
+                            className="text-[#487749] hover:text-red-600"
+                            onClick={() => removeTag(i)}
+                            aria-label={`remove ${tag}`}
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </span>
+                ))}
+                <input
+                    type="text"
+                    className="flex-1 min-w-[140px] outline-none border-0 px-1 py-1 text-sm"
+                    placeholder={tags.length === 0 ? 'Type indicator and press comma or Enter…' : ''}
+                    value={draft}
+                    onChange={(e) => {
+                        const v = e.target.value
+                        if (v.endsWith(',')) {
+                            commit(v.slice(0, -1))
+                            setDraft('')
+                            return
+                        }
+                        setDraft(v)
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault()
+                            commit(draft)
+                            setDraft('')
+                        } else if (e.key === 'Backspace' && draft === '' && tags.length > 0) {
+                            removeTag(tags.length - 1)
+                        }
+                    }}
+                    onBlur={() => {
+                        if (draft.trim()) {
+                            commit(draft)
+                            setDraft('')
+                        }
+                    }}
+                />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+                Tip: type each indicator and press <kbd className="px-1 bg-gray-100 rounded">,</kbd> or <kbd className="px-1 bg-gray-100 rounded">Enter</kbd> to add it as a tag.
+            </p>
+        </div>
+    )
+}
+
 export const OftFldForms: React.FC<OftFldFormsProps> = ({
     entityType,
     formData,
@@ -61,6 +165,8 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // We'll call them here. React Query hooks will trigger fetches if component is mounted.
 
+    const { data: fundingSources = [] } = useFundingSources()
+    const { data: units = [] } = useUnits()
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
     const { data: fldCategories = [] } = useFldCategories()
@@ -215,12 +321,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 optionKey: `legacy_${key}`,
                 optionName: key.replace(/^tech_/, '').trim(),
                 details: formData[key] || '',
+                isFixed: isFixedTechnologyName(key.replace(/^tech_/, '').trim()),
             }))
             .filter((row) => row.optionName)
 
         setFormData((prev: any) => ({
             ...prev,
-            technologyOptions: legacyOptions.length > 0 ? legacyOptions : [createTechnologyOption()],
+            technologyOptions: legacyOptions.length > 0 ? legacyOptions : buildFixedTechnologyOptions(),
         }))
     }, [entityType, formData, setFormData])
 
@@ -454,16 +561,22 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             {/* Achievement OFT forms-------------- */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && (
                 <div className="space-y-8">
-                    {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="OFT Start Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.duration ?? formData.oftStartDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, duration: e.target.value, oftStartDate: e.target.value })}
                         />
-                        {/* Name of SMS/KVK Head - From KVK Staff API */}
+                        <FormInput
+                            label="Expected Completion Date"
+                            required
+                            type="date"
+                            value={formData.expectedCompletionDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
+                        />
+
                         <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
@@ -474,15 +587,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 value: activeKvkId,
                                 field: 'kvkId',
                             }}
-                            // Don't use onOptionsLoad - we already have data from useKvkStaffForDropdown hook
-                            // This prevents duplicate API calls
                             cacheKey="kvk-staff-dropdown"
                             emptyMessage="No SMS/KVK Head staff available for this KVK"
                             loadingMessage="Loading staff..."
                             isLoading={isLoadingKvkStaff}
                         />
 
-                        {/* Season - From Season Master */}
                         <MasterDataDropdown
                             label="Season"
                             required
@@ -492,7 +602,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             emptyMessage="No seasons available"
                         />
 
-                        {/* OFT Subject - From OFT Subject Master */}
                         <MasterDataDropdown
                             label="OFT Subject"
                             required
@@ -501,15 +610,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     oftSubjectId: value as number,
-                                    oftThematicAreaId: '', // Reset thematic area when subject changes
-                                    thematicArea: '' // Reset text input if used
+                                    oftThematicAreaId: '',
+                                    thematicArea: ''
                                 });
                             }}
                             options={createMasterDataOptions(oftSubjects, 'oftSubjectId', 'subjectName')}
                             emptyMessage="No OFT subjects available"
                         />
 
-                        {/* Thematic Area - Dependent on OFT Subject */}
                         <DependentDropdown
                             label="Thematic Area"
                             required
@@ -537,7 +645,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             isLoading={isLoadingOftThematicAreas}
                         />
 
-                        {/* Discipline - From Discipline Master */}
                         <MasterDataDropdown
                             label="Discipline"
                             required
@@ -572,23 +679,42 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.sourceOfTechnology ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfTechnology: e.target.value })}
                         />
+                        <MasterDataDropdown
+                            label="Source of Funding"
+                            required
+                            value={formData.sourceOfFundingId ?? ''}
+                            onChange={(value) => setFormData({ ...formData, sourceOfFundingId: value as number })}
+                            options={createMasterDataOptions(fundingSources as any[], 'fundingSourceId', 'name')}
+                            emptyMessage="No funding sources available"
+                        />
                         <FormInput
                             label="Production system and thematic area"
                             required
                             value={formData.productionSystem ?? ''}
                             onChange={(e) => setFormData({ ...formData, productionSystem: e.target.value })}
                         />
-                        <FormInput
-                            label="Performance indicators of the technology"
+
+                        <div className="md:col-span-2">
+                            <PerformanceIndicatorTagInput
+                                value={formData.performanceIndicators ?? ''}
+                                onChange={(next) => setFormData({ ...formData, performanceIndicators: next })}
+                            />
+                        </div>
+
+                        <MasterDataDropdown
+                            label="Unit"
                             required
-                            value={formData.performanceIndicators ?? ''}
-                            onChange={(e) => setFormData({ ...formData, performanceIndicators: e.target.value })}
+                            value={formData.unitId ?? ''}
+                            onChange={(value) => setFormData({ ...formData, unitId: value as number })}
+                            options={createMasterDataOptions(units as any[], 'unitId', 'name')}
+                            emptyMessage="No units available"
                         />
                         <FormInput
-                            label="Area(ha)/Number"
+                            label="Quantity"
                             required
-                            value={formData.area ?? ''}
-                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                            type="number"
+                            value={formData.quantity ?? formData.area ?? ''}
+                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
                         />
                         <FormInput
                             label="No. of location"
@@ -601,13 +727,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.replications ?? ''}
                             onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
-                        />
-                        <FormInput
-                            label="OFT Start Date"
-                            required
-                            type="date"
-                            value={formData.duration ?? ''}
-                            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         />
                         <FormInput
                             label="Critical Input"
@@ -624,7 +743,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         />
                     </div>
 
-                    {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
                         <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
                             <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
@@ -639,48 +757,59 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         </div>
                     </FormSection>
 
-                    {/* Technologies Section */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-[#487749] pb-2 border-b border-[#E8F5E9]">
                             Details of technologies selected for assessment/refinement:
                         </h3>
                         <div className="space-y-3">
-                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => (
-                                <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-                                    <FormInput
-                                        label={index === 0 ? 'Technology Option Name' : ''}
-                                        placeholder="Enter option name"
-                                        value={tech.optionName ?? ''}
-                                        onChange={(e) => {
-                                            const next = [...(formData.technologyOptions || [])]
-                                            next[index] = { ...next[index], optionName: e.target.value }
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                        required
-                                    />
-                                    <FormInput
-                                        label={index === 0 ? 'Details (Optional)' : ''}
-                                        placeholder="Enter details"
-                                        value={tech.details ?? ''}
-                                        onChange={(e) => {
-                                            const next = [...(formData.technologyOptions || [])]
-                                            next[index] = { ...next[index], details: e.target.value }
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-50"
-                                        disabled={(formData.technologyOptions || []).length <= 1}
-                                        onClick={() => {
-                                            const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
+                            <div className="grid grid-cols-[1fr_1fr_auto] gap-3 text-sm font-medium text-gray-600">
+                                <div>Technology options<span className="text-red-500">*</span></div>
+                                <div>Details<span className="text-red-500">*</span></div>
+                                <div></div>
+                            </div>
+                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => {
+                                const fixed = tech.isFixed || isFixedTechnologyName(tech.optionName)
+                                return (
+                                    <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-start">
+                                        <input
+                                            type="text"
+                                            className={`h-10 w-full rounded-lg border px-3 ${fixed ? 'bg-gray-50 text-gray-700 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
+                                            placeholder="Enter option name"
+                                            value={tech.optionName ?? ''}
+                                            readOnly={fixed}
+                                            onChange={(e) => {
+                                                if (fixed) return
+                                                const next = [...(formData.technologyOptions || [])]
+                                                next[index] = { ...next[index], optionName: e.target.value }
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        />
+                                        <textarea
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[40px]"
+                                            placeholder="Description"
+                                            value={tech.details ?? ''}
+                                            onChange={(e) => {
+                                                const next = [...(formData.technologyOptions || [])]
+                                                next[index] = { ...next[index], details: e.target.value }
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                                            disabled={fixed}
+                                            title={fixed ? 'Fixed option cannot be removed' : 'Remove'}
+                                            onClick={() => {
+                                                if (fixed) return
+                                                const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                )
+                            })}
                             <button
                                 type="button"
                                 className="px-3 py-2 border border-gray-300 rounded-lg"

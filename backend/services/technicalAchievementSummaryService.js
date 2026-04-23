@@ -233,8 +233,8 @@ const technicalAchievementSummaryService = {
         where: {
           ...baseWhere,
           OR: [
-            { reportingYear: { gte: start, lt: endExclusive } },
-            { reportingYear: null, oftStartDate: { gte: start, lt: endExclusive } },
+            { expectedCompletionDate: { gte: start, lt: endExclusive } },
+            { expectedCompletionDate: null, oftStartDate: { gte: start, lt: endExclusive } },
           ],
         },
         _count: { _all: true },

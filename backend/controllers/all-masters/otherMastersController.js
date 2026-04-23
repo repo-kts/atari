@@ -235,6 +235,12 @@ exports.createFundingSource = create('funding-source');
 exports.updateFundingSource = update('funding-source');
 exports.deleteFundingSource = deleteEntity('funding-source');
 
+exports.getAllUnits = getAll('unit');
+exports.getUnitById = getById('unit');
+exports.createUnit = create('unit');
+exports.updateUnit = update('unit');
+exports.deleteUnit = deleteEntity('unit');
+
 // ============================================
 // Other Masters Controllers (continued)
 // ============================================

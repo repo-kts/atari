@@ -1659,3 +1659,12 @@ export function useEquipmentPresentStatuses() {
     });
     return { data: query.data || [], isLoading: query.isLoading, error: query.error, create: createMutation.mutateAsync, update: updateMutation.mutateAsync, remove: deleteMutation.mutateAsync };
 }
+
+export function useUnits() {
+    const query = useQuery({
+        queryKey: ['units'],
+        queryFn: () => otherMastersApi.getUnits().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+    return { data: query.data || [], isLoading: query.isLoading, error: query.error };
+}

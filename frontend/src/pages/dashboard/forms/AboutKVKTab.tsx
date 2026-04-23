@@ -14,13 +14,13 @@ const sections: FeatureSection[] = [
         icon: <Building2 className="w-5 h-5" />,
         items: [
             { label: 'View KVKs', path: '/forms/about-kvk/view-kvks' },
+            { label: 'Bank Account Details', path: '/forms/about-kvk/bank-account' },
         ],
     },
     {
         title: 'Basic Information',
         icon: <FileText className="w-5 h-5" />,
         items: [
-            { label: 'Bank Account Details', path: '/forms/about-kvk/bank-account' },
             { label: 'Employee Details', path: '/forms/about-kvk/employee-details' },
             { label: 'Staff Transferred', path: '/forms/about-kvk/staff-transferred' },
         ],

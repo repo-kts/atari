@@ -37,17 +37,17 @@ const oftService = {
             throw new ValidationError('Only ONGOING OFT records can be transferred');
         }
 
-        if (!source.reportingYear) {
-            throw new ValidationError('Cannot transfer OFT without reportingYear');
+        if (!source.expectedCompletionDate) {
+            throw new ValidationError('Cannot transfer OFT without expectedCompletionDate');
         }
 
-        const nextReportingYear = new Date(source.reportingYear);
-        if (Number.isNaN(nextReportingYear.getTime())) {
-            throw new ValidationError('Invalid source reportingYear for transfer');
+        const nextExpectedCompletionDate = new Date(source.expectedCompletionDate);
+        if (Number.isNaN(nextExpectedCompletionDate.getTime())) {
+            throw new ValidationError('Invalid source expectedCompletionDate for transfer');
         }
-        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
+        nextExpectedCompletionDate.setFullYear(nextExpectedCompletionDate.getFullYear() + 1);
 
-        return oftRepository.transferToNextYearTx(source, nextReportingYear);
+        return oftRepository.transferToNextYearTx(source, nextExpectedCompletionDate);
     },
 
     addResult: async (id, payload, user) => {
@@ -115,30 +115,18 @@ function _validateResultPayload(payload, sourceRows = []) {
     const sourceByKey = new Map(
         (sourceRows || []).map((row) => [String(row.optionKey), String(row.optionName)])
     );
-    if (sourceByKey.size === 0) {
-        throw new ValidationError('At least one OFT technology option is required before adding result', 'technologyOptions');
-    }
 
     payload.tables.forEach((table, tableIndex) => {
         const rows = Array.isArray(table?.rows) ? table.rows : [];
-        const tableKeys = new Set();
         rows.forEach((row, rowIndex) => {
             const optionKey = String(row?.optionKey || '').trim();
-            if (!optionKey || !sourceByKey.has(optionKey)) {
+            if (optionKey && !sourceByKey.has(optionKey)) {
                 throw new ValidationError(
-                    `Invalid source row at table ${tableIndex + 1}, row ${rowIndex + 1}`,
+                    `Unknown source row optionKey at table ${tableIndex + 1}, row ${rowIndex + 1}`,
                     `tables.${tableIndex}.rows.${rowIndex}.optionKey`
                 );
             }
-            tableKeys.add(optionKey);
         });
-
-        if (tableKeys.size !== sourceByKey.size) {
-            throw new ValidationError(
-                `Result table ${tableIndex + 1} must contain all source technology rows`,
-                `tables.${tableIndex}.rows`
-            );
-        }
     });
 
     validateFileSize({ size: payload.supplementaryDatasheetSize }, 2 * 1024 * 1024, 'Supplementary Datasheet');

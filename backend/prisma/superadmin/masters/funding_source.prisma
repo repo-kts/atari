@@ -4,6 +4,7 @@ model FundingSourceMaster {
   createdAt       DateTime              @default(now()) @map("created_at")
   updatedAt       DateTime              @updatedAt @map("updated_at")
   trainings       TrainingAchievement[]
+  kvkOfts         Kvkoft[]
 
   @@map("funding_source_master")
 }
