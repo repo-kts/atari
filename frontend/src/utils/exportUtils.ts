@@ -21,6 +21,8 @@ const CUSTOM_LABELS: Record<string, string> = {
     'orgName': 'Institute Name',
     'organizationName': 'Institute Name',
     'universityName': 'Host Name',
+    'equipmentTypeName': 'Equipment Type',
+    'companyBrandModel': 'Company / Brand / Model',
 }
 
 export function formatHeaderLabel(field: string): string {

@@ -129,6 +129,7 @@ const ENTITY_CONFIG = {
             kvk: { select: { kvkId: true, kvkName: true } },
             vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
     'kvk-equipments': {
@@ -137,6 +138,9 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
+            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
     'kvk-equipment-details': {
@@ -145,8 +149,18 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            equipment: { select: { equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true, yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentMasterId: true, assetFundingSourceId: true } },
+            equipment: {
+                select: {
+                    equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true,
+                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentMasterId: true,
+                    assetFundingSourceId: true,
+                    equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+                    equipmentType: { select: { equipmentTypeId: true, name: true } },
+                    assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
+                }
+            },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
     'kvk-land-details': {
@@ -948,7 +962,9 @@ async function create(entityName, data) {
             reportingYear: parsedReportingYear,
             totalRun: sanitizedData.totalRun ? String(sanitizedData.totalRun) : '',
             repairingCost: sanitizedData.repairingCost !== undefined ? Number(sanitizedData.repairingCost) : null,
-            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
+                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
+                : null,
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
         };
 
@@ -964,7 +980,9 @@ async function create(entityName, data) {
             kvkId: sanitizeInteger(sanitizedData.kvkId),
             equipmentId: sanitizeInteger(sanitizedData.equipmentId),
             reportingYear: parsedReportingYear,
-            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
+                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
+                : null,
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
@@ -1076,7 +1094,11 @@ async function update(entityName, id, data) {
         }
         if (sanitizedData.totalRun !== undefined) finalUpdateData.totalRun = String(sanitizedData.totalRun || '');
         if (sanitizedData.repairingCost !== undefined) finalUpdateData.repairingCost = sanitizedData.repairingCost === null ? null : Number(sanitizedData.repairingCost);
-        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.assetFundingSourceId !== undefined) {
+            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
+                ? null
+                : sanitizeInteger(sanitizedData.assetFundingSourceId);
+        }
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1097,7 +1119,11 @@ async function update(entityName, id, data) {
             ensureNotFutureDate(parsedReportingYear);
             finalUpdateData.reportingYear = parsedReportingYear;
         }
-        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.assetFundingSourceId !== undefined) {
+            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
+                ? null
+                : sanitizeInteger(sanitizedData.assetFundingSourceId);
+        }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1439,8 +1465,17 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             kvkId: parsedKvkId,
             ...(hiddenAssetIds.length ? { equipmentId: { notIn: hiddenAssetIds } } : {}),
         },
-        select: { equipmentId: true, equipmentName: true, identifierCode: true },
-        orderBy: { equipmentName: 'asc' },
+        select: {
+            equipmentId: true,
+            equipmentName: true,
+            companyBrandModel: true,
+            identifierCode: true,
+            equipmentTypeId: true,
+            equipmentMasterId: true,
+            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+        },
+        orderBy: [{ equipmentTypeId: 'asc' }, { equipmentMasterId: 'asc' }, { equipmentName: 'asc' }],
     });
 }
 

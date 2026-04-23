@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSelect } from './shared/FormComponents'
-import { useNicraCategories, useFundingAgencies } from '@/hooks/useOtherMastersData'
+import { useNicraCategories, useFundingAgencies, useEquipmentTypes } from '@/hooks/useOtherMastersData'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface OtherMastersFormsProps {
@@ -18,6 +18,7 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
 }) => {
     const { data: nicraCategories = [] } = useNicraCategories()
     const { data: fundingAgencies = [] } = useFundingAgencies()
+    const { data: equipmentTypes = [] } = useEquipmentTypes()
 
     const agencyOptions = React.useMemo(() =>
         createMasterDataOptions(fundingAgencies, 'fundingAgencyId', 'agencyName'),
@@ -63,6 +64,57 @@ export const OtherMastersForms: React.FC<OtherMastersFormsProps> = ({
                     }, [setFormData])}
                     placeholder="e.g. 15600-39100"
                 />
+            )}
+
+            {entityType === ENTITY_TYPES.ASSET_FUNDING_SOURCE && (
+                <FormInput
+                    label="Name"
+                    required
+                    value={formData.name ?? ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="e.g. ICAR"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.EQUIPMENT_TYPE && (
+                <FormInput
+                    label="Type Name"
+                    required
+                    value={formData.name ?? ''}
+                    onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                        setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                    }, [setFormData])}
+                    placeholder="e.g. Tractor"
+                />
+            )}
+
+            {entityType === ENTITY_TYPES.EQUIPMENT_MASTER && (
+                <>
+                    <FormSelect
+                        label="Equipment Type"
+                        required
+                        value={formData.equipmentTypeId != null ? String(formData.equipmentTypeId) : ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+                            const v = e.target.value
+                            setFormData((prev: any) => ({ ...prev, equipmentTypeId: v ? parseInt(v) : null }))
+                        }, [setFormData])}
+                        options={equipmentTypes.map((t: any) => ({
+                            value: String(t.equipmentTypeId),
+                            label: t.name,
+                        }))}
+                    />
+                    <FormInput
+                        label="Equipment Name"
+                        required
+                        value={formData.name ?? ''}
+                        onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+                            setFormData((prev: any) => ({ ...prev, name: e.target.value }))
+                        }, [setFormData])}
+                        placeholder="e.g. John Deere 5050D"
+                    />
+                </>
             )}
 
             {entityType === ENTITY_TYPES.SANCTIONED_POST && (
