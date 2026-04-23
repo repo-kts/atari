@@ -259,7 +259,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 newErrors.districtId = 'District is required for this role'
             }
             if (showOrgForSubAdmin && orgRequired && !formData.orgId) {
-                newErrors.orgId = 'Organization is required for this role'
+                newErrors.orgId = 'Institute is required for this role'
             }
         }
         // KVK validation — skip when kvk_admin (auto-inherited)
@@ -885,7 +885,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                         }}
                         emptyMessage={isSubAdmin
                             ? 'No KVKs available for your location'
-                            : 'No KVKs found. Please select Zone, State, District, Organization and University first.'}
+                            : 'No KVKs found. Please select Zone, State, District, Institute and Host first.'}
                         loadingMessage="Loading KVKs..."
                         cacheKey="kvks-by-university"
                         required={kvkRequired}
