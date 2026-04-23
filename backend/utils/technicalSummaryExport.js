@@ -205,15 +205,18 @@ async function generateTechnicalSummaryExcelBuffer({ tables, reportingYear, kvkL
   return workbook.xlsx.writeBuffer();
 }
 
-// Data cell — minimal styling, matches the density fldPageExport etc. use.
-function wordCell(text) {
+// Data cell — minimal styling with an explicit width so the table doesn't
+// auto-collapse to 100-twip columns. `width` is in twips.
+function wordCell(text, width) {
   return new TableCell({
+    width: { size: width, type: WidthType.DXA },
     children: [new Paragraph({ text: String(text ?? '') })],
   });
 }
 
-function wordHeaderCell(text) {
+function wordHeaderCell(text, width) {
   return new TableCell({
+    width: { size: width, type: WidthType.DXA },
     shading: { fill: 'F2F2F2' },
     children: [
       new Paragraph({
@@ -237,15 +240,18 @@ async function generateTechnicalSummaryWordBuffer({ tables, reportingYear, kvkLa
   children.push(new Paragraph({ text: `KVK: ${kvkLabel}` }));
   children.push(new Paragraph({ text: '' }));
 
+  // Landscape A4 usable width (twips) after ~1-inch margins both sides.
+  // Used to give docx an explicit columnWidths array — otherwise it
+  // defaults to 100 twips per column (~1.8mm) and Word renders every
+  // column as a single character wide.
+  const LANDSCAPE_USABLE_TWIPS = 13950;
+
   for (const table of tables) {
     const headers = table.headers || [];
     const dataRows = Array.isArray(table.rows) ? table.rows : [];
     const width = Math.max(1, headers.length);
 
     // Section title lives OUTSIDE the table as a HEADING_2 paragraph.
-    // Putting it inside as a single-cell merged row was causing docx to
-    // mis-size the column grid — the data rows got squeezed into a narrow
-    // strip, each header letter wrapping to its own line.
     children.push(
       new Paragraph({
         text: table.title,
@@ -253,22 +259,26 @@ async function generateTechnicalSummaryWordBuffer({ tables, reportingYear, kvkLa
       }),
     );
 
+    const colTwips = Math.floor(LANDSCAPE_USABLE_TWIPS / width);
+    const columnWidths = Array.from({ length: width }, () => colTwips);
+
     const rows = [
       new TableRow({
         tableHeader: true,
-        children: headers.map((h) => wordHeaderCell(h)),
+        children: headers.map((h) => wordHeaderCell(h, colTwips)),
       }),
       ...dataRows.map(
         (line) =>
           new TableRow({
-            children: Array.from({ length: width }, (_, i) => wordCell(line[i] ?? '')),
+            children: Array.from({ length: width }, (_, i) => wordCell(line[i] ?? '', colTwips)),
           }),
       ),
     ];
 
     children.push(
       new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
+        columnWidths,
+        width: { size: LANDSCAPE_USABLE_TWIPS, type: WidthType.DXA },
         rows,
       }),
     );
