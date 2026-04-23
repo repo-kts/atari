@@ -205,27 +205,19 @@ async function generateTechnicalSummaryExcelBuffer({ tables, reportingYear, kvkL
   return workbook.xlsx.writeBuffer();
 }
 
-function wordParagraph(text, { bold = false, heading = null, size = 22, align = AlignmentType.LEFT } = {}) {
-  return new Paragraph({
-    alignment: align,
-    heading: heading || undefined,
-    children: [
-      {
-        text,
-        bold,
-        size,
-      },
-    ].map((run) => new (require('docx').TextRun)(run)),
+// Data cell — minimal styling, matches the density fldPageExport etc. use.
+function wordCell(text) {
+  return new TableCell({
+    children: [new Paragraph({ text: String(text ?? '') })],
   });
 }
 
-function wordCell(text, { bold = false, shaded = false } = {}) {
+function wordHeaderCell(text) {
   return new TableCell({
-    shading: shaded ? { fill: 'F2F2F2' } : undefined,
+    shading: { fill: 'F2F2F2' },
     children: [
       new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [new (require('docx').TextRun)({ text: String(text ?? ''), bold, size: 18 })],
+        children: [new (require('docx').TextRun)({ text: String(text ?? ''), bold: true })],
       }),
     ],
   });
@@ -236,13 +228,13 @@ async function generateTechnicalSummaryWordBuffer({ tables, reportingYear, kvkLa
 
   children.push(
     new Paragraph({
+      text: REPORT_TITLE,
       heading: HeadingLevel.HEADING_1,
       alignment: AlignmentType.CENTER,
-      children: [new (require('docx').TextRun)({ text: REPORT_TITLE, bold: true, size: 32 })],
     }),
   );
-  children.push(wordParagraph(`Reporting Year: ${reportingYear}`));
-  children.push(wordParagraph(`KVK: ${kvkLabel}`));
+  children.push(new Paragraph({ text: `Reporting Year: ${reportingYear}` }));
+  children.push(new Paragraph({ text: `KVK: ${kvkLabel}` }));
   children.push(new Paragraph({ text: '' }));
 
   for (const table of tables) {
@@ -250,27 +242,21 @@ async function generateTechnicalSummaryWordBuffer({ tables, reportingYear, kvkLa
     const dataRows = Array.isArray(table.rows) ? table.rows : [];
     const width = Math.max(1, headers.length);
 
-    const rows = [
-      // Section title spans all columns via a single merged-looking row.
-      new TableRow({
-        children: [
-          new TableCell({
-            columnSpan: width,
-            shading: { fill: 'F2F2F2' },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new (require('docx').TextRun)({ text: String(table.title), bold: true, size: 22 }),
-                ],
-              }),
-            ],
-          }),
-        ],
+    // Section title lives OUTSIDE the table as a HEADING_2 paragraph.
+    // Putting it inside as a single-cell merged row was causing docx to
+    // mis-size the column grid — the data rows got squeezed into a narrow
+    // strip, each header letter wrapping to its own line.
+    children.push(
+      new Paragraph({
+        text: table.title,
+        heading: HeadingLevel.HEADING_2,
       }),
+    );
+
+    const rows = [
       new TableRow({
         tableHeader: true,
-        children: headers.map((h) => wordCell(h, { bold: true, shaded: true })),
+        children: headers.map((h) => wordHeaderCell(h)),
       }),
       ...dataRows.map(
         (line) =>
