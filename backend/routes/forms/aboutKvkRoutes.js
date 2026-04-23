@@ -110,16 +110,6 @@ router.put('/equipment-details/:id', requirePermission('about_kvks_equipment_det
 router.delete('/equipment-details/:id', requirePermission('about_kvks_equipment_details', 'DELETE'), aboutKvkController.deleteKvkEquipmentDetails);
 
 // ============================================
-// KVK Farm Implement Routes  (moduleCode: about_kvks_farm_implement_details)
-// ============================================
-
-router.get('/farm-implements', requirePermission('about_kvks_farm_implement_details', 'VIEW'), aboutKvkController.getAllKvkFarmImplements);
-router.get('/farm-implements/:id', requirePermission('about_kvks_farm_implement_details', 'VIEW'), aboutKvkController.getKvkFarmImplementById);
-router.post('/farm-implements', requirePermission('about_kvks_farm_implement_details', 'ADD'), aboutKvkController.createKvkFarmImplement);
-router.put('/farm-implements/:id', requirePermission('about_kvks_farm_implement_details', 'EDIT'), aboutKvkController.updateKvkFarmImplement);
-router.delete('/farm-implements/:id', requirePermission('about_kvks_farm_implement_details', 'DELETE'), aboutKvkController.deleteKvkFarmImplement);
-
-// ============================================
 // Master Data Routes (dropdown helpers — auth only, no extra permission)
 // These are read-only lookup endpoints used in forms to populate dropdowns.
 // ============================================

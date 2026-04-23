@@ -82,7 +82,6 @@ export const ENTITY_DEPENDENCY_MAP: Record<string, EntityDependency> = {
             ENTITY_TYPES.KVK_INFRASTRUCTURE,
             ENTITY_TYPES.KVK_VEHICLES,
             ENTITY_TYPES.KVK_EQUIPMENTS,
-            ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
             ENTITY_TYPES.ACHIEVEMENT_PRODUCTION_SUPPLY,
         ],
         dependencyField: 'kvkId',

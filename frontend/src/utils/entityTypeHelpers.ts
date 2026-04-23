@@ -101,7 +101,6 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.KVK_VEHICLE_DETAILS,
         ENTITY_TYPES.KVK_EQUIPMENTS,
         ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
-        ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
     ] as ExtendedEntityType[],
     ACHIEVEMENTS: [
         ENTITY_TYPES.ACHIEVEMENT_OFT,
@@ -301,7 +300,6 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/about-kvk/vehicle-details': ENTITY_TYPES.KVK_VEHICLE_DETAILS,
         '/forms/about-kvk/equipments': ENTITY_TYPES.KVK_EQUIPMENTS,
         '/forms/about-kvk/equipment-details': ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
-        '/forms/about-kvk/farm-implements': ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
         '/forms/about-kvk/details': ENTITY_TYPES.KVKS,
         '/forms/about-kvk/view-kvks': ENTITY_TYPES.KVKS,
 

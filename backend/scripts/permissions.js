@@ -38,7 +38,6 @@ const MODULES = [
   { menuName: 'About KVKs', subMenuName: 'Infrastructure Details', moduleCode: 'about_kvks_infrastructure_details' },
   { menuName: 'About KVKs', subMenuName: 'Vehicle Details', moduleCode: 'about_kvks_vehicle_details' },
   { menuName: 'About KVKs', subMenuName: 'Equipment Details', moduleCode: 'about_kvks_equipment_details' },
-  { menuName: 'About KVKs', subMenuName: 'Farm Implement Details', moduleCode: 'about_kvks_farm_implement_details' },
   { menuName: 'Achievements', subMenuName: 'Technical Achievement Summary', moduleCode: 'achievements_technical_achievement_summary' },
   { menuName: 'Achievements', subMenuName: 'OFT', moduleCode: 'achievements_oft' },
   { menuName: 'Achievements', subMenuName: 'FLD', moduleCode: 'achievements_fld' },
@@ -82,6 +81,8 @@ const MODULES = [
   { menuName: 'All Masters', subMenuName: 'Pay Level Master', moduleCode: 'all_masters_pay_level_master' },
   { menuName: 'All Masters', subMenuName: 'Pay Scale Master', moduleCode: 'all_masters_pay_scale_master' },
   { menuName: 'All Masters', subMenuName: 'Asset Funding Source Master', moduleCode: 'all_masters_asset_funding_source_master' },
+  { menuName: 'All Masters', subMenuName: 'Equipment Type Master', moduleCode: 'all_masters_equipment_type_master' },
+  { menuName: 'All Masters', subMenuName: 'Equipment Master', moduleCode: 'all_masters_equipment_master' },
   { menuName: 'All Masters', subMenuName: 'Discipline Master', moduleCode: 'all_masters_discipline_master' },
   { menuName: 'All Masters', subMenuName: 'Crop Type Master', moduleCode: 'all_masters_crop_type_master' },
   { menuName: 'All Masters', subMenuName: 'Infrastructure Master', moduleCode: 'all_masters_infrastructure_master' },
@@ -113,7 +114,7 @@ const MODULES = [
 const BASE_USER_MODULES = [
   'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details',
   'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details',
-  'about_kvks_equipment_details', 'about_kvks_farm_implement_details',
+  'about_kvks_equipment_details',
   'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld',
   'achievements_fld_extension_training', 'achievements_fld_technical_feedback',
   'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities',
@@ -135,7 +136,7 @@ const ROLE_PERMISSIONS = {
   super_admin: { permissions: 'ALL' },
   zone_admin: {
     permissions: {
-      modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
+      modules: ['all_masters_zone_master', 'all_masters_states_master', 'all_masters_districts_master', 'all_masters_organization_master', 'all_masters_university_master', 'all_masters_kvks', 'all_masters_nicra_master', 'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master', 'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'user_management_users', 'role_management_roles', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },
   },
@@ -165,11 +166,11 @@ const ROLE_PERMISSIONS = {
         'all_masters_other_extension_activity_master', 'all_masters_events_master', 'all_masters_products_master', 'all_masters_climate_master', 'all_masters_arya_master',
         'all_masters_tsp_scsp_master', 'all_masters_natural_farming_master',
         'all_masters_publication_master', 'all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master',
-        'all_masters_pay_level_master', 'all_masters_pay_scale_master', 'all_masters_asset_funding_source_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master',
+        'all_masters_pay_level_master', 'all_masters_pay_scale_master', 'all_masters_asset_funding_source_master', 'all_masters_equipment_type_master', 'all_masters_equipment_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master',
         'all_masters_soil_water_analysis_master', 'all_masters_nari_activity_master', 'all_masters_nari_garden_type_master', 'all_masters_nicra_master',
         'all_masters_impact_area_master', 'all_masters_enterprise_type_master', 'all_masters_account_type_master', 'all_masters_programme_type_master',
         'all_masters_ppv_fra_training_type_master', 'all_masters_dignitary_type_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master',
-        'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'
+        'user_management_users', 'about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'achievements_technical_achievement_summary', 'achievements_oft', 'achievements_fld', 'achievements_fld_extension_training', 'achievements_fld_technical_feedback', 'achievements_trainings', 'achievements_extension_activities', 'achievements_other_extension_activities', 'achievements_technology_week_celebration', 'achievements_celebration_days', 'achievements_production_supply_tech_products', 'achievements_soil_water_testing', 'achievements_projects', 'achievements_publications', 'achievements_award_recognition', 'achievements_hrd', 'performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages', 'misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors', 'digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels', 'swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure', 'meetings_sac', 'meetings_other_atari', 'module_images', 'reports', 'log_history', 'notifications', 'form_summary_status'
       ],
       actions: ['VIEW', 'ADD', 'EDIT', 'DELETE'],
     },

@@ -103,6 +103,35 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'equipment-type': {
+        model: 'equipmentTypeMaster',
+        idField: 'equipmentTypeId',
+        nameField: 'name',
+        allowDeleteWithDependents: true, // onDelete: SetNull on equipments; Cascade on child equipmentMasters
+        includes: {
+            _count: {
+                select: {
+                    equipments: true,
+                    equipmentMasters: true,
+                },
+            },
+        },
+    },
+    'equipment-master': {
+        model: 'equipmentMaster',
+        idField: 'equipmentMasterId',
+        nameField: 'name',
+        parentField: 'equipmentTypeId',
+        allowDeleteWithDependents: true, // onDelete: SetNull on equipments
+        includes: {
+            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            _count: {
+                select: {
+                    equipments: true,
+                },
+            },
+        },
+    },
     // Extension Masters
     'extension-activity-type': {
         model: 'fldActivity',

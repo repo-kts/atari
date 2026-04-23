@@ -84,6 +84,34 @@ export interface AssetFundingSource {
     };
 }
 
+export interface EquipmentTypeEntry {
+    equipmentTypeId: number;
+    name: string;
+    _count?: {
+        equipments: number;
+        equipmentMasters: number;
+    };
+}
+
+export interface EquipmentMasterEntry {
+    equipmentMasterId: number;
+    equipmentTypeId: number;
+    name: string;
+    equipmentType?: { equipmentTypeId: number; name: string };
+    _count?: {
+        equipments: number;
+    };
+}
+
+export interface EquipmentTypeFormData {
+    name: string;
+}
+
+export interface EquipmentMasterFormData {
+    equipmentTypeId: number;
+    name: string;
+}
+
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
@@ -489,6 +517,28 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`, data),
     deleteAssetFundingSource: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/asset-funding-source/${id}`),
+
+    getEquipmentTypes: () =>
+        apiClient.get<PaginatedResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type`),
+    getEquipmentTypeById: (id: number) =>
+        apiClient.get<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type/${id}`),
+    createEquipmentType: (data: EquipmentTypeFormData) =>
+        apiClient.post<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type`, data),
+    updateEquipmentType: (id: number, data: Partial<EquipmentTypeFormData>) =>
+        apiClient.put<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type/${id}`, data),
+    deleteEquipmentType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-type/${id}`),
+
+    getEquipmentMasters: () =>
+        apiClient.get<PaginatedResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master`),
+    getEquipmentMasterById: (id: number) =>
+        apiClient.get<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master/${id}`),
+    createEquipmentMaster: (data: EquipmentMasterFormData) =>
+        apiClient.post<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master`, data),
+    updateEquipmentMaster: (id: number, data: Partial<EquipmentMasterFormData>) =>
+        apiClient.put<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master/${id}`, data),
+    deleteEquipmentMaster: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-master/${id}`),
 
     getDisciplines: () =>
         apiClient.get<PaginatedResponse<Discipline>>(`${BASE_URL}/discipline`),

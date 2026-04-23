@@ -185,6 +185,18 @@ exports.createAssetFundingSource = create('asset-funding-source');
 exports.updateAssetFundingSource = update('asset-funding-source');
 exports.deleteAssetFundingSource = deleteEntity('asset-funding-source');
 
+exports.getAllEquipmentTypes = getAll('equipment-type');
+exports.getEquipmentTypeById = getById('equipment-type');
+exports.createEquipmentType = create('equipment-type');
+exports.updateEquipmentType = update('equipment-type');
+exports.deleteEquipmentType = deleteEntity('equipment-type');
+
+exports.getAllEquipmentMasters = getAll('equipment-master');
+exports.getEquipmentMasterById = getById('equipment-master');
+exports.createEquipmentMaster = create('equipment-master');
+exports.updateEquipmentMaster = update('equipment-master');
+exports.deleteEquipmentMaster = deleteEntity('equipment-master');
+
 // ============================================
 // Extension Masters Controllers
 // ============================================

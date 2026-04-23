@@ -14,10 +14,9 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
     enumToOptions,
-    AccountTypeEnum,
-    ImplementPresentStatusEnum
+    AccountTypeEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -48,6 +47,8 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: payScales = [] } = usePayScales()
     const { data: fundingSources = [] } = useFundingSources()
     const { data: assetFundingSources = [] } = useAssetFundingSources()
+    const { data: equipmentTypes = [] } = useEquipmentTypes()
+    const { data: equipmentMasters = [] } = useEquipmentMasters()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
@@ -563,12 +564,36 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
 
             {(entityType === ENTITY_TYPES.KVK_EQUIPMENTS) && (
                 <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Equipment Type"
+                            required
+                            value={formData.equipmentTypeId != null ? String(formData.equipmentTypeId) : ''}
+                            onChange={(e) => setFormData({ ...formData, equipmentTypeId: e.target.value ? parseInt(e.target.value) : null, equipmentMasterId: null })}
+                            options={equipmentTypes.map((t: any) => ({
+                                value: String(t.equipmentTypeId),
+                                label: t.name,
+                            }))}
+                        />
+                        <FormSelect
+                            label="Equipment"
+                            required
+                            value={formData.equipmentMasterId != null ? String(formData.equipmentMasterId) : ''}
+                            onChange={(e) => setFormData({ ...formData, equipmentMasterId: e.target.value ? parseInt(e.target.value) : null })}
+                            disabled={!formData.equipmentTypeId}
+                            options={equipmentMasters
+                                .filter((m: any) => m.equipmentTypeId === formData.equipmentTypeId)
+                                .map((m: any) => ({
+                                    value: String(m.equipmentMasterId),
+                                    label: m.name,
+                                }))}
+                        />
+                    </div>
                     <FormInput
-                        label={"Equipment Name"}
-                        required
-                        value={formData.equipmentName ?? ''}
-                        onChange={(e) => setFormData({ ...formData, equipmentName: e.target.value })}
-                        placeholder="Enter name"
+                        label="Company / Brand / Model"
+                        value={formData.companyBrandModel ?? ''}
+                        onChange={(e) => setFormData({ ...formData, companyBrandModel: e.target.value })}
+                        placeholder="e.g. John Deere 5050D, Kubota L3408"
                     />
                     <FormInput
                         label="Identifier Code"
@@ -697,18 +722,49 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             setFormData({ ...formData, reportingYear: value ? new Date(value).toISOString() : '' })
                         }}
                     />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormSelect
+                            label="Equipment Type (filter)"
+                            value={formData._filterEquipmentTypeId != null ? String(formData._filterEquipmentTypeId) : ''}
+                            onChange={(e) => setFormData({ ...formData, _filterEquipmentTypeId: e.target.value ? parseInt(e.target.value) : null, _filterEquipmentMasterId: null, equipmentId: null })}
+                            disabled={!formData.reportingYear}
+                            options={equipmentTypes.map((t: any) => ({
+                                value: String(t.equipmentTypeId),
+                                label: t.name,
+                            }))}
+                        />
+                        <FormSelect
+                            label="Equipment Model (filter)"
+                            value={formData._filterEquipmentMasterId != null ? String(formData._filterEquipmentMasterId) : ''}
+                            onChange={(e) => setFormData({ ...formData, _filterEquipmentMasterId: e.target.value ? parseInt(e.target.value) : null, equipmentId: null })}
+                            disabled={!formData.reportingYear || !formData._filterEquipmentTypeId}
+                            options={equipmentMasters
+                                .filter((m: any) => m.equipmentTypeId === formData._filterEquipmentTypeId)
+                                .map((m: any) => ({
+                                    value: String(m.equipmentMasterId),
+                                    label: m.name,
+                                }))}
+                        />
+                    </div>
                     <FormSelect
                         label="Equipment"
                         required
                         value={formData.equipmentId ?? ''}
                         onChange={(e) => setFormData({ ...formData, equipmentId: parseInt(e.target.value) })}
                         disabled={!formData.reportingYear}
-                        options={equipments.map((eq: any) => ({
-                            value: eq.equipmentId,
-                            label: eq.identifierCode
-                                ? `${eq.equipmentName} — ${eq.identifierCode}`
-                                : eq.equipmentName,
-                        }))}
+                        options={equipments
+                            .filter((eq: any) =>
+                                (!formData._filterEquipmentTypeId || eq.equipmentTypeId === formData._filterEquipmentTypeId) &&
+                                (!formData._filterEquipmentMasterId || eq.equipmentMasterId === formData._filterEquipmentMasterId)
+                            )
+                            .map((eq: any) => {
+                                const nameParts = [eq.companyBrandModel, eq.equipmentName].filter(Boolean)
+                                const baseName = nameParts.join(' · ') || `#${eq.equipmentId}`
+                                return {
+                                    value: eq.equipmentId,
+                                    label: eq.identifierCode ? `${baseName} — ${eq.identifierCode}` : baseName,
+                                }
+                            })}
                     />
                     <FormSelect
                         label="Present Status"
@@ -729,50 +785,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                 </div>
             )}
 
-            {/* Farm Implements Form */}
-            {entityType === ENTITY_TYPES.KVK_FARM_IMPLEMENTS && (
-                <div className="space-y-4">
-                    <FormInput
-                        label="Name of Implement"
-                        required
-                        value={formData.implementName ?? ''}
-                        onChange={(e) => setFormData({ ...formData, implementName: e.target.value })}
-                        placeholder="Enter implement name"
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormInput
-                            label="Year of Purchase"
-                            required
-                            type="number"
-                            value={formData.yearOfPurchase ?? ''}
-                            onChange={(e) => setFormData({ ...formData, yearOfPurchase: parseInt(e.target.value) })}
-                        />
-                        <FormInput
-                            label="Total Cost (Rs.)"
-                            required
-                            type="number"
-                            value={formData.totalCost ?? ''}
-                            onChange={(e) => setFormData({ ...formData, totalCost: parseFloat(e.target.value) })}
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormSelect
-                            label="Present Status"
-                            required
-                            value={formData.presentStatus ?? ''}
-                            onChange={(e) => setFormData({ ...formData, presentStatus: e.target.value || '' })}
-                            options={enumToOptions(ImplementPresentStatusEnum)}
-                        />
-                        <FormInput
-                            label="Source of Fund"
-                            required
-                            value={formData.sourceOfFund ?? ''}
-                            onChange={(e) => setFormData({ ...formData, sourceOfFund: e.target.value })}
-                            placeholder="Enter source of fund"
-                        />
-                    </div>
-                </div>
-            )}
             {/* Land Details Form */}
             {entityType === ENTITY_TYPES.KVK_LAND_DETAILS && (
                 <div className="space-y-4">

@@ -57,26 +57,6 @@ const generateEquipmentData = (kvkId, index) => {
     equipmentName,
     yearOfPurchase: year,
     totalCost: Math.floor(Math.random() * 200000) + 10000, // 10k-210k
-    sourceOfFunding: ['ICAR', 'State Government', 'KVK Funds', 'Donation'][Math.floor(Math.random() * 4)],
-    type: 'EQUIPMENT',
-  };
-};
-
-const generateFarmImplementData = (kvkId, index) => {
-  const implementTypes = [
-    'Plough', 'Harrow', 'Cultivator', 'Seed Drill', 'Rotavator',
-    'Thresher', 'Harvester', 'Sprayer', 'Weeder', 'Ridger'
-  ];
-  const implementName = implementTypes[index % implementTypes.length];
-  const year = 2020 + (index % 5);
-
-  return {
-    kvkId,
-    implementName,
-    yearOfPurchase: year,
-    totalCost: Math.floor(Math.random() * 300000) + 50000, // 50k-350k
-    presentStatus: ['WORKING', 'GOOD_CONDITION', 'NEW', 'REPAIRABLE', 'NOT_WORKING'][Math.floor(Math.random() * 5)],
-    sourceOfFund: ['ICAR', 'State Government', 'KVK Funds', 'Central Government'][Math.floor(Math.random() * 4)],
   };
 };
 
@@ -203,45 +183,6 @@ async function seedEquipment(kvkIds) {
   console.log(`   ✅ Total: ${totalCreated} equipment items created\n`);
 }
 
-/**
- * Seed farm implementation data for given KVK IDs
- */
-async function seedFarmImplements(kvkIds) {
-  console.log('🌱 Seeding farm implementation data...');
-
-  let totalCreated = 0;
-  for (const kvkId of kvkIds) {
-    // Verify KVK exists
-    const kvk = await prisma.kvk.findUnique({ where: { kvkId } });
-    if (!kvk) {
-      console.log(`   ⚠️  KVK with ID ${kvkId} not found, skipping...`);
-      continue;
-    }
-
-    // Seed 4-7 farm implements per KVK
-    const count = Math.floor(Math.random() * 4) + 4; // 4-7 items
-
-    for (let i = 0; i < count; i++) {
-      const implementData = generateFarmImplementData(kvkId, i);
-
-      // Check if implement with same name and year already exists
-      const existing = await prisma.kvkFarmImplement.findFirst({
-        where: {
-          kvkId,
-          implementName: implementData.implementName,
-          yearOfPurchase: implementData.yearOfPurchase,
-        },
-      });
-
-      if (!existing) {
-        await prisma.kvkFarmImplement.create({ data: implementData });
-        totalCreated++;
-      }
-    }
-    console.log(`   ✅ KVK ${kvkId}: ${count} farm implements`);
-  }
-  console.log(`   ✅ Total: ${totalCreated} farm implements created\n`);
-}
 
 /**
  * Seed staff/employee data for given KVK IDs
@@ -690,7 +631,6 @@ async function resetExistingFormData(kvkIds) {
   await prisma.farmerAward.deleteMany({ where: { kvkId: { in: kvkIds } } });
   await prisma.kvkBankAccount.deleteMany({ where: { kvkId: { in: kvkIds } } });
   await prisma.kvkStaff.deleteMany({ where: { kvkId: { in: kvkIds } } });
-  await prisma.kvkFarmImplement.deleteMany({ where: { kvkId: { in: kvkIds } } });
   await prisma.kvkEquipment.deleteMany({ where: { kvkId: { in: kvkIds } } });
   await prisma.kvkVehicle.deleteMany({ where: { kvkId: { in: kvkIds } } });
   await prisma.kvkInfrastructure.deleteMany({ where: { kvkId: { in: kvkIds } } });
@@ -754,7 +694,6 @@ async function run() {
   await seedInfrastructure(existingIds);
   await seedVehicles(existingIds);
   await seedEquipment(existingIds);
-  await seedFarmImplements(existingIds);
   await seedStaff(existingIds);
   await seedBankAccounts(existingIds);
   await seedTrainings(existingIds);
@@ -780,7 +719,6 @@ if (require.main === module) {
     seedInfrastructure,
     seedVehicles,
     seedEquipment,
-    seedFarmImplements,
     seedStaff,
     seedBankAccounts,
     seedTrainings,

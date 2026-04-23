@@ -143,25 +143,14 @@ export interface KvkVehicle {
 export interface KvkEquipment {
     equipmentId: number;
     kvkId: number;
-    equipmentName: string;
+    equipmentTypeId?: number | null;
+    equipmentMasterId?: number | null;
+    equipmentName?: string | null;
+    companyBrandModel?: string | null;
     identifierCode?: string | null;
     yearOfPurchase: number;
     totalCost: number;
-    sourceOfFunding: string;
-    type: 'EQUIPMENT' | 'FARM_IMPLEMENT';
-    kvk?: { kvkId: number; kvkName: string };
-}
-
-export interface KvkFarmImplement {
-    implementId: number;
-    kvkId: number;
-    implementName: string;
-    yearOfPurchase: number;
-    totalCost: number;
-    presentStatus: 'WORKING' | 'GOOD_CONDITION' | 'NEW' | 'REPAIRABLE' | 'NOT_WORKING';
-    sourceOfFund: string;
-    createdAt?: string;
-    updatedAt?: string;
+    assetFundingSourceId?: number | null;
     kvk?: { kvkId: number; kvkName: string };
 }
 
@@ -180,5 +169,4 @@ export type KvkEmployeeFormData = Omit<KvkEmployee, 'kvkStaffId' | 'kvk' | 'sanc
 export type KvkInfrastructureFormData = Omit<KvkInfrastructure, 'infraId' | 'kvk' | 'infraMaster' | 'createdAt' | 'updatedAt'>;
 export type KvkVehicleFormData = Omit<KvkVehicle, 'vehicleId' | 'kvk'>;
 export type KvkEquipmentFormData = Omit<KvkEquipment, 'equipmentId' | 'kvk'>;
-export type KvkFarmImplementFormData = Omit<KvkFarmImplement, 'implementId' | 'kvk' | 'createdAt' | 'updatedAt'>;
 export type KvkLandDetailFormData = Omit<KvkLandDetail, 'landId' | 'kvk'>;

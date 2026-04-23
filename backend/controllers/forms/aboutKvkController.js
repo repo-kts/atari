@@ -187,12 +187,6 @@ exports.createKvkEquipmentDetails = create('kvk-equipment-details');
 exports.updateKvkEquipmentDetails = update('kvk-equipment-details');
 exports.deleteKvkEquipmentDetails = deleteEntity('kvk-equipment-details');
 
-exports.getAllKvkFarmImplements = getAll('kvk-farm-implements');
-exports.getKvkFarmImplementById = getById('kvk-farm-implements');
-exports.createKvkFarmImplement = create('kvk-farm-implements');
-exports.updateKvkFarmImplement = update('kvk-farm-implements');
-exports.deleteKvkFarmImplement = deleteEntity('kvk-farm-implements');
-
 exports.getAllKvkLandDetails = getAll('kvk-land-details');
 exports.getKvkLandDetailById = getById('kvk-land-details');
 exports.createKvkLandDetail = create('kvk-land-details');

@@ -38,6 +38,8 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PAY_LEVEL]: 'payLevelId',
     [ENTITY_TYPES.PAY_SCALE]: 'payScaleId',
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: 'assetFundingSourceId',
+    [ENTITY_TYPES.EQUIPMENT_TYPE]: 'equipmentTypeId',
+    [ENTITY_TYPES.EQUIPMENT_MASTER]: 'equipmentMasterId',
     [ENTITY_TYPES.DISCIPLINE]: 'disciplineId',
 
     // Extension Masters
@@ -94,7 +96,6 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.KVK_VEHICLE_DETAILS]: 'vehicleId',
     [ENTITY_TYPES.KVK_EQUIPMENTS]: 'equipmentId',
     [ENTITY_TYPES.KVK_EQUIPMENT_DETAILS]: 'equipmentId',
-    [ENTITY_TYPES.KVK_FARM_IMPLEMENTS]: 'implementId',
 
     // Achievements
     [ENTITY_TYPES.ACHIEVEMENT_OFT]: 'id',

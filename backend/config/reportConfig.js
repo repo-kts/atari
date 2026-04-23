@@ -230,26 +230,7 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
-        {
-            id: '1.10',
-            title: 'Farm Implement Details',
-            description: 'All farm implements',
-            subsection: true,
-            parentSectionId: '1',
-            dataSource: 'kvkFarmImplements',
-            format: 'table',
-            filters: {
-                dateFields: ['createdAt'],
-            },
-            fields: [
-                { dbField: 'implementName', displayName: 'Implement Name' },
-                { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
-                { dbField: 'totalCost', displayName: 'Total Cost', type: 'currency' },
-                { dbField: 'presentStatus', displayName: 'Present Status' },
-                { dbField: 'sourceOfFund', displayName: 'Source of Fund' },
-            ],
-        },
-        
+
         // ── Achievements ───────────────────────────────────
         {
             id: '2.2',

@@ -26,7 +26,6 @@ const REGISTRY = [
   { key: 'about_kvk.infrastructure', title: 'Infrastructure Details', category: 'About KVK', moduleCode: 'about_kvks_infrastructure_details', model: 'kvkInfrastructure', path: '/forms/about-kvk/infrastructure' },
   { key: 'about_kvk.vehicles', title: 'Vehicle Details', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicle', path: '/forms/about-kvk/vehicles' },
   { key: 'about_kvk.equipments', title: 'Equipment Details', category: 'About KVK', moduleCode: 'about_kvks_equipment_details', model: 'kvkEquipment', path: '/forms/about-kvk/equipments' },
-  { key: 'about_kvk.farm_implements', title: 'Farm Implement Details', category: 'About KVK', moduleCode: 'about_kvks_farm_implement_details', model: 'kvkFarmImplement', path: '/forms/about-kvk/farm-implements' },
 
   // ── Achievements ─────────────────────────────────────────────────────────
   { key: 'achievements.oft', title: 'On Farm Trials (OFT)', category: 'Achievements', moduleCode: 'achievements_oft', model: 'kvkoft', path: '/forms/achievements/oft' },

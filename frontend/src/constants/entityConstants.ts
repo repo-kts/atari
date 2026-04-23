@@ -37,6 +37,8 @@ export const ENTITY_TYPES = {
     PAY_LEVEL: 'pay-level',
     PAY_SCALE: 'pay-scale',
     ASSET_FUNDING_SOURCE: 'asset-funding-source',
+    EQUIPMENT_TYPE: 'equipment-type',
+    EQUIPMENT_MASTER: 'equipment-master',
     DISCIPLINE: 'discipline',
 
     // Extension Masters
@@ -100,7 +102,6 @@ export const ENTITY_TYPES = {
     KVK_VEHICLE_DETAILS: 'kvk-vehicle-details',
     KVK_EQUIPMENTS: 'kvk-equipments',
     KVK_EQUIPMENT_DETAILS: 'kvk-equipment-details',
-    KVK_FARM_IMPLEMENTS: 'kvk-farm-implements',
     KVKS: 'kvks',
 
     // Achievements (OFT & FLD)
@@ -301,7 +302,6 @@ export const ENTITY_PATHS = {
     KVK_VEHICLE_DETAILS: '/forms/about-kvk/vehicle-details',
     KVK_EQUIPMENTS: '/forms/about-kvk/equipments',
     KVK_EQUIPMENT_DETAILS: '/forms/about-kvk/equipment-details',
-    KVK_FARM_IMPLEMENTS: '/forms/about-kvk/farm-implements',
     KVK_DETAILS: '/forms/about-kvk/details',
     KVK_VIEW: '/forms/about-kvk/view-kvks',
     KVK_VIEW_DETAILS: '/forms/about-kvk/view-kvks/:id',
@@ -322,6 +322,8 @@ export const ENTITY_PATHS = {
     PAY_LEVEL: '/all-master/pay-level',
     PAY_SCALE: '/all-master/pay-scale',
     ASSET_FUNDING_SOURCE: '/all-master/asset-funding-source',
+    EQUIPMENT_TYPE: '/all-master/equipment-type',
+    EQUIPMENT_MASTER: '/all-master/equipment-master',
     DISCIPLINE: '/all-master/discipline',
 
     // Extension Masters

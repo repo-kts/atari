@@ -127,9 +127,6 @@ class ReportDataService {
             case 'kvkEquipmentRecords':
                 rawData = await reportRepository.getKvkEquipmentRecords(effectiveKvkId, sectionFilters);
                 break;
-            case 'kvkFarmImplements':
-                rawData = await reportRepository.getKvkFarmImplements(effectiveKvkId, sectionFilters);
-                break;
             case 'oftSummary': {
                 const [summaryRecords, subjects] = await Promise.all([
                     oftReportRepository.getOftSummaryData(effectiveKvkId, sectionFilters),

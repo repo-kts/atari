@@ -52,6 +52,8 @@ import {
     usePayLevels,
     usePayScales,
     useAssetFundingSources,
+    useEquipmentTypes,
+    useEquipmentMasters,
     useDisciplines,
     useExtensionActivityTypes,
     useOtherExtensionActivityTypes,
@@ -148,6 +150,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
     [ENTITY_TYPES.PAY_SCALE]: () => usePayScales(),
     [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: () => useAssetFundingSources(),
+    [ENTITY_TYPES.EQUIPMENT_TYPE]: () => useEquipmentTypes(),
+    [ENTITY_TYPES.EQUIPMENT_MASTER]: () => useEquipmentMasters(),
     [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),
     [ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE]: () => useExtensionActivityTypes(),
     [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE]: () => useOtherExtensionActivityTypes(),
@@ -301,7 +305,6 @@ const ABOUT_KVK_ENTITIES: string[] = [
     ENTITY_TYPES.KVK_VEHICLE_DETAILS,
     ENTITY_TYPES.KVK_EQUIPMENTS,
     ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
-    ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
     ENTITY_TYPES.KVKS,
 ]
 

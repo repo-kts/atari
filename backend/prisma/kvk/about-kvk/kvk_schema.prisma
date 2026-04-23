@@ -52,7 +52,6 @@ model Kvk {
   equipments                    KvkEquipment[]
   equipmentDetails              KvkEquipmentDetail[]
   kvkExtensionActivities        KvkExtensionActivity[]
-  farmImplements                KvkFarmImplement[]
   kvkFldIntroductions           KvkFldIntroduction[]
   kvkImportantDayCelebrations   KvkImportantDayCelebration[]
   infrastructures               KvkInfrastructure[]
