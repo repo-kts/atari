@@ -210,7 +210,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
             {(entityType === ENTITY_TYPES.KVK_EMPLOYEES) && (
                 <div className="space-y-6">
                     <FormSection title="Personal Details">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6">
                             <FormInput
                                 label="Staff Name"
                                 required
@@ -226,7 +226,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, dateOfBirth: new Date(e.target.value).toISOString() })}
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormInput
                                 label="Mobile"
                                 required
@@ -246,7 +246,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 placeholder="Email address"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6 mt-6">
+                            <FormSelect
+                                label="Category"
+                                required
+                                value={formData.staffCategoryId ?? ''}
+                                onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
+                                options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
+                            />
                             <FormInput
                                 label="Resume"
                                 value={formData.resumePath ?? ''}
@@ -340,7 +347,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                     </FormSection>
 
                     <FormSection title="Job Details">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6">
                             <FormSelect
                                 label="Sanctioned Post"
                                 required
@@ -356,7 +363,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 options={Array.from({ length: 20 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormSelect
                                 label="Discipline"
                                 required
@@ -372,7 +379,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, dateOfJoining: new Date(e.target.value).toISOString() })}
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormSelect
                                 label="Job Type"
                                 value={formData.jobType ?? ''}
@@ -389,7 +396,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 options={payLevels.map((p: any) => ({ value: p.payLevelId, label: p.levelName }))}
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-6 mt-6">
                             <FormSelect
                                 label="Pay Scale"
                                 value={formData.payScaleId ?? ''}
@@ -401,18 +408,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 value={formData.allowances ?? ''}
                                 onChange={(e) => setFormData({ ...formData, allowances: e.target.value })}
                                 placeholder="Allowances"
-                            />
-                        </div>
-                    </FormSection>
-
-                    <FormSection title="Other">
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormSelect
-                                label="Category"
-                                required
-                                value={formData.staffCategoryId ?? ''}
-                                onChange={(e) => setFormData({ ...formData, staffCategoryId: parseInt(e.target.value) })}
-                                options={staffCategories.map((c: any) => ({ value: c.staffCategoryId, label: c.categoryName }))}
                             />
                         </div>
                     </FormSection>
