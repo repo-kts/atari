@@ -44,8 +44,8 @@ function oftDateClause(yearMode) {
   const { start, endExclusive } = buildFiscalYearRange(yearMode);
   return {
     OR: [
-      { reportingYear: { gte: start, lt: endExclusive } },
-      { reportingYear: null, oftStartDate: { gte: start, lt: endExclusive } },
+      { expectedCompletionDate: { gte: start, lt: endExclusive } },
+      { expectedCompletionDate: null, oftStartDate: { gte: start, lt: endExclusive } },
     ],
   };
 }

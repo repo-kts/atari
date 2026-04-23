@@ -33,7 +33,10 @@ const equipmentOptionLabel = (eq: any): string => {
     return eq.identifierCode ? `${primary} — ${eq.identifierCode}` : primary
 }
 
-const vehicleOptionLabel = (v: any): string => v.vehicleName
+const vehicleOptionLabel = (v: any): string => {
+    const reg = v.registrationNo || v.registrationNumber
+    return reg ? `${v.vehicleName} (${reg})` : v.vehicleName
+}
 
 interface AboutKvkFormsProps {
     entityType: ExtendedEntityType | null

@@ -36,6 +36,52 @@ const defaultValue: OftResultFormValue = {
     tables: [],
 }
 
+const SUPPLEMENTARY_ACCEPT = [
+    'application/pdf',
+    'image/*',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.pdf,.xls,.xlsx,.doc,.docx',
+].join(',')
+
+const SUPPLEMENTARY_MIME_RE = /^(application\/pdf|image\/|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml)/i
+
+const SUPPLEMENTARY_EXT_RE = /\.(pdf|png|jpe?g|gif|webp|bmp|svg|xls|xlsx|doc|docx)$/i
+
+function buildSeedTables(
+    sourceRows: Array<{ optionKey: string; optionName: string }>
+): ResultTable[] {
+    const techColumn = {
+        columnKey: 'tech_option',
+        columnLabel: 'Technology options with detailed treatments',
+        isMandatory: true,
+        sortOrder: 1,
+    }
+    const proposed = { columnKey: 'proposed', columnLabel: 'Proposed', isMandatory: false, sortOrder: 2 }
+    const actual = { columnKey: 'actual', columnLabel: 'Actual', isMandatory: false, sortOrder: 3 }
+
+    const table1: ResultTable = {
+        tableTitle: 'Table 1',
+        sortOrder: 1,
+        columns: [techColumn, proposed, actual],
+        rows: sourceRows.map((src, idx) => ({
+            optionKey: src.optionKey,
+            rowLabel: src.optionName,
+            sortOrder: idx + 1,
+            cells: { tech_option: src.optionName },
+        })),
+    }
+    const table2: ResultTable = {
+        tableTitle: 'Table 2',
+        sortOrder: 2,
+        columns: [techColumn, proposed, actual],
+        rows: [],
+    }
+    return [table1, table2]
+}
+
 function normalizeInitialValue(
     initialValue?: Partial<OftResultFormValue>,
     sourceRows: Array<{ optionKey: string; optionName: string }> = []
@@ -43,7 +89,7 @@ function normalizeInitialValue(
     const merged: any = { ...defaultValue, ...(initialValue || {}) }
     const rawTables = Array.isArray(merged.tables) ? merged.tables : []
 
-    const normalizedTables = rawTables.map((table: any, tableIndex: number) => {
+    const normalizedTables: ResultTable[] = rawTables.map((table: any, tableIndex: number) => {
         const columns = Array.isArray(table.columns) ? table.columns : []
         const rows = Array.isArray(table.rows) ? table.rows : []
         const columnIdToKey = new Map<number, string>()
@@ -88,24 +134,11 @@ function normalizeInitialValue(
         }
     })
 
-    const withRowsReconciled = normalizedTables.map((table: any) => {
-        if (!sourceRows.length) return table
-        const byKey = new Map((table.rows || []).map((row: any) => [String(row.optionKey || ''), row]))
-        const rows = sourceRows.map((src, idx) => {
-            const existing: any = byKey.get(src.optionKey)
-            return {
-                optionKey: src.optionKey,
-                rowLabel: src.optionName,
-                sortOrder: idx + 1,
-                cells: { ...(existing?.cells || {}), tech_option: src.optionName },
-            }
-        })
-        return { ...table, rows }
-    })
+    const tables = normalizedTables.length > 0 ? normalizedTables : buildSeedTables(sourceRows)
 
     return {
         ...merged,
-        tables: withRowsReconciled,
+        tables,
     }
 }
 
@@ -164,11 +197,18 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                 />
                 <div>
                     <FormInput
-                        label="Supplementary Datasheet (max 2 MB)"
+                        label="Supplementary Datasheet (PDF/Image/Excel/Word, max 2 MB)"
                         type="file"
+                        accept={SUPPLEMENTARY_ACCEPT}
                         helperText={`Selected: ${value.supplementaryDatasheetName || 'None'}`}
                         onChange={(e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0]
+                            const input = e.target as HTMLInputElement
+                            const file = input.files?.[0]
+                            if (file && !SUPPLEMENTARY_MIME_RE.test(file.type) && !SUPPLEMENTARY_EXT_RE.test(file.name)) {
+                                alert('Supplementary Datasheet must be PDF, image, Excel, or Word.')
+                                input.value = ''
+                                return
+                            }
                             setValue((v) => ({
                                 ...v,
                                 supplementaryDatasheetName: file?.name,
@@ -180,11 +220,18 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                 </div>
                 <div>
                     <FormInput
-                        label="Photograph (max 1 MB)"
+                        label="Photograph (image only, max 1 MB)"
                         type="file"
+                        accept="image/*"
                         helperText={`Selected: ${value.photographName || 'None'}`}
                         onChange={(e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0]
+                            const input = e.target as HTMLInputElement
+                            const file = input.files?.[0]
+                            if (file && !file.type.startsWith('image/')) {
+                                alert('Photograph must be an image file.')
+                                input.value = ''
+                                return
+                            }
                             setValue((v) => ({
                                 ...v,
                                 photographName: file?.name,
@@ -200,7 +247,6 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                     tables={value.tables || []}
                     onChange={(tables) => setValue((v) => ({ ...v, tables }))}
                     sourceRows={sourceRows}
-                    lockSourceRows
                 />
             </FormSection>
 

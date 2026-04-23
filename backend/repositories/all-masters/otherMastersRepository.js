@@ -193,6 +193,20 @@ const ENTITY_CONFIG = {
             _count: {
                 select: {
                     trainings: true,
+                    kvkOfts: true,
+                },
+            },
+        },
+    },
+    'unit': {
+        model: 'unitMaster',
+        idField: 'unitId',
+        nameField: 'name',
+        allowDeleteWithDependents: true,
+        includes: {
+            _count: {
+                select: {
+                    kvkOfts: true,
                 },
             },
         },

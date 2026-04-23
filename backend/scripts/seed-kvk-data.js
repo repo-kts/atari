@@ -643,7 +643,7 @@ async function seedKvks() {
 
     const oftData = {
       kvkId: kvk.kvkId,
-      reportingYear: new Date('2024-01-01'),
+      expectedCompletionDate: new Date('2024-12-31'),
       seasonId: season1.seasonId,
       staffId: staff.kvkStaffId,
       oftSubjectId: oftSubject1.oftSubjectId,
@@ -654,7 +654,7 @@ async function seedKvks() {
       sourceOfTechnology: 'ICAR Research',
       productionSystem: 'Cereal Production',
       performanceIndicators: 'Yield, Cost, BCR',
-      areaHaNumber: 1.0,
+      quantity: 1.0,
       numberOfLocation: 3,
       numberOfTrialReplication: 3,
       oftStartDate: new Date('2024-06-01'),
@@ -689,7 +689,7 @@ async function seedKvks() {
     const existing = await prisma.kvkoft.findFirst({
       where: {
         kvkId: kvk.kvkId,
-        reportingYear: new Date('2024-01-01'),
+        expectedCompletionDate: new Date('2024-12-31'),
         seasonId: season1.seasonId,
       },
     });
