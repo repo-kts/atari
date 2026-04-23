@@ -204,7 +204,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const fldOptionsByKvkAndYear = useMemo(() => {
         return (fldList as any[]).filter((f: any) => {
             const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-            const fldYear = getYearValue(f.reportingYear)
+            const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
             const selectedYear = getYearValue(selectedReportingYear)
             const kvkMatch = activeKvkId ? Number(fldKvkId) === Number(activeKvkId) : true
             const yearMatch = selectedYear ? Number(fldYear) === Number(selectedYear) : false
@@ -286,7 +286,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         return (fldList as any[])
             .filter((f: any) => {
                 const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-                const fldYear = getYearValue(f.reportingYear)
+                const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
                 return Number(fldKvkId) === kvkId && Number(fldYear) === reportingYear
             })
             .map((f: any) => ({
@@ -710,32 +710,36 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             />
                         </div>
 
-                        <FormSelect
-                            label="Unit"
-                            required
-                            value={formData.unit ?? ''}
-                            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                            options={OFT_UNIT_OPTIONS}
-                        />
-                        <FormInput
-                            label="Quantity"
-                            required
-                            type="number"
-                            value={formData.quantity ?? formData.area ?? ''}
-                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
-                        />
-                        <FormInput
-                            label="No. of location"
-                            required
-                            value={formData.locations ?? ''}
-                            onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
-                        />
-                        <FormInput
-                            label="No. of Trial/Replication"
-                            required
-                            value={formData.replications ?? ''}
-                            onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
-                        />
+                        <div className="grid grid-cols-[120px_1fr] gap-3">
+                            <FormSelect
+                                label="Unit"
+                                required
+                                value={formData.unit ?? ''}
+                                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                options={OFT_UNIT_OPTIONS}
+                            />
+                            <FormInput
+                                label="Quantity"
+                                required
+                                type="number"
+                                value={formData.quantity ?? formData.area ?? ''}
+                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <FormInput
+                                label="No. of location"
+                                required
+                                value={formData.locations ?? ''}
+                                onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
+                            />
+                            <FormInput
+                                label="No. of Trial/Replication"
+                                required
+                                value={formData.replications ?? ''}
+                                onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
+                            />
+                        </div>
                         <FormInput
                             label="Critical Input"
                             required
@@ -752,16 +756,39 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     </div>
 
                     <FormSection title="Farmers Details">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
-                            <FormInput label="General_F" type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
-                            <FormInput label="OBC_M" type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
-                            <FormInput label="OBC_F" type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
+                        <div className="col-span-2 space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
+                                <FormInput label="General_F" type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
+                                <FormInput label="OBC_M" type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
+                                <FormInput label="OBC_F" type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
 
-                            <FormInput label="SC_M" type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
-                            <FormInput label="SC_F" type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
-                            <FormInput label="ST_M" type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
-                            <FormInput label="ST_F" type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
+                                <FormInput label="SC_M" type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
+                                <FormInput label="SC_F" type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
+                                <FormInput label="ST_M" type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
+                                <FormInput label="ST_F" type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                    <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                    <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.st_m) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                    <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                    <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                        {(Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </FormSection>
 
@@ -839,11 +866,18 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="Start Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.startDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        />
+                        <FormInput
+                            label="Expected Completion Date"
+                            required
+                            type="date"
+                            value={formData.expectedCompletionDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
                         />
 
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
@@ -1034,34 +1068,59 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.demoCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoCount: e.target.value })}
                         />
-                        <FormInput
-                            label="Start Date"
-                            required
-                            type="date"
-                            value={formData.startDate ?? ''}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        />
-                        <FormInput
-                            label="Area(ha)"
-                            required
-                            type="number"
-                            value={formData.area ?? ''}
-                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                        />
+                        <div className="grid grid-cols-[120px_1fr] gap-3">
+                            <FormSelect
+                                label="Unit"
+                                required
+                                value={formData.unit ?? ''}
+                                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                options={OFT_UNIT_OPTIONS}
+                            />
+                            <FormInput
+                                label="Quantity"
+                                required
+                                type="number"
+                                value={formData.quantity ?? formData.area ?? ''}
+                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                            />
+                        </div>
                     </div>
 
                     {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                        <div className="col-span-2 space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                                <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                                <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                                <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                                <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                                <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                                <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                                <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                    <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                    <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.st_m) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                    <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                    <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                        {(Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </FormSection>
                 </div>

@@ -453,6 +453,7 @@ function _mapOftResponse(r) {
         numberOfTrialReplication: r.numberOfTrialReplication,
         replications: r.numberOfTrialReplication,
         oftStartDate: r.oftStartDate,
+        startYear: r.oftStartDate ? new Date(r.oftStartDate).getFullYear() : null,
         duration: r.oftStartDate ? r.oftStartDate.toISOString().split('T')[0] : '',
         criticalInput: r.criticalInput,
         costOfOft: r.costOfOft,
@@ -463,6 +464,8 @@ function _mapOftResponse(r) {
         obc_m: r.farmersObcM, obc_f: r.farmersObcF,
         sc_m: r.farmersScM, sc_f: r.farmersScF,
         st_m: r.farmersStM, st_f: r.farmersStF,
+        totalMale: (r.farmersGeneralM || 0) + (r.farmersObcM || 0) + (r.farmersScM || 0) + (r.farmersStM || 0),
+        totalFemale: (r.farmersGeneralF || 0) + (r.farmersObcF || 0) + (r.farmersScF || 0) + (r.farmersStF || 0),
         ongoingCompleted: normalizeOftStatus(r.status),
         status: normalizeOftStatus(r.status),
    };

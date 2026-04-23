@@ -96,7 +96,16 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
         onChange(next.map((table, idx) => ({ ...table, sortOrder: idx + 1 })))
     }
 
-    const addTable = () => onChange([...effectiveTables, createDefaultTable(effectiveTables.length + 1, sourceRows)])
+    const addTable = () => {
+        const sortOrder = effectiveTables.length + 1
+        const emptyTable: ResultTable = {
+            tableTitle: `Table ${sortOrder}`,
+            sortOrder,
+            columns: [],
+            rows: [],
+        }
+        onChange([...effectiveTables, emptyTable])
+    }
     const removeTable = (tableIndex: number) => {
         if (effectiveTables.length <= 1) return
         onChange(effectiveTables.filter((_, idx) => idx !== tableIndex))

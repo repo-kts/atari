@@ -38,7 +38,7 @@ function weightedYield(rows, pick) {
     for (const r of rows) {
         const fr = r.fldResult;
         if (!fr) continue;
-        const a = safeFloat(r.areaHa ?? r.area);
+        const a = safeFloat(r.quantity ?? r.areaHa ?? r.area);
         const y = safeFloat(pick(fr));
         if (a != null && a > 0 && y != null) {
             num += y * a;
@@ -78,7 +78,7 @@ function mapDetailRow(r) {
         technology: r.technologyName ?? r.fldName ?? '—',
         noOfDemonstration: r.noOfDemonstration ?? r.demoCount ?? '—',
         noOfFarmers: farmers,
-        areaHa: safeFloat(r.areaHa ?? r.area),
+        areaHa: safeFloat(r.quantity ?? r.areaHa ?? r.area),
         yieldDemo: fr ? safeFloat(fr.demoYield) : null,
         yieldCheck: fr ? safeFloat(fr.checkYield) : null,
         increasePercent: fr ? safeFloat(fr.increasePercent) : null,
@@ -116,7 +116,7 @@ function buildFldPageReportPayload(enrichedRecords) {
     for (const cat of categoryOrder) {
         const rows = byCategory.get(cat) || [];
         const noFld = rows.length;
-        const areaSum = rows.reduce((s, x) => s + (safeFloat(x.areaHa ?? x.area) || 0), 0);
+        const areaSum = rows.reduce((s, x) => s + (safeFloat(x.quantity ?? x.areaHa ?? x.area) || 0), 0);
         const benSum = rows.reduce((s, x) => s + totalFarmers(x), 0);
         const yDemo = weightedYield(rows, (fr) => fr.demoYield);
         const yCheck = weightedYield(rows, (fr) => fr.checkYield);
@@ -132,7 +132,7 @@ function buildFldPageReportPayload(enrichedRecords) {
     }
 
     const totalFld = records.length;
-    const totalArea = records.reduce((s, r) => s + (safeFloat(r.areaHa ?? r.area) || 0), 0);
+    const totalArea = records.reduce((s, r) => s + (safeFloat(r.quantity ?? r.areaHa ?? r.area) || 0), 0);
     const totalBen = records.reduce((s, r) => s + totalFarmers(r), 0);
     const grandYieldDemo = weightedYield(records, (fr) => fr.demoYield);
     const grandYieldCheck = weightedYield(records, (fr) => fr.checkYield);

@@ -16,8 +16,10 @@ model KvkFldIntroduction {
   cropId                      Int?
   fldName                     String                      @map("fld_name")
   noOfDemonstration           Int                         @map("no_of_demonstration")
-  areaHa                      Float                       @map("area_ha")
+  quantity                    Float                       @map("quantity")
+  unit                        String?                     @map("unit")
   startDate                   DateTime                    @map("start_date")
+  expectedCompletionDate      DateTime?                   @map("expected_completion_date")
   generalM                    Int                         @map("general_m")
   generalF                    Int                         @map("general_f")
   obcM                        Int                         @map("obc_m")
@@ -29,8 +31,7 @@ model KvkFldIntroduction {
   ongoingCompleted            FldStatus                   @default(ONGOING) @map("ongoing_completed")
   createdAt                   DateTime                    @default(now()) @map("created_at")
   updatedAt                   DateTime                    @updatedAt @map("updated_at")
-  reportingYear DateTime? @map("reporting_year")
-fldExtensions               FldExtension[]
+  fldExtensions               FldExtension[]
   fldResult                   KvkFldResult?
   fldTechnicalFeedbacks       FldTechnicalFeedback[]
   kvkExtensionActivities      KvkExtensionActivity[]
@@ -52,7 +53,7 @@ season                      Season?                     @relation(fields: [seaso
   @@index([subCategoryId])
   @@index([cropId])
   @@index([kvkStaffId])
-  @@index([reportingYear])
+  @@index([expectedCompletionDate])
   @@map("kvk_fld_introduction")
 }
 

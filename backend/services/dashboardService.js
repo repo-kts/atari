@@ -57,8 +57,8 @@ function fldDateClause(yearMode) {
   const { start, endExclusive } = buildFiscalYearRange(yearMode);
   return {
     OR: [
-      { reportingYear: { gte: start, lt: endExclusive } },
-      { reportingYear: null, startDate: { gte: start, lt: endExclusive } },
+      { expectedCompletionDate: { gte: start, lt: endExclusive } },
+      { expectedCompletionDate: null, startDate: { gte: start, lt: endExclusive } },
     ],
   };
 }
