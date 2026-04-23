@@ -8,6 +8,7 @@ import type {
     StaffCategoryFormData,
     PayLevelFormData,
     PayScaleFormData,
+    AssetFundingSourceFormData,
     DisciplineFormData,
     ExtensionActivityTypeFormData,
     OtherExtensionActivityTypeFormData,
@@ -285,6 +286,50 @@ export function usePayScales() {
         mutationFn: (id: number) => otherMastersApi.deletePayScale(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useAssetFundingSources() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['asset-funding-sources'],
+        queryFn: () => otherMastersApi.getAssetFundingSources().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: AssetFundingSourceFormData) => otherMastersApi.createAssetFundingSource(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<AssetFundingSourceFormData> }) =>
+            otherMastersApi.updateAssetFundingSource(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteAssetFundingSource(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
         },
     });
 

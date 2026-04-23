@@ -26,6 +26,15 @@ const PAY_SCALES = [
   '5200-20200',
 ];
 
+const ASSET_FUNDING_SOURCES = [
+  'ICAR',
+  'State Govt',
+  'KVK Own Fund',
+  'World Bank',
+  'ATARI',
+  'Revolving Fund',
+];
+
 // Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
   'Extension Personnel',
@@ -766,6 +775,20 @@ async function seedStaffMasters() {
       where: { scaleName },
       update: {},
       create: { scaleName },
+    });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedAssetFundingSources() {
+  console.log('🌱 Asset funding sources...');
+
+  for (const name of ASSET_FUNDING_SOURCES) {
+    await prisma.assetFundingSourceMaster.upsert({
+      where: { name },
+      update: {},
+      create: { name },
     });
   }
 
@@ -1749,6 +1772,7 @@ async function seedFldMasters() {
 async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
+  await seedAssetFundingSources();
   await seedTrainingMasters();
   await seedExtensionMasters();
   await seedEventsMasters();

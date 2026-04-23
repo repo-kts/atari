@@ -17,7 +17,7 @@ import {
     AccountTypeEnum,
     ImplementPresentStatusEnum
 } from '@/hooks/forms/useAboutKvkData'
-import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources } from '@/hooks/useOtherMastersData'
+import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources } from '@/hooks/useOtherMastersData'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -47,6 +47,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
     const { data: payLevels = [] } = usePayLevels()
     const { data: payScales = [] } = usePayScales()
     const { data: fundingSources = [] } = useFundingSources()
+    const { data: assetFundingSources = [] } = useAssetFundingSources()
 
     const activeKvkId = user?.kvkId || formData.kvkId;
     const reportingYear = formData.reportingYear ? new Date(formData.reportingYear).toISOString() : undefined
@@ -593,12 +594,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <FormInput
+                        <FormSelect
                             label="Source of Funding"
                             required
-                            value={formData.sourceOfFunding ?? ''}
-                            onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
-                            placeholder="Enter source"
+                            value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
+                            onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                            options={assetFundingSources.map((s: any) => ({
+                                value: String(s.assetFundingSourceId),
+                                label: s.name,
+                            }))}
                         />
                     </div>
                 </div>
@@ -666,12 +670,15 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         placeholder="Enter repairing cost (optional)"
                         disabled={!formData.reportingYear}
                     />
-                    <FormInput
+                    <FormSelect
                         label="Source of Funding"
-                        value={formData.sourceOfFunding ?? ''}
-                        onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
-                        placeholder="Enter source of funding"
+                        value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
+                        onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
                         disabled={!formData.reportingYear}
+                        options={assetFundingSources.map((s: any) => ({
+                            value: String(s.assetFundingSourceId),
+                            label: s.name,
+                        }))}
                     />
                 </div>
             )}
@@ -710,11 +717,14 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         onChange={(e) => setFormData({ ...formData, equipmentStatusId: parseInt(e.target.value) })}
                         options={equipmentStatuses.map((status: any) => ({ value: status.equipmentStatusId, label: status.statusLabel }))}
                     />
-                    <FormInput
+                    <FormSelect
                         label="Source of Funding"
-                        value={formData.sourceOfFunding ?? ''}
-                        onChange={(e) => setFormData({ ...formData, sourceOfFunding: e.target.value })}
-                        placeholder="Enter source of funding"
+                        value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
+                        onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                        options={assetFundingSources.map((s: any) => ({
+                            value: String(s.assetFundingSourceId),
+                            label: s.name,
+                        }))}
                     />
                 </div>
             )}

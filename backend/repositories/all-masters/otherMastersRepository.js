@@ -88,6 +88,21 @@ const ENTITY_CONFIG = {
             },
         },
     },
+    'asset-funding-source': {
+        model: 'assetFundingSourceMaster',
+        idField: 'assetFundingSourceId',
+        nameField: 'name',
+        allowDeleteWithDependents: true, // onDelete: SetNull configured
+        includes: {
+            _count: {
+                select: {
+                    equipments: true,
+                    equipmentDetails: true,
+                    vehicleDetails: true,
+                },
+            },
+        },
+    },
     // Extension Masters
     'extension-activity-type': {
         model: 'fldActivity',

@@ -74,6 +74,16 @@ export interface PayScale {
     };
 }
 
+export interface AssetFundingSource {
+    assetFundingSourceId: number;
+    name: string;
+    _count?: {
+        equipments: number;
+        equipmentDetails: number;
+        vehicleDetails: number;
+    };
+}
+
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
@@ -153,6 +163,10 @@ export interface PayLevelFormData {
 
 export interface PayScaleFormData {
     scaleName: string;
+}
+
+export interface AssetFundingSourceFormData {
+    name: string;
 }
 
 export interface DisciplineFormData {
@@ -464,6 +478,17 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale/${id}`, data),
     deletePayScale: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-scale/${id}`),
+
+    getAssetFundingSources: () =>
+        apiClient.get<PaginatedResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`),
+    getAssetFundingSourceById: (id: number) =>
+        apiClient.get<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`),
+    createAssetFundingSource: (data: AssetFundingSourceFormData) =>
+        apiClient.post<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`, data),
+    updateAssetFundingSource: (id: number, data: Partial<AssetFundingSourceFormData>) =>
+        apiClient.put<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`, data),
+    deleteAssetFundingSource: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/asset-funding-source/${id}`),
 
     getDisciplines: () =>
         apiClient.get<PaginatedResponse<Discipline>>(`${BASE_URL}/discipline`),
