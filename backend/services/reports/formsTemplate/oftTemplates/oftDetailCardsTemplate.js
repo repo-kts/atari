@@ -148,7 +148,7 @@ function _renderCard(record, cardNumber) {
         ['Constraints identified and feedback for research', esc(resultReport.constraintsFeedback)],
         ['Process of farmers participation and their reaction', esc(resultReport.farmersParticipationProcess)],
         ['Quantity', esc(record.quantity)],
-        ['Unit', esc(record.unit?.name || record.unitName)],
+        ['Unit', esc(record.unit)],
         ['No. of Trial/Replication', esc(record.numberOfTrialReplication)],
         ['OFT Start on', this._escapeHtml(_formatMonthYear(record.oftStartDate))],
         ['OFT End on', this._escapeHtml(_formatMonthYear(record.oftEndDate))],

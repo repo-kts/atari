@@ -138,12 +138,6 @@ router.post('/funding-source',    requirePermission('all_masters_training_master
 router.put('/funding-source/:id', requirePermission('all_masters_training_master', 'EDIT'),   otherMastersController.updateFundingSource);
 router.delete('/funding-source/:id', requirePermission('all_masters_training_master', 'DELETE'), otherMastersController.deleteFundingSource);
 
-router.get('/unit',     otherMastersController.getAllUnits);
-router.get('/unit/:id', otherMastersController.getUnitById);
-router.post('/unit',    requirePermission('all_masters_training_master', 'ADD'),    otherMastersController.createUnit);
-router.put('/unit/:id', requirePermission('all_masters_training_master', 'EDIT'),   otherMastersController.updateUnit);
-router.delete('/unit/:id', requirePermission('all_masters_training_master', 'DELETE'), otherMastersController.deleteUnit);
-
 // ============================================
 // Other Masters Routes (continued)
 // ============================================

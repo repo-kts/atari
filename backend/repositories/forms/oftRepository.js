@@ -12,7 +12,6 @@ const OFT_INCLUDE = {
     oftSubject: { select: { subjectName: true } },
     oftThematicArea: { select: { thematicAreaName: true } },
     discipline: { select: { disciplineName: true } },
-    unit: { select: { unitId: true, name: true } },
     sourceOfFunding: { select: { fundingSourceId: true, name: true } },
     technologies: {
         include: { oftTechnologyType: true },
@@ -219,8 +218,8 @@ const oftRepository = {
                 oftSubjectId: sourceOft.oftSubjectId,
                 oftThematicAreaId: sourceOft.oftThematicAreaId,
                 disciplineId: sourceOft.disciplineId,
-                unitId: sourceOft.unitId,
                 sourceOfFundingId: sourceOft.sourceOfFundingId,
+                unit: sourceOft.unit,
                 title: sourceOft.title,
                 problemDiagnosed: sourceOft.problemDiagnosed,
                 sourceOfTechnology: sourceOft.sourceOfTechnology,
@@ -332,8 +331,8 @@ function _buildOftCreateData(data, kvkId) {
     const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
     const oftThematicAreaId = sanitizeInteger(safeGet(data, 'oftThematicAreaId') || safeGet(data, 'thematicArea'), { defaultValue: 1 });
     const disciplineId = sanitizeInteger(safeGet(data, 'disciplineId') || safeGet(data, 'discipline'), { defaultValue: 1 });
-    const unitId = sanitizeInteger(safeGet(data, 'unitId'));
     const sourceOfFundingId = sanitizeInteger(safeGet(data, 'sourceOfFundingId'));
+    const unit = sanitizeString(safeGet(data, 'unit'), { allowEmpty: true }) || null;
 
     if (!oftSubjectId || oftSubjectId === null) {
         throw new ValidationError('oftSubjectId is required', 'oftSubjectId');
@@ -347,8 +346,8 @@ function _buildOftCreateData(data, kvkId) {
         oftSubjectId,
         oftThematicAreaId,
         disciplineId,
-        unitId,
         sourceOfFundingId,
+        unit,
         title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
         problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
         sourceOfTechnology: sanitizeString(safeGet(data, 'sourceOfTechnology'), { allowEmpty: true }) || '',
@@ -382,8 +381,8 @@ function _buildOftUpdateData(data, existing) {
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
     if (data.oftThematicAreaId !== undefined || data.thematicArea !== undefined) updateData.oftThematicAreaId = sanitizeInteger(data.oftThematicAreaId || data.thematicArea);
     if (data.disciplineId !== undefined || data.discipline !== undefined) updateData.disciplineId = sanitizeInteger(data.disciplineId || data.discipline);
-    if (data.unitId !== undefined) updateData.unitId = sanitizeInteger(data.unitId);
     if (data.sourceOfFundingId !== undefined) updateData.sourceOfFundingId = sanitizeInteger(data.sourceOfFundingId);
+    if (data.unit !== undefined) updateData.unit = sanitizeString(data.unit, { allowEmpty: true }) || null;
     if (data.title !== undefined) updateData.title = sanitizeString(data.title, { allowEmpty: true }) || '';
     if (data.problemDiagnosed !== undefined) updateData.problemDiagnosed = sanitizeString(data.problemDiagnosed, { allowEmpty: true }) || '';
     if (data.sourceOfTechnology !== undefined) updateData.sourceOfTechnology = sanitizeString(data.sourceOfTechnology, { allowEmpty: true }) || '';
@@ -440,8 +439,7 @@ function _mapOftResponse(r) {
         thematicAreaName: r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined,
         disciplineId: r.disciplineId,
         disciplineName: r.discipline ? r.discipline.disciplineName : undefined,
-        unitId: r.unitId,
-        unitName: r.unit ? r.unit.name : undefined,
+        unit: r.unit,
         sourceOfFundingId: r.sourceOfFundingId,
         sourceOfFundingName: r.sourceOfFunding ? r.sourceOfFunding.name : undefined,
         title: r.title,

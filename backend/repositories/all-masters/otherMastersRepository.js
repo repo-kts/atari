@@ -198,19 +198,6 @@ const ENTITY_CONFIG = {
             },
         },
     },
-    'unit': {
-        model: 'unitMaster',
-        idField: 'unitId',
-        nameField: 'name',
-        allowDeleteWithDependents: true,
-        includes: {
-            _count: {
-                select: {
-                    kvkOfts: true,
-                },
-            },
-        },
-    },
     // Other Masters
     'crop-type': {
         model: 'cropType',
