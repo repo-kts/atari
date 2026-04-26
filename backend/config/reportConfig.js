@@ -544,7 +544,8 @@ const reportConfig = {
                 { dbField: 'startDate', displayName: 'Start Date', type: 'date' },
                 { dbField: 'endDate', displayName: 'End Date', type: 'date' },
                 { dbField: 'durationDays', displayName: 'Duration' },
-                { dbField: 'organizerVenue', displayName: 'Organizer/Venue' },
+                { dbField: 'organizer', displayName: 'Organizer' },
+                { dbField: 'venue', displayName: 'Venue' },
             ],
         },
         {

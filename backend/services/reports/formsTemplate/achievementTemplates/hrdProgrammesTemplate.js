@@ -1,6 +1,6 @@
 /**
  * HRD programmes — same detailed table for Data Management export and modular all-report.
- * Columns: Sl., Staff + designation, Course, Start, End, Duration (days), Organizer/Venue.
+ * Columns: Sl., Staff + designation, Course, Start, End, Duration (days), Organizer, Venue.
  */
 
 function staffDisplay(row) {
@@ -56,7 +56,12 @@ function renderHrdProgrammesSection(section, data, sectionId, isFirstSection) {
             const start = formatDDMMYYYY(row.startDate);
             const end = formatDDMMYYYY(row.endDate);
             const dur = durationLabel(row);
-            const org = row.organizerVenue != null && row.organizerVenue !== '' ? row.organizerVenue : '—';
+            // Read split fields with a legacy fallback to organizerVenue for any
+            // pre-migration cached payloads.
+            const organizerRaw = row.organizer ?? row.organizerVenue;
+            const venueRaw = row.venue;
+            const organizer = organizerRaw != null && organizerRaw !== '' ? organizerRaw : '—';
+            const venue = venueRaw != null && venueRaw !== '' ? venueRaw : '—';
 
             return `<tr>
                 <td style="text-align:center;">${idx + 1}</td>
@@ -65,7 +70,8 @@ function renderHrdProgrammesSection(section, data, sectionId, isFirstSection) {
                 <td style="text-align:center;">${esc(start)}</td>
                 <td style="text-align:center;">${esc(end)}</td>
                 <td style="text-align:center;">${esc(dur)}</td>
-                <td>${esc(org)}</td>
+                <td>${esc(organizer)}</td>
+                <td>${esc(venue)}</td>
             </tr>`;
         })
         .join('');
@@ -83,11 +89,12 @@ function renderHrdProgrammesSection(section, data, sectionId, isFirstSection) {
             <tr>
                 <th style="width:5%;">Sl. No.</th>
                 <th style="width:18%;">Name of Staff and designation</th>
-                <th style="width:22%;">Name of course/training program attended</th>
-                <th style="width:10%;">Start Date</th>
-                <th style="width:10%;">End Date</th>
-                <th style="width:8%;">Duration</th>
-                <th style="width:27%;">Organizer/Venue</th>
+                <th style="width:20%;">Name of course/training program attended</th>
+                <th style="width:9%;">Start Date</th>
+                <th style="width:9%;">End Date</th>
+                <th style="width:7%;">Duration</th>
+                <th style="width:16%;">Organizer</th>
+                <th style="width:16%;">Venue</th>
             </tr>
         </thead>
         <tbody>${body}</tbody>
@@ -108,7 +115,8 @@ function buildHrdProgrammesTabularData(rawData) {
         'Start Date',
         'End Date',
         'Duration',
-        'Organizer/Venue',
+        'Organizer',
+        'Venue',
     ];
     const out = rows.map((row, idx) => {
         const staffCol = staffDisplay(row);
@@ -116,8 +124,11 @@ function buildHrdProgrammesTabularData(rawData) {
         const start = formatDDMMYYYY(row.startDate);
         const end = formatDDMMYYYY(row.endDate);
         const dur = durationLabel(row);
-        const org = row.organizerVenue != null && row.organizerVenue !== '' ? row.organizerVenue : '—';
-        return [idx + 1, staffCol, course, start, end, dur, org];
+        const organizerRaw = row.organizer ?? row.organizerVenue;
+        const venueRaw = row.venue;
+        const organizer = organizerRaw != null && organizerRaw !== '' ? organizerRaw : '—';
+        const venue = venueRaw != null && venueRaw !== '' ? venueRaw : '—';
+        return [idx + 1, staffCol, course, start, end, dur, organizer, venue];
     });
     return { headers, rows: out };
 }
