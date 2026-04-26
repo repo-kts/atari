@@ -1200,8 +1200,7 @@ export const FIELD_GROUPS = {
     FLD_EXTENSION_TRAINING: [
         FIELD_NAMES.FLD_NAME,
         FIELD_NAMES.ACTIVITY,
-        FIELD_NAMES.DATE,
-        FIELD_NAMES.NUMBER_OF_ACTIVITIES,
+        FIELD_NAMES.ACTIVITY_DATE,
         FIELD_NAMES.NUMBER_OF_PARTICIPANTS,
         FIELD_NAMES.REMARK,
     ] as const,
@@ -1341,6 +1340,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.START_DATE,
         FIELD_NAMES.END_DATE,
         FIELD_NAMES.ORGANIZER,
+        FIELD_NAMES.VENUE,
     ] as const,
 
     // Performance Indicator Routes - Impact

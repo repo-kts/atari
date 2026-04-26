@@ -788,6 +788,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                             (Number(formData.st_f) || 0)}
                                     </span>
                                 </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                    <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                    <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_m) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </FormSection>
@@ -831,11 +844,9 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                         />
                                         <button
                                             type="button"
-                                            className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
-                                            disabled={fixed}
-                                            title={fixed ? 'Fixed option cannot be removed' : 'Remove'}
+                                            className="h-10 px-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                                            title="Remove"
                                             onClick={() => {
-                                                if (fixed) return
                                                 const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
                                                 setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
                                             }}
@@ -914,12 +925,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.sectorId ?? ''}
                             onChange={(value) => {
+                                const sectorName = fldSectors.find((s: any) => s.sectorId === value)?.sectorName ?? ''
+                                const isWomenEmpowerment = sectorName.trim().toLowerCase() === 'women empowerment'
                                 setFormData({
                                     ...formData,
                                     sectorId: value as number,
                                     categoryId: '', // Reset category when sector changes
                                     subCategoryId: '', // Reset subcategory when sector changes
-                                    cropId: '' // Reset crop when sector changes
+                                    cropId: '', // Reset crop when sector changes
+                                    // Women Empowerment has no measurable unit/quantity — clear any stale values.
+                                    ...(isWomenEmpowerment ? { unit: '', quantity: '', area: '' } : {}),
                                 });
                             }}
                             options={createMasterDataOptions(fldSectors, 'sectorId', 'sectorName')}
@@ -1068,22 +1083,29 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.demoCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoCount: e.target.value })}
                         />
-                        <div className="grid grid-cols-[120px_1fr] gap-3">
-                            <FormSelect
-                                label="Unit"
-                                required
-                                value={formData.unit ?? ''}
-                                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                                options={OFT_UNIT_OPTIONS}
-                            />
-                            <FormInput
-                                label="Quantity"
-                                required
-                                type="number"
-                                value={formData.quantity ?? formData.area ?? ''}
-                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
-                            />
-                        </div>
+                        {(() => {
+                            const selectedSectorName = fldSectors.find((s: any) => s.sectorId === formData.sectorId)?.sectorName ?? ''
+                            const isWomenEmpowerment = selectedSectorName.trim().toLowerCase() === 'women empowerment'
+                            if (isWomenEmpowerment) return null
+                            return (
+                                <div className="grid grid-cols-[120px_1fr] gap-3">
+                                    <FormSelect
+                                        label="Unit"
+                                        required
+                                        value={formData.unit ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                        options={OFT_UNIT_OPTIONS}
+                                    />
+                                    <FormInput
+                                        label="Quantity"
+                                        required
+                                        type="number"
+                                        value={formData.quantity ?? formData.area ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                                    />
+                                </div>
+                            )
+                        })()}
                     </div>
 
                     {/* Farmers Details Section */}
@@ -1120,6 +1142,19 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                             (Number(formData.st_f) || 0)}
                                     </span>
                                 </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                    <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                    <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_m) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </FormSection>
@@ -1131,11 +1166,24 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="Activity Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.activityDate || formData.date || ''}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                activityDate: e.target.value,
+                                date: e.target.value,
+                                // Mirror activity date as reportingYear so the FLD dropdown (gated
+                                // on reportingYear) loads and downstream filters/reports — which
+                                // key on reportingYear — bucket by the activity date.
+                                reportingYear: e.target.value,
+                                // numberOfActivities is NOT NULL in the DB but no longer surfaced;
+                                // pin to 1 so the create payload stays valid.
+                                numberOfActivities: formData.numberOfActivities || 1,
+                                noOfActivities: formData.noOfActivities || 1,
+                                activityCount: formData.activityCount || 1,
+                            })}
                         />
 
                         <DependentDropdown
@@ -1164,8 +1212,8 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             cacheKey="fld-by-kvk-year-extension-training"
                             emptyMessage={
                                 selectedReportingYearNumber
-                                    ? `No FLD available for reporting year ${selectedReportingYearNumber}`
-                                    : 'Select reporting year to load FLD'
+                                    ? `No FLD available for date ${selectedReportingYearNumber}`
+                                    : 'Select date to load FLD'
                             }
                             loadingMessage="Loading FLD..."
                         />
@@ -1184,27 +1232,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             }}
                             options={createMasterDataOptions(activityList, 'activityId', 'activityName')}
                             emptyMessage="No activities available"
-                        />
-
-                        <FormInput
-                            label="Date"
-                            required
-                            type="date"
-                            value={formData.activityDate || formData.date || ''}
-                            onChange={(e) => setFormData({ ...formData, activityDate: e.target.value, date: e.target.value })}
-                        />
-
-                        <FormInput
-                            label="No. of activities"
-                            required
-                            type="number"
-                            value={formData.numberOfActivities || formData.noOfActivities || formData.activityCount || ''}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                numberOfActivities: e.target.value,
-                                noOfActivities: e.target.value,
-                                activityCount: e.target.value
-                            })}
                         />
                     </div>
 
@@ -1226,6 +1253,40 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             <FormInput label="SC_F" required type="number" value={(formData.sc_f ?? formData.scF) ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value, scF: e.target.value })} />
                             <FormInput label="ST_M" required type="number" value={(formData.st_m ?? formData.stM) ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value, stM: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={(formData.st_f ?? formData.stF) ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value, stF: e.target.value })} />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m ?? formData.generalM) || 0) +
+                                        (Number(formData.obc_m ?? formData.obcM) || 0) +
+                                        (Number(formData.sc_m ?? formData.scM) || 0) +
+                                        (Number(formData.st_m ?? formData.stM) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f ?? formData.generalF) || 0) +
+                                        (Number(formData.obc_f ?? formData.obcF) || 0) +
+                                        (Number(formData.sc_f ?? formData.scF) || 0) +
+                                        (Number(formData.st_f ?? formData.stF) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m ?? formData.generalM) || 0) +
+                                        (Number(formData.gen_f ?? formData.generalF) || 0) +
+                                        (Number(formData.obc_m ?? formData.obcM) || 0) +
+                                        (Number(formData.obc_f ?? formData.obcF) || 0) +
+                                        (Number(formData.sc_m ?? formData.scM) || 0) +
+                                        (Number(formData.sc_f ?? formData.scF) || 0) +
+                                        (Number(formData.st_m ?? formData.stM) || 0) +
+                                        (Number(formData.st_f ?? formData.stF) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </FormSection>
                 </div>
