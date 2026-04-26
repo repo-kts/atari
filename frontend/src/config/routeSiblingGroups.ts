@@ -12,9 +12,14 @@
 import { ROUTE_PATHS } from '../constants/routePaths'
 
 export const ROUTE_SIBLING_GROUPS = {
-    // FLD Siblings (includes OFT and all FLD sub-features)
-    OFT_FLD: [
+    // OFT Siblings — OFT is its own card on the Achievements page; the only
+    // sibling tab is itself.
+    OFT: [
         ROUTE_PATHS.ACHIEVEMENTS.OFT,
+    ] as const,
+
+    // FLD Siblings — three FLD-related pages grouped under the FLD card.
+    FLD: [
         ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
         ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
         ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
@@ -106,11 +111,10 @@ CFLD: [
         ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.EQUIPMENTS,
     ],
 
-    // Soil Water Testing Siblings
+    // Soil Water Testing Siblings — World Soil Day moved to the Meetings tab.
     SOIL_WATER_TESTING: [
         ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT,
         ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
-        ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY,
     ],
 
     // Awards Siblings
@@ -120,13 +124,16 @@ CFLD: [
         ROUTE_PATHS.ACHIEVEMENTS.AWARDS.FARMER,
     ],
 
-    // Training & Extension Siblings
-    TRAINING_EXTENSION: [
+    // Training Siblings — Trainings is its own card; only sibling is itself.
+    TRAINING: [
         ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
+    ],
+
+    // Extension Siblings — Extension Activities + Other Extension Activities
+    // grouped under the Extension card.
+    EXTENSION: [
         ROUTE_PATHS.ACHIEVEMENTS.EXTENSION_ACTIVITIES,
         ROUTE_PATHS.ACHIEVEMENTS.OTHER_EXTENSION,
-        ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK,
-        ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
     ],
 
     // Performance Indicator - Impact Siblings
@@ -198,9 +205,13 @@ CFLD: [
         ROUTE_PATHS.SWACHHTA_BHARAT_ABHIYAAN.BUDGET,
     ],
 
-    // Meetings Siblings
+    // Meetings Siblings — SAC + Other meetings, plus the three pages relocated
+    // from Achievements (Technology Week, Celebration Days, World Soil Day).
     MEETINGS: [
         ROUTE_PATHS.MEETINGS.SAC,
         ROUTE_PATHS.MEETINGS.OTHER,
+        ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK,
+        ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
+        ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY,
     ],
 } as const;
