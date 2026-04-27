@@ -5,9 +5,8 @@ import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from './shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useAuth } from '@/contexts/AuthContext'
-import { useYears } from '@/hooks/useOtherMastersData'
 import { useKvkEmployees } from '@/hooks/forms/useAboutKvkData'
-import { createMasterDataOptions, createStaffOptions } from '@/utils/formHelpers'
+import { createStaffOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 
 interface AwardRecognitionProps {
@@ -22,15 +21,8 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
     setFormData,
 }) => {
     const { user } = useAuth()
-    const { data: years = [], isLoading: isLoadingYears } = useYears()
     const activeKvkId = formData.kvkId || user?.kvkId
     const { data: employees = [], isLoading: isLoadingEmployees } = useKvkEmployees({ kvkId: activeKvkId })
-
-    // Memoized options for Year dropdown
-    const yearOptions = useMemo(
-        () => createMasterDataOptions(years, 'reportingYear', 'yearName'),
-        [years]
-    )
 
     // Memoized options for Scientist/Employee dropdown - using API data only
     const scientistOptions = useMemo(() => {
@@ -77,19 +69,14 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
         }
     }, [formData.scientistName, formData.staffId, entityType, employees, setFormData])
 
-    // Optimized onChange handlers using useCallback with functional updates
-    const handleYearChange = useCallback(
-        (value: string | number) => {
-            setFormData((prev: any) => {
-                const selectedYear = years.find((y: any) => y.reportingYear === value)
-                return {
-                    ...prev,
-                    reportingYear: selectedYear?.reportingYear || value,
-                    yearName: selectedYear?.yearName || '',
-                }
-            })
+    // Reporting Date is now a free date input (column is DateTime). The legacy
+    // year-master dropdown was removed in favor of a date picker so users can
+    // record the exact date the award was conferred.
+    const handleReportingDateChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, reportingYear: e.target.value }))
         },
-        [setFormData, years]
+        [setFormData]
     )
 
     const handleScientistChange = useCallback(
@@ -312,15 +299,12 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Institutional Award received by KVK</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
-                            label="Reporting Year"
+                        <FormInput
+                            label="Reporting Date"
                             required
+                            type="date"
                             value={formData.reportingYear ?? ''}
-                            onChange={handleYearChange}
-                            options={yearOptions}
-                            isLoading={isLoadingYears}
-                            loadingMessage="Loading years..."
-                            emptyMessage="No years available. Add them from All Masters."
+                            onChange={handleReportingDateChange}
                         />
                         <FormInput
                             label="Name of the Award"
@@ -356,15 +340,12 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Recognition received by Head/Scientist</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
-                            label="Reporting Year"
+                        <FormInput
+                            label="Reporting Date"
                             required
+                            type="date"
                             value={formData.reportingYear ?? ''}
-                            onChange={handleYearChange}
-                            options={yearOptions}
-                            isLoading={isLoadingYears}
-                            loadingMessage="Loading years..."
-                            emptyMessage="No years available. Add them from All Masters."
+                            onChange={handleReportingDateChange}
                         />
                         <MasterDataDropdown
                             label="Head/Scientist"
@@ -410,15 +391,12 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                 <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-800">Recognition received by Farmers</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <MasterDataDropdown
-                            label="Reporting Year"
+                        <FormInput
+                            label="Reporting Date"
                             required
+                            type="date"
                             value={formData.reportingYear ?? ''}
-                            onChange={handleYearChange}
-                            options={yearOptions}
-                            isLoading={isLoadingYears}
-                            loadingMessage="Loading years..."
-                            emptyMessage="No years available. Add them from All Masters."
+                            onChange={handleReportingDateChange}
                         />
                         <FormInput
                             label="Name of the Award"

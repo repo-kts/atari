@@ -143,13 +143,21 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Miscellaneous',
                 path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors'],
-            },
-            {
-                label: 'Digital Information',
-                path: '/forms/digital-information',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels'],
+                moduleCodes: [
+                    'misc_prevalent_diseases_crops',
+                    'misc_prevalent_diseases_livestock',
+                    'misc_nyk_training',
+                    'misc_ppv_fra_training',
+                    'misc_rawe_fet',
+                    'misc_vip_visitors',
+                    // Digital Information forms now live under Miscellaneous in the UI;
+                    // grant the sidebar entry whenever the user has any of these.
+                    'digital_mobile_app',
+                    'digital_web_portal',
+                    'digital_kisan_sarthi',
+                    'digital_kisan_advisory',
+                    'digital_messages_other_channels',
+                ],
             },
             {
                 label: 'Swachhta Bharat Abhiyaan',
@@ -161,7 +169,16 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Meetings',
                 path: '/forms/meetings',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['meetings_sac', 'meetings_other_atari'],
+                moduleCodes: [
+                    'meetings_sac',
+                    'meetings_other_atari',
+                    // Technology Week, Celebration Days and World Soil Day moved into
+                    // the Meetings tab in the UI; expose the entry to anyone holding
+                    // those original achievement-permission bits.
+                    'achievements_technology_week_celebration',
+                    'achievements_celebration_days',
+                    'achievements_soil_water_testing',
+                ],
             },
         ],
     },

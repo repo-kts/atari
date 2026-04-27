@@ -502,6 +502,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.st_m || ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.st_f || ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_m) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                        </div>
                     </FormSection>
                 </div>
             )}
@@ -574,6 +608,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_m) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                        </div>
                     </FormSection>
 
                     <FormSection title="Extension Officials">
@@ -587,6 +655,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
                             <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.ext_gen_m) || 0) +
+                                        (Number(formData.ext_obc_m) || 0) +
+                                        (Number(formData.ext_sc_m) || 0) +
+                                        (Number(formData.ext_st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.ext_gen_f) || 0) +
+                                        (Number(formData.ext_obc_f) || 0) +
+                                        (Number(formData.ext_sc_f) || 0) +
+                                        (Number(formData.ext_st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.ext_gen_m) || 0) +
+                                        (Number(formData.ext_gen_f) || 0) +
+                                        (Number(formData.ext_obc_m) || 0) +
+                                        (Number(formData.ext_obc_f) || 0) +
+                                        (Number(formData.ext_sc_m) || 0) +
+                                        (Number(formData.ext_sc_f) || 0) +
+                                        (Number(formData.ext_st_m) || 0) +
+                                        (Number(formData.ext_st_f) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </FormSection>
                 </div>
@@ -703,6 +805,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_m) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                        </div>
                     </FormSection>
                 </div>
             )}
@@ -749,6 +885,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
                         </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_m) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                        </div>
                     </FormSection>
 
                     <FormSection title="Extension Officials">
@@ -762,6 +932,40 @@ export const TrainingExtensionForms: React.FC<TrainingExtensionFormsProps> = ({
                             <FormInput label="SC_F" required type="number" wholeNumberOnly value={formData.ext_sc_f || ''} onChange={e => setFormData({ ...formData, ext_sc_f: e.target.value })} />
                             <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.ext_st_m || ''} onChange={e => setFormData({ ...formData, ext_st_m: e.target.value })} />
                             <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.ext_st_f || ''} onChange={e => setFormData({ ...formData, ext_st_f: e.target.value })} />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.ext_gen_m) || 0) +
+                                        (Number(formData.ext_obc_m) || 0) +
+                                        (Number(formData.ext_sc_m) || 0) +
+                                        (Number(formData.ext_st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.ext_gen_f) || 0) +
+                                        (Number(formData.ext_obc_f) || 0) +
+                                        (Number(formData.ext_sc_f) || 0) +
+                                        (Number(formData.ext_st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.ext_gen_m) || 0) +
+                                        (Number(formData.ext_gen_f) || 0) +
+                                        (Number(formData.ext_obc_m) || 0) +
+                                        (Number(formData.ext_obc_f) || 0) +
+                                        (Number(formData.ext_sc_m) || 0) +
+                                        (Number(formData.ext_sc_f) || 0) +
+                                        (Number(formData.ext_st_m) || 0) +
+                                        (Number(formData.ext_st_f) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </FormSection>
                 </div>

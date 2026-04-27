@@ -98,8 +98,18 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         ? (props.min ?? 0)
                         : props.min
 
+                // Date inputs default-clamp to today so users can't backdate
+                // typos. Forward-looking labels (target / expected /
+                // completion / end) explicitly opt out — they refer to
+                // planned future events (e.g. OFT Expected Completion Date,
+                // activity End Date).
+                const isFutureAllowedDateLabel =
+                    lowerLabel.includes('target') ||
+                    lowerLabel.includes('expected') ||
+                    lowerLabel.includes('completion') ||
+                    lowerLabel.includes('end')
                 const computedMax =
-                    type === 'date' && !lowerLabel.includes('target')
+                    type === 'date' && !isFutureAllowedDateLabel
                         ? props.max ?? todayStr
                         : props.max
 

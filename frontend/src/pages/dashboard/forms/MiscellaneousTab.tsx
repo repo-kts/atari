@@ -5,6 +5,7 @@ import {
     Shield,
     GraduationCap,
     UserCircle,
+    Smartphone,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 
@@ -44,6 +45,17 @@ const sections: FeatureSection[] = [
         icon: <UserCircle className="w-5 h-5" />,
         items: [
             { label: 'VIP visitors', path: '/forms/miscellaneous/vip-visitors' },
+        ],
+    },
+    {
+        title: 'Digital Information',
+        icon: <Smartphone className="w-5 h-5" />,
+        items: [
+            { label: 'Mobile App', path: '/forms/digital-information/mobile-app', moduleCode: 'digital_mobile_app' },
+            { label: 'Web Portal', path: '/forms/digital-information/web-portal', moduleCode: 'digital_web_portal' },
+            { label: 'Kisan Sarathi', path: '/forms/digital-information/kisan-sarathi', moduleCode: 'digital_kisan_sarthi' },
+            { label: 'Kisan Mobile Advisory', path: '/forms/digital-information/kisan-mobile-advisory', moduleCode: 'digital_kisan_advisory' },
+            { label: 'Other channels', path: '/forms/digital-information/other-channels', moduleCode: 'digital_messages_other_channels' },
         ],
     },
 ]

@@ -82,10 +82,6 @@ const _mapResponse = (r) => {
         kvkId: r.kvkId,
         kvkStaffId: r.kvkStaffId,
         staffId: r.kvkStaffId, // Frontend compatibility
-        courseName: r.courseName,
-        startDate: r.startDate,
-        endDate: r.endDate,
-        organizerVenue: r.organizerVenue,
         kvkName: r.kvk?.kvkName,
         staff: r.staff?.staffName,
         staffName: r.staff?.staffName,
@@ -94,8 +90,8 @@ const _mapResponse = (r) => {
         courseName: r.courseName,
         startDate: r.startDate,
         endDate: r.endDate,
-        organizer: r.organizerVenue,
-        organizerVenue: r.organizerVenue,
+        organizer: r.organizer,
+        venue: r.venue,
     };
 };
 
@@ -130,7 +126,13 @@ const hrdRepository = {
             const courseName = _normalizeString(data.courseName, 'Course Name', false);
             const startDate = _parseDate(data.startDate, 'Start Date', false);
             const endDate = _parseDate(data.endDate, 'End Date', false);
-            const organizerVenue = _normalizeString(data.organizerVenue, 'Organizer/Venue', false);
+            // Backward compat: legacy clients sending organizerVenue land in organizer.
+            const organizer = _normalizeString(
+                data.organizer ?? data.organizerVenue,
+                'Organizer',
+                false,
+            );
+            const venue = _normalizeString(data.venue, 'Venue', false);
 
             // Validate date range
             _validateDateRange(startDate, endDate);
@@ -142,7 +144,8 @@ const hrdRepository = {
                 courseName,
                 startDate,
                 endDate,
-                organizerVenue,
+                organizer,
+                venue,
             };
 
             // Create the record using Prisma
@@ -308,8 +311,15 @@ const hrdRepository = {
             if (data.endDate !== undefined) {
                 updateData.endDate = _parseDate(data.endDate, 'End Date', false);
             }
-            if (data.organizerVenue !== undefined) {
-                updateData.organizerVenue = _normalizeString(data.organizerVenue, 'Organizer/Venue', false);
+            // Backward compat: legacy clients still send organizerVenue and expect
+            // it to land in the organizer column.
+            if (data.organizer !== undefined) {
+                updateData.organizer = _normalizeString(data.organizer, 'Organizer', false);
+            } else if (data.organizerVenue !== undefined) {
+                updateData.organizer = _normalizeString(data.organizerVenue, 'Organizer', false);
+            }
+            if (data.venue !== undefined) {
+                updateData.venue = _normalizeString(data.venue, 'Venue', false);
             }
 
             // Validate date range if both dates are being updated

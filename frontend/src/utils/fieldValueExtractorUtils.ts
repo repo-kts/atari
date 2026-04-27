@@ -55,6 +55,18 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.ACTIVITY_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.activityDate || item.date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
     [FIELD_NAMES.START_DATE]: {
         extractor: (item: any) => {
             const dateVal = item.startDate || item.start_date;
@@ -1311,7 +1323,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.courseName || item.course_name || null,
     },
     [FIELD_NAMES.ORGANIZER]: {
-        extractor: (item: any) => item.organizerVenue || item.organizer_venue || null,
+        // Read from the new split column with a fallback to the legacy combined
+        // column so any cached pre-migration responses still render.
+        extractor: (item: any) => item.organizer || item.organizerVenue || item.organizer_venue || null,
+    },
+    [FIELD_NAMES.VENUE]: {
+        extractor: (item: any) => item.venue || null,
     },
     [FIELD_NAMES.DATE_OF_REGISTRATION]: {
         extractor: (item: any) => {
