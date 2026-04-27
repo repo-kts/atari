@@ -27,11 +27,27 @@ const demoCrud = createAttachmentAwareCrud({
     onWrite: invalidate('naturalFarmingDemonstration'),
 });
 
-const farmersPracticingCrud = createAttachmentAwareCrud({
-    repo: farmersPracticingRepository,
-    binding: createAttachmentBinding({ formCode: 'natural_farming_farmers', primaryKey: 'farmersPracticingId' }),
-    onWrite: invalidate('naturalFarmingFarmersPracticing'),
-});
+// Farmers Practicing has no attachments — pass through to the repo directly.
+const farmersPracticingCrud = {
+    findAll: (filters, user) => farmersPracticingRepository.findAll(filters, user),
+    findById: (id, user) => farmersPracticingRepository.findById(id, user),
+    create: async (data, user) => {
+        const result = await farmersPracticingRepository.create(data, user);
+        await invalidate('naturalFarmingFarmersPracticing')(result, user);
+        return result;
+    },
+    update: async (id, data, user) => {
+        const result = await farmersPracticingRepository.update(id, data, user);
+        await invalidate('naturalFarmingFarmersPracticing')(result, user);
+        return result;
+    },
+    delete: async (id, user) => {
+        const existing = await farmersPracticingRepository.findById(id, user);
+        const result = await farmersPracticingRepository.delete(id, user);
+        await invalidate('naturalFarmingFarmersPracticing')(existing, user);
+        return result;
+    },
+};
 
 const naturalFarmingService = {
     // Geographical Info (no attachments)

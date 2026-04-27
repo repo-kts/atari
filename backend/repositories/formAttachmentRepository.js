@@ -56,11 +56,16 @@ async function listForGallery({
     limit = 50,
     kvkId,
     formCode,
-    kind = 'PHOTO',
     reportingYear,
     search,
 }) {
-    const where = { kind, AND: [] };
+    // Gallery only shows image-typed rows regardless of stored `kind`. RAWE FET
+    // and other DOCUMENT-kind forms upload mixed content (PDF, video, image);
+    // we want the images to appear here while non-image files don't pollute it.
+    const where = {
+        mimeType: { startsWith: 'image/' },
+        AND: [],
+    };
     if (kvkId) where.kvkId = Number(kvkId);
     if (formCode) where.formCode = formCode;
     if (reportingYear) {
@@ -146,8 +151,9 @@ async function attachToRecord({ attachmentIds, formCode, recordId, kvkId }) {
     });
 }
 
-async function distinctFormCodes({ kvkId, kind = 'PHOTO' }) {
-    const where = { kind };
+async function distinctFormCodes({ kvkId }) {
+    // Image-typed rows only — same filter the gallery list uses.
+    const where = { mimeType: { startsWith: 'image/' } };
     if (kvkId) where.kvkId = Number(kvkId);
     const rows = await prisma.formAttachment.groupBy({
         by: ['formCode'],
@@ -158,10 +164,10 @@ async function distinctFormCodes({ kvkId, kind = 'PHOTO' }) {
     return rows.map((r) => ({ formCode: r.formCode, count: r._count._all }));
 }
 
-async function distinctKvks({ kind = 'PHOTO' }) {
+async function distinctKvks() {
     const rows = await prisma.formAttachment.groupBy({
         by: ['kvkId'],
-        where: { kind },
+        where: { mimeType: { startsWith: 'image/' } },
         _count: { _all: true },
     });
     if (rows.length === 0) return [];

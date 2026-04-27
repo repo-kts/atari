@@ -3,19 +3,9 @@ const prisma = require('../../config/prisma.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const { sanitizeDate, sanitizeString } = require('../../utils/dataSanitizer.js');
-const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 
 /** Roles scoped to a specific KVK */
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
-
-const STAFF_ATTACHMENTS = createAttachmentBinding({
-    formCode: 'kvk_staff',
-    primaryKey: 'kvkStaffId',
-});
-
-function entityHasAttachments(entityName) {
-    return entityName === 'kvk-employees' || entityName === 'kvk-staff-transferred';
-}
 
 /**
  * About KVK Service
@@ -103,9 +93,6 @@ class AboutKvkService {
             }
         }
 
-        if (entityHasAttachments(entityName)) {
-            return STAFF_ATTACHMENTS.decorate(entity, user);
-        }
         return entity;
     }
 
@@ -173,24 +160,13 @@ class AboutKvkService {
             }
         }
 
-        // Strip attachmentIds before passing to repo (only kvk-staff carries them).
-        const hasAttachments = entityHasAttachments(entityName);
-        const { payload: rawWithoutAtt, attachmentIds } = hasAttachments
-            ? STAFF_ATTACHMENTS.strip(data)
-            : { payload: data, attachmentIds: [] };
-
         // Sanitize optional enum fields: convert empty strings to null
-        const sanitizedData = this.sanitizeEnumFields(entityName, rawWithoutAtt);
+        const sanitizedData = this.sanitizeEnumFields(entityName, data);
 
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
-        const created = await aboutKvkRepository.create(entityName, finalData);
-        if (hasAttachments) {
-            await STAFF_ATTACHMENTS.attach(created, attachmentIds, user);
-            return STAFF_ATTACHMENTS.decorate(created, user);
-        }
-        return created;
+        return await aboutKvkRepository.create(entityName, finalData);
     }
 
     async update(entityName, id, data, user = null) {
@@ -213,14 +189,8 @@ class AboutKvkService {
             throw new Error('Cannot change kvkId');
         }
 
-        // Strip attachmentIds before passing to repo (only kvk-staff carries them).
-        const hasAttachments = entityHasAttachments(entityName);
-        const { payload: rawWithoutAtt, attachmentIds } = hasAttachments
-            ? STAFF_ATTACHMENTS.strip(data)
-            : { payload: data, attachmentIds: [] };
-
         // Sanitize data: remove read-only fields and nested objects
-        const sanitizedData = this.sanitizeUpdateData(entityName, rawWithoutAtt);
+        const sanitizedData = this.sanitizeUpdateData(entityName, data);
 
         // Sanitize optional enum fields: convert empty strings to null
         const enumSanitized = this.sanitizeEnumFields(entityName, sanitizedData);
@@ -228,12 +198,7 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
 
-        const updated = await aboutKvkRepository.update(entityName, id, finalData);
-        if (hasAttachments) {
-            await STAFF_ATTACHMENTS.attach(updated ?? currentEntity, attachmentIds, user);
-            return STAFF_ATTACHMENTS.decorate(updated, user);
-        }
-        return updated;
+        return await aboutKvkRepository.update(entityName, id, finalData);
     }
 
     async delete(entityName, id, user = null) {
@@ -256,11 +221,7 @@ class AboutKvkService {
             }
         }
 
-        const deleted = await aboutKvkRepository.deleteEntity(entityName, id);
-        if (entityHasAttachments(entityName)) {
-            await STAFF_ATTACHMENTS.cleanup(currentEntity, user);
-        }
-        return deleted;
+        return await aboutKvkRepository.deleteEntity(entityName, id);
     }
 
     /**

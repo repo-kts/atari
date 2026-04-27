@@ -16,6 +16,7 @@ import {
   PanelLeftOpen,
   Filter,
   FolderOpen,
+  Trash2,
 } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
@@ -23,7 +24,9 @@ import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ModuleImageRow } from '@/services/moduleImagesApi'
 import { API_BASE_URL } from '@/config/api'
-import { useGallerySource } from '@/hooks/useGallerySource'
+import { useGallerySource, type GalleryItem } from '@/hooks/useGallerySource'
+import { useQueryClient } from '@tanstack/react-query'
+import { formAttachmentsApi } from '@/services/formAttachmentsApi'
 
 type ViewMode = 'grid' | 'compact'
 
@@ -125,7 +128,7 @@ export const Gallery: React.FC = () => {
   )
 
   const sourceResult = useGallerySource(filters, showKvkFilter)
-  const images = sourceResult.images as unknown as ModuleImageRow[]
+  const images: GalleryItem[] = sourceResult.images
   const total = sourceResult.total
   const categoriesQuery = { data: sourceResult.categories } as { data: typeof sourceResult.categories }
   const kvksQuery = { data: sourceResult.kvks } as { data: typeof sourceResult.kvks }
@@ -137,11 +140,10 @@ export const Gallery: React.FC = () => {
     return arr
   }, [currentYear])
 
-  const moduleCounts = useMemo(() => {
-    const counts = new Map<number, number>()
-    for (const img of images) counts.set(img.moduleId, (counts.get(img.moduleId) ?? 0) + 1)
-    return counts
-  }, [images])
+  // Counts come from unfiltered queries inside useGallerySource so the sidebar
+  // numbers stay stable when one category is selected (otherwise the filtered
+  // images list shrinks to one module and other modules would all read 0).
+  const moduleCounts = sourceResult.categoryCounts
 
   const groupedCategories = useMemo(() => {
     const cats = categoriesQuery.data ?? []
@@ -203,7 +205,7 @@ export const Gallery: React.FC = () => {
   const recent = useMemo(() => images.filter(i => isRecent(i.imageDate || i.createdAt)), [images])
 
   const groupedByMonth = useMemo(() => {
-    const map = new Map<string, ModuleImageRow[]>()
+    const map = new Map<string, GalleryItem[]>()
     for (const img of images) {
       const key = formatMonthKey(img.imageDate || img.createdAt)
       if (!map.has(key)) map.set(key, [])
@@ -216,8 +218,8 @@ export const Gallery: React.FC = () => {
     })
   }, [images])
 
-  const flatOrder: ModuleImageRow[] = useMemo(() => {
-    const list: ModuleImageRow[] = []
+  const flatOrder: GalleryItem[] = useMemo(() => {
+    const list: GalleryItem[] = []
     if (recent.length) list.push(...recent)
     for (const [, arr] of groupedByMonth) list.push(...arr)
     const seen = new Set<number>()
@@ -229,7 +231,7 @@ export const Gallery: React.FC = () => {
   }, [recent, groupedByMonth])
 
   const openLightbox = useCallback(
-    (img: ModuleImageRow) => {
+    (img: GalleryItem) => {
       const idx = flatOrder.findIndex(i => i.imageId === img.imageId)
       setLightboxIdx(idx >= 0 ? idx : 0)
     },
@@ -247,6 +249,37 @@ export const Gallery: React.FC = () => {
         idx === null ? null : (idx - 1 + flatOrder.length) % flatOrder.length
       ),
     [flatOrder.length]
+  )
+
+  // FORM_ID_OFFSET in useGallerySource is 1_000_000; subtract to recover the
+  // original attachmentId from the synthetic galleryItem.imageId.
+  const FORM_ID_OFFSET = 1_000_000
+  const qc = useQueryClient()
+  const handleDelete = useCallback(
+    async (img: ModuleImageRow & { source?: 'module' | 'form' }) => {
+      if (img.source !== 'form') {
+        alert('Module images can only be deleted from the Module Images admin page.')
+        return
+      }
+      const attachmentId = img.imageId - FORM_ID_OFFSET
+      if (!confirm('Delete this image? This cannot be undone.')) return
+      try {
+        await formAttachmentsApi.remove(attachmentId)
+        qc.invalidateQueries({ queryKey: ['form-attachments'] })
+        qc.invalidateQueries({ queryKey: ['form-attachments-gallery'] })
+        qc.invalidateQueries({ queryKey: ['form-attachments-gallery-forms'] })
+        qc.invalidateQueries({ queryKey: ['form-attachments-gallery-kvks'] })
+        // Advance or close depending on remaining length.
+        setLightboxIdx((idx) => {
+          if (idx === null) return null
+          if (flatOrder.length <= 1) return null
+          return idx >= flatOrder.length - 1 ? Math.max(0, idx - 1) : idx
+        })
+      } catch (e) {
+        alert(e instanceof Error ? e.message : 'Delete failed')
+      }
+    },
+    [qc, flatOrder.length],
   )
 
   useEffect(() => {
@@ -606,6 +639,7 @@ export const Gallery: React.FC = () => {
           onClose={closeLightbox}
           onNext={nextLightbox}
           onPrev={prevLightbox}
+          onDelete={handleDelete}
         />
       )}
     </div>
@@ -631,8 +665,8 @@ const Section: React.FC<{
 )
 
 const HorizontalStrip: React.FC<{
-  images: ModuleImageRow[]
-  onOpen: (img: ModuleImageRow) => void
+  images: GalleryItem[]
+  onOpen: (img: GalleryItem) => void
 }> = ({ images, onOpen }) => (
   <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
     {images.map(img => (
@@ -656,8 +690,8 @@ const HorizontalStrip: React.FC<{
 )
 
 const Masonry: React.FC<{
-  images: ModuleImageRow[]
-  onOpen: (img: ModuleImageRow) => void
+  images: GalleryItem[]
+  onOpen: (img: GalleryItem) => void
   mode: ViewMode
 }> = ({ images, onOpen, mode }) => {
   const cols =
@@ -672,8 +706,8 @@ const Masonry: React.FC<{
 }
 
 const Tile: React.FC<{
-  img: ModuleImageRow
-  onOpen: (img: ModuleImageRow) => void
+  img: GalleryItem
+  onOpen: (img: GalleryItem) => void
   compact?: boolean
 }> = ({ img, onOpen, compact }) => {
   return (
@@ -744,13 +778,14 @@ const EmptyState: React.FC<{ activeChips: number; onClearAll: () => void }> = ({
 )
 
 const Lightbox: React.FC<{
-  img: ModuleImageRow
+  img: GalleryItem
   index: number
   total: number
   onClose: () => void
   onNext: () => void
   onPrev: () => void
-}> = ({ img, index, total, onClose, onNext, onPrev }) => {
+  onDelete?: (img: GalleryItem) => void
+}> = ({ img, index, total, onClose, onNext, onPrev, onDelete }) => {
   const [showInfo, setShowInfo] = useState(true)
   const overlayRef = useRef<HTMLDivElement>(null)
 
@@ -790,6 +825,16 @@ const Lightbox: React.FC<{
           >
             <Download className="w-4 h-4" />
           </button>
+          {onDelete && img.source === 'form' && (
+            <button
+              onClick={() => onDelete(img)}
+              className="p-2 rounded-lg text-red-300 hover:text-white hover:bg-red-500/40"
+              title="Delete"
+              aria-label="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-white/10"
