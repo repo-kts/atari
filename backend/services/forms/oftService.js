@@ -2,6 +2,9 @@ const oftRepository = require('../../repositories/forms/oftRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
 const { validateFileSize } = require('../../utils/fileValidation.js');
+const formAttachmentService = require('../formAttachmentService.js');
+
+const OFT_RESULT_FORM_CODE = 'oft_result';
 
 const oftService = {
     createOft: async (data, user) => {
@@ -64,6 +67,7 @@ const oftService = {
 
         const result = await oftRepository.createResultReportTx(id, payload);
         await oftRepository.updateStatus(id, OFT_STATUS.COMPLETED);
+        await _linkAttachments(payload, result, source, user);
         return result;
     },
 
@@ -78,7 +82,9 @@ const oftService = {
 
         const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
         _validateResultPayload(payload, sourceRows);
-        return oftRepository.updateResultReportTx(id, payload);
+        const result = await oftRepository.updateResultReportTx(id, payload);
+        await _linkAttachments(payload, result, source, user);
+        return result;
     },
 
     getResult: async (id, user) => {
@@ -86,7 +92,16 @@ const oftService = {
         if (!source) throw new NotFoundError('OFT record');
         const result = await oftRepository.getResultByOftId(id);
         if (!result) throw new NotFoundError('OFT result report');
-        return result;
+        const attachments = await formAttachmentService.listByRecord({
+            formCode: OFT_RESULT_FORM_CODE,
+            recordId: result.oftResultReportId,
+            kvkId: source.kvkId,
+        }, user);
+        return {
+            ...result,
+            photos: attachments.filter((a) => a.kind === 'PHOTO'),
+            datasheets: attachments.filter((a) => a.kind === 'DATASHEET'),
+        };
     },
 
     deleteOft: async (id, user) => {
@@ -129,8 +144,20 @@ function _validateResultPayload(payload, sourceRows = []) {
         });
     });
 
-    validateFileSize({ size: payload.supplementaryDatasheetSize }, 2 * 1024 * 1024, 'Supplementary Datasheet');
-    validateFileSize({ size: payload.photographSize }, 1 * 1024 * 1024, 'Photograph');
+    validateFileSize({ size: payload.supplementaryDatasheetSize }, 5 * 1024 * 1024, 'Supplementary Datasheet');
+    validateFileSize({ size: payload.photographSize }, 5 * 1024 * 1024, 'Photograph');
+}
+
+async function _linkAttachments(payload, result, source, user) {
+    if (!result?.oftResultReportId || !source?.kvkId) return;
+    const ids = Array.isArray(payload?.attachmentIds) ? payload.attachmentIds : [];
+    if (ids.length === 0) return;
+    await formAttachmentService.attachToRecord({
+        attachmentIds: ids,
+        formCode: OFT_RESULT_FORM_CODE,
+        recordId: result.oftResultReportId,
+        kvkId: source.kvkId,
+    }, user);
 }
 
 module.exports = oftService;
