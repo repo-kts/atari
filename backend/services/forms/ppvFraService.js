@@ -1,8 +1,17 @@
 const ppvFraTrainingRepository = require('../../repositories/forms/ppvFraTrainingRepository');
 const ppvFraPlantVarietiesRepository = require('../../repositories/forms/ppvFraPlantVarietiesRepository');
+const { createAttachmentBinding, createAttachmentAwareCrud } = require('./formAttachmentBinding.js');
+
+const plantVarietyCrud = createAttachmentAwareCrud({
+    repo: ppvFraPlantVarietiesRepository,
+    binding: createAttachmentBinding({
+        formCode: 'ppv_fra',
+        primaryKey: 'ppvFraPlantVarietiesID',
+    }),
+});
 
 const ppvFraService = {
-    // Training
+    // Training (no attachments today)
     createTraining: async (data, user) => ppvFraTrainingRepository.create(data, user),
     findAllTrainings: async (filters, user) => ppvFraTrainingRepository.findAll(filters, user),
     findTrainingById: async (id, user) => {
@@ -13,16 +22,16 @@ const ppvFraService = {
     updateTraining: async (id, data, user) => ppvFraTrainingRepository.update(id, data, user),
     deleteTraining: async (id, user) => ppvFraTrainingRepository.delete(id, user),
 
-    // Plant Varieties
-    createPlantVariety: async (data, user) => ppvFraPlantVarietiesRepository.create(data, user),
-    findAllPlantVarieties: async (filters, user) => ppvFraPlantVarietiesRepository.findAll(filters, user),
+    // Plant Varieties — uses FormAttachment for photos
+    createPlantVariety: plantVarietyCrud.create,
+    findAllPlantVarieties: plantVarietyCrud.findAll,
     findPlantVarietyById: async (id, user) => {
-        const record = await ppvFraPlantVarietiesRepository.findById(id, user);
+        const record = await plantVarietyCrud.findById(id, user);
         if (!record) throw new Error('Record not found');
         return record;
     },
-    updatePlantVariety: async (id, data, user) => ppvFraPlantVarietiesRepository.update(id, data, user),
-    deletePlantVariety: async (id, user) => ppvFraPlantVarietiesRepository.delete(id, user),
+    updatePlantVariety: plantVarietyCrud.update,
+    deletePlantVariety: plantVarietyCrud.delete,
 };
 
 module.exports = ppvFraService;
