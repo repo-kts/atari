@@ -123,16 +123,6 @@ export const achievementsRoutes: RouteConfig[] = [
         siblings: [ROUTE_PATHS.ACHIEVEMENTS.PUBLICATIONS],
     },
     {
-        path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT,
-        title: 'Soil Equipment',
-        category: 'Form Management',
-        subcategory: 'Achievements',
-        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
-        moduleCode: 'achievements_soil_water_testing',
-        fields: FIELD_GROUPS.SOIL_EQUIPMENT,
-        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
-    },
-    {
         path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
         title: 'Soil, Water and Plant analysis',
         category: 'Form Management',
