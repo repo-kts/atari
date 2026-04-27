@@ -31,6 +31,13 @@ export const featureRoutes: RouteConfig[] = [
         moduleCode: 'module_images',
     },
     {
+        path: '/gallery',
+        title: 'Gallery',
+        description: 'Browse images across all forms in one visual view',
+        category: 'Features',
+        moduleCode: 'module_images',
+    },
+    {
         path: '/targets',
         title: 'Targets',
         description: 'View and manage system targets',

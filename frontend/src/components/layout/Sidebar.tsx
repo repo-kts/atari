@@ -13,6 +13,7 @@ import {
     Settings,
     Bell,
     Image as ImageIcon,
+    Images as GalleryIcon,
     Target,
     History,
     FileBarChart,
@@ -186,6 +187,12 @@ const superAdminMenuItems: MenuItem[] = [
         label: 'Module Images',
         path: '/module-images',
         icon: <ImageIcon className="w-5 h-5" />,
+        moduleCode: 'module_images',
+    },
+    {
+        label: 'Gallery',
+        path: '/gallery',
+        icon: <GalleryIcon className="w-5 h-5" />,
         moduleCode: 'module_images',
     },
     {
