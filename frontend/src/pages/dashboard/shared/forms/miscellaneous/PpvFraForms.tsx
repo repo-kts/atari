@@ -4,6 +4,7 @@ import { ENTITY_TYPES } from '../../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../../utils/masterUtils'
 import { useMasterData } from '../../../../../hooks/useMasterData'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 
 interface PpvFraTrainingFormProps {
     formData: any
@@ -216,26 +217,17 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                 onChange={(e) => setFormData({ ...formData, characteristics: e.target.value })}
             />
 
-            <FormInput
-                label="Images"
-                type="file"
-                // Assuming standard file upload component handling here
-                onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                            setFormData({
-                                ...formData,
-                                file, // Keep for UI if needed
-                                image: reader.result as string
-                            });
-                        };
-                        reader.readAsDataURL(file);
-                    } else {
-                        setFormData({ ...formData, file: null, image: null });
-                    }
-                }}
+            <FormAttachmentSection
+                title="Images"
+                formCode="ppv_fra"
+                kind="PHOTO"
+                kvkId={formData.kvkId ?? null}
+                recordId={formData.ppvFraPlantVarietiesID ?? formData.id ?? null}
+                showCaption
+                initialAttachments={formData?.photos}
+                onAttachmentIdsChange={(ids) =>
+                    setFormData({ ...formData, attachmentIds: ids })
+                }
             />
         </div>
     )
