@@ -16,7 +16,6 @@ import {
     AccountTypeEnum
 } from '@/hooks/forms/useAboutKvkData'
 import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters } from '@/hooks/useOtherMastersData'
-import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -366,18 +365,6 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 placeholder="Resume link"
                             />
                         </div>
-                        <FormAttachmentSection
-                            title="Staff Photos"
-                            formCode="kvk_staff"
-                            kind="PHOTO"
-                            kvkId={formData.kvkId ?? null}
-                            recordId={formData.kvkStaffId ?? formData.id ?? null}
-                            showCaption
-                            initialAttachments={formData?.photos}
-                            onAttachmentIdsChange={(ids) =>
-                                setFormData((prev: any) => ({ ...prev, attachmentIds: ids }))
-                            }
-                        />
                     </FormSection>
 
                     <FormSection title="Job Details">

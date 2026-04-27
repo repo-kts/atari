@@ -35,16 +35,54 @@ interface UseGallerySourceResult {
     total: number
     isLoading: boolean
     isError: boolean
+    /**
+     * Counts per categoryId (moduleId for module-images; synthetic id for form
+     * attachments) — sourced from unfiltered queries so the sidebar shows
+     * stable counts regardless of which category is currently selected.
+     */
+    categoryCounts: Map<number, number>
 }
 
 const FORM_LABEL_OVERRIDES: Record<string, string> = {
     oft_result: 'OFT Result',
+    nicra_farm_implement: 'NICRA Custom Hiring',
+    rawe_fet: 'RAWE/FET',
+    ppv_fra: 'PPV FRA',
+    cfld_technical_training: 'CFLD Training Photos',
+    cfld_technical_action: 'CFLD Action Photos',
+    nicra_details: 'NICRA Details',
+    nicra_vcrmc: 'NICRA VCRMC',
+    nicra_soil_health: 'NICRA Soil Health',
+    nicra_convergence: 'NICRA Convergence',
+    nicra_dignitaries: 'NICRA Dignitaries',
+    natural_farming_demo: 'Natural Farming Demonstration',
+    natural_farming_physical: 'Natural Farming Physical',
+    sac_meeting: 'SAC Meeting',
+    farmer_award: 'Farmer Award',
+    arya_current_year: 'ARYA Current Year',
+    success_story: 'Success Story',
 }
 
 // Maps a formCode to the sidebar group it should appear under. Falls back to
 // "Form Attachments" so unknown forms still show up.
 const FORM_MENU_BY_CODE: Record<string, string> = {
     oft_result: 'Achievements',
+    farmer_award: 'Achievements',
+    arya_current_year: 'Projects',
+    nicra_details: 'Projects',
+    nicra_farm_implement: 'Projects',
+    nicra_vcrmc: 'Projects',
+    nicra_soil_health: 'Projects',
+    nicra_convergence: 'Projects',
+    nicra_dignitaries: 'Projects',
+    cfld_technical_training: 'Projects',
+    cfld_technical_action: 'Projects',
+    natural_farming_physical: 'Projects',
+    natural_farming_demo: 'Projects',
+    sac_meeting: 'Meetings',
+    rawe_fet: 'Miscellaneous',
+    ppv_fra: 'Miscellaneous',
+    success_story: 'Performance Indicators',
 }
 
 const DEFAULT_FORMS_MENU_NAME = 'Form Attachments'
@@ -113,6 +151,13 @@ export function useGallerySource(
     }
 
     const moduleImagesQuery = useModuleImages(moduleImageFilters as any)
+    // Second module-image query without moduleId so the sidebar counts stay
+    // stable when a single module is selected (the filtered query above
+    // returns only one module's rows; that's not a count of the others).
+    const moduleImagesUnfilteredQuery = useModuleImages({
+        ...filters,
+        moduleId: undefined,
+    } as any)
     const moduleCategoriesQuery = useModuleImageCategories()
     const moduleKvksQuery = useModuleImageKvks(showKvkFilter)
 
@@ -151,7 +196,22 @@ export function useGallerySource(
             })
         }
 
-        const moduleCategories = moduleCategoriesQuery.data ?? []
+        // Build per-category counts from the unfiltered queries so the sidebar
+        // numbers stay stable when one category is selected.
+        const unfilteredModuleRows = moduleImagesUnfilteredQuery.data?.data ?? []
+        const moduleIdsWithImages = new Set(unfilteredModuleRows.map((r) => r.moduleId))
+        const categoryCounts = new Map<number, number>()
+        for (const r of unfilteredModuleRows) {
+            categoryCounts.set(r.moduleId, (categoryCounts.get(r.moduleId) ?? 0) + 1)
+        }
+        for (const f of formsListQuery.data ?? []) {
+            const id = formCodeToId.get(f.formCode) ?? FORM_ID_OFFSET
+            categoryCounts.set(id, f.count)
+        }
+
+        const moduleCategories = (moduleCategoriesQuery.data ?? []).filter((c) =>
+            moduleIdsWithImages.has(c.moduleId),
+        )
         const formCategories: ModuleImageCategory[] = (formsListQuery.data ?? []).map((f) => ({
             moduleId: formCodeToId.get(f.formCode) ?? FORM_ID_OFFSET,
             moduleCode: f.formCode,
@@ -178,6 +238,7 @@ export function useGallerySource(
             total,
             isLoading: moduleImagesQuery.isLoading || formsQuery.isLoading,
             isError: Boolean(moduleImagesQuery.error || formsQuery.error),
+            categoryCounts,
         }
     }, [
         formCodeToId,
@@ -189,6 +250,7 @@ export function useGallerySource(
         moduleImagesQuery.data,
         moduleImagesQuery.isLoading,
         moduleImagesQuery.error,
+        moduleImagesUnfilteredQuery.data,
         moduleCategoriesQuery.data,
         moduleKvksQuery.data,
         filters.moduleId,

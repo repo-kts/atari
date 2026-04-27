@@ -1,5 +1,5 @@
 import React from 'react'
-import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
+import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/FormComponents'
 import { ENTITY_TYPES } from '../../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../../utils/masterUtils'
 import { useMasterData } from '../../../../../hooks/useMasterData'
@@ -156,66 +156,69 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
 
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormSelect
-                    label="Reporting Year"
-                    required
-                    options={[{ value: '', label: 'Select' }, ...yearOptions]}
-                    value={formData.reportingYear ?? ''}
-                    onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                />
-                <FormInput
-                    label="Name of Crop Registered"
-                    required
-                    value={formData.cropName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
-                />
-                <FormInput
-                    label="Farmer Name"
-                    required
-                    value={formData.farmerName ?? ''}
-                    onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
-                />
-                <FormInput
-                    label="Mobile No."
-                    required
-                    value={formData.mobile ?? ''}
-                    onChange={(e) =>
-                        setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
-                    }
-                    placeholder="10-digit mobile"
-                    inputMode="numeric"
-                    autoComplete="tel"
-                />
-                <FormInput
-                    label="Village"
-                    required
-                    value={formData.village ?? ''}
-                    onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                />
-                <FormInput
-                    label="Block"
-                    required
-                    value={formData.block ?? ''}
-                    onChange={(e) => setFormData({ ...formData, block: e.target.value })}
-                />
-                <FormSelect
-                    label="District"
-                    required
-                    options={districtOptions}
-                    value={formData.district ?? ''}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                    placeholder={districtsLoading ? 'Loading districts...' : 'Select District'}
-                />
-            </div>
-
-            <FormTextArea
-                label="Characteristics"
-                required
-                rows={4}
-                value={formData.characteristics ?? ''}
-                onChange={(e) => setFormData({ ...formData, characteristics: e.target.value })}
-            />
+            <FormSection title="Plant Variety Details" noGrid>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormSelect
+                        label="Reporting Year"
+                        required
+                        options={[{ value: '', label: 'Select' }, ...yearOptions]}
+                        value={formData.reportingYear ?? ''}
+                        onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                    />
+                    <FormInput
+                        label="Name of Crop Registered"
+                        required
+                        value={formData.cropName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, cropName: e.target.value })}
+                    />
+                    <FormInput
+                        label="Farmer Name"
+                        required
+                        value={formData.farmerName ?? ''}
+                        onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
+                    />
+                    <FormInput
+                        label="Mobile No."
+                        required
+                        value={formData.mobile ?? ''}
+                        onChange={(e) =>
+                            setFormData({ ...formData, mobile: cleanIndianMobileInput(e.target.value) })
+                        }
+                        placeholder="10-digit mobile"
+                        inputMode="numeric"
+                        autoComplete="tel"
+                    />
+                    <FormInput
+                        label="Village"
+                        required
+                        value={formData.village ?? ''}
+                        onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                    />
+                    <FormInput
+                        label="Block"
+                        required
+                        value={formData.block ?? ''}
+                        onChange={(e) => setFormData({ ...formData, block: e.target.value })}
+                    />
+                    <FormSelect
+                        label="District"
+                        required
+                        options={districtOptions}
+                        value={formData.district ?? ''}
+                        onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                        placeholder={districtsLoading ? 'Loading districts...' : 'Select District'}
+                    />
+                </div>
+                <div className="mt-6">
+                    <FormTextArea
+                        label="Characteristics"
+                        required
+                        rows={4}
+                        value={formData.characteristics ?? ''}
+                        onChange={(e) => setFormData({ ...formData, characteristics: e.target.value })}
+                    />
+                </div>
+            </FormSection>
 
             <FormAttachmentSection
                 title="Images"
@@ -226,7 +229,7 @@ const PpvFraPlantVarietiesForm: React.FC<PpvFraPlantVarietiesFormProps> = ({ for
                 showCaption
                 initialAttachments={formData?.photos}
                 onAttachmentIdsChange={(ids) =>
-                    setFormData({ ...formData, attachmentIds: ids })
+                    setFormData((prev: any) => ({ ...prev, attachmentIds: ids }))
                 }
             />
         </div>

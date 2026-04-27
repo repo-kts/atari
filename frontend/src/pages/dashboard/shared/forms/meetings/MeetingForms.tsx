@@ -64,12 +64,8 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
         [formData, setFormData]
     )
 
-    const formDataRef = React.useRef(formData)
-    React.useEffect(() => {
-        formDataRef.current = formData
-    })
     const handleAttachmentIds = useCallback(
-        (ids: number[]) => setFormData({ ...formDataRef.current, attachmentIds: ids }),
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
         [setFormData],
     )
 

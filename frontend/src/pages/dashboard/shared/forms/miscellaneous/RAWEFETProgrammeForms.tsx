@@ -41,12 +41,8 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
         [formData, setFormData]
     )
 
-    const formDataRef = React.useRef(formData)
-    React.useEffect(() => {
-        formDataRef.current = formData
-    })
     const handleAttachmentIds = useCallback(
-        (ids: number[]) => setFormData({ ...formDataRef.current, attachmentIds: ids }),
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
         [setFormData],
     )
 

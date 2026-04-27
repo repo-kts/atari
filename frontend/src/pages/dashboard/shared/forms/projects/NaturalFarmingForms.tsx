@@ -9,7 +9,6 @@ import { FormAttachmentSection } from '@/components/common/FormAttachmentSection
 const NF_ATTACHMENT_MAP: Record<string, { formCode: string; pk: string }> = {
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: { formCode: 'natural_farming_physical', pk: 'physicalInfoId' },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_DEMO]: { formCode: 'natural_farming_demo', pk: 'demonstrationInfoId' },
-    [ENTITY_TYPES.PROJECT_NATURAL_FARMING_FARMERS]: { formCode: 'natural_farming_farmers', pk: 'farmersPracticingId' },
 }
 
 interface NaturalFarmingFormsProps {
@@ -38,8 +37,7 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
         (activity: any) => String(activity.naturalFarmingActivityId) === String(formData.activityId || '')
     )
     const handleAttachmentIds = React.useCallback(
-        (ids: number[]) => setFormData({ ...formData, attachmentIds: ids }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
         [setFormData],
     )
 

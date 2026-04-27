@@ -10,12 +10,8 @@ interface RaweFetFormsProps {
 }
 
 export const RaweFetForms: React.FC<RaweFetFormsProps> = ({ formData, setFormData }) => {
-    const formDataRef = React.useRef(formData)
-    React.useEffect(() => {
-        formDataRef.current = formData
-    })
     const handleAttachmentIds = React.useCallback(
-        (ids: number[]) => setFormData({ ...formDataRef.current, attachmentIds: ids }),
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
         [setFormData],
     )
 

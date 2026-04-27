@@ -4,6 +4,37 @@ const { ValidationError, NotFoundError, UnauthorizedError } = require('../utils/
 
 const KIND = { PHOTO: 'PHOTO', DATASHEET: 'DATASHEET', DOCUMENT: 'DOCUMENT' };
 
+// Form codes that *can* hold image-bearing attachments. Always surfaced in the
+// gallery sidebar even when their count is currently 0 — users still need to
+// be able to click into them to upload via the linked record's form.
+const KNOWN_GALLERY_FORM_CODES = [
+    'oft_result',
+    'arya_current_year',
+    'rawe_fet',
+    'sac_meeting',
+    'farmer_award',
+    'nicra_details',
+    'nicra_farm_implement',
+    'nicra_vcrmc',
+    'nicra_soil_health',
+    'nicra_convergence',
+    'nicra_dignitaries',
+    'cfld_technical_training',
+    'cfld_technical_action',
+    'natural_farming_physical',
+    'natural_farming_demo',
+    'ppv_fra',
+    'success_story',
+];
+
+// Form codes that should NEVER appear in the gallery sidebar even if rows
+// exist in the DB (e.g. KVK staff photos are admin-internal, not gallery
+// content; Natural Farming Farmers Practicing is excluded by request).
+const HIDDEN_GALLERY_FORM_CODES = new Set([
+    'kvk_staff',
+    'natural_farming_farmers',
+]);
+
 const MAX_BYTES = {
     PHOTO: 5 * 1024 * 1024,
     DATASHEET: 5 * 1024 * 1024,
@@ -180,25 +211,43 @@ async function deleteManyByRecord({ formCode, recordId, kvkId }, user) {
 
 async function listForGallery(params, user) {
     if (!user) throw new UnauthorizedError();
-    const filters = { ...params, kind: 'PHOTO' };
+    const filters = { ...params };
     if (user.kvkId) filters.kvkId = user.kvkId;
     const result = await formAttachmentRepository.listForGallery(filters);
-    const data = await Promise.all(result.data.map(decorate));
-    return { data, meta: result.meta };
+    // Drop rows whose formCode is hidden from the gallery (kvk_staff, etc.)
+    const visibleRows = result.data.filter((r) => !HIDDEN_GALLERY_FORM_CODES.has(r.formCode));
+    const data = await Promise.all(visibleRows.map(decorate));
+    return {
+        data,
+        meta: { ...result.meta, total: visibleRows.length === result.data.length ? result.meta.total : visibleRows.length },
+    };
 }
 
 async function listForms(user) {
     if (!user) throw new UnauthorizedError();
-    return formAttachmentRepository.distinctFormCodes({ kvkId: user.kvkId, kind: 'PHOTO' });
+    const dbRows = await formAttachmentRepository.distinctFormCodes({ kvkId: user.kvkId });
+    const counts = new Map(dbRows.map((r) => [r.formCode, r.count]));
+    const known = KNOWN_GALLERY_FORM_CODES.map((formCode) => ({
+        formCode,
+        count: counts.get(formCode) || 0,
+    }));
+    // Append any formCode the DB knows about but our static list missed.
+    for (const r of dbRows) {
+        if (!KNOWN_GALLERY_FORM_CODES.includes(r.formCode)) {
+            known.push(r);
+        }
+    }
+    // Exclude codes that should never surface in the gallery sidebar.
+    return known.filter((r) => !HIDDEN_GALLERY_FORM_CODES.has(r.formCode));
 }
 
 async function listKvks(user) {
     if (!user) throw new UnauthorizedError();
     if (user.kvkId) {
-        return formAttachmentRepository.distinctKvks({ kind: 'PHOTO' })
+        return formAttachmentRepository.distinctKvks()
             .then((all) => all.filter((k) => k.kvkId === user.kvkId));
     }
-    return formAttachmentRepository.distinctKvks({ kind: 'PHOTO' });
+    return formAttachmentRepository.distinctKvks();
 }
 
 async function decorate(row) {
