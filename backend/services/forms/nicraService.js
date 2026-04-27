@@ -12,6 +12,32 @@ const nicraDignitariesRepository = require('../../repositories/forms/nicraDignit
 const nicraPiCopiRepository = require('../../repositories/forms/nicraPiCopiRepository');
 const nicraMasterRepository = require('../../repositories/all-masters/nicraMasterRepository');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+const { createAttachmentBinding, createAttachmentAwareCrud } = require('./formAttachmentBinding.js');
+
+const detailsCrud = createAttachmentAwareCrud({
+    repo: nicraDetailsRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_details', primaryKey: 'nicraDetailsId' }),
+});
+const farmImplementCrud = createAttachmentAwareCrud({
+    repo: nicraFarmImplementRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_farm_implement', primaryKey: 'nicraFarmImplementId' }),
+});
+const vcrmcCrud = createAttachmentAwareCrud({
+    repo: nicraVcrmcRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_vcrmc', primaryKey: 'nicraVcrmcId' }),
+});
+const soilHealthCrud = createAttachmentAwareCrud({
+    repo: nicraSoilHealthRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_soil_health', primaryKey: 'nicraSoilHealthCardId' }),
+});
+const convergenceCrud = createAttachmentAwareCrud({
+    repo: nicraConvergenceRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_convergence', primaryKey: 'nicraConvergenceProgrammeId' }),
+});
+const dignitariesCrud = createAttachmentAwareCrud({
+    repo: nicraDignitariesRepository,
+    binding: createAttachmentBinding({ formCode: 'nicra_dignitaries', primaryKey: 'nicraDignitariesVisitedId' }),
+});
 
 const nicraService = {
     // Basic Info
@@ -77,11 +103,11 @@ const nicraService = {
     },
 
     // Details
-    getAllDetails: async (filters, user) => await nicraDetailsRepository.findAll(filters, user),
-    getDetailsById: async (id, user) => await nicraDetailsRepository.findById(id, user),
-    createDetails: async (data, user) => await nicraDetailsRepository.create(data, user),
-    updateDetails: async (id, data, user) => await nicraDetailsRepository.update(id, data, user),
-    deleteDetails: async (id, user) => await nicraDetailsRepository.delete(id, user),
+    getAllDetails: detailsCrud.findAll,
+    getDetailsById: detailsCrud.findById,
+    createDetails: detailsCrud.create,
+    updateDetails: detailsCrud.update,
+    deleteDetails: detailsCrud.delete,
 
     // Intervention
     getAllIntervention: async (filters, user) => await nicraInterventionRepository.findAll(filters, user),
@@ -114,39 +140,39 @@ const nicraService = {
     deleteRevenue: async (id, user) => await nicraRevenueRepository.delete(id, user),
 
     // Farm Implement (Custom Hiring)
-    getAllFarmImplement: async (filters, user) => await nicraFarmImplementRepository.findAll(filters, user),
-    getFarmImplementById: async (id, user) => await nicraFarmImplementRepository.findById(id, user),
-    createFarmImplement: async (data, user) => await nicraFarmImplementRepository.create(data, user),
-    updateFarmImplement: async (id, data, user) => await nicraFarmImplementRepository.update(id, data, user),
-    deleteFarmImplement: async (id, user) => await nicraFarmImplementRepository.delete(id, user),
+    getAllFarmImplement: farmImplementCrud.findAll,
+    getFarmImplementById: farmImplementCrud.findById,
+    createFarmImplement: farmImplementCrud.create,
+    updateFarmImplement: farmImplementCrud.update,
+    deleteFarmImplement: farmImplementCrud.delete,
 
     // VCRMC
-    getAllVcrmc: async (filters, user) => await nicraVcrmcRepository.findAll(filters, user),
-    getVcrmcById: async (id, user) => await nicraVcrmcRepository.findById(id, user),
-    createVcrmc: async (data, user) => await nicraVcrmcRepository.create(data, user),
-    updateVcrmc: async (id, data, user) => await nicraVcrmcRepository.update(id, data, user),
-    deleteVcrmc: async (id, user) => await nicraVcrmcRepository.delete(id, user),
+    getAllVcrmc: vcrmcCrud.findAll,
+    getVcrmcById: vcrmcCrud.findById,
+    createVcrmc: vcrmcCrud.create,
+    updateVcrmc: vcrmcCrud.update,
+    deleteVcrmc: vcrmcCrud.delete,
 
     // Soil Health
-    getAllSoilHealth: async (filters, user) => await nicraSoilHealthRepository.findAll(filters, user),
-    getSoilHealthById: async (id, user) => await nicraSoilHealthRepository.findById(id, user),
-    createSoilHealth: async (data, user) => await nicraSoilHealthRepository.create(data, user),
-    updateSoilHealth: async (id, data, user) => await nicraSoilHealthRepository.update(id, data, user),
-    deleteSoilHealth: async (id, user) => await nicraSoilHealthRepository.delete(id, user),
+    getAllSoilHealth: soilHealthCrud.findAll,
+    getSoilHealthById: soilHealthCrud.findById,
+    createSoilHealth: soilHealthCrud.create,
+    updateSoilHealth: soilHealthCrud.update,
+    deleteSoilHealth: soilHealthCrud.delete,
 
     // Convergence
-    getAllConvergence: async (filters, user) => await nicraConvergenceRepository.findAll(filters, user),
-    getConvergenceById: async (id, user) => await nicraConvergenceRepository.findById(id, user),
-    createConvergence: async (data, user) => await nicraConvergenceRepository.create(data, user),
-    updateConvergence: async (id, data, user) => await nicraConvergenceRepository.update(id, data, user),
-    deleteConvergence: async (id, user) => await nicraConvergenceRepository.delete(id, user),
+    getAllConvergence: convergenceCrud.findAll,
+    getConvergenceById: convergenceCrud.findById,
+    createConvergence: convergenceCrud.create,
+    updateConvergence: convergenceCrud.update,
+    deleteConvergence: convergenceCrud.delete,
 
     // Dignitaries
-    getAllDignitaries: async (filters, user) => await nicraDignitariesRepository.findAll(filters, user),
-    getDignitariesById: async (id, user) => await nicraDignitariesRepository.findById(id, user),
-    createDignitaries: async (data, user) => await nicraDignitariesRepository.create(data, user),
-    updateDignitaries: async (id, data, user) => await nicraDignitariesRepository.update(id, data, user),
-    deleteDignitaries: async (id, user) => await nicraDignitariesRepository.delete(id, user),
+    getAllDignitaries: dignitariesCrud.findAll,
+    getDignitariesById: dignitariesCrud.findById,
+    createDignitaries: dignitariesCrud.create,
+    updateDignitaries: dignitariesCrud.update,
+    deleteDignitaries: dignitariesCrud.delete,
 
     // PI CO-PI
     getAllPiCopi: async (filters, user) => await nicraPiCopiRepository.findAll(filters, user),
