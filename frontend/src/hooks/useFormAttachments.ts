@@ -8,12 +8,16 @@ import {
     type GalleryFilters,
 } from '@/services/formAttachmentsApi'
 
-const recordKey = (formCode: string, recordId: number | null | undefined, kvkId?: number, kind?: FormAttachmentKind) =>
-    ['form-attachments', formCode, recordId ?? null, kvkId ?? null, kind ?? null] as const
+const recordKey = (
+    formCode: string,
+    recordId: string | number | null | undefined,
+    kvkId?: number,
+    kind?: FormAttachmentKind,
+) => ['form-attachments', formCode, recordId ?? null, kvkId ?? null, kind ?? null] as const
 
 export function useFormAttachments(params: {
     formCode: string
-    recordId?: number | null
+    recordId?: string | number | null
     kvkId?: number
     kind?: FormAttachmentKind
     enabled?: boolean
@@ -35,7 +39,7 @@ export function useUploadAttachment() {
             formCode: string
             kind: FormAttachmentKind
             kvkId: number
-            recordId?: number | null
+            recordId?: string | number | null
             caption?: string | null
             sortOrder?: number
             reportingYearDate?: string | null

@@ -112,7 +112,7 @@ async function confirmUpload(payload, user) {
     const data = {
         kvkId: Number(kvkId),
         formCode: String(formCode),
-        recordId: recordId !== undefined && recordId !== null ? Number(recordId) : null,
+        recordId: recordId !== undefined && recordId !== null ? String(recordId) : null,
         kind,
         s3Key,
         fileName,
@@ -140,7 +140,7 @@ async function attachToRecord({ attachmentIds, formCode, recordId, kvkId }, user
     return formAttachmentRepository.attachToRecord({
         attachmentIds,
         formCode,
-        recordId: Number(recordId),
+        recordId: String(recordId),
         kvkId: Number(kvkId),
     });
 }

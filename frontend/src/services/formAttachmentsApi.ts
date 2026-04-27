@@ -6,7 +6,7 @@ export interface FormAttachmentRow {
     attachmentId: number
     kvkId: number
     formCode: string
-    recordId: number | null
+    recordId: string | null
     kind: FormAttachmentKind
     s3Key: string
     fileName: string | null
@@ -35,7 +35,7 @@ export interface ConfirmUploadInput {
     s3Key: string
     formCode: string
     kind: FormAttachmentKind
-    recordId?: number | null
+    recordId?: string | number | null
     kvkId: number
     fileName: string
     mimeType: string
@@ -88,10 +88,10 @@ export const formAttachmentsApi = {
     confirm: (body: ConfirmUploadInput) =>
         apiClient.post<FormAttachmentRow>(`${BASE}/confirm`, body),
 
-    attach: (body: { attachmentIds: number[]; formCode: string; recordId: number; kvkId: number }) =>
+    attach: (body: { attachmentIds: number[]; formCode: string; recordId: string | number; kvkId: number }) =>
         apiClient.post<{ count: number }>(`${BASE}/attach`, body),
 
-    listByRecord: (params: { formCode: string; recordId?: number | null; kvkId?: number; kind?: FormAttachmentKind }) => {
+    listByRecord: (params: { formCode: string; recordId?: string | number | null; kvkId?: number; kind?: FormAttachmentKind }) => {
         const qs = new URLSearchParams()
         Object.entries(params).forEach(([k, v]) => {
             if (v !== undefined && v !== null && v !== '') qs.set(k, String(v))

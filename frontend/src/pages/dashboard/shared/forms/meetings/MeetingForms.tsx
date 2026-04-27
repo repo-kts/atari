@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormTextArea, FormSelect, FormSection } from '../shared/FormComponents'
+import { FormInput, FormTextArea, FormSelect } from '../shared/FormComponents'
 import { useYears } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
-import { X } from 'lucide-react'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+const SAC_FORM_CODE = 'sac_meeting'
 
 interface MeetingFormsProps {
     entityType: ExtendedEntityType | null
@@ -62,190 +64,30 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
         [formData, setFormData]
     )
 
-    const handleFileChange = useCallback(
-        (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-            const files = e.target.files;
-            if (files && files.length > 0) {
-                // Strict image-only validation for SAC meetings section if applicable
-                if (entityType === ENTITY_TYPES.MISC_MEETINGS_SAC) {
-                    const hasNonImage = Array.from(files).some(file => !file.type.startsWith('image/'));
-                    if (hasNonImage) {
-                        alert('Only image files are allowed for SAC meetings.');
-                        e.target.value = ''; // Reset input
-                        return;
-                    }
-                }
-
-                const newFiles = Array.from(files);
-                const processedPhotos: any[] = [];
-                let processedCount = 0;
-
-                newFiles.forEach((file) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            // COMPRESS IMAGE: Max width/height 1280px
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-                            const MAX_SIZE = 1280;
-                            
-                            if (width > height && width > MAX_SIZE) {
-                                height *= MAX_SIZE / width;
-                                width = MAX_SIZE;
-                            } else if (height > MAX_SIZE) {
-                                width *= MAX_SIZE / height;
-                                height = MAX_SIZE;
-                            }
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx?.drawImage(img, 0, 0, width, height);
-                            
-                            // Convert to JPEG at 0.7 quality
-                            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                            
-                            processedPhotos.push({
-                                file: null, // No need for raw File anymore
-                                preview: compressedBase64,
-                                image: compressedBase64,
-                                caption: ''
-                            });
-
-                            processedCount++;
-                            if (processedCount === newFiles.length) {
-                                const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                                setFormData({
-                                    ...formData,
-                                    [field]: [...existingPhotos, ...processedPhotos]
-                                });
-                            }
-                        };
-                        img.src = event.target?.result as string;
-                    };
-                    reader.readAsDataURL(file);
-                });
-            }
-        },
-        [formData, setFormData, entityType]
+    const formDataRef = React.useRef(formData)
+    React.useEffect(() => {
+        formDataRef.current = formData
+    })
+    const handleAttachmentIds = useCallback(
+        (ids: number[]) => setFormData({ ...formDataRef.current, attachmentIds: ids }),
+        [setFormData],
     )
 
-    const removePhoto = (field: string, index: number) => {
-        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
-        existingPhotos.splice(index, 1);
-        setFormData({
-            ...formData,
-            [field]: existingPhotos
-        });
-    };
+    const recordId = formData?.sacMeetingId ?? formData?.id ?? null
+    const kvkId = formData?.kvkId ?? null
 
-    const updateCaption = (field: string, index: number, caption: string) => {
-        const existingPhotos = Array.isArray(formData[field]) ? [...formData[field]] : [];
-        if (existingPhotos[index]) {
-            existingPhotos[index] = { ...existingPhotos[index], caption };
-            setFormData({
-                ...formData,
-                [field]: existingPhotos
-            });
-        }
-    };
-
-    const renderPhotoFields = (field: string) => (
-        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
-            <FormInput
-                label=""
-                required={!Array.isArray(formData[field]) || formData[field].length === 0}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
-            />
-
-            {Array.isArray(formData[field]) && formData[field].length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    {formData[field].map((item: any, idx: number) => {
-                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                        return (
-                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                    <img
-                                        src={src}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                        alt={`P ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removePhoto(field, idx)}
-                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                    >
-                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                    </button>
-                                </div>
-                                <div className="space-y-1 mt-auto">
-                                    <textarea
-                                        placeholder="Caption..."
-                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
-                                        value={item.caption || ''}
-                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                        rows={2}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </FormSection>
-    );
-
-    // Normalize incoming photographs data when editing
-    React.useEffect(() => {
-        // SAC Meetings use sacMeetingId
-        if (!formData.id && !formData.sacMeetingId) return;
-
-        const photoFields = ['uploadedFile'];
-        let hasChanges = false;
-        const newData = { ...formData };
-
-        photoFields.forEach(field => {
-            const rawValue = formData[field];
-            if (rawValue && typeof rawValue === 'string') {
-                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
-                    try {
-                        const parsed = JSON.parse(rawValue);
-                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
-                        newData[field] = arrayToMap
-                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url || item.file))
-                            .map((item: any) => {
-                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
-                                const url = item.image || item.file || item.url || item.path || item.preview || '';
-                                return { preview: url, image: url, caption: item.caption || '' };
-                            });
-                        hasChanges = true;
-                    } catch (e) {
-                        console.error('Photo parsing error:', e);
-                    }
-                } else if (rawValue.trim() !== '') {
-                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
-                    newData[field] = values
-                        .filter((v: string) => v && v.trim() !== '')
-                        .map((s: string) => ({
-                            preview: s.trim(),
-                            image: s.trim(),
-                            caption: ''
-                        }));
-                    hasChanges = true;
-                }
-            }
-        });
-
-        if (hasChanges) {
-            setFormData(newData);
-        }
-    }, [formData.id, formData.sacMeetingId, formData.entityType, setFormData]);
+    const renderPhotoFields = () => (
+        <FormAttachmentSection
+            title="Photographs"
+            formCode={SAC_FORM_CODE}
+            kind="PHOTO"
+            kvkId={kvkId}
+            recordId={recordId}
+            showCaption
+            initialAttachments={formData?.photos}
+            onAttachmentIdsChange={handleAttachmentIds}
+        />
+    )
 
     if (!entityType) return null
 
@@ -335,7 +177,7 @@ export const MeetingForms: React.FC<MeetingFormsProps> = ({
                                 placeholder="Select"
                             />
 
-                            {renderPhotoFields('uploadedFile')}
+                            {renderPhotoFields()}
                         </div>
                     </div>
                 </div>

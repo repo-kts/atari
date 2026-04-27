@@ -27,7 +27,7 @@ export interface MultiAttachmentUploaderProps {
     formCode: string
     kind: FormAttachmentKind
     kvkId: number
-    recordId?: number | null
+    recordId?: string | number | null
     attachments: FormAttachmentRow[]
     accept?: string
     maxBytes?: number
@@ -53,7 +53,7 @@ async function uploadOne(input: {
     formCode: string
     kind: FormAttachmentKind
     kvkId: number
-    recordId: number | null
+    recordId: string | number | null
     sortOrder: number
     reportingYearDate: string | null
 }): Promise<FormAttachmentRow> {
