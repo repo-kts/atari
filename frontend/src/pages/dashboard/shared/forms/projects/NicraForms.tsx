@@ -1,11 +1,25 @@
-import React, { useEffect } from 'react'
-import { X } from 'lucide-react'
+import React, { useCallback, useEffect } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
-import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
+import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+interface NicraAttachmentMapping {
+    formCode: string
+    pk: string
+}
+
+const NICRA_ATTACHMENT_MAP: Record<string, NicraAttachmentMapping> = {
+    [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: { formCode: 'nicra_details', pk: 'nicraDetailsId' },
+    [ENTITY_TYPES.PROJECT_NICRA_CUSTOM_HIRING]: { formCode: 'nicra_farm_implement', pk: 'nicraFarmImplementId' },
+    [ENTITY_TYPES.PROJECT_NICRA_VCRMC]: { formCode: 'nicra_vcrmc', pk: 'nicraVcrmcId' },
+    [ENTITY_TYPES.PROJECT_NICRA_SOIL_HEALTH]: { formCode: 'nicra_soil_health', pk: 'nicraSoilHealthCardId' },
+    [ENTITY_TYPES.PROJECT_NICRA_CONVERGENCE]: { formCode: 'nicra_convergence', pk: 'nicraConvergenceProgrammeId' },
+    [ENTITY_TYPES.PROJECT_NICRA_DIGNITARIES]: { formCode: 'nicra_dignitaries', pk: 'nicraDignitariesVisitedId' },
+}
 
 interface NicraFormsProps {
     entityType: string
@@ -31,201 +45,72 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     dignitaryTypes = [],
     piTypes = []
 }) => {
-    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
+    const photoIdsRef = React.useRef<number[]>([])
+    const docIdsRef = React.useRef<number[]>([])
+    const syncIds = useCallback(
+        () => setFormData((prev: any) => ({
+            ...prev,
+            attachmentIds: [...photoIdsRef.current, ...docIdsRef.current],
+        })),
+        [setFormData],
+    )
+    const handleAttachmentIds = useCallback(
+        (ids: number[]) => {
+            photoIdsRef.current = ids
+            syncIds()
+        },
+        [syncIds],
+    )
+    const handleDocumentIds = useCallback(
+        (ids: number[]) => {
+            docIdsRef.current = ids
+            syncIds()
+        },
+        [syncIds],
+    )
 
-            // Generic file processor (handles both compression for images and Base64 for others)
-            const processFile = (file: File): Promise<any> => {
-                return new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const content = event.target?.result as string;
+    const mapping = NICRA_ATTACHMENT_MAP[entityType]
+    const recordId = mapping ? (formData?.[mapping.pk] ?? formData?.id ?? null) : null
+    const kvkId = formData?.kvkId ?? null
 
-                        // If it's an image, we attempt compression for the gallery
-                        if (file.type.startsWith('image/')) {
-                            const img = new Image();
-                            img.onload = () => {
-                                const canvas = document.createElement('canvas');
-                                let width = img.width;
-                                let height = img.height;
-                                const MAX_SIZE = 1280;
-                                if (width > height && width > MAX_SIZE) {
-                                    height *= MAX_SIZE / width;
-                                    width = MAX_SIZE;
-                                } else if (height > MAX_SIZE) {
-                                    width *= MAX_SIZE / height;
-                                    height = MAX_SIZE;
-                                }
-                                canvas.width = width;
-                                canvas.height = height;
-                                const ctx = canvas.getContext('2d');
-                                ctx?.drawImage(img, 0, 0, width, height);
-                                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                                resolve({
-                                    file: null,
-                                    preview: compressedBase64,
-                                    image: compressedBase64,
-                                    name: file.name,
-                                    caption: ''
-                                });
-                            };
-                            img.src = content;
-                        } else {
-                            // Non-image file (PDF, etc.) - just Base64 it
-                            resolve(content);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                });
-            };
+    const renderPhotos = () => mapping ? (
+        <FormAttachmentSection
+            title="Photographs"
+            formCode={mapping.formCode}
+            kind="PHOTO"
+            kvkId={kvkId}
+            recordId={recordId}
+            showCaption
+            initialAttachments={formData?.photos}
+            onAttachmentIdsChange={handleAttachmentIds}
+        />
+    ) : null
 
-            if (field === 'uploadFile') {
-                // Single file handling for Supporting Document
-                processFile(newFiles[0]).then(result => {
-                    setFormData((prev: any) => ({ ...prev, [field]: result }));
-                });
-            } else {
-                // Multiple gallery photos handling
-                Promise.all(newFiles.map(processFile)).then(results => {
-                    const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                    setFormData((prev: any) => ({
-                        ...prev,
-                        [field]: [...existingPhotos, ...results]
-                    }));
-                });
-            }
-        }
-    };
-
-    const removePhoto = (field: string, index: number) => {
-        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
-        photos.splice(index, 1);
-        setFormData({ ...formData, [field]: photos });
-    };
-
-    const updateCaption = (field: string, index: number, caption: string) => {
-        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
-        if (photos[index]) {
-            photos[index] = { ...photos[index], caption };
-            setFormData({ ...formData, [field]: photos });
-        }
-    };
-
-    const renderGallery = (field: string) => {
-        if (!Array.isArray(formData[field]) || formData[field].length === 0) return null;
-
-        return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                {formData[field].map((item: any, idx: number) => {
-                    const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                    return (
-                        <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                            <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                <img
-                                    src={src}
-                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                    alt={`P ${idx + 1}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => removePhoto(field, idx)}
-                                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                >
-                                    <X className="w-3 h-3 stroke-[2.5]" />
-                                </button>
-                            </div>
-                            <div className="space-y-1 mt-auto">
-                                <textarea
-                                    placeholder="Caption..."
-                                    className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
-                                    value={item.caption || ''}
-                                    onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                    rows={3}
-                                />
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    const renderPhotoFields = (field: string) => (
-        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
-            <FormInput
-                label=""
-                required={!Array.isArray(formData[field]) || formData[field].length === 0}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
-            />
-            {renderGallery(field)}
-        </FormSection>
-    );
-
-    const renderPhotoAndFileRow = (photoField: string) => (
+    const renderPhotosAndDocs = () => mapping ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <div className="space-y-2">
-                <FormInput
-                    label="Photographs"
-                    required={!Array.isArray(formData[photoField]) || formData[photoField].length === 0}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileChange(photoField)}
-                    helperText="Only images allowed. Multiple uploads supported. (Max 5MB per file)"
-                />
-                {renderGallery(photoField)}
-            </div>
-            <div className="space-y-2">
-                <FormInput
-                    label="Upload File"
-                    type="file"
-                    onChange={handleFileChange('uploadFile')}
-                    helperText="Upload supporting document (PDF, DOCX, etc.)"
-                />
-                {formData.uploadFile && (
-                    <div className="text-sm font-medium text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-100 flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        File Selected
-                        {typeof formData.uploadFile === 'string' && formData.uploadFile.length > 100 && " (Base64 ready)"}
-                    </div>
-                )}
-            </div>
+            <FormAttachmentSection
+                title="Photographs"
+                formCode={mapping.formCode}
+                kind="PHOTO"
+                kvkId={kvkId}
+                recordId={recordId}
+                showCaption
+                initialAttachments={formData?.photos}
+                onAttachmentIdsChange={handleAttachmentIds}
+            />
+            <FormAttachmentSection
+                title="Supporting Document"
+                formCode={mapping.formCode}
+                kind="DOCUMENT"
+                kvkId={kvkId}
+                recordId={recordId}
+                showCaption={false}
+                helperText="PDF / DOCX / image / video. Max 25 MB per file."
+                initialAttachments={formData?.documents}
+                onAttachmentIdsChange={handleDocumentIds}
+            />
         </div>
-    );
-
-    // Normalize incoming photographs and uploadFile data when editing
-    useEffect(() => {
-        ['photographs', 'uploadFile'].forEach(field => {
-            if (formData[field] && typeof formData[field] === 'string') {
-                if (field === 'photographs' && (formData[field].startsWith('[') || formData[field].startsWith('{'))) {
-                    try {
-                        const parsed = JSON.parse(formData[field]);
-                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
-                        const normalized = arrayToMap.map((item: any) => {
-                            if (typeof item === 'string') {
-                                return { preview: item, image: item, caption: '' };
-                            }
-                            const url = item.image || item.url || item.path || item.preview || '';
-                            return {
-                                preview: url,
-                                image: url,
-                                caption: item.caption || ''
-                            };
-                        });
-                        setFormData((prev: any) => ({ ...prev, [field]: normalized }));
-                    } catch (e) {
-                        console.error('Photo parsing error:', e);
-                    }
-                }
-            }
-        });
-    }, [formData.photographs, setFormData]);
+    ) : null
 
     // Format dates received from backend to YYYY-MM-DD for date inputs
     useEffect(() => {
@@ -595,7 +480,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    {renderPhotoAndFileRow('photographs')}
+                    {renderPhotosAndDocs()}
                 </div>
             )}
 
@@ -1021,7 +906,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {renderPhotoFields('photographs')}
+                        {renderPhotos()}
                     </div>
                 </div>
             )}
@@ -1104,7 +989,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {renderPhotoFields('photographs')}
+                        {renderPhotos()}
                     </div>
                 </div>
             )}
@@ -1218,7 +1103,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {renderPhotoFields('photographs')}
+                        {renderPhotos()}
                     </div>
                 </div>
             )}
@@ -1263,7 +1148,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             onChange={(e) => setFormData({ ...formData, amountRs: e.target.value })}
                         />
                         <div className="pt-2">
-                            {renderPhotoFields('photographs')}
+                            {renderPhotos()}
                         </div>
                     </div>
                 </div>
@@ -1310,7 +1195,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                             value={formData.remark ?? ''}
                             onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
                         />
-                        {renderPhotoFields('photographs')}
+                        {renderPhotos()}
                     </div>
                 </div>
             )}
