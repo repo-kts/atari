@@ -87,7 +87,11 @@ export const Gallery: React.FC = () => {
 
   const showKvkFilter = user?.role !== 'kvk_admin' && user?.role !== 'kvk_user'
 
-  const currentYear = new Date().getFullYear()
+  // Indian fiscal year: Apr-Mar. Today's fiscal year = current calendar year if
+  // month >= April, else previous calendar year.
+  const today = new Date()
+  const currentYear =
+    today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1
   const [source, setSource] = useState<GallerySource>('forms')
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
