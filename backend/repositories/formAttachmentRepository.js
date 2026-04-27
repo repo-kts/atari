@@ -41,7 +41,7 @@ async function findByIds(attachmentIds) {
 
 async function listByRecord({ formCode, recordId, kvkId, kind }) {
     const where = { formCode };
-    if (recordId !== undefined && recordId !== null) where.recordId = Number(recordId);
+    if (recordId !== undefined && recordId !== null) where.recordId = String(recordId);
     if (kvkId) where.kvkId = Number(kvkId);
     if (kind) where.kind = kind;
     return prisma.formAttachment.findMany({
@@ -134,14 +134,15 @@ async function deleteByIds(attachmentIds) {
 async function attachToRecord({ attachmentIds, formCode, recordId, kvkId }) {
     if (!Array.isArray(attachmentIds) || attachmentIds.length === 0) return { count: 0 };
     const ids = attachmentIds.map(Number).filter((n) => !Number.isNaN(n));
+    const recordIdStr = String(recordId);
     return prisma.formAttachment.updateMany({
         where: {
             attachmentId: { in: ids },
             kvkId,
             formCode,
-            OR: [{ recordId: null }, { recordId }],
+            OR: [{ recordId: null }, { recordId: recordIdStr }],
         },
-        data: { recordId },
+        data: { recordId: recordIdStr },
     });
 }
 

@@ -1,6 +1,12 @@
 const farmerAwardRepository = require('../../repositories/forms/farmerAwardRepository.js');
 const { RepositoryError } = require('../../utils/repositoryHelpers');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
+
+const attachments = createAttachmentBinding({
+    formCode: 'farmer_award',
+    primaryKey: 'farmerAwardId',
+});
 
 /**
  * Farmer Award Service
@@ -15,12 +21,14 @@ class FarmerAwardService {
      */
     async createFarmerAward(data, user) {
         try {
-            const result = await farmerAwardRepository.create(data, user);
+            const { payload, attachmentIds } = attachments.strip(data);
+            const result = await farmerAwardRepository.create(payload, user);
+            await attachments.attach(result, attachmentIds, user);
             await reportCacheInvalidationService.invalidateDataSourceForKvk(
                 'farmerAward',
                 result?.kvkId || user?.kvkId,
             );
-            return result;
+            return attachments.decorate(result, user);
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -37,7 +45,12 @@ class FarmerAwardService {
      */
     async getAllFarmerAwards(filters = {}, user) {
         try {
-            return await farmerAwardRepository.findAll(filters, user);
+            const rows = await farmerAwardRepository.findAll(filters, user);
+            if (rows && Array.isArray(rows.data)) {
+                rows.data = await attachments.decorateMany(rows.data, user);
+                return rows;
+            }
+            return attachments.decorateMany(rows, user);
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -54,7 +67,8 @@ class FarmerAwardService {
      */
     async getFarmerAwardById(id, user) {
         try {
-            return await farmerAwardRepository.findById(id, user);
+            const record = await farmerAwardRepository.findById(id, user);
+            return attachments.decorate(record, user);
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -72,12 +86,15 @@ class FarmerAwardService {
      */
     async updateFarmerAward(id, data, user) {
         try {
-            const result = await farmerAwardRepository.update(id, data, user);
+            const { payload, attachmentIds } = attachments.strip(data);
+            const existing = await farmerAwardRepository.findById(id, user);
+            const result = await farmerAwardRepository.update(id, payload, user);
+            await attachments.attach(result ?? existing, attachmentIds, user);
             await reportCacheInvalidationService.invalidateDataSourceForKvk(
                 'farmerAward',
                 result?.kvkId || user?.kvkId,
             );
-            return result;
+            return attachments.decorate(result, user);
         } catch (error) {
             if (error instanceof RepositoryError) {
                 throw error;
@@ -96,6 +113,7 @@ class FarmerAwardService {
         try {
             const existing = await farmerAwardRepository.findById(id, user);
             const result = await farmerAwardRepository.delete(id, user);
+            await attachments.cleanup(existing, user);
             await reportCacheInvalidationService.invalidateDataSourceForKvk(
                 'farmerAward',
                 existing?.kvkId || user?.kvkId,

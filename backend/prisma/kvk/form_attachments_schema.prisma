@@ -8,7 +8,7 @@ model FormAttachment {
   attachmentId      Int                @id @default(autoincrement()) @map("attachment_id")
   kvkId             Int                @map("kvk_id")
   formCode          String             @map("form_code")
-  recordId          Int?               @map("record_id")
+  recordId          String?            @map("record_id")
   kind              FormAttachmentKind @default(PHOTO)
   s3Key             String             @map("s3_key")
   fileName          String?            @map("file_name")

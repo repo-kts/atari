@@ -9,7 +9,7 @@ export interface FormAttachmentSectionProps {
     formCode: string
     kind: FormAttachmentKind
     kvkId?: number | null
-    recordId?: number | null
+    recordId?: string | number | null
     showCaption?: boolean
     helperText?: string
     initialAttachments?: FormAttachmentRow[]

@@ -5,7 +5,6 @@ import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormC
 import { State, District, Organization, University } from '@/types/masterData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
-import { X } from 'lucide-react'
 import {
     useSanctionedPosts,
     useInfraMasters,
@@ -17,6 +16,7 @@ import {
     AccountTypeEnum
 } from '@/hooks/forms/useAboutKvkData'
 import { useStaffCategories, usePayLevels, usePayScales, useDisciplines, useFundingSources, useAssetFundingSources, useEquipmentTypes, useEquipmentMasters } from '@/hooks/useOtherMastersData'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
@@ -366,89 +366,18 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 placeholder="Resume link"
                             />
                         </div>
-                        <FormSection title="Staff Photos" className="mt-2" noGrid={true}>
-                            <FormInput
-                                label=""
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e: any) => {
-                                    const files = e.target.files;
-                                    if (!files || files.length === 0) return;
-                                    const readers: Promise<any>[] = Array.from(files).map((file) => {
-                                        return new Promise((resolve) => {
-                                            const reader = new FileReader();
-                                            reader.onloadend = () => {
-                                                resolve({
-                                                    preview: reader.result as string,
-                                                    image: reader.result as string,
-                                                    caption: ''
-                                                });
-                                            };
-                                            reader.readAsDataURL(file as unknown as Blob);
-                                        });
-                                    });
-
-                                    Promise.all(readers).then((newPhotos) => {
-                                        setFormData((prev: any) => {
-                                            const currentPhotos = Array.isArray(prev.photoPath) ? [...prev.photoPath] : [];
-                                            return { ...prev, photoPath: [...currentPhotos, ...newPhotos] };
-                                        });
-                                    });
-                                }}
-                                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 2MB per file)"
-                            />
-
-                            {/* Existing photo gallery rendering */}
-                            {Array.isArray(formData.photoPath) && formData.photoPath.length > 0 && (
-                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                                    {formData.photoPath.map((item: any, idx: number) => {
-                                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                                        return (
-                                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                                    <img
-                                                        src={src}
-                                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                                        alt={`Staff ${idx + 1}`}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setFormData((prev: any) => {
-                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
-                                                                photos.splice(idx, 1);
-                                                                return { ...prev, photoPath: photos.length > 0 ? photos : null };
-                                                            });
-                                                        }}
-                                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                                    >
-                                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                                    </button>
-                                                </div>
-                                                <div className="space-y-1 mt-auto">
-                                                    <textarea
-                                                        placeholder="Caption..."
-                                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
-                                                        value={item.caption || ''}
-                                                        onChange={(e) => {
-                                                            setFormData((prev: any) => {
-                                                                const photos = [...(Array.isArray(prev.photoPath) ? prev.photoPath : [])];
-                                                                if (photos[idx]) {
-                                                                    photos[idx] = { ...photos[idx], caption: e.target.value };
-                                                                }
-                                                                return { ...prev, photoPath: photos };
-                                                            });
-                                                        }}
-                                                        rows={3}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </FormSection>
+                        <FormAttachmentSection
+                            title="Staff Photos"
+                            formCode="kvk_staff"
+                            kind="PHOTO"
+                            kvkId={formData.kvkId ?? null}
+                            recordId={formData.kvkStaffId ?? formData.id ?? null}
+                            showCaption
+                            initialAttachments={formData?.photos}
+                            onAttachmentIdsChange={(ids) =>
+                                setFormData((prev: any) => ({ ...prev, attachmentIds: ids }))
+                            }
+                        />
                     </FormSection>
 
                     <FormSection title="Job Details">

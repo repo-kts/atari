@@ -1,13 +1,15 @@
 import React, { useMemo, useCallback, useEffect } from 'react'
-import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
-import { FormInput, FormSection } from './shared/FormComponents'
+import { FormInput } from './shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { useAuth } from '@/contexts/AuthContext'
 import { useKvkEmployees } from '@/hooks/forms/useAboutKvkData'
 import { createStaffOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+const FARMER_AWARD_FORM_CODE = 'farmer_award'
 
 interface AwardRecognitionProps {
     entityType: ExtendedEntityType | null
@@ -148,147 +150,23 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
         [setFormData]
     )
 
-    const handleFileChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
-            const previews: string[] = [];
-            let count = 0;
+    const handleAttachmentIds = useCallback(
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
+        [setFormData],
+    )
 
-            newFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews[index] = reader.result as string;
-                    count++;
-                    if (count === newFiles.length) {
-                        const existingPhotos = Array.isArray(formData[field]) ? formData[field] : [];
-                        setFormData((prev: any) => ({
-                            ...prev,
-                            [field]: [
-                                ...existingPhotos,
-                                ...newFiles.map((f, i) => ({
-                                    file: f,
-                                    preview: previews[i],
-                                    image: previews[i],
-                                    caption: ''
-                                }))
-                            ]
-                        }));
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-    };
-
-    const removePhoto = (field: string, index: number) => {
-        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
-        photos.splice(index, 1);
-        setFormData((prev: any) => ({ ...prev, [field]: photos }));
-    };
-
-    const updateCaption = (field: string, index: number, caption: string) => {
-        const photos = [...(Array.isArray(formData[field]) ? formData[field] : [])];
-        if (photos[index]) {
-            photos[index] = { ...photos[index], caption };
-            setFormData((prev: any) => ({ ...prev, [field]: photos }));
-        }
-    };
-
-    const renderPhotoFields = (field: string) => (
-        <FormSection title="Photographs" className="col-span-1 mt-2" noGrid={true}>
-            <FormInput
-                label=""
-                required={!Array.isArray(formData[field]) || formData[field].length === 0}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange(field)}
-                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
-            />
-
-            {Array.isArray(formData[field]) && formData[field].length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    {formData[field].map((item: any, idx: number) => {
-                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                        return (
-                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                    <img
-                                        src={src}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                        alt={`P ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removePhoto(field, idx)}
-                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                    >
-                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                    </button>
-                                </div>
-                                <div className="space-y-1 mt-auto">
-                                    <textarea
-                                        placeholder="Caption..."
-                                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
-                                        value={item.caption || ''}
-                                        onChange={(e) => updateCaption(field, idx, e.target.value)}
-                                        rows={2}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </FormSection>
-    );
-
-    // Normalize incoming photographs data when editing
-    useEffect(() => {
-        // Only normalize if we are editing an existing record and have an ID
-        if (!formData.id) return;
-
-        const photoFields = ['photographs', 'image'];
-        let hasChanges = false;
-        const newData = { ...formData };
-
-        photoFields.forEach(field => {
-            const rawValue = formData[field];
-            if (rawValue && typeof rawValue === 'string') {
-                if (rawValue.startsWith('[') || rawValue.startsWith('{')) {
-                    try {
-                        const parsed = JSON.parse(rawValue);
-                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
-                        newData[field] = arrayToMap
-                            .filter((item: any) => item && (typeof item === 'string' || item.image || item.preview || item.url))
-                            .map((item: any) => {
-                                if (typeof item === 'string') return { preview: item, image: item, caption: '' };
-                                const url = item.image || item.url || item.path || item.preview || '';
-                                return { preview: url, image: url, caption: item.caption || '' };
-                            });
-                        hasChanges = true;
-                    } catch (e) {
-                        console.error('Photo parsing error:', e);
-                    }
-                } else if (rawValue.trim() !== '' && !rawValue.includes('object Object')) {
-                    const values = rawValue.includes(',') ? rawValue.split(',') : [rawValue];
-                    newData[field] = values
-                        .filter((v: string) => v && v.trim() !== '')
-                        .map((s: string) => ({
-                            preview: s.trim(),
-                            image: s.trim(),
-                            caption: ''
-                        }));
-                    hasChanges = true;
-                }
-            }
-        });
-
-        if (hasChanges) {
-            setFormData(newData);
-        }
-    }, [formData.id, formData.entityType, setFormData]); // Only depend on identity change
+    const renderFarmerAwardPhotos = () => (
+        <FormAttachmentSection
+            title="Photographs"
+            formCode={FARMER_AWARD_FORM_CODE}
+            kind="PHOTO"
+            kvkId={formData.kvkId ?? null}
+            recordId={formData.farmerAwardId ?? formData.id ?? null}
+            showCaption
+            initialAttachments={formData?.photos}
+            onAttachmentIdsChange={handleAttachmentIds}
+        />
+    )
 
     if (!entityType) return null
 
@@ -440,7 +318,7 @@ export const AwardRecognition: React.FC<AwardRecognitionProps> = ({
                             value={formData.conferringAuthority ?? ''}
                             onChange={handleConferringAuthorityChange}
                         />
-                        {renderPhotoFields('image')}
+                        {renderFarmerAwardPhotos()}
                     </div>
                 </div>
             )}
