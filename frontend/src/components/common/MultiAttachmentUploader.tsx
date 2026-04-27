@@ -206,7 +206,7 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
 
     return (
         <div className="space-y-2">
-            <div className="rounded-xl border border-[#E0E0E0] overflow-hidden">
+            <div className="rounded-xl border border-[#E0E0E0] overflow-hidden w-full lg:max-w-md">
                 <input
                     ref={fileInputRef}
                     type="file"
@@ -229,7 +229,7 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
             {error && <div className="text-xs text-red-600 break-words">{error}</div>}
 
             {sorted.length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
+                <div className="grid gap-3 mt-2 grid-cols-[repeat(auto-fill,minmax(140px,160px))]">
                     {sorted.map((att) => (
                         <AttachmentTile
                             key={att.attachmentId}
