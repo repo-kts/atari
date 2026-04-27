@@ -2,6 +2,53 @@ const cfldTechnicalParameterRepository = require('../../repositories/forms/cfldT
 const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError, UnauthorizedError } = require('../../utils/errorHandler.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
+
+const trainingAttachments = createAttachmentBinding({
+    formCode: 'cfld_technical_training',
+    primaryKey: 'cfldTechId',
+});
+const actionAttachments = createAttachmentBinding({
+    formCode: 'cfld_technical_action',
+    primaryKey: 'cfldTechId',
+});
+
+function stripBoth(data) {
+    if (!data || typeof data !== 'object') return { payload: data, training: [], action: [] };
+    const { trainingAttachmentIds, actionAttachmentIds, ...rest } = data;
+    return {
+        payload: rest,
+        training: Array.isArray(trainingAttachmentIds) ? trainingAttachmentIds : [],
+        action: Array.isArray(actionAttachmentIds) ? actionAttachmentIds : [],
+    };
+}
+
+async function attachBoth(record, training, action, user) {
+    if (!record) return;
+    await trainingAttachments.attach(record, training, user);
+    await actionAttachments.attach(record, action, user);
+}
+
+async function decorateBoth(record, user) {
+    if (!record) return record;
+    const withTraining = await trainingAttachments.decorate(record, user);
+    const withAction = await actionAttachments.decorate(withTraining, user);
+    // decorate() returns photos/datasheets/documents grouped by kind. Rename
+    // to keep training/action distinction in the response.
+    const trainingList = await trainingAttachments.decorate(record, user);
+    const actionList = await actionAttachments.decorate(record, user);
+    return {
+        ...withAction,
+        trainingPhotos: trainingList.photos || [],
+        actionPhotos: actionList.photos || [],
+    };
+}
+
+async function cleanupBoth(record, user) {
+    if (!record) return;
+    await trainingAttachments.cleanup(record, user);
+    await actionAttachments.cleanup(record, user);
+}
 
 const TRANSACTION_OPTIONS = {
     maxWait: 5000,
@@ -19,26 +66,37 @@ function assertKvkRecordAccess(record, user) {
 
 const cfldTechnicalParameterService = {
     create: async (data, user) => {
-        const result = await cfldTechnicalParameterRepository.create(data, {}, user);
+        const { payload, training, action } = stripBoth(data);
+        const result = await cfldTechnicalParameterRepository.create(payload, {}, user);
+        await attachBoth(result, training, action, user);
         await invalidateCfldReportCache(result?.kvkId);
-        return result;
+        return decorateBoth(result, user);
     },
 
     findAll: async (filters, user) => {
-        return await cfldTechnicalParameterRepository.findAll(filters, user);
+        const rows = await cfldTechnicalParameterRepository.findAll(filters, user);
+        if (rows && Array.isArray(rows.data)) {
+            rows.data = await Promise.all(rows.data.map((r) => decorateBoth(r, user)));
+            return rows;
+        }
+        if (Array.isArray(rows)) return Promise.all(rows.map((r) => decorateBoth(r, user)));
+        return rows;
     },
 
-    findById: async (id) => {
-        return await cfldTechnicalParameterRepository.findById(id);
+    findById: async (id, user) => {
+        const record = await cfldTechnicalParameterRepository.findById(id);
+        return decorateBoth(record, user);
     },
 
     update: async (id, data, user) => {
+        const { payload, training, action } = stripBoth(data);
         const existing = await cfldTechnicalParameterRepository.findById(id);
         if (!existing) throw new NotFoundError('CFLD technical parameter');
         assertKvkRecordAccess(existing, user);
-        const result = await cfldTechnicalParameterRepository.update(id, data);
+        const result = await cfldTechnicalParameterRepository.update(id, payload);
+        await attachBoth(result ?? existing, training, action, user);
         await invalidateCfldReportCache(existing.kvkId);
-        return result;
+        return decorateBoth(result, user);
     },
 
     transferToNextYear: async (id, user) => {
@@ -200,6 +258,7 @@ const cfldTechnicalParameterService = {
         if (!existing) throw new NotFoundError('CFLD technical parameter');
         assertKvkRecordAccess(existing, user);
         const deleted = await cfldTechnicalParameterRepository.delete(id);
+        await cleanupBoth(existing, user);
         await invalidateCfldReportCache(existing.kvkId);
         return deleted;
     }
