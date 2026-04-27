@@ -22,10 +22,7 @@ import { getBreadcrumbsForPath } from '../../config/route'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ModuleImageRow } from '@/services/moduleImagesApi'
 import { API_BASE_URL } from '@/config/api'
-import {
-  useGallerySource,
-  type GallerySource,
-} from '@/hooks/useGallerySource'
+import { useGallerySource } from '@/hooks/useGallerySource'
 
 type ViewMode = 'grid' | 'compact'
 
@@ -92,7 +89,6 @@ export const Gallery: React.FC = () => {
   const today = new Date()
   const currentYear =
     today.getMonth() >= 3 ? today.getFullYear() : today.getFullYear() - 1
-  const [source, setSource] = useState<GallerySource>('forms')
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [year, setYear] = useState<number>(currentYear)
@@ -117,15 +113,15 @@ export const Gallery: React.FC = () => {
       limit: PAGE_LIMIT,
       reportingYear: year,
       kvkId,
-      moduleId: source === 'modules' ? moduleId : undefined,
-      formCode: source === 'forms' ? selectedFormCode : undefined,
+      moduleId,
+      formCode: selectedFormCode,
       search: debouncedSearch || undefined,
     }),
-    [year, kvkId, moduleId, selectedFormCode, debouncedSearch, source]
+    [year, kvkId, moduleId, selectedFormCode, debouncedSearch]
   )
 
-  const sourceResult = useGallerySource(source, filters, showKvkFilter)
-  const images: ModuleImageRow[] = sourceResult.images
+  const sourceResult = useGallerySource(filters, showKvkFilter)
+  const images = sourceResult.images as unknown as ModuleImageRow[]
   const total = sourceResult.total
   const categoriesQuery = { data: sourceResult.categories } as { data: typeof sourceResult.categories }
   const kvksQuery = { data: sourceResult.kvks } as { data: typeof sourceResult.kvks }
@@ -262,13 +258,13 @@ export const Gallery: React.FC = () => {
       })
     }
     if (moduleId || selectedFormCode) {
-      const m =
-        categoriesQuery.data?.find(x =>
-          source === 'forms' ? x.moduleCode === selectedFormCode : x.moduleId === moduleId,
-        )
+      const m = categoriesQuery.data?.find(x =>
+        selectedFormCode ? x.moduleCode === selectedFormCode : x.moduleId === moduleId,
+      )
+      const isForm = Boolean(selectedFormCode)
       chips.push({
         key: 'module',
-        label: `${source === 'forms' ? 'Form' : 'Module'}: ${m?.label ?? selectedFormCode ?? moduleId}`,
+        label: `${isForm ? 'Form' : 'Module'}: ${m?.label ?? selectedFormCode ?? moduleId}`,
         clear: () => {
           setModuleId(undefined)
           setSelectedFormCode(undefined)
@@ -332,37 +328,6 @@ export const Gallery: React.FC = () => {
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
-          </div>
-
-          <div className="hidden md:flex items-center rounded-xl border border-black/10 bg-white overflow-hidden">
-            <button
-              type="button"
-              onClick={() => {
-                setSource('forms')
-                setModuleId(undefined)
-                setSelectedFormCode(undefined)
-              }}
-              className={`px-3 py-2 text-sm transition-colors ${
-                source === 'forms' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'
-              }`}
-              title="Form attachments"
-            >
-              Forms
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSource('modules')
-                setModuleId(undefined)
-                setSelectedFormCode(undefined)
-              }}
-              className={`px-3 py-2 text-sm transition-colors ${
-                source === 'modules' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'
-              }`}
-              title="Module images"
-            >
-              Modules
-            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
@@ -452,7 +417,7 @@ export const Gallery: React.FC = () => {
           <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-black/5 bg-white overflow-y-auto">
             <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between">
               <div className="text-[10px] font-semibold uppercase tracking-widest text-black/40">
-                {source === 'forms' ? 'Form modules' : 'Modules'}
+                Modules &amp; Forms
               </div>
               {collapsedGroups.size > 0 ? (
                 <button
@@ -484,7 +449,7 @@ export const Gallery: React.FC = () => {
               }`}
             >
               <span className="inline-flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 opacity-60" /> {source === 'forms' ? 'All forms' : 'All modules'}
+                <ImageIcon className="w-4 h-4 opacity-60" /> All
               </span>
               <span className="text-xs text-black/40">{total}</span>
             </button>
@@ -527,20 +492,20 @@ export const Gallery: React.FC = () => {
                     >
                       {group.items.map(c => {
                         const count = moduleCounts.get(c.moduleId) ?? 0
-                        const active =
-                          source === 'modules'
-                            ? moduleId === c.moduleId
-                            : selectedFormCode === c.moduleCode
+                        const isFormCategory = c.menuName === 'Form Attachments'
+                        const active = isFormCategory
+                          ? selectedFormCode === c.moduleCode
+                          : moduleId === c.moduleId
                         return (
                           <button
                             key={c.moduleId}
                             onClick={() => {
-                              if (source === 'modules') {
-                                setModuleId(c.moduleId)
-                                setSelectedFormCode(undefined)
+                              if (isFormCategory) {
+                                setSelectedFormCode(c.moduleCode ?? undefined)
+                                setModuleId(undefined)
                               } else {
                                 setModuleId(c.moduleId)
-                                setSelectedFormCode(c.moduleCode ?? undefined)
+                                setSelectedFormCode(undefined)
                               }
                             }}
                             className={`w-full flex items-center justify-between pl-9 pr-4 py-1.5 text-sm transition-colors ${
@@ -815,7 +780,7 @@ const Lightbox: React.FC<{
   onNext: () => void
   onPrev: () => void
 }> = ({ img, index, total, onClose, onNext, onPrev }) => {
-  const [showInfo, setShowInfo] = useState(true)
+  const [showInfo, setShowInfo] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
 
   return (
@@ -888,33 +853,75 @@ const Lightbox: React.FC<{
         </button>
       </div>
 
-      {/* Info strip */}
-      {showInfo && (
-        <div className="px-4 py-3 bg-black/60 text-white text-sm flex flex-wrap items-center gap-x-6 gap-y-1">
-          <span className="font-medium truncate max-w-md">
-            {img.caption || img.categoryLabel || 'Untitled'}
-          </span>
-          <span className="text-white/70 text-xs">
-            <span className="text-white/40">Module:</span> {img.categoryLabel}
-          </span>
-          <span className="text-white/70 text-xs">
-            <span className="text-white/40">KVK:</span> {img.kvkName}
-          </span>
-          <span className="text-white/70 text-xs">
-            <span className="text-white/40">Date:</span> {formatDate(img.imageDate || img.createdAt)}
-          </span>
-          <span className="text-white/70 text-xs">
-            <span className="text-white/40">Year:</span> {img.reportingYear}
-          </span>
-          {img.uploadedBy && (
-            <span className="text-white/70 text-xs">
-              <span className="text-white/40">By:</span> {img.uploadedBy.name}
-            </span>
-          )}
+      {/* Right-side details panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl text-gray-900 transform transition-transform duration-300 z-[60] overflow-y-auto ${
+          showInfo ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between">
+          <h3 className="text-base font-semibold text-[#487749]">Details</h3>
+          <button
+            onClick={() => setShowInfo(false)}
+            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+            aria-label="Close details"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      )}
+        <div className="p-5 space-y-5 text-sm">
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Caption</div>
+            <div className="font-medium text-gray-900 break-words">
+              {img.caption || <span className="text-gray-400 italic">No caption</span>}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <DetailRow label="Source" value={img.categoryLabel} />
+            <DetailRow label="KVK" value={img.kvkName || '—'} />
+            <DetailRow label="Captured" value={formatDate(img.imageDate)} />
+            <DetailRow label="Uploaded" value={formatDate(img.createdAt)} />
+            <DetailRow label="Year" value={`${img.reportingYear}-${String((img.reportingYear + 1) % 100).padStart(2, '0')}`} />
+            <DetailRow label="File" value={img.fileName ?? '—'} truncate />
+            <DetailRow label="Type" value={img.mimeType.split('/')[1]?.toUpperCase() ?? img.mimeType} />
+            <DetailRow label="Position" value={`${index + 1} / ${total}`} />
+          </div>
+          {img.uploadedBy && (
+            <div className="pt-3 border-t border-gray-100">
+              <div className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Uploaded by</div>
+              <div className="font-medium text-gray-900">{img.uploadedBy.name}</div>
+              <div className="text-xs text-gray-500">{img.uploadedBy.email}</div>
+            </div>
+          )}
+          <div className="pt-3 border-t border-gray-100 flex gap-2">
+            <button
+              onClick={() => downloadImage(img.downloadUrl, img.fileName ?? img.caption)}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-[#487749] text-white hover:bg-[#3d6540] transition-colors"
+            >
+              <Download className="w-4 h-4" /> Download
+            </button>
+            <a
+              href={buildFileUrl(img.fileUrl)}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              Open
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
+
+const DetailRow: React.FC<{ label: string; value: string; truncate?: boolean }> = ({ label, value, truncate }) => (
+  <div className="min-w-0">
+    <div className="text-[10px] uppercase tracking-widest text-gray-400 mb-0.5">{label}</div>
+    <div className={`font-medium text-gray-900 ${truncate ? 'truncate' : 'break-words'}`} title={value}>
+      {value}
+    </div>
+  </div>
+)
 
 export default Gallery

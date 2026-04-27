@@ -232,7 +232,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
             </div>
 
             {kvkId ? (
-                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormSection title="Photographs">
                         <MultiAttachmentUploader
                             formCode={FORM_CODE}
@@ -256,7 +256,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
                             onChange={recordId ? undefined : setOrphanDatasheets}
                         />
                     </FormSection>
-                </>
+                </div>
             ) : (
                 <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
                     KVK context not available — attachment uploads are disabled. Save the result first; you can add photos/datasheets after.
