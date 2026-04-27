@@ -18,8 +18,6 @@ const DATASHEET_ACCEPT = [
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024
 
 export interface MultiAttachmentUploaderProps {
-    title: string
-    helperText?: string
     formCode: string
     kind: FormAttachmentKind
     kvkId: number
@@ -29,6 +27,7 @@ export interface MultiAttachmentUploaderProps {
     maxBytes?: number
     showCaption?: boolean
     disabled?: boolean
+    helperText?: string
     reportingYearDate?: string | null
     onChange?: (rows: FormAttachmentRow[]) => void
 }
@@ -44,8 +43,6 @@ function bytesLabel(bytes: number): string {
 }
 
 export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = ({
-    title,
-    helperText,
     formCode,
     kind,
     kvkId,
@@ -55,6 +52,7 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     maxBytes = DEFAULT_MAX_BYTES,
     showCaption = kind === 'PHOTO',
     disabled = false,
+    helperText,
     reportingYearDate = null,
     onChange,
 }) => {
@@ -66,7 +64,11 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     const [busyIds, setBusyIds] = useState<Set<number>>(new Set())
 
     const acceptAttr = accept ?? (kind === 'PHOTO' ? PHOTO_ACCEPT : DATASHEET_ACCEPT)
-    const helper = helperText ?? `Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file. Multiple uploads allowed.`
+    const helper =
+        helperText ??
+        (kind === 'PHOTO'
+            ? `Only images allowed. Uploading new files will be added to the list. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`
+            : `PDF / Image / Excel / Word allowed. Multiple uploads supported. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`)
 
     const sorted = useMemo(
         () => [...attachments].sort((a, b) => a.sortOrder - b.sortOrder || a.attachmentId - b.attachmentId),
@@ -142,37 +144,29 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     )
 
     return (
-        <div className="space-y-3">
-            <div>
-                <div className="text-sm font-semibold text-[#487749] mb-1">{title}</div>
-                <label
-                    className={`flex flex-col gap-1 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 ${
-                        disabled || upload.isPending ? 'opacity-60 cursor-not-allowed' : ''
-                    }`}
-                >
-                    <span className="text-sm text-gray-700">
-                        {upload.isPending ? (
-                            <span className="inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</span>
-                        ) : (
-                            'Browse… No files selected.'
-                        )}
-                    </span>
-                    <span className="text-xs text-gray-500">{helper}</span>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept={acceptAttr}
-                        multiple
-                        className="hidden"
-                        disabled={disabled || upload.isPending}
-                        onChange={(e) => handleFiles(e.target.files)}
-                    />
-                </label>
-                {error && <div className="text-xs text-red-600 mt-1">{error}</div>}
+        <div className="space-y-2">
+            <div className="rounded-xl border border-[#E0E0E0] overflow-hidden">
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={acceptAttr}
+                    multiple
+                    disabled={disabled || upload.isPending}
+                    onChange={(e) => handleFiles(e.target.files)}
+                    className="block w-full text-sm bg-white px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#487749] file:text-white hover:file:bg-[#3d6540] cursor-pointer disabled:opacity-60"
+                />
+                <div className="bg-gray-50 px-3 py-2 text-xs text-gray-600 border-t border-[#E0E0E0]">
+                    {upload.isPending ? (
+                        <span className="inline-flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Uploading…</span>
+                    ) : (
+                        helper
+                    )}
+                </div>
             </div>
+            {error && <div className="text-xs text-red-600">{error}</div>}
 
             {sorted.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
                     {sorted.map((att) => (
                         <AttachmentTile
                             key={att.attachmentId}
@@ -212,13 +206,13 @@ const AttachmentTile: React.FC<TileProps> = ({ attachment, showCaption, isBusy, 
     const isImg = isImage(attachment)
 
     return (
-        <div className="relative rounded-lg overflow-hidden bg-white border shadow-sm flex flex-col">
-            <div className="relative aspect-square bg-gray-100">
+        <div className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
+            <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
                 {isImg ? (
                     <img
                         src={attachment.fileUrl}
                         alt={attachment.caption ?? attachment.fileName ?? 'attachment'}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         loading="lazy"
                     />
                 ) : (
@@ -226,10 +220,10 @@ const AttachmentTile: React.FC<TileProps> = ({ attachment, showCaption, isBusy, 
                         href={attachment.downloadUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="w-full h-full flex flex-col items-center justify-center gap-2 text-gray-600 hover:bg-gray-50"
+                        className="w-full h-full flex flex-col items-center justify-center gap-1 text-gray-600 hover:bg-gray-50"
                     >
-                        <FileIcon className="w-10 h-10" />
-                        <span className="text-xs px-2 text-center break-all line-clamp-2">{attachment.fileName}</span>
+                        <FileIcon className="w-8 h-8" />
+                        <span className="text-[10px] px-2 text-center break-all line-clamp-2">{attachment.fileName}</span>
                     </a>
                 )}
                 <button
@@ -237,25 +231,27 @@ const AttachmentTile: React.FC<TileProps> = ({ attachment, showCaption, isBusy, 
                     aria-label="Remove"
                     disabled={disabled || isBusy}
                     onClick={onRemove}
-                    className="absolute top-1.5 right-1.5 inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white shadow hover:bg-red-600 disabled:opacity-60"
+                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90 disabled:opacity-60"
                 >
-                    {isBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />}
+                    {isBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3 stroke-[2.5]" />}
                 </button>
             </div>
-            <div className="px-2 py-2 text-xs text-gray-700 space-y-1">
+            <div className="space-y-1 mt-auto">
                 {showCaption ? (
-                    <input
-                        type="text"
+                    <textarea
+                        placeholder="Caption..."
+                        rows={2}
                         value={caption}
                         onChange={(e) => handleCaptionInput(e.target.value)}
-                        placeholder="Caption…"
-                        className="w-full bg-transparent outline-none text-sm border-b border-dotted border-gray-300 focus:border-[#487749]"
+                        className="w-full text-[11px] font-bold bg-transparent border-none focus:ring-0 px-1 py-0 outline-none transition-all placeholder:text-gray-300 text-gray-700 min-h-[2.5rem] resize-none"
                     />
                 ) : (
-                    <div className="truncate font-medium" title={attachment.fileName ?? ''}>{attachment.fileName}</div>
+                    <div className="text-[11px] font-medium text-gray-700 px-1 truncate" title={attachment.fileName ?? ''}>
+                        {attachment.fileName}
+                    </div>
                 )}
-                <div className="text-[10px] text-gray-500 flex justify-between gap-1">
-                    <span className="truncate">{attachment.mimeType}</span>
+                <div className="text-[9px] text-gray-400 px-1 flex justify-between gap-1">
+                    <span className="truncate">{attachment.mimeType.split('/')[1] || attachment.mimeType}</span>
                     <span>{bytesLabel(attachment.size)}</span>
                 </div>
             </div>

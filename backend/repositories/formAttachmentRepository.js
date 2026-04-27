@@ -60,24 +60,39 @@ async function listForGallery({
     reportingYear,
     search,
 }) {
-    const where = { kind };
+    const where = { kind, AND: [] };
     if (kvkId) where.kvkId = Number(kvkId);
     if (formCode) where.formCode = formCode;
     if (reportingYear) {
         const yearNum = Number(reportingYear);
         if (!Number.isNaN(yearNum)) {
-            where.reportingYearDate = {
-                gte: new Date(`${yearNum}-04-01T00:00:00.000Z`),
-                lt: new Date(`${yearNum + 1}-04-01T00:00:00.000Z`),
-            };
+            const start = new Date(`${yearNum}-04-01T00:00:00.000Z`);
+            const end = new Date(`${yearNum + 1}-04-01T00:00:00.000Z`);
+            // Use either reportingYearDate (if set) or createdAt as fallback,
+            // so attachments uploaded without an explicit fiscal year still
+            // appear in the gallery for the year they were created.
+            where.AND.push({
+                OR: [
+                    { reportingYearDate: { gte: start, lt: end } },
+                    {
+                        AND: [
+                            { reportingYearDate: null },
+                            { createdAt: { gte: start, lt: end } },
+                        ],
+                    },
+                ],
+            });
         }
     }
     if (search) {
-        where.OR = [
-            { caption: { contains: search, mode: 'insensitive' } },
-            { fileName: { contains: search, mode: 'insensitive' } },
-        ];
+        where.AND.push({
+            OR: [
+                { caption: { contains: search, mode: 'insensitive' } },
+                { fileName: { contains: search, mode: 'insensitive' } },
+            ],
+        });
     }
+    if (where.AND.length === 0) delete where.AND;
     const safePage = Math.max(1, Number(page) || 1);
     const safeLimit = Math.min(200, Math.max(1, Number(limit) || 50));
     const [total, data] = await Promise.all([

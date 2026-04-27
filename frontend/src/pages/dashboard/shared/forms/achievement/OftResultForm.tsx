@@ -234,11 +234,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
             {kvkId ? (
                 <>
                     <FormSection title="Photographs">
-                        <div className="text-xs text-gray-500 mb-2">
-                            Only images allowed. Uploading new files will be added to the list. Multiple uploads supported. (Max 5 MB per file)
-                        </div>
                         <MultiAttachmentUploader
-                            title=""
                             formCode={FORM_CODE}
                             kind="PHOTO"
                             kvkId={kvkId}
@@ -250,11 +246,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
                     </FormSection>
 
                     <FormSection title="Supplementary Datasheets">
-                        <div className="text-xs text-gray-500 mb-2">
-                            PDF / Image / Excel / Word supported. Multiple uploads allowed. (Max 5 MB per file)
-                        </div>
                         <MultiAttachmentUploader
-                            title=""
                             formCode={FORM_CODE}
                             kind="DATASHEET"
                             kvkId={kvkId}
