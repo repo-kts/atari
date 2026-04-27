@@ -72,7 +72,6 @@ const sections: FeatureSection[] = [
         title: 'Soil and Water Testing',
         icon: <TestTube className="w-5 h-5" />,
         items: [
-            { label: 'Equipment Details', path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT },
             { label: 'Analysis Details', path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS },
         ],
     },

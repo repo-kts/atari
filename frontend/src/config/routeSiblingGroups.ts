@@ -113,7 +113,6 @@ CFLD: [
 
     // Soil Water Testing Siblings — World Soil Day moved to the Meetings tab.
     SOIL_WATER_TESTING: [
-        ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT,
         ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
     ],
 
