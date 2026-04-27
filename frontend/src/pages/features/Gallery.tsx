@@ -20,13 +20,12 @@ import {
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { getBreadcrumbsForPath } from '../../config/route'
 import { useAuth } from '@/contexts/AuthContext'
-import {
-  useModuleImageCategories,
-  useModuleImageKvks,
-  useModuleImages,
-} from '@/hooks/useModuleImages'
 import type { ModuleImageRow } from '@/services/moduleImagesApi'
 import { API_BASE_URL } from '@/config/api'
+import {
+  useGallerySource,
+  type GallerySource,
+} from '@/hooks/useGallerySource'
 
 type ViewMode = 'grid' | 'compact'
 
@@ -89,6 +88,7 @@ export const Gallery: React.FC = () => {
   const showKvkFilter = user?.role !== 'kvk_admin' && user?.role !== 'kvk_user'
 
   const currentYear = new Date().getFullYear()
+  const [source, setSource] = useState<GallerySource>('forms')
   const [searchInput, setSearchInput] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [year, setYear] = useState<number>(currentYear)
@@ -105,24 +105,27 @@ export const Gallery: React.FC = () => {
     return () => clearTimeout(t)
   }, [searchInput])
 
+  const [selectedFormCode, setSelectedFormCode] = useState<string | undefined>(undefined)
+
   const filters = useMemo(
     () => ({
       page: 1,
       limit: PAGE_LIMIT,
       reportingYear: year,
       kvkId,
-      moduleId,
+      moduleId: source === 'modules' ? moduleId : undefined,
+      formCode: source === 'forms' ? selectedFormCode : undefined,
       search: debouncedSearch || undefined,
     }),
-    [year, kvkId, moduleId, debouncedSearch]
+    [year, kvkId, moduleId, selectedFormCode, debouncedSearch, source]
   )
 
-  const imagesQuery = useModuleImages(filters)
-  const categoriesQuery = useModuleImageCategories()
-  const kvksQuery = useModuleImageKvks(showKvkFilter)
-
-  const images: ModuleImageRow[] = imagesQuery.data?.data ?? []
-  const total = imagesQuery.data?.meta?.total ?? 0
+  const sourceResult = useGallerySource(source, filters, showKvkFilter)
+  const images: ModuleImageRow[] = sourceResult.images
+  const total = sourceResult.total
+  const categoriesQuery = { data: sourceResult.categories } as { data: typeof sourceResult.categories }
+  const kvksQuery = { data: sourceResult.kvks } as { data: typeof sourceResult.kvks }
+  const imagesQuery = { isLoading: sourceResult.isLoading } as { isLoading: boolean }
 
   const yearOptions = useMemo(() => {
     const arr: number[] = []
@@ -254,12 +257,18 @@ export const Gallery: React.FC = () => {
         clear: () => setKvkId(undefined),
       })
     }
-    if (moduleId) {
-      const m = categoriesQuery.data?.find(x => x.moduleId === moduleId)
+    if (moduleId || selectedFormCode) {
+      const m =
+        categoriesQuery.data?.find(x =>
+          source === 'forms' ? x.moduleCode === selectedFormCode : x.moduleId === moduleId,
+        )
       chips.push({
         key: 'module',
-        label: `Module: ${m?.label ?? moduleId}`,
-        clear: () => setModuleId(undefined),
+        label: `${source === 'forms' ? 'Form' : 'Module'}: ${m?.label ?? selectedFormCode ?? moduleId}`,
+        clear: () => {
+          setModuleId(undefined)
+          setSelectedFormCode(undefined)
+        },
       })
     }
     if (year !== currentYear) {
@@ -272,6 +281,7 @@ export const Gallery: React.FC = () => {
     setSearchInput('')
     setKvkId(undefined)
     setModuleId(undefined)
+    setSelectedFormCode(undefined)
     setYear(currentYear)
   }
 
@@ -318,6 +328,37 @@ export const Gallery: React.FC = () => {
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          <div className="hidden md:flex items-center rounded-xl border border-black/10 bg-white overflow-hidden">
+            <button
+              type="button"
+              onClick={() => {
+                setSource('forms')
+                setModuleId(undefined)
+                setSelectedFormCode(undefined)
+              }}
+              className={`px-3 py-2 text-sm transition-colors ${
+                source === 'forms' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'
+              }`}
+              title="Form attachments"
+            >
+              Forms
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSource('modules')
+                setModuleId(undefined)
+                setSelectedFormCode(undefined)
+              }}
+              className={`px-3 py-2 text-sm transition-colors ${
+                source === 'modules' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'
+              }`}
+              title="Module images"
+            >
+              Modules
+            </button>
           </div>
 
           <div className="hidden md:flex items-center gap-2">
@@ -407,7 +448,7 @@ export const Gallery: React.FC = () => {
           <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-black/5 bg-white overflow-y-auto">
             <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between">
               <div className="text-[10px] font-semibold uppercase tracking-widest text-black/40">
-                Modules
+                {source === 'forms' ? 'Form modules' : 'Modules'}
               </div>
               {collapsedGroups.size > 0 ? (
                 <button
@@ -428,15 +469,18 @@ export const Gallery: React.FC = () => {
               )}
             </div>
             <button
-              onClick={() => setModuleId(undefined)}
+              onClick={() => {
+                setModuleId(undefined)
+                setSelectedFormCode(undefined)
+              }}
               className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                moduleId === undefined
+                moduleId === undefined && selectedFormCode === undefined
                   ? 'bg-[#487749]/10 text-[#3d6540] font-semibold'
                   : 'hover:bg-black/5 text-black/75'
               }`}
             >
               <span className="inline-flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 opacity-60" /> All modules
+                <ImageIcon className="w-4 h-4 opacity-60" /> {source === 'forms' ? 'All forms' : 'All modules'}
               </span>
               <span className="text-xs text-black/40">{total}</span>
             </button>
@@ -479,11 +523,22 @@ export const Gallery: React.FC = () => {
                     >
                       {group.items.map(c => {
                         const count = moduleCounts.get(c.moduleId) ?? 0
-                        const active = moduleId === c.moduleId
+                        const active =
+                          source === 'modules'
+                            ? moduleId === c.moduleId
+                            : selectedFormCode === c.moduleCode
                         return (
                           <button
                             key={c.moduleId}
-                            onClick={() => setModuleId(c.moduleId)}
+                            onClick={() => {
+                              if (source === 'modules') {
+                                setModuleId(c.moduleId)
+                                setSelectedFormCode(undefined)
+                              } else {
+                                setModuleId(c.moduleId)
+                                setSelectedFormCode(c.moduleCode ?? undefined)
+                              }
+                            }}
                             className={`w-full flex items-center justify-between pl-9 pr-4 py-1.5 text-sm transition-colors ${
                               active
                                 ? 'bg-[#487749]/10 text-[#3d6540] font-semibold border-l-2 border-[#487749]'

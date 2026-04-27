@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { DynamicReportTableBuilder, ResultTable } from '@/components/common/dynamic-table/DynamicReportTableBuilder'
-import { FormInput, FormTextArea, FormSection } from '../shared/FormComponents'
+import { FormTextArea, FormSection } from '../shared/FormComponents'
+import { MultiAttachmentUploader } from '@/components/common/MultiAttachmentUploader'
+import { useFormAttachments } from '@/hooks/useFormAttachments'
+import type { FormAttachmentRow } from '@/services/formAttachmentsApi'
+
+const FORM_CODE = 'oft_result'
 
 export interface OftResultFormValue {
     finalRecommendation: string
@@ -9,13 +14,11 @@ export interface OftResultFormValue {
     farmersParticipationProcess: string
     resultText: string
     remark: string
-    supplementaryDatasheetSize?: number
-    supplementaryDatasheetName?: string
-    supplementaryDatasheetMime?: string
-    photographSize?: number
-    photographName?: string
-    photographMime?: string
     tables: ResultTable[]
+    attachmentIds?: number[]
+    photos?: FormAttachmentRow[]
+    datasheets?: FormAttachmentRow[]
+    oftResultReportId?: number | null
 }
 
 interface OftResultFormProps {
@@ -25,6 +28,7 @@ interface OftResultFormProps {
     onSubmit: (value: OftResultFormValue) => Promise<void>
     embedded?: boolean
     sourceRows?: Array<{ optionKey: string; optionName: string }>
+    kvkId?: number | null
 }
 
 const defaultValue: OftResultFormValue = {
@@ -35,20 +39,6 @@ const defaultValue: OftResultFormValue = {
     remark: '',
     tables: [],
 }
-
-const SUPPLEMENTARY_ACCEPT = [
-    'application/pdf',
-    'image/*',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    '.pdf,.xls,.xlsx,.doc,.docx',
-].join(',')
-
-const SUPPLEMENTARY_MIME_RE = /^(application\/pdf|image\/|application\/vnd\.ms-excel|application\/vnd\.openxmlformats-officedocument\.spreadsheetml|application\/msword|application\/vnd\.openxmlformats-officedocument\.wordprocessingml)/i
-
-const SUPPLEMENTARY_EXT_RE = /\.(pdf|png|jpe?g|gif|webp|bmp|svg|xls|xlsx|doc|docx)$/i
 
 function buildSeedTables(
     sourceRows: Array<{ optionKey: string; optionName: string }>
@@ -142,9 +132,18 @@ function normalizeInitialValue(
     }
 }
 
-export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue, onClose, onSubmit, embedded = false, sourceRows = [] }) => {
+export const OftResultForm: React.FC<OftResultFormProps> = ({
+    mode,
+    initialValue,
+    onClose,
+    onSubmit,
+    embedded = false,
+    sourceRows = [],
+    kvkId,
+}) => {
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue, sourceRows))
+    const recordId = (initialValue?.oftResultReportId ?? null) as number | null
 
     const title = useMemo(() => mode === 'create' ? 'Add OFT Result' : 'Edit OFT Result', [mode])
 
@@ -152,11 +151,46 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
         setValue(normalizeInitialValue(initialValue, sourceRows))
     }, [initialValue, mode, sourceRows])
 
+    const initialPhotos = (initialValue?.photos ?? []) as FormAttachmentRow[]
+    const initialDatasheets = (initialValue?.datasheets ?? []) as FormAttachmentRow[]
+
+    const photosQuery = useFormAttachments({
+        formCode: FORM_CODE,
+        recordId,
+        kvkId: kvkId ?? undefined,
+        kind: 'PHOTO',
+        enabled: Boolean(kvkId && recordId),
+    })
+    const datasheetsQuery = useFormAttachments({
+        formCode: FORM_CODE,
+        recordId,
+        kvkId: kvkId ?? undefined,
+        kind: 'DATASHEET',
+        enabled: Boolean(kvkId && recordId),
+    })
+
+    const [orphanPhotos, setOrphanPhotos] = useState<FormAttachmentRow[]>(
+        recordId ? [] : initialPhotos.filter((p) => p.recordId == null),
+    )
+    const [orphanDatasheets, setOrphanDatasheets] = useState<FormAttachmentRow[]>(
+        recordId ? [] : initialDatasheets.filter((d) => d.recordId == null),
+    )
+
+    const photos = recordId ? (photosQuery.data ?? initialPhotos) : orphanPhotos
+    const datasheets = recordId ? (datasheetsQuery.data ?? initialDatasheets) : orphanDatasheets
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!kvkId) {
+            alert('KVK context missing — cannot save attachments.')
+            return
+        }
         setSubmitting(true)
         try {
-            await onSubmit(value)
+            const attachmentIds = [...photos, ...datasheets]
+                .filter((a) => !a.recordId)
+                .map((a) => a.attachmentId)
+            await onSubmit({ ...value, attachmentIds })
             onClose()
         } finally {
             setSubmitting(false)
@@ -195,53 +229,48 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                     value={value.remark}
                     onChange={(e) => setValue((v) => ({ ...v, remark: e.target.value }))}
                 />
-                <div>
-                    <FormInput
-                        label="Supplementary Datasheet (PDF/Image/Excel/Word, max 2 MB)"
-                        type="file"
-                        accept={SUPPLEMENTARY_ACCEPT}
-                        helperText={`Selected: ${value.supplementaryDatasheetName || 'None'}`}
-                        onChange={(e) => {
-                            const input = e.target as HTMLInputElement
-                            const file = input.files?.[0]
-                            if (file && !SUPPLEMENTARY_MIME_RE.test(file.type) && !SUPPLEMENTARY_EXT_RE.test(file.name)) {
-                                alert('Supplementary Datasheet must be PDF, image, Excel, or Word.')
-                                input.value = ''
-                                return
-                            }
-                            setValue((v) => ({
-                                ...v,
-                                supplementaryDatasheetName: file?.name,
-                                supplementaryDatasheetSize: file?.size,
-                                supplementaryDatasheetMime: file?.type,
-                            }))
-                        }}
-                    />
-                </div>
-                <div>
-                    <FormInput
-                        label="Photograph (image only, max 1 MB)"
-                        type="file"
-                        accept="image/*"
-                        helperText={`Selected: ${value.photographName || 'None'}`}
-                        onChange={(e) => {
-                            const input = e.target as HTMLInputElement
-                            const file = input.files?.[0]
-                            if (file && !file.type.startsWith('image/')) {
-                                alert('Photograph must be an image file.')
-                                input.value = ''
-                                return
-                            }
-                            setValue((v) => ({
-                                ...v,
-                                photographName: file?.name,
-                                photographSize: file?.size,
-                                photographMime: file?.type,
-                            }))
-                        }}
-                    />
-                </div>
             </div>
+
+            {kvkId ? (
+                <>
+                    <FormSection title="Photographs">
+                        <div className="text-xs text-gray-500 mb-2">
+                            Only images allowed. Uploading new files will be added to the list. Multiple uploads supported. (Max 5 MB per file)
+                        </div>
+                        <MultiAttachmentUploader
+                            title=""
+                            formCode={FORM_CODE}
+                            kind="PHOTO"
+                            kvkId={kvkId}
+                            recordId={recordId}
+                            attachments={photos}
+                            showCaption
+                            onChange={recordId ? undefined : setOrphanPhotos}
+                        />
+                    </FormSection>
+
+                    <FormSection title="Supplementary Datasheets">
+                        <div className="text-xs text-gray-500 mb-2">
+                            PDF / Image / Excel / Word supported. Multiple uploads allowed. (Max 5 MB per file)
+                        </div>
+                        <MultiAttachmentUploader
+                            title=""
+                            formCode={FORM_CODE}
+                            kind="DATASHEET"
+                            kvkId={kvkId}
+                            recordId={recordId}
+                            attachments={datasheets}
+                            showCaption={false}
+                            onChange={recordId ? undefined : setOrphanDatasheets}
+                        />
+                    </FormSection>
+                </>
+            ) : (
+                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    KVK context not available — attachment uploads are disabled. Save the result first; you can add photos/datasheets after.
+                </div>
+            )}
+
             <FormSection title="Dynamic Result Tables">
                 <DynamicReportTableBuilder
                     tables={value.tables || []}

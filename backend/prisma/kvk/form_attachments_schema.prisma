@@ -1,0 +1,32 @@
+enum FormAttachmentKind {
+  PHOTO
+  DATASHEET
+  DOCUMENT
+}
+
+model FormAttachment {
+  attachmentId      Int                @id @default(autoincrement()) @map("attachment_id")
+  kvkId             Int                @map("kvk_id")
+  formCode          String             @map("form_code")
+  recordId          Int?               @map("record_id")
+  kind              FormAttachmentKind @default(PHOTO)
+  s3Key             String             @map("s3_key")
+  fileName          String?            @map("file_name")
+  mimeType          String             @map("mime_type")
+  size              Int                @default(0)
+  caption           String?
+  sortOrder         Int                @default(0) @map("sort_order")
+  reportingYearDate DateTime?          @map("reporting_year_date")
+  uploadedByUserId  Int?               @map("uploaded_by_user_id")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  kvk               Kvk                @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  uploadedBy        User?              @relation(fields: [uploadedByUserId], references: [userId], onDelete: SetNull)
+
+  @@index([kvkId, formCode, recordId])
+  @@index([formCode, recordId])
+  @@index([kvkId, formCode, kind, createdAt])
+  @@index([reportingYearDate])
+  @@index([uploadedByUserId])
+  @@map("form_attachments")
+}

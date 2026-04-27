@@ -69,6 +69,9 @@ router.use('/admin/masters', publicationRoutes);
 router.use('/admin/masters', otherMastersRoutes);
 router.use('/admin/masters', exportRoutes);
 router.use('/users', userRoutes);
+// Form attachments (S3-backed) — mounted before validateFormRobustness because
+// the body shape (s3Key, kind, size) is not a form payload.
+router.use('/forms/attachments', require('./formAttachmentRoutes.js'));
 // Robust payload validation for all form saves (numbers + dates).
 router.use('/forms', validateFormRobustness);
 router.use('/forms', normalizeReportingYearRequest);

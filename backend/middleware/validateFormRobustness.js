@@ -143,8 +143,11 @@ function validateNoFutureDates(body) {
         const dt = parseDateOnly(value);
         if (!dt) continue;
 
-        // Allow future dates only for "target date"-type fields.
-        if (String(key).toLowerCase().includes('target')) continue;
+        // Allow future dates for forward-looking fields (target, expected, planned).
+        const lowerKey = String(key).toLowerCase();
+        if (lowerKey.includes('target')) continue;
+        if (lowerKey.includes('expected')) continue;
+        if (lowerKey.includes('planned')) continue;
 
         if (dt.getTime() > today.getTime()) {
             throw new ValidationError(`"${key}" cannot be in the future`, key);
