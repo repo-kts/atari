@@ -1386,6 +1386,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                             ? selectedOftItem.technologyOptions
                                             : []
                                     }
+                                    kvkId={selectedOftItem?.kvkId ?? null}
                                     onClose={() => {
                                         setIsOftResultPageOpen(false)
                                         setSelectedOftId(null)
