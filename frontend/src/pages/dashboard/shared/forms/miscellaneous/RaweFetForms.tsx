@@ -1,5 +1,8 @@
 import React from 'react'
 import { FormInput } from '../shared/FormComponents'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+const FORM_CODE = 'rawe_fet'
 
 interface RaweFetFormsProps {
     formData: any
@@ -7,18 +10,17 @@ interface RaweFetFormsProps {
 }
 
 export const RaweFetForms: React.FC<RaweFetFormsProps> = ({ formData, setFormData }) => {
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData({ ...formData, file, attachmentPath: reader.result as string })
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setFormData({ ...formData, file: null, attachmentPath: null })
-        }
-    }
+    const formDataRef = React.useRef(formData)
+    React.useEffect(() => {
+        formDataRef.current = formData
+    })
+    const handleAttachmentIds = React.useCallback(
+        (ids: number[]) => setFormData({ ...formDataRef.current, attachmentIds: ids }),
+        [setFormData],
+    )
+
+    const recordId = formData?.raweProgrammeId ?? formData?.id ?? null
+    const kvkId = formData?.kvkId ?? null
 
     return (
         <div className="space-y-6">
@@ -44,13 +46,19 @@ export const RaweFetForms: React.FC<RaweFetFormsProps> = ({ formData, setFormDat
                     value={formData.attachmentType ?? ''}
                     onChange={(e) => setFormData({ ...formData, attachmentType: e.target.value })}
                 />
-                <FormInput
-                    label="Attachment Upload"
-                    required
-                    type="file"
-                    onChange={handleFileChange}
-                />
             </div>
+
+            <FormAttachmentSection
+                title="Attachments"
+                formCode={FORM_CODE}
+                kind="DOCUMENT"
+                kvkId={kvkId}
+                recordId={recordId}
+                showCaption={false}
+                helperText="PDF, image, video, or document. Multiple uploads supported. Max 25 MB per file."
+                initialAttachments={formData?.documents}
+                onAttachmentIdsChange={handleAttachmentIds}
+            />
 
             <div>
                 <h3 className="text-base font-semibold text-gray-700 mb-4">Student</h3>

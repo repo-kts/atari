@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { DynamicReportTableBuilder, ResultTable } from '@/components/common/dynamic-table/DynamicReportTableBuilder'
 import { FormTextArea, FormSection } from '../shared/FormComponents'
-import { MultiAttachmentUploader } from '@/components/common/MultiAttachmentUploader'
-import { useFormAttachments } from '@/hooks/useFormAttachments'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 import type { FormAttachmentRow } from '@/services/formAttachmentsApi'
 
 const FORM_CODE = 'oft_result'
@@ -143,6 +142,8 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
 }) => {
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue, sourceRows))
+    const [photoIds, setPhotoIds] = useState<number[]>([])
+    const [datasheetIds, setDatasheetIds] = useState<number[]>([])
     const recordId = (initialValue?.oftResultReportId ?? null) as number | null
 
     const title = useMemo(() => mode === 'create' ? 'Add OFT Result' : 'Edit OFT Result', [mode])
@@ -150,34 +151,6 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
     useEffect(() => {
         setValue(normalizeInitialValue(initialValue, sourceRows))
     }, [initialValue, mode, sourceRows])
-
-    const initialPhotos = (initialValue?.photos ?? []) as FormAttachmentRow[]
-    const initialDatasheets = (initialValue?.datasheets ?? []) as FormAttachmentRow[]
-
-    const photosQuery = useFormAttachments({
-        formCode: FORM_CODE,
-        recordId,
-        kvkId: kvkId ?? undefined,
-        kind: 'PHOTO',
-        enabled: Boolean(kvkId && recordId),
-    })
-    const datasheetsQuery = useFormAttachments({
-        formCode: FORM_CODE,
-        recordId,
-        kvkId: kvkId ?? undefined,
-        kind: 'DATASHEET',
-        enabled: Boolean(kvkId && recordId),
-    })
-
-    const [orphanPhotos, setOrphanPhotos] = useState<FormAttachmentRow[]>(
-        recordId ? [] : initialPhotos.filter((p) => p.recordId == null),
-    )
-    const [orphanDatasheets, setOrphanDatasheets] = useState<FormAttachmentRow[]>(
-        recordId ? [] : initialDatasheets.filter((d) => d.recordId == null),
-    )
-
-    const photos = recordId ? (photosQuery.data ?? initialPhotos) : orphanPhotos
-    const datasheets = recordId ? (datasheetsQuery.data ?? initialDatasheets) : orphanDatasheets
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -187,9 +160,7 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
         }
         setSubmitting(true)
         try {
-            const attachmentIds = [...photos, ...datasheets]
-                .filter((a) => !a.recordId)
-                .map((a) => a.attachmentId)
+            const attachmentIds = [...photoIds, ...datasheetIds]
             await onSubmit({ ...value, attachmentIds })
             onClose()
         } finally {
@@ -231,37 +202,28 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({
                 />
             </div>
 
-            {kvkId ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormSection title="Photographs">
-                        <MultiAttachmentUploader
-                            formCode={FORM_CODE}
-                            kind="PHOTO"
-                            kvkId={kvkId}
-                            recordId={recordId}
-                            attachments={photos}
-                            showCaption
-                            onChange={recordId ? undefined : setOrphanPhotos}
-                        />
-                    </FormSection>
-
-                    <FormSection title="Supplementary Datasheets">
-                        <MultiAttachmentUploader
-                            formCode={FORM_CODE}
-                            kind="DATASHEET"
-                            kvkId={kvkId}
-                            recordId={recordId}
-                            attachments={datasheets}
-                            showCaption={false}
-                            onChange={recordId ? undefined : setOrphanDatasheets}
-                        />
-                    </FormSection>
-                </div>
-            ) : (
-                <div className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    KVK context not available — attachment uploads are disabled. Save the result first; you can add photos/datasheets after.
-                </div>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormAttachmentSection
+                    title="Photographs"
+                    formCode={FORM_CODE}
+                    kind="PHOTO"
+                    kvkId={kvkId}
+                    recordId={recordId}
+                    showCaption
+                    initialAttachments={initialValue?.photos}
+                    onAttachmentIdsChange={setPhotoIds}
+                />
+                <FormAttachmentSection
+                    title="Supplementary Datasheets"
+                    formCode={FORM_CODE}
+                    kind="DATASHEET"
+                    kvkId={kvkId}
+                    recordId={recordId}
+                    showCaption={false}
+                    initialAttachments={initialValue?.datasheets}
+                    onAttachmentIdsChange={setDatasheetIds}
+                />
+            </div>
 
             <FormSection title="Dynamic Result Tables">
                 <DynamicReportTableBuilder

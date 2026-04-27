@@ -7,7 +7,7 @@ const KIND = { PHOTO: 'PHOTO', DATASHEET: 'DATASHEET', DOCUMENT: 'DOCUMENT' };
 const MAX_BYTES = {
     PHOTO: 5 * 1024 * 1024,
     DATASHEET: 5 * 1024 * 1024,
-    DOCUMENT: 10 * 1024 * 1024,
+    DOCUMENT: 25 * 1024 * 1024,
 };
 
 const ALLOWED_MIME_PREFIXES = {
@@ -30,6 +30,9 @@ const ALLOWED_MIME_PREFIXES = {
         'application/vnd.openxmlformats-officedocument.wordprocessingml',
         'text/csv',
         'text/plain',
+        'image/',
+        'video/',
+        'audio/',
     ],
 };
 
