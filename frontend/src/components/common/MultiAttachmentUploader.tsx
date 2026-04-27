@@ -1,7 +1,13 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import { X, FileIcon, Loader2 } from 'lucide-react'
-import { useDeleteAttachment, useUpdateAttachment, useUploadAttachment } from '@/hooks/useFormAttachments'
-import type { FormAttachmentKind, FormAttachmentRow } from '@/services/formAttachmentsApi'
+import { useQueryClient } from '@tanstack/react-query'
+import { useDeleteAttachment, useUpdateAttachment } from '@/hooks/useFormAttachments'
+import {
+    formAttachmentsApi,
+    uploadFileToS3,
+    type FormAttachmentKind,
+    type FormAttachmentRow,
+} from '@/services/formAttachmentsApi'
 import { ApiError } from '@/services/api'
 
 const PHOTO_ACCEPT = 'image/*'
@@ -42,6 +48,39 @@ function bytesLabel(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
 }
 
+async function uploadOne(input: {
+    file: File
+    formCode: string
+    kind: FormAttachmentKind
+    kvkId: number
+    recordId: number | null
+    sortOrder: number
+    reportingYearDate: string | null
+}): Promise<FormAttachmentRow> {
+    const { file, formCode, kind, kvkId, recordId, sortOrder, reportingYearDate } = input
+    const presign = await formAttachmentsApi.presign({
+        formCode,
+        kind,
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        size: file.size,
+        kvkId,
+    })
+    await uploadFileToS3(presign.uploadUrl, file, presign.headers)
+    return formAttachmentsApi.confirm({
+        s3Key: presign.s3Key,
+        formCode,
+        kind,
+        recordId,
+        kvkId,
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        size: file.size,
+        sortOrder,
+        reportingYearDate,
+    })
+}
+
 export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = ({
     formCode,
     kind,
@@ -57,18 +96,20 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     onChange,
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null)
-    const upload = useUploadAttachment()
+    const qc = useQueryClient()
     const updateMut = useUpdateAttachment()
     const removeMut = useDeleteAttachment(formCode)
     const [error, setError] = useState<string | null>(null)
+    const [uploading, setUploading] = useState(false)
+    const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
     const [busyIds, setBusyIds] = useState<Set<number>>(new Set())
 
     const acceptAttr = accept ?? (kind === 'PHOTO' ? PHOTO_ACCEPT : DATASHEET_ACCEPT)
     const helper =
         helperText ??
         (kind === 'PHOTO'
-            ? `Only images allowed. Uploading new files will be added to the list. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`
-            : `PDF / Image / Excel / Word allowed. Multiple uploads supported. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`)
+            ? `Only images allowed. Hold Ctrl/Cmd in the file picker to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`
+            : `PDF / Image / Excel / Word allowed. Hold Ctrl/Cmd to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`)
 
     const sorted = useMemo(
         () => [...attachments].sort((a, b) => a.sortOrder - b.sortOrder || a.attachmentId - b.attachmentId),
@@ -83,14 +124,18 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
             const oversized = list.find((f) => f.size > maxBytes)
             if (oversized) {
                 setError(`"${oversized.name}" exceeds max size ${(maxBytes / (1024 * 1024)).toFixed(0)} MB`)
+                if (fileInputRef.current) fileInputRef.current.value = ''
                 return
             }
             const startSort = sorted.length > 0 ? sorted[sorted.length - 1].sortOrder + 1 : 0
-            try {
-                const results: FormAttachmentRow[] = []
-                for (let i = 0; i < list.length; i += 1) {
-                    const file = list[i]
-                    const row = await upload.mutateAsync({
+            setUploading(true)
+            setProgress({ done: 0, total: list.length })
+            // Concurrent uploads via Promise.allSettled — each call is independent
+            // (presign -> S3 PUT -> confirm). Tracks per-file completion for progress.
+            let done = 0
+            const settled = await Promise.allSettled(
+                list.map((file, i) =>
+                    uploadOne({
                         file,
                         formCode,
                         kind,
@@ -98,18 +143,34 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
                         recordId: recordId ?? null,
                         sortOrder: startSort + i,
                         reportingYearDate,
-                    })
-                    results.push(row)
+                    }).then((row) => {
+                        done += 1
+                        setProgress({ done, total: list.length })
+                        return row
+                    }),
+                ),
+            )
+            const results: FormAttachmentRow[] = []
+            const errors: string[] = []
+            settled.forEach((r, i) => {
+                if (r.status === 'fulfilled') results.push(r.value)
+                else {
+                    const reason = r.reason
+                    const msg = reason instanceof ApiError ? reason.message : reason instanceof Error ? reason.message : 'Upload failed'
+                    errors.push(`${list[i].name}: ${msg}`)
                 }
-                if (onChange) onChange([...sorted, ...results])
-            } catch (e) {
-                const msg = e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Upload failed'
-                setError(msg)
-            } finally {
-                if (fileInputRef.current) fileInputRef.current.value = ''
-            }
+            })
+            // Single state + cache update at the end so React renders once with all results.
+            if (results.length && onChange) onChange([...sorted, ...results])
+            qc.invalidateQueries({ queryKey: ['form-attachments', formCode] })
+            qc.invalidateQueries({ queryKey: ['form-attachments-gallery'] })
+            qc.invalidateQueries({ queryKey: ['form-attachments-gallery-forms'] })
+            if (errors.length) setError(errors.join(' • '))
+            setUploading(false)
+            setProgress(null)
+            if (fileInputRef.current) fileInputRef.current.value = ''
         },
-        [formCode, kind, kvkId, recordId, sorted, upload, onChange, maxBytes, reportingYearDate],
+        [formCode, kind, kvkId, recordId, sorted, onChange, maxBytes, reportingYearDate, qc],
     )
 
     const handleRemove = useCallback(
@@ -151,19 +212,21 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
                     type="file"
                     accept={acceptAttr}
                     multiple
-                    disabled={disabled || upload.isPending}
+                    disabled={disabled || uploading}
                     onChange={(e) => handleFiles(e.target.files)}
                     className="block w-full text-sm bg-white px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#487749] file:text-white hover:file:bg-[#3d6540] cursor-pointer disabled:opacity-60"
                 />
                 <div className="bg-gray-50 px-3 py-2 text-xs text-gray-600 border-t border-[#E0E0E0]">
-                    {upload.isPending ? (
-                        <span className="inline-flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Uploading…</span>
+                    {uploading && progress ? (
+                        <span className="inline-flex items-center gap-2">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Uploading {progress.done}/{progress.total}…
+                        </span>
                     ) : (
                         helper
                     )}
                 </div>
             </div>
-            {error && <div className="text-xs text-red-600">{error}</div>}
+            {error && <div className="text-xs text-red-600 break-words">{error}</div>}
 
             {sorted.length > 0 && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2">
