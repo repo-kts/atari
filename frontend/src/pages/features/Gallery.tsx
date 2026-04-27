@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Search,
   X,
@@ -18,7 +18,8 @@ import {
   FolderOpen,
 } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
-import { getBreadcrumbsForPath } from '../../config/route'
+import { Card, CardContent } from '../../components/ui/Card'
+import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
 import { useAuth } from '@/contexts/AuthContext'
 import type { ModuleImageRow } from '@/services/moduleImagesApi'
 import { API_BASE_URL } from '@/config/api'
@@ -79,7 +80,9 @@ async function downloadImage(downloadUrl: string, fileName?: string | null) {
 
 export const Gallery: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const breadcrumbs = getBreadcrumbsForPath(location.pathname)
+  const routeConfig = getRouteConfig(location.pathname)
   const { user } = useAuth()
 
   const showKvkFilter = user?.role !== 'kvk_admin' && user?.role !== 'kvk_user'
@@ -99,6 +102,7 @@ export const Gallery: React.FC = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [treeSearch, setTreeSearch] = useState('')
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchInput.trim()), 250)
@@ -153,6 +157,22 @@ export const Gallery: React.FC = () => {
       total: items.reduce((sum, it) => sum + (moduleCounts.get(it.moduleId) ?? 0), 0),
     }))
   }, [categoriesQuery.data, moduleCounts])
+
+  const filteredGroups = useMemo(() => {
+    const q = treeSearch.trim().toLowerCase()
+    if (!q) return groupedCategories
+    return groupedCategories
+      .map(g => ({
+        ...g,
+        items: g.items.filter(
+          it =>
+            it.subMenuName.toLowerCase().includes(q) ||
+            it.label.toLowerCase().includes(q) ||
+            (it.moduleCode ?? '').toLowerCase().includes(q),
+        ),
+      }))
+      .filter(g => g.items.length > 0 || g.menuName.toLowerCase().includes(q))
+  }, [groupedCategories, treeSearch])
 
   const activeGroupName = useMemo(() => {
     if (moduleId === undefined) return null
@@ -289,283 +309,214 @@ export const Gallery: React.FC = () => {
   const isEmpty = !isLoading && images.length === 0
 
   return (
-    <div className="flex flex-col h-full bg-[#F5F5F5]">
-      {breadcrumbs.length > 0 && (
-        <div className="px-4 sm:px-6 pt-4">
-          <Breadcrumbs
-            items={breadcrumbs.map((b, i) => ({ ...b, level: i }))}
-            showHome={false}
-          />
-        </div>
-      )}
+    <div className="bg-white rounded-2xl p-1">
+      {/* Back + Breadcrumbs */}
+      <div className="mb-6 flex items-center gap-4 px-6 pt-4">
+        <button
+          onClick={() => {
+            if (routeConfig?.parent) navigate(routeConfig.parent)
+            else navigate('/dashboard')
+          }}
+          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-[#487749] border border-[#E0E0E0] rounded-xl hover:bg-[#F5F5F5] transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </button>
+        {breadcrumbs.length > 0 && (
+          <Breadcrumbs items={breadcrumbs.map((b, i) => ({ ...b, level: i }))} showHome={false} />
+        )}
+      </div>
 
-      {/* Top bar */}
-      <div className="px-4 sm:px-6 pt-3 pb-3 bg-[#F5F5F5] sticky top-0 z-20 border-b border-black/5">
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={() => setRailOpen(o => !o)}
-            className="hidden lg:inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white border border-black/10 hover:bg-black/5 text-[#487749]"
-            aria-label={railOpen ? 'Hide module rail' : 'Show module rail'}
-            title={railOpen ? 'Hide modules' : 'Show modules'}
-          >
-            {railOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-          </button>
-
-          <div className="relative flex-1 min-w-[220px] max-w-xl">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
-            <input
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              placeholder="Search captions, KVK, module..."
-              className="w-full pl-9 pr-9 py-2 text-sm rounded-xl bg-white border border-black/10 focus:outline-none focus:border-[#487749] focus:ring-2 focus:ring-[#487749]/20"
-            />
-            {searchInput && (
+      <Card className="bg-[#FAF9F6]">
+        <CardContent className="p-6">
+          {/* Header */}
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-[#487749]">Gallery</h2>
+              <p className="text-sm text-[#757575] mt-1">
+                Browse module and form attachments across KVKs and reporting years
+              </p>
+            </div>
+            <div className="inline-flex rounded-xl border border-[#E0E0E0] bg-white overflow-hidden">
               <button
-                onClick={() => setSearchInput('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-black/5 text-black/40"
-                aria-label="Clear search"
+                onClick={() => setViewMode('grid')}
+                className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-[#487749] text-white' : 'text-[#757575] hover:bg-[#F5F5F5]'}`}
+                title="Grid view"
+                aria-label="Grid view"
               >
-                <X className="w-3.5 h-3.5" />
+                <LayoutGrid className="w-4 h-4" />
               </button>
-            )}
+              <button
+                onClick={() => setViewMode('compact')}
+                className={`px-3 py-2 ${viewMode === 'compact' ? 'bg-[#487749] text-white' : 'text-[#757575] hover:bg-[#F5F5F5]'}`}
+                title="Compact view"
+                aria-label="Compact view"
+              >
+                <Rows3 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
-            <select
-              value={year}
-              onChange={e => setYear(Number(e.target.value))}
-              className="text-sm bg-white border border-black/10 rounded-xl px-3 py-2 focus:outline-none focus:border-[#487749]"
+          {/* Filters row */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <button
+              onClick={() => setRailOpen(o => !o)}
+              className="hidden lg:inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white border border-[#E0E0E0] hover:bg-[#F5F5F5] text-[#487749]"
+              aria-label={railOpen ? 'Hide module rail' : 'Show module rail'}
+              title={railOpen ? 'Hide modules' : 'Show modules'}
             >
-              {yearOptions.map(y => (
-                <option key={y} value={y}>
-                  {y}-{String((y + 1) % 100).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
+              {railOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+            </button>
 
-            {showKvkFilter && (
+            <div className="relative flex-1 min-w-[220px] max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#757575]" />
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder="Search captions, KVK, module..."
+                className="w-full pl-10 pr-9 py-2 border border-[#E0E0E0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] bg-white text-[#212121] placeholder-[#9E9E9E] transition-all duration-200 hover:border-[#BDBDBD]"
+              />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[#F5F5F5] text-[#757575]"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="hidden md:flex items-center gap-2">
               <select
-                value={kvkId ?? ''}
-                onChange={e => setKvkId(e.target.value ? Number(e.target.value) : undefined)}
-                className="text-sm bg-white border border-black/10 rounded-xl px-3 py-2 max-w-[180px] focus:outline-none focus:border-[#487749]"
+                value={year}
+                onChange={e => setYear(Number(e.target.value))}
+                className="text-sm bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
               >
-                <option value="">All KVKs</option>
-                {(kvksQuery.data ?? []).map(k => (
-                  <option key={k.kvkId} value={k.kvkId}>
-                    {k.kvkName}
+                {yearOptions.map(y => (
+                  <option key={y} value={y}>
+                    {y}-{String((y + 1) % 100).padStart(2, '0')}
                   </option>
                 ))}
               </select>
-            )}
-          </div>
 
-          <button
-            onClick={() => setMobileFiltersOpen(true)}
-            className="md:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-black/10 text-sm"
-          >
-            <Filter className="w-4 h-4" /> Filters
-          </button>
-
-          <div className="ml-auto inline-flex rounded-xl border border-black/10 bg-white overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-2.5 py-2 ${viewMode === 'grid' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'}`}
-              title="Grid view"
-              aria-label="Grid view"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('compact')}
-              className={`px-2.5 py-2 ${viewMode === 'compact' ? 'bg-[#487749] text-white' : 'text-black/60 hover:bg-black/5'}`}
-              title="Compact view"
-              aria-label="Compact view"
-            >
-              <Rows3 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Active filter chips */}
-        {activeChips.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {activeChips.map(c => (
-              <span
-                key={c.key}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#487749]/10 text-[#3d6540] text-xs font-medium"
-              >
-                {c.label}
-                <button
-                  onClick={c.clear}
-                  className="ml-0.5 hover:bg-[#487749]/20 rounded-full p-0.5"
-                  aria-label={`Clear ${c.key}`}
+              {showKvkFilter && (
+                <select
+                  value={kvkId ?? ''}
+                  onChange={e => setKvkId(e.target.value ? Number(e.target.value) : undefined)}
+                  className="text-sm bg-white border border-[#E0E0E0] rounded-xl px-3 py-2 max-w-[180px] focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-            <button onClick={clearAll} className="text-xs text-black/50 hover:text-black/80 underline">
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="flex-1 flex overflow-hidden">
-        {railOpen && (
-          <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-black/5 bg-white overflow-y-auto">
-            <div className="px-4 py-3 border-b border-black/5 flex items-center justify-between">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-black/40">
-                Modules &amp; Forms
-              </div>
-              {collapsedGroups.size > 0 ? (
-                <button
-                  onClick={() => setCollapsedGroups(new Set())}
-                  className="text-[10px] text-[#487749] hover:underline"
-                >
-                  Expand all
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    setCollapsedGroups(new Set(groupedCategories.map(g => g.menuName)))
-                  }
-                  className="text-[10px] text-black/40 hover:text-black/70 hover:underline"
-                >
-                  Collapse all
-                </button>
+                  <option value="">All KVKs</option>
+                  {(kvksQuery.data ?? []).map(k => (
+                    <option key={k.kvkId} value={k.kvkId}>
+                      {k.kvkName}
+                    </option>
+                  ))}
+                </select>
               )}
             </div>
+
             <button
-              onClick={() => {
-                setModuleId(undefined)
-                setSelectedFormCode(undefined)
-              }}
-              className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
-                moduleId === undefined && selectedFormCode === undefined
-                  ? 'bg-[#487749]/10 text-[#3d6540] font-semibold'
-                  : 'hover:bg-black/5 text-black/75'
-              }`}
+              onClick={() => setMobileFiltersOpen(true)}
+              className="md:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E0E0E0] text-sm text-[#212121]"
             >
-              <span className="inline-flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 opacity-60" /> All
-              </span>
-              <span className="text-xs text-black/40">{total}</span>
+              <Filter className="w-4 h-4" /> Filters
             </button>
-            <div className="py-1">
-              {groupedCategories.map(group => {
-                const collapsed = collapsedGroups.has(group.menuName)
-                const groupActive = activeGroupName === group.menuName
-                return (
-                  <div key={group.menuName} className="mb-0.5">
-                    <button
-                      onClick={() => toggleGroup(group.menuName)}
-                      className={`w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
-                        groupActive
-                          ? 'text-[#3d6540]'
-                          : 'text-black/55 hover:text-black/80 hover:bg-black/5'
-                      }`}
-                      aria-expanded={!collapsed}
-                    >
-                      <span className="inline-flex items-center gap-1.5 truncate">
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                            collapsed ? '-rotate-90' : ''
-                          }`}
-                        />
-                        <FolderOpen className="w-3.5 h-3.5 opacity-60" />
-                        <span className="truncate">{group.menuName}</span>
-                      </span>
-                      <span
-                        className={`text-[10px] font-medium ml-2 shrink-0 ${
-                          group.total === 0 ? 'text-black/25' : 'text-black/45'
-                        }`}
-                      >
-                        {group.total}
-                      </span>
-                    </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-200 ${
-                        collapsed ? 'max-h-0 opacity-0' : 'max-h-[1500px] opacity-100'
-                      }`}
-                    >
-                      {group.items.map(c => {
-                        const count = moduleCounts.get(c.moduleId) ?? 0
-                        const isFormCategory = c.moduleId >= 1_000_000
-                        const active = isFormCategory
-                          ? selectedFormCode === c.moduleCode
-                          : moduleId === c.moduleId
-                        return (
-                          <button
-                            key={c.moduleId}
-                            onClick={() => {
-                              if (isFormCategory) {
-                                setSelectedFormCode(c.moduleCode ?? undefined)
-                                setModuleId(undefined)
-                              } else {
-                                setModuleId(c.moduleId)
-                                setSelectedFormCode(undefined)
-                              }
-                            }}
-                            className={`w-full flex items-center justify-between pl-9 pr-4 py-1.5 text-sm transition-colors ${
-                              active
-                                ? 'bg-[#487749]/10 text-[#3d6540] font-semibold border-l-2 border-[#487749]'
-                                : 'hover:bg-black/5 text-black/70 border-l-2 border-transparent'
-                            }`}
-                            title={c.subMenuName}
-                          >
-                            <span className="truncate text-left">{c.subMenuName}</span>
-                            <span
-                              className={`text-xs ml-2 shrink-0 ${
-                                count === 0 ? 'text-black/25' : 'text-black/45'
-                              }`}
-                            >
-                              {count}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </aside>
-        )}
+          </div>
 
-        <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-          {isLoading && <SkeletonGrid mode={viewMode} />}
-
-          {isEmpty && (
-            <EmptyState
-              activeChips={activeChips.length}
-              onClearAll={clearAll}
-            />
-          )}
-
-          {!isLoading && !isEmpty && (
-            <>
-              {recent.length > 0 && (
-                <Section title="Recent uploads" subtitle={`Last 7 days · ${recent.length}`}>
-                  <HorizontalStrip images={recent} onOpen={openLightbox} />
-                </Section>
-              )}
-
-              {groupedByMonth.map(([monthKey, arr]) => (
-                <Section
-                  key={monthKey}
-                  title={monthKey}
-                  subtitle={`${arr.length} ${arr.length === 1 ? 'image' : 'images'}`}
-                  icon={<Calendar className="w-3.5 h-3.5" />}
+          {/* Active filter chips */}
+          {activeChips.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {activeChips.map(c => (
+                <span
+                  key={c.key}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#487749]/10 text-[#3d6540] text-xs font-medium"
                 >
-                  <Masonry images={arr} onOpen={openLightbox} mode={viewMode} />
-                </Section>
+                  {c.label}
+                  <button
+                    onClick={c.clear}
+                    className="ml-0.5 hover:bg-[#487749]/20 rounded-full p-0.5"
+                    aria-label={`Clear ${c.key}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
               ))}
-            </>
+              <button onClick={clearAll} className="text-xs text-[#757575] hover:text-[#212121] underline">
+                Clear all
+              </button>
+            </div>
           )}
-        </main>
-      </div>
+
+          {/* Body: sidebar + grid */}
+          <div className="flex gap-4 min-h-[400px]">
+            {railOpen && (
+              <aside className="hidden lg:flex flex-col w-64 shrink-0 rounded-xl border border-[#E0E0E0] bg-white overflow-hidden max-h-[calc(100vh-300px)]">
+                <ModulesTree
+                  groups={filteredGroups}
+                  total={total}
+                  moduleId={moduleId}
+                  selectedFormCode={selectedFormCode}
+                  collapsedGroups={collapsedGroups}
+                  toggleGroup={toggleGroup}
+                  setCollapsedGroups={setCollapsedGroups}
+                  groupedCategories={groupedCategories}
+                  activeGroupName={activeGroupName}
+                  moduleCounts={moduleCounts}
+                  treeSearch={treeSearch}
+                  setTreeSearch={setTreeSearch}
+                  onSelectAll={() => {
+                    setModuleId(undefined)
+                    setSelectedFormCode(undefined)
+                  }}
+                  onSelectModule={(c) => {
+                    const isFormCategory = c.moduleId >= 1_000_000
+                    if (isFormCategory) {
+                      setSelectedFormCode(c.moduleCode ?? undefined)
+                      setModuleId(undefined)
+                    } else {
+                      setModuleId(c.moduleId)
+                      setSelectedFormCode(undefined)
+                    }
+                  }}
+                />
+              </aside>
+            )}
+
+            <main className="flex-1 min-w-0 overflow-y-auto rounded-xl border border-[#E0E0E0] bg-white p-4 max-h-[calc(100vh-300px)]">
+              {isLoading && <SkeletonGrid mode={viewMode} />}
+
+              {isEmpty && (
+                <EmptyState
+                  activeChips={activeChips.length}
+                  onClearAll={clearAll}
+                />
+              )}
+
+              {!isLoading && !isEmpty && (
+                <>
+                  {recent.length > 0 && (
+                    <Section title="Recent uploads" subtitle={`Last 7 days · ${recent.length}`}>
+                      <HorizontalStrip images={recent} onOpen={openLightbox} />
+                    </Section>
+                  )}
+
+                  {groupedByMonth.map(([monthKey, arr]) => (
+                    <Section
+                      key={monthKey}
+                      title={monthKey}
+                      subtitle={`${arr.length} ${arr.length === 1 ? 'image' : 'images'}`}
+                      icon={<Calendar className="w-3.5 h-3.5" />}
+                    >
+                      <Masonry images={arr} onOpen={openLightbox} mode={viewMode} />
+                    </Section>
+                  ))}
+                </>
+              )}
+            </main>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Mobile filters sheet */}
       {mobileFiltersOpen && (
@@ -577,7 +528,7 @@ export const Gallery: React.FC = () => {
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold">Filters</h3>
-              <button onClick={() => setMobileFiltersOpen(false)} className="p-1 rounded hover:bg-black/5">
+              <button onClick={() => setMobileFiltersOpen(false)} className="p-1 rounded hover:bg-[#F5F5F5]">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -585,7 +536,7 @@ export const Gallery: React.FC = () => {
             <select
               value={year}
               onChange={e => setYear(Number(e.target.value))}
-              className="w-full mb-3 text-sm bg-white border border-black/10 rounded-xl px-3 py-2"
+              className="w-full mb-3 text-sm bg-white border border-[#E0E0E0] rounded-xl px-3 py-2"
             >
               {yearOptions.map(y => (
                 <option key={y} value={y}>
@@ -599,7 +550,7 @@ export const Gallery: React.FC = () => {
                 <select
                   value={kvkId ?? ''}
                   onChange={e => setKvkId(e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full mb-3 text-sm bg-white border border-black/10 rounded-xl px-3 py-2"
+                  className="w-full mb-3 text-sm bg-white border border-[#E0E0E0] rounded-xl px-3 py-2"
                 >
                   <option value="">All KVKs</option>
                   {(kvksQuery.data ?? []).map(k => (
@@ -610,19 +561,39 @@ export const Gallery: React.FC = () => {
                 </select>
               </>
             )}
-            <label className="block text-xs font-medium text-black/60 mb-1">Module</label>
-            <select
-              value={moduleId ?? ''}
-              onChange={e => setModuleId(e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full mb-3 text-sm bg-white border border-black/10 rounded-xl px-3 py-2"
-            >
-              <option value="">All modules</option>
-              {(categoriesQuery.data ?? []).map(c => (
-                <option key={c.moduleId} value={c.moduleId}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+            <label className="block text-xs font-medium text-black/60 mb-1">Modules &amp; Forms</label>
+            <div className="rounded-xl border border-[#E0E0E0] overflow-hidden">
+              <ModulesTree
+                groups={filteredGroups}
+                total={total}
+                moduleId={moduleId}
+                selectedFormCode={selectedFormCode}
+                collapsedGroups={collapsedGroups}
+                toggleGroup={toggleGroup}
+                setCollapsedGroups={setCollapsedGroups}
+                groupedCategories={groupedCategories}
+                activeGroupName={activeGroupName}
+                moduleCounts={moduleCounts}
+                treeSearch={treeSearch}
+                setTreeSearch={setTreeSearch}
+                onSelectAll={() => {
+                  setModuleId(undefined)
+                  setSelectedFormCode(undefined)
+                  setMobileFiltersOpen(false)
+                }}
+                onSelectModule={(c) => {
+                  const isFormCategory = c.moduleId >= 1_000_000
+                  if (isFormCategory) {
+                    setSelectedFormCode(c.moduleCode ?? undefined)
+                    setModuleId(undefined)
+                  } else {
+                    setModuleId(c.moduleId)
+                    setSelectedFormCode(undefined)
+                  }
+                  setMobileFiltersOpen(false)
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -648,7 +619,7 @@ const Section: React.FC<{
   children: React.ReactNode
 }> = ({ title, subtitle, icon, children }) => (
   <section className="mb-8">
-    <div className="sticky top-0 -mx-1 px-1 py-2 mb-3 bg-[#F5F5F5]/95 backdrop-blur z-10 flex items-baseline justify-between">
+    <div className="sticky top-0 -mx-1 px-1 py-2 mb-3 bg-white/95 backdrop-blur z-10 flex items-baseline justify-between border-b border-[#E0E0E0]">
       <h2 className="text-base font-semibold text-black/85 inline-flex items-center gap-2">
         {icon}
         {title}
@@ -668,7 +639,7 @@ const HorizontalStrip: React.FC<{
       <button
         key={img.imageId}
         onClick={() => onOpen(img)}
-        className="group relative shrink-0 w-44 h-32 rounded-xl overflow-hidden bg-black/5 ring-1 ring-black/5 hover:ring-[#487749]/40 transition-all"
+        className="group relative shrink-0 w-44 h-32 rounded-xl overflow-hidden bg-gray-100 border border-[#E0E0E0] hover:border-[#487749]/40 hover:shadow-md transition-all"
       >
         <img
           src={buildFileUrl(img.fileUrl)}
@@ -708,7 +679,7 @@ const Tile: React.FC<{
   return (
     <button
       onClick={() => onOpen(img)}
-      className="group relative mb-3 w-full break-inside-avoid rounded-xl overflow-hidden bg-black/5 ring-1 ring-black/5 hover:ring-[#487749]/50 hover:shadow-lg transition-all duration-200 block"
+      className="group relative mb-3 w-full break-inside-avoid rounded-xl overflow-hidden bg-gray-100 border border-[#E0E0E0] hover:border-[#487749]/40 hover:shadow-md transition-all duration-200 block"
     >
       <img
         src={buildFileUrl(img.fileUrl)}
@@ -737,7 +708,7 @@ const SkeletonGrid: React.FC<{ mode: ViewMode }> = ({ mode }) => {
       {heights.map((h, i) => (
         <div
           key={i}
-          className="mb-3 w-full rounded-xl bg-black/5 animate-pulse break-inside-avoid"
+          className="mb-3 w-full rounded-xl bg-gray-200 animate-pulse break-inside-avoid"
           style={{ height: h }}
         />
       ))}
@@ -751,8 +722,8 @@ const EmptyState: React.FC<{ activeChips: number; onClearAll: () => void }> = ({
 }) => (
   <div className="h-full flex items-center justify-center py-16">
     <div className="text-center max-w-sm">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-black/5 mb-4">
-        <ImageIcon className="w-7 h-7 text-black/30" />
+      <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#487749]/10 mb-4">
+        <ImageIcon className="w-7 h-7 text-[#487749]" />
       </div>
       <h3 className="text-base font-semibold text-black/80 mb-1">No images found</h3>
       <p className="text-sm text-black/50 mb-4">
@@ -794,7 +765,11 @@ const Lightbox: React.FC<{
       aria-modal="true"
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 text-white">
+      <div
+        className={`flex items-center justify-between px-4 py-3 text-white transition-[padding] duration-300 ${
+          showInfo ? 'sm:pr-[24rem]' : ''
+        }`}
+      >
         <div className="text-sm text-white/70">
           {index + 1} <span className="text-white/40">/ {total}</span>
         </div>
@@ -826,8 +801,12 @@ const Lightbox: React.FC<{
         </div>
       </div>
 
-      {/* Image area */}
-      <div className="flex-1 flex items-center justify-center px-4 relative min-h-0">
+      {/* Image area — shrinks to leave room for the details panel when open. */}
+      <div
+        className={`flex-1 flex items-center justify-center px-4 relative min-h-0 transition-[padding] duration-300 ${
+          showInfo ? 'sm:pr-96' : ''
+        }`}
+      >
         <button
           onClick={onPrev}
           className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
@@ -846,7 +825,9 @@ const Lightbox: React.FC<{
 
         <button
           onClick={onNext}
-          className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+          className={`absolute top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-[right] duration-300 ${
+            showInfo ? 'right-2 sm:right-[26rem]' : 'right-2 sm:right-6'
+          }`}
           aria-label="Next"
         >
           <ChevronRight className="w-6 h-6" />
@@ -914,6 +895,155 @@ const Lightbox: React.FC<{
     </div>
   )
 }
+
+interface ModulesTreeProps {
+  groups: Array<{ menuName: string; items: Array<{ moduleId: number; moduleCode: string | null; subMenuName: string; label: string }>; total: number }>
+  total: number
+  moduleId: number | undefined
+  selectedFormCode: string | undefined
+  collapsedGroups: Set<string>
+  toggleGroup: (menuName: string) => void
+  setCollapsedGroups: React.Dispatch<React.SetStateAction<Set<string>>>
+  groupedCategories: Array<{ menuName: string }>
+  activeGroupName: string | null
+  moduleCounts: Map<number, number>
+  treeSearch: string
+  setTreeSearch: (v: string) => void
+  onSelectAll: () => void
+  onSelectModule: (c: { moduleId: number; moduleCode: string | null }) => void
+}
+
+const ModulesTree: React.FC<ModulesTreeProps> = ({
+  groups,
+  total,
+  moduleId,
+  selectedFormCode,
+  collapsedGroups,
+  toggleGroup,
+  setCollapsedGroups,
+  groupedCategories,
+  activeGroupName,
+  moduleCounts,
+  treeSearch,
+  setTreeSearch,
+  onSelectAll,
+  onSelectModule,
+}) => (
+  <div className="flex flex-col h-full overflow-hidden">
+    <div className="px-3 py-3 border-b border-[#E0E0E0] bg-white space-y-2 sticky top-0">
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-[#757575]">
+          Modules &amp; Forms
+        </div>
+        {collapsedGroups.size > 0 ? (
+          <button
+            onClick={() => setCollapsedGroups(new Set())}
+            className="text-[10px] text-[#487749] hover:underline"
+          >
+            Expand all
+          </button>
+        ) : (
+          <button
+            onClick={() => setCollapsedGroups(new Set(groupedCategories.map(g => g.menuName)))}
+            className="text-[10px] text-[#9E9E9E] hover:text-[#212121] hover:underline"
+          >
+            Collapse all
+          </button>
+        )}
+      </div>
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E9E9E]" />
+        <input
+          value={treeSearch}
+          onChange={e => setTreeSearch(e.target.value)}
+          placeholder="Search modules..."
+          className="w-full pl-8 pr-7 py-1.5 text-sm bg-white border border-[#E0E0E0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749] placeholder-[#9E9E9E]"
+        />
+        {treeSearch && (
+          <button
+            onClick={() => setTreeSearch('')}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-[#F5F5F5] text-[#9E9E9E]"
+            aria-label="Clear modules search"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+    </div>
+    <div className="flex-1 overflow-y-auto">
+      <button
+        onClick={onSelectAll}
+        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+          moduleId === undefined && selectedFormCode === undefined
+            ? 'bg-[#487749]/10 text-[#3d6540] font-semibold'
+            : 'hover:bg-[#F5F5F5] text-[#212121]'
+        }`}
+      >
+        <span className="inline-flex items-center gap-2">
+          <ImageIcon className="w-4 h-4 opacity-60" /> All
+        </span>
+        <span className="text-xs text-[#9E9E9E]">{total}</span>
+      </button>
+      {groups.length === 0 && (
+        <div className="px-4 py-6 text-center text-xs text-[#9E9E9E]">No matches.</div>
+      )}
+      <div className="py-1">
+        {groups.map(group => {
+          const collapsed = collapsedGroups.has(group.menuName)
+          const groupActive = activeGroupName === group.menuName
+          return (
+            <div key={group.menuName} className="mb-0.5">
+              <button
+                onClick={() => toggleGroup(group.menuName)}
+                className={`w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+                  groupActive
+                    ? 'text-[#3d6540]'
+                    : 'text-[#757575] hover:text-[#212121] hover:bg-[#F5F5F5]'
+                }`}
+                aria-expanded={!collapsed}
+              >
+                <span className="inline-flex items-center gap-1.5 truncate">
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
+                  />
+                  <FolderOpen className="w-3.5 h-3.5 opacity-60" />
+                  <span className="truncate">{group.menuName}</span>
+                </span>
+                <span className={`text-[10px] font-medium ml-2 shrink-0 ${group.total === 0 ? 'text-[#BDBDBD]' : 'text-[#9E9E9E]'}`}>
+                  {group.total}
+                </span>
+              </button>
+              <div className={`overflow-hidden transition-all duration-200 ${collapsed ? 'max-h-0 opacity-0' : 'max-h-[1500px] opacity-100'}`}>
+                {group.items.map(c => {
+                  const count = moduleCounts.get(c.moduleId) ?? 0
+                  const isFormCategory = c.moduleId >= 1_000_000
+                  const active = isFormCategory ? selectedFormCode === c.moduleCode : moduleId === c.moduleId
+                  return (
+                    <button
+                      key={c.moduleId}
+                      onClick={() => onSelectModule(c)}
+                      className={`w-full flex items-center justify-between pl-9 pr-4 py-1.5 text-sm transition-colors ${
+                        active
+                          ? 'bg-[#487749]/10 text-[#3d6540] font-semibold border-l-2 border-[#487749]'
+                          : 'hover:bg-[#F5F5F5] text-[#212121] border-l-2 border-transparent'
+                      }`}
+                      title={c.subMenuName}
+                    >
+                      <span className="truncate text-left">{c.subMenuName}</span>
+                      <span className={`text-xs ml-2 shrink-0 ${count === 0 ? 'text-[#BDBDBD]' : 'text-[#9E9E9E]'}`}>
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  </div>
+)
 
 const DetailRow: React.FC<{ label: string; value: string; truncate?: boolean }> = ({ label, value, truncate }) => (
   <div className="min-w-0">
