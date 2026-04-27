@@ -41,8 +41,18 @@ const FORM_LABEL_OVERRIDES: Record<string, string> = {
     oft_result: 'OFT Result',
 }
 
-const FORMS_MENU_NAME = 'Form Attachments'
+// Maps a formCode to the sidebar group it should appear under. Falls back to
+// "Form Attachments" so unknown forms still show up.
+const FORM_MENU_BY_CODE: Record<string, string> = {
+    oft_result: 'Achievements',
+}
+
+const DEFAULT_FORMS_MENU_NAME = 'Form Attachments'
 const FORM_ID_OFFSET = 1_000_000
+
+function menuForFormCode(code: string): string {
+    return FORM_MENU_BY_CODE[code] ?? DEFAULT_FORMS_MENU_NAME
+}
 
 function humanizeFormCode(code: string): string {
     if (FORM_LABEL_OVERRIDES[code]) return FORM_LABEL_OVERRIDES[code]
@@ -145,7 +155,7 @@ export function useGallerySource(
         const formCategories: ModuleImageCategory[] = (formsListQuery.data ?? []).map((f) => ({
             moduleId: formCodeToId.get(f.formCode) ?? FORM_ID_OFFSET,
             moduleCode: f.formCode,
-            menuName: FORMS_MENU_NAME,
+            menuName: menuForFormCode(f.formCode),
             subMenuName: humanizeFormCode(f.formCode),
             label: humanizeFormCode(f.formCode),
         }))

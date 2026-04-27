@@ -492,7 +492,7 @@ export const Gallery: React.FC = () => {
                     >
                       {group.items.map(c => {
                         const count = moduleCounts.get(c.moduleId) ?? 0
-                        const isFormCategory = c.menuName === 'Form Attachments'
+                        const isFormCategory = c.moduleId >= 1_000_000
                         const active = isFormCategory
                           ? selectedFormCode === c.moduleCode
                           : moduleId === c.moduleId
@@ -780,7 +780,7 @@ const Lightbox: React.FC<{
   onNext: () => void
   onPrev: () => void
 }> = ({ img, index, total, onClose, onNext, onPrev }) => {
-  const [showInfo, setShowInfo] = useState(false)
+  const [showInfo, setShowInfo] = useState(true)
   const overlayRef = useRef<HTMLDivElement>(null)
 
   return (
