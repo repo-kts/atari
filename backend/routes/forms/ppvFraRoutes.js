@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const ppvFraController = require('../../controllers/forms/ppvFraController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const ppvFraController = require('../../controllers/forms/ppvFraController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

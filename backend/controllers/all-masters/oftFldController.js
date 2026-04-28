@@ -1,6 +1,6 @@
 const oftFldService = require('../../services/all-masters/oftFldService.js');
 const { DEFAULT_MASTER_LIST_PAGE_SIZE, normalizeListLimit } = require('../../constants/masterListPagination.js');
-const { asyncHandler } = require('../../utils/errorHandler');
+const { asyncHandler } = require('../../utils/errorHandler.js');
 
 /**
  * OFT & FLD Master Data Controller

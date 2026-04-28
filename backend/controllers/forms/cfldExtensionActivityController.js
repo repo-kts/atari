@@ -1,4 +1,4 @@
-const cfldExtensionActivityService = require('../../services/forms/cfldExtensionActivityService');
+const cfldExtensionActivityService = require('../../services/forms/cfldExtensionActivityService.js');
 
 const cfldExtensionActivityController = {
     getActivityTypes: async (req, res) => {

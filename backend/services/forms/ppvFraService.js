@@ -1,5 +1,5 @@
-const ppvFraTrainingRepository = require('../../repositories/forms/ppvFraTrainingRepository');
-const ppvFraPlantVarietiesRepository = require('../../repositories/forms/ppvFraPlantVarietiesRepository');
+const ppvFraTrainingRepository = require('../../repositories/forms/ppvFraTrainingRepository.js');
+const ppvFraPlantVarietiesRepository = require('../../repositories/forms/ppvFraPlantVarietiesRepository.js');
 const { createAttachmentBinding, createAttachmentAwareCrud } = require('./formAttachmentBinding.js');
 
 const plantVarietyCrud = createAttachmentAwareCrud({

@@ -1,4 +1,4 @@
-const exportHelper = require('../utils/exportHelper');
+const exportHelper = require('../utils/exportHelper.js');
 const reportTemplateService = require('../services/reports/reportTemplateService.js');
 const { getAllSections, getSectionByCustomTemplate } = require('../config/reportConfig.js');
 const { formatReportingYear } = require('../utils/reportingYearUtils.js');

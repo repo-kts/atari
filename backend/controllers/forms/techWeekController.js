@@ -1,5 +1,5 @@
 const techWeekRepository = require('../../repositories/forms/techWeekRepository.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 const techWeekController = {

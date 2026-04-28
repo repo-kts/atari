@@ -1,4 +1,4 @@
-const nariTrainingService = require('../../services/forms/nariTrainingService');
+const nariTrainingService = require('../../services/forms/nariTrainingService.js');
 
 const mapError = (error) => {
     const msg = String(error?.message || '');

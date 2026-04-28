@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const drmrActivityController = require('../../controllers/forms/drmrActivityController');
+const drmrActivityController = require('../../controllers/forms/drmrActivityController.js');
 const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);

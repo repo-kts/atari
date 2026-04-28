@@ -5,8 +5,8 @@ const {
     beneficiariesRepository,
     soilDataRepository,
     financialInfoRepository,
-} = require('../../repositories/forms/naturalFarmingRepository');
-const { farmersPracticingRepository } = require('../../repositories/forms/farmersPracticingRepository');
+} = require('../../repositories/forms/naturalFarmingRepository.js');
+const { farmersPracticingRepository } = require('../../repositories/forms/farmersPracticingRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 const { createAttachmentBinding, createAttachmentAwareCrud } = require('./formAttachmentBinding.js');
 

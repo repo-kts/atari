@@ -1,6 +1,6 @@
-const aryaCurrentYearRepository = require('../../repositories/forms/aryaCurrentYearRepository');
+const aryaCurrentYearRepository = require('../../repositories/forms/aryaCurrentYearRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
-const { createAttachmentBinding } = require('./formAttachmentBinding');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 
 const attachments = createAttachmentBinding({
     formCode: 'arya_current_year',

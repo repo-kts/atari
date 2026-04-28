@@ -1,5 +1,5 @@
-const meetingsRepository = require('../../repositories/forms/meetingsRepository');
-const { createAttachmentBinding } = require('./formAttachmentBinding');
+const meetingsRepository = require('../../repositories/forms/meetingsRepository.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 
 const sacAttachments = createAttachmentBinding({
     formCode: 'sac_meeting',

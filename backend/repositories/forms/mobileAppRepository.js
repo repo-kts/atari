@@ -4,7 +4,7 @@ const {
     RepositoryError,
     parseInteger,
     validateKvkExists,
-} = require('../../utils/repositoryHelpers');
+} = require('../../utils/repositoryHelpers.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
 const _mapResponse = (r) => {

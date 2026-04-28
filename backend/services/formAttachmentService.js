@@ -1,6 +1,6 @@
-const formAttachmentRepository = require('../repositories/formAttachmentRepository');
-const s3 = require('./storage/s3Service');
-const { ValidationError, NotFoundError, UnauthorizedError } = require('../utils/errorHandler');
+const formAttachmentRepository = require('../repositories/formAttachmentRepository.js');
+const s3 = require('./storage/s3Service.js');
+const { ValidationError, NotFoundError, UnauthorizedError } = require('../utils/errorHandler.js');
 
 const KIND = { PHOTO: 'PHOTO', DATASHEET: 'DATASHEET', DOCUMENT: 'DOCUMENT' };
 

@@ -28,7 +28,7 @@ const {
   PageOrientation,
 } = require('docx');
 
-const { generatePDF } = require('./exportHelper');
+const { generatePDF } = require('./exportHelper.js');
 
 const REPORT_TITLE = 'Technical Achievement Summary';
 

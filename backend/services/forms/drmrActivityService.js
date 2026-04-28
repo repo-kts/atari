@@ -1,4 +1,4 @@
-const drmrActivityRepository = require('../../repositories/forms/drmrActivityRepository');
+const drmrActivityRepository = require('../../repositories/forms/drmrActivityRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const drmrActivityService = {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const nicraService = require('../../services/forms/nicraService');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const nicraService = require('../../services/forms/nicraService.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

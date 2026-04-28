@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const demonstrationUnitRepository = require('../../repositories/forms/demonstrationUnitRepository');
-const instructionalFarmCropRepository = require('../../repositories/forms/instructionalFarmCropRepository');
-const productionUnitRepository = require('../../repositories/forms/productionUnitRepository');
-const instructionalFarmLivestockRepository = require('../../repositories/forms/instructionalFarmLivestockRepository');
-const hostelUtilizationRepository = require('../../repositories/forms/hostelUtilizationRepository');
-const staffQuartersUtilizationRepository = require('../../repositories/forms/staffQuartersUtilizationRepository');
-const rainwaterHarvestingRepository = require('../../repositories/forms/rainwaterHarvestingRepository');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const demonstrationUnitRepository = require('../../repositories/forms/demonstrationUnitRepository.js');
+const instructionalFarmCropRepository = require('../../repositories/forms/instructionalFarmCropRepository.js');
+const productionUnitRepository = require('../../repositories/forms/productionUnitRepository.js');
+const instructionalFarmLivestockRepository = require('../../repositories/forms/instructionalFarmLivestockRepository.js');
+const hostelUtilizationRepository = require('../../repositories/forms/hostelUtilizationRepository.js');
+const staffQuartersUtilizationRepository = require('../../repositories/forms/staffQuartersUtilizationRepository.js');
+const rainwaterHarvestingRepository = require('../../repositories/forms/rainwaterHarvestingRepository.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 const { sendFormRouteError } = require('../../utils/errorHandler.js');
-const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
 
 // All routes require authentication
 router.use(authenticateToken);

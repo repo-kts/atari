@@ -1,4 +1,4 @@
-const fpoCbboDetailsRepository = require('../../repositories/forms/fpoCbboDetailsRepository');
+const fpoCbboDetailsRepository = require('../../repositories/forms/fpoCbboDetailsRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const fpoCbboDetailsService = {

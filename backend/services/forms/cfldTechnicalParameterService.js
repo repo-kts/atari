@@ -1,4 +1,4 @@
-const cfldTechnicalParameterRepository = require('../../repositories/forms/cfldTechnicalParameterRepository');
+const cfldTechnicalParameterRepository = require('../../repositories/forms/cfldTechnicalParameterRepository.js');
 const prisma = require('../../config/prisma.js');
 const { ValidationError, NotFoundError, UnauthorizedError } = require('../../utils/errorHandler.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');

@@ -1,4 +1,4 @@
-const kvkOtherProgrammeRepository = require('../../repositories/forms/kvkOtherProgrammeRepository');
+const kvkOtherProgrammeRepository = require('../../repositories/forms/kvkOtherProgrammeRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const kvkOtherProgrammeService = {

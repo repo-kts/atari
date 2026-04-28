@@ -1,4 +1,4 @@
-const seedHubService = require('../../services/forms/seedHubService');
+const seedHubService = require('../../services/forms/seedHubService.js');
 
 const seedHubController = {
     getAll: async (req, res) => {

@@ -1,5 +1,5 @@
 const hrdService = require('../../services/forms/hrdService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const hrdController = {
     /**

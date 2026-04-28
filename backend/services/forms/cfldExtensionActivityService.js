@@ -1,4 +1,4 @@
-const cfldExtensionActivityRepository = require('../../repositories/forms/cfldExtensionActivityRepository');
+const cfldExtensionActivityRepository = require('../../repositories/forms/cfldExtensionActivityRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const cfldExtensionActivityService = {

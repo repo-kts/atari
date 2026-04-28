@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 // Staff Masters
 const STAFF_CATEGORIES = [

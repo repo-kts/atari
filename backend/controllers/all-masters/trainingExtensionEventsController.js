@@ -1,6 +1,6 @@
 const trainingExtensionEventsService = require('../../services/all-masters/trainingExtensionEventsService.js');
 const { DEFAULT_MASTER_LIST_PAGE_SIZE, normalizeListLimit } = require('../../constants/masterListPagination.js');
-const { asyncHandler } = require('../../utils/errorHandler');
+const { asyncHandler } = require('../../utils/errorHandler.js');
 
 /**
  * Training, Extension & Events Master Data Controller

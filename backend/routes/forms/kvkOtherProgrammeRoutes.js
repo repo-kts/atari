@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const kvkOtherProgrammeService = require('../../services/forms/kvkOtherProgrammeService');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const kvkOtherProgrammeService = require('../../services/forms/kvkOtherProgrammeService.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

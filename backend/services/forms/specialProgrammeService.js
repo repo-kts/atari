@@ -1,4 +1,4 @@
-const specialProgrammeRepository = require('../../repositories/forms/specialProgrammeRepository');
+const specialProgrammeRepository = require('../../repositories/forms/specialProgrammeRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const specialProgrammeService = {

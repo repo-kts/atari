@@ -1,5 +1,5 @@
-const raweFetRepository = require('../../repositories/forms/raweFetRepository');
-const { createAttachmentBinding } = require('./formAttachmentBinding');
+const raweFetRepository = require('../../repositories/forms/raweFetRepository.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 
 const attachments = createAttachmentBinding({
     formCode: 'rawe_fet',

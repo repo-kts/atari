@@ -1,4 +1,4 @@
-const vipVisitorsService = require('../../services/forms/vipVisitorsService');
+const vipVisitorsService = require('../../services/forms/vipVisitorsService.js');
 
 const vipVisitorsController = {
     findAll: async (req, res) => {

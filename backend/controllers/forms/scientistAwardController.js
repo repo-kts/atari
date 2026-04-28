@@ -1,5 +1,5 @@
 const scientistAwardService = require('../../services/forms/scientistAwardService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const scientistAwardController = {
     /**

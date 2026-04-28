@@ -9,7 +9,7 @@ const {
     validateFldExists,
     resolveStaffId,
     resolveOtherExtensionActivityTypeId,
-} = require('../../utils/repositoryHelpers');
+} = require('../../utils/repositoryHelpers.js');
 
 const otherExtensionActivityRepository = {
     create: async (data, opts, user) => {

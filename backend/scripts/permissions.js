@@ -4,7 +4,7 @@
  * Run: node scripts/permissions.js   or   npm run seed:permissions
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 const PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 

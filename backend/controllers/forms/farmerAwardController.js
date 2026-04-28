@@ -1,5 +1,5 @@
 const farmerAwardService = require('../../services/forms/farmerAwardService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const farmerAwardController = {
     /**

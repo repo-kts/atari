@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const formAttachmentController = require('../controllers/formAttachmentController');
+const formAttachmentController = require('../controllers/formAttachmentController.js');
 const { authenticateToken, requireRole } = require('../middleware/auth.js');
 
 const kvkRoles = ['kvk_admin', 'kvk_user', 'kvk_staff'];

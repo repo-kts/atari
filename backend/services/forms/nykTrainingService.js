@@ -1,4 +1,4 @@
-const nykTrainingRepository = require('../../repositories/forms/nykTrainingRepository');
+const nykTrainingRepository = require('../../repositories/forms/nykTrainingRepository.js');
 
 const nykTrainingService = {
     create: async (data, user) => {

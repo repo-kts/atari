@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const hrdController = require('../../controllers/forms/hrdController');
+const hrdController = require('../../controllers/forms/hrdController.js');
 const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication

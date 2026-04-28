@@ -1,5 +1,5 @@
 const mobileAppService = require('../../services/forms/mobileAppService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const mobileAppController = {
     create: async (req, res) => {

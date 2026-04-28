@@ -5,7 +5,7 @@ const {
     parseInteger,
     validateKvkExists,
     validateUUID,
-} = require('../../utils/repositoryHelpers');
+} = require('../../utils/repositoryHelpers.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 

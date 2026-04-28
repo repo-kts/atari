@@ -1,5 +1,5 @@
 const webPortalRepository = require('../../repositories/forms/webPortalRepository.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 class WebPortalService {
     async create(data, user) {

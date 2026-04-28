@@ -1,4 +1,4 @@
-const vipVisitorsRepository = require('../../repositories/forms/vipVisitorsRepository');
+const vipVisitorsRepository = require('../../repositories/forms/vipVisitorsRepository.js');
 
 const vipVisitorsService = {
     create: async (data, user) => {

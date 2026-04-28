@@ -11,8 +11,8 @@
  * Run: node scripts/seed-kvk-data.js   or   npm run seed:kvk
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
-const { hashPassword } = require('../utils/password');
+const prisma = require('../config/prisma.js');
+const { hashPassword } = require('../utils/password.js');
 
 // Helper function to get or create master data
 async function getOrCreateZone(name) {

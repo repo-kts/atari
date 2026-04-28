@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const prevalentDiseaseController = require('../../controllers/forms/prevalentDiseaseController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const prevalentDiseaseController = require('../../controllers/forms/prevalentDiseaseController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

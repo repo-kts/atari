@@ -1,5 +1,5 @@
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
-const { reportConfig } = require('../config/reportConfig');
+const { reportConfig } = require('../config/reportConfig.js');
 
 /**
  * Injects a CSS-based footer into an HTML string.

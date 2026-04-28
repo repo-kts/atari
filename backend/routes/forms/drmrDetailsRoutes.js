@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const drmrDetailsController = require('../../controllers/forms/drmrDetailsController');
+const drmrDetailsController = require('../../controllers/forms/drmrDetailsController.js');
 const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication

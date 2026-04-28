@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const kvkImpactActivityRepository = require('../../repositories/forms/kvkImpactActivityRepository');
-const entrepreneurshipRepository = require('../../repositories/forms/entrepreneurshipRepository');
-const successStoryRepository = require('../../repositories/forms/successStoryRepository');
-const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const kvkImpactActivityRepository = require('../../repositories/forms/kvkImpactActivityRepository.js');
+const entrepreneurshipRepository = require('../../repositories/forms/entrepreneurshipRepository.js');
+const successStoryRepository = require('../../repositories/forms/successStoryRepository.js');
+const reportCacheInvalidationService = require('../../services/reports/reportCacheInvalidationService.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 const { sendFormRouteError } = require('../../utils/errorHandler.js');
 
 // All routes require authentication

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository');
-const specialProgrammeRepository = require('../../repositories/forms/specialProgrammeRepository');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository.js');
+const specialProgrammeRepository = require('../../repositories/forms/specialProgrammeRepository.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const cfldBudgetUtilizationController = require('../../controllers/forms/cfldBudgetUtilizationController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const cfldBudgetUtilizationController = require('../../controllers/forms/cfldBudgetUtilizationController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

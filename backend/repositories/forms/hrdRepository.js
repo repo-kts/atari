@@ -7,7 +7,7 @@ const {
     validateKvkExists,
     validateUUID,
     resolveStaffId,
-} = require('../../utils/repositoryHelpers');
+} = require('../../utils/repositoryHelpers.js');
 
 /**
  * HRD Program Repository

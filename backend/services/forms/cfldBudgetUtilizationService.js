@@ -1,4 +1,4 @@
-const cfldBudgetUtilizationRepository = require('../../repositories/forms/cfldBudgetUtilizationRepository');
+const cfldBudgetUtilizationRepository = require('../../repositories/forms/cfldBudgetUtilizationRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const cfldBudgetUtilizationService = {

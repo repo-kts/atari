@@ -1,4 +1,4 @@
-const raweFetService = require('../../services/forms/raweFetService');
+const raweFetService = require('../../services/forms/raweFetService.js');
 
 const makeResponder = (res) => ({
     ok: (data) => res.json({ success: true, data }),

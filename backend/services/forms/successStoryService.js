@@ -1,4 +1,4 @@
-const successStoryRepository = require('../../repositories/forms/successStoryRepository');
+const successStoryRepository = require('../../repositories/forms/successStoryRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 const { createAttachmentBinding, createAttachmentAwareCrud } = require('./formAttachmentBinding.js');
 

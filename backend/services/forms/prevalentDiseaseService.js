@@ -1,5 +1,5 @@
-const prevalentDiseaseCropRepository = require('../../repositories/forms/prevalentDiseaseCropRepository');
-const prevalentDiseaseLivestockRepository = require('../../repositories/forms/prevalentDiseaseLivestockRepository');
+const prevalentDiseaseCropRepository = require('../../repositories/forms/prevalentDiseaseCropRepository.js');
+const prevalentDiseaseLivestockRepository = require('../../repositories/forms/prevalentDiseaseLivestockRepository.js');
 
 const prevalentDiseaseService = {
     // Crops

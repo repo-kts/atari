@@ -1,4 +1,4 @@
-const cfldBudgetUtilizationService = require('../../services/forms/cfldBudgetUtilizationService');
+const cfldBudgetUtilizationService = require('../../services/forms/cfldBudgetUtilizationService.js');
 
 const cfldBudgetUtilizationController = {
     create: async (req, res) => {

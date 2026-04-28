@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const meetingsController = require('../../controllers/forms/meetingsController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const meetingsController = require('../../controllers/forms/meetingsController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // Use auth middleware for all routes
 router.use(authenticateToken);

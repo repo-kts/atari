@@ -1,4 +1,4 @@
-const formAttachmentService = require('../formAttachmentService');
+const formAttachmentService = require('../formAttachmentService.js');
 
 const KIND_KEY = {
     PHOTO: 'photos',

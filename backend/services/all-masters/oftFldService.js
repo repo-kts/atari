@@ -1,6 +1,6 @@
 const oftFldRepository = require('../../repositories/all-masters/oftFldRepository.js');
 const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
-const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
+const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 /**
  * OFT & FLD Master Data Service

@@ -1,5 +1,5 @@
 const kmasRepository = require('../../repositories/forms/kmasRepository.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 class KmasService {
     async create(data, user) {
