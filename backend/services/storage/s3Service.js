@@ -1,5 +1,5 @@
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const {
     S3Client,
     PutObjectCommand,
@@ -52,7 +52,7 @@ function buildAttachmentKey({ formCode, fileName, mimeType }) {
         throw new ValidationError('Invalid formCode for attachment');
     }
     const ext = sanitizeExt(fileName, mimeType);
-    const id = uuidv4();
+    const id = randomUUID();
     return `forms/${formCode}/${id}.${ext}`;
 }
 

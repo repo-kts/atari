@@ -56,6 +56,7 @@ const digitalInformationRoutes = require('./forms/digitalInformationRoutes.js');
 const tspScspRoutes = require('./forms/tspScspRoutes.js');
 const reportRoutes = require('./reports/reportRoutes.js');
 const formSummaryRoutes = require('./formSummaryRoutes.js');
+const formAttachmentRoutes = require('./formAttachmentRoutes.js');
 const { validateFormRobustness } = require('../middleware/validateFormRobustness.js');
 
 // Mount routes
@@ -71,7 +72,7 @@ router.use('/admin/masters', exportRoutes);
 router.use('/users', userRoutes);
 // Form attachments (S3-backed) — mounted before validateFormRobustness because
 // the body shape (s3Key, kind, size) is not a form payload.
-router.use('/forms/attachments', require('./formAttachmentRoutes.js'));
+router.use('/forms/attachments', formAttachmentRoutes);
 // Robust payload validation for all form saves (numbers + dates).
 router.use('/forms', validateFormRobustness);
 router.use('/forms', normalizeReportingYearRequest);
