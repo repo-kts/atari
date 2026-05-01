@@ -37,7 +37,7 @@ const STAFF_ALLOWED_KEYS = [
     'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
     'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScaleId', 'dateOfJoining',
     'jobType', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
-    'staffCategoryId', 'payLevelId',
+    'staffCategoryId', 'payLevelId', 'attachmentIds',
 ] as const;
 
 const INFRASTRUCTURE_ALLOWED_KEYS = [

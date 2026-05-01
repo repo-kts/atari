@@ -25,13 +25,12 @@ const KNOWN_GALLERY_FORM_CODES = [
     'natural_farming_demo',
     'ppv_fra',
     'success_story',
+    'kvk_staff',
 ];
 
 // Form codes that should NEVER appear in the gallery sidebar even if rows
-// exist in the DB (e.g. KVK staff photos are admin-internal, not gallery
-// content; Natural Farming Farmers Practicing is excluded by request).
+// exist in the DB (Natural Farming Farmers Practicing is excluded by request).
 const HIDDEN_GALLERY_FORM_CODES = new Set([
-    'kvk_staff',
     'natural_farming_farmers',
 ]);
 
