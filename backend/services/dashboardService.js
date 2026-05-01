@@ -132,6 +132,8 @@ const dashboardService = {
     const trainingWhere = { ...achKvk, ...trainingDateClause(yearMode) };
     const extensionWhere = { ...achKvk, ...extensionDateClause(yearMode) };
 
+    const now = new Date();
+
     const currentYear = new Date().getFullYear();
     const yearOptions = Array.from({ length: 20 }, (_, i) => currentYear - i);
 
@@ -149,12 +151,14 @@ const dashboardService = {
       trainingTotal,
       extensionSum,
       staffTotal,
-      oftGroup,
+      oftStatusGroup,
       oftCompletedGroup,
-      fldGroup,
+      fldStatusGroup,
       fldCompletedGroup,
       trainingGroup,
       extensionGroup,
+      trainingCompletedGroup,
+      extensionCompletedGroup,
       staffPostGroups,
       recentLogs,
     ] = await Promise.all([
@@ -175,7 +179,7 @@ const dashboardService = {
         where: buildStaffWhere(listWhere),
       }),
       prisma.kvkoft.groupBy({
-        by: ['kvkId'],
+        by: ['kvkId', 'status'],
         where: oftWhere,
         _count: { _all: true },
       }),
@@ -185,7 +189,7 @@ const dashboardService = {
         _count: { _all: true },
       }),
       prisma.kvkFldIntroduction.groupBy({
-        by: ['kvkId'],
+        by: ['kvkId', 'ongoingCompleted'],
         where: fldWhere,
         _count: { _all: true },
       }),
@@ -202,6 +206,16 @@ const dashboardService = {
       prisma.kvkExtensionActivity.groupBy({
         by: ['kvkId'],
         where: extensionWhere,
+        _sum: { numberOfActivities: true },
+      }),
+      prisma.trainingAchievement.groupBy({
+        by: ['kvkId'],
+        where: { ...trainingWhere, endDate: { lt: now } },
+        _count: { _all: true },
+      }),
+      prisma.kvkExtensionActivity.groupBy({
+        by: ['kvkId'],
+        where: { ...extensionWhere, endDate: { lt: now } },
         _sum: { numberOfActivities: true },
       }),
       prisma.kvkStaff.groupBy({
@@ -229,21 +243,69 @@ const dashboardService = {
       orderBy: [{ kvkName: 'asc' }, { kvkId: 'asc' }],
     });
 
-    const oftCreatedByKvk = countMapFromGroup(oftGroup);
     const oftCompletedByKvk = countMapFromGroup(oftCompletedGroup);
-    const fldCreatedByKvk = countMapFromGroup(fldGroup);
     const fldCompletedByKvk = countMapFromGroup(fldCompletedGroup);
     const trainAch = new Map(trainingGroup.map((g) => [g.kvkId, g._count._all]));
     const extAch = new Map(extensionGroup.map((g) => [g.kvkId, toNumber(g._sum?.numberOfActivities)]));
 
+    function buildStatusMap(rows, statusKey, mapping) {
+      const m = new Map();
+      for (const r of rows) {
+        const slot = mapping[r[statusKey]];
+        if (!slot) continue;
+        const cur = m.get(r.kvkId) || { ongoing: 0, completed: 0, notStarted: 0 };
+        cur[slot] += toNumber(r._count?._all);
+        m.set(r.kvkId, cur);
+      }
+      return m;
+    }
+
+    const oftStatusByKvk = buildStatusMap(oftStatusGroup, 'status', {
+      ONGOING: 'ongoing',
+      COMPLETED: 'completed',
+      TRANSFERRED_TO_NEXT_YEAR: 'ongoing',
+    });
+    const fldStatusByKvk = buildStatusMap(fldStatusGroup, 'ongoingCompleted', {
+      ONGOING: 'ongoing',
+      COMPLETED: 'completed',
+      TRANSFERRED_TO_NEXT_YEAR: 'ongoing',
+    });
+
+    const trainingCompletedByKvk = new Map(
+      trainingCompletedGroup.map((g) => [g.kvkId, toNumber(g._count?._all)])
+    );
+    const extensionCompletedByKvk = new Map(
+      extensionCompletedGroup.map((g) => [g.kvkId, toNumber(g._sum?.numberOfActivities)])
+    );
+
+    function emptySegments() {
+      return { ongoing: 0, completed: 0, notStarted: 0 };
+    }
+
     const perKvk = kvkRows.map((k) => {
       const oid = k.kvkId;
-      const oftCreated = toNumber(oftCreatedByKvk.get(oid));
+      const oftSegRaw = oftStatusByKvk.get(oid) || emptySegments();
+      const oftCreated = oftSegRaw.ongoing + oftSegRaw.completed;
       const oftCompleted = toNumber(oftCompletedByKvk.get(oid));
-      const fldCreated = toNumber(fldCreatedByKvk.get(oid));
+      const oftSeg = {
+        ongoing: oftSegRaw.ongoing,
+        completed: oftSegRaw.completed,
+        notStarted: oftCreated === 0 ? 1 : 0,
+      };
+      const fldSegRaw = fldStatusByKvk.get(oid) || emptySegments();
+      const fldCreated = fldSegRaw.ongoing + fldSegRaw.completed;
       const fldCompleted = toNumber(fldCompletedByKvk.get(oid));
+      const fldSeg = {
+        ongoing: fldSegRaw.ongoing,
+        completed: fldSegRaw.completed,
+        notStarted: fldCreated === 0 ? 1 : 0,
+      };
       const trainC = toNumber(trainAch.get(oid));
       const extC = toNumber(extAch.get(oid));
+      const trainCompleted = toNumber(trainingCompletedByKvk.get(oid));
+      const trainOngoing = Math.max(trainC - trainCompleted, 0);
+      const extCompleted = toNumber(extensionCompletedByKvk.get(oid));
+      const extOngoing = Math.max(extC - extCompleted, 0);
 
       return {
         kvkId: oid,
@@ -252,19 +314,31 @@ const dashboardService = {
           completed: oftCompleted,
           created: oftCreated,
           status: computeOftFldStatus(oftCompleted, oftCreated),
+          segments: oftSeg,
         },
         fld: {
           completed: fldCompleted,
           created: fldCreated,
           status: computeOftFldStatus(fldCompleted, fldCreated),
+          segments: fldSeg,
         },
         training: {
           count: trainC,
           status: trainC > 0 ? 'active' : 'pending',
+          segments: {
+            ongoing: trainOngoing,
+            completed: trainCompleted,
+            notStarted: trainC === 0 ? 1 : 0,
+          },
         },
         extension: {
           count: extC,
           status: extC > 0 ? 'active' : 'pending',
+          segments: {
+            ongoing: extOngoing,
+            completed: extCompleted,
+            notStarted: extC === 0 ? 1 : 0,
+          },
         },
       };
     });
