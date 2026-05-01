@@ -21,6 +21,7 @@ import {
     DashboardKpiSkeleton,
     DashboardPanelsSkeleton,
 } from './shared/DashboardSkeletons'
+import { StatChartPanel } from './shared/StatChartPanel'
 
 const getProgressColor = (status: string) => {
     switch (status) {
@@ -38,22 +39,6 @@ const getProgressColor = (status: string) => {
     }
 }
 
-const getBadgeColor = (status: string) => {
-    switch (status) {
-        case 'complete':
-        case 'active':
-            return 'bg-[#E8F5E9] text-[#487749] border border-[#C8E6C9]'
-        case 'in-progress':
-            return 'bg-[#F1F8E9] text-[#487749] border border-[#DCEDC8]'
-        case 'over':
-            return 'bg-[#FFF3E0] text-[#F57C00] border border-[#FFE0B2]'
-        case 'pending':
-            return 'bg-[#F5F5F5] text-[#757575] border border-[#E0E0E0]'
-        default:
-            return 'bg-[#F5F5F5] text-[#757575] border border-[#E0E0E0]'
-    }
-}
-
 function formatLogTime(iso: string) {
     try {
         const d = new Date(iso)
@@ -64,11 +49,6 @@ function formatLogTime(iso: string) {
     } catch {
         return iso
     }
-}
-
-function progressCompletedOverCreated(completed: number, created: number) {
-    if (created <= 0) return 0
-    return Math.min((completed / created) * 100, 100)
 }
 
 export const SuperAdminDashboard: React.FC = () => {
@@ -278,190 +258,64 @@ export const SuperAdminDashboard: React.FC = () => {
                     <div
                         className={`grid grid-cols-1 lg:grid-cols-2 gap-3 transition-opacity ${isFetching ? 'opacity-70' : ''}`}
                     >
-                        <Card className="border-[#E0E0E0] shadow-none">
-                            <CardContent className="p-0">
-                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
-                                        OFT progress
-                                    </h3>
-                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
-                                        Completed OFTs vs total created (same
-                                        scope as filters)
-                                    </p>
-                                </div>
-                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
-                                    {data.perKvk.map(row => {
-                                        const progress =
-                                            progressCompletedOverCreated(
-                                                row.oft.completed,
-                                                row.oft.created
-                                            )
-                                        return (
-                                            <div
-                                                key={row.kvkId}
-                                                className="space-y-1"
-                                            >
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <span className="text-xs font-bold text-[#212121] line-clamp-2">
-                                                        {row.kvkName}
-                                                    </span>
-                                                    <div className="text-right shrink-0">
-                                                        <span
-                                                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${getBadgeColor(row.oft.status)}`}
-                                                        >
-                                                            {row.oft.completed}{' '}
-                                                            / {row.oft.created}
-                                                        </span>
-                                                        <p className="text-[9px] text-[#757575] mt-0.5 leading-tight">
-                                                            completed / created
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${getProgressColor(row.oft.status)} transition-all duration-700 ease-out`}
-                                                        style={{
-                                                            width: `${progress}%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-[#E0E0E0] shadow-none">
-                            <CardContent className="p-0">
-                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
-                                        FLD progress
-                                    </h3>
-                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
-                                        Completed FLDs vs total created
-                                    </p>
-                                </div>
-                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
-                                    {data.perKvk.map(row => {
-                                        const progress =
-                                            progressCompletedOverCreated(
-                                                row.fld.completed,
-                                                row.fld.created
-                                            )
-                                        return (
-                                            <div
-                                                key={row.kvkId}
-                                                className="space-y-1"
-                                            >
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <span className="text-xs font-bold text-[#212121] line-clamp-2">
-                                                        {row.kvkName}
-                                                    </span>
-                                                    <div className="text-right shrink-0">
-                                                        <span
-                                                            className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${getBadgeColor(row.fld.status)}`}
-                                                        >
-                                                            {row.fld.completed}{' '}
-                                                            / {row.fld.created}
-                                                        </span>
-                                                        <p className="text-[9px] text-[#757575] mt-0.5 leading-tight">
-                                                            completed / created
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
-                                                    <div
-                                                        className={`h-1.5 rounded-full ${getProgressColor(row.fld.status)} transition-all duration-700 ease-out`}
-                                                        style={{
-                                                            width: `${progress}%`,
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-[#E0E0E0] shadow-none">
-                            <CardContent className="p-0">
-                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
-                                        Training
-                                    </h3>
-                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
-                                        Count
-                                    </p>
-                                </div>
-                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
-                                    {data.perKvk.map(row => (
-                                        <div
-                                            key={row.kvkId}
-                                            className="space-y-1"
-                                        >
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs font-bold text-[#212121] line-clamp-2">
-                                                    {row.kvkName}
-                                                </span>
-                                                <span
-                                                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${getBadgeColor(row.training.status)}`}
-                                                >
-                                                    {row.training.count}{' '}
-                                                    sessions
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
-                                                <div
-                                                    className={`h-1.5 rounded-full ${getProgressColor(row.training.status)} transition-all duration-700`}
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="border-[#E0E0E0] shadow-none">
-                            <CardContent className="p-0">
-                                <div className="border-b border-[#E0E0E0] bg-[#FAF9F6]">
-                                    <h3 className="text-xs font-bold text-[#487749] uppercase tracking-wider">
-                                        Extension activities
-                                    </h3>
-                                    <p className="text-[10px] text-[#757575] mt-0.5 mb-1">
-                                        Count
-                                    </p>
-                                </div>
-                                <div className="space-y-3 max-h-[min(420px,50vh)] overflow-y-auto">
-                                    {data.perKvk.map(row => (
-                                        <div
-                                            key={row.kvkId}
-                                            className="space-y-1"
-                                        >
-                                            <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs font-bold text-[#212121] line-clamp-2">
-                                                    {row.kvkName}
-                                                </span>
-                                                <span
-                                                    className={`px-2 py-0.5 rounded-md text-[11px] font-bold shrink-0 ${getBadgeColor(row.extension.status)}`}
-                                                >
-                                                    {row.extension.count}{' '}
-                                                    activities
-                                                </span>
-                                            </div>
-                                            <div className="w-full bg-[#F5F5F5] rounded-full h-1.5 border border-[#E0E0E0]/50">
-                                                <div
-                                                    className={`h-1.5 rounded-full ${getProgressColor(row.extension.status)} transition-all duration-700`}
-                                                    style={{ width: '100%' }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <StatChartPanel
+                            title="OFT progress"
+                            subtitle="Ongoing, completed; not started = KVK with no entries"
+                            mode="pair"
+                            primaryLabel="completed"
+                            secondaryLabel="created"
+                            rows={data.perKvk.map(r => ({
+                                id: r.kvkId,
+                                name: r.kvkName,
+                                status: r.oft.status,
+                                primary: r.oft.completed,
+                                secondary: r.oft.created,
+                                segments: r.oft.segments,
+                            }))}
+                        />
+                        <StatChartPanel
+                            title="FLD progress"
+                            subtitle="Ongoing, completed; not started = KVK with no entries"
+                            mode="pair"
+                            primaryLabel="completed"
+                            secondaryLabel="created"
+                            rows={data.perKvk.map(r => ({
+                                id: r.kvkId,
+                                name: r.kvkName,
+                                status: r.fld.status,
+                                primary: r.fld.completed,
+                                secondary: r.fld.created,
+                                segments: r.fld.segments,
+                            }))}
+                        />
+                        <StatChartPanel
+                            title="Training"
+                            subtitle="Ongoing, completed; not started = KVK with no entries"
+                            mode="count"
+                            primaryLabel="sessions"
+                            unit="sessions"
+                            rows={data.perKvk.map(r => ({
+                                id: r.kvkId,
+                                name: r.kvkName,
+                                status: r.training.status,
+                                primary: r.training.count,
+                                segments: r.training.segments,
+                            }))}
+                        />
+                        <StatChartPanel
+                            title="Extension activities"
+                            subtitle="Ongoing, completed; not started = KVK with no entries"
+                            mode="count"
+                            primaryLabel="activities"
+                            unit="activities"
+                            rows={data.perKvk.map(r => ({
+                                id: r.kvkId,
+                                name: r.kvkName,
+                                status: r.extension.status,
+                                primary: r.extension.count,
+                                segments: r.extension.segments,
+                            }))}
+                        />
                     </div>
 
                     <div

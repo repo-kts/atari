@@ -5,13 +5,29 @@ export interface DashboardKvkOption {
   kvkName: string
 }
 
+export interface DashboardSegments {
+  ongoing: number
+  completed: number
+  notStarted: number
+}
+
 export interface DashboardPerKvkRow {
   kvkId: number
   kvkName: string
-  oft: { completed: number; created: number; status: string }
-  fld: { completed: number; created: number; status: string }
-  training: { count: number; status: string }
-  extension: { count: number; status: string }
+  oft: {
+    completed: number
+    created: number
+    status: string
+    segments: DashboardSegments
+  }
+  fld: {
+    completed: number
+    created: number
+    status: string
+    segments: DashboardSegments
+  }
+  training: { count: number; status: string; segments: DashboardSegments }
+  extension: { count: number; status: string; segments: DashboardSegments }
 }
 
 export interface DashboardStaffPost {
