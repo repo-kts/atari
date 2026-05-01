@@ -29,63 +29,6 @@ const sections: FeatureSection[] = [
         ],
     },
     {
-        title: 'Climate Resilient Agriculture (CRA)',
-        icon: <Sun className="w-5 h-5" />,
-        items: [
-            { label: 'CRA Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.DETAILS },
-            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY },
-        ],
-    },
-    {
-        title: 'FPO And CBBO',
-        icon: <Users className="w-5 h-5" />,
-        items: [
-            { label: 'Details FPO and CBBO', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.DETAILS },
-            { label: 'FPO Management', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.MANAGEMENT },
-        ],
-    },
-    {
-        title: 'DRMR',
-        icon: <FlaskConical className="w-5 h-5" />,
-        items: [
-            { label: 'DRMR Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS },
-            { label: 'DRMR Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY },
-        ],
-    },
-    {
-        title: 'NARI',
-        icon: <Utensils className="w-5 h-5" />,
-        items: [
-            { label: 'Nutrition Garden', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART },
-            { label: 'Bio-fortified Crops', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED },
-            { label: 'Value Addition', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION },
-            { label: 'Training Program', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM },
-            { label: 'Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES },
-        ],
-    },
-    {
-        title: 'ARYA',
-        icon: <UserCheck className="w-5 h-5" />,
-        items: [
-            { label: 'Current Year Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.CURRENT },
-            { label: 'Previous Year Evaluation', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.EVALUATION },
-        ],
-    },
-    {
-        title: 'CSISA',
-        icon: <Building2 className="w-5 h-5" />,
-        items: [
-            { label: 'CSISA', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA },
-        ],
-    },
-    {
-        title: 'TSP/SCSP',
-        icon: <FileText className="w-5 h-5" />,
-        items: [
-            { label: 'TSP/SCSP', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP },
-        ],
-    },
-    {
         title: 'NICRA',
         icon: <Thermometer className="w-5 h-5" />,
         items: [
@@ -110,6 +53,14 @@ const sections: FeatureSection[] = [
         ],
     },
     {
+        title: 'ARYA / SAFAL',
+        icon: <UserCheck className="w-5 h-5" />,
+        items: [
+            { label: 'Current Year Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.CURRENT },
+            { label: 'Previous Year Evaluation', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.ARYA.EVALUATION },
+        ],
+    },
+    {
         title: 'Natural Farming',
         icon: <Sprout className="w-5 h-5" />,
         items: [
@@ -123,11 +74,61 @@ const sections: FeatureSection[] = [
         ],
     },
     {
+        title: 'TSP/SCSP',
+        icon: <FileText className="w-5 h-5" />,
+        items: [
+            { label: 'TSP/SCSP', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP },
+        ],
+    },
+    {
+        title: 'NARI',
+        icon: <Utensils className="w-5 h-5" />,
+        items: [
+            { label: 'Nutrition Garden', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.NUTRI_SMART },
+            { label: 'Bio-fortified Crops', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.BIO_FORTIFIED },
+            { label: 'Value Addition', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.VALUE_ADDITION },
+            { label: 'Training Program', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.TRAINING_PROGRAMM },
+            { label: 'Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.NARI.EXTENSION_ACTIVITIES },
+        ],
+    },
+    {
         title: 'Agri-Drone',
         icon: <Plane className="w-5 h-5" />,
         items: [
             { label: 'Introduction', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.AGRI_DRONE },
             { label: 'Demonstration', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS },
+        ],
+    },
+    {
+        title: 'FPO and CBBO',
+        icon: <Users className="w-5 h-5" />,
+        items: [
+            { label: 'Details FPO and CBBO', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.DETAILS },
+            { label: 'FPO Management', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.FPO.MANAGEMENT },
+        ],
+    },
+    {
+        title: 'DRMR',
+        icon: <FlaskConical className="w-5 h-5" />,
+        items: [
+            { label: 'DRMR Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.DETAILS },
+            { label: 'DRMR Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DRMR.ACTIVITY },
+        ],
+    },
+    {
+        title: 'Climate Resilient Agriculture (CRA)',
+        icon: <Sun className="w-5 h-5" />,
+        items: [
+            { label: 'CRA Details', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.DETAILS },
+            { label: 'Extension Activity', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CRA.EXTENSION_ACTIVITY },
+        ],
+    },
+    // Below: project tiles not listed in the spec — appended at the end so existing data remains accessible.
+    {
+        title: 'CSISA',
+        icon: <Building2 className="w-5 h-5" />,
+        items: [
+            { label: 'CSISA', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.CSISA },
         ],
     },
     {

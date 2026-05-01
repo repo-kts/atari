@@ -81,10 +81,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        siblings: [
-            ENTITY_PATHS.KVK_INFRASTRUCTURE,
-            ENTITY_PATHS.KVK_LAND_DETAILS,
-        ],
+        siblings: ROUTE_SIBLING_GROUPS.ABOUT_KVK_INFRASTRUCTURE,
         fields: FIELD_GROUPS.INFRASTRUCTURE_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_infrastructure_details',
@@ -96,10 +93,7 @@ export const aboutKvkRoutes: RouteConfig[] = [
         category: 'Form Management',
         subcategory: 'About KVK',
         parent: '/forms/about-kvk',
-        siblings: [
-            ENTITY_PATHS.KVK_INFRASTRUCTURE,
-            ENTITY_PATHS.KVK_LAND_DETAILS,
-        ],
+        siblings: ROUTE_SIBLING_GROUPS.ABOUT_KVK_INFRASTRUCTURE,
         fields: FIELD_GROUPS.LAND_DETAILS,
         canCreate: ['kvk_admin', 'kvk_user'],
         moduleCode: 'about_kvks_infrastructure_details',

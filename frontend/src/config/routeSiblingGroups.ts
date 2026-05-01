@@ -10,6 +10,7 @@
  */
 
 import { ROUTE_PATHS } from '../constants/routePaths'
+import { ENTITY_PATHS } from '../constants/entityConstants'
 
 export const ROUTE_SIBLING_GROUPS = {
     // OFT Siblings — OFT is its own card on the Achievements page; the only
@@ -157,8 +158,14 @@ CFLD: [
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.PRODUCTION_UNITS,
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.INSTRUCTIONAL_FARM_LIVESTOCK,
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.HOSTEL,
-        ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.STAFF_QUARTERS,
         ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.RAINWATER_HARVESTING,
+    ],
+
+    // About KVK - Infrastructure & Land Details Siblings (Staff Quarters relocated here from Performance Indicators)
+    ABOUT_KVK_INFRASTRUCTURE: [
+        ENTITY_PATHS.KVK_INFRASTRUCTURE,
+        ENTITY_PATHS.KVK_LAND_DETAILS,
+        ROUTE_PATHS.PERFORMANCE.INFRASTRUCTURE.STAFF_QUARTERS,
     ],
 
     // Performance Indicator - Financial Siblings
@@ -204,11 +211,12 @@ CFLD: [
         ROUTE_PATHS.SWACHHTA_BHARAT_ABHIYAAN.BUDGET,
     ],
 
-    // Meetings Siblings — SAC + Other meetings, plus the three pages relocated
-    // from Achievements (Technology Week, Celebration Days, World Soil Day).
     MEETINGS: [
         ROUTE_PATHS.MEETINGS.SAC,
         ROUTE_PATHS.MEETINGS.OTHER,
+    ],
+
+    SPECIAL_DAYS: [
         ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK,
         ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
         ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY,

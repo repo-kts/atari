@@ -11,6 +11,7 @@ import {
     FlaskConical,
     Megaphone,
     Sprout,
+    CalendarDays,
 } from 'lucide-react'
 import { FeatureTabLayout, FeatureSection } from '../shared/FeatureTabLayout'
 import { LoadingState } from '@/components/common/LoadingState'
@@ -59,6 +60,15 @@ const sections: FeatureSection[] = [
         items: [
             { label: 'Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.EXTENSION_ACTIVITIES },
             { label: 'Other Extension Activities', path: ROUTE_PATHS.ACHIEVEMENTS.OTHER_EXTENSION },
+        ],
+    },
+    {
+        title: 'Special Days',
+        icon: <CalendarDays className="w-5 h-5" />,
+        items: [
+            { label: 'Technology Week', path: ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK, moduleCode: 'achievements_technology_week_celebration' },
+            { label: 'Celebration Days', path: ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS, moduleCode: 'achievements_celebration_days' },
+            { label: 'World Soil Day', path: ROUTE_PATHS.ACHIEVEMENTS.WORLD_SOIL_DAY, moduleCode: 'achievements_soil_water_testing' },
         ],
     },
     {
