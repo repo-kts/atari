@@ -90,6 +90,33 @@ const FORM_MENU_BY_CODE: Record<string, string> = {
 const DEFAULT_FORMS_MENU_NAME = 'Form Attachments'
 const FORM_ID_OFFSET = 1_000_000
 
+// Canonical sidebar group order. Mirrors the Form Management children in
+// `frontend/src/components/layout/Sidebar.tsx` so the Gallery sidebar groups
+// appear in the same order users see in the main app navigation. Includes the
+// variants emitted by both `useModuleImageCategories` (backend menuName values
+// — see ALLOWED_CATEGORY_MENUS in `backend/services/moduleImageService.js`)
+// and `FORM_MENU_BY_CODE` above. Unknown menu names fall to the end and are
+// sorted alphabetically.
+const MAIN_SIDEBAR_ORDER: string[] = [
+    'About KVKs',
+    'Achievements',
+    'Projects',
+    'Performance Indicators',
+    'Meetings',
+    'Swachh Bharat Abhiyaan',
+    'Swachhta Bharat Abhiyaan',
+    'Miscellaneous',
+    'Miscellaneous Information',
+    'Digital Information',
+    'Form Management',
+    DEFAULT_FORMS_MENU_NAME,
+]
+
+function menuOrderIndex(name: string): number {
+    const idx = MAIN_SIDEBAR_ORDER.indexOf(name)
+    return idx === -1 ? Number.MAX_SAFE_INTEGER : idx
+}
+
 // Module-image categories that should be hidden from the gallery sidebar
 // (e.g. legacy "Staff Details" — staff photos are now form attachments under
 // "KVK Staff Photos" so the duplicate module-image entry is suppressed).
@@ -233,7 +260,23 @@ export function useGallerySource(
             subMenuName: humanizeFormCode(f.formCode),
             label: humanizeFormCode(f.formCode),
         }))
-        const categories: ModuleImageCategory[] = [...moduleCategories, ...formCategories]
+        // Sort by canonical sidebar group order (see MAIN_SIDEBAR_ORDER above).
+        // The Gallery component groups by menuName via Map insertion order, so
+        // ordering the flat list here drives the displayed group order. Unknown
+        // menu names go to the end, sorted alphabetically. Within-group order
+        // is left to the Gallery component (which sorts items by subMenuName).
+        const categories: ModuleImageCategory[] = [...moduleCategories, ...formCategories].sort(
+            (a, b) => {
+                const ai = menuOrderIndex(a.menuName)
+                const bi = menuOrderIndex(b.menuName)
+                if (ai !== bi) return ai - bi
+                if (ai === Number.MAX_SAFE_INTEGER) {
+                    const cmp = a.menuName.localeCompare(b.menuName)
+                    if (cmp !== 0) return cmp
+                }
+                return 0
+            },
+        )
 
         const kvkMap = new Map<number, ModuleImageKvkOption>()
         for (const k of moduleKvksQuery.data ?? []) kvkMap.set(k.kvkId, k)
