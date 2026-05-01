@@ -31,6 +31,7 @@ const sections: FeatureSection[] = [
         items: [
             { label: 'Infrastructure Details', path: '/forms/about-kvk/infrastructure' },
             { label: 'Land Details', path: '/forms/about-kvk/land-details' },
+            { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters', moduleCode: 'performance_indicators_infrastructure' },
         ],
     },
     {

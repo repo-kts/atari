@@ -119,7 +119,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'About KVK',
                 path: '/forms/about-kvk',
                 icon: <Building2 className="w-4 h-4" />,
-                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
+                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'performance_indicators_infrastructure'],
             },
             {
                 label: 'Achievements',
@@ -141,6 +141,21 @@ const superAdminMenuItems: MenuItem[] = [
                 moduleCodes: ['performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages'],
             },
             {
+                label: 'Meetings',
+                path: '/forms/meetings',
+                icon: <FileCheck className="w-4 h-4" />,
+                moduleCodes: [
+                    'meetings_sac',
+                    'meetings_other_atari',
+                ],
+            },
+            {
+                label: 'Swachhta Bharat Abhiyaan',
+                path: '/forms/swachhta-bharat-abhiyaan',
+                icon: <FileCheck className="w-4 h-4" />,
+                moduleCodes: ['swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
+            },
+            {
                 label: 'Miscellaneous',
                 path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
@@ -158,27 +173,6 @@ const superAdminMenuItems: MenuItem[] = [
                     'digital_kisan_sarthi',
                     'digital_kisan_advisory',
                     'digital_messages_other_channels',
-                ],
-            },
-            {
-                label: 'Swachhta Bharat Abhiyaan',
-                path: '/forms/swachhta-bharat-abhiyaan',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
-            },
-            {
-                label: 'Meetings',
-                path: '/forms/meetings',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: [
-                    'meetings_sac',
-                    'meetings_other_atari',
-                    // Technology Week, Celebration Days and World Soil Day moved into
-                    // the Meetings tab in the UI; expose the entry to anyone holding
-                    // those original achievement-permission bits.
-                    'achievements_technology_week_celebration',
-                    'achievements_celebration_days',
-                    'achievements_soil_water_testing',
                 ],
             },
         ],
