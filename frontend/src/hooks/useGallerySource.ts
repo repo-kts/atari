@@ -90,6 +90,13 @@ const FORM_MENU_BY_CODE: Record<string, string> = {
 const DEFAULT_FORMS_MENU_NAME = 'Form Attachments'
 const FORM_ID_OFFSET = 1_000_000
 
+// Module-image categories that should be hidden from the gallery sidebar
+// (e.g. legacy "Staff Details" — staff photos are now form attachments under
+// "KVK Staff Photos" so the duplicate module-image entry is suppressed).
+const HIDDEN_MODULE_CODES = new Set<string>([
+    'about_kvks_staff_details',
+])
+
 function menuForFormCode(code: string): string {
     return FORM_MENU_BY_CODE[code] ?? DEFAULT_FORMS_MENU_NAME
 }
@@ -180,7 +187,9 @@ export function useGallerySource(
     }, [formsListQuery.data])
 
     return useMemo<UseGallerySourceResult>(() => {
-        const moduleRows = (moduleImagesQuery.data?.data ?? []).map(moduleImageToRow)
+        const moduleRows = (moduleImagesQuery.data?.data ?? [])
+            .filter((r) => !HIDDEN_MODULE_CODES.has(r.moduleCode ?? ''))
+            .map(moduleImageToRow)
         // If user selected a module-image module, hide form rows; if user
         // selected a form, hide module-image rows. No selection -> show both.
         const formRows = (formsQuery.data?.data ?? []).map((att) => {
@@ -214,8 +223,8 @@ export function useGallerySource(
             categoryCounts.set(id, f.count)
         }
 
-        const moduleCategories = (moduleCategoriesQuery.data ?? []).filter((c) =>
-            moduleIdsWithImages.has(c.moduleId),
+        const moduleCategories = (moduleCategoriesQuery.data ?? []).filter(
+            (c) => moduleIdsWithImages.has(c.moduleId) && !HIDDEN_MODULE_CODES.has(c.moduleCode ?? ''),
         )
         const formCategories: ModuleImageCategory[] = (formsListQuery.data ?? []).map((f) => ({
             moduleId: formCodeToId.get(f.formCode) ?? FORM_ID_OFFSET,
