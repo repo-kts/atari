@@ -101,6 +101,7 @@ model User {
   refreshTokens      RefreshToken[]
   transfersPerformed StaffTransferHistory[]
   userNotifications  UserNotification[]     @relation("UserNotifications")
+  uploadedNotificationAttachments NotificationAttachment[] @relation("UploadedNotificationAttachments")
   userPermissions    UserPermission[]
   district           DistrictMaster?        @relation(fields: [districtId], references: [districtId])
   kvk                Kvk?                   @relation(fields: [kvkId], references: [kvkId])

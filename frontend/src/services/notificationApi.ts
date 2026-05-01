@@ -12,6 +12,31 @@ export interface CreateNotificationPayload {
   content: string
   sendToAll?: boolean
   recipientUserIds?: number[]
+  attachmentIds?: number[]
+}
+
+export interface NotificationAttachment {
+  attachmentId: number
+  notificationId: number | null
+  fileName: string | null
+  mimeType: string
+  size: number
+  createdAt: string
+  fileUrl: string | null
+  downloadUrl: string | null
+}
+
+export interface PresignAttachmentInput {
+  fileName: string
+  mimeType: string
+  size: number
+}
+
+export interface PresignAttachmentResponse {
+  s3Key: string
+  uploadUrl: string
+  expiresIn: number
+  headers: Record<string, string>
 }
 
 export interface NotificationItem {
@@ -28,6 +53,8 @@ export interface NotificationItem {
     name: string
     email: string
   } | null
+  attachments?: NotificationAttachment[]
+  attachmentCount?: number
 }
 
 export interface NotificationListMeta {
@@ -150,4 +177,63 @@ export const notificationApi = {
       throw error
     }
   },
+
+  presignAttachment: async (input: PresignAttachmentInput): Promise<PresignAttachmentResponse> => {
+    try {
+      return await apiClient.post<PresignAttachmentResponse>(
+        '/admin/notifications/attachments/presign',
+        input,
+      )
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to start upload')
+      }
+      throw error
+    }
+  },
+
+  confirmAttachment: async (input: {
+    s3Key: string
+    fileName: string
+    mimeType: string
+    size: number
+  }): Promise<NotificationAttachment> => {
+    try {
+      return await apiClient.post<NotificationAttachment>(
+        '/admin/notifications/attachments/confirm',
+        input,
+      )
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to confirm upload')
+      }
+      throw error
+    }
+  },
+
+  deleteAttachment: async (attachmentId: number) => {
+    try {
+      return await apiClient.delete(`/admin/notifications/attachments/${attachmentId}`)
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw new Error(error.data?.error || 'Failed to delete attachment')
+      }
+      throw error
+    }
+  },
+}
+
+export async function uploadFileToS3(
+  uploadUrl: string,
+  file: File,
+  headers?: Record<string, string>,
+): Promise<void> {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: headers || { 'Content-Type': file.type || 'application/octet-stream' },
+    body: file,
+  })
+  if (!res.ok) {
+    throw new Error(`S3 upload failed (${res.status})`)
+  }
 }

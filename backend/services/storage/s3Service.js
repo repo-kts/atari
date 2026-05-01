@@ -56,6 +56,12 @@ function buildAttachmentKey({ formCode, fileName, mimeType }) {
     return `forms/${formCode}/${id}.${ext}`;
 }
 
+function buildNotificationAttachmentKey({ fileName, mimeType }) {
+    const ext = sanitizeExt(fileName, mimeType);
+    const id = randomUUID();
+    return `notifications/${id}.${ext}`;
+}
+
 async function presignPut({ key, mimeType, expiresIn = PUT_TTL_SECONDS }) {
     const cmd = new PutObjectCommand({
         Bucket: BUCKET,
@@ -97,6 +103,7 @@ function isConfigured() {
 
 module.exports = {
     buildAttachmentKey,
+    buildNotificationAttachmentKey,
     presignPut,
     presignGet,
     deleteOne,

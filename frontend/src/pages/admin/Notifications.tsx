@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, Plus, Search, X } from 'lucide-react'
+import { ChevronLeft, Download, FileIcon, Loader2, Paperclip, Plus, Search, X } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
@@ -13,6 +13,25 @@ import {
   useRecipientUsers,
 } from '@/hooks/useNotifications'
 import { useAlert } from '@/hooks/useAlert'
+import {
+  notificationApi,
+  type NotificationAttachment,
+} from '@/services/notificationApi'
+
+const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024
+const MAX_ATTACHMENTS_PER_NOTIFICATION = 10
+const ATTACHMENT_ACCEPT = [
+  'application/pdf',
+  'image/*',
+  '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt',
+].join(',')
+
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
 
 const PAGE_SIZE = 10
 
@@ -84,6 +103,10 @@ export const Notifications: React.FC = () => {
   const [subject, setSubject] = useState('')
   const [content, setContent] = useState('')
   const [selectedNotificationId, setSelectedNotificationId] = useState<number | null>(null)
+  const [composeAttachments, setComposeAttachments] = useState<NotificationAttachment[]>([])
+  const [attachmentUploading, setAttachmentUploading] = useState(false)
+  const [attachmentError, setAttachmentError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -165,6 +188,69 @@ export const Notifications: React.FC = () => {
     setSelectedRecipientIds([])
     setSubject('')
     setContent('')
+    setComposeAttachments([])
+    setAttachmentError(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleAttachmentSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+    setAttachmentError(null)
+    const list = Array.from(files)
+    const remaining = MAX_ATTACHMENTS_PER_NOTIFICATION - composeAttachments.length
+    if (remaining <= 0) {
+      setAttachmentError(`Maximum ${MAX_ATTACHMENTS_PER_NOTIFICATION} attachments per circular`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    const accepted = list.slice(0, remaining)
+    const oversized = accepted.find((f) => f.size > MAX_ATTACHMENT_BYTES)
+    if (oversized) {
+      setAttachmentError(`"${oversized.name}" exceeds max size 25 MB`)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    setAttachmentUploading(true)
+    try {
+      const uploaded: NotificationAttachment[] = []
+      for (const file of accepted) {
+        const presign = await notificationApi.presignAttachment({
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          size: file.size,
+        })
+        const res = await fetch(presign.uploadUrl, {
+          method: 'PUT',
+          headers: presign.headers,
+          body: file,
+        })
+        if (!res.ok) throw new Error(`Upload failed for ${file.name} (${res.status})`)
+        const row = await notificationApi.confirmAttachment({
+          s3Key: presign.s3Key,
+          fileName: file.name,
+          mimeType: file.type || 'application/octet-stream',
+          size: file.size,
+        })
+        uploaded.push(row)
+      }
+      setComposeAttachments((prev) => [...prev, ...uploaded])
+    } catch (err) {
+      setAttachmentError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setAttachmentUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleAttachmentRemove = async (attachmentId: number) => {
+    try {
+      await notificationApi.deleteAttachment(attachmentId)
+      setComposeAttachments((prev) => prev.filter((a) => a.attachmentId !== attachmentId))
+    } catch (err) {
+      setAttachmentError(err instanceof Error ? err.message : 'Delete failed')
+    }
   }
 
   const toggleRecipient = (userId: number) => {
@@ -200,6 +286,7 @@ export const Notifications: React.FC = () => {
         content: trimmedContent,
         sendToAll: recipientMode === 'all',
         recipientUserIds: recipientMode === 'selected' ? selectedRecipientIds : undefined,
+        attachmentIds: composeAttachments.map((a) => a.attachmentId),
       })
 
       alert({
@@ -425,6 +512,66 @@ export const Notifications: React.FC = () => {
                 />
               </div>
 
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#487749] mb-2">
+                  Attachments ({composeAttachments.length} / {MAX_ATTACHMENTS_PER_NOTIFICATION})
+                </label>
+                <div className="rounded-xl border border-[#E0E0E0] overflow-hidden bg-white">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ATTACHMENT_ACCEPT}
+                    multiple
+                    disabled={
+                      createNotification.isPending ||
+                      attachmentUploading ||
+                      composeAttachments.length >= MAX_ATTACHMENTS_PER_NOTIFICATION
+                    }
+                    onChange={handleAttachmentSelect}
+                    className="block w-full text-sm bg-white px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#487749] file:text-white hover:file:bg-[#3d6540] cursor-pointer disabled:opacity-60"
+                  />
+                  <div className="bg-gray-50 px-3 py-2 text-xs text-gray-600 border-t border-[#E0E0E0]">
+                    {attachmentUploading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Uploading…
+                      </span>
+                    ) : (
+                      `PDF / Word / Excel / PowerPoint / Image. Max 25 MB each, up to ${MAX_ATTACHMENTS_PER_NOTIFICATION} files.`
+                    )}
+                  </div>
+                </div>
+                {attachmentError && (
+                  <div className="mt-2 text-xs text-red-600 break-words">{attachmentError}</div>
+                )}
+                {composeAttachments.length > 0 && (
+                  <ul className="mt-2 space-y-1">
+                    {composeAttachments.map((att) => (
+                      <li
+                        key={att.attachmentId}
+                        className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-[#E0E0E0] bg-white"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <FileIcon className="w-4 h-4 text-[#487749] shrink-0" />
+                          <span className="text-sm text-[#212121] truncate" title={att.fileName ?? ''}>
+                            {att.fileName}
+                          </span>
+                          <span className="text-xs text-[#757575] shrink-0">{formatBytes(att.size)}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAttachmentRemove(att.attachmentId)}
+                          disabled={createNotification.isPending}
+                          className="p-1 rounded text-red-500 hover:bg-red-50 disabled:opacity-50"
+                          aria-label="Remove attachment"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="submit"
@@ -530,7 +677,17 @@ export const Notifications: React.FC = () => {
                         onClick={() => openNotificationDetails(item.userNotificationId)}
                       >
                         <td className="px-4 py-3 text-sm text-[#212121]">{startEntry + index}</td>
-                        <td className="px-4 py-3 text-sm text-[#212121]">{item.subject || 'N/A'}</td>
+                        <td className="px-4 py-3 text-sm text-[#212121]">
+                          <span className="inline-flex items-center gap-2">
+                            {item.subject || 'N/A'}
+                            {(item.attachmentCount ?? item.attachments?.length ?? 0) > 0 && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#EEF5EE] text-[#487749] text-xs font-medium">
+                                <Paperclip className="w-3 h-3" />
+                                {item.attachmentCount ?? item.attachments?.length ?? 0}
+                              </span>
+                            )}
+                          </span>
+                        </td>
                         <td className="px-4 py-3 text-sm text-[#212121]">{truncateText(item.content || '')}</td>
                         <td className="px-4 py-3 text-sm text-[#212121]">
                           {item.sentBy?.name || item.sentBy?.email || 'System'}
@@ -649,6 +806,39 @@ export const Notifications: React.FC = () => {
                   {selectedNotification.content || 'N/A'}
                 </p>
               </div>
+              {selectedNotification.attachments && selectedNotification.attachments.length > 0 && (
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-[#757575] flex items-center gap-1">
+                    <Paperclip className="w-3 h-3" /> Attachments ({selectedNotification.attachments.length})
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {selectedNotification.attachments.map((att) => (
+                      <li
+                        key={att.attachmentId}
+                        className="flex items-center justify-between gap-3 px-3 py-2 rounded-lg border border-[#E0E0E0] bg-[#FAFDF9]"
+                      >
+                        <span className="flex items-center gap-2 min-w-0">
+                          <FileIcon className="w-4 h-4 text-[#487749] shrink-0" />
+                          <span className="text-sm text-[#212121] truncate" title={att.fileName ?? ''}>
+                            {att.fileName}
+                          </span>
+                          <span className="text-xs text-[#757575] shrink-0">{formatBytes(att.size)}</span>
+                        </span>
+                        {att.downloadUrl && (
+                          <a
+                            href={att.downloadUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[#487749] text-white hover:bg-[#3d6540]"
+                          >
+                            <Download className="w-3 h-3" /> Open
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-[#757575]">Sent By</p>
