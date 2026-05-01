@@ -164,16 +164,17 @@ const ViewToggle: React.FC<{ view: View; onChange: (v: View) => void }> = ({
     view,
     onChange,
 }) => {
+    // #174: default tab order is Bar > List > Area, with Bar active by default.
     const items: Array<{ key: View; label: string; icon: React.ReactNode }> = [
-        {
-            key: 'progress',
-            label: 'List',
-            icon: <ListChecks className="w-3 h-3" />,
-        },
         {
             key: 'bar',
             label: 'Bar',
             icon: <BarChart3 className="w-3 h-3" />,
+        },
+        {
+            key: 'progress',
+            label: 'List',
+            icon: <ListChecks className="w-3 h-3" />,
         },
         {
             key: 'area',
@@ -219,7 +220,8 @@ export const StatChartPanel: React.FC<Props> = ({
     secondaryLabel,
     unit,
 }) => {
-    const [view, setView] = useState<View>('progress')
+    // #174: Bar is the default view (was 'progress').
+    const [view, setView] = useState<View>('bar')
 
     const chartData = useMemo(
         () =>
