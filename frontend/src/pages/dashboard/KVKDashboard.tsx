@@ -18,13 +18,15 @@ import { dashboardApi } from '../../services/dashboardApi'
 import { ROUTE_PATHS } from '../../constants/routePaths'
 import { ENTITY_PATHS } from '../../constants/entityConstants'
 import { getModuleCodeForPath } from '../../config/route'
-import { DashboardStaffAndLogs } from './shared/DashboardStaffAndLogs'
+// TODO(#173): re-enable when Staff Summary / Log History cards return.
+// import { DashboardStaffAndLogs } from './shared/DashboardStaffAndLogs'
 import {
     DashboardKpiSkeleton,
     DashboardPanelsSkeleton,
 } from './shared/DashboardSkeletons'
 import { StatChartPanel } from './shared/StatChartPanel'
 
+/* TODO(#173): re-enable along with the Staff Summary / Log History cards.
 const getProgressColor = (status: string) => {
     switch (status) {
         case 'complete':
@@ -52,6 +54,7 @@ function formatLogTime(iso: string) {
         return iso
     }
 }
+*/
 
 export const KVKDashboard: React.FC = () => {
     const navigate = useNavigate()
@@ -283,6 +286,12 @@ export const KVKDashboard: React.FC = () => {
                         />
                     </div>
 
+                    {/* TODO(#173): re-enable Staff Summary by Post and Log
+                        History cards once the underlying data is finalised —
+                        see issue #173. Data fetches (data.staffByPost,
+                        data.recentLogs) are shared with other consumers, so
+                        they are intentionally left in place. */}
+                    {/*
                     <div
                         className={
                             isFetching ? 'opacity-70 transition-opacity' : ''
@@ -295,6 +304,7 @@ export const KVKDashboard: React.FC = () => {
                             formatLogTime={formatLogTime}
                         />
                     </div>
+                    */}
 
                     {/* Quick-link tiles — each is hidden when the user lacks VIEW
                         on the target module, so the dashboard only shows tiles
