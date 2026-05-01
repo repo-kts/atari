@@ -98,19 +98,25 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                         />
                     </div>
                 ) : (
-                    // Mock Preview Content
-                    <div className="w-full max-w-[800px] bg-white shadow-xl border border-[#E0E0E0] rounded-sm p-5 sm:p-8 lg:p-12 space-y-6 sm:space-y-8 animate-in fade-in zoom-in duration-300">
-                        {/* Header Mock */}
-                        <div className="border-b-2 border-[#487749] pb-6 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
-                            <div className="space-y-1">
-                                <h1 className="text-xl sm:text-2xl font-black text-[#2d4a2f] uppercase tracking-tighter">KVK COMPREHENSIVE REPORT</h1>
-                                <p className="text-xs sm:text-sm text-[#757575] font-bold uppercase wrap-break-word">Zone: Multizone • State: Kerala • District: Ernakulam</p>
+                    // Skeleton placeholder rendered while the real preview URL is being prepared.
+                    // Intentionally avoids fake KVK / Zone / State / District names so users
+                    // don't mistake the placeholder for actual data.
+                    <div
+                        className="w-full max-w-[800px] bg-white shadow-xl border border-[#E0E0E0] rounded-sm p-5 sm:p-8 lg:p-12 space-y-6 sm:space-y-8 animate-in fade-in zoom-in duration-300"
+                        role="status"
+                        aria-label="Report preview loading"
+                    >
+                        <div className="border-b-2 border-[#487749]/60 pb-6 flex flex-col gap-3">
+                            <div className="h-6 sm:h-7 w-3/5 rounded bg-[#EFEFEF] animate-pulse" />
+                            <div className="flex flex-wrap gap-2">
+                                <div className="h-3.5 w-24 rounded-full bg-[#FAF9F6] border border-[#E0E0E0]" />
+                                <div className="h-3.5 w-28 rounded-full bg-[#FAF9F6] border border-[#E0E0E0]" />
+                                <div className="h-3.5 w-32 rounded-full bg-[#FAF9F6] border border-[#E0E0E0]" />
                             </div>
                         </div>
 
-                        {/* Content Body Mock */}
                         <div className="space-y-6">
-                            <div className="h-4 w-1/3 bg-[#F5F5F5] rounded animate-pulse" />
+                            <div className="h-4 w-1/3 bg-[#F0F0F0] rounded animate-pulse" />
                             <div className="space-y-3">
                                 <div className="h-3 w-full bg-[#FAF9F6] rounded" />
                                 <div className="h-3 w-full bg-[#FAF9F6] rounded" />
@@ -118,18 +124,31 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                                <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-center justify-center">
-                                    <span className="text-[10px] text-[#9E9E9E] font-medium uppercase tracking-widest">Statistical Graph Area</span>
+                                <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-end justify-around p-3">
+                                    {[40, 65, 30, 80, 55].map((h, i) => (
+                                        <div
+                                            key={i}
+                                            className="w-3 rounded-t bg-[#487749]/20"
+                                            style={{ height: `${h}%` }}
+                                        />
+                                    ))}
                                 </div>
                                 <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-center justify-center">
-                                    <span className="text-[10px] text-[#9E9E9E] font-medium uppercase tracking-widest">Data Distribution Map</span>
+                                    <div className="w-16 h-16 rounded-full border-[6px] border-[#487749]/15 border-t-[#487749]/40 animate-spin" />
                                 </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="h-3 w-2/5 bg-[#FAF9F6] rounded" />
+                                <div className="h-3 w-3/5 bg-[#FAF9F6] rounded" />
+                                <div className="h-3 w-1/2 bg-[#FAF9F6] rounded" />
                             </div>
                         </div>
 
-                        <div className="pt-8 border-t border-[#F5F5F5] flex flex-col gap-2 sm:flex-row sm:justify-between">
-                            <span className="text-[10px] text-[#9E9E9E] font-bold uppercase">Confidential Internal Use Only</span>
-                            <span className="text-[10px] text-[#9E9E9E] font-bold uppercase">Page 1 of 42</span>
+                        <div className="pt-6 border-t border-[#F0F0F0] flex items-center justify-center">
+                            <span className="text-[10px] text-[#9E9E9E] font-bold uppercase tracking-widest">
+                                Preview will appear here once generated
+                            </span>
                         </div>
                     </div>
                 )}
