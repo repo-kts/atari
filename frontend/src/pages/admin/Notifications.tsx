@@ -391,112 +391,110 @@ export const Notifications: React.FC = () => {
             >
               <h3 className="text-base font-semibold text-[#212121] mb-4">Create Notification</h3>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#487749] mb-2">Users</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-4">
-                      <label className="inline-flex items-center gap-2 text-sm text-[#212121]">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#487749] mb-2">Users</label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4">
+                    <label className="inline-flex items-center gap-2 text-sm text-[#212121]">
+                      <input
+                        type="radio"
+                        name="recipientMode"
+                        checked={recipientMode === 'all'}
+                        onChange={() => setRecipientMode('all')}
+                        disabled={createNotification.isPending}
+                      />
+                      All Users
+                    </label>
+                    <label className="inline-flex items-center gap-2 text-sm text-[#212121]">
+                      <input
+                        type="radio"
+                        name="recipientMode"
+                        checked={recipientMode === 'selected'}
+                        onChange={() => setRecipientMode('selected')}
+                        disabled={isRecipientUsersLoading || createNotification.isPending}
+                      />
+                      Selected Users
+                    </label>
+                  </div>
+
+                  {recipientMode === 'selected' && (
+                    <div className="border border-[#E0E0E0] rounded-xl p-3 bg-[#FAFDF9]">
+                      <div className="flex items-center gap-2 mb-2">
                         <input
-                          type="radio"
-                          name="recipientMode"
-                          checked={recipientMode === 'all'}
-                          onChange={() => setRecipientMode('all')}
-                          disabled={createNotification.isPending}
-                        />
-                        All Users
-                      </label>
-                      <label className="inline-flex items-center gap-2 text-sm text-[#212121]">
-                        <input
-                          type="radio"
-                          name="recipientMode"
-                          checked={recipientMode === 'selected'}
-                          onChange={() => setRecipientMode('selected')}
+                          type="text"
+                          value={recipientSearch}
+                          onChange={(event) => setRecipientSearch(event.target.value)}
+                          placeholder="Search name, email, role..."
+                          className="w-full px-3 py-2 text-sm border border-[#E0E0E0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
                           disabled={isRecipientUsersLoading || createNotification.isPending}
                         />
-                        Selected Users
-                      </label>
-                    </div>
+                      </div>
 
-                    {recipientMode === 'selected' && (
-                      <div className="border border-[#E0E0E0] rounded-xl p-3 bg-[#FAFDF9]">
-                        <div className="flex items-center gap-2 mb-2">
-                          <input
-                            type="text"
-                            value={recipientSearch}
-                            onChange={(event) => setRecipientSearch(event.target.value)}
-                            placeholder="Search name, email, role..."
-                            className="w-full px-3 py-2 text-sm border border-[#E0E0E0] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
-                            disabled={isRecipientUsersLoading || createNotification.isPending}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs text-[#757575] mb-2">
-                          <span>
-                            Selected: {selectedRecipientCount}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRecipientIds(filteredRecipientUsers.map((item) => item.userId))}
-                              className="text-[#487749] hover:text-[#3d6540]"
-                              disabled={filteredRecipientUsers.length === 0 || createNotification.isPending}
-                            >
-                              Select all shown
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedRecipientIds([])}
-                              className="text-[#487749] hover:text-[#3d6540]"
-                              disabled={selectedRecipientCount === 0 || createNotification.isPending}
-                            >
-                              Clear
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="max-h-44 overflow-y-auto border border-[#E0E0E0] rounded-lg bg-white p-2 space-y-1">
-                          {isRecipientUsersLoading ? (
-                            <p className="text-sm text-[#757575] p-2">Loading users...</p>
-                          ) : filteredRecipientUsers.length === 0 ? (
-                            <p className="text-sm text-[#757575] p-2">No users found</p>
-                          ) : (
-                            filteredRecipientUsers.map((recipient) => (
-                              <label
-                                key={recipient.userId}
-                                className="flex items-start gap-2 p-1.5 rounded-md hover:bg-[#F5F9F4] cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={selectedRecipientIds.includes(recipient.userId)}
-                                  onChange={() => toggleRecipient(recipient.userId)}
-                                  disabled={createNotification.isPending}
-                                  className="mt-1"
-                                />
-                                <span className="text-sm text-[#212121]">
-                                  {recipient.name} ({recipient.email}) - {formatRoleName(recipient.roleName)}
-                                </span>
-                              </label>
-                            ))
-                          )}
+                      <div className="flex items-center justify-between text-xs text-[#757575] mb-2">
+                        <span>
+                          Selected: {selectedRecipientCount}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRecipientIds(filteredRecipientUsers.map((item) => item.userId))}
+                            className="text-[#487749] hover:text-[#3d6540]"
+                            disabled={filteredRecipientUsers.length === 0 || createNotification.isPending}
+                          >
+                            Select all shown
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRecipientIds([])}
+                            className="text-[#487749] hover:text-[#3d6540]"
+                            disabled={selectedRecipientCount === 0 || createNotification.isPending}
+                          >
+                            Clear
+                          </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-[#487749] mb-2">Subject</label>
-                  <input
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Enter subject"
-                    maxLength={300}
-                    className="w-full px-3 py-2.5 border border-[#E0E0E0] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
-                    disabled={createNotification.isPending}
-                  />
+                      <div className="max-h-44 overflow-y-auto border border-[#E0E0E0] rounded-lg bg-white p-2 space-y-1">
+                        {isRecipientUsersLoading ? (
+                          <p className="text-sm text-[#757575] p-2">Loading users...</p>
+                        ) : filteredRecipientUsers.length === 0 ? (
+                          <p className="text-sm text-[#757575] p-2">No users found</p>
+                        ) : (
+                          filteredRecipientUsers.map((recipient) => (
+                            <label
+                              key={recipient.userId}
+                              className="flex items-start gap-2 p-1.5 rounded-md hover:bg-[#F5F9F4] cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedRecipientIds.includes(recipient.userId)}
+                                onChange={() => toggleRecipient(recipient.userId)}
+                                disabled={createNotification.isPending}
+                                className="mt-1"
+                              />
+                              <span className="text-sm text-[#212121]">
+                                {recipient.name} ({recipient.email}) - {formatRoleName(recipient.roleName)}
+                              </span>
+                            </label>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-[#487749] mb-2">Subject</label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Enter subject"
+                  maxLength={300}
+                  className="w-full px-3 py-2.5 border border-[#E0E0E0] rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#E8F5E9] focus:border-[#487749]"
+                  disabled={createNotification.isPending}
+                />
               </div>
 
               <div className="mb-4">
