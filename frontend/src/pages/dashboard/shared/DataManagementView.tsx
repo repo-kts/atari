@@ -15,6 +15,10 @@ import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
 import { DataTable } from '@/components/common/DataTable/DataTable'
 import { Pagination } from '@/components/common/DataTable/Pagination'
+import {
+    applyColumnFilters,
+    type ColumnFilters,
+} from '@/components/common/DataTable/columnFilterUtils'
 import { SearchInput } from '@/components/common/SearchInput'
 import { LoadingState } from '@/components/common/LoadingState'
 // import { ErrorState } from '@/components/common/ErrorState'
@@ -202,6 +206,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const [currentPage, setCurrentPage] = useState(1)
     const [reportingYearFrom, setReportingYearFrom] = useState<string>('')
     const [reportingYearTo, setReportingYearTo] = useState<string>('')
+    const [columnFilters, setColumnFilters] = useState<ColumnFilters>({})
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false)
     const [isMobileRouteMenuOpen, setIsMobileRouteMenuOpen] = useState(false)
     const [isOftFldTabMenuOpen, setIsOftFldTabMenuOpen] = useState(false)
@@ -321,8 +326,15 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     useEffect(() => {
         setSearchQuery('')
         setCurrentPage(1)
+        setColumnFilters({})
         closeForm()
     }, [location.pathname, closeForm])
+
+    // Reset to first page whenever column filters change so the user always
+    // sees the start of the new result set.
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [columnFilters])
 
     // Debounce search
     useEffect(() => {
@@ -391,20 +403,29 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
         })
     }, [items, debouncedSearch, fields, reportingYearFrom, reportingYearTo])
 
+    // Apply per-column filters (Excel-style: sort + text + multi-select) on top
+    // of the search/year-filtered set. The column-filter dropdown's unique-value
+    // list is computed from `filteredData` so it represents the full visible
+    // dataset before column filters narrow it further.
+    const columnFilteredData = useMemo(
+        () => applyColumnFilters(filteredData, fields, columnFilters),
+        [filteredData, fields, columnFilters],
+    )
+
     // Pagination calculations - memoized for performance
     const paginationData = useMemo(() => {
         const totalPages = Math.max(
             1,
-            Math.ceil(filteredData.length / itemsPerPage)
+            Math.ceil(columnFilteredData.length / itemsPerPage)
         )
         // Clamp currentPage so it never points beyond the last page (e.g. after a search narrows results)
         const safePage = Math.min(currentPage, totalPages)
         const startIndex = (safePage - 1) * itemsPerPage
         const endIndex = startIndex + itemsPerPage
-        const paginatedData = filteredData.slice(startIndex, endIndex)
+        const paginatedData = columnFilteredData.slice(startIndex, endIndex)
 
         return { totalPages, safePage, startIndex, endIndex, paginatedData }
-    }, [filteredData, currentPage, itemsPerPage])
+    }, [columnFilteredData, currentPage, itemsPerPage])
 
     const { totalPages, safePage, startIndex, endIndex, paginatedData } =
         paginationData
@@ -1736,6 +1757,9 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         isEmployeeDetails={isEmployeeDetails}
                                         startIndex={startIndex}
                                         locationPathname={location.pathname}
+                                        columnFilterSourceData={filteredData}
+                                        columnFilters={columnFilters}
+                                        onColumnFiltersChange={setColumnFilters}
                                         onEdit={handleEdit}
                                         onDelete={handleDelete}
                                         canEditItem={canEditItem}
@@ -1767,7 +1791,7 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                         totalPages={totalPages}
                                         startIndex={startIndex}
                                         endIndex={endIndex}
-                                        totalItems={filteredData.length}
+                                        totalItems={columnFilteredData.length}
                                         onPageChange={setCurrentPage}
                                     />
                                 </>

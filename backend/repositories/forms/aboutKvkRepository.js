@@ -243,7 +243,7 @@ async function findAll(entityName, options = {}, user = null) {
     }
     const {
         page = 1,
-        limit = 100,
+        limit = 10000,
         search = '',
         sortBy,
         sortOrder = 'asc',
@@ -252,7 +252,7 @@ async function findAll(entityName, options = {}, user = null) {
 
     const actualSortBy = sortBy || config.idField;
     const skip = (page - 1) * limit;
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, 10000);
 
     let where = {};
 

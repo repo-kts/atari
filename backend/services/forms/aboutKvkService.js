@@ -30,7 +30,7 @@ class AboutKvkService {
                 data: [],
                 total: 0,
                 page: options.page || 1,
-                limit: options.limit || 100,
+                limit: options.limit || 10000,
                 noKvkLinked: true,
             };
         }
@@ -65,7 +65,7 @@ class AboutKvkService {
         return {
             ...result,
             page: options.page || 1,
-            limit: options.limit || 100,
+            limit: options.limit || 10000,
         };
     }
 
@@ -617,7 +617,7 @@ class AboutKvkService {
         return {
             ...result,
             page: options.page || 1,
-            limit: options.limit || 100,
+            limit: options.limit || 10000,
         };
     }
 
@@ -639,7 +639,7 @@ class AboutKvkService {
         return {
             ...result,
             page: options.page || 1,
-            limit: options.limit || 100,
+            limit: options.limit || 10000,
         };
     }
 
