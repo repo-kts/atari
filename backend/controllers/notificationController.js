@@ -1,4 +1,5 @@
 const notificationService = require('../services/notificationService.js');
+const notificationAttachmentService = require('../services/notificationAttachmentService.js');
 
 const notificationController = {
   /**
@@ -79,6 +80,49 @@ const notificationController = {
       return res.status(200).json(data);
     } catch (error) {
       return res.status(400).json({ error: error.message });
+    }
+  },
+
+  /**
+   * POST /api/admin/notifications/attachments/presign
+   */
+  presignAttachment: async (req, res) => {
+    try {
+      const data = await notificationAttachmentService.presignUpload(req.body || {}, req.user);
+      return res.status(200).json(data);
+    } catch (error) {
+      const isAuth = /super_admin/i.test(error.message);
+      return res.status(isAuth ? 403 : 400).json({ error: error.message });
+    }
+  },
+
+  /**
+   * POST /api/admin/notifications/attachments/confirm
+   */
+  confirmAttachment: async (req, res) => {
+    try {
+      const data = await notificationAttachmentService.confirmUpload(req.body || {}, req.user);
+      return res.status(201).json(data);
+    } catch (error) {
+      const isAuth = /super_admin/i.test(error.message);
+      return res.status(isAuth ? 403 : 400).json({ error: error.message });
+    }
+  },
+
+  /**
+   * DELETE /api/admin/notifications/attachments/:attachmentId
+   */
+  deleteAttachment: async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      if (!Number.isInteger(attachmentId) || attachmentId <= 0) {
+        return res.status(400).json({ error: 'Invalid attachmentId' });
+      }
+      const data = await notificationAttachmentService.deleteAttachment(attachmentId, req.user);
+      return res.status(200).json(data);
+    } catch (error) {
+      const isAuth = /super_admin/i.test(error.message);
+      return res.status(isAuth ? 403 : 400).json({ error: error.message });
     }
   },
 

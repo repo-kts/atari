@@ -79,6 +79,9 @@ router.get('/notifications/recent', apiRateLimiter, requirePermission(NOTIFICATI
 router.get('/notifications/unread-count', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.getUnreadCountForCurrentUser);
 router.get('/notifications/users', apiRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.getRecipientUsers);
 router.post('/notifications', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'ADD'), notificationController.createNotification);
+router.post('/notifications/attachments/presign', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'ADD'), notificationController.presignAttachment);
+router.post('/notifications/attachments/confirm', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'ADD'), notificationController.confirmAttachment);
+router.delete('/notifications/attachments/:attachmentId', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'ADD'), notificationController.deleteAttachment);
 router.patch('/notifications/read-all', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.markAllAsRead);
 router.patch('/notifications/:userNotificationId/read', strictRateLimiter, requirePermission(NOTIFICATIONS_MODULE, 'VIEW'), notificationController.markAsRead);
 

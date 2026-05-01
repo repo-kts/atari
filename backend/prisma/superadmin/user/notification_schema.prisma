@@ -1,16 +1,34 @@
 model Notification {
-  notificationId   Int                @id @default(autoincrement()) @map("notification_id")
+  notificationId   Int                       @id @default(autoincrement()) @map("notification_id")
   subject          String
   content          String
-  createdByUserId  Int                @map("created_by_user_id")
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
-  createdBy        User               @relation("CreatedNotifications", fields: [createdByUserId], references: [userId], onDelete: Cascade)
+  createdByUserId  Int                       @map("created_by_user_id")
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  updatedAt        DateTime                  @updatedAt @map("updated_at")
+  createdBy        User                      @relation("CreatedNotifications", fields: [createdByUserId], references: [userId], onDelete: Cascade)
   userNotifications UserNotification[]
+  attachments      NotificationAttachment[]
 
   @@index([createdAt])
   @@index([createdByUserId])
   @@map("notifications")
+}
+
+model NotificationAttachment {
+  attachmentId     Int          @id @default(autoincrement()) @map("attachment_id")
+  notificationId   Int?         @map("notification_id")
+  s3Key            String       @map("s3_key")
+  fileName         String?      @map("file_name")
+  mimeType         String       @map("mime_type")
+  size             Int          @default(0)
+  uploadedByUserId Int?         @map("uploaded_by_user_id")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  notification     Notification? @relation(fields: [notificationId], references: [notificationId], onDelete: Cascade)
+  uploadedBy       User?        @relation("UploadedNotificationAttachments", fields: [uploadedByUserId], references: [userId], onDelete: SetNull)
+
+  @@index([notificationId])
+  @@index([uploadedByUserId])
+  @@map("notification_attachments")
 }
 
 model UserNotification {

@@ -1,4 +1,5 @@
 const notificationRepository = require('../repositories/notificationRepository.js');
+const notificationAttachmentService = require('./notificationAttachmentService.js');
 
 const SUPER_ADMIN_ROLE = 'super_admin';
 
@@ -13,7 +14,8 @@ function normalizeLimit(limit, fallback = 10) {
   return Math.min(parsed, 100);
 }
 
-function mapUserNotification(row) {
+function mapUserNotification(row, attachmentsById) {
+  const attachments = attachmentsById?.get(row.notificationId) || [];
   return {
     userNotificationId: row.userNotificationId,
     notificationId: row.notificationId,
@@ -30,6 +32,8 @@ function mapUserNotification(row) {
           email: row.notification.createdBy.email,
         }
       : null,
+    attachments,
+    attachmentCount: attachments.length,
   };
 }
 
@@ -81,12 +85,24 @@ const notificationService = {
       throw new Error('Selected users are not active');
     }
 
+    const rawAttachmentIds = Array.isArray(payload?.attachmentIds) ? payload.attachmentIds : [];
+
     const notification = await notificationRepository.createNotificationWithRecipients({
       subject,
       content,
       createdByUserId: actor.userId,
       recipientUserIds,
     });
+
+    if (rawAttachmentIds.length > 0) {
+      await notificationAttachmentService.attachToNotification({
+        attachmentIds: rawAttachmentIds,
+        notificationId: notification.notificationId,
+        user: actor,
+      });
+    }
+
+    const attachments = await notificationAttachmentService.listForNotification(notification.notificationId);
 
     return {
       notificationId: notification.notificationId,
@@ -95,6 +111,8 @@ const notificationService = {
       createdByUserId: notification.createdByUserId,
       createdAt: notification.createdAt,
       recipientCount: recipientUserIds.length,
+      attachments,
+      attachmentCount: attachments.length,
     };
   },
 
@@ -146,8 +164,12 @@ const notificationService = {
       take: limit,
     });
 
+    const attachmentsById = await notificationAttachmentService.listForNotificationIds(
+      rows.map((r) => r.notificationId),
+    );
+
     return {
-      data: rows.map(mapUserNotification),
+      data: rows.map((r) => mapUserNotification(r, attachmentsById)),
       meta: {
         page,
         limit,
@@ -165,7 +187,10 @@ const notificationService = {
   getRecentForUser: async (userId, limit = 5) => {
     const safeLimit = normalizeLimit(limit, 5);
     const rows = await notificationRepository.getRecentForUser(userId, safeLimit);
-    return rows.map(mapUserNotification);
+    const attachmentsById = await notificationAttachmentService.listForNotificationIds(
+      rows.map((r) => r.notificationId),
+    );
+    return rows.map((r) => mapUserNotification(r, attachmentsById));
   },
 
   /**
