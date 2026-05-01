@@ -115,6 +115,7 @@ export const ENTITY_TYPES = {
     ACHIEVEMENT_OTHER_EXTENSION: 'achievement-other-extension',
     ACHIEVEMENT_TECHNOLOGY_WEEK: 'achievement-technology-week',
     ACHIEVEMENT_CELEBRATION_DAYS: 'achievement-celebration-days',
+    ACHIEVEMENT_POSHAN_MAHA: 'achievement-poshan-maha',
     ACHIEVEMENT_PRODUCTION_SUPPLY: 'achievement-production-supply',
     ACHIEVEMENT_PUBLICATION_DETAILS: 'achievement-publication-details',
     ACHIEVEMENT_SOIL_EQUIPMENT: 'achievement-soil-equipment',

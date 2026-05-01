@@ -103,6 +103,16 @@ export const achievementsRoutes: RouteConfig[] = [
         siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {
+        path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAHA,
+        title: 'Poshan Maha',
+        category: 'Form Management',
+        subcategory: 'Achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
+        moduleCode: 'achievements_celebration_days',
+        fields: FIELD_GROUPS.POSHAN_MAHA,
+        siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
+    },
+    {
         path: ROUTE_PATHS.ACHIEVEMENTS.PRODUCTION_SUPPLY,
         title: 'Production and supply of Technological products',
         category: 'Form Management',

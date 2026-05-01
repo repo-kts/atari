@@ -1259,6 +1259,9 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.NO_OF_ACTIVITIES,
     ] as const,
 
+    // Achievements Routes - Poshan Maha (placeholder; fields TBD)
+    POSHAN_MAHA: [] as const,
+
     // Achievements Routes - Production & Supply
     PRODUCTION_SUPPLY: [
         FIELD_NAMES.KVK_NAME,
