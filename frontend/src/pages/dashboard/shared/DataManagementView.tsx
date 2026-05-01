@@ -10,6 +10,8 @@ import {
     FilePenLine,
     ChevronDown,
     RotateCcw,
+    FilterX,
+    GripHorizontal,
 } from 'lucide-react'
 import { Breadcrumbs } from '@/components/common/Breadcrumbs'
 import { TabNavigation } from '@/components/common/TabNavigation'
@@ -214,6 +216,87 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
     const mobileRouteMenuRef = useRef<HTMLDivElement | null>(null)
     const exportMenuRef = useRef<HTMLDivElement | null>(null)
     const oftFldTabMenuRef = useRef<HTMLDivElement | null>(null)
+
+    // Draggable filter card position (#168). Lifted state so the card
+    // remembers its last position within the React session. Default {0,0}
+    // keeps the original layout untouched when the user has not dragged.
+    const filterCardRef = useRef<HTMLDivElement | null>(null)
+    const [filterCardPos, setFilterCardPos] = useState<{
+        x: number
+        y: number
+    }>({ x: 0, y: 0 })
+    const filterDragStateRef = useRef<{
+        pointerId: number
+        startX: number
+        startY: number
+        originX: number
+        originY: number
+    } | null>(null)
+    const [isDraggingFilterCard, setIsDraggingFilterCard] = useState(false)
+
+    const handleFilterCardPointerDown = (
+        e: React.PointerEvent<HTMLDivElement>
+    ) => {
+        // Only respond to primary mouse button / touch / pen
+        if (e.button !== 0 && e.pointerType === 'mouse') return
+        const target = e.currentTarget
+        try {
+            target.setPointerCapture(e.pointerId)
+        } catch {
+            /* noop — capture not supported in some envs */
+        }
+        filterDragStateRef.current = {
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            originX: filterCardPos.x,
+            originY: filterCardPos.y,
+        }
+        setIsDraggingFilterCard(true)
+    }
+
+    const handleFilterCardPointerMove = (
+        e: React.PointerEvent<HTMLDivElement>
+    ) => {
+        const drag = filterDragStateRef.current
+        if (!drag || drag.pointerId !== e.pointerId) return
+        const card = filterCardRef.current
+        const dx = e.clientX - drag.startX
+        const dy = e.clientY - drag.startY
+        let nextX = drag.originX + dx
+        let nextY = drag.originY + dy
+        if (card && typeof window !== 'undefined') {
+            const rect = card.getBoundingClientRect()
+            // rect already reflects current transform; recover untransformed
+            // bounds by subtracting current pos, then clamp the *next* pos so
+            // the card stays fully inside the viewport.
+            const baseLeft = rect.left - filterCardPos.x
+            const baseTop = rect.top - filterCardPos.y
+            const minX = -baseLeft
+            const minY = -baseTop
+            const maxX = window.innerWidth - baseLeft - rect.width
+            const maxY = window.innerHeight - baseTop - rect.height
+            if (maxX >= minX) {
+                nextX = Math.min(Math.max(nextX, minX), maxX)
+            }
+            if (maxY >= minY) {
+                nextY = Math.min(Math.max(nextY, minY), maxY)
+            }
+        }
+        setFilterCardPos({ x: nextX, y: nextY })
+    }
+
+    const endFilterCardDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+        const drag = filterDragStateRef.current
+        if (!drag || drag.pointerId !== e.pointerId) return
+        try {
+            e.currentTarget.releasePointerCapture(e.pointerId)
+        } catch {
+            /* noop */
+        }
+        filterDragStateRef.current = null
+        setIsDraggingFilterCard(false)
+    }
 
     // Get entity type from path
     const entityType = getEntityTypeFromPath(location.pathname)
@@ -1660,49 +1743,113 @@ export const DataManagementView: React.FC<DataManagementViewProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
-                                <div className="w-full sm:w-[280px]">
-                                    <SearchInput
-                                        value={searchQuery}
-                                        onChange={setSearchQuery}
-                                        placeholder="Search..."
-                                        className="max-w-full!"
-                                    />
+                            <div
+                                ref={filterCardRef}
+                                style={{
+                                    transform: `translate(${filterCardPos.x}px, ${filterCardPos.y}px)`,
+                                    willChange:
+                                        filterCardPos.x !== 0 ||
+                                        filterCardPos.y !== 0
+                                            ? 'transform'
+                                            : undefined,
+                                    touchAction: isDraggingFilterCard
+                                        ? 'none'
+                                        : undefined,
+                                    position: 'relative',
+                                    zIndex: isDraggingFilterCard ? 40 : 'auto',
+                                }}
+                                className={
+                                    filterCardPos.x !== 0 ||
+                                    filterCardPos.y !== 0
+                                        ? 'rounded-xl border border-[#E0E0E0] bg-white shadow-sm'
+                                        : ''
+                                }
+                            >
+                                <div
+                                    onPointerDown={handleFilterCardPointerDown}
+                                    onPointerMove={handleFilterCardPointerMove}
+                                    onPointerUp={endFilterCardDrag}
+                                    onPointerCancel={endFilterCardDrag}
+                                    role="button"
+                                    aria-label="Drag filter card"
+                                    title="Drag to move filters"
+                                    className={`flex items-center justify-between gap-2 px-2 py-1 text-[#757575] select-none ${
+                                        isDraggingFilterCard
+                                            ? 'cursor-grabbing'
+                                            : 'cursor-grab'
+                                    }`}
+                                    style={{ touchAction: 'none' }}
+                                >
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+                                        <GripHorizontal className="w-4 h-4" />
+                                        Filters
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <DatePicker
-                                        value={reportingYearFrom}
-                                        onChange={setReportingYearFrom}
-                                        max={reportingFromMaxIso}
-                                        placeholder="From date"
-                                        ariaLabel="Reporting year from"
-                                        className="h-10 px-3 py-2 text-sm sm:w-[170px]"
-                                    />
-                                    <DatePicker
-                                        value={reportingYearTo}
-                                        onChange={setReportingYearTo}
-                                        min={
-                                            reportingYearFrom.trim()
-                                                ? reportingYearFrom
-                                                : undefined
-                                        }
-                                        max={reportingRangeTodayIso}
-                                        placeholder="To date"
-                                        ariaLabel="Reporting year to"
-                                        className="h-10 px-3 py-2 text-sm sm:w-[170px]"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setReportingYearFrom('')
-                                            setReportingYearTo('')
-                                        }}
-                                        className="h-11 inline-flex items-center gap-1.5 px-3 text-white rounded-xl bg-[#487749] text-sm hover:bg-[#3d6540] transition-colors cursor-pointer"
-                                        title="Clear from and to dates"
-                                    >
-                                        <RotateCcw className="w-4 h-4 text-white" />
-                                        Reset dates
-                                    </button>
+                                <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center px-2 pb-2">
+                                    <div className="w-full sm:w-[280px]">
+                                        <SearchInput
+                                            value={searchQuery}
+                                            onChange={setSearchQuery}
+                                            placeholder="Search..."
+                                            className="max-w-full!"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <DatePicker
+                                            value={reportingYearFrom}
+                                            onChange={setReportingYearFrom}
+                                            max={reportingFromMaxIso}
+                                            placeholder="From date"
+                                            ariaLabel="Reporting year from"
+                                            className="h-10 px-3 py-2 text-sm sm:w-[170px]"
+                                        />
+                                        <DatePicker
+                                            value={reportingYearTo}
+                                            onChange={setReportingYearTo}
+                                            min={
+                                                reportingYearFrom.trim()
+                                                    ? reportingYearFrom
+                                                    : undefined
+                                            }
+                                            max={reportingRangeTodayIso}
+                                            placeholder="To date"
+                                            ariaLabel="Reporting year to"
+                                            className="h-10 px-3 py-2 text-sm sm:w-[170px]"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setReportingYearFrom('')
+                                                setReportingYearTo('')
+                                            }}
+                                            className="h-11 inline-flex items-center gap-1.5 px-3 text-white rounded-xl bg-[#487749] text-sm hover:bg-[#3d6540] transition-colors cursor-pointer"
+                                            title="Clear from and to dates"
+                                        >
+                                            <RotateCcw className="w-4 h-4 text-white" />
+                                            Reset dates
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSearchQuery('')
+                                                setDebouncedSearch('')
+                                                setReportingYearFrom('')
+                                                setReportingYearTo('')
+                                                setCurrentPage(1)
+                                            }}
+                                            disabled={
+                                                !debouncedSearch &&
+                                                !searchQuery &&
+                                                !reportingYearFrom &&
+                                                !reportingYearTo
+                                            }
+                                            className="h-11 inline-flex items-center gap-1.5 px-3 rounded-xl text-sm border border-[#487749] text-[#487749] bg-white hover:bg-[#E8F5E9] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+                                            title="Clear search and date filters"
+                                        >
+                                            <FilterX className="w-4 h-4" />
+                                            Reset filters
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
