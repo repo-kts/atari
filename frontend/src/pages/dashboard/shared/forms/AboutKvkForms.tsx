@@ -21,6 +21,9 @@ import { masterDataApi } from '@/services/masterDataApi'
 import { useUniversityHostFields } from '@/hooks/useUniversityHostFields'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 import { toOptions, toFilteredOptions } from '@/utils/formOptions'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+const KVK_STAFF_FORM_CODE = 'kvk_staff'
 
 // Label resolvers — pure, hoisted outside the component so they keep stable
 // identity across renders and don't pull closures from props.
@@ -209,33 +212,10 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         }
     }, [entityType, setFormData])
 
-    // Normalize incoming photoPath for KVK Employees/Staff
-    React.useEffect(() => {
-        if (entityType === ENTITY_TYPES.KVK_EMPLOYEES || entityType === ENTITY_TYPES.KVK_STAFF_TRANSFERRED) {
-            const field = 'photoPath';
-            if (formData[field] && typeof formData[field] === 'string') {
-                if (formData[field].startsWith('[') || formData[field].startsWith('{')) {
-                    try {
-                        const parsed = JSON.parse(formData[field]);
-                        const arrayToMap = Array.isArray(parsed) ? parsed : [parsed];
-                        const normalized = arrayToMap.map((item: any) => {
-                            if (typeof item === 'string') {
-                                return { preview: item, image: item, caption: '' };
-                            }
-                            const url = item.image || item.url || item.path || item.preview || '';
-                            return { preview: url, image: url, caption: item.caption || '' };
-                        });
-                        setFormData((prev: any) => ({ ...prev, [field]: normalized }));
-                    } catch (e) {
-                        console.error('Photo parsing error:', e);
-                    }
-                } else if (formData[field].trim() !== '') {
-                    const normalized = [{ preview: formData[field].trim(), image: formData[field].trim(), caption: '' }];
-                    setFormData((prev: any) => ({ ...prev, [field]: normalized }));
-                }
-            }
-        }
-    }, [formData.kvkStaffId, formData.id, entityType, setFormData]);
+    const handleStaffAttachmentIds = React.useCallback(
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
+        [setFormData],
+    )
     // Autofill host fields from selected University
     const selectedUniversityId = typeof formData.universityId === 'number' ? formData.universityId : undefined
     const { data: uniHost } = useUniversityHostFields(selectedUniversityId)
@@ -363,6 +343,18 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 value={formData.resumePath ?? ''}
                                 onChange={(e) => setFormData({ ...formData, resumePath: e.target.value })}
                                 placeholder="Resume link"
+                            />
+                        </div>
+                        <div className="mt-6">
+                            <FormAttachmentSection
+                                title="Photograph"
+                                formCode={KVK_STAFF_FORM_CODE}
+                                kind="PHOTO"
+                                kvkId={formData.kvkId ?? user?.kvkId ?? null}
+                                recordId={formData.kvkStaffId ?? formData.id ?? null}
+                                maxCount={1}
+                                initialAttachments={formData?.photos}
+                                onAttachmentIdsChange={handleStaffAttachmentIds}
                             />
                         </div>
                     </FormSection>

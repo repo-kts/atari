@@ -3,9 +3,16 @@ const prisma = require('../../config/prisma.js');
 const { ValidationError } = require('../../utils/errorHandler.js');
 const { parseReportingYearDate, ensureNotFutureDate } = require('../../utils/reportingYearUtils.js');
 const { sanitizeDate, sanitizeString } = require('../../utils/dataSanitizer.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
 
 /** Roles scoped to a specific KVK */
 const KVK_ROLES = ['kvk_admin', 'kvk_user'];
+
+const STAFF_ATTACHMENT_ENTITIES = new Set(['kvk-employees', 'kvk-staff-transferred']);
+const staffAttachmentBinding = createAttachmentBinding({
+    formCode: 'kvk_staff',
+    primaryKey: 'kvkStaffId',
+});
 
 /**
  * About KVK Service
@@ -52,6 +59,9 @@ class AboutKvkService {
         }
 
         const result = await aboutKvkRepository.findAll(entityName, options, user);
+        if (STAFF_ATTACHMENT_ENTITIES.has(entityName) && Array.isArray(result?.data)) {
+            result.data = await staffAttachmentBinding.decorateMany(result.data, user);
+        }
         return {
             ...result,
             page: options.page || 1,
@@ -76,7 +86,7 @@ class AboutKvkService {
                     : (typeof entity.sourceKvkIds === 'string' ? JSON.parse(entity.sourceKvkIds) : []);
                 if (Array.isArray(sourceIds) && sourceIds.includes(user.kvkId)) {
                     // Allow view access for source KVK
-                    return entity;
+                    return staffAttachmentBinding.decorate(entity, user);
                 }
             }
             throw new Error('Access denied: You can only access your own KVK data');
@@ -93,10 +103,22 @@ class AboutKvkService {
             }
         }
 
+        if (STAFF_ATTACHMENT_ENTITIES.has(entityName)) {
+            return staffAttachmentBinding.decorate(entity, user);
+        }
+
         return entity;
     }
 
     async create(entityName, data, user = null) {
+        const useStaffAttachments = STAFF_ATTACHMENT_ENTITIES.has(entityName);
+        let attachmentIds = [];
+        if (useStaffAttachments) {
+            const stripped = staffAttachmentBinding.strip(data);
+            data = stripped.payload;
+            attachmentIds = stripped.attachmentIds;
+        }
+
         // Authorization checks
         if (entityName === 'kvks') {
             // Only super_admin can create KVKs
@@ -166,10 +188,23 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, sanitizedData);
 
-        return await aboutKvkRepository.create(entityName, finalData);
+        const created = await aboutKvkRepository.create(entityName, finalData);
+        if (useStaffAttachments) {
+            await staffAttachmentBinding.attach(created, attachmentIds, user);
+            return staffAttachmentBinding.decorate(created, user);
+        }
+        return created;
     }
 
     async update(entityName, id, data, user = null) {
+        const useStaffAttachments = STAFF_ATTACHMENT_ENTITIES.has(entityName);
+        let attachmentIds = [];
+        if (useStaffAttachments) {
+            const stripped = staffAttachmentBinding.strip(data);
+            data = stripped.payload;
+            attachmentIds = stripped.attachmentIds;
+        }
+
         // Ensure entity exists and user has access (getById enforces geographic scope)
         const currentEntity = await this.getById(entityName, id, user);
 
@@ -198,7 +233,12 @@ class AboutKvkService {
         // Convert numeric fields
         const finalData = this.sanitizeNumericFields(entityName, enumSanitized);
 
-        return await aboutKvkRepository.update(entityName, id, finalData);
+        const updated = await aboutKvkRepository.update(entityName, id, finalData);
+        if (useStaffAttachments) {
+            await staffAttachmentBinding.attach(updated ?? currentEntity, attachmentIds, user);
+            return staffAttachmentBinding.decorate(updated, user);
+        }
+        return updated;
     }
 
     async delete(entityName, id, user = null) {
@@ -221,7 +261,11 @@ class AboutKvkService {
             }
         }
 
-        return await aboutKvkRepository.deleteEntity(entityName, id);
+        const result = await aboutKvkRepository.deleteEntity(entityName, id);
+        if (STAFF_ATTACHMENT_ENTITIES.has(entityName)) {
+            await staffAttachmentBinding.cleanup(currentEntity, user);
+        }
+        return result;
     }
 
     /**

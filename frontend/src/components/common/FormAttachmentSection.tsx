@@ -22,6 +22,7 @@ export interface FormAttachmentSectionProps {
     disabled?: boolean
     accept?: string
     maxBytes?: number
+    maxCount?: number
     reportingYearDate?: string | null
 }
 
@@ -57,6 +58,7 @@ export const FormAttachmentSection: React.FC<FormAttachmentSectionProps> = ({
     disabled,
     accept,
     maxBytes,
+    maxCount,
     reportingYearDate,
 }) => {
     // Fall back to the logged-in user's kvkId when the form hasn't pushed it
@@ -119,6 +121,7 @@ export const FormAttachmentSection: React.FC<FormAttachmentSectionProps> = ({
                 disabled={disabled}
                 accept={accept}
                 maxBytes={maxBytes}
+                maxCount={maxCount}
                 reportingYearDate={reportingYearDate}
                 onChange={recordId ? undefined : setAttachments}
             />

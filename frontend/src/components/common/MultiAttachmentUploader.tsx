@@ -35,6 +35,7 @@ export interface MultiAttachmentUploaderProps {
     disabled?: boolean
     helperText?: string
     reportingYearDate?: string | null
+    maxCount?: number
     onChange?: (rows: FormAttachmentRow[]) => void
 }
 
@@ -93,8 +94,10 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     disabled = false,
     helperText,
     reportingYearDate = null,
+    maxCount,
     onChange,
 }) => {
+    const isSingle = maxCount === 1
     const fileInputRef = useRef<HTMLInputElement>(null)
     const qc = useQueryClient()
     const updateMut = useUpdateAttachment()
@@ -107,9 +110,11 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
     const acceptAttr = accept ?? (kind === 'PHOTO' ? PHOTO_ACCEPT : DATASHEET_ACCEPT)
     const helper =
         helperText ??
-        (kind === 'PHOTO'
-            ? `Only images allowed. Hold Ctrl/Cmd in the file picker to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`
-            : `PDF / Image / Excel / Word allowed. Hold Ctrl/Cmd to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`)
+        (isSingle
+            ? `Only one image allowed. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB)`
+            : kind === 'PHOTO'
+                ? `Only images allowed. Hold Ctrl/Cmd in the file picker to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`
+                : `PDF / Image / Excel / Word allowed. Hold Ctrl/Cmd to select multiple. (Max ${(maxBytes / (1024 * 1024)).toFixed(0)} MB per file)`)
 
     const sorted = useMemo(
         () => [...attachments].sort((a, b) => a.sortOrder - b.sortOrder || a.attachmentId - b.attachmentId),
@@ -120,7 +125,18 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
         async (files: FileList | null) => {
             if (!files || files.length === 0) return
             setError(null)
-            const list = Array.from(files)
+            let list = Array.from(files)
+            if (typeof maxCount === 'number' && maxCount > 0) {
+                const remaining = Math.max(0, maxCount - sorted.length)
+                if (remaining === 0) {
+                    setError(`Limit reached: only ${maxCount} file${maxCount === 1 ? '' : 's'} allowed. Remove the existing file to replace.`)
+                    if (fileInputRef.current) fileInputRef.current.value = ''
+                    return
+                }
+                if (list.length > remaining) {
+                    list = list.slice(0, remaining)
+                }
+            }
             const oversized = list.find((f) => f.size > maxBytes)
             if (oversized) {
                 setError(`"${oversized.name}" exceeds max size ${(maxBytes / (1024 * 1024)).toFixed(0)} MB`)
@@ -170,8 +186,10 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
             setProgress(null)
             if (fileInputRef.current) fileInputRef.current.value = ''
         },
-        [formCode, kind, kvkId, recordId, sorted, onChange, maxBytes, reportingYearDate, qc],
+        [formCode, kind, kvkId, recordId, sorted, onChange, maxBytes, maxCount, reportingYearDate, qc],
     )
+
+    const atLimit = typeof maxCount === 'number' && maxCount > 0 && sorted.length >= maxCount
 
     const handleRemove = useCallback(
         async (att: FormAttachmentRow) => {
@@ -211,8 +229,8 @@ export const MultiAttachmentUploader: React.FC<MultiAttachmentUploaderProps> = (
                     ref={fileInputRef}
                     type="file"
                     accept={acceptAttr}
-                    multiple
-                    disabled={disabled || uploading}
+                    multiple={!isSingle}
+                    disabled={disabled || uploading || atLimit}
                     onChange={(e) => handleFiles(e.target.files)}
                     className="block w-full text-sm bg-white px-3 py-2 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-[#487749] file:text-white hover:file:bg-[#3d6540] cursor-pointer disabled:opacity-60"
                 />

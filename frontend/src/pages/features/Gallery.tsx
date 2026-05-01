@@ -935,6 +935,16 @@ const Lightbox: React.FC<{
               Open
             </a>
           </div>
+          {onDelete && img.source === 'form' && (
+            <div className="pt-3">
+              <button
+                onClick={() => onDelete(img)}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Delete image
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

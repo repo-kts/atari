@@ -61,6 +61,7 @@ const FORM_LABEL_OVERRIDES: Record<string, string> = {
     farmer_award: 'Farmer Award',
     arya_current_year: 'ARYA Current Year',
     success_story: 'Success Story',
+    kvk_staff: 'KVK Staff Photos',
 }
 
 // Maps a formCode to the sidebar group it should appear under. Falls back to
@@ -83,6 +84,7 @@ const FORM_MENU_BY_CODE: Record<string, string> = {
     rawe_fet: 'Miscellaneous',
     ppv_fra: 'Miscellaneous',
     success_story: 'Performance Indicators',
+    kvk_staff: 'About KVKs',
 }
 
 const DEFAULT_FORMS_MENU_NAME = 'Form Attachments'
@@ -136,7 +138,10 @@ export function useGallerySource(
     // Translate selected synthetic moduleId to formCode if it belongs to forms.
     // Module-image queries should not pass a synthetic id (out of range), so
     // strip moduleId when it's >= FORM_ID_OFFSET.
-    const isFormSelection = (filters.moduleId ?? 0) >= FORM_ID_OFFSET
+    // Also treat an explicit formCode filter as a form-only selection so module
+    // images don't bleed into the result list.
+    const isFormSelection =
+        (filters.moduleId ?? 0) >= FORM_ID_OFFSET || Boolean(filters.formCode)
     const moduleImageFilters = {
         ...filters,
         moduleId: isFormSelection ? undefined : filters.moduleId,
