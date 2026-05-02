@@ -115,7 +115,6 @@ model Kvk {
   revenueGenerations            RevenueGeneration[]
   resourceGenerations           ResourceGeneration[]
   functionalLinkages            FunctionalLinkage[]
-  specialProgrammes             SpecialProgramme[]
   nariNutritionalGarden         NariNutritionalGarden[]
   nariBioFortifiedCrops         NariBioFortifiedCrop[]
   nariValueAdditions            NariValueAddition[]

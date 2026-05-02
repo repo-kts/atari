@@ -162,7 +162,6 @@ export const ROUTE_PATHS = {
         },
         LINKAGES: {
             FUNCTIONAL_LINKAGE: '/forms/performance/linkages/functional-linkage',
-            SPECIAL_PROGRAMMES: '/forms/performance/linkages/special-programmes',
         },
     },
     // Miscellaneous Routes
@@ -310,8 +309,6 @@ export const ROUTE_PATHS = {
                 '/forms/performance/infrastructure/rainwater-harvesting',
             FUNCTIONAL_LINKAGE:
                 '/forms/performance/linkages/functional-linkages',
-            SPECIAL_PROGRAMMES:
-                '/forms/performance/linkages/special-programmes',
             OPERATIONAL_AREA:
                 '/forms/performance/district-village/operational-areas',
             VILLAGE_ADOPTION:

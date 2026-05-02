@@ -187,7 +187,6 @@ CFLD: [
     // Performance Indicator - Linkages Siblings
     PERFORMANCE_LINKAGES: [
         ROUTE_PATHS.PERFORMANCE.LINKAGES.FUNCTIONAL_LINKAGE,
-        ROUTE_PATHS.PERFORMANCE.LINKAGES.SPECIAL_PROGRAMMES,
     ],
 
     // Miscellaneous - Diseases Siblings

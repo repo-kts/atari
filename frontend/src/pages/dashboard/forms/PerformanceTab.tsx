@@ -56,7 +56,6 @@ const sections: FeatureSection[] = [
         icon: <LinkIcon className="w-5 h-5" />,
         items: [
             { label: 'Functional Linkage', path: '/forms/performance/linkages/functional-linkage' },
-            { label: 'Special Programmes', path: '/forms/performance/linkages/special-programmes' },
         ],
     },
 ]

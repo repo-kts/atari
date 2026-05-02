@@ -219,7 +219,6 @@ export const ENTITY_TYPES = {
 
     // Performance Indicators - Linkages
     PERFORMANCE_FUNCTIONAL_LINKAGE: 'performance-functional-linkage',
-    PERFORMANCE_SPECIAL_PROGRAMMES: 'performance-special-programmes',
 
     // Digital Information
     MISC_DIGITAL_MOBILE_APP: 'misc-digital-mobile-app',

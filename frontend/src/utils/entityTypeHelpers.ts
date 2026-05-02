@@ -198,7 +198,6 @@ export const ENTITY_CATEGORIES = {
         ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION,
         ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION,
         ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE,
-        ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES,
         ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP,
         ENTITY_TYPES.MISC_DIGITAL_WEB_PORTAL,
         ENTITY_TYPES.MISC_DIGITAL_KISAN_SARATHI,
@@ -412,7 +411,6 @@ export const getEntityTypeFromPathMap = (path: string): ExtendedEntityType | nul
         '/forms/performance/financial/revenue-generation': ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION,
         '/forms/performance/financial/resource-generation': ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION,
         '/forms/performance/linkages/functional-linkage': ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE,
-        '/forms/performance/linkages/special-programmes': ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES,
 
         // Digital Information
         '/forms/digital-information/mobile-app': ENTITY_TYPES.MISC_DIGITAL_MOBILE_APP,
