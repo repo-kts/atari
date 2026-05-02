@@ -460,7 +460,59 @@ export const StatChartPanel: React.FC<Props> = ({
                     </div>
                 )}
 
-                {view === 'area' && (
+                {view === 'area' && chartData.length < 2 && (
+                    <div className="p-6">
+                        {chartData.length === 0 ? (
+                            <div className="text-center text-[#757575] text-sm py-12">
+                                No data to chart yet.
+                            </div>
+                        ) : (
+                            <div className="rounded-xl border border-[#E0E0E0] bg-[#FAF9F6] p-5">
+                                <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9E9E9E] mb-2">
+                                    Single data point
+                                </div>
+                                <div className="text-base font-bold text-[#212121] mb-3">
+                                    {chartData[0].fullName}
+                                </div>
+                                {showStacked ? (
+                                    <div className="flex flex-wrap gap-3">
+                                        {SEG_KEYS.map((k) => (
+                                            <div
+                                                key={k}
+                                                className="flex items-center gap-2 rounded-lg bg-white border border-[#E0E0E0] px-3 py-1.5"
+                                            >
+                                                <span
+                                                    className="w-2.5 h-2.5 rounded-sm"
+                                                    style={{ backgroundColor: SEG_COLOR[k] }}
+                                                />
+                                                <span className="text-[11px] uppercase tracking-wide text-[#757575]">
+                                                    {SEG_LABEL[k]}
+                                                </span>
+                                                <span className="text-sm font-bold text-[#212121]">
+                                                    {(chartData[0][k] as number).toLocaleString()}
+                                                    {unit ? ` ${unit}` : ''}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-3xl font-bold text-[#487749]">
+                                            {chartData[0].primary.toLocaleString()}
+                                        </span>
+                                        {unit && (
+                                            <span className="text-sm text-[#757575]">{unit}</span>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="mt-3 text-xs text-[#9E9E9E]">
+                                    Area chart needs at least 2 entries — switch to Bar or List for single rows.
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {view === 'area' && chartData.length >= 2 && (
                     <div className="p-3">
                         {showStacked && (
                             <div className="mb-2 flex justify-end">
