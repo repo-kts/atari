@@ -103,6 +103,13 @@ CFLD: [
         ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.DEMONSTRATION_DETAILS,
     ],
 
+    // TSP/SCSP Siblings — single backend endpoint, filtered + injected
+    // by entity-type via useTspScspFilteredProjectData.
+    TSP_SCSP: [
+        ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.TSP,
+        ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.SCSP,
+    ],
+
     // KVK View Siblings
     KVK_VIEW: [
         ROUTE_PATHS.ABOUT_KVK.VIEW_KVKS.DETAILS,

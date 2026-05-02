@@ -82,7 +82,7 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from './useOtherMastersData'
-import { useProjectData } from './useProjectData'
+import { useProjectData, useTspScspFilteredProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
 
 /**
@@ -199,6 +199,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: () => useProjectData(ENTITY_TYPES.PROJECT_ARYA_EVALUATION),
     [ENTITY_TYPES.PROJECT_CSISA]: () => useProjectData(ENTITY_TYPES.PROJECT_CSISA),
     [ENTITY_TYPES.PROJECT_TSP_SCSP]: () => useProjectData(ENTITY_TYPES.PROJECT_TSP_SCSP),
+    [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: () => useTspScspFilteredProjectData('TSP'),
+    [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: () => useTspScspFilteredProjectData('SCSP'),
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_BASIC),
     [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_DETAILS),
     [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_TRAINING),

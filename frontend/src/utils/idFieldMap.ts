@@ -179,6 +179,8 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
 
     // TSP/SCSP
     [ENTITY_TYPES.PROJECT_TSP_SCSP]: 'id',
+    [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: 'id',
+    [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: 'id',
 
     // Miscellaneous
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'prevalentDiseaseId',

@@ -92,7 +92,11 @@ export const ROUTE_PATHS = {
                 EVALUATION: '/forms/achievements/projects/arya-evaluation',
             },
             CSISA: '/forms/achievements/projects/csisa',
-            TSP_SCSP: '/forms/achievements/projects/sub-plan-activity',
+            TSP_SCSP: {
+                BASE: '/forms/achievements/projects/sub-plan-activity',
+                TSP: '/forms/achievements/projects/sub-plan-activity/tsp',
+                SCSP: '/forms/achievements/projects/sub-plan-activity/scsp',
+            },
             NICRA: {
                 BASE: '/forms/achievements/projects/nicra',
                 BASIC_INFORMATION: '/forms/achievements/projects/nicra/basic-information',

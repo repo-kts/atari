@@ -2,7 +2,7 @@ import React from 'react'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { useSeasons, useExtensionActivityTypes, useNariActivities, useNariCropCategories, useNariNutritionGardenTypes, useNicraCategories, useNicraSubCategories, useNicraSeedBankFodderBanks, useNicraDignitaryTypes, useNicraPiTypes, useStaffCategories } from '@/hooks/useOtherMastersData'
-import { useAgriDroneDemonstrationsOn, useAryaEnterprises, useCraCroppingSystems, useCraFarmingSystems, useNaturalFarmingActivities, useNaturalFarmingSoilParameters, useTspScspActivities, useTspScspTypes } from '@/hooks/useProductionProjectsData'
+import { useAgriDroneDemonstrationsOn, useAryaEnterprises, useCraCroppingSystems, useCraFarmingSystems, useNaturalFarmingActivities, useNaturalFarmingSoilParameters, useTspScspActivities } from '@/hooks/useProductionProjectsData'
 import { useMasterData } from '@/hooks/useMasterData'
 import { useAuth } from '@/contexts/AuthContext'
 import { useEffect } from 'react'
@@ -60,7 +60,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     const { data: nariActivities = [] } = useNariActivities()
     const { data: nariCropCategories = [] } = useNariCropCategories()
     const { data: nariNutritionGardenTypes = [] } = useNariNutritionGardenTypes()
-    const { data: tspScspTypes = [] } = useTspScspTypes()
     const { data: tspScspActivities = [] } = useTspScspActivities()
     const { data: agriDroneDemonstrationsOn = [] } = useAgriDroneDemonstrationsOn()
     const { data: naturalFarmingActivities = [] } = useNaturalFarmingActivities()
@@ -78,7 +77,10 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
     const isFPO = entityType.includes('fpo')
     const isDRMR = entityType.includes('drmr')
     const isCSISA = entityType.includes('csisa')
-    const isTSPSCSP = entityType.includes('tsp-scsp')
+    const isTSPSCSP =
+        entityType.includes('tsp-scsp') ||
+        entityType === ENTITY_TYPES.PROJECT_TSP_ACTIVITY ||
+        entityType === ENTITY_TYPES.PROJECT_SCSP_ACTIVITY
     const isAgriDrone = entityType.includes('agri-drone')
     const isSeedHub = entityType.includes('seed-hub')
     const isNaturalFarming = entityType.includes('natural-farming')
@@ -180,7 +182,6 @@ export const ProjectForms: React.FC<ProjectFormsProps> = ({
                     formData={formData}
                     setFormData={setFormData}
                     districts={districts}
-                    tspScspTypes={tspScspTypes}
                     tspScspActivities={tspScspActivities}
                 />
             )}

@@ -969,10 +969,19 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.DISTRICT_COVERED_NO,
     ] as const,
 
-    // Projects Routes - TSP/SCSP
+    // Projects Routes - TSP/SCSP (legacy, kept for backward compatibility)
     TSP_SCSP: [
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.TYPE,
+        FIELD_NAMES.ACTIVITY,
+        FIELD_NAMES.NO_OF_TRAINING,
+        FIELD_NAMES.BENEFICIARIES,
+    ] as const,
+
+    // Projects Routes - TSP/SCSP Activities (Type column dropped — each
+    // sibling page is type-segregated client-side)
+    TSP_SCSP_ACTIVITIES: [
+        FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.ACTIVITY,
         FIELD_NAMES.NO_OF_TRAINING,
         FIELD_NAMES.BENEFICIARIES,

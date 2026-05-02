@@ -48,6 +48,8 @@ export const ENTITY_TYPE_EXPORT_TEMPLATE_MAP: Partial<
     [ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO]: 'agri-drone-demonstration-details',
     [ENTITY_TYPES.PROJECT_CSISA]: 'csisa',
     [ENTITY_TYPES.PROJECT_TSP_SCSP]: 'tsp-scsp',
+    [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: 'tsp-scsp',
+    [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: 'tsp-scsp',
     [ENTITY_TYPES.PROJECT_CFLD_EXTENSION_ACTIVITY]: 'cfld-extension-activity',
     [ENTITY_TYPES.PROJECT_CFLD_BUDGET]: 'cfld-budget-utilization',
     [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: 'special-programme',
