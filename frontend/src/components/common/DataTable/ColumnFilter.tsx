@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowUp, ArrowDown, Filter, Search, X } from 'lucide-react'
+import { ArrowUp, ArrowDown, Filter, GripHorizontal, Search, X } from 'lucide-react'
 
 export type SortDir = 'asc' | 'desc' | null
 
@@ -45,6 +45,63 @@ export const ColumnFilter: React.FC<Props> = ({
     const buttonRef = useRef<HTMLButtonElement | null>(null)
     const popoverRef = useRef<HTMLDivElement | null>(null)
     const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
+    const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+    const dragStateRef = useRef<{
+        pointerId: number
+        startX: number
+        startY: number
+        originX: number
+        originY: number
+    } | null>(null)
+    const [isDragging, setIsDragging] = useState(false)
+
+    const handleDragStart = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (e.button !== 0 && e.pointerType === 'mouse') return
+        try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* noop */ }
+        dragStateRef.current = {
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            originX: dragOffset.x,
+            originY: dragOffset.y,
+        }
+        setIsDragging(true)
+    }
+
+    const handleDragMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        const drag = dragStateRef.current
+        if (!drag || drag.pointerId !== e.pointerId) return
+        const dx = e.clientX - drag.startX
+        const dy = e.clientY - drag.startY
+        let nextX = drag.originX + dx
+        let nextY = drag.originY + dy
+        if (popoverRef.current && popoverPos && typeof window !== 'undefined') {
+            const rect = popoverRef.current.getBoundingClientRect()
+            const baseLeft = rect.left - dragOffset.x
+            const baseTop = rect.top - dragOffset.y
+            const minX = -baseLeft
+            const minY = -baseTop
+            const maxX = window.innerWidth - baseLeft - rect.width
+            const maxY = window.innerHeight - baseTop - rect.height
+            if (maxX >= minX) nextX = Math.min(Math.max(nextX, minX), maxX)
+            if (maxY >= minY) nextY = Math.min(Math.max(nextY, minY), maxY)
+        }
+        setDragOffset({ x: nextX, y: nextY })
+    }
+
+    const handleDragEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+        const drag = dragStateRef.current
+        if (!drag || drag.pointerId !== e.pointerId) return
+        try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* noop */ }
+        dragStateRef.current = null
+        setIsDragging(false)
+    }
+
+    // Reset drag offset whenever the popover closes so re-opens always anchor
+    // to the column-header button.
+    useEffect(() => {
+        if (!open) setDragOffset({ x: 0, y: 0 })
+    }, [open])
 
     const active = isFilterActive(state)
 
@@ -134,16 +191,38 @@ export const ColumnFilter: React.FC<Props> = ({
             {open && popoverPos && (
                 <div
                     ref={popoverRef}
-                    style={{ top: popoverPos.top, left: popoverPos.left, width: 280 }}
+                    style={{
+                        top: popoverPos.top,
+                        left: popoverPos.left,
+                        width: 280,
+                        transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)`,
+                        touchAction: isDragging ? 'none' : undefined,
+                    }}
                     className="fixed z-[100] bg-white rounded-xl shadow-2xl border border-[#E0E0E0] overflow-hidden text-[#212121]"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="px-3 py-2 border-b border-[#E0E0E0] flex items-center justify-between">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-[#487749] truncate">
-                            {label}
+                    <div
+                        onPointerDown={handleDragStart}
+                        onPointerMove={handleDragMove}
+                        onPointerUp={handleDragEnd}
+                        onPointerCancel={handleDragEnd}
+                        style={{ touchAction: 'none' }}
+                        className={`px-3 py-2 border-b border-[#E0E0E0] flex items-center justify-between gap-2 select-none ${
+                            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                        }`}
+                        role="button"
+                        aria-label={`Drag ${label} filter`}
+                        title="Drag to move"
+                    >
+                        <span className="inline-flex items-center gap-1.5 min-w-0">
+                            <GripHorizontal className="w-3.5 h-3.5 text-[#9E9E9E] shrink-0" />
+                            <span className="text-xs font-semibold uppercase tracking-wide text-[#487749] truncate">
+                                {label}
+                            </span>
                         </span>
                         <button
                             type="button"
+                            onPointerDown={(e) => e.stopPropagation()}
                             onClick={() => setOpen(false)}
                             className="p-0.5 rounded hover:bg-gray-100 text-gray-500"
                             aria-label="Close"
