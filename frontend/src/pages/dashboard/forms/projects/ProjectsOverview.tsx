@@ -77,7 +77,8 @@ const sections: FeatureSection[] = [
         title: 'TSP/SCSP',
         icon: <FileText className="w-5 h-5" />,
         items: [
-            { label: 'TSP/SCSP', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP },
+            { label: 'TSP Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.TSP },
+            { label: 'SCSP Activities', path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.SCSP },
         ],
     },
     {

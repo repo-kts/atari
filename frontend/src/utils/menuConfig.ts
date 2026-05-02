@@ -125,8 +125,19 @@ export const projectsMenuItems: MenuItem[] = [
     },
     {
         label: 'TSP/SCSP',
-        path: '/forms/achievements/projects/sub-plan-activity',
-        metadata: { isDirectLink: true }
+        path: '#',
+        children: [
+            {
+                label: 'TSP Activities',
+                path: '/forms/achievements/projects/sub-plan-activity/tsp',
+                metadata: { isDirectLink: true }
+            },
+            {
+                label: 'SCSP Activities',
+                path: '/forms/achievements/projects/sub-plan-activity/scsp',
+                metadata: { isDirectLink: true }
+            }
+        ]
     },
     {
         label: 'NICRA (Technology Demonstration)',

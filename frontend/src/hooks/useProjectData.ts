@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ENTITY_TYPES } from '../constants/entityConstants'
 import { apiClient } from '../services/api'
@@ -53,6 +54,11 @@ export function useProjectData(entityType: string) {
         [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: P.PROJECTS.ARYA_EVALUATION,
         [ENTITY_TYPES.PROJECT_CSISA]: P.PROJECTS.CSISA,
         [ENTITY_TYPES.PROJECT_TSP_SCSP]: P.PROJECTS.TSP_SCSP,
+        // TSP/SCSP siblings share the same backend endpoint as the legacy
+        // entity. The frontend filter / payload-injection happens in
+        // useTspScspFilteredProjectData below.
+        [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: P.PROJECTS.TSP_SCSP,
+        [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: P.PROJECTS.TSP_SCSP,
         [ENTITY_TYPES.PROJECT_AGRI_DRONE]: P.PROJECTS.AGRI_DRONE,
         [ENTITY_TYPES.PROJECT_AGRI_DRONE_DEMO]: P.PROJECTS.AGRI_DRONE_DEMO,
         [ENTITY_TYPES.PROJECT_DRMR_DETAILS]: P.PROJECTS.DRMR_DETAILS,
@@ -228,5 +234,44 @@ export function useProjectData(entityType: string) {
         isCreating: createMutation.isPending,
         isUpdating: updateMutation.isPending,
         isDeleting: deleteMutation.isPending,
+    }
+}
+
+/**
+ * TSP/SCSP filtered wrapper.
+ *
+ * The TSP and SCSP sidebar pages share the single legacy
+ * `PROJECT_TSP_SCSP` backend endpoint. This wrapper:
+ *
+ * - Filters list rows client-side by the `type` column
+ *   (case-insensitive) so each page only displays its own rows.
+ * - Injects `{ type: 'TSP' | 'SCSP' }` into the create payload so
+ *   submissions are tagged correctly without exposing a Type
+ *   selector in the form.
+ * - Update / delete pass through unchanged (id-based).
+ *
+ * Both pages share the underlying React Query cache for
+ * `PROJECT_TSP_SCSP`, so a write on one tab refreshes the other.
+ */
+export function useTspScspFilteredProjectData(
+    typeFilter: 'TSP' | 'SCSP',
+) {
+    const base = useProjectData(ENTITY_TYPES.PROJECT_TSP_SCSP)
+
+    const filteredData = useMemo(() => {
+        const target = typeFilter.toUpperCase()
+        return (base.data || []).filter((row: any) => {
+            const t = (row?.type || '').toString().toUpperCase()
+            return t === target
+        })
+    }, [base.data, typeFilter])
+
+    const create = async (data: any) =>
+        base.create({ ...data, type: typeFilter })
+
+    return {
+        ...base,
+        data: filteredData,
+        create,
     }
 }

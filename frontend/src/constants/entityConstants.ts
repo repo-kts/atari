@@ -151,6 +151,8 @@ export const ENTITY_TYPES = {
 
     PROJECT_CSISA: 'project-csisa',
     PROJECT_TSP_SCSP: 'project-tsp-scsp',
+    PROJECT_TSP_ACTIVITY: 'project-tsp-activity',
+    PROJECT_SCSP_ACTIVITY: 'project-scsp-activity',
 
     PROJECT_NICRA_BASIC: 'project-nicra-basic',
     PROJECT_NICRA_DETAILS: 'project-nicra-details',
