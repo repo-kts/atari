@@ -125,7 +125,6 @@ const REGISTRY = [
   { key: 'performance.resource_generation', title: 'Resource Generation', category: 'Performance Indicators', subcategory: 'Financial', moduleCode: 'performance_indicators_financial', model: 'resourceGeneration', path: '/forms/performance/financial/resource-generation' },
 
   { key: 'performance.functional_linkage', title: 'Functional Linkage', category: 'Performance Indicators', subcategory: 'Linkages', moduleCode: 'performance_indicators_linkages', model: 'functionalLinkage', path: '/forms/performance/linkages/functional-linkage' },
-  { key: 'performance.special_programmes', title: 'Special Programmes', category: 'Performance Indicators', subcategory: 'Linkages', moduleCode: 'performance_indicators_linkages', model: 'specialProgramme', path: '/forms/performance/linkages/special-programmes' },
 
   // ── Miscellaneous ────────────────────────────────────────────────────────
   { key: 'misc.diseases_crops', title: 'Prevalent Diseases (Crops)', category: 'Miscellaneous', moduleCode: 'misc_prevalent_diseases_crops', model: 'prevalentDiseasesInCrop', path: '/forms/miscellaneous/diseases/crops' },

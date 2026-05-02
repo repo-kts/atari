@@ -1499,29 +1499,6 @@ const reportConfig = {
                 { dbField: 'natureOfLinkage', displayName: 'Nature of Linkage' },
             ],
         },
-        {
-            id: '4.21',
-            title: 'Special Programmes',
-            description: 'List of Special Programmes Undertaken by the KVK',
-            subsection: true,
-            parentSectionId: '4',
-            dataSource: 'specialProgramme',
-            format: 'custom',
-            customTemplate: 'special-programme',
-            filters: {
-                dateFields: ['initiationDate'],
-                yearFields: ['reportingYear'],
-            },
-            fields: [
-                { dbField: 'programmeType', displayName: 'Programme Type' },
-                { dbField: 'programmeName', displayName: 'Name of the Programme/Scheme' },
-                { dbField: 'programmePurpose', displayName: 'Purpose of programme' },
-                { dbField: 'initiationDate', displayName: 'Date/Month of initiation', type: 'date' },
-                { dbField: 'fundingAgency', displayName: 'Funding agency' },
-                { dbField: 'amount', displayName: 'Amount(Rs.)', type: 'currency' },
-            ],
-        },
-        
         // ── Miscellaneous Information ────────────────────────────────
         {
             id: '5.1',

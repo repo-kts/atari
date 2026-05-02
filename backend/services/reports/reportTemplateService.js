@@ -33,7 +33,6 @@ const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspSc
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
 const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
-const { renderSpecialProgrammeSection } = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
 const { renderFunctionalLinkageSection } = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
 const { renderSuccessStorySection } = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
 const { renderEntrepreneurshipSection } = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
@@ -202,7 +201,6 @@ class ReportTemplateService {
             'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
-            'special-programme': renderSpecialProgrammeSection.bind(this),
             'functional-linkage': renderFunctionalLinkageSection.bind(this),
             'success-story': renderSuccessStorySection.bind(this),
             'entrepreneurship': renderEntrepreneurshipSection.bind(this),

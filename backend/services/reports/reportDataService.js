@@ -12,7 +12,6 @@ const tspScspReportRepository = require('../../repositories/reports/tspScspRepor
 const seedHubReportRepository = require('../../repositories/reports/seedHubReport/index.js');
 const naturalFarmingReportRepository = require('../../repositories/reports/naturalFarmingReport/index.js');
 const otherProgrammeReportRepository = require('../../repositories/reports/otherProgrammeReport/index.js');
-const specialProgrammeReportRepository = require('../../repositories/reports/specialProgrammeReport/index.js');
 const functionalLinkageReportRepository = require('../../repositories/reports/functionalLinkageReport/index.js');
 const successStoryReportRepository = require('../../repositories/reports/successStoryReport/index.js');
 const entrepreneurshipReportRepository = require('../../repositories/reports/entrepreneurshipReport/index.js');
@@ -245,9 +244,6 @@ class ReportDataService {
                 break;
             case 'otherProgrammes':
                 rawData = await otherProgrammeReportRepository.getOtherProgrammeData(effectiveKvkId, sectionFilters);
-                break;
-            case 'specialProgramme':
-                rawData = await specialProgrammeReportRepository.getSpecialProgrammeData(effectiveKvkId, sectionFilters);
                 break;
             case 'functionalLinkage':
                 rawData = await functionalLinkageReportRepository.getFunctionalLinkageData(effectiveKvkId, sectionFilters);
@@ -515,7 +511,6 @@ class ReportDataService {
         const skipTransformWithSeedHub = skipTransform
             || dataSource === 'seedHub'
             || dataSource === 'otherProgrammes'
-            || dataSource === 'specialProgramme'
             || dataSource === 'functionalLinkage'
             || dataSource === 'successStory'
             || dataSource === 'entrepreneurship'

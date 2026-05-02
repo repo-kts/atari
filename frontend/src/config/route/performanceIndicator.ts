@@ -241,15 +241,4 @@ export const performanceIndicatorRoutes: RouteConfig[] = [
         fields: FIELD_GROUPS.PERFORMANCE_FUNCTIONAL_LINKAGE,
         siblings: ROUTE_SIBLING_GROUPS.PERFORMANCE_LINKAGES,
     },
-    {
-        path: ROUTE_PATHS.PERFORMANCE.LINKAGES.SPECIAL_PROGRAMMES,
-        title: 'Special Programmes',
-        description: 'Special programmes details',
-        category: 'Form Management',
-        subcategory: 'Performance Indicators',
-        parent: ROUTE_PATHS.PERFORMANCE.BASE,
-        moduleCode: 'performance_indicators_linkages',
-        fields: FIELD_GROUPS.PERFORMANCE_SPECIAL_PROGRAMMES,
-        siblings: ROUTE_SIBLING_GROUPS.PERFORMANCE_LINKAGES,
-    },
 ]

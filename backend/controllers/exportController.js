@@ -550,9 +550,6 @@ function buildTabularDataFromTemplate(templateKey, rawData, fallbackHeaders, fal
         return buildTspScspTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
 
-    if (templateKey === 'special-programme') {
-        return buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows);
-    }
     if (templateKey === 'functional-linkage') {
         return buildFunctionalLinkageTabularData(rawData, format, fallbackHeaders, fallbackRows);
     }
@@ -2346,35 +2343,6 @@ function buildTspTabularData(rawData, format, fallbackHeaders, fallbackRows) {
             Number(loc.stTotal ?? 0),
         ]);
     });
-
-    return { headers, rows };
-}
-
-function buildSpecialProgrammeTabularData(rawData, format, fallbackHeaders, fallbackRows) {
-    const normalizedData = Array.isArray(rawData) ? rawData : (rawData ? [rawData] : []);
-    if (normalizedData.length === 0) {
-        return { headers: fallbackHeaders, rows: fallbackRows };
-    }
-
-    const headers = [
-        'Sr.No.',
-        'Programme Type',
-        'Name of the Programme/Scheme',
-        'Purpose of programme',
-        'Date/Month of initiation',
-        'Funding agency',
-        'Amount(Rs.)',
-    ];
-
-    const rows = normalizedData.map((row, idx) => [
-        idx + 1,
-        formatExportValue(row.programmeType || '-', format),
-        formatExportValue(row.programmeName || '-', format),
-        formatExportValue(row.programmePurpose || '-', format),
-        formatExportValue(row.initiationDate || '-', format),
-        formatExportValue(row.fundingAgency || '-', format),
-        formatExportValue(row.amount || 0, format),
-    ]);
 
     return { headers, rows };
 }
