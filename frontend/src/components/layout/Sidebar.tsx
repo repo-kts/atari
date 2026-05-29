@@ -420,6 +420,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
+        // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
+        { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
         { pattern: /^\/all-master\/(staff-category|pay-level|pay-scale|asset-funding-source|equipment-type|equipment-master|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
@@ -452,7 +454,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const isActive = (path: string): boolean => {
         if (path === '#') return false
         if (location.pathname === path) return true
+        const effectiveParent = getEffectiveParent(location.pathname)
         if (location.pathname.startsWith(path + '/')) {
+            // If the route is explicitly mapped to a different parent group, don't activate this one.
+            if (effectiveParent && effectiveParent !== path) return false
             // Check if a more specific menu path matches — if so, this shorter prefix is NOT active
             const hasMoreSpecificMatch = allMenuPaths.some(
                 p => p !== path && p.length > path.length && p.startsWith(path + '/') &&
@@ -461,7 +466,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             if (hasMoreSpecificMatch) return false
             return true
         }
-        const effectiveParent = getEffectiveParent(location.pathname)
         if (effectiveParent && path === effectiveParent) {
             return true
         }

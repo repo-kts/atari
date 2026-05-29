@@ -75,17 +75,25 @@ const fldService = {
             throw new ValidationError('Only ONGOING FLD records can be transferred');
         }
 
-        if (!source.expectedCompletionDate) {
-            throw new ValidationError('Cannot transfer FLD without expectedCompletionDate');
+        const sourceStartDate = source.startDate ? new Date(source.startDate) : null;
+        if (!sourceStartDate || Number.isNaN(sourceStartDate.getTime())) {
+            throw new ValidationError('Cannot transfer FLD without a valid start date');
         }
 
-        const nextExpectedCompletionDate = new Date(source.expectedCompletionDate);
-        if (Number.isNaN(nextExpectedCompletionDate.getTime())) {
-            throw new ValidationError('Invalid source expectedCompletionDate for transfer');
+        const nextYear = sourceStartDate.getFullYear() + 1;
+        const currentYear = new Date().getFullYear();
+        if (nextYear > currentYear) {
+            throw new ValidationError(
+                `Cannot transfer to ${nextYear}: transfer to a future year is not allowed`
+            );
         }
-        nextExpectedCompletionDate.setFullYear(nextExpectedCompletionDate.getFullYear() + 1);
 
-        const out = await fldRepository.transferToNextYearTx(source, nextExpectedCompletionDate);
+        const nextStartDate = new Date(sourceStartDate);
+        nextStartDate.setFullYear(nextYear);
+        // Expected Completion Date defaults to the last date (31-Dec) of the new start year.
+        const nextExpectedCompletionDate = new Date(nextYear, 11, 31);
+
+        const out = await fldRepository.transferToNextYearTx(source, nextStartDate, nextExpectedCompletionDate);
         await invalidateFldStateCategoryReport(source?.kvkId || user?.kvkId);
         return out;
     },

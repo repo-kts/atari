@@ -200,13 +200,17 @@ const oftRepository = {
         });
     },
 
-    transferToNextYearTx: async (sourceOft, targetExpectedCompletionDate) => {
+    transferToNextYearTx: async (sourceOft, targetStartDate, targetExpectedCompletionDate) => {
         const sourceId = sourceOft.kvkOftId;
         return prisma.$transaction(async (tx) => {
             await tx.kvkoft.update({
                 where: { kvkOftId: sourceId },
                 data: { status: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR },
             });
+
+            const resolvedStartDate = targetStartDate instanceof Date
+                ? targetStartDate
+                : (targetStartDate ? sanitizeDate(targetStartDate) : sourceOft.oftStartDate);
 
             const createData = removeIdFieldsForUpdate({
                 kvkId: sourceOft.kvkId,
@@ -228,7 +232,7 @@ const oftRepository = {
                 quantity: sourceOft.quantity,
                 numberOfLocation: sourceOft.numberOfLocation,
                 numberOfTrialReplication: sourceOft.numberOfTrialReplication,
-                oftStartDate: sourceOft.oftStartDate,
+                oftStartDate: resolvedStartDate,
                 criticalInput: sourceOft.criticalInput,
                 costOfOft: sourceOft.costOfOft,
                 farmersGeneralM: sourceOft.farmersGeneralM,

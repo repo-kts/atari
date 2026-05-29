@@ -658,8 +658,20 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         <FormInput
                             label="Total Run (km)"
                             required
+                            type="number"
+                            wholeNumberOnly
+                            min={0}
+                            step={1}
                             value={formData.totalRun ?? ''}
-                            onChange={(e) => setFormData({ ...formData, totalRun: e.target.value })}
+                            onChange={(e) => {
+                                const raw = e.target.value
+                                if (raw === '') {
+                                    setFormData({ ...formData, totalRun: '' })
+                                    return
+                                }
+                                const intVal = parseInt(raw, 10)
+                                setFormData({ ...formData, totalRun: Number.isNaN(intVal) ? '' : String(intVal) })
+                            }}
                             placeholder="Enter total run"
                             disabled={!formData.reportingYear}
                         />
