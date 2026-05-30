@@ -363,6 +363,28 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [setFormData]
     );
 
+    // Economic plot inputs: Net Return and B:C ratio are derived from Gross Cost / Gross Return.
+    //   Net Return = Gross Return − Gross Cost
+    //   B:C ratio  = Gross Return ÷ Gross Cost
+    const handleEconomicChange = useCallback(
+        (plot: 'existing' | 'demonstration', field: 'GrossCost' | 'GrossReturn', value: any) => {
+            setFormData((prev: any) => {
+                const prefix = plot === 'existing' ? 'existingPlot' : 'demonstrationPlot';
+                const next = { ...prev, [`${prefix}${field}`]: value };
+                const cost = parseFloat(field === 'GrossCost' ? value : next[`${prefix}GrossCost`]);
+                const ret = parseFloat(field === 'GrossReturn' ? value : next[`${prefix}GrossReturn`]);
+                next[`${prefix}NetReturn`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) ? (ret - cost).toFixed(2) : '';
+                next[`${prefix}Bcr`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) && cost !== 0
+                        ? (ret / cost).toFixed(2)
+                        : '';
+                return next;
+            });
+        },
+        [setFormData]
+    );
+
     // Month change handler
     const handleMonthChange = useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -443,19 +465,19 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
             <FormSection title="Farmer’s Existing plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} onChange={(e) => handleFieldChange('existingPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
             <FormSection title="Demonstration plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
