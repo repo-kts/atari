@@ -136,9 +136,10 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                     if (type === 'number' && (computedStep === '1' || wholeNumberOnly)) {
                         const v = e.target.value
-                        if (v && v.includes('.')) {
-                            // Enforce whole numbers client-side for integer inputs.
-                            e.target.value = v.split('.')[0]
+                        // Backstop for IME/drag/autofill: keep digits only for whole-number inputs.
+                        const digitsOnly = v.replace(/[^\d]/g, '')
+                        if (v !== digitsOnly) {
+                            e.target.value = digitsOnly
                         }
                     }
                     originalOnChange?.(e)
