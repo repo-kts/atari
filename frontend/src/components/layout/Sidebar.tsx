@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
+    aboutKvkRoutes,
+    viewKvkRoutes,
+    achievementsRoutes,
+    projectsRoutes,
+    performanceIndicatorRoutes,
+    miscellaneousRoutes,
+    digitalInformationRoutes,
+    swachhtaBharatAbhiyaanRoutes,
+    meetingsRoutes,
+} from '../../config/route'
+import {
     LayoutDashboard,
     LayoutList,
     FileText,
@@ -41,6 +52,36 @@ interface MenuItem {
 }
 
 // Super Admin menu items with dropdown support
+// Sub-item (tab) search index: maps each Form Management leaf path to the
+// tab/feature routes shown on that page. Lets the sidebar search surface deep
+// tabs (e.g. "Employee Details" under About KVK) as recommendations.
+interface SubItem {
+    label: string
+    path: string
+    moduleCode?: string
+}
+
+const buildSubItems = (routes: { title: string; path: string; moduleCode?: string }[]): SubItem[] => {
+    const seen = new Set<string>()
+    const out: SubItem[] = []
+    for (const r of routes) {
+        if (!r?.path || !r?.title || seen.has(r.path)) continue
+        seen.add(r.path)
+        out.push({ label: r.title, path: r.path, moduleCode: r.moduleCode })
+    }
+    return out
+}
+
+const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
+    '/forms/about-kvk': buildSubItems([...aboutKvkRoutes, ...viewKvkRoutes]),
+    '/forms/achievements': buildSubItems(achievementsRoutes),
+    '/forms/achievements/projects': buildSubItems(projectsRoutes),
+    '/forms/performance': buildSubItems(performanceIndicatorRoutes),
+    '/forms/meetings': buildSubItems(meetingsRoutes),
+    '/forms/swachhta-bharat-abhiyaan': buildSubItems(swachhtaBharatAbhiyaanRoutes),
+    '/forms/miscellaneous': buildSubItems([...miscellaneousRoutes, ...digitalInformationRoutes]),
+}
+
 const superAdminMenuItems: MenuItem[] = [
     {
         label: 'Dashboard',
@@ -293,6 +334,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         return () => clearTimeout(timer)
     }, [searchQuery])
 
+    // Return the tab/feature sub-items of a leaf path whose labels match the
+    // query, filtered by VIEW permission. Used to recommend deep tabs in search.
+    const getSubItemMatches = React.useCallback(
+        (leafPath: string, rawQuery: string): SubItem[] => {
+            const query = rawQuery.trim().toLowerCase()
+            if (!query) return []
+            const subItems = SIDEBAR_SUBITEMS[leafPath]
+            if (!subItems) return []
+            return subItems.filter(sub => {
+                if (sub.path === leafPath) return false
+                const labelMatch =
+                    sub.label.toLowerCase().includes(query) ||
+                    sub.path.toLowerCase().includes(query)
+                if (!labelMatch) return false
+                // Respect permissions: only recommend tabs the user can view.
+                return sub.moduleCode ? hasPermission('VIEW', sub.moduleCode) : true
+            })
+        },
+        [hasPermission]
+    )
+
     // Filter menu items based on search
     const filteredMenuItems = React.useMemo(() => {
         if (!debouncedSearchQuery.trim()) return menuItems
@@ -321,12 +383,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 return item.children.some(child =>
                     child.label.toLowerCase().includes(query) ||
                     child.path.toLowerCase().includes(query) ||
-                    fuzzyMatch(child.label.toLowerCase(), query)
+                    fuzzyMatch(child.label.toLowerCase(), query) ||
+                    // Keep the section if any of a child's deep tabs match.
+                    getSubItemMatches(child.path, query).length > 0
                 )
             }
             return false
         })
-    }, [menuItems, debouncedSearchQuery])
+    }, [menuItems, debouncedSearchQuery, getSubItemMatches])
 
     // Auto-expand items based on active route or search query
     // Use menuItemsRef to avoid menuItems in deps (it can change ref on re-renders and cause infinite loop)
@@ -357,7 +421,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 if (item.children && item.dropdown) {
                     const hasMatchingChild = item.children.some(child =>
                         child.label.toLowerCase().includes(query) ||
-                        child.path.toLowerCase().includes(query)
+                        child.path.toLowerCase().includes(query) ||
+                        getSubItemMatches(child.path, query).length > 0
                     )
                     if (hasMatchingChild) {
                         itemsToExpand.push(item.path)
@@ -456,8 +521,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         if (location.pathname === path) return true
         const effectiveParent = getEffectiveParent(location.pathname)
         if (location.pathname.startsWith(path + '/')) {
-            // If the route is explicitly mapped to a different parent group, don't activate this one.
-            if (effectiveParent && effectiveParent !== path) return false
+            // If the route is explicitly mapped to a *specific* parent group, don't activate this one.
+            // The bare '/forms' mapping is only a catch-all for the Form Management dropdown — it must not
+            // suppress deeper leaf items (e.g. Projects) whose children also live under /forms/achievements.
+            if (effectiveParent && effectiveParent !== path && effectiveParent !== '/forms') return false
             // Check if a more specific menu path matches — if so, this shorter prefix is NOT active
             const hasMoreSpecificMatch = allMenuPaths.some(
                 p => p !== path && p.length > path.length && p.startsWith(path + '/') &&
@@ -587,6 +654,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                     onToggleExpand={toggleExpanded}
                                     searchQuery={debouncedSearchQuery}
                                     highlightMatch={highlightMatch}
+                                    getSubItemMatches={getSubItemMatches}
                                     onMobileClose={() => setIsMobileMenuOpen(false)}
                                 />
                             ))
@@ -612,20 +680,24 @@ const SidebarDropdownItem: React.FC<{
     onToggleExpand: (path: string) => void
     searchQuery: string
     highlightMatch: (text: string, query: string) => React.ReactNode
+    getSubItemMatches: (leafPath: string, query: string) => SubItem[]
     onMobileClose: () => void
-}> = ({ item, isOpen, isExpanded, isActive, isSectionActive, onToggleExpand, searchQuery, highlightMatch, onMobileClose }) => {
+}> = ({ item, isOpen, isExpanded, isActive, isSectionActive, onToggleExpand, searchQuery, highlightMatch, getSubItemMatches, onMobileClose }) => {
     const [isHovered, setIsHovered] = useState(false)
     const sectionActive = isSectionActive(item)
 
-    // Filter children if searching
+    // Filter children if searching. Keep a child when its own label/path
+    // matches OR when one of its deep tab sub-items matches (e.g. "infra"
+    // matches "Infrastructure Details" under About KVK).
     const displayedChildren = React.useMemo(() => {
         if (!searchQuery.trim()) return item.children
         const query = searchQuery.toLowerCase()
         return item.children?.filter(child =>
             child.label.toLowerCase().includes(query) ||
-            child.path.toLowerCase().includes(query)
+            child.path.toLowerCase().includes(query) ||
+            getSubItemMatches(child.path, query).length > 0
         )
-    }, [item.children, searchQuery])
+    }, [item.children, searchQuery, getSubItemMatches])
 
     return (
         <div
@@ -670,26 +742,45 @@ const SidebarDropdownItem: React.FC<{
                         <div className="px-2 pb-2 pt-1 space-y-1">
                             {displayedChildren?.map(child => {
                                 const childActive = isActive(child.path)
+                                const subMatches = searchQuery ? getSubItemMatches(child.path, searchQuery) : []
                                 return (
-                                    <Link
-                                        key={child.path}
-                                        to={child.path}
-                                        target={child.target}
-                                        onClick={() => onMobileClose()}
-                                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
-                                            ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
-                                            : 'text-white/85 hover:bg-white/10 hover:text-white'
-                                            }`}
-                                    >
-                                        {child.icon && (
-                                            <span className={`shrink-0 ${childActive ? 'text-[#3d6540]' : ''}`}>
-                                                {child.icon}
+                                    <React.Fragment key={child.path}>
+                                        <Link
+                                            to={child.path}
+                                            target={child.target}
+                                            onClick={() => onMobileClose()}
+                                            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
+                                                ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
+                                                : 'text-white/85 hover:bg-white/10 hover:text-white'
+                                                }`}
+                                        >
+                                            {child.icon && (
+                                                <span className={`shrink-0 ${childActive ? 'text-[#3d6540]' : ''}`}>
+                                                    {child.icon}
+                                                </span>
+                                            )}
+                                            <span className="text-sm truncate">
+                                                {searchQuery ? highlightMatch(child.label, searchQuery) : child.label}
                                             </span>
+                                        </Link>
+                                        {subMatches.length > 0 && (
+                                            <div className="ml-5 pl-2 border-l border-white/15 space-y-0.5">
+                                                {subMatches.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        onClick={() => onMobileClose()}
+                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                                    >
+                                                        <span className="shrink-0 w-1 h-1 rounded-full bg-white/40" />
+                                                        <span className="truncate">
+                                                            {highlightMatch(sub.label, searchQuery)}
+                                                        </span>
+                                                    </Link>
+                                                ))}
+                                            </div>
                                         )}
-                                        <span className="text-sm truncate">
-                                            {searchQuery ? highlightMatch(child.label, searchQuery) : child.label}
-                                        </span>
-                                    </Link>
+                                    </React.Fragment>
                                 )
                             })}
                         </div>
@@ -709,6 +800,7 @@ const SidebarItem: React.FC<{
     onToggleExpand: (path: string) => void
     searchQuery: string
     highlightMatch: (text: string, query: string) => React.ReactNode
+    getSubItemMatches: (leafPath: string, query: string) => SubItem[]
     onMobileClose: () => void
 }> = (props) => {
     if (props.item.children && props.item.dropdown) {

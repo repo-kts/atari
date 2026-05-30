@@ -133,6 +133,14 @@ const cfldTechnicalParameterService = {
         }
         nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
+        const currentYear = new Date().getFullYear();
+        if (nextReportingYear.getFullYear() > currentYear) {
+            throw new ValidationError(
+                `Cannot transfer to ${nextReportingYear.getFullYear()}: transfer to a future year is not allowed`,
+                'reportingYear'
+            );
+        }
+
         const sourceEconomic = (source.economicParameters || [])[0] || null;
         const sourceSocio = (source.socioEconomicParameters || [])[0] || null;
         const sourcePerception = (source.farmersPerceptionParameters || [])[0] || null;

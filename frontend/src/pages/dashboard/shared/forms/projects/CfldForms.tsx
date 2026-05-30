@@ -203,7 +203,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         photoFields.forEach(field => {
             // Map legacy field names to new standardized array fields if needed
             let rawValue = formData[field];
-            
+
             // Handle cross-mapping for Cfld technical parameters specifically
             if (!rawValue && field === 'trainingPhotos') rawValue = formData.trainingPhotoPath;
             if (!rawValue && field === 'actionPhotos') rawValue = formData.qualityActionPhotoPath;
@@ -467,8 +467,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossCost', e.target.value)} />
                     <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return − Gross Cost" />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
@@ -476,8 +476,8 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossCost', e.target.value)} />
                     <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return − Gross Cost" />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} readOnly disabled onChange={() => {}} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
@@ -677,7 +677,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.percentIncrease ?? ''}
                         readOnly
                         disabled
-                        onChange={() => {}}
+                        onChange={() => { }}
                         helperText="Auto-calculated from Farmer yield and Average demo yield"
                     />
                 </div>
@@ -800,17 +800,38 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
                 </div>
-                {/* live totals */}
-                <div className="col-span-2 flex flex-wrap gap-3 pt-2">
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
-                        TOTAL MALE {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0)}
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-sm font-medium">
-                        TOTAL FEMALE {Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                        OVERALL TOTAL {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0) + Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
-                    </span>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
                 </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <FormAttachmentSection
@@ -975,17 +996,38 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
                 </div>
-                {/* live totals */}
-                <div className="col-span-2 flex flex-wrap gap-3 pt-2">
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
-                        TOTAL MALE {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0)}
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-sm font-medium">
-                        TOTAL FEMALE {Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
-                        OVERALL TOTAL {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0) + Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
-                    </span>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
                 </div>
             </FormSection>
         </div>
