@@ -654,7 +654,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         disabled={!formData.reportingYear}
                         options={vehicleOptions}
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
                         <FormInput
                             label="Total Run (km)"
                             required
@@ -684,21 +684,23 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             disabled={!formData.reportingYear}
                         />
                     </div>
-                    <FormInput
-                        label="Repairing Cost (Rs.)"
-                        type="number"
-                        value={formData.repairingCost ?? ''}
-                        onChange={(e) => setFormData({ ...formData, repairingCost: parseFloat(e.target.value) })}
-                        placeholder="Enter repairing cost (optional)"
-                        disabled={!formData.reportingYear}
-                    />
-                    <FormSelect
-                        label="Source of Funding"
-                        value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
-                        onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
-                        disabled={!formData.reportingYear}
-                        options={assetFundingSourceOptions}
-                    />
+                    <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
+                        <FormInput
+                            label="Repairing Cost (Rs.)"
+                            type="number"
+                            value={formData.repairingCost ?? ''}
+                            onChange={(e) => setFormData({ ...formData, repairingCost: parseFloat(e.target.value) })}
+                            placeholder="Enter repairing cost (optional)"
+                            disabled={!formData.reportingYear}
+                        />
+                        <FormSelect
+                            label="Source of Funding"
+                            value={formData.assetFundingSourceId != null ? String(formData.assetFundingSourceId) : ''}
+                            onChange={(e) => setFormData({ ...formData, assetFundingSourceId: e.target.value ? parseInt(e.target.value) : null })}
+                            disabled={!formData.reportingYear}
+                            options={assetFundingSourceOptions}
+                        />
+                    </div>
                 </div>
             )}
 
@@ -1016,7 +1018,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     label="Host Organization Name"
                                     required
                                     value={formData.universityName ?? ''}
-                                    onChange={() => {}}
+                                    onChange={() => { }}
                                     readOnly
                                     disabled
                                     helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
@@ -1026,7 +1028,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormInput
                                 label="Mobile Number"
                                 value={formData.hostMobile ?? ''}
-                                onChange={() => {}}
+                                onChange={() => { }}
                                 readOnly
                                 disabled
                                 helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
@@ -1035,7 +1037,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormInput
                                 label="Landline"
                                 value={formData.hostLandline ?? ''}
-                                onChange={() => {}}
+                                onChange={() => { }}
                                 readOnly
                                 disabled
                                 helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
@@ -1044,7 +1046,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                             <FormInput
                                 label="Fax"
                                 value={formData.hostFax ?? ''}
-                                onChange={() => {}}
+                                onChange={() => { }}
                                 readOnly
                                 disabled
                                 helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
@@ -1055,7 +1057,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                     label="E-mail"
                                     type="email"
                                     value={formData.hostEmail ?? ''}
-                                    onChange={() => {}}
+                                    onChange={() => { }}
                                     readOnly
                                     disabled
                                     helperText={!selectedUniversityId ? 'Select Host to populate host details' : undefined}
@@ -1066,7 +1068,7 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                                 <FormTextArea
                                     label="Host Address"
                                     value={formData.hostAddress ?? ''}
-                                    onChange={() => {}}
+                                    onChange={() => { }}
                                     readOnly
                                     disabled
                                     rows={2}

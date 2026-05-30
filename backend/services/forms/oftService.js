@@ -14,6 +14,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.create(payload, user);
     },
 
@@ -29,6 +30,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.update(id, payload, user);
     },
 
@@ -120,6 +122,14 @@ const oftService = {
         return await oftRepository.delete(id, user);
     },
 };
+
+function _assertExpectedCompletionDate(payload) {
+    const raw = payload ? payload.expectedCompletionDate : null;
+    const date = raw ? new Date(raw) : null;
+    if (!raw || !date || Number.isNaN(date.getTime())) {
+        throw new ValidationError('Expected Completion Date is required', 'expectedCompletionDate');
+    }
+}
 
 function _validateResultPayload(payload, sourceRows = []) {
     if (!payload || typeof payload !== 'object') {

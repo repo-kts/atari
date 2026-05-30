@@ -25,6 +25,7 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         const result = await fldRepository.create(payload, user);
         await invalidateFldStateCategoryReport(result?.kvkId || user?.kvkId);
         return result;
@@ -61,6 +62,7 @@ const fldService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         const result = await fldRepository.update(id, payload, user);
         await invalidateFldStateCategoryReport(result?.kvkId ?? user?.kvkId);
         return result;
@@ -147,6 +149,14 @@ const fldService = {
         return result;
     },
 };
+
+function _assertExpectedCompletionDate(payload) {
+    const raw = payload ? payload.expectedCompletionDate : null;
+    const date = raw ? new Date(raw) : null;
+    if (!raw || !date || Number.isNaN(date.getTime())) {
+        throw new ValidationError('Expected Completion Date is required', 'expectedCompletionDate');
+    }
+}
 
 function _validateFldResultPayload(payload) {
     const requiredNumericFields = [

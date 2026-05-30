@@ -653,10 +653,10 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         type="number"
                         step="1"
                         value={formData.percentIncrease ?? ''}
-                        onChange={(e) => {
-                            setIsPercentIncreaseManuallyEdited(true)
-                            handleFieldChange('percentIncrease', e.target.value)
-                        }}
+                        readOnly
+                        disabled
+                        onChange={() => {}}
+                        helperText="Auto-calculated from Farmer yield and Average demo yield"
                     />
                 </div>
             </FormSection>
@@ -777,6 +777,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.stF ?? ''}
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
+                </div>
+                {/* live totals */}
+                <div className="col-span-2 flex flex-wrap gap-3 pt-2">
+                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+                        TOTAL MALE {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0)}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-sm font-medium">
+                        TOTAL FEMALE {Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                        OVERALL TOTAL {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0) + Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
+                    </span>
                 </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <FormAttachmentSection
@@ -940,6 +952,18 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.stF ?? ''}
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
+                </div>
+                {/* live totals */}
+                <div className="col-span-2 flex flex-wrap gap-3 pt-2">
+                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+                        TOTAL MALE {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0)}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-pink-100 text-pink-800 text-sm font-medium">
+                        TOTAL FEMALE {Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
+                    </span>
+                    <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                        OVERALL TOTAL {Number(formData.genM || 0) + Number(formData.obcM || 0) + Number(formData.scM || 0) + Number(formData.stM || 0) + Number(formData.genF || 0) + Number(formData.obcF || 0) + Number(formData.scF || 0) + Number(formData.stF || 0)}
+                    </span>
                 </div>
             </FormSection>
         </div>
