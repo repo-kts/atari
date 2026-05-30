@@ -48,10 +48,29 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
     const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (wholeNumberOnly && (e.key === '-' || e.key === '.' || e.key === 'e')) {
-            e.preventDefault()
+        if (wholeNumberOnly) {
+            // Allow navigation/editing keys and shortcuts; block everything that is not a digit.
+            const allowedKeys = [
+                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            ]
+            const isShortcut = e.ctrlKey || e.metaKey
+            const isDigit = e.key.length === 1 && e.key >= '0' && e.key <= '9'
+            if (!isShortcut && !allowedKeys.includes(e.key) && !isDigit) {
+                e.preventDefault()
+            }
         }
         props.onKeyDown?.(e)
+    }
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        if (wholeNumberOnly) {
+            const text = e.clipboardData.getData('text')
+            if (!/^\d+$/.test(text.trim())) {
+                e.preventDefault()
+            }
+        }
+        props.onPaste?.(e)
     }
 
     return (
@@ -164,6 +183,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         max={computedMax}
                         onChange={handleChange}
                         onKeyDown={wholeNumberOnly ? handleKeyDown : props.onKeyDown}
+                        onPaste={wholeNumberOnly ? handlePaste : props.onPaste}
                         inputMode={type === 'number' ? (isInteger || wholeNumberOnly ? 'numeric' : 'decimal') : props.inputMode}
                         style={{
                             ...props.style,
