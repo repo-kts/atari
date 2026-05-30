@@ -32,8 +32,8 @@ const projectBudgetRepository = {
 
     findAll: async (filters = {}, user) => {
         const where = {};
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.role)) {
-            where.kvkId = user.kvkId;
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
         } else if (filters.kvkId) {
             where.kvkId = parseInt(filters.kvkId);
         }
@@ -56,8 +56,8 @@ const projectBudgetRepository = {
 
     findById: async (id, user) => {
         const where = { projectBudgetId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.role)) {
-            where.kvkId = user.kvkId;
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
         }
         const record = await prisma.projectBudget.findFirst({
             where,
@@ -78,8 +78,8 @@ const projectBudgetRepository = {
 
     update: async (id, data, user) => {
         const where = { projectBudgetId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.role)) {
-            where.kvkId = user.kvkId;
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
         }
 
         const existing = await prisma.projectBudget.findFirst({ where });
@@ -111,8 +111,8 @@ const projectBudgetRepository = {
 
     delete: async (id, user) => {
         const where = { projectBudgetId: id };
-        if (user && ['kvk_admin', 'kvk_user'].includes(user.role)) {
-            where.kvkId = user.kvkId;
+        if (user && ['kvk_admin', 'kvk_user'].includes(user.roleName)) {
+            where.kvkId = parseInt(user.kvkId);
         }
         const existing = await prisma.projectBudget.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
