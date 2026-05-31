@@ -576,12 +576,23 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             type="date"
                             value={formData.duration ?? formData.oftStartDate ?? ''}
-                            onChange={(e) => setFormData({ ...formData, duration: e.target.value, oftStartDate: e.target.value })}
+                            onChange={(e) => {
+                                const next = e.target.value
+                                const expected = formData.expectedCompletionDate
+                                const expectedInvalid = expected && next && expected < next
+                                setFormData({
+                                    ...formData,
+                                    duration: next,
+                                    oftStartDate: next,
+                                    ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
+                                })
+                            }}
                         />
                         <FormInput
                             label="Expected Completion Date"
                             required
                             type="date"
+                            min={(formData.duration ?? formData.oftStartDate ?? '') as string}
                             value={formData.expectedCompletionDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
                         />
@@ -881,12 +892,22 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             type="date"
                             value={formData.startDate ?? ''}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                            onChange={(e) => {
+                                const next = e.target.value
+                                const expected = formData.expectedCompletionDate
+                                const expectedInvalid = expected && next && expected < next
+                                setFormData({
+                                    ...formData,
+                                    startDate: next,
+                                    ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
+                                })
+                            }}
                         />
                         <FormInput
                             label="Expected Completion Date"
                             required
                             type="date"
+                            min={(formData.startDate ?? '') as string}
                             value={formData.expectedCompletionDate ?? ''}
                             onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
                         />

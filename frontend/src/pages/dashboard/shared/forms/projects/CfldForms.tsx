@@ -203,7 +203,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         photoFields.forEach(field => {
             // Map legacy field names to new standardized array fields if needed
             let rawValue = formData[field];
-            
+
             // Handle cross-mapping for Cfld technical parameters specifically
             if (!rawValue && field === 'trainingPhotos') rawValue = formData.trainingPhotoPath;
             if (!rawValue && field === 'actionPhotos') rawValue = formData.qualityActionPhotoPath;
@@ -363,6 +363,28 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [setFormData]
     );
 
+    // Economic plot inputs: Net Return and B:C ratio are derived from Gross Cost / Gross Return.
+    //   Net Return = Gross Return − Gross Cost
+    //   B:C ratio  = Gross Return ÷ Gross Cost
+    const handleEconomicChange = useCallback(
+        (plot: 'existing' | 'demonstration', field: 'GrossCost' | 'GrossReturn', value: any) => {
+            setFormData((prev: any) => {
+                const prefix = plot === 'existing' ? 'existingPlot' : 'demonstrationPlot';
+                const next = { ...prev, [`${prefix}${field}`]: value };
+                const cost = parseFloat(field === 'GrossCost' ? value : next[`${prefix}GrossCost`]);
+                const ret = parseFloat(field === 'GrossReturn' ? value : next[`${prefix}GrossReturn`]);
+                next[`${prefix}NetReturn`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) ? (ret - cost).toFixed(2) : '';
+                next[`${prefix}Bcr`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) && cost !== 0
+                        ? (ret / cost).toFixed(2)
+                        : '';
+                return next;
+            });
+        },
+        [setFormData]
+    );
+
     // Month change handler
     const handleMonthChange = useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -443,19 +465,19 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
 
             <FormSection title="Farmer’s Existing plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} onChange={(e) => handleFieldChange('existingPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
             <FormSection title="Demonstration plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
@@ -653,10 +675,10 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         type="number"
                         step="1"
                         value={formData.percentIncrease ?? ''}
-                        onChange={(e) => {
-                            setIsPercentIncreaseManuallyEdited(true)
-                            handleFieldChange('percentIncrease', e.target.value)
-                        }}
+                        readOnly
+                        disabled
+                        onChange={() => { }}
+                        helperText="Auto-calculated from Farmer yield and Average demo yield"
                     />
                 </div>
             </FormSection>
@@ -777,6 +799,39 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.stF ?? ''}
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
+                </div>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
                 </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <FormAttachmentSection
@@ -940,6 +995,39 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.stF ?? ''}
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
+                </div>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
                 </div>
             </FormSection>
         </div>

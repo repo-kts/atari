@@ -14,6 +14,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.create(payload, user);
     },
 
@@ -29,6 +30,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.update(id, payload, user);
     },
 
@@ -43,17 +45,25 @@ const oftService = {
             throw new ValidationError('Only ONGOING OFT records can be transferred');
         }
 
-        if (!source.expectedCompletionDate) {
-            throw new ValidationError('Cannot transfer OFT without expectedCompletionDate');
+        const sourceStartDate = source.oftStartDate ? new Date(source.oftStartDate) : null;
+        if (!sourceStartDate || Number.isNaN(sourceStartDate.getTime())) {
+            throw new ValidationError('Cannot transfer OFT without a valid start date');
         }
 
-        const nextExpectedCompletionDate = new Date(source.expectedCompletionDate);
-        if (Number.isNaN(nextExpectedCompletionDate.getTime())) {
-            throw new ValidationError('Invalid source expectedCompletionDate for transfer');
+        const nextYear = sourceStartDate.getFullYear() + 1;
+        const currentYear = new Date().getFullYear();
+        if (nextYear > currentYear) {
+            throw new ValidationError(
+                `Cannot transfer to ${nextYear}: transfer to a future year is not allowed`
+            );
         }
-        nextExpectedCompletionDate.setFullYear(nextExpectedCompletionDate.getFullYear() + 1);
 
-        return oftRepository.transferToNextYearTx(source, nextExpectedCompletionDate);
+        const nextStartDate = new Date(sourceStartDate);
+        nextStartDate.setFullYear(nextYear);
+        // Expected Completion Date defaults to the last date (31-Dec) of the new start year.
+        const nextExpectedCompletionDate = new Date(nextYear, 11, 31);
+
+        return oftRepository.transferToNextYearTx(source, nextStartDate, nextExpectedCompletionDate);
     },
 
     addResult: async (id, payload, user) => {
@@ -112,6 +122,14 @@ const oftService = {
         return await oftRepository.delete(id, user);
     },
 };
+
+function _assertExpectedCompletionDate(payload) {
+    const raw = payload ? payload.expectedCompletionDate : null;
+    const date = raw ? new Date(raw) : null;
+    if (!raw || !date || Number.isNaN(date.getTime())) {
+        throw new ValidationError('Expected Completion Date is required', 'expectedCompletionDate');
+    }
+}
 
 function _validateResultPayload(payload, sourceRows = []) {
     if (!payload || typeof payload !== 'object') {

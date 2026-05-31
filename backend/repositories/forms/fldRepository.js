@@ -242,6 +242,21 @@ const fldRepository = {
         validateInput(data, user);
         const kvkId = resolveKvkId(data, user);
 
+        // Women Empowerment FLDs have no measurable quantity/unit — sector lookup decides whether to skip those validators.
+        let isWomenEmpowermentSector = false;
+        const sectorIdRaw = data?.sectorId;
+        if (sectorIdRaw !== undefined && sectorIdRaw !== null && sectorIdRaw !== '') {
+            const parsedSectorId = parseInt(sectorIdRaw, 10);
+            if (!Number.isNaN(parsedSectorId)) {
+                const sector = await prisma.sector.findUnique({
+                    where: { sectorId: parsedSectorId },
+                    select: { sectorName: true },
+                });
+                isWomenEmpowermentSector =
+                    (sector?.sectorName || '').trim().toLowerCase() === 'women empowerment';
+            }
+        }
+
         // Validate and sanitize all required fields
         const createData = {
             kvkId,
@@ -256,7 +271,9 @@ const fldRepository = {
                 const d = new Date(data.expectedCompletionDate);
                 return Number.isNaN(d.getTime()) ? null : d;
             })(),
-            unit: typeof data.unit === 'string' ? (data.unit.trim() || null) : null,
+            unit: isWomenEmpowermentSector
+                ? null
+                : (typeof data.unit === 'string' ? (data.unit.trim() || null) : null),
             seasonId: validateRequiredInteger(
                 data,
                 CREATE_FIELD_DEFINITIONS.seasonId.fieldNames,
@@ -318,13 +335,15 @@ const fldRepository = {
                 CREATE_FIELD_DEFINITIONS.startDate.errorMessage,
                 CREATE_FIELD_DEFINITIONS.startDate.errorField
             ),
-            quantity: validateRequiredNumber(
-                data,
-                CREATE_FIELD_DEFINITIONS.quantity.fieldNames,
-                CREATE_FIELD_DEFINITIONS.quantity.errorMessage,
-                CREATE_FIELD_DEFINITIONS.quantity.errorField,
-                { allowNegative: false }
-            ),
+            quantity: isWomenEmpowermentSector
+                ? 0
+                : validateRequiredNumber(
+                    data,
+                    CREATE_FIELD_DEFINITIONS.quantity.fieldNames,
+                    CREATE_FIELD_DEFINITIONS.quantity.errorMessage,
+                    CREATE_FIELD_DEFINITIONS.quantity.errorField,
+                    { allowNegative: false }
+                ),
             ongoingCompleted: FLD_STATUS.ONGOING,
             ...validateFarmerCounts(data, FLD_CONFIG.farmerCountMapping, { validateNonNegative: true }),
         };
@@ -561,16 +580,20 @@ const fldRepository = {
         return prisma[FLD_CONFIG.model].findFirst({ where, include: FLD_CONFIG.includes });
     },
 
-    transferToNextYearTx: async (sourceFld, targetExpectedCompletionDate) => {
+    transferToNextYearTx: async (sourceFld, targetStartDate, targetExpectedCompletionDate) => {
         return prisma.$transaction(async (tx) => {
             await tx.kvkFldIntroduction.update({
                 where: { kvkFldId: sourceFld.kvkFldId },
                 data: { ongoingCompleted: FLD_STATUS.TRANSFERRED_TO_NEXT_YEAR },
             });
 
-            const nextStartDate = sourceFld.startDate
-                ? new Date(new Date(sourceFld.startDate).setFullYear(new Date(sourceFld.startDate).getFullYear() + 1))
-                : new Date();
+            const nextStartDate = targetStartDate instanceof Date
+                ? targetStartDate
+                : (targetStartDate
+                    ? new Date(targetStartDate)
+                    : (sourceFld.startDate
+                        ? new Date(new Date(sourceFld.startDate).setFullYear(new Date(sourceFld.startDate).getFullYear() + 1))
+                        : new Date()));
 
             const cloneData = removeIdFieldsForUpdate({
                 kvkId: sourceFld.kvkId,
