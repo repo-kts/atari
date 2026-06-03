@@ -135,12 +135,14 @@ async function resolveStaffCategory(rawValue) {
 const geographicalInfoRepository = {
     create: async (data, user) => {
         const kvkId = getKvkId(user, data);
-        const reportingYear = parseReportingYearDate(data.reportingYear);
+        const startDate = data.startDate ? new Date(data.startDate) : new Date();
+        // The Start Date is the reporting year — no separate reporting-year field.
+        const reportingYear = startDate;
         ensureNotFutureDate(reportingYear);
         return await prisma.geographicalInfo.create({
             data: {
                 kvkId,
-                startDate: data.startDate ? new Date(data.startDate) : new Date(),
+                startDate,
                 endDate: data.endDate ? new Date(data.endDate) : new Date(),
                 agroClimaticZone: data.agroClimaticZone || '',
                 farmingSituation: data.farmingSituation || '',
@@ -202,15 +204,15 @@ const geographicalInfoRepository = {
         if (isKvkUser(user)) where.kvkId = parseInt(user.kvkId);
         const existing = await prisma.geographicalInfo.findFirst({ where });
         if (!existing) throw new Error('Record not found or unauthorized');
-        const reportingYear = data.reportingYear !== undefined
-            ? parseReportingYearDate(data.reportingYear)
-            : existing.reportingYear;
+        const startDate = data.startDate ? new Date(data.startDate) : existing.startDate;
+        // Keep reporting year in sync with the start date (single source of truth).
+        const reportingYear = startDate;
         ensureNotFutureDate(reportingYear);
 
         return await prisma.geographicalInfo.update({
             where: { geographicalInfoId: parseInt(id) },
             data: {
-                startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
+                startDate,
                 endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
                 agroClimaticZone: data.agroClimaticZone !== undefined ? data.agroClimaticZone : existing.agroClimaticZone,
                 farmingSituation: data.farmingSituation !== undefined ? data.farmingSituation : existing.farmingSituation,

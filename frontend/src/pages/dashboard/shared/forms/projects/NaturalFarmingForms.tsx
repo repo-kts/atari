@@ -66,13 +66,6 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                 <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <FormInput
-                            label="Reporting Year"
-                            required
-                            type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
-                        />
-                        <FormInput
                             label="Start Date"
                             required
                             type="date"
