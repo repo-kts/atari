@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { useYears, usePpvFraTrainingTypes } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -193,6 +194,11 @@ export const PPVFRASensitizationForms: React.FC<PPVFRASensitizationFormsProps> =
                                 placeholder="0"
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                        />
                     </FormSection>
                 </div>
             )}

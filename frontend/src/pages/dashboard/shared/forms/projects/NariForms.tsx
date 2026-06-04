@@ -2,6 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 
 interface NariFormsProps {
@@ -147,6 +148,11 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
@@ -287,6 +293,11 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
