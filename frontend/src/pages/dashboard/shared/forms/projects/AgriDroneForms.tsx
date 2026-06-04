@@ -272,7 +272,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <FormInput label="General_M" required type="number" value={formData.generalM ?? ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
                         <FormInput label="General_F" required type="number" value={formData.generalF ?? ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
                         <FormInput label="OBC_M" required type="number" value={formData.obcM ?? ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
