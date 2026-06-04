@@ -3,6 +3,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { MonthYearInput } from '@/components/common/MonthYearInput'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
@@ -146,21 +147,19 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
-                <div className="space-y-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MonthYearInput
                             label="Month & Year"
                             required
-                            type="month"
                             value={formData.monthYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, monthYear: e.target.value })}
+                            onChange={(v) => setFormData({ ...formData, monthYear: v })}
                         />
-                        <div /> {/* Empty space for layout matching */}
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">RF (mm) district</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">RF (mm) district</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Normal"
                                 required
@@ -178,9 +177,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Temperature OC</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">Temperature OC</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Max."
                                 required
@@ -198,9 +197,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Dry spell/ drought</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">Dry spell/ drought</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="> 10 days"
                                 required
@@ -236,7 +235,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
                             label="Water depth (cm)"
                             required
