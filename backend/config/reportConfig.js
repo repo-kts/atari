@@ -1863,7 +1863,13 @@ function buildSectionNumbering(sections) {
                 number,
                 sections: children.map((section, i) => {
                     const displayId = `${number}.${i + 1}`;
-                    headingById.set(String(section.id), { number: displayId, title: section.title, chapter: parent.title });
+                    headingById.set(String(section.id), {
+                        chapter: parent.title,
+                        sectionNumber: displayId,
+                        sectionTitle: section.title,
+                        featureNumber: null,
+                        featureTitle: null,
+                    });
                     children[i]._displayId = displayId;
                     return { sectionId: section.id, number: displayId, title: section.title };
                 }),
@@ -1918,12 +1924,19 @@ function _renumberChapter(chapter, headingById) {
         }, {});
         group.features.forEach((feature, fi) => {
             feature.number = `${group.number}.${_letter(fi)}`;
-            const heading = refCount[feature.sectionId] > 1
-                ? { number: group.number, title: group.label, chapter: chapter.title }   // shared section → group heading
-                : { number: feature.number, title: feature.label, chapter: chapter.title };
+            // Section = group (e.g. "1.1 Basic Information"); subsection = feature
+            // (e.g. "1.1.A KVKs Details"). Shared sections show the group only.
+            const shared = refCount[feature.sectionId] > 1;
+            const entry = {
+                chapter: chapter.title,
+                sectionNumber: group.number,
+                sectionTitle: group.label,
+                featureNumber: shared ? null : feature.number,
+                featureTitle: shared ? null : feature.label,
+            };
             // First feature for a section wins the page heading.
             if (!headingById.has(feature.sectionId)) {
-                headingById.set(feature.sectionId, heading);
+                headingById.set(feature.sectionId, entry);
             }
         });
     });

@@ -412,20 +412,26 @@ class ReportTemplateService {
     async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
         let html = '';
         let isFirstSection = true;
+        const seenChapters = new Set(); // chapter header is shown once per chapter
 
         for (const rawSection of selectedSections) {
             const sectionConfig = getSectionConfig(rawSection.id);
             const sectionData = sectionsData[rawSection.id];
             const sectionId = `section-${rawSection.id.replace(/\./g, '-')}`;
 
-            // Heading shows the curated number + label; data/anchor lookups keep
-            // the real id. Fall back to the raw id/title if not in the index.
+            // Section heading = group ("1.1 Basic Information"); subsection = feature
+            // ("1.1.A KVKs Details"). Data/anchor lookups keep the real id.
             const heading = headingById.get(String(rawSection.id));
             const section = heading
-                ? { ...rawSection, id: heading.number, title: heading.title }
+                ? {
+                    ...rawSection,
+                    id: heading.sectionNumber,
+                    title: heading.sectionTitle,
+                    featureNumber: heading.featureNumber,
+                    featureTitle: heading.featureTitle,
+                }
                 : rawSection;
 
-            const chapterTitle = heading && heading.chapter;
             let chunk;
 
             // Check for errors or missing data
@@ -447,7 +453,7 @@ class ReportTemplateService {
                 }
             }
 
-            html += this._withChapterHeader(chunk || '', chapterTitle);
+            html += this._withSectionHeaders(chunk || '', heading, seenChapters);
             isFirstSection = false;
         }
 
@@ -455,17 +461,38 @@ class ReportTemplateService {
     }
 
     /**
-     * Insert a centered chapter header (e.g. "About KVK") just above the section
-     * title on each section page, so every page reads: chapter → section →
-     * subsection. No-op when there's no chapter or no section-title to anchor to.
+     * Decorate a section page:
+     *  - a centered chapter header ("About KVK") shown once, on the first page
+     *    of each chapter;
+     *  - a subsection heading ("1.1.A KVKs Details") just under the section
+     *    title ("1.1 Basic Information").
      */
-    _withChapterHeader(chunk, chapterTitle) {
-        if (!chapterTitle || !chunk) return chunk;
-        const header = `<div class="report-chapter-header">${this._escapeHtml(chapterTitle)}</div>`;
-        // Inject before the first section title; matches `<h1 class="section-title"...>`.
-        const idx = chunk.indexOf('<h1 class="section-title"');
-        if (idx === -1) return chunk;
-        return chunk.slice(0, idx) + header + chunk.slice(idx);
+    _withSectionHeaders(chunk, heading, seenChapters) {
+        if (!chunk || !heading) return chunk;
+        const titleStart = chunk.indexOf('<h1 class="section-title"');
+        if (titleStart === -1) return chunk;
+
+        let result = chunk;
+
+        // Subsection heading after the section title's closing tag.
+        if (heading.featureNumber) {
+            const titleEnd = result.indexOf('</h1>', titleStart);
+            if (titleEnd !== -1) {
+                const insertAt = titleEnd + '</h1>'.length;
+                const sub = `<h2 class="section-subtitle">${heading.featureNumber} ${this._escapeHtml(heading.featureTitle || '')}</h2>`;
+                result = result.slice(0, insertAt) + sub + result.slice(insertAt);
+            }
+        }
+
+        // Chapter header once, before the section title.
+        if (heading.chapter && !seenChapters.has(heading.chapter)) {
+            seenChapters.add(heading.chapter);
+            const header = `<div class="report-chapter-header">${this._escapeHtml(heading.chapter)}</div>`;
+            const idx = result.indexOf('<h1 class="section-title"');
+            result = result.slice(0, idx) + header + result.slice(idx);
+        }
+
+        return result;
     }
 
     /**
@@ -1159,6 +1186,14 @@ class ReportTemplateService {
         margin-bottom: 10px;
         padding-bottom: 6px;
         border-bottom: 0.2px solid #000000;
+        page-break-after: avoid;
+    }
+
+    .section-subtitle {
+        font-size: 9pt;
+        font-weight: bold;
+        color: #000000;
+        margin: 6px 0 10px 0;
         page-break-after: avoid;
     }
 

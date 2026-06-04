@@ -181,14 +181,14 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     let html = `
 <div id="${sectionId}" class="${pageClass}">`;
 
-    // Section heading (e.g. "2.1.A OFT Summary"); inner blocks numbered off it.
-    const base = section.id;
+    // Section heading = group (e.g. "2.1 On Farm Trial"); inner items numbered
+    // off the subsection/feature number (e.g. 2.1.A.1).
+    const base = section.featureNumber || section.id;
     html += `
     <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
     if (isMultiState) {
         html += `
-    <h3 class="about-kvk-heading">${base}.1 Achievements on Technologies Assessed and Refined (OFT)</h3>
-    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">${base}.1.1 Technology Assessed by KVK (Discipline wise)</p>`;
+    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">${base}.1 Technology Assessed by KVK (Discipline wise)</p>`;
     }
 
     // ── Table header ────────────────────────────────────────────
