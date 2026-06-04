@@ -425,37 +425,47 @@ class ReportTemplateService {
                 ? { ...rawSection, id: heading.number, title: heading.title }
                 : rawSection;
 
+            const chapterTitle = heading && heading.chapter;
+            let chunk;
+
             // Check for errors or missing data
             if (!sectionData || sectionData.error) {
-                html += this._generateEmptySection(section, sectionData?.error, sectionId, isFirstSection);
-                isFirstSection = false;
-                continue;
+                chunk = this._generateEmptySection(section, sectionData?.error, sectionId, isFirstSection);
+            } else if (sectionData.data === null || sectionData.data === undefined) {
+                chunk = this._generateEmptySection(section, null, sectionId, isFirstSection);
+            } else {
+                const data = sectionData.data;
+                // Generate section based on format (custom handlers may return Promises, e.g. oft-combined)
+                if (sectionConfig.format === 'custom') {
+                    chunk = await Promise.resolve(this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext));
+                } else if (sectionConfig.format === 'formatted-text') {
+                    chunk = this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
+                } else if (sectionConfig.format === 'table') {
+                    chunk = this._generateTableSection(section, data, sectionId, isFirstSection);
+                } else if (sectionConfig.format === 'grouped-table') {
+                    chunk = this._generateGroupedTableSection(section, data, sectionId, isFirstSection);
+                }
             }
 
-            // Access data from standardized structure
-            const data = sectionData.data;
-            if (data === null || data === undefined) {
-                html += this._generateEmptySection(section, null, sectionId, isFirstSection);
-                isFirstSection = false;
-                continue;
-            }
-
-            // Generate section based on format (custom handlers may return Promises, e.g. oft-combined)
-            if (sectionConfig.format === 'custom') {
-                const chunk = this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext);
-                html += await Promise.resolve(chunk);
-            } else if (sectionConfig.format === 'formatted-text') {
-                html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
-            } else if (sectionConfig.format === 'table') {
-                html += this._generateTableSection(section, data, sectionId, isFirstSection);
-            } else if (sectionConfig.format === 'grouped-table') {
-                html += this._generateGroupedTableSection(section, data, sectionId, isFirstSection);
-            }
-
+            html += this._withChapterHeader(chunk || '', chapterTitle);
             isFirstSection = false;
         }
 
         return html;
+    }
+
+    /**
+     * Insert a centered chapter header (e.g. "About KVK") just above the section
+     * title on each section page, so every page reads: chapter → section →
+     * subsection. No-op when there's no chapter or no section-title to anchor to.
+     */
+    _withChapterHeader(chunk, chapterTitle) {
+        if (!chapterTitle || !chunk) return chunk;
+        const header = `<div class="report-chapter-header">${this._escapeHtml(chapterTitle)}</div>`;
+        // Inject before the first section title; matches `<h1 class="section-title"...>`.
+        const idx = chunk.indexOf('<h1 class="section-title"');
+        if (idx === -1) return chunk;
+        return chunk.slice(0, idx) + header + chunk.slice(idx);
     }
 
     /**
@@ -1129,6 +1139,17 @@ class ReportTemplateService {
         margin-top: 4mm;
         page-break-before: auto !important;
         page-break-after: auto;
+    }
+
+    .report-chapter-header {
+        text-align: center;
+        font-size: 12pt;
+        font-weight: bold;
+        color: #2d4a2f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        page-break-after: avoid;
     }
 
     .section-title {

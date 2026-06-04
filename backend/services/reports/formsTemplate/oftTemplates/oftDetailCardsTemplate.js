@@ -78,7 +78,7 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="font-size:12px;font-weight:bold;border-bottom:none;margin-bottom:16px;">2.2. OFT</h1>`;
+    <h1 class="section-title" style="font-size:12px;font-weight:bold;border-bottom:none;margin-bottom:16px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
 
     const multiKvk = _isMultiKvk(records);
     let cardIndex = 0;
