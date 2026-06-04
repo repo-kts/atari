@@ -614,6 +614,7 @@ const KVK_STAFF_ALLOWED_FIELDS = [
 const KVK_INFRA_ALLOWED_FIELDS = [
     'kvkId',
     'infraMasterId',
+    'specifyName',
     'notYetStarted',
     'completedPlinthLevel',
     'completedLintelLevel',
@@ -863,6 +864,11 @@ function sanitizeData(entityName, data) {
         }
         if (sanitized.sourceOfFunding !== undefined) {
             sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
+        }
+        if (sanitized.specifyName !== undefined) {
+            // Only meaningful when infrastructure is "Others"; store trimmed/null.
+            const v = sanitizeString(safeGet(data, 'specifyName'), { allowEmpty: true });
+            sanitized.specifyName = v && v.trim() ? v.trim() : null;
         }
         if (sanitized.plinthAreaSqM !== undefined) {
             const numericValue = Number(safeGet(data, 'plinthAreaSqM'));

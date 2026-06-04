@@ -3,6 +3,7 @@ import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { MonthYearInput } from '@/components/common/MonthYearInput'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
@@ -146,21 +147,19 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
     return (
         <>
             {entityType === ENTITY_TYPES.PROJECT_NICRA_BASIC && (
-                <div className="space-y-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <FormInput
+                <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <MonthYearInput
                             label="Month & Year"
                             required
-                            type="month"
                             value={formData.monthYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, monthYear: e.target.value })}
+                            onChange={(v) => setFormData({ ...formData, monthYear: v })}
                         />
-                        <div /> {/* Empty space for layout matching */}
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">RF (mm) district</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">RF (mm) district</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Normal"
                                 required
@@ -178,9 +177,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Temperature OC</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">Temperature OC</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="Max."
                                 required
@@ -198,9 +197,9 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-xl font-semibold text-gray-800">Dry spell/ drought</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <h3 className="text-base font-semibold text-gray-800">Dry spell/ drought</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormInput
                                 label="> 10 days"
                                 required
@@ -236,7 +235,7 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
                             label="Water depth (cm)"
                             required
@@ -1093,13 +1092,33 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
-                            {/* <FormInput
+                            <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
-                            /> */}
+                            />
+                        </div>
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.genMale) || 0) + (Number(formData.obcMale) || 0) + (Number(formData.scMale) || 0) + (Number(formData.stMale) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.genFemale) || 0) + (Number(formData.obcFemale) || 0) + (Number(formData.scFemale) || 0) + (Number(formData.stFemale) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.genMale) || 0) + (Number(formData.genFemale) || 0) + (Number(formData.obcMale) || 0) + (Number(formData.obcFemale) || 0) + (Number(formData.scMale) || 0) + (Number(formData.scFemale) || 0) + (Number(formData.stMale) || 0) + (Number(formData.stFemale) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

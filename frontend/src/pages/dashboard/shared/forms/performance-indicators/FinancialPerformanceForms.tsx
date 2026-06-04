@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput } from '../shared/FormComponents'
+import { FinancialYearSelect } from '@/components/common/FinancialYearSelect'
 import { useYears, useFinancialProjects, useFundingAgencies } from '@/hooks/useOtherMastersData'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -74,11 +75,10 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
     )
 
     if (!entityType) return null
-    const todayYmd = new Date().toISOString().slice(0, 10)
 
     const financialYearNote = (
         <p className="text-xs text-olive-600 mb-2 italic">
-            Note : Please select Financial Year Wise Date Range i.e Date Range would be from 01st of April - 31st of March
+            Note : Select the Financial Year (runs 01st April – 31st March)
         </p>
     )
 
@@ -89,22 +89,12 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                 <div className="space-y-6">
                     {financialYearNote}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            type="date"
-                            label="Start Date"
+                        <FinancialYearSelect
                             required
-                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
-                            max={todayYmd}
-                            onChange={handleFieldChange('startDate')}
-                        />
-                        <FormInput
-                            type="date"
-                            label="End Date"
-                            required
-                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
-                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
-                            max={todayYmd}
-                            onChange={handleFieldChange('endDate')}
+                            startDate={formData.startDate}
+                            onChange={({ startDate, endDate }) =>
+                                setFormData((prev: any) => ({ ...prev, startDate, endDate }))
+                            }
                         />
                     </div>
 
@@ -301,22 +291,12 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                 <div className="space-y-4">
                     {financialYearNote}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            type="date"
-                            label="Start Date"
+                        <FinancialYearSelect
                             required
-                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
-                            max={todayYmd}
-                            onChange={handleFieldChange('startDate')}
-                        />
-                        <FormInput
-                            type="date"
-                            label="End Date"
-                            required
-                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
-                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
-                            max={todayYmd}
-                            onChange={handleFieldChange('endDate')}
+                            startDate={formData.startDate}
+                            onChange={({ startDate, endDate }) =>
+                                setFormData((prev: any) => ({ ...prev, startDate, endDate }))
+                            }
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -353,22 +333,12 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                 <div className="space-y-4">
                     {financialYearNote}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            type="date"
-                            label="Start Date"
+                        <FinancialYearSelect
                             required
-                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
-                            max={todayYmd}
-                            onChange={handleFieldChange('startDate')}
-                        />
-                        <FormInput
-                            type="date"
-                            label="End Date"
-                            required
-                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
-                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
-                            max={todayYmd}
-                            onChange={handleFieldChange('endDate')}
+                            startDate={formData.startDate}
+                            onChange={({ startDate, endDate }) =>
+                                setFormData((prev: any) => ({ ...prev, startDate, endDate }))
+                            }
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,22 +390,12 @@ export const FinancialPerformanceForms: React.FC<FinancialPerformanceFormsProps>
                 <div className="space-y-4">
                     {financialYearNote}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormInput
-                            type="date"
-                            label="Start Date"
+                        <FinancialYearSelect
                             required
-                            value={formData.startDate ? formData.startDate.split('T')[0] : ''}
-                            max={todayYmd}
-                            onChange={handleFieldChange('startDate')}
-                        />
-                        <FormInput
-                            type="date"
-                            label="End Date"
-                            required
-                            value={formData.endDate ? formData.endDate.split('T')[0] : ''}
-                            min={formData.startDate ? formData.startDate.split('T')[0] : undefined}
-                            max={todayYmd}
-                            onChange={handleFieldChange('endDate')}
+                            startDate={formData.startDate}
+                            onChange={({ startDate, endDate }) =>
+                                setFormData((prev: any) => ({ ...prev, startDate, endDate }))
+                            }
                         />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

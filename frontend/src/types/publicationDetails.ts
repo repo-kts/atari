@@ -10,6 +10,7 @@ export interface PublicationDetails {
     title: string;
     authorName: string;
     journalName: string;
+    naasRating?: number | null;
     createdAt: string;
     updatedAt: string;
     reportingYear?: string | number;
@@ -37,6 +38,7 @@ export interface PublicationDetailsFormData {
     title: string;
     authorName: string;
     journalName: string;
+    naasRating?: string | number;
 }
 
 // ============================================

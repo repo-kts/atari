@@ -596,11 +596,11 @@ const extensionActivityRepository = {
 function _mapResponse(r) {
     if (!r) return null;
     const startDate = r.startDate ? new Date(r.startDate) : null;
+    // No reporting-year field on this form, so the reporting year is simply the
+    // calendar year of the Start Date.
     let reportingYear = null;
     if (startDate && !isNaN(startDate.getTime())) {
-        const month = startDate.getMonth() + 1;
-        const startYear = month >= 4 ? startDate.getFullYear() : startDate.getFullYear() - 1;
-        reportingYear = String(startYear);
+        reportingYear = String(startDate.getFullYear());
     }
 
     const activityName = r.fldActivity ? r.fldActivity.activityName : undefined;

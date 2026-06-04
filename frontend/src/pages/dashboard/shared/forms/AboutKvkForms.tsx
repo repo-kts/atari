@@ -110,6 +110,13 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
         () => toOptions(infraMasters as any[], 'infraMasterId', 'name'),
         [infraMasters],
     )
+    const isOtherInfraSelected = React.useMemo(() => {
+        const selected = (infraMasters as any[]).find(
+            (m) => String(m.infraMasterId) === String(formData.infraMasterId),
+        )
+        const name = String(selected?.name || '').trim().toLowerCase()
+        return name === 'others' || name === 'other'
+    }, [infraMasters, formData.infraMasterId])
     const equipmentTypeOptions = React.useMemo(
         () => toOptions(equipmentTypes as any[], 'equipmentTypeId', 'name'),
         [equipmentTypes],
@@ -433,9 +440,31 @@ export const AboutKvkForms: React.FC<AboutKvkFormsProps> = ({
                         label="Name of Infrastructure"
                         required
                         value={formData.infraMasterId ?? ''}
-                        onChange={(e) => setFormData({ ...formData, infraMasterId: parseInt(e.target.value) })}
+                        onChange={(e) => {
+                            const infraMasterId = parseInt(e.target.value)
+                            const selected = (infraMasters as any[]).find(
+                                (m) => String(m.infraMasterId) === String(infraMasterId),
+                            )
+                            const isOther = ['others', 'other'].includes(
+                                String(selected?.name || '').trim().toLowerCase(),
+                            )
+                            setFormData({
+                                ...formData,
+                                infraMasterId,
+                                // Clear the specify text whenever it's not "Others".
+                                specifyName: isOther ? formData.specifyName : '',
+                            })
+                        }}
                         options={infraMasterOptions}
                     />
+                    {isOtherInfraSelected && (
+                        <FormInput
+                            label="Please specify"
+                            required
+                            value={formData.specifyName ?? ''}
+                            onChange={(e) => setFormData({ ...formData, specifyName: e.target.value })}
+                        />
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                         <FormSelect
                             label="Completed upto plinth level"

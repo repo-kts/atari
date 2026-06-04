@@ -19,11 +19,10 @@ const extensionActivityService = {
         const activities = await extensionActivityRepository.findAll(filters, user);
 
         return activities.map(activity => {
-            let reportingYear = null;
-            if (activity.startDate && !isNaN(Date.parse(activity.startDate))) {
-                const startDate = new Date(activity.startDate);
-                reportingYear = startDate.getFullYear();
-            }
+            // reportingYear is already derived from startDate by the repository
+            // (_mapResponse) as a financial-year string. Don't recompute it as a
+            // number here — the list formats it via `new Date(...)`, and a bare
+            // number (e.g. 2026) parses to 1970.
 
             // Calculate total participants (using both naming conventions)
             const farmersSum =
@@ -40,7 +39,6 @@ const extensionActivityService = {
 
             return {
                 ...activity,
-                reportingYear,
                 totalParticipants: farmersSum + officialsSum,
                 // extensionActivityType is set by _mapRegularResponse; use it as the display name
                 kvkName: activity.kvkName || (activity.kvk ? activity.kvk.kvkName : ''),

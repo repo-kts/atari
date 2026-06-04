@@ -108,39 +108,17 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             productTypeId: value,
             prodSubCategory: selectedType?.productCategoryType || '',
             productId: '',
-            speciesName: '',
         })
     }, [formData, setFormData, productTypes])
 
     const handleProductChange = useCallback((value: string | number) => {
-        const selectedProduct = products.find((p: any) => p.productId === value)
-        setFormData({
-            ...formData,
-            productId: value,
-            speciesName: selectedProduct?.productName || '',
-        })
-    }, [formData, setFormData, products])
-
-    const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        setFormData({ ...formData, speciesName: e.target.value })
+        // Species / Breed / Variety is free text now — don't overwrite it.
+        setFormData({ ...formData, productId: value })
     }, [formData, setFormData])
 
-    // species/breed/variety options: products scoped to the chosen type, deduped by name
-    const speciesOptions = useMemo(() => {
-        const scoped = formData.productTypeId
-            ? products.filter((p: any) => p.productTypeId === formData.productTypeId)
-            : products
-        const seen = new Set<string>()
-        const opts: { value: string; label: string }[] = []
-        for (const p of scoped) {
-            const name = String(p.productName ?? '').trim()
-            if (name && !seen.has(name)) {
-                seen.add(name)
-                opts.push({ value: name, label: name })
-            }
-        }
-        return opts
-    }, [products, formData.productTypeId])
+    const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, speciesName: e.target.value })
+    }, [formData, setFormData])
 
     const handleUnitChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setFormData({ ...formData, unit: e.target.value })
@@ -377,18 +355,13 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             loadingMessage="Loading products..."
                         />
 
-                        {/* Species / Breed / Variety */}
-                        <FormSelect
+                        {/* Species / Breed / Variety — free text */}
+                        <FormInput
                             label="Species / Breed / Variety"
                             required
                             value={formData.speciesName ?? ''}
                             onChange={handleSpeciesNameChange}
-                            options={speciesOptions}
-                            placeholder={
-                                formData.productTypeId
-                                    ? 'Select Species / Breed / Variety'
-                                    : 'Select Product Type first'
-                            }
+                            placeholder="Enter species / breed / variety"
                         />
 
                         {/* Unit and Quantity */}

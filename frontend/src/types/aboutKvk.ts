@@ -116,6 +116,7 @@ export interface KvkInfrastructure {
     infraId: number;
     kvkId: number;
     infraMasterId: number;
+    specifyName?: string | null;
     notYetStarted: boolean;
     completedPlinthLevel: boolean;
     completedLintelLevel: boolean;

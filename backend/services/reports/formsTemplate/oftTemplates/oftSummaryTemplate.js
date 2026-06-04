@@ -181,13 +181,14 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     let html = `
 <div id="${sectionId}" class="${pageClass}">`;
 
+    // Section heading = group (e.g. "2.1 On Farm Trial"); inner items numbered
+    // off the subsection/feature number (e.g. 2.1.A.1).
+    const base = section.featureNumber || section.id;
+    html += `
+    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
     if (isMultiState) {
         html += `
-    <h1 class="section-title" style="border-bottom:none;margin-bottom:6px;font-size:12px;">2. ACHIEVEMENTS ON TECHNOLOGIES ASSESSED AND REFINED (OFT)</h1>
-    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">2.1. Technology Assessed by KVK (Discipline wise)</p>`;
-    } else {
-        html += `
-    <h1 class="section-title" style="margin-bottom:10px;">2.1. OFT Summary</h1>`;
+    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">${base}.1 Technology Assessed by KVK (Discipline wise)</p>`;
     }
 
     // ── Table header ────────────────────────────────────────────
