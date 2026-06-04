@@ -1845,7 +1845,7 @@ function buildSectionNumbering(sections) {
             );
             // Append any selected sections of this parent the taxonomy missed,
             // so nothing is silently dropped from the report.
-            _appendLeftovers(chapter, parent.id, selectedById, consumed, headingById);
+            _appendLeftovers(chapter, parent.id, selectedById, consumed, headingById, (taxonomy.groups || []).length);
             if (chapter.groups.length === 0) return;
             chapter.number = (chapterNumber += 1);
             _renumberChapter(chapter, headingById);
@@ -1884,19 +1884,22 @@ function buildSectionNumbering(sections) {
 /** Build a curated chapter from taxonomy, keeping only groups/features with data. */
 function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, headingById) {
     const groups = [];
-    (taxonomy.groups || []).forEach((group) => {
+    // `originalIndex` preserves each group's slot in the full taxonomy so its
+    // number (e.g. On Farm Trial = 2.2) stays stable even when an earlier group
+    // has no section yet and is skipped.
+    (taxonomy.groups || []).forEach((group, gi) => {
         const features = (group.features || [])
             .filter(f => selectedById.has(String(f.sectionId)))
             .map(f => ({ label: f.label, sectionId: String(f.sectionId) }));
         if (features.length === 0) return;
         features.forEach(f => consumed.add(f.sectionId));
-        groups.push({ label: group.label, features });
+        groups.push({ label: group.label, features, originalIndex: gi });
     });
     return { type: 'grouped', id: parent.id, title: taxonomy.title || parent.title, groups };
 }
 
-/** Append selected-but-unmapped sections of a parent as a trailing group. */
-function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById) {
+/** Append selected-but-unmapped sections of a parent as trailing groups. */
+function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById, taxonomyGroupCount = 0) {
     const leftovers = [];
     selectedById.forEach((section, id) => {
         if (String(section.parentSectionId) === parentId && !consumed.has(id)) {
@@ -1904,11 +1907,14 @@ function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById
         }
     });
     if (leftovers.length === 0) return;
-    leftovers.forEach((section) => {
+    // Number leftovers after every taxonomy slot so they never collide with a
+    // curated group's number.
+    leftovers.forEach((section, i) => {
         consumed.add(String(section.id));
         chapter.groups.push({
             label: section.title,
             features: [{ label: section.title, sectionId: String(section.id) }],
+            originalIndex: taxonomyGroupCount + i,
         });
     });
 }
@@ -1916,7 +1922,10 @@ function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById
 /** Assign final group/feature numbers and per-section heading labels. */
 function _renumberChapter(chapter, headingById) {
     chapter.groups.forEach((group, gi) => {
-        group.number = `${chapter.number}.${gi + 1}`;
+        // Use the taxonomy slot when available so numbers stay stable across
+        // skipped (sectionless) groups; fall back to render order otherwise.
+        const slot = group.originalIndex != null ? group.originalIndex : gi;
+        group.number = `${chapter.number}.${slot + 1}`;
         // Count how many features point at each section to decide heading level.
         const refCount = group.features.reduce((m, f) => {
             m[f.sectionId] = (m[f.sectionId] || 0) + 1;

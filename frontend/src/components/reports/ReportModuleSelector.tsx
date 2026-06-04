@@ -208,9 +208,12 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                             // Curated, grouped + lettered view (About KVK / Achievements).
                             const taxonomyView = buildTaxonomyView(category.id, availableSectionIds);
                             if (taxonomyView) {
-                                const allIds = Array.from(
-                                    new Set(taxonomyView.groups.flatMap(g => g.features.map(f => f.sectionId)))
-                                );
+                                const allIds = Array.from(new Set(
+                                    taxonomyView.groups
+                                        .flatMap(g => g.features)
+                                        .filter(f => !f.disabled)
+                                        .map(f => f.sectionId)
+                                ));
                                 const selectedInCat = allIds.filter(id => selectedSections.has(id)).length;
                                 const allSelected = selectedInCat === allIds.length && allIds.length > 0;
 
@@ -244,6 +247,22 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                                                         {group.number} {group.label}
                                                     </div>
                                                     {features.map(feature => {
+                                                        if (feature.disabled) {
+                                                            // No backing section yet — show for structure, not selectable.
+                                                            return (
+                                                                <div
+                                                                    key={feature.number}
+                                                                    title="No data available yet"
+                                                                    className="pl-7 pr-4 py-3 flex items-center justify-between border-b border-[#F0F0F0] cursor-not-allowed opacity-60"
+                                                                >
+                                                                    <span className="text-[13px] font-normal text-[#9E9E9E]">
+                                                                        <span className="mr-1.5">{feature.number}</span>
+                                                                        {feature.label}
+                                                                    </span>
+                                                                    <span className="text-[#C1C1C1] text-xs flex-shrink-0">—</span>
+                                                                </div>
+                                                            );
+                                                        }
                                                         const isSelected = selectedSections.has(feature.sectionId);
                                                         return (
                                                             <div

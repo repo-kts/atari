@@ -73,19 +73,30 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
     achievements: {
         tabId: 'achievements',
         title: 'Achievements',
+        // Order, groups and lettered features follow the approved sheet exactly.
+        // sectionId '' = no backing report section yet (shown disabled).
         groups: [
+            {
+                label: 'Technical Achievement',
+                features: [
+                    { label: 'Technical Achievement Summary', sectionId: '' },
+                ],
+            },
             {
                 label: 'On Farm Trial',
                 features: [
                     { label: 'OFT Summary', sectionId: '2.2' },
-                    { label: 'OFT Details', sectionId: '2.3' },
+                    { label: 'State Wise OFT Details', sectionId: '2.2' },
+                    { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
             {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'Extension & Training under FLD', sectionId: '2.5' },
+                    { label: 'State Wise OFT Details', sectionId: '2.4' },
+                    { label: 'FLD Details', sectionId: '2.4' },
+                    { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },
                 ],
             },
@@ -106,21 +117,11 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                     { label: 'Technology Week', sectionId: '2.10' },
                     { label: 'Celebration Days', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
+                    { label: 'Poshan Maha', sectionId: '' },
                 ],
             },
             {
-                label: 'Soil & Water Testing',
-                features: [
-                    { label: 'Laboratory Equipment', sectionId: '2.13' },
-                    { label: 'Analysis Details', sectionId: '2.14' },
-                ],
-            },
-            {
-                label: 'Production & Supply',
-                features: [{ label: 'Production & Supply', sectionId: '2.12' }],
-            },
-            {
-                label: 'Swachh Bharat Abhiyaan',
+                label: 'Swacha Bharat Abhiyan',
                 features: [
                     { label: 'Swachhta hi Sewa', sectionId: '7.1' },
                     { label: 'Swachta Pakhwada', sectionId: '7.2' },
@@ -128,8 +129,22 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                 ],
             },
             {
+                label: 'Production & Supply',
+                features: [{ label: 'Production and Supply', sectionId: '2.12' }],
+            },
+            {
+                label: 'Soil and Water Testing',
+                features: [{ label: 'Analysis Details', sectionId: '2.14' }],
+            },
+            {
                 label: 'Publications',
                 features: [{ label: 'Publications', sectionId: '2.55' }],
+            },
+            {
+                label: 'Human Resources Development',
+                features: [
+                    { label: 'Human Resources Development', sectionId: '2.59' },
+                ],
             },
             {
                 label: 'Award and Recognition',
@@ -137,12 +152,6 @@ export const REPORT_INDEX_TAXONOMY: Record<string, TaxonomyChapter> = {
                     { label: 'KVK Awards', sectionId: '2.56' },
                     { label: 'Scientist Awards', sectionId: '2.57' },
                     { label: 'Farmer Awards', sectionId: '2.58' },
-                ],
-            },
-            {
-                label: 'Human Resource Development',
-                features: [
-                    { label: 'Human Resource Development', sectionId: '2.59' },
                 ],
             },
         ],
@@ -156,8 +165,10 @@ export const TAXONOMY_CHAPTER_NUMBER: Record<string, number> = {
 }
 
 /**
- * Build the numbered, grouped view for a taxonomy tab, keeping only features
- * whose section actually exists in the available `sectionIds`.
+ * Build the numbered, grouped view for a taxonomy tab. The full sheet structure
+ * is preserved (every group + lettered feature), so numbering matches the sheet
+ * exactly. Features whose section is missing/empty are marked `disabled` — they
+ * show in the list for completeness but can't be toggled.
  */
 export function buildTaxonomyView(
     tabId: string,
@@ -167,24 +178,19 @@ export function buildTaxonomyView(
     if (!chapter) return null
     const chapterNo = TAXONOMY_CHAPTER_NUMBER[tabId]
 
-    const groups = chapter.groups
-        .map((group, gi) => {
-            const features = group.features.filter((f) =>
-                availableSectionIds.has(f.sectionId),
-            )
-            if (features.length === 0) return null
-            const groupNo = `${chapterNo}.${gi + 1}`
-            return {
-                number: groupNo,
-                label: group.label,
-                features: features.map((f, fi) => ({
-                    number: `${groupNo}.${String.fromCharCode(65 + fi)}`,
-                    label: f.label,
-                    sectionId: f.sectionId,
-                })),
-            }
-        })
-        .filter((g): g is NonNullable<typeof g> => g !== null)
+    const groups = chapter.groups.map((group, gi) => {
+        const groupNo = `${chapterNo}.${gi + 1}`
+        return {
+            number: groupNo,
+            label: group.label,
+            features: group.features.map((f, fi) => ({
+                number: `${groupNo}.${String.fromCharCode(65 + fi)}`,
+                label: f.label,
+                sectionId: f.sectionId,
+                disabled: !f.sectionId || !availableSectionIds.has(f.sectionId),
+            })),
+        }
+    })
 
     return { title: chapter.title, groups }
 }

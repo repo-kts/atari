@@ -68,21 +68,34 @@ const REPORT_INDEX_TAXONOMY = {
     // ── 2. Achievements ──────────────────────────────────────────────────────
     // Swachh Bharat sections (real parent "7") are intentionally grouped here,
     // matching the sheet; chapter 7 therefore no longer renders separately.
+    // Order, groups and lettered features follow the approved sheet exactly.
+    // Some rows are sub-views of one section (shared sectionId) or have no
+    // backing report section yet (sectionId ''): the latter show in the sidebar
+    // as disabled rows and are skipped in the report until a section exists.
     '2': {
         title: 'Achievements',
         groups: [
             {
+                label: 'Technical Achievement',
+                features: [
+                    { label: 'Technical Achievement Summary', sectionId: '' },
+                ],
+            },
+            {
                 label: 'On Farm Trial',
                 features: [
                     { label: 'OFT Summary', sectionId: '2.2' },
-                    { label: 'OFT Details', sectionId: '2.3' },
+                    { label: 'State Wise OFT Details', sectionId: '2.2' },
+                    { label: 'KVK Wise OFT Details', sectionId: '2.3' },
                 ],
             },
             {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'Extension & Training under FLD', sectionId: '2.5' },
+                    { label: 'State Wise OFT Details', sectionId: '2.4' },
+                    { label: 'FLD Details', sectionId: '2.4' },
+                    { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },
                 ],
             },
@@ -103,23 +116,11 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'Technology Week', sectionId: '2.10' },
                     { label: 'Celebration Days', sectionId: '2.11' },
                     { label: 'World Soil Day', sectionId: '2.15' },
+                    { label: 'Poshan Maha', sectionId: '' },
                 ],
             },
             {
-                label: 'Soil & Water Testing',
-                features: [
-                    { label: 'Laboratory Equipment', sectionId: '2.13' },
-                    { label: 'Analysis Details', sectionId: '2.14' },
-                ],
-            },
-            {
-                label: 'Production & Supply',
-                features: [
-                    { label: 'Production & Supply', sectionId: '2.12' },
-                ],
-            },
-            {
-                label: 'Swachh Bharat Abhiyaan',
+                label: 'Swacha Bharat Abhiyan',
                 features: [
                     { label: 'Swachhta hi Sewa', sectionId: '7.1' },
                     { label: 'Swachta Pakhwada', sectionId: '7.2' },
@@ -127,8 +128,26 @@ const REPORT_INDEX_TAXONOMY = {
                 ],
             },
             {
+                label: 'Production & Supply',
+                features: [
+                    { label: 'Production and Supply', sectionId: '2.12' },
+                ],
+            },
+            {
+                label: 'Soil and Water Testing',
+                features: [
+                    { label: 'Analysis Details', sectionId: '2.14' },
+                ],
+            },
+            {
                 label: 'Publications',
                 features: [{ label: 'Publications', sectionId: '2.55' }],
+            },
+            {
+                label: 'Human Resources Development',
+                features: [
+                    { label: 'Human Resources Development', sectionId: '2.59' },
+                ],
             },
             {
                 label: 'Award and Recognition',
@@ -136,12 +155,6 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'KVK Awards', sectionId: '2.56' },
                     { label: 'Scientist Awards', sectionId: '2.57' },
                     { label: 'Farmer Awards', sectionId: '2.58' },
-                ],
-            },
-            {
-                label: 'Human Resource Development',
-                features: [
-                    { label: 'Human Resource Development', sectionId: '2.59' },
                 ],
             },
         ],
