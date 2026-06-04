@@ -1,4 +1,4 @@
-const { getSectionConfig, getAllSections } = require('../../config/reportConfig.js');
+const { getSectionConfig, getAllSections, buildSectionNumbering } = require('../../config/reportConfig.js');
 const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
@@ -250,7 +250,10 @@ class ReportTemplateService {
                 sectionData.data !== undefined;
         });
 
-        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext);
+        // Clean, sequential index numbering (raw section.id values are unreliable).
+        const numbering = buildSectionNumbering(selectedSections);
+
+        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.displayById);
 
         const html = `
 <!DOCTYPE html>
@@ -263,7 +266,7 @@ class ReportTemplateService {
 </head>
 <body>
     ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
-    ${this._generateTableOfContents(selectedSections)}
+    ${this._generateTableOfContents(numbering.chapters)}
     <div class="sections-container">
         ${sectionsBody}
     </div>
@@ -359,23 +362,30 @@ class ReportTemplateService {
     /**
      * Generate table of contents with clickable links
      */
-    _generateTableOfContents(selectedSections) {
+    _generateTableOfContents(chapters) {
         let tocHtml = `
 <div class="page toc-page">
     <h1 class="toc-title">Table of Contents</h1>
     <ul class="toc-list">`;
 
-        selectedSections.forEach((section, index) => {
-            const pageNumber = index + 3; // Cover page + TOC + sections start at page 3
-            const sectionId = `section-${section.id.replace(/\./g, '-')}`;
+        chapters.forEach((chapter) => {
+            // Chapter heading row, e.g. "1. About KVK"
             tocHtml += `
+        <li class="toc-chapter">
+            <span class="toc-chapter-id">${chapter.number}.</span>
+            <span class="toc-chapter-title">${this._escapeHtml(chapter.title)}</span>
+        </li>`;
+
+            chapter.sections.forEach(({ section, displayId }) => {
+                const anchorId = `section-${section.id.replace(/\./g, '-')}`;
+                tocHtml += `
         <li class="toc-item">
-            <a href="#${sectionId}" class="toc-link">
-                <span class="toc-section-id">${section.id}</span>
+            <a href="#${anchorId}" class="toc-link">
+                <span class="toc-section-id">${displayId}</span>
                 <span class="toc-section-title">${this._escapeHtml(section.title)}</span>
-                <span class="toc-page-number">${pageNumber}</span>
             </a>
         </li>`;
+            });
         });
 
         tocHtml += `
@@ -388,14 +398,18 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}) {
+    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, displayById = new Map()) {
         let html = '';
         let isFirstSection = true;
 
-        for (const section of selectedSections) {
-            const sectionConfig = getSectionConfig(section.id);
-            const sectionData = sectionsData[section.id];
-            const sectionId = `section-${section.id.replace(/\./g, '-')}`;
+        for (const rawSection of selectedSections) {
+            const sectionConfig = getSectionConfig(rawSection.id);
+            const sectionData = sectionsData[rawSection.id];
+            const sectionId = `section-${rawSection.id.replace(/\./g, '-')}`;
+
+            // Display heading uses the clean sequential number; data/anchor lookups
+            // keep the real id. Fall back to the raw id if not numbered.
+            const section = { ...rawSection, id: displayById.get(rawSection.id) || rawSection.id };
 
             // Check for errors or missing data
             if (!sectionData || sectionData.error) {
@@ -1016,8 +1030,24 @@ class ReportTemplateService {
         margin-top: 20px;
     }
 
+    .toc-chapter {
+        display: flex;
+        gap: 6px;
+        margin: 14px 0 4px 0;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #487749;
+        font-weight: bold;
+        font-size: 9pt;
+        color: #487749;
+        text-transform: uppercase;
+    }
+
+    .toc-chapter-id {
+        min-width: 20px;
+    }
+
     .toc-item {
-        margin: 8px 0;
+        margin: 6px 0 6px 18px;
     }
 
     .toc-link {

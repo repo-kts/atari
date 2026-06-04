@@ -1787,11 +1787,74 @@ function validateSectionIds(sectionIds) {
     return true;
 }
 
+/**
+ * Top-level report chapters. The number is the chapter index shown in the
+ * index/TOC ("1. About KVK"); it maps to each section's `parentSectionId`.
+ * Kept in ascending order so chapters always render 1→8.
+ */
+const PARENT_SECTIONS = [
+    { id: '1', title: 'About KVK' },
+    { id: '2', title: 'Achievements' },
+    { id: '3', title: 'Projects' },
+    { id: '4', title: 'Performance' },
+    { id: '5', title: 'Miscellaneous' },
+    { id: '6', title: 'Digital Information' },
+    { id: '7', title: 'Swachh Bharat Abhiyaan' },
+    { id: '8', title: 'Meetings' },
+];
+
+/**
+ * Build clean, sequential display numbers for the index/TOC and section
+ * headings.
+ *
+ * The raw `section.id` values are unreliable: they have gaps, duplicates and
+ * prefixes that don't match `parentSectionId` (e.g. id "2.16" lives under
+ * parent "3"). So instead of trusting them, we renumber each section
+ * `<chapter>.<n>` where `<chapter>` is its parent's number and `<n>` is its
+ * 1-based position within that parent, in document order. This is display-only
+ * — the real `id` stays the stable key for data lookup and anchors.
+ *
+ * @param {Array<{id:string, parentSectionId:string}>} sections - in document order
+ * @returns {{
+ *   displayById: Map<string,string>,         // realId -> "2.3"
+ *   chapters: Array<{ id, title, number, sections: Array<{section, displayId}> }>
+ * }}
+ */
+function buildSectionNumbering(sections) {
+    const displayById = new Map();
+    const chapters = [];
+
+    PARENT_SECTIONS.forEach((parent, parentIdx) => {
+        const children = sections.filter(
+            s => String(s.parentSectionId) === parent.id,
+        );
+        if (children.length === 0) return;
+
+        const chapterNumber = parentIdx + 1; // 1-based chapter index
+        const chapterSections = children.map((section, childIdx) => {
+            const displayId = `${chapterNumber}.${childIdx + 1}`;
+            displayById.set(section.id, displayId);
+            return { section, displayId };
+        });
+
+        chapters.push({
+            id: parent.id,
+            title: parent.title,
+            number: chapterNumber,
+            sections: chapterSections,
+        });
+    });
+
+    return { displayById, chapters };
+}
+
 module.exports = {
     reportConfig,
     getSectionConfig,
     getAllSections,
     getSectionsByDataSource,
-    getSectionByCustomTemplate, 
+    getSectionByCustomTemplate,
     validateSectionIds,
+    PARENT_SECTIONS,
+    buildSectionNumbering,
 };
