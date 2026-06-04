@@ -26,7 +26,7 @@ export const CasteGenderTotals: React.FC<CasteGenderTotalsProps> = ({
     const totalFemale = sumFields(values, femaleFields)
 
     return (
-        <div className="flex flex-wrap gap-3 pt-4">
+        <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
                 <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
                 <span className="text-sm font-bold text-[#1B5E20] tabular-nums">{totalMale}</span>
