@@ -44,7 +44,7 @@ router.post('/basic', requireRole([...kvkRoles, 'super_admin']), async (req, res
         const data = await nicraService.createBasicInfo(req.body, req.user);
         res.status(201).json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 });
 
@@ -53,7 +53,7 @@ const updateBasicInfo = async (req, res) => {
         const data = await nicraService.updateBasicInfo(req.params.id, req.body, req.user);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(error.statusCode || 500).json({ message: error.message });
     }
 };
 router.put('/basic/:id', requireRole([...kvkRoles, 'super_admin']), updateBasicInfo);

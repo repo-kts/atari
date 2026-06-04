@@ -1,5 +1,46 @@
 const prisma = require('../../config/prisma.js');
 
+/** Build a 400 error with a clean, user-facing message. */
+function _badRequest(message) {
+    const e = new Error(message);
+    e.statusCode = 400;
+    return e;
+}
+
+/**
+ * Parse the "Month & Year" value (expects YYYY-MM from the month picker) into a
+ * first-of-month Date. Throws a friendly error on invalid/manual input like
+ * "26-3" instead of letting an Invalid Date reach Prisma.
+ */
+function _parseMonthYear(value, fallback) {
+    if (value === undefined || value === null || String(value).trim() === '') {
+        if (fallback !== undefined) return fallback;
+        throw _badRequest('Month & Year is required. Please pick a month from the calendar.');
+    }
+    const m = String(value).trim().match(/^(\d{4})-(\d{1,2})$/);
+    if (!m) {
+        throw _badRequest('Invalid Month & Year. Please pick a month from the calendar (format YYYY-MM).');
+    }
+    const year = parseInt(m[1], 10);
+    const month = parseInt(m[2], 10);
+    if (month < 1 || month > 12) {
+        throw _badRequest('Invalid Month & Year. The month must be between 01 and 12.');
+    }
+    return new Date(Date.UTC(year, month - 1, 1));
+}
+
+/** Parse an optional date; throws a friendly error when present-but-invalid. */
+function _parseDate(value, label, fallback) {
+    if (value === undefined || value === null || String(value).trim() === '') {
+        return fallback !== undefined ? fallback : new Date();
+    }
+    const d = new Date(value);
+    if (isNaN(d.getTime())) {
+        throw _badRequest(`Invalid ${label}. Please pick a valid date.`);
+    }
+    return d;
+}
+
 const nicraBasicInfoRepository = {
     create: async (data, user) => {
         let kvkId = (user && user.kvkId) ? parseInt(user.kvkId) : (data.kvkId ? parseInt(data.kvkId) : null);
@@ -8,7 +49,7 @@ const nicraBasicInfoRepository = {
         const result = await prisma.nicraBasicInfo.create({
             data: {
                 kvkId,
-                reportingDate: data.monthYear ? new Date(data.monthYear + '-01') : new Date(),
+                reportingDate: _parseMonthYear(data.monthYear),
                 rfNormal: parseFloat(data.rfMmDistrictNormal || data.rfNormal || 0),
                 rfReceived: parseFloat(data.rfMmDistrictReceived || data.rfReceived || 0),
                 tempMax: parseFloat(data.maxTemperature || data.tempMax || 0),
@@ -18,8 +59,8 @@ const nicraBasicInfoRepository = {
                 drySpell20Days: parseInt(data.dry20 || 0),
                 intensiveRainAbove60mm: parseInt(data.intensiveRain || 0),
                 waterDepthCm: parseFloat(data.waterDepth || 0),
-                startDate: data.startDate ? new Date(data.startDate) : new Date(),
-                endDate: data.endDate ? new Date(data.endDate) : new Date(),
+                startDate: _parseDate(data.startDate, 'Start Date'),
+                endDate: _parseDate(data.endDate, 'End Date'),
             }
         });
         return nicraBasicInfoRepository._mapResponse(result);
@@ -86,7 +127,7 @@ const nicraBasicInfoRepository = {
         const updated = await prisma.nicraBasicInfo.update({
             where: { nicraBasicInfoId: parseInt(id) },
             data: {
-                reportingDate: data.monthYear ? new Date(data.monthYear + '-01') : existing.reportingDate,
+                reportingDate: _parseMonthYear(data.monthYear, existing.reportingDate),
                 rfNormal: data.rfMmDistrictNormal !== undefined ? parseFloat(data.rfMmDistrictNormal || 0) : (data.rfNormal !== undefined ? parseFloat(data.rfNormal || 0) : existing.rfNormal),
                 rfReceived: data.rfMmDistrictReceived !== undefined ? parseFloat(data.rfMmDistrictReceived || 0) : (data.rfReceived !== undefined ? parseFloat(data.rfReceived || 0) : existing.rfReceived),
                 tempMax: data.maxTemperature !== undefined ? parseFloat(data.maxTemperature || 0) : (data.tempMax !== undefined ? parseFloat(data.tempMax || 0) : existing.tempMax),
@@ -96,8 +137,8 @@ const nicraBasicInfoRepository = {
                 drySpell20Days: data.dry20 !== undefined ? parseInt(data.dry20 || 0) : existing.drySpell20Days,
                 intensiveRainAbove60mm: data.intensiveRain !== undefined ? parseInt(data.intensiveRain || 0) : existing.intensiveRainAbove60mm,
                 waterDepthCm: data.waterDepth !== undefined ? parseFloat(data.waterDepth || 0) : existing.waterDepthCm,
-                startDate: data.startDate ? new Date(data.startDate) : existing.startDate,
-                endDate: data.endDate ? new Date(data.endDate) : existing.endDate,
+                startDate: _parseDate(data.startDate, 'Start Date', existing.startDate),
+                endDate: _parseDate(data.endDate, 'End Date', existing.endDate),
             }
         });
         return nicraBasicInfoRepository._mapResponse(updated);
