@@ -386,17 +386,11 @@ class ReportTemplateService {
         </li>`;
 
             if (chapter.type === 'grouped') {
+                // TOC lists section (group) level only, e.g. "1.1 Basic Information".
+                // The lettered features (sub-sections) appear only as body headings.
                 chapter.groups.forEach((group) => {
-                    // Group heading row, e.g. "1.1 Basic Information"
-                    tocHtml += `
-        <li class="toc-group">
-            <span class="toc-section-id">${group.number}</span>
-            <span class="toc-section-title">${this._escapeHtml(group.label)}</span>
-        </li>`;
-                    // Lettered feature rows, e.g. "1.1.A KVKs Details"
-                    group.features.forEach((feature) => {
-                        tocHtml += tocItem(feature.number, feature.label, feature.sectionId, 'toc-feature');
-                    });
+                    const firstSection = group.features[0] && group.features[0].sectionId;
+                    tocHtml += tocItem(group.number, group.label, firstSection, '');
                 });
             } else {
                 chapter.sections.forEach((s) => {
