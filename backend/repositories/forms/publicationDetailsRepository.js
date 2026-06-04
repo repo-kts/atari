@@ -98,11 +98,19 @@ const _mapResponse = (r) => {
         title: r.title,
         authorName: r.authorName,
         journalName: r.journalName,
+        naasRating: r.naasRating,
         publicationId: r.publicationId,
         year: reportingYear,
         publication: r.publication?.publicationName || r.publicationId,
     };
 };
+
+/** Parse an optional NAAS rating (decimal) — null when blank/invalid. */
+function _parseNaasRating(value) {
+    if (value === undefined || value === null || value === '') return null;
+    const n = parseFloat(value);
+    return Number.isFinite(n) ? n : null;
+}
 
 const publicationDetailsRepository = {
     create: async (data, user) => {
@@ -144,6 +152,7 @@ const publicationDetailsRepository = {
                 title,
                 authorName,
                 journalName,
+                naasRating: _parseNaasRating(data.naasRating),
             };
 
             // Create the record using Prisma
@@ -321,6 +330,9 @@ const publicationDetailsRepository = {
             }
             if (data.journalName !== undefined) {
                 updateData.journalName = _normalizeString(data.journalName, 'Journal Name', false);
+            }
+            if (data.naasRating !== undefined) {
+                updateData.naasRating = _parseNaasRating(data.naasRating);
             }
 
             // Update the record

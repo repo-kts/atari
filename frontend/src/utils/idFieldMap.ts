@@ -12,6 +12,10 @@ import type { ExtendedEntityType } from './masterUtils';
  * Map of entity types to their ID field names
  */
 export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
+    // Present-status masters (edit needs the real PK, not the 'id' default)
+    [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: 'vehicleStatusId',
+    [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: 'equipmentStatusId',
+
     // Basic Masters
     [ENTITY_TYPES.ZONES]: 'zoneId',
     [ENTITY_TYPES.STATES]: 'stateId',

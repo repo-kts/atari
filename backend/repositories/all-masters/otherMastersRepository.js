@@ -760,8 +760,15 @@ const create = async (entityType, data) => {
                 betterError.statusCode = 409;
                 throw betterError;
             }
+
+            // Any other unique-field conflict (e.g. status code) — friendly message
+            // instead of leaking the raw Prisma error to the UI.
+            const readable = String(field).replace(/_/g, ' ').replace(/\bid\b/i, '').trim() || 'value';
+            const dupError = new Error(`A record with this ${readable} already exists`);
+            dupError.statusCode = 409;
+            throw dupError;
         }
-        
+
         throw error;
     }
 };
@@ -771,7 +778,14 @@ const create = async (entityType, data) => {
  */
 const update = async (entityType, id, data) => {
     const config = getEntityConfig(entityType);
-    
+
+    const numericId = parseInt(id, 10);
+    if (Number.isNaN(numericId)) {
+        const e = new Error('Invalid record id. Please reopen the record and try again.');
+        e.statusCode = 400;
+        throw e;
+    }
+
     // Build sanitized data object with only allowed fields
     const sanitizedData = {};
     
@@ -824,11 +838,27 @@ const update = async (entityType, id, data) => {
         throw new Error(`No valid fields provided for update`);
     }
     
-    return prisma[config.model].update({
-        where: { [config.idField]: parseInt(id) },
-        data: sanitizedData,
-        include: config.includes,
-    });
+    try {
+        return await prisma[config.model].update({
+            where: { [config.idField]: numericId },
+            data: sanitizedData,
+            include: config.includes,
+        });
+    } catch (error) {
+        if (error.code === 'P2002') {
+            const field = error.meta?.target?.[0] || 'value';
+            const readable = String(field).replace(/_/g, ' ').replace(/\bid\b/i, '').trim() || 'value';
+            const dupError = new Error(`A record with this ${readable} already exists`);
+            dupError.statusCode = 409;
+            throw dupError;
+        }
+        if (error.code === 'P2025') {
+            const e = new Error('Record not found');
+            e.statusCode = 404;
+            throw e;
+        }
+        throw error;
+    }
 };
 
 /**

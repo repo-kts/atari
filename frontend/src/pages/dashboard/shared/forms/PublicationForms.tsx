@@ -155,6 +155,15 @@ export const PublicationForms: React.FC<PublicationFormsProps> = ({
                             value={formData.journalName ?? ''}
                             onChange={handleJournalNameChange}
                         />
+                        <FormInput
+                            label="NAAS Rating"
+                            type="number"
+                            value={formData.naasRating ?? ''}
+                            onChange={(e) =>
+                                setFormData((prev: any) => ({ ...prev, naasRating: e.target.value }))
+                            }
+                            placeholder="e.g. 5.59"
+                        />
                     </div>
                 </div>
             )}

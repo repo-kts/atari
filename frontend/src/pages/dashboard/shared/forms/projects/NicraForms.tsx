@@ -1093,13 +1093,33 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 value={formData.stMale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stMale: e.target.value })}
                             />
-                            {/* <FormInput
+                            <FormInput
                                 label="ST_F"
                                 required
                                 type="number"
                                 value={formData.stFemale ?? ''}
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
-                            /> */}
+                            />
+                        </div>
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.genMale) || 0) + (Number(formData.obcMale) || 0) + (Number(formData.scMale) || 0) + (Number(formData.stMale) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.genFemale) || 0) + (Number(formData.obcFemale) || 0) + (Number(formData.scFemale) || 0) + (Number(formData.stFemale) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.genMale) || 0) + (Number(formData.genFemale) || 0) + (Number(formData.obcMale) || 0) + (Number(formData.obcFemale) || 0) + (Number(formData.scMale) || 0) + (Number(formData.scFemale) || 0) + (Number(formData.stMale) || 0) + (Number(formData.stFemale) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

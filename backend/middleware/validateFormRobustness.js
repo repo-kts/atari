@@ -56,6 +56,14 @@ function shouldAllowDecimal(key) {
         k.includes('quantity') ||
         k.includes('latitude') ||
         k.includes('longitude') ||
+        // weather / climate readings (NICRA basic info: RF mm, temperature, water depth)
+        k.includes('rfmm') ||
+        k.includes('rainfall') ||
+        k.includes('temperature') ||
+        k.includes('depth') ||
+        k.includes('water') ||
+        // ratings (e.g. NAAS rating)
+        k.includes('rating') ||
         // soil params
         k.includes('ph') ||
         k.includes('ec') ||
