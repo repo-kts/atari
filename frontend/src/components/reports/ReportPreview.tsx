@@ -52,9 +52,11 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
             <CardContent className={`${embedded ? '' : ''} flex-1 overflow-auto bg-[#F5F5F5] flex flex-col items-center justify-center relative`}>
                 {isGenerating ? (
                     <div className="flex flex-col items-center gap-4 text-center">
-                        <div className="relative">
-                            <div className="w-16 h-16 border-4 border-[#487749]/20 border-t-[#487749] rounded-full animate-spin" />
-                            <Loader2 className="w-8 h-8 text-[#487749] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                        {/* Non-spinning loader: sequenced pulsing dots */}
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-[#487749] animate-pulse" style={{ animationDelay: '0ms' }} />
+                            <span className="w-3 h-3 rounded-full bg-[#487749] animate-pulse" style={{ animationDelay: '200ms' }} />
+                            <span className="w-3 h-3 rounded-full bg-[#487749] animate-pulse" style={{ animationDelay: '400ms' }} />
                         </div>
                         <div>
                             <p className="text-lg font-bold text-[#2d4a2f]">Compiling Report...</p>
@@ -134,7 +136,11 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                                     ))}
                                 </div>
                                 <div className="h-32 bg-[#FAF9F6] rounded-lg border border-dashed border-[#E0E0E0] flex items-center justify-center">
-                                    <div className="w-16 h-16 rounded-full border-[6px] border-[#487749]/15 border-t-[#487749]/40 animate-spin" />
+                                    {/* Static donut skeleton (no spin) to match the chart box */}
+                                    <div className="relative w-16 h-16 animate-pulse">
+                                        <div className="w-16 h-16 rounded-full bg-[#487749]/15" />
+                                        <div className="absolute top-1/2 left-1/2 w-7 h-7 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FAF9F6]" />
+                                    </div>
                                 </div>
                             </div>
 
