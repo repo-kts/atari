@@ -2,6 +2,7 @@
  * Report Configuration
  * Defines the structure, sections, and data sources for KVK reports
  */
+const { REPORT_INDEX_TAXONOMY } = require('./reportIndexTaxonomy.js');
 
 const reportConfig = {
     metadata: {
@@ -1803,49 +1804,129 @@ const PARENT_SECTIONS = [
     { id: '8', title: 'Meetings' },
 ];
 
+function _letter(i) {
+    return String.fromCharCode(65 + i); // 0 -> A, 1 -> B, ...
+}
+
 /**
- * Build clean, sequential display numbers for the index/TOC and section
- * headings.
+ * Build the index/TOC structure and per-section heading labels.
  *
- * The raw `section.id` values are unreliable: they have gaps, duplicates and
- * prefixes that don't match `parentSectionId` (e.g. id "2.16" lives under
- * parent "3"). So instead of trusting them, we renumber each section
- * `<chapter>.<n>` where `<chapter>` is its parent's number and `<n>` is its
- * 1-based position within that parent, in document order. This is display-only
- * — the real `id` stays the stable key for data lookup and anchors.
+ * Two numbering modes coexist:
+ *  - Chapters present in REPORT_INDEX_TAXONOMY render as curated 2-level groups
+ *    with lettered features (e.g. 1.1 Basic Information → 1.1.A KVKs Details).
+ *  - Every other chapter renders as a flat sequential list (`<chapter>.<n>`),
+ *    because the raw `section.id` values are unreliable (gaps, duplicates and
+ *    prefixes that don't match `parentSectionId`, e.g. id "2.16" under parent
+ *    "3").
  *
- * @param {Array<{id:string, parentSectionId:string}>} sections - in document order
+ * Numbering is display-only: the real `section.id` stays the stable key for
+ * data lookup and TOC anchors. Chapters with no selected sections are skipped,
+ * and chapter numbers are assigned sequentially over the chapters that remain.
+ *
+ * @param {Array<{id:string, parentSectionId:string, title:string}>} sections - selected, document order
  * @returns {{
- *   displayById: Map<string,string>,         // realId -> "2.3"
- *   chapters: Array<{ id, title, number, sections: Array<{section, displayId}> }>
+ *   headingById: Map<string,{number:string,title:string}>,  // section page heading
+ *   chapters: Array<object>                                  // TOC structure (see below)
  * }}
  */
 function buildSectionNumbering(sections) {
-    const displayById = new Map();
+    const headingById = new Map();
+    const selectedById = new Map(sections.map(s => [String(s.id), s]));
+    const consumed = new Set();
     const chapters = [];
+    let chapterNumber = 0;
 
-    PARENT_SECTIONS.forEach((parent, parentIdx) => {
-        const children = sections.filter(
-            s => String(s.parentSectionId) === parent.id,
-        );
-        if (children.length === 0) return;
+    PARENT_SECTIONS.forEach((parent) => {
+        const taxonomy = REPORT_INDEX_TAXONOMY[parent.id];
 
-        const chapterNumber = parentIdx + 1; // 1-based chapter index
-        const chapterSections = children.map((section, childIdx) => {
-            const displayId = `${chapterNumber}.${childIdx + 1}`;
-            displayById.set(section.id, displayId);
-            return { section, displayId };
-        });
-
-        chapters.push({
-            id: parent.id,
-            title: parent.title,
-            number: chapterNumber,
-            sections: chapterSections,
-        });
+        if (taxonomy) {
+            const chapter = _buildTaxonomyChapter(
+                parent, taxonomy, selectedById, consumed, headingById,
+            );
+            // Append any selected sections of this parent the taxonomy missed,
+            // so nothing is silently dropped from the report.
+            _appendLeftovers(chapter, parent.id, selectedById, consumed, headingById);
+            if (chapter.groups.length === 0) return;
+            chapter.number = (chapterNumber += 1);
+            _renumberChapter(chapter, headingById);
+            chapters.push(chapter);
+        } else {
+            const children = sections.filter(
+                s => String(s.parentSectionId) === parent.id && !consumed.has(String(s.id)),
+            );
+            if (children.length === 0) return;
+            const number = (chapterNumber += 1);
+            const chapter = {
+                type: 'flat',
+                id: parent.id,
+                title: parent.title,
+                number,
+                sections: children.map((section, i) => {
+                    const displayId = `${number}.${i + 1}`;
+                    headingById.set(String(section.id), { number: displayId, title: section.title });
+                    children[i]._displayId = displayId;
+                    return { sectionId: section.id, number: displayId, title: section.title };
+                }),
+            };
+            chapters.push(chapter);
+        }
     });
 
-    return { displayById, chapters };
+    return { headingById, chapters };
+}
+
+/** Build a curated chapter from taxonomy, keeping only groups/features with data. */
+function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, headingById) {
+    const groups = [];
+    (taxonomy.groups || []).forEach((group) => {
+        const features = (group.features || [])
+            .filter(f => selectedById.has(String(f.sectionId)))
+            .map(f => ({ label: f.label, sectionId: String(f.sectionId) }));
+        if (features.length === 0) return;
+        features.forEach(f => consumed.add(f.sectionId));
+        groups.push({ label: group.label, features });
+    });
+    return { type: 'grouped', id: parent.id, title: taxonomy.title || parent.title, groups };
+}
+
+/** Append selected-but-unmapped sections of a parent as a trailing group. */
+function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById) {
+    const leftovers = [];
+    selectedById.forEach((section, id) => {
+        if (String(section.parentSectionId) === parentId && !consumed.has(id)) {
+            leftovers.push(section);
+        }
+    });
+    if (leftovers.length === 0) return;
+    leftovers.forEach((section) => {
+        consumed.add(String(section.id));
+        chapter.groups.push({
+            label: section.title,
+            features: [{ label: section.title, sectionId: String(section.id) }],
+        });
+    });
+}
+
+/** Assign final group/feature numbers and per-section heading labels. */
+function _renumberChapter(chapter, headingById) {
+    chapter.groups.forEach((group, gi) => {
+        group.number = `${chapter.number}.${gi + 1}`;
+        // Count how many features point at each section to decide heading level.
+        const refCount = group.features.reduce((m, f) => {
+            m[f.sectionId] = (m[f.sectionId] || 0) + 1;
+            return m;
+        }, {});
+        group.features.forEach((feature, fi) => {
+            feature.number = `${group.number}.${_letter(fi)}`;
+            const heading = refCount[feature.sectionId] > 1
+                ? { number: group.number, title: group.label }   // shared section → group heading
+                : { number: feature.number, title: feature.label };
+            // First feature for a section wins the page heading.
+            if (!headingById.has(feature.sectionId)) {
+                headingById.set(feature.sectionId, heading);
+            }
+        });
+    });
 }
 
 module.exports = {

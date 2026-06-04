@@ -250,10 +250,10 @@ class ReportTemplateService {
                 sectionData.data !== undefined;
         });
 
-        // Clean, sequential index numbering (raw section.id values are unreliable).
+        // Curated/clean index numbering (raw section.id values are unreliable).
         const numbering = buildSectionNumbering(selectedSections);
 
-        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.displayById);
+        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.headingById);
 
         const html = `
 <!DOCTYPE html>
@@ -363,6 +363,15 @@ class ReportTemplateService {
      * Generate table of contents with clickable links
      */
     _generateTableOfContents(chapters) {
+        const anchorFor = (sectionId) => `section-${String(sectionId).replace(/\./g, '-')}`;
+        const tocItem = (number, title, sectionId, cls) => `
+        <li class="toc-item ${cls}">
+            <a href="#${anchorFor(sectionId)}" class="toc-link">
+                <span class="toc-section-id">${number}</span>
+                <span class="toc-section-title">${this._escapeHtml(title)}</span>
+            </a>
+        </li>`;
+
         let tocHtml = `
 <div class="page toc-page">
     <h1 class="toc-title">Table of Contents</h1>
@@ -376,16 +385,24 @@ class ReportTemplateService {
             <span class="toc-chapter-title">${this._escapeHtml(chapter.title)}</span>
         </li>`;
 
-            chapter.sections.forEach(({ section, displayId }) => {
-                const anchorId = `section-${section.id.replace(/\./g, '-')}`;
-                tocHtml += `
-        <li class="toc-item">
-            <a href="#${anchorId}" class="toc-link">
-                <span class="toc-section-id">${displayId}</span>
-                <span class="toc-section-title">${this._escapeHtml(section.title)}</span>
-            </a>
+            if (chapter.type === 'grouped') {
+                chapter.groups.forEach((group) => {
+                    // Group heading row, e.g. "1.1 Basic Information"
+                    tocHtml += `
+        <li class="toc-group">
+            <span class="toc-section-id">${group.number}</span>
+            <span class="toc-section-title">${this._escapeHtml(group.label)}</span>
         </li>`;
-            });
+                    // Lettered feature rows, e.g. "1.1.A KVKs Details"
+                    group.features.forEach((feature) => {
+                        tocHtml += tocItem(feature.number, feature.label, feature.sectionId, 'toc-feature');
+                    });
+                });
+            } else {
+                chapter.sections.forEach((s) => {
+                    tocHtml += tocItem(s.number, s.title, s.sectionId, '');
+                });
+            }
         });
 
         tocHtml += `
@@ -398,7 +415,7 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, displayById = new Map()) {
+    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
         let html = '';
         let isFirstSection = true;
 
@@ -407,9 +424,12 @@ class ReportTemplateService {
             const sectionData = sectionsData[rawSection.id];
             const sectionId = `section-${rawSection.id.replace(/\./g, '-')}`;
 
-            // Display heading uses the clean sequential number; data/anchor lookups
-            // keep the real id. Fall back to the raw id if not numbered.
-            const section = { ...rawSection, id: displayById.get(rawSection.id) || rawSection.id };
+            // Heading shows the curated number + label; data/anchor lookups keep
+            // the real id. Fall back to the raw id/title if not in the index.
+            const heading = headingById.get(String(rawSection.id));
+            const section = heading
+                ? { ...rawSection, id: heading.number, title: heading.title }
+                : rawSection;
 
             // Check for errors or missing data
             if (!sectionData || sectionData.error) {
@@ -1046,8 +1066,21 @@ class ReportTemplateService {
         min-width: 20px;
     }
 
+    .toc-group {
+        display: flex;
+        gap: 6px;
+        margin: 8px 0 2px 16px;
+        font-weight: bold;
+        font-size: 8.5pt;
+        color: #2d4a2f;
+    }
+
     .toc-item {
         margin: 6px 0 6px 18px;
+    }
+
+    .toc-feature {
+        margin-left: 34px;
     }
 
     .toc-link {
