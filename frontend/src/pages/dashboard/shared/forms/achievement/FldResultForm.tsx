@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FormInput, FormSection } from '../shared/FormComponents'
 
 export interface FldResultValue {
@@ -36,16 +36,73 @@ const defaultValue: FldResultValue = {
     checkBcr: '',
 }
 
+const COMPUTED_INPUT_CLASS = 'bg-gray-100 cursor-not-allowed text-gray-700'
+
+const num = (v: number | string): number => {
+    if (v === '' || v === null || v === undefined) return NaN
+    const n = Number(v)
+    return Number.isFinite(n) ? n : NaN
+}
+
+const fmt = (n: number, digits = 2): string =>
+    Number.isFinite(n) ? n.toFixed(digits) : ''
+
 export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue, onClose, onSubmit }) => {
     const [value, setValue] = useState<FldResultValue>({ ...defaultValue, ...(initialValue || {}) })
     const [submitting, setSubmitting] = useState(false)
-    const title = useMemo(() => (mode === 'create' ? 'Create FLD Result' : 'Edit FLD Result'), [mode])
 
     useEffect(() => {
         setValue({ ...defaultValue, ...(initialValue || {}) })
     }, [initialValue, mode])
 
+    // Auto-compute derived fields whenever any input changes.
+    useEffect(() => {
+        const dy = num(value.demoYield)
+        const cy = num(value.checkYield)
+        const dgc = num(value.demoGrossCost)
+        const dgr = num(value.demoGrossReturn)
+        const cgc = num(value.checkGrossCost)
+        const cgr = num(value.checkGrossReturn)
+
+        const increasePercent = Number.isFinite(dy) && Number.isFinite(cy) && cy !== 0
+            ? fmt(((dy - cy) / cy) * 100)
+            : ''
+        const demoNetReturn = Number.isFinite(dgr) && Number.isFinite(dgc) ? fmt(dgr - dgc) : ''
+        const demoBcr = Number.isFinite(dgr) && Number.isFinite(dgc) && dgc !== 0 ? fmt(dgr / dgc) : ''
+        const checkNetReturn = Number.isFinite(cgr) && Number.isFinite(cgc) ? fmt(cgr - cgc) : ''
+        const checkBcr = Number.isFinite(cgr) && Number.isFinite(cgc) && cgc !== 0 ? fmt(cgr / cgc) : ''
+
+        setValue((prev) => {
+            if (
+                prev.increasePercent === increasePercent &&
+                prev.demoNetReturn === demoNetReturn &&
+                prev.demoBcr === demoBcr &&
+                prev.checkNetReturn === checkNetReturn &&
+                prev.checkBcr === checkBcr
+            ) {
+                return prev
+            }
+            return {
+                ...prev,
+                increasePercent,
+                demoNetReturn,
+                demoBcr,
+                checkNetReturn,
+                checkBcr,
+            }
+        })
+    }, [
+        value.demoYield,
+        value.checkYield,
+        value.demoGrossCost,
+        value.demoGrossReturn,
+        value.checkGrossCost,
+        value.checkGrossReturn,
+    ])
+
     const setField = (key: keyof FldResultValue, next: string) => setValue((prev) => ({ ...prev, [key]: next }))
+
+    const noop = () => { /* computed field, no-op */ }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -60,7 +117,6 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
 
     return (
         <div className="space-y-3">
-            <h1 className="text-xl font-semibold text-[#487749]">{title}</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <FormSection title="Yield (q/ha)" className="mb-3 space-y-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -68,7 +124,15 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
                         <FormInput label="Check" required type="number" value={value.checkYield} onChange={(e) => setField('checkYield', e.target.value)} />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <FormInput label="% Increase" required type="number" value={value.increasePercent} onChange={(e) => setField('increasePercent', e.target.value)} />
+                        <FormInput
+                            label="% Increase"
+                            type="number"
+                            value={value.increasePercent}
+                            onChange={noop}
+                            disabled
+                            className={COMPUTED_INPUT_CLASS}
+                            helperText="Auto: ((demo - check) / check) × 100"
+                        />
                     </div>
                 </FormSection>
 
@@ -76,8 +140,24 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput label="Gross Cost" required type="number" value={value.demoGrossCost} onChange={(e) => setField('demoGrossCost', e.target.value)} />
                         <FormInput label="Gross Return" required type="number" value={value.demoGrossReturn} onChange={(e) => setField('demoGrossReturn', e.target.value)} />
-                        <FormInput label="Net Return" required type="number" value={value.demoNetReturn} onChange={(e) => setField('demoNetReturn', e.target.value)} />
-                        <FormInput label="BCR" required type="number" value={value.demoBcr} onChange={(e) => setField('demoBcr', e.target.value)} />
+                        <FormInput
+                            label="Net Return"
+                            type="number"
+                            value={value.demoNetReturn}
+                            onChange={noop}
+                            disabled
+                            className={COMPUTED_INPUT_CLASS}
+                            helperText="Auto: gross return − gross cost"
+                        />
+                        <FormInput
+                            label="BCR"
+                            type="number"
+                            value={value.demoBcr}
+                            onChange={noop}
+                            disabled
+                            className={COMPUTED_INPUT_CLASS}
+                            helperText="Auto: gross return ÷ gross cost"
+                        />
                     </div>
                 </FormSection>
 
@@ -85,8 +165,24 @@ export const FldResultForm: React.FC<FldResultFormProps> = ({ mode, initialValue
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <FormInput label="Gross Cost" required type="number" value={value.checkGrossCost} onChange={(e) => setField('checkGrossCost', e.target.value)} />
                         <FormInput label="Gross Return" required type="number" value={value.checkGrossReturn} onChange={(e) => setField('checkGrossReturn', e.target.value)} />
-                        <FormInput label="Net Return" required type="number" value={value.checkNetReturn} onChange={(e) => setField('checkNetReturn', e.target.value)} />
-                        <FormInput label="BCR" required type="number" value={value.checkBcr} onChange={(e) => setField('checkBcr', e.target.value)} />
+                        <FormInput
+                            label="Net Return"
+                            type="number"
+                            value={value.checkNetReturn}
+                            onChange={noop}
+                            disabled
+                            className={COMPUTED_INPUT_CLASS}
+                            helperText="Auto: gross return − gross cost"
+                        />
+                        <FormInput
+                            label="BCR"
+                            type="number"
+                            value={value.checkBcr}
+                            onChange={noop}
+                            disabled
+                            className={COMPUTED_INPUT_CLASS}
+                            helperText="Auto: gross return ÷ gross cost"
+                        />
                     </div>
                 </FormSection>
 

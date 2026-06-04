@@ -1,4 +1,4 @@
-const { getSectionConfig, getAllSections } = require('../../config/reportConfig.js');
+const { getSectionConfig, getAllSections, buildSectionNumbering } = require('../../config/reportConfig.js');
 const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
@@ -33,7 +33,6 @@ const { renderTspScspSection } = require('./formsTemplate/projectTemplates/tspSc
 const { renderSeedHubSection } = require('./formsTemplate/projectTemplates/seedHubTemplate.js');
 const { renderOtherProgrammesSection } = require('./formsTemplate/projectTemplates/otherProgrammesTemplate.js');
 const { renderNicraTrainingSection } = require('./formsTemplate/projectTemplates/nicraTrainingTemplate.js');
-const { renderSpecialProgrammeSection } = require('./formsTemplate/projectTemplates/specialProgrammeTemplate.js');
 const { renderFunctionalLinkageSection } = require('./formsTemplate/projectTemplates/functionalLinkageTemplate.js');
 const { renderSuccessStorySection } = require('./formsTemplate/projectTemplates/successStoryTemplate.js');
 const { renderEntrepreneurshipSection } = require('./formsTemplate/projectTemplates/entrepreneurshipTemplate.js');
@@ -202,7 +201,6 @@ class ReportTemplateService {
             'agri-drone-demonstration-details': renderAgriDroneDemonstrationDetailsSection.bind(this),
             'arya-current': renderAryaCurrentSection.bind(this),
             'arya-prev-year': renderAryaPrevYearSection.bind(this),
-            'special-programme': renderSpecialProgrammeSection.bind(this),
             'functional-linkage': renderFunctionalLinkageSection.bind(this),
             'success-story': renderSuccessStorySection.bind(this),
             'entrepreneurship': renderEntrepreneurshipSection.bind(this),
@@ -252,7 +250,10 @@ class ReportTemplateService {
                 sectionData.data !== undefined;
         });
 
-        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext);
+        // Curated/clean index numbering (raw section.id values are unreliable).
+        const numbering = buildSectionNumbering(selectedSections);
+
+        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.headingById);
 
         const html = `
 <!DOCTYPE html>
@@ -265,7 +266,7 @@ class ReportTemplateService {
 </head>
 <body>
     ${this._generateCoverPage(kvkInfo, filters, generatedBy)}
-    ${this._generateTableOfContents(selectedSections)}
+    ${this._generateTableOfContents(numbering.chapters)}
     <div class="sections-container">
         ${sectionsBody}
     </div>
@@ -361,23 +362,41 @@ class ReportTemplateService {
     /**
      * Generate table of contents with clickable links
      */
-    _generateTableOfContents(selectedSections) {
+    _generateTableOfContents(chapters) {
+        const anchorFor = (sectionId) => `section-${String(sectionId).replace(/\./g, '-')}`;
+        const tocItem = (number, title, sectionId, cls) => `
+        <li class="toc-item ${cls}">
+            <a href="#${anchorFor(sectionId)}" class="toc-link">
+                <span class="toc-section-id">${number}</span>
+                <span class="toc-section-title">${this._escapeHtml(title)}</span>
+            </a>
+        </li>`;
+
         let tocHtml = `
 <div class="page toc-page">
     <h1 class="toc-title">Table of Contents</h1>
     <ul class="toc-list">`;
 
-        selectedSections.forEach((section, index) => {
-            const pageNumber = index + 3; // Cover page + TOC + sections start at page 3
-            const sectionId = `section-${section.id.replace(/\./g, '-')}`;
+        chapters.forEach((chapter) => {
+            // Chapter heading row, e.g. "1. About KVK"
             tocHtml += `
-        <li class="toc-item">
-            <a href="#${sectionId}" class="toc-link">
-                <span class="toc-section-id">${section.id}</span>
-                <span class="toc-section-title">${this._escapeHtml(section.title)}</span>
-                <span class="toc-page-number">${pageNumber}</span>
-            </a>
+        <li class="toc-chapter">
+            <span class="toc-chapter-id">${chapter.number}.</span>
+            <span class="toc-chapter-title">${this._escapeHtml(chapter.title)}</span>
         </li>`;
+
+            if (chapter.type === 'grouped') {
+                // TOC lists section (group) level only, e.g. "1.1 Basic Information".
+                // The lettered features (sub-sections) appear only as body headings.
+                chapter.groups.forEach((group) => {
+                    const firstSection = group.features[0] && group.features[0].sectionId;
+                    tocHtml += tocItem(group.number, group.label, firstSection, '');
+                });
+            } else {
+                chapter.sections.forEach((s) => {
+                    tocHtml += tocItem(s.number, s.title, s.sectionId, '');
+                });
+            }
         });
 
         tocHtml += `
@@ -390,46 +409,99 @@ class ReportTemplateService {
     /**
      * Generate section pages with unique IDs for TOC linking
      */
-    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}) {
+    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
         let html = '';
         let isFirstSection = true;
+        const seenChapters = new Set(); // chapter header shown once per chapter
+        const seenSections = new Set(); // section (group) heading shown once per group
 
-        for (const section of selectedSections) {
-            const sectionConfig = getSectionConfig(section.id);
-            const sectionData = sectionsData[section.id];
-            const sectionId = `section-${section.id.replace(/\./g, '-')}`;
+        for (const rawSection of selectedSections) {
+            const sectionConfig = getSectionConfig(rawSection.id);
+            const sectionData = sectionsData[rawSection.id];
+            const sectionId = `section-${rawSection.id.replace(/\./g, '-')}`;
+
+            // Section heading = group ("1.1 Basic Information"), shown once per
+            // group; subsection = feature ("1.1.A KVKs Details"). On later
+            // features of the same group, the feature becomes the main heading so
+            // the section isn't repeated. Data/anchor lookups keep the real id.
+            const heading = headingById.get(String(rawSection.id));
+            const firstInGroup = heading ? !seenSections.has(heading.sectionNumber) : true;
+            if (heading) seenSections.add(heading.sectionNumber);
+            const promoteFeature = heading && heading.featureNumber && !firstInGroup;
+
+            const section = heading
+                ? {
+                    ...rawSection,
+                    id: promoteFeature ? heading.featureNumber : heading.sectionNumber,
+                    title: promoteFeature ? heading.featureTitle : heading.sectionTitle,
+                    featureNumber: heading.featureNumber,
+                    featureTitle: heading.featureTitle,
+                }
+                : rawSection;
+
+            let chunk;
 
             // Check for errors or missing data
             if (!sectionData || sectionData.error) {
-                html += this._generateEmptySection(section, sectionData?.error, sectionId, isFirstSection);
-                isFirstSection = false;
-                continue;
+                chunk = this._generateEmptySection(section, sectionData?.error, sectionId, isFirstSection);
+            } else if (sectionData.data === null || sectionData.data === undefined) {
+                chunk = this._generateEmptySection(section, null, sectionId, isFirstSection);
+            } else {
+                const data = sectionData.data;
+                // Generate section based on format (custom handlers may return Promises, e.g. oft-combined)
+                if (sectionConfig.format === 'custom') {
+                    chunk = await Promise.resolve(this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext));
+                } else if (sectionConfig.format === 'formatted-text') {
+                    chunk = this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
+                } else if (sectionConfig.format === 'table') {
+                    chunk = this._generateTableSection(section, data, sectionId, isFirstSection);
+                } else if (sectionConfig.format === 'grouped-table') {
+                    chunk = this._generateGroupedTableSection(section, data, sectionId, isFirstSection);
+                }
             }
 
-            // Access data from standardized structure
-            const data = sectionData.data;
-            if (data === null || data === undefined) {
-                html += this._generateEmptySection(section, null, sectionId, isFirstSection);
-                isFirstSection = false;
-                continue;
-            }
-
-            // Generate section based on format (custom handlers may return Promises, e.g. oft-combined)
-            if (sectionConfig.format === 'custom') {
-                const chunk = this._generateCustomSection(section, data, sectionConfig, sectionId, isFirstSection, reportContext);
-                html += await Promise.resolve(chunk);
-            } else if (sectionConfig.format === 'formatted-text') {
-                html += this._generateFormattedTextSection(section, data, sectionId, isFirstSection);
-            } else if (sectionConfig.format === 'table') {
-                html += this._generateTableSection(section, data, sectionId, isFirstSection);
-            } else if (sectionConfig.format === 'grouped-table') {
-                html += this._generateGroupedTableSection(section, data, sectionId, isFirstSection);
-            }
-
+            html += this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup);
             isFirstSection = false;
         }
 
         return html;
+    }
+
+    /**
+     * Decorate a section page:
+     *  - a centered chapter header ("About KVK") shown once, on the first page
+     *    of each chapter;
+     *  - a subsection heading ("1.1.A KVKs Details") under the section title
+     *    ("1.1 Basic Information") — only on the group's first feature, so the
+     *    section heading isn't repeated on later features.
+     */
+    _withSectionHeaders(chunk, heading, seenChapters, firstInGroup) {
+        if (!chunk || !heading) return chunk;
+        const titleStart = chunk.indexOf('<h1 class="section-title"');
+        if (titleStart === -1) return chunk;
+
+        let result = chunk;
+
+        // Subsection heading under the section title — only when the section
+        // title is the group (i.e. the group's first feature).
+        if (firstInGroup && heading.featureNumber) {
+            const titleEnd = result.indexOf('</h1>', titleStart);
+            if (titleEnd !== -1) {
+                const insertAt = titleEnd + '</h1>'.length;
+                const sub = `<h2 class="section-subtitle">${heading.featureNumber} ${this._escapeHtml(heading.featureTitle || '')}</h2>`;
+                result = result.slice(0, insertAt) + sub + result.slice(insertAt);
+            }
+        }
+
+        // Chapter header once, before the section title.
+        if (heading.chapter && !seenChapters.has(heading.chapter)) {
+            seenChapters.add(heading.chapter);
+            const header = `<div class="report-chapter-header">${this._escapeHtml(heading.chapter)}</div>`;
+            const idx = result.indexOf('<h1 class="section-title"');
+            result = result.slice(0, idx) + header + result.slice(idx);
+        }
+
+        return result;
     }
 
     /**
@@ -1018,8 +1090,37 @@ class ReportTemplateService {
         margin-top: 20px;
     }
 
+    .toc-chapter {
+        display: flex;
+        gap: 6px;
+        margin: 14px 0 4px 0;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #487749;
+        font-weight: bold;
+        font-size: 9pt;
+        color: #487749;
+        text-transform: uppercase;
+    }
+
+    .toc-chapter-id {
+        min-width: 20px;
+    }
+
+    .toc-group {
+        display: flex;
+        gap: 6px;
+        margin: 8px 0 2px 16px;
+        font-weight: bold;
+        font-size: 8.5pt;
+        color: #2d4a2f;
+    }
+
     .toc-item {
-        margin: 8px 0;
+        margin: 6px 0 6px 18px;
+    }
+
+    .toc-feature {
+        margin-left: 34px;
     }
 
     .toc-link {
@@ -1076,6 +1177,17 @@ class ReportTemplateService {
         page-break-after: auto;
     }
 
+    .report-chapter-header {
+        text-align: center;
+        font-size: 12pt;
+        font-weight: bold;
+        color: #2d4a2f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        page-break-after: avoid;
+    }
+
     .section-title {
         font-size: 10pt;
         font-weight: bold;
@@ -1083,6 +1195,14 @@ class ReportTemplateService {
         margin-bottom: 10px;
         padding-bottom: 6px;
         border-bottom: 0.2px solid #000000;
+        page-break-after: avoid;
+    }
+
+    .section-subtitle {
+        font-size: 9pt;
+        font-weight: bold;
+        color: #000000;
+        margin: 6px 0 10px 0;
         page-break-after: avoid;
     }
 

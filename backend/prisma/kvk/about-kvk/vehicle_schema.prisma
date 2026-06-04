@@ -16,23 +16,25 @@ model KvkVehicle {
 }
 
 model KvkVehicleDetail {
-  vehicleDetailId  Int                        @id @default(autoincrement()) @map("vehicle_detail_id")
-  kvkId            Int
-  vehicleId        Int                        @map("vehicle_id")
-  reportingYear    DateTime                   @map("reporting_year")
-  totalRun         String                     @map("total_run")
-  repairingCost    Float?                     @map("repairing_cost")
-  sourceOfFunding  String?                    @map("source_of_funding")
-  vehicleStatusId  Int                        @map("vehicle_status_id")
-  createdAt        DateTime                   @default(now()) @map("created_at")
-  updatedAt        DateTime                   @updatedAt @map("updated_at")
-  kvk              Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
-  vehicle          KvkVehicle                 @relation(fields: [vehicleId], references: [vehicleId], onDelete: Cascade)
-  vehicleStatus    VehiclePresentStatusMaster @relation(fields: [vehicleStatusId], references: [vehicleStatusId])
+  vehicleDetailId      Int                        @id @default(autoincrement()) @map("vehicle_detail_id")
+  kvkId                Int
+  vehicleId            Int                        @map("vehicle_id")
+  reportingYear        DateTime                   @map("reporting_year")
+  totalRun             String                     @map("total_run")
+  repairingCost        Float?                     @map("repairing_cost")
+  assetFundingSourceId Int?                       @map("asset_funding_source_id")
+  vehicleStatusId      Int                        @map("vehicle_status_id")
+  createdAt            DateTime                   @default(now()) @map("created_at")
+  updatedAt            DateTime                   @updatedAt @map("updated_at")
+  kvk                  Kvk                        @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
+  vehicle              KvkVehicle                 @relation(fields: [vehicleId], references: [vehicleId], onDelete: Cascade)
+  vehicleStatus        VehiclePresentStatusMaster @relation(fields: [vehicleStatusId], references: [vehicleStatusId])
+  assetFundingSource   AssetFundingSourceMaster?  @relation(fields: [assetFundingSourceId], references: [assetFundingSourceId], onDelete: SetNull)
 
   @@unique([vehicleId, reportingYear])
   @@index([kvkId, reportingYear])
   @@index([vehicleId, reportingYear])
   @@index([vehicleStatusId])
+  @@index([assetFundingSourceId])
   @@map("kvk_vehicle_detail")
 }

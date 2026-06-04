@@ -66,6 +66,52 @@ export interface PayLevel {
     };
 }
 
+export interface PayScale {
+    payScaleId: number;
+    scaleName: string;
+    _count?: {
+        staff: number;
+    };
+}
+
+export interface AssetFundingSource {
+    assetFundingSourceId: number;
+    name: string;
+    _count?: {
+        equipments: number;
+        equipmentDetails: number;
+        vehicleDetails: number;
+    };
+}
+
+export interface EquipmentTypeEntry {
+    equipmentTypeId: number;
+    name: string;
+    _count?: {
+        equipments: number;
+        equipmentMasters: number;
+    };
+}
+
+export interface EquipmentMasterEntry {
+    equipmentMasterId: number;
+    equipmentTypeId: number;
+    name: string;
+    equipmentType?: { equipmentTypeId: number; name: string };
+    _count?: {
+        equipments: number;
+    };
+}
+
+export interface EquipmentTypeFormData {
+    name: string;
+}
+
+export interface EquipmentMasterFormData {
+    equipmentTypeId: number;
+    name: string;
+}
+
 export interface Discipline {
     disciplineId: number;
     disciplineName: string;
@@ -141,6 +187,14 @@ export interface StaffCategoryFormData {
 
 export interface PayLevelFormData {
     levelName: string;
+}
+
+export interface PayScaleFormData {
+    scaleName: string;
+}
+
+export interface AssetFundingSourceFormData {
+    name: string;
 }
 
 export interface DisciplineFormData {
@@ -441,6 +495,50 @@ export const otherMastersApi = {
         apiClient.put<ApiResponse<PayLevel>>(`${BASE_URL}/pay-level/${id}`, data),
     deletePayLevel: (id: number) =>
         apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-level/${id}`),
+
+    getPayScales: () =>
+        apiClient.get<PaginatedResponse<PayScale>>(`${BASE_URL}/pay-scale`),
+    getPayScaleById: (id: number) =>
+        apiClient.get<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale/${id}`),
+    createPayScale: (data: PayScaleFormData) =>
+        apiClient.post<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale`, data),
+    updatePayScale: (id: number, data: Partial<PayScaleFormData>) =>
+        apiClient.put<ApiResponse<PayScale>>(`${BASE_URL}/pay-scale/${id}`, data),
+    deletePayScale: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/pay-scale/${id}`),
+
+    getAssetFundingSources: () =>
+        apiClient.get<PaginatedResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`),
+    getAssetFundingSourceById: (id: number) =>
+        apiClient.get<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`),
+    createAssetFundingSource: (data: AssetFundingSourceFormData) =>
+        apiClient.post<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source`, data),
+    updateAssetFundingSource: (id: number, data: Partial<AssetFundingSourceFormData>) =>
+        apiClient.put<ApiResponse<AssetFundingSource>>(`${BASE_URL}/asset-funding-source/${id}`, data),
+    deleteAssetFundingSource: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/asset-funding-source/${id}`),
+
+    getEquipmentTypes: () =>
+        apiClient.get<PaginatedResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type`),
+    getEquipmentTypeById: (id: number) =>
+        apiClient.get<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type/${id}`),
+    createEquipmentType: (data: EquipmentTypeFormData) =>
+        apiClient.post<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type`, data),
+    updateEquipmentType: (id: number, data: Partial<EquipmentTypeFormData>) =>
+        apiClient.put<ApiResponse<EquipmentTypeEntry>>(`${BASE_URL}/equipment-type/${id}`, data),
+    deleteEquipmentType: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-type/${id}`),
+
+    getEquipmentMasters: () =>
+        apiClient.get<PaginatedResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master`),
+    getEquipmentMasterById: (id: number) =>
+        apiClient.get<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master/${id}`),
+    createEquipmentMaster: (data: EquipmentMasterFormData) =>
+        apiClient.post<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master`, data),
+    updateEquipmentMaster: (id: number, data: Partial<EquipmentMasterFormData>) =>
+        apiClient.put<ApiResponse<EquipmentMasterEntry>>(`${BASE_URL}/equipment-master/${id}`, data),
+    deleteEquipmentMaster: (id: number) =>
+        apiClient.delete<ApiResponse<void>>(`${BASE_URL}/equipment-master/${id}`),
 
     getDisciplines: () =>
         apiClient.get<PaginatedResponse<Discipline>>(`${BASE_URL}/discipline`),

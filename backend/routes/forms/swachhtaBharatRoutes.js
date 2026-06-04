@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const swachhtaBharatController = require('../../controllers/forms/swachhtaBharatController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const swachhtaBharatController = require('../../controllers/forms/swachhtaBharatController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // Use auth middleware for all routes
 router.use(authenticateToken);

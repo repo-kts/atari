@@ -1,5 +1,5 @@
 const publicationDetailsService = require('../../services/forms/publicationDetailsService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const publicationDetailsController = {
     /**

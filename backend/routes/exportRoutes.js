@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const exportController = require('../controllers/exportController');
+const exportController = require('../controllers/exportController.js');
 const { authenticateToken } = require('../middleware/auth.js');
 
 // Mount point: /api/admin/masters

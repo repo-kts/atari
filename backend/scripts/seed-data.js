@@ -5,7 +5,7 @@
  * Run: node scripts/seed-data.js   or   npm run seed:data
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 const HIERARCHY = {
   zoneName: 'Zone IV - Patna',

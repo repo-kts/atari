@@ -25,6 +25,10 @@ interface DynamicReportTableBuilderProps {
     tables: ResultTable[]
     onChange: (tables: ResultTable[]) => void
     sourceRows?: Array<{ optionKey: string; optionName: string }>
+    /**
+     * Deprecated. Cells/rows in result tables are editable; row add/remove is always
+     * available. Kept in props for backwards compatibility — has no effect.
+     */
     lockSourceRows?: boolean
 }
 
@@ -80,17 +84,28 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
     tables,
     onChange,
     sourceRows = [],
-    lockSourceRows = false,
 }) => {
-    const safeTables = tables.length > 0 ? tables : [createDefaultTable(1, sourceRows)]
-    const effectiveTables = lockSourceRows ? safeTables.map((table) => reconcileRows(table, sourceRows)) : safeTables
+    void reconcileRows
+    const safeTables = tables.length > 0
+        ? tables
+        : [createDefaultTable(1, sourceRows), createDefaultTable(2)]
+    const effectiveTables = safeTables
 
     const patchTable = (tableIndex: number, updater: (table: ResultTable) => ResultTable) => {
         const next = effectiveTables.map((table, idx) => (idx === tableIndex ? updater(table) : table))
         onChange(next.map((table, idx) => ({ ...table, sortOrder: idx + 1 })))
     }
 
-    const addTable = () => onChange([...effectiveTables, createDefaultTable(effectiveTables.length + 1, sourceRows)])
+    const addTable = () => {
+        const sortOrder = effectiveTables.length + 1
+        const emptyTable: ResultTable = {
+            tableTitle: `Table ${sortOrder}`,
+            sortOrder,
+            columns: [],
+            rows: [],
+        }
+        onChange([...effectiveTables, emptyTable])
+    }
     const removeTable = (tableIndex: number) => {
         if (effectiveTables.length <= 1) return
         onChange(effectiveTables.filter((_, idx) => idx !== tableIndex))
@@ -127,7 +142,6 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
     }
 
     const addRow = (tableIndex: number) => {
-        if (lockSourceRows) return
         patchTable(tableIndex, (table) => ({
             ...table,
             rows: [...table.rows, { rowLabel: `Row ${table.rows.length + 1}`, sortOrder: table.rows.length + 1, cells: {} }],
@@ -135,7 +149,6 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
     }
 
     const removeRow = (tableIndex: number, rowIndex: number) => {
-        if (lockSourceRows) return
         patchTable(tableIndex, (table) => ({
             ...table,
             rows: table.rows.filter((_, idx) => idx !== rowIndex).map((row, idx) => ({ ...row, sortOrder: idx + 1 })),
@@ -154,9 +167,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                             placeholder="Table title"
                         />
                         <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addColumn(tableIndex)}>Add Column</button>
-                        {!lockSourceRows && (
-                            <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addRow(tableIndex)}>Add Row</button>
-                        )}
+                        <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg" onClick={() => addRow(tableIndex)}>Add Row</button>
                         <button type="button" className="px-3 py-2 text-sm border border-gray-300 rounded-lg text-red-600" onClick={() => removeTable(tableIndex)}>Remove Table</button>
                     </div>
                     <div className="overflow-x-auto w-full border border-gray-300 rounded-xl">
@@ -180,7 +191,7 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                             </div>
                                         </th>
                                     ))}
-                                    {!lockSourceRows && <th className="border-b border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>}
+                                    <th className="border-b border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -191,7 +202,6 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                                 <input
                                                     className="w-full border border-gray-300 rounded px-2 py-1"
                                                     value={row.cells?.[column.columnKey] || ''}
-                                                    readOnly={lockSourceRows && column.columnKey === FIRST_COLUMN_KEY}
                                                     onChange={(e) => patchTable(tableIndex, (t) => ({
                                                         ...t,
                                                         rows: t.rows.map((r, idx) => idx === rowIndex
@@ -205,11 +215,9 @@ export const DynamicReportTableBuilder: React.FC<DynamicReportTableBuilderProps>
                                                 />
                                             </td>
                                         ))}
-                                        {!lockSourceRows && (
-                                            <td className="border-b border-gray-300 px-3 py-2">
-                                                <button type="button" className="text-xs text-red-600" onClick={() => removeRow(tableIndex, rowIndex)}>Remove</button>
-                                            </td>
-                                        )}
+                                        <td className="border-b border-gray-300 px-3 py-2">
+                                            <button type="button" className="text-xs text-red-600" onClick={() => removeRow(tableIndex, rowIndex)}>Remove</button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

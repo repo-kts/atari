@@ -37,7 +37,6 @@ const sections: FeatureSection[] = [
             { label: 'Production Units', path: '/forms/performance/infrastructure/production-units' },
             { label: 'Instructional Farm (livestock)', path: '/forms/performance/infrastructure/instructional-farm-livestock' },
             { label: 'Hostel Facilities', path: '/forms/performance/infrastructure/hostel' },
-            { label: 'Staff Quarters', path: '/forms/performance/infrastructure/staff-quarters' },
             { label: 'Rain Water Harvesting', path: '/forms/performance/infrastructure/rainwater-harvesting' },
         ],
     },
@@ -57,7 +56,6 @@ const sections: FeatureSection[] = [
         icon: <LinkIcon className="w-5 h-5" />,
         items: [
             { label: 'Functional Linkage', path: '/forms/performance/linkages/functional-linkage' },
-            { label: 'Special Programmes', path: '/forms/performance/linkages/special-programmes' },
         ],
     },
 ]

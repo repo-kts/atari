@@ -1,9 +1,11 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
-import { FormInput, FormSection } from '../shared/FormComponents'
+import { FormInput } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
-import { X } from 'lucide-react'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+
+const ARYA_CURRENT_FORM_CODE = 'arya_current_year'
 
 interface AryaFormsProps {
     entityType: string
@@ -16,144 +18,28 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
     entityType,
     formData,
     setFormData,
-    aryaEnterprises
+    aryaEnterprises,
 }) => {
-    const handleAryaFileChange = (_field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const newFiles = Array.from(files);
-            const previews: string[] = [];
-            let count = 0;
+    const handleAttachmentIds = React.useCallback(
+        (ids: number[]) => setFormData((prev: any) => ({ ...prev, attachmentIds: ids })),
+        [setFormData],
+    )
 
-            newFiles.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    previews[index] = reader.result as string;
-                    count++;
-                    if (count === newFiles.length) {
-                        setFormData((prev: any) => {
-                            const existingPhotos = Array.isArray(prev.arya_photos) ? prev.arya_photos : [];
-                            const newlyAdded = newFiles.map((f, i) => ({
-                                file: f,
-                                preview: previews[i],
-                                image: previews[i],
-                                caption: ''
-                            }));
-                            return {
-                                ...prev,
-                                arya_photos: [...existingPhotos, ...newlyAdded]
-                            };
-                        });
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-    };
+    const recordId = formData?.aryaCurrentYearId ?? formData?.id ?? null
+    const kvkId = formData?.kvkId ?? null
 
-    const removeAryaPhoto = (index: number) => {
-        setFormData((prev: any) => {
-            const photos = [...(prev.arya_photos || [])];
-            photos.splice(index, 1);
-            return { ...prev, arya_photos: photos };
-        });
-    };
-
-    const updateAryaCaption = (index: number, caption: string) => {
-        setFormData((prev: any) => {
-            const photos = [...(prev.arya_photos || [])];
-            if (photos[index]) {
-                photos[index] = { ...photos[index], caption };
-            }
-            return { ...prev, arya_photos: photos };
-        });
-    };
-
-    // Normalize incoming formData when editing
-    React.useEffect(() => {
-        if (!formData || (entityType !== ENTITY_TYPES.PROJECT_ARYA_CURRENT && entityType !== ENTITY_TYPES.PROJECT_ARYA_EVALUATION)) return;
-
-        if (formData.imagePath && typeof formData.imagePath === 'string') {
-            if (formData.imagePath.startsWith('[')) {
-                try {
-                    const parsed = JSON.parse(formData.imagePath);
-                    if (Array.isArray(parsed)) {
-                        setFormData((prev: any) => ({
-                            ...prev,
-                            imagePath: null,
-                            arya_photos: parsed.map((item: any) => ({
-                                preview: item.image,
-                                image: item.image,
-                                caption: item.caption
-                            }))
-                        }));
-                    }
-                } catch (e) { }
-            } else if (formData.imagePath.startsWith('{')) {
-                try {
-                    const parsed = JSON.parse(formData.imagePath);
-                    setFormData((prev: any) => ({
-                        ...prev,
-                        imagePath: null,
-                        arya_photos: [{
-                            preview: parsed.image,
-                            image: parsed.image,
-                            caption: parsed.caption
-                        }]
-                    }));
-                } catch (e) { }
-            }
-        }
-    }, [entityType, formData.imagePath]);
-
-    const renderPhotoFields = () => (
-        <FormSection title="Images" className="mt-2" noGrid={true}>
-            <FormInput
-                label=""
-                required={!Array.isArray(formData.arya_photos) || formData.arya_photos.length === 0}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleAryaFileChange('imagePath')}
-                helperText="Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)"
-            />
-
-            {Array.isArray(formData.arya_photos) && formData.arya_photos.length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    {formData.arya_photos.map((item: any, idx: number) => {
-                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                        return (
-                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                    <img
-                                        src={src}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                        alt={`Arya Image ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeAryaPhoto(idx)}
-                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                    >
-                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                    </button>
-                                </div>
-                                <div className="space-y-1 mt-auto">
-                                    <textarea
-                                        placeholder="Caption..."
-                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
-                                        value={item.caption || ''}
-                                        onChange={(e) => updateAryaCaption(idx, e.target.value)}
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </FormSection>
-    );
+    const renderPhotoSection = () => (
+        <FormAttachmentSection
+            title="Images"
+            formCode={ARYA_CURRENT_FORM_CODE}
+            kind="PHOTO"
+            kvkId={kvkId}
+            recordId={recordId}
+            showCaption
+            initialAttachments={formData?.photos}
+            onAttachmentIdsChange={handleAttachmentIds}
+        />
+    )
 
     return (
         <>
@@ -212,8 +98,8 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                             <FormInput label="Per unit cost of Production" type="number" required value={formData.perUnitCostOfProduction || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, perUnitCostOfProduction: parseFloat(e.target.value) || 0 }))} />
                             <FormInput label="Sale value of Produce" type="number" required value={formData.saleValueOfProduce || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, saleValueOfProduce: parseFloat(e.target.value) || 0 }))} />
                             <FormInput label="Employment generated (man-days)" type="number" required value={formData.employmentGeneratedMandays || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, employmentGeneratedMandays: parseFloat(e.target.value) || 0 }))} />
-                            {renderPhotoFields()}
                         </div>
+                        <div className="mt-6">{renderPhotoSection()}</div>
                     </div>
                 </div>
             )}
@@ -278,11 +164,10 @@ export const AryaForms: React.FC<AryaFormsProps> = ({
                             <FormInput label="Family" type="number" required value={formData.employmentFamilyMandays || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, employmentFamilyMandays: parseFloat(e.target.value) || 0 }))} />
                             <FormInput label="Other than family" type="number" required value={formData.employmentOtherMandays || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, employmentOtherMandays: parseFloat(e.target.value) || 0 }))} />
                             <FormInput label="No. of persons visited entrepreneur unit" type="number" required value={formData.personsVisitedUnit || ''} onChange={(e) => setFormData((prev: any) => ({ ...prev, personsVisitedUnit: parseInt(e.target.value) || 0 }))} />
-                            {renderPhotoFields()}
                         </div>
                     </div>
                 </div>
             )}
         </>
-    );
-};
+    )
+}

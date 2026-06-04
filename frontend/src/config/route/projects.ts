@@ -211,15 +211,30 @@ export const projectsRoutes: RouteConfig[] = [
         moduleCode: 'achievements_projects',
         fields: FIELD_GROUPS.CSISA,
     },
+    // TSP/SCSP — split into two siblings under the same group. Both
+    // submit to the same backend endpoint; useTspScspFilteredProjectData
+    // hardcodes `type` per page and filters the rows client-side.
     {
-        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP,
-        title: 'TSP/SCSP Activities',
-        description: 'Tribal Sub Plan / Scheduled Caste Sub Plan (TSP/SCSP) Activities',
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.TSP,
+        title: 'TSP Activities',
+        description: 'Tribal Sub Plan (TSP) Activities',
         category: 'Projects',
         subcategory: 'TSP/SCSP',
         parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
         moduleCode: 'achievements_projects',
-        fields: FIELD_GROUPS.TSP_SCSP,
+        fields: FIELD_GROUPS.TSP_SCSP_ACTIVITIES,
+        siblings: ROUTE_SIBLING_GROUPS.TSP_SCSP,
+    },
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.TSP_SCSP.SCSP,
+        title: 'SCSP Activities',
+        description: 'Scheduled Caste Sub Plan (SCSP) Activities',
+        category: 'Projects',
+        subcategory: 'TSP/SCSP',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.PROJECTS.BASE,
+        moduleCode: 'achievements_projects',
+        fields: FIELD_GROUPS.TSP_SCSP_ACTIVITIES,
+        siblings: ROUTE_SIBLING_GROUPS.TSP_SCSP,
     },
 
     // NICRA

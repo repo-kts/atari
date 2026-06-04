@@ -284,8 +284,8 @@ export const DependentDropdown: React.FC<DependentDropdownProps> = ({
                 )}
             </div>
 
-            {/* Empty State */}
-            {!isActuallyLoading && hasFetched && displayOptions.length === 0 && hasAllDependencies && (
+            {/* Empty State — also shows for statically-supplied options (no onOptionsLoad) */}
+            {!isActuallyLoading && displayOptions.length === 0 && hasAllDependencies && (hasFetched || !onOptionsLoad) && (
                 <div className="-mt-4 border border-t-0 border-[#E0E0E0] rounded-b-xl bg-gray-50 px-4 pt-3 pb-1 text-xs text-gray-600 flex items-center gap-2">
                     <Info className="w-3.5 h-3.5 text-[#757575]" />
                     <span>{emptyMessage}</span>

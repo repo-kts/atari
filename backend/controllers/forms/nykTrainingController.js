@@ -1,4 +1,4 @@
-const nykTrainingService = require('../../services/forms/nykTrainingService');
+const nykTrainingService = require('../../services/forms/nykTrainingService.js');
 
 const nykTrainingController = {
     findAll: async (req, res) => {

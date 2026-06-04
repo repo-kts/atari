@@ -25,7 +25,12 @@ export const TableCell: React.FC<TableCellProps> = ({ field, value, item }) => {
     // Photo/Attachment field
     const isImageValue = typeof value === 'string' && value.startsWith('data:image/') && value.includes('base64,');
     const isImageField = field === 'photo' || field === 'photoPath' || field === 'attachment' || field === 'attachmentPath' || field === 'file' || field === 'uploadedFile';
-    const imagePath = isImageValue ? value : (item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment || item.uploadedFile || item.file);
+    const photoFromAttachments = Array.isArray(item.photos) && item.photos.length > 0
+        ? (item.photos[0].fileUrl || item.photos[0].downloadUrl || null)
+        : null;
+    const imagePath = isImageValue
+        ? value
+        : (item[field] || item.photoPath || item.photo || item.attachmentPath || item.attachment || item.uploadedFile || item.file || photoFromAttachments);
     const isTransferStatusField = field === 'transferStatus' || field === 'transfer_status'
     const isOftStatusField = field === 'ongoingCompleted' || field === 'status'
     const isAccountTypeField = field === 'accountType' || field === 'account_type'

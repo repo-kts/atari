@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const fpoManagementController = require('../../controllers/forms/fpoManagementController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const fpoManagementController = require('../../controllers/forms/fpoManagementController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

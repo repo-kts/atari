@@ -95,24 +95,10 @@ async function getKvkEquipmentRecords(kvkId, filters = {}) {
     });
 }
 
-async function getKvkFarmImplements(kvkId, filters = {}) {
-    const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
-
-    return await prisma.kvkFarmImplement.findMany({
-        where,
-        orderBy: [
-            { yearOfPurchase: 'desc' },
-            { implementName: 'asc' },
-        ],
-    });
-}
-
 module.exports = {
     getKvkInfrastructure,
     getKvkVehicles,
     getKvkVehicleDetails,
     getKvkEquipments,
     getKvkEquipmentRecords,
-    getKvkFarmImplements,
 };

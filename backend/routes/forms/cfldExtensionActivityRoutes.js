@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const cfldExtensionActivityController = require('../../controllers/forms/cfldExtensionActivityController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const cfldExtensionActivityController = require('../../controllers/forms/cfldExtensionActivityController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

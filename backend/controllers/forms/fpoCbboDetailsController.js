@@ -1,4 +1,4 @@
-const fpoCbboDetailsService = require('../../services/forms/fpoCbboDetailsService');
+const fpoCbboDetailsService = require('../../services/forms/fpoCbboDetailsService.js');
 
 const fpoCbboDetailsController = {
     create: async (req, res) => {

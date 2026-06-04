@@ -358,10 +358,9 @@ const ENTITY_EXTRACTORS: Record<string, (item: any, formData: any) => void> = {
 
     // Natural Farming
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_GEO]: (item: any, formData: any) => {
+        // Reporting year is derived from Start Date server-side; no separate field.
         if (item.startDate) formData.startDate = new Date(item.startDate).toISOString().split('T')[0];
         if (item.endDate) formData.endDate = new Date(item.endDate).toISOString().split('T')[0];
-        const reportingYear = toDateInputValue(item.reportingYearDate ?? item.reportingYear ?? item.year);
-        if (reportingYear) formData.reportingYear = reportingYear;
     },
     [ENTITY_TYPES.PROJECT_NATURAL_FARMING_PHYSICAL]: (item: any, formData: any) => {
         if (item.trainingDate) formData.trainingDate = new Date(item.trainingDate).toISOString().split('T')[0];

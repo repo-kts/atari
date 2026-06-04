@@ -4,7 +4,7 @@
  * Usage: node scripts/seed.js   or   npm run seed
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 const { run: seedRoles } = require('./roles.js');
 const { run: seedPermissions } = require('./permissions.js');
 const { run: seedUsers } = require('./users.js');

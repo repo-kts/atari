@@ -1,4 +1,4 @@
-const soilWaterRepository = require('../../repositories/forms/soilWaterRepository');
+const soilWaterRepository = require('../../repositories/forms/soilWaterRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const soilWaterService = {

@@ -13,8 +13,8 @@
  * Run: node scripts/users.js   or   npm run seed:users
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
-const { hashPassword } = require('../utils/password');
+const prisma = require('../config/prisma.js');
+const { hashPassword } = require('../utils/password.js');
 
 async function seedSuperAdmin() {
   console.log('🌱 Super Admin user...');

@@ -48,10 +48,29 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
     const { labelRef, paddingTopPx } = useFloatingLabelPadding(displayLabel)
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (wholeNumberOnly && (e.key === '-' || e.key === '.' || e.key === 'e')) {
-            e.preventDefault()
+        if (wholeNumberOnly) {
+            // Allow navigation/editing keys and shortcuts; block everything that is not a digit.
+            const allowedKeys = [
+                'Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'Home', 'End',
+                'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            ]
+            const isShortcut = e.ctrlKey || e.metaKey
+            const isDigit = e.key.length === 1 && e.key >= '0' && e.key <= '9'
+            if (!isShortcut && !allowedKeys.includes(e.key) && !isDigit) {
+                e.preventDefault()
+            }
         }
         props.onKeyDown?.(e)
+    }
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        if (wholeNumberOnly) {
+            const text = e.clipboardData.getData('text')
+            if (!/^\d+$/.test(text.trim())) {
+                e.preventDefault()
+            }
+        }
+        props.onPaste?.(e)
     }
 
     return (
@@ -98,8 +117,18 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         ? (props.min ?? 0)
                         : props.min
 
+                // Date inputs default-clamp to today so users can't backdate
+                // typos. Forward-looking labels (target / expected /
+                // completion / end) explicitly opt out — they refer to
+                // planned future events (e.g. OFT Expected Completion Date,
+                // activity End Date).
+                const isFutureAllowedDateLabel =
+                    lowerLabel.includes('target') ||
+                    lowerLabel.includes('expected') ||
+                    lowerLabel.includes('completion') ||
+                    lowerLabel.includes('end')
                 const computedMax =
-                    type === 'date' && !lowerLabel.includes('target')
+                    type === 'date' && !isFutureAllowedDateLabel
                         ? props.max ?? todayStr
                         : props.max
 
@@ -107,9 +136,10 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                 const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                     if (type === 'number' && (computedStep === '1' || wholeNumberOnly)) {
                         const v = e.target.value
-                        if (v && v.includes('.')) {
-                            // Enforce whole numbers client-side for integer inputs.
-                            e.target.value = v.split('.')[0]
+                        // Backstop for IME/drag/autofill: keep digits only for whole-number inputs.
+                        const digitsOnly = v.replace(/[^\d]/g, '')
+                        if (v !== digitsOnly) {
+                            e.target.value = digitsOnly
                         }
                     }
                     originalOnChange?.(e)
@@ -154,6 +184,7 @@ export const FormInput: React.FC<FormInputProps> = ({ label, required, error, he
                         max={computedMax}
                         onChange={handleChange}
                         onKeyDown={wholeNumberOnly ? handleKeyDown : props.onKeyDown}
+                        onPaste={wholeNumberOnly ? handlePaste : props.onPaste}
                         inputMode={type === 'number' ? (isInteger || wholeNumberOnly ? 'numeric' : 'decimal') : props.inputMode}
                         style={{
                             ...props.style,

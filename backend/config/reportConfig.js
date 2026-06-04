@@ -2,6 +2,7 @@
  * Report Configuration
  * Defines the structure, sections, and data sources for KVK reports
  */
+const { REPORT_INDEX_TAXONOMY } = require('./reportIndexTaxonomy.js');
 
 const reportConfig = {
     metadata: {
@@ -230,26 +231,7 @@ const reportConfig = {
                 { dbField: 'presentStatus', displayName: 'Present status' },
             ],
         },
-        {
-            id: '1.10',
-            title: 'Farm Implement Details',
-            description: 'All farm implements',
-            subsection: true,
-            parentSectionId: '1',
-            dataSource: 'kvkFarmImplements',
-            format: 'table',
-            filters: {
-                dateFields: ['createdAt'],
-            },
-            fields: [
-                { dbField: 'implementName', displayName: 'Implement Name' },
-                { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
-                { dbField: 'totalCost', displayName: 'Total Cost', type: 'currency' },
-                { dbField: 'presentStatus', displayName: 'Present Status' },
-                { dbField: 'sourceOfFund', displayName: 'Source of Fund' },
-            ],
-        },
-        
+
         // ── Achievements ───────────────────────────────────
         {
             id: '2.2',
@@ -563,7 +545,8 @@ const reportConfig = {
                 { dbField: 'startDate', displayName: 'Start Date', type: 'date' },
                 { dbField: 'endDate', displayName: 'End Date', type: 'date' },
                 { dbField: 'durationDays', displayName: 'Duration' },
-                { dbField: 'organizerVenue', displayName: 'Organizer/Venue' },
+                { dbField: 'organizer', displayName: 'Organizer' },
+                { dbField: 'venue', displayName: 'Venue' },
             ],
         },
         {
@@ -1517,29 +1500,6 @@ const reportConfig = {
                 { dbField: 'natureOfLinkage', displayName: 'Nature of Linkage' },
             ],
         },
-        {
-            id: '4.21',
-            title: 'Special Programmes',
-            description: 'List of Special Programmes Undertaken by the KVK',
-            subsection: true,
-            parentSectionId: '4',
-            dataSource: 'specialProgramme',
-            format: 'custom',
-            customTemplate: 'special-programme',
-            filters: {
-                dateFields: ['initiationDate'],
-                yearFields: ['reportingYear'],
-            },
-            fields: [
-                { dbField: 'programmeType', displayName: 'Programme Type' },
-                { dbField: 'programmeName', displayName: 'Name of the Programme/Scheme' },
-                { dbField: 'programmePurpose', displayName: 'Purpose of programme' },
-                { dbField: 'initiationDate', displayName: 'Date/Month of initiation', type: 'date' },
-                { dbField: 'fundingAgency', displayName: 'Funding agency' },
-                { dbField: 'amount', displayName: 'Amount(Rs.)', type: 'currency' },
-            ],
-        },
-        
         // ── Miscellaneous Information ────────────────────────────────
         {
             id: '5.1',
@@ -1828,11 +1788,176 @@ function validateSectionIds(sectionIds) {
     return true;
 }
 
+/**
+ * Top-level report chapters. The number is the chapter index shown in the
+ * index/TOC ("1. About KVK"); it maps to each section's `parentSectionId`.
+ * Kept in ascending order so chapters always render 1→8.
+ */
+const PARENT_SECTIONS = [
+    { id: '1', title: 'About KVK' },
+    { id: '2', title: 'Achievements' },
+    { id: '3', title: 'Projects' },
+    { id: '4', title: 'Performance' },
+    { id: '5', title: 'Miscellaneous' },
+    { id: '6', title: 'Digital Information' },
+    { id: '7', title: 'Swachh Bharat Abhiyaan' },
+    { id: '8', title: 'Meetings' },
+];
+
+function _letter(i) {
+    return String.fromCharCode(65 + i); // 0 -> A, 1 -> B, ...
+}
+
+/**
+ * Build the index/TOC structure and per-section heading labels.
+ *
+ * Two numbering modes coexist:
+ *  - Chapters present in REPORT_INDEX_TAXONOMY render as curated 2-level groups
+ *    with lettered features (e.g. 1.1 Basic Information → 1.1.A KVKs Details).
+ *  - Every other chapter renders as a flat sequential list (`<chapter>.<n>`),
+ *    because the raw `section.id` values are unreliable (gaps, duplicates and
+ *    prefixes that don't match `parentSectionId`, e.g. id "2.16" under parent
+ *    "3").
+ *
+ * Numbering is display-only: the real `section.id` stays the stable key for
+ * data lookup and TOC anchors. Chapters with no selected sections are skipped,
+ * and chapter numbers are assigned sequentially over the chapters that remain.
+ *
+ * @param {Array<{id:string, parentSectionId:string, title:string}>} sections - selected, document order
+ * @returns {{
+ *   headingById: Map<string,{number:string,title:string}>,  // section page heading
+ *   chapters: Array<object>                                  // TOC structure (see below)
+ * }}
+ */
+function buildSectionNumbering(sections) {
+    const headingById = new Map();
+    const selectedById = new Map(sections.map(s => [String(s.id), s]));
+    const consumed = new Set();
+    const chapters = [];
+    let chapterNumber = 0;
+
+    PARENT_SECTIONS.forEach((parent) => {
+        const taxonomy = REPORT_INDEX_TAXONOMY[parent.id];
+
+        if (taxonomy) {
+            const chapter = _buildTaxonomyChapter(
+                parent, taxonomy, selectedById, consumed, headingById,
+            );
+            // Append any selected sections of this parent the taxonomy missed,
+            // so nothing is silently dropped from the report.
+            _appendLeftovers(chapter, parent.id, selectedById, consumed, headingById, (taxonomy.groups || []).length);
+            if (chapter.groups.length === 0) return;
+            chapter.number = (chapterNumber += 1);
+            _renumberChapter(chapter, headingById);
+            chapters.push(chapter);
+        } else {
+            const children = sections.filter(
+                s => String(s.parentSectionId) === parent.id && !consumed.has(String(s.id)),
+            );
+            if (children.length === 0) return;
+            const number = (chapterNumber += 1);
+            const chapter = {
+                type: 'flat',
+                id: parent.id,
+                title: parent.title,
+                number,
+                sections: children.map((section, i) => {
+                    const displayId = `${number}.${i + 1}`;
+                    headingById.set(String(section.id), {
+                        chapter: parent.title,
+                        sectionNumber: displayId,
+                        sectionTitle: section.title,
+                        featureNumber: null,
+                        featureTitle: null,
+                    });
+                    children[i]._displayId = displayId;
+                    return { sectionId: section.id, number: displayId, title: section.title };
+                }),
+            };
+            chapters.push(chapter);
+        }
+    });
+
+    return { headingById, chapters };
+}
+
+/** Build a curated chapter from taxonomy, keeping only groups/features with data. */
+function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, headingById) {
+    const groups = [];
+    // `originalIndex` preserves each group's slot in the full taxonomy so its
+    // number (e.g. On Farm Trial = 2.2) stays stable even when an earlier group
+    // has no section yet and is skipped.
+    (taxonomy.groups || []).forEach((group, gi) => {
+        const features = (group.features || [])
+            .filter(f => selectedById.has(String(f.sectionId)))
+            .map(f => ({ label: f.label, sectionId: String(f.sectionId) }));
+        if (features.length === 0) return;
+        features.forEach(f => consumed.add(f.sectionId));
+        groups.push({ label: group.label, features, originalIndex: gi });
+    });
+    return { type: 'grouped', id: parent.id, title: taxonomy.title || parent.title, groups };
+}
+
+/** Append selected-but-unmapped sections of a parent as trailing groups. */
+function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById, taxonomyGroupCount = 0) {
+    const leftovers = [];
+    selectedById.forEach((section, id) => {
+        if (String(section.parentSectionId) === parentId && !consumed.has(id)) {
+            leftovers.push(section);
+        }
+    });
+    if (leftovers.length === 0) return;
+    // Number leftovers after every taxonomy slot so they never collide with a
+    // curated group's number.
+    leftovers.forEach((section, i) => {
+        consumed.add(String(section.id));
+        chapter.groups.push({
+            label: section.title,
+            features: [{ label: section.title, sectionId: String(section.id) }],
+            originalIndex: taxonomyGroupCount + i,
+        });
+    });
+}
+
+/** Assign final group/feature numbers and per-section heading labels. */
+function _renumberChapter(chapter, headingById) {
+    chapter.groups.forEach((group, gi) => {
+        // Use the taxonomy slot when available so numbers stay stable across
+        // skipped (sectionless) groups; fall back to render order otherwise.
+        const slot = group.originalIndex != null ? group.originalIndex : gi;
+        group.number = `${chapter.number}.${slot + 1}`;
+        // Count how many features point at each section to decide heading level.
+        const refCount = group.features.reduce((m, f) => {
+            m[f.sectionId] = (m[f.sectionId] || 0) + 1;
+            return m;
+        }, {});
+        group.features.forEach((feature, fi) => {
+            feature.number = `${group.number}.${_letter(fi)}`;
+            // Section = group (e.g. "1.1 Basic Information"); subsection = feature
+            // (e.g. "1.1.A KVKs Details"). Shared sections show the group only.
+            const shared = refCount[feature.sectionId] > 1;
+            const entry = {
+                chapter: chapter.title,
+                sectionNumber: group.number,
+                sectionTitle: group.label,
+                featureNumber: shared ? null : feature.number,
+                featureTitle: shared ? null : feature.label,
+            };
+            // First feature for a section wins the page heading.
+            if (!headingById.has(feature.sectionId)) {
+                headingById.set(feature.sectionId, entry);
+            }
+        });
+    });
+}
+
 module.exports = {
     reportConfig,
     getSectionConfig,
     getAllSections,
     getSectionsByDataSource,
-    getSectionByCustomTemplate, 
+    getSectionByCustomTemplate,
     validateSectionIds,
+    PARENT_SECTIONS,
+    buildSectionNumbering,
 };

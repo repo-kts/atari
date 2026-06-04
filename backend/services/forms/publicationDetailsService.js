@@ -1,5 +1,5 @@
 const publicationDetailsRepository = require('../../repositories/forms/publicationDetailsRepository.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 /**
  * Publication Details Service

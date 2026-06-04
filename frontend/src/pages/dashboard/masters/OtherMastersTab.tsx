@@ -9,6 +9,7 @@ const sections: FeatureSection[] = [
         items: [
             { label: 'Staff Category Master', path: '/all-master/staff-category' },
             { label: 'Pay Level Master', path: '/all-master/pay-level' },
+            { label: 'Pay Scale Master', path: '/all-master/pay-scale' },
             { label: 'Sanctioned Post Master', path: '/all-master/sanctioned-post' },
             { label: 'Discipline Master', path: '/all-master/discipline' },
         ],
@@ -30,6 +31,9 @@ const sections: FeatureSection[] = [
             { label: 'Soil Water Analysis Master', path: '/all-master/soil-water-analysis' },
             { label: 'Vehicle Present Status Master', path: '/all-master/vehicle-present-status' },
             { label: 'Equipment Present Status Master', path: '/all-master/equipment-present-status' },
+            { label: 'Equipment Type Master', path: '/all-master/equipment-type' },
+            { label: 'Equipment Master', path: '/all-master/equipment-master' },
+            { label: 'Asset Funding Source Master', path: '/all-master/asset-funding-source' },
         ],
     },
     {

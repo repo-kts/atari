@@ -163,6 +163,40 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             <FormInput label="ST_M" type="number" required value={formData.stM ?? ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
                             <FormInput label="ST_F" type="number" required value={formData.stF ?? ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.generalM) || 0) +
+                                        (Number(formData.obcM) || 0) +
+                                        (Number(formData.scM) || 0) +
+                                        (Number(formData.stM) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.generalF) || 0) +
+                                        (Number(formData.obcF) || 0) +
+                                        (Number(formData.scF) || 0) +
+                                        (Number(formData.stF) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.generalM) || 0) +
+                                        (Number(formData.generalF) || 0) +
+                                        (Number(formData.obcM) || 0) +
+                                        (Number(formData.obcF) || 0) +
+                                        (Number(formData.scM) || 0) +
+                                        (Number(formData.scF) || 0) +
+                                        (Number(formData.stM) || 0) +
+                                        (Number(formData.stF) || 0)}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -227,6 +261,40 @@ export const SoilWaterTestingForms: React.FC<SoilWaterTestingProps> = ({
                             <FormInput label="SC_F" type="number" required value={formData.scF ?? ''} onChange={(e) => setFormData({ ...formData, scF: e.target.value })} />
                             <FormInput label="ST_M" type="number" required value={formData.stM ?? ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
                             <FormInput label="ST_F" type="number" required value={formData.stF ?? ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.generalM) || 0) +
+                                        (Number(formData.obcM) || 0) +
+                                        (Number(formData.scM) || 0) +
+                                        (Number(formData.stM) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.generalF) || 0) +
+                                        (Number(formData.obcF) || 0) +
+                                        (Number(formData.scF) || 0) +
+                                        (Number(formData.stF) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.generalM) || 0) +
+                                        (Number(formData.generalF) || 0) +
+                                        (Number(formData.obcM) || 0) +
+                                        (Number(formData.obcF) || 0) +
+                                        (Number(formData.scM) || 0) +
+                                        (Number(formData.scF) || 0) +
+                                        (Number(formData.stM) || 0) +
+                                        (Number(formData.stF) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -20,7 +20,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_oft',
         fields: FIELD_GROUPS.OFT,
-        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+        siblings: ROUTE_SIBLING_GROUPS.OFT,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.FLD.BASE,
@@ -30,7 +30,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_fld',
         fields: FIELD_GROUPS.FLD_BASE,
-        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+        siblings: ROUTE_SIBLING_GROUPS.FLD,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.FLD.EXTENSION_TRAINING,
@@ -40,7 +40,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_fld_extension_training',
         fields: FIELD_GROUPS.FLD_EXTENSION_TRAINING,
-        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+        siblings: ROUTE_SIBLING_GROUPS.FLD,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.FLD.TECHNICAL_FEEDBACK,
@@ -50,7 +50,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_fld_technical_feedback',
         fields: FIELD_GROUPS.FLD_TECHNICAL_FEEDBACK,
-        siblings: ROUTE_SIBLING_GROUPS.OFT_FLD,
+        siblings: ROUTE_SIBLING_GROUPS.FLD,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.TRAININGS,
@@ -60,7 +60,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_trainings',
         fields: FIELD_GROUPS.TRAININGS,
-        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.TRAINING,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.EXTENSION_ACTIVITIES,
@@ -70,7 +70,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_extension_activities',
         fields: FIELD_GROUPS.EXTENSION_ACTIVITIES,
-        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.EXTENSION,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.OTHER_EXTENSION,
@@ -80,7 +80,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_other_extension_activities',
         fields: FIELD_GROUPS.OTHER_EXTENSION,
-        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.EXTENSION,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.TECHNOLOGY_WEEK,
@@ -90,7 +90,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_technology_week_celebration',
         fields: FIELD_GROUPS.TECHNOLOGY_WEEK,
-        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.CELEBRATION_DAYS,
@@ -100,7 +100,17 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_celebration_days',
         fields: FIELD_GROUPS.CELEBRATION_DAYS,
-        siblings: ROUTE_SIBLING_GROUPS.TRAINING_EXTENSION,
+        siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
+    },
+    {
+        path: ROUTE_PATHS.ACHIEVEMENTS.POSHAN_MAHA,
+        title: 'Poshan Maha',
+        category: 'Form Management',
+        subcategory: 'Achievements',
+        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
+        moduleCode: 'achievements_celebration_days',
+        fields: FIELD_GROUPS.POSHAN_MAHA,
+        siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.PRODUCTION_SUPPLY,
@@ -123,16 +133,6 @@ export const achievementsRoutes: RouteConfig[] = [
         siblings: [ROUTE_PATHS.ACHIEVEMENTS.PUBLICATIONS],
     },
     {
-        path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_EQUIPMENT,
-        title: 'Soil Equipment',
-        category: 'Form Management',
-        subcategory: 'Achievements',
-        parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
-        moduleCode: 'achievements_soil_water_testing',
-        fields: FIELD_GROUPS.SOIL_EQUIPMENT,
-        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
-    },
-    {
         path: ROUTE_PATHS.ACHIEVEMENTS.SOIL_ANALYSIS,
         title: 'Soil, Water and Plant analysis',
         category: 'Form Management',
@@ -150,7 +150,7 @@ export const achievementsRoutes: RouteConfig[] = [
         parent: ROUTE_PATHS.ACHIEVEMENTS.BASE,
         moduleCode: 'achievements_soil_water_testing',
         fields: FIELD_GROUPS.WORLD_SOIL_DAY,
-        siblings: ROUTE_SIBLING_GROUPS.SOIL_WATER_TESTING,
+        siblings: ROUTE_SIBLING_GROUPS.SPECIAL_DAYS,
     },
     {
         path: ROUTE_PATHS.ACHIEVEMENTS.AWARDS.KVK,

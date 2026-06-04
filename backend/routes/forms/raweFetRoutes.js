@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const raweFetController = require('../../controllers/forms/raweFetController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const raweFetController = require('../../controllers/forms/raweFetController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // Apply authentication to all routes
 router.use(authenticateToken);

@@ -7,6 +7,10 @@ import type {
     SanctionedPostFormData,
     StaffCategoryFormData,
     PayLevelFormData,
+    PayScaleFormData,
+    AssetFundingSourceFormData,
+    EquipmentTypeFormData,
+    EquipmentMasterFormData,
     DisciplineFormData,
     ExtensionActivityTypeFormData,
     OtherExtensionActivityTypeFormData,
@@ -240,6 +244,182 @@ export function usePayLevels() {
         mutationFn: (id: number) => otherMastersApi.deletePayLevel(id),
         onSuccess: () => {
             invalidateEntityType(queryClient, ENTITY_TYPES.PAY_LEVEL);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function usePayScales() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['pay-scales'],
+        queryFn: () => otherMastersApi.getPayScales().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: PayScaleFormData) => otherMastersApi.createPayScale(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<PayScaleFormData> }) =>
+            otherMastersApi.updatePayScale(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deletePayScale(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.PAY_SCALE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useAssetFundingSources() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['asset-funding-sources'],
+        queryFn: () => otherMastersApi.getAssetFundingSources().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: AssetFundingSourceFormData) => otherMastersApi.createAssetFundingSource(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<AssetFundingSourceFormData> }) =>
+            otherMastersApi.updateAssetFundingSource(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteAssetFundingSource(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.ASSET_FUNDING_SOURCE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useEquipmentTypes() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['equipment-types'],
+        queryFn: () => otherMastersApi.getEquipmentTypes().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: EquipmentTypeFormData) => otherMastersApi.createEquipmentType(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_TYPE);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<EquipmentTypeFormData> }) =>
+            otherMastersApi.updateEquipmentType(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_TYPE);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteEquipmentType(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_TYPE);
+        },
+    });
+
+    return {
+        data: query.data || [],
+        isLoading: query.isLoading,
+        error: query.error,
+        create: createMutation.mutateAsync,
+        update: updateMutation.mutateAsync,
+        remove: deleteMutation.mutateAsync,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isDeleting: deleteMutation.isPending,
+    };
+}
+
+export function useEquipmentMasters() {
+    const queryClient = useQueryClient();
+
+    const query = useQuery({
+        queryKey: ['equipment-masters'],
+        queryFn: () => otherMastersApi.getEquipmentMasters().then((res) => res.data),
+        staleTime: 5 * 60 * 1000,
+    });
+
+    const createMutation = useMutation({
+        mutationFn: (data: EquipmentMasterFormData) => otherMastersApi.createEquipmentMaster(data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<EquipmentMasterFormData> }) =>
+            otherMastersApi.updateEquipmentMaster(id, data),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER);
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: number) => otherMastersApi.deleteEquipmentMaster(id),
+        onSuccess: () => {
+            invalidateEntityType(queryClient, ENTITY_TYPES.EQUIPMENT_MASTER);
         },
     });
 

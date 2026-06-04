@@ -1,5 +1,5 @@
 const otherExtensionActivityService = require('../../services/forms/otherExtensionActivityService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const otherExtensionActivityController = {
     create: async (req, res) => {

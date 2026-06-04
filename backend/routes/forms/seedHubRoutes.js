@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const seedHubController = require('../../controllers/forms/seedHubController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const seedHubController = require('../../controllers/forms/seedHubController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

@@ -71,11 +71,7 @@ export function DatePicker({
     }
   }, [open, selectedDate])
   const minDate = useMemo(() => parseIsoDate(min), [min])
-  const maxDate = useMemo(() => {
-    if (max) return parseIsoDate(max)
-    const now = new Date()
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-  }, [max])
+  const maxDate = useMemo(() => parseIsoDate(max), [max])
   const startMonth = minDate ?? new Date(1950, 0, 1)
   const endMonth = maxDate ?? new Date(new Date().getFullYear() + 10, 11, 31)
 

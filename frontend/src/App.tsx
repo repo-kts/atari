@@ -20,6 +20,7 @@ import { RolePermissionEditor } from './pages/admin/RolePermissionEditor'
 import { UserManagement } from './pages/admin/UserManagement'
 import { UserPermissionEditor } from './pages/admin/UserPermissionEditor'
 import { ModuleImages } from './pages/features/ModuleImages'
+import { Gallery } from './pages/features/Gallery'
 import { Targets } from './pages/features/Targets'
 import { LogHistory } from './pages/admin/LogHistory'
 import { Notifications } from './pages/admin/Notifications'
@@ -170,6 +171,14 @@ function AppRoutes() {
                         element={
                             <ProtectedRoute requiredModuleCode="module_images">
                                 <ModuleImages />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/gallery"
+                        element={
+                            <ProtectedRoute requiredModuleCode="module_images">
+                                <Gallery />
                             </ProtectedRoute>
                         }
                     />

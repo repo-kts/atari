@@ -19,6 +19,8 @@ export const FIELD_NAMES = {
     // Common Fields
     ID: 'id',
     NAME: 'name',
+    EQUIPMENT_TYPE_NAME: 'equipmentTypeName',
+    COMPANY_BRAND_MODEL: 'companyBrandModel',
     DATE: 'date',
     REMARK: 'remark',
     REMARKS: 'remarks',
@@ -73,6 +75,7 @@ export const FIELD_NAMES = {
 
     // Other Master Fields
     LEVEL_NAME: 'levelName',
+    SCALE_NAME: 'scaleName',
     DISCIPLINE_NAME: 'disciplineName',
     POST_NAME: 'postName',
     YEAR_NAME: 'yearName',
@@ -113,6 +116,9 @@ export const FIELD_NAMES = {
 
     // Reporting Fields
     REPORTING_YEAR: 'reportingYear',
+    START_YEAR: 'startYear',
+    TOTAL_MALE: 'totalMale',
+    TOTAL_FEMALE: 'totalFemale',
 
     // Date Fields
     START_DATE: 'startDate',
@@ -175,6 +181,7 @@ export const FIELD_NAMES = {
     AREA_IN_ACRE: 'areaInAcre',
     AREA_PRACTICING: 'areaPracticing',
     PLINTH_AREA_SQ_M: 'plinthAreaSqM',
+    LAND_ITEM: 'item',
 
     // Yield Fields
     YIELD: 'yield',
@@ -689,6 +696,10 @@ export const FIELD_GROUPS = {
     // All Masters - Other Masters
     STAFF_CATEGORY_MASTER: [FIELD_NAMES.CATEGORY_NAME] as const,
     PAY_LEVEL_MASTER: [FIELD_NAMES.LEVEL_NAME] as const,
+    PAY_SCALE_MASTER: [FIELD_NAMES.SCALE_NAME] as const,
+    ASSET_FUNDING_SOURCE_MASTER: [FIELD_NAMES.NAME] as const,
+    EQUIPMENT_TYPE_MASTER: [FIELD_NAMES.NAME] as const,
+    EQUIPMENT_MASTER_MASTER: [FIELD_NAMES.NAME, FIELD_NAMES.EQUIPMENT_TYPE_NAME] as const,
     DISCIPLINE_MASTER: [FIELD_NAMES.DISCIPLINE_NAME] as const,
     SANCTIONED_POST_MASTER: [FIELD_NAMES.POST_NAME] as const,
     SEASON_MASTER: [FIELD_NAMES.SEASON_NAME] as const,
@@ -779,6 +790,7 @@ export const FIELD_GROUPS = {
     VIEW_EQUIPMENTS: [
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.EQUIPMENT_NAME,
+        FIELD_NAMES.COMPANY_BRAND_MODEL,
         FIELD_NAMES.YEAR_OF_PURCHASE,
         FIELD_NAMES.TOTAL_COST_RS,
         FIELD_NAMES.SOURCE_OF_FUND,
@@ -787,6 +799,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.REPORTING_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.EQUIPMENT_NAME,
+        FIELD_NAMES.COMPANY_BRAND_MODEL,
         FIELD_NAMES.SOURCE_OF_FUND,
         FIELD_NAMES.PRESENT_STATUS,
     ] as const,
@@ -797,6 +810,11 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.TOTAL_COST_RS,
         FIELD_NAMES.PRESENT_STATUS,
         FIELD_NAMES.SOURCE_OF_FUND,
+    ] as const,
+    LAND_DETAILS: [
+        FIELD_NAMES.KVK_NAME,
+        FIELD_NAMES.LAND_ITEM,
+        FIELD_NAMES.AREA_HA,
     ] as const,
 
     // Projects Routes - CFLD
@@ -951,10 +969,19 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.DISTRICT_COVERED_NO,
     ] as const,
 
-    // Projects Routes - TSP/SCSP
+    // Projects Routes - TSP/SCSP (legacy, kept for backward compatibility)
     TSP_SCSP: [
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.TYPE,
+        FIELD_NAMES.ACTIVITY,
+        FIELD_NAMES.NO_OF_TRAINING,
+        FIELD_NAMES.BENEFICIARIES,
+    ] as const,
+
+    // Projects Routes - TSP/SCSP Activities (Type column dropped — each
+    // sibling page is type-segregated client-side)
+    TSP_SCSP_ACTIVITIES: [
+        FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.ACTIVITY,
         FIELD_NAMES.NO_OF_TRAINING,
         FIELD_NAMES.BENEFICIARIES,
@@ -1160,28 +1187,29 @@ export const FIELD_GROUPS = {
 
     // Achievements Routes - OFT & FLD
     OFT: [
-        FIELD_NAMES.REPORTING_YEAR,
+        FIELD_NAMES.START_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.STAFF,
         FIELD_NAMES.TRIAL_ON_FORM,
         FIELD_NAMES.PROBLEM_DIAGNOSED,
+        FIELD_NAMES.TOTAL_MALE,
+        FIELD_NAMES.TOTAL_FEMALE,
         FIELD_NAMES.ONGOING_COMPLETED,
     ] as const,
     FLD_BASE: [
-        FIELD_NAMES.REPORTING_YEAR,
-        FIELD_NAMES.START_DATE,
-        FIELD_NAMES.END_DATE,
+        FIELD_NAMES.START_YEAR,
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.CATEGORY,
         FIELD_NAMES.SUB_CATEGORY,
         FIELD_NAMES.NAME_OF_TECHNOLOGY_DEMONSTRATED,
+        FIELD_NAMES.TOTAL_MALE,
+        FIELD_NAMES.TOTAL_FEMALE,
         FIELD_NAMES.ONGOING_COMPLETED,
     ] as const,
     FLD_EXTENSION_TRAINING: [
         FIELD_NAMES.FLD_NAME,
         FIELD_NAMES.ACTIVITY,
-        FIELD_NAMES.DATE,
-        FIELD_NAMES.NUMBER_OF_ACTIVITIES,
+        FIELD_NAMES.ACTIVITY_DATE,
         FIELD_NAMES.NUMBER_OF_PARTICIPANTS,
         FIELD_NAMES.REMARK,
     ] as const,
@@ -1239,6 +1267,9 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.EVENT_DATE,
         FIELD_NAMES.NO_OF_ACTIVITIES,
     ] as const,
+
+    // Achievements Routes - Poshan Maha (placeholder; fields TBD)
+    POSHAN_MAHA: [] as const,
 
     // Achievements Routes - Production & Supply
     PRODUCTION_SUPPLY: [
@@ -1321,6 +1352,7 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.START_DATE,
         FIELD_NAMES.END_DATE,
         FIELD_NAMES.ORGANIZER,
+        FIELD_NAMES.VENUE,
     ] as const,
 
     // Performance Indicator Routes - Impact
@@ -1474,12 +1506,6 @@ export const FIELD_GROUPS = {
         FIELD_NAMES.KVK_NAME,
         FIELD_NAMES.NAME_OF_ORGANIZATION,
         FIELD_NAMES.NATURE_OF_LINKAGE,
-    ] as const,
-    PERFORMANCE_SPECIAL_PROGRAMMES: [
-        FIELD_NAMES.KVK_NAME,
-        FIELD_NAMES.PROGRAMME_TYPE,
-        FIELD_NAMES.NAME_OF_THE_PROGRAMME_SCHEME,
-        FIELD_NAMES.DATE_MONTH_OF_INITIATION,
     ] as const,
 
     // Miscellaneous Routes - Diseases

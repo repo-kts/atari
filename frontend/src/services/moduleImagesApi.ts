@@ -8,6 +8,11 @@ export interface ModuleImageCategory {
   label: string
 }
 
+export interface ModuleImageCategoryGroup {
+  menuName: string
+  items: ModuleImageCategory[]
+}
+
 export interface ModuleImageKvkOption {
   kvkId: number
   kvkName: string

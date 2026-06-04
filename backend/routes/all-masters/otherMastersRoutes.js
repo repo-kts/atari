@@ -62,11 +62,35 @@ router.post('/pay-level',    requirePermission('all_masters_pay_level_master', '
 router.put('/pay-level/:id', requirePermission('all_masters_pay_level_master', 'EDIT'),   otherMastersController.updatePayLevel);
 router.delete('/pay-level/:id', requirePermission('all_masters_pay_level_master', 'DELETE'), otherMastersController.deletePayLevel);
 
+router.get('/pay-scale',     otherMastersController.getAllPayScales);
+router.get('/pay-scale/:id', otherMastersController.getPayScaleById);
+router.post('/pay-scale',    requirePermission('all_masters_pay_scale_master', 'ADD'),    otherMastersController.createPayScale);
+router.put('/pay-scale/:id', requirePermission('all_masters_pay_scale_master', 'EDIT'),   otherMastersController.updatePayScale);
+router.delete('/pay-scale/:id', requirePermission('all_masters_pay_scale_master', 'DELETE'), otherMastersController.deletePayScale);
+
 router.get('/discipline',     otherMastersController.getAllDisciplines);
 router.get('/discipline/:id', otherMastersController.getDisciplineById);
 router.post('/discipline',    requirePermission('all_masters_discipline_master', 'ADD'),    otherMastersController.createDiscipline);
 router.put('/discipline/:id', requirePermission('all_masters_discipline_master', 'EDIT'),   otherMastersController.updateDiscipline);
 router.delete('/discipline/:id', requirePermission('all_masters_discipline_master', 'DELETE'), otherMastersController.deleteDiscipline);
+
+router.get('/asset-funding-source',     otherMastersController.getAllAssetFundingSources);
+router.get('/asset-funding-source/:id', otherMastersController.getAssetFundingSourceById);
+router.post('/asset-funding-source',    requirePermission('all_masters_asset_funding_source_master', 'ADD'),    otherMastersController.createAssetFundingSource);
+router.put('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'EDIT'),   otherMastersController.updateAssetFundingSource);
+router.delete('/asset-funding-source/:id', requirePermission('all_masters_asset_funding_source_master', 'DELETE'), otherMastersController.deleteAssetFundingSource);
+
+router.get('/equipment-type',     otherMastersController.getAllEquipmentTypes);
+router.get('/equipment-type/:id', otherMastersController.getEquipmentTypeById);
+router.post('/equipment-type',    requirePermission('all_masters_equipment_type_master', 'ADD'),    otherMastersController.createEquipmentType);
+router.put('/equipment-type/:id', requirePermission('all_masters_equipment_type_master', 'EDIT'),   otherMastersController.updateEquipmentType);
+router.delete('/equipment-type/:id', requirePermission('all_masters_equipment_type_master', 'DELETE'), otherMastersController.deleteEquipmentType);
+
+router.get('/equipment-master',     otherMastersController.getAllEquipmentMasters);
+router.get('/equipment-master/:id', otherMastersController.getEquipmentMasterById);
+router.post('/equipment-master',    requirePermission('all_masters_equipment_master', 'ADD'),    otherMastersController.createEquipmentMaster);
+router.put('/equipment-master/:id', requirePermission('all_masters_equipment_master', 'EDIT'),   otherMastersController.updateEquipmentMaster);
+router.delete('/equipment-master/:id', requirePermission('all_masters_equipment_master', 'DELETE'), otherMastersController.deleteEquipmentMaster);
 
 // ============================================
 // Extension Masters Routes

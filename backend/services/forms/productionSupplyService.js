@@ -1,5 +1,5 @@
 const productionSupplyRepository = require('../../repositories/forms/productionSupplyRepository.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 /**

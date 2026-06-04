@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const nykTrainingController = require('../../controllers/forms/nykTrainingController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const nykTrainingController = require('../../controllers/forms/nykTrainingController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

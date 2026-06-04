@@ -26,7 +26,6 @@ const REGISTRY = [
   { key: 'about_kvk.infrastructure', title: 'Infrastructure Details', category: 'About KVK', moduleCode: 'about_kvks_infrastructure_details', model: 'kvkInfrastructure', path: '/forms/about-kvk/infrastructure' },
   { key: 'about_kvk.vehicles', title: 'Vehicle Details', category: 'About KVK', moduleCode: 'about_kvks_vehicle_details', model: 'kvkVehicle', path: '/forms/about-kvk/vehicles' },
   { key: 'about_kvk.equipments', title: 'Equipment Details', category: 'About KVK', moduleCode: 'about_kvks_equipment_details', model: 'kvkEquipment', path: '/forms/about-kvk/equipments' },
-  { key: 'about_kvk.farm_implements', title: 'Farm Implement Details', category: 'About KVK', moduleCode: 'about_kvks_farm_implement_details', model: 'kvkFarmImplement', path: '/forms/about-kvk/farm-implements' },
 
   // ── Achievements ─────────────────────────────────────────────────────────
   { key: 'achievements.oft', title: 'On Farm Trials (OFT)', category: 'Achievements', moduleCode: 'achievements_oft', model: 'kvkoft', path: '/forms/achievements/oft' },
@@ -40,7 +39,6 @@ const REGISTRY = [
   { key: 'achievements.celebration_days', title: 'Celebration Days', category: 'Achievements', moduleCode: 'achievements_celebration_days', model: 'kvkImportantDayCelebration', path: '/forms/achievements/celebration-days' },
   { key: 'achievements.production_supply', title: 'Production & Supply of Technological Products', category: 'Achievements', moduleCode: 'achievements_production_supply_tech_products', model: 'kvkProductionSupply', path: '/forms/achievements/production-supply' },
   { key: 'achievements.publications', title: 'Publication Details', category: 'Achievements', moduleCode: 'achievements_publications', model: 'kvkPublicationDetails', path: '/forms/achievements/publication-details' },
-  { key: 'achievements.soil_equipment', title: 'Soil & Water Equipment', category: 'Achievements', subcategory: 'Soil & Water Testing', moduleCode: 'achievements_soil_water_testing', model: 'kkvSoilWaterEquipment', path: '/forms/achievements/soil-equipment' },
   { key: 'achievements.soil_analysis', title: 'Soil, Water and Plant Analysis', category: 'Achievements', subcategory: 'Soil & Water Testing', moduleCode: 'achievements_soil_water_testing', model: 'kkvSoilWaterAnalysis', path: '/forms/achievements/soil-analysis' },
   { key: 'achievements.world_soil_day', title: 'World Soil Day', category: 'Achievements', subcategory: 'Soil & Water Testing', moduleCode: 'achievements_soil_water_testing', model: 'kkvWorldSoilCelebration', path: '/forms/achievements/world-soil-day' },
   { key: 'achievements.awards_kvk', title: 'Awards (KVK)', category: 'Achievements', subcategory: 'Awards', moduleCode: 'achievements_award_recognition', model: 'kvkAward', path: '/forms/achievements/awards/kvk' },
@@ -126,7 +124,6 @@ const REGISTRY = [
   { key: 'performance.resource_generation', title: 'Resource Generation', category: 'Performance Indicators', subcategory: 'Financial', moduleCode: 'performance_indicators_financial', model: 'resourceGeneration', path: '/forms/performance/financial/resource-generation' },
 
   { key: 'performance.functional_linkage', title: 'Functional Linkage', category: 'Performance Indicators', subcategory: 'Linkages', moduleCode: 'performance_indicators_linkages', model: 'functionalLinkage', path: '/forms/performance/linkages/functional-linkage' },
-  { key: 'performance.special_programmes', title: 'Special Programmes', category: 'Performance Indicators', subcategory: 'Linkages', moduleCode: 'performance_indicators_linkages', model: 'specialProgramme', path: '/forms/performance/linkages/special-programmes' },
 
   // ── Miscellaneous ────────────────────────────────────────────────────────
   { key: 'misc.diseases_crops', title: 'Prevalent Diseases (Crops)', category: 'Miscellaneous', moduleCode: 'misc_prevalent_diseases_crops', model: 'prevalentDiseasesInCrop', path: '/forms/miscellaneous/diseases/crops' },

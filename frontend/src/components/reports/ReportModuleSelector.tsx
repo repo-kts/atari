@@ -6,13 +6,13 @@ import {
     BarChart3,
     Archive,
     Globe,
-    Trash2,
     Users,
     Check,
     ChevronDown,
     Search
 } from 'lucide-react';
 import type { ReportSection } from '../../types/reports';
+import { buildTaxonomyView } from '../../config/reportIndexTaxonomy';
 
 interface ReportModuleSelectorProps {
     sections: ReportSection[];
@@ -39,6 +39,8 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     const [isNarrow, setIsNarrow] = useState(false);
     const searchInputId = 'report-module-search';
 
+    // Swachh Bharat is grouped under Achievements (matching the report sheet), so
+    // it has no standalone tab here.
     const categoryMapping = [
         { id: 'about', label: 'About KVK', parentId: '1', icon: <Building2 className="w-4 h-4" /> },
         { id: 'achievements', label: 'Achievements', parentId: '2', icon: <ClipboardList className="w-4 h-4" /> },
@@ -46,9 +48,13 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
         { id: 'performance', label: 'Performance', parentId: '4', icon: <BarChart3 className="w-4 h-4" /> },
         { id: 'misc', label: 'Miscellaneous', parentId: '5', icon: <Archive className="w-4 h-4" /> },
         { id: 'digital', label: 'Digital', parentId: '6', icon: <Globe className="w-4 h-4" /> },
-        { id: 'swachh', label: 'Swachh Bharat', parentId: '7', icon: <Trash2 className="w-4 h-4" /> },
         { id: 'meetings', label: 'Meetings', parentId: '8', icon: <Users className="w-4 h-4" /> },
     ];
+
+    const availableSectionIds = useMemo(
+        () => new Set(sections.map((s) => String(s.id))),
+        [sections],
+    );
 
     const handleTabChange = (categoryId: string) => {
         setActiveTab(categoryId);
@@ -198,6 +204,94 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                     <div className="bg-white border-none rounded-b-[20px]">
                         {(() => {
                             const category = categoryMapping.find(c => c.id === activeTab) || categoryMapping[0];
+
+                            // Curated, grouped + lettered view (About KVK / Achievements).
+                            const taxonomyView = buildTaxonomyView(category.id, availableSectionIds);
+                            if (taxonomyView) {
+                                const allIds = Array.from(new Set(
+                                    taxonomyView.groups
+                                        .flatMap(g => g.features)
+                                        .filter(f => !f.disabled)
+                                        .map(f => f.sectionId)
+                                ));
+                                const selectedInCat = allIds.filter(id => selectedSections.has(id)).length;
+                                const allSelected = selectedInCat === allIds.length && allIds.length > 0;
+
+                                const groupsToShow = taxonomyView.groups
+                                    .map(group => {
+                                        const features = normalizedSearchTerm
+                                            ? group.features.filter(f =>
+                                                f.label.toLowerCase().includes(normalizedSearchTerm) ||
+                                                group.label.toLowerCase().includes(normalizedSearchTerm))
+                                            : group.features;
+                                        return { group, features };
+                                    })
+                                    .filter(({ features }) => features.length > 0);
+
+                                return (
+                                    <div key={category.id} className="flex flex-col">
+                                        <div
+                                            onClick={() => onCategorySelectAll(allIds)}
+                                            className="bg-[#F1F8F1] px-4 py-2 border-b border-[#E0E0E0] mb-2 rounded-xl flex items-center justify-between cursor-pointer hover:bg-[#E8F5E9] transition-colors"
+                                        >
+                                            <span className="text-[11px] font-medium text-[#757575]">Select all</span>
+                                            <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all ${allSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
+                                                {allSelected && <Check className="w-3.5 h-3.5 text-white" strokeWidth={5} />}
+                                            </div>
+                                        </div>
+
+                                        <div className="max-h-[1050px] overflow-y-auto custom-scrollbar bg-white">
+                                            {groupsToShow.map(({ group, features }) => (
+                                                <div key={group.number}>
+                                                    <div className="px-4 py-2 bg-[#F6FAF5] text-[11px] font-semibold text-[#2f5a30] border-b border-[#E0E0E0]">
+                                                        {group.number} {group.label}
+                                                    </div>
+                                                    {features.map(feature => {
+                                                        if (feature.disabled) {
+                                                            // No backing section yet — show for structure, not selectable.
+                                                            return (
+                                                                <div
+                                                                    key={feature.number}
+                                                                    title="No data available yet"
+                                                                    className="pl-7 pr-4 py-3 flex items-center justify-between border-b border-[#F0F0F0] cursor-not-allowed opacity-60"
+                                                                >
+                                                                    <span className="text-[13px] font-normal text-[#9E9E9E]">
+                                                                        <span className="mr-1.5">{feature.number}</span>
+                                                                        {feature.label}
+                                                                    </span>
+                                                                    <span className="text-[#C1C1C1] text-xs flex-shrink-0">—</span>
+                                                                </div>
+                                                            );
+                                                        }
+                                                        const isSelected = selectedSections.has(feature.sectionId);
+                                                        return (
+                                                            <div
+                                                                key={feature.number}
+                                                                onClick={() => onSectionToggle(feature.sectionId)}
+                                                                className="pl-7 pr-4 py-3 flex items-center justify-between border-b border-[#F0F0F0] hover:bg-[#F9F9F9] transition-all cursor-pointer group"
+                                                            >
+                                                                <span className={`text-[13px] font-normal text-[#424242] ${isSelected ? 'text-[#2f5a30] font-medium' : ''}`}>
+                                                                    <span className="text-[#9E9E9E] mr-1.5">{feature.number}</span>
+                                                                    {feature.label}
+                                                                </span>
+                                                                <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-all flex-shrink-0 ${isSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1] group-hover:border-[#487749]'}`}>
+                                                                    {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={5} />}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ))}
+                                            {normalizedSearchTerm && groupsToShow.length === 0 && (
+                                                <div className="py-4 text-center">
+                                                    <p className="text-[10px] text-[#9E9E9E] italic">No matching results</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            }
+
                             const { mainSections, subSections } = sectionHierarchy[category.id] || { mainSections: [], subSections: {} };
 
                             const allCategoryItemIds: string[] = [];

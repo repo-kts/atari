@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const naturalFarmingService = require('../../services/forms/naturalFarmingService');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
-const { handleError } = require('../../utils/errorHandler');
+const naturalFarmingService = require('../../services/forms/naturalFarmingService.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
+const { handleError } = require('../../utils/errorHandler.js');
 
 router.use(authenticateToken);
 

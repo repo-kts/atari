@@ -139,6 +139,7 @@ const nariValueAdditionRepository = {
 
     createResult: async (id, data) => {
         const valueAdditionId = parseInt(id);
+        const fssaiNumber = resolveFssaiNumber(data.fssaiCertified, data.fssaiNumber);
         return await prisma.$transaction(async (tx) => {
             const result = await tx.nariValueAdditionResult.create({
                 data: {
@@ -150,6 +151,7 @@ const nariValueAdditionRepository = {
                     netIncome: parseFloat(data.netIncome || 0),
                     shelfLife: data.shelfLife || '',
                     fssaiCertified: data.fssaiCertified || '',
+                    fssaiNumber,
                 }
             });
 
@@ -171,6 +173,12 @@ const nariValueAdditionRepository = {
 
         if (!existingResult) throw new Error('Result not found');
 
+        // Validate against the effective certification (incoming value, else existing).
+        const effectiveCertified = data.fssaiCertified !== undefined
+            ? data.fssaiCertified
+            : existingResult.fssaiCertified;
+        const fssaiNumber = resolveFssaiNumber(effectiveCertified, data.fssaiNumber);
+
         return await prisma.nariValueAdditionResult.update({
             where: { nariValueAdditionResultId: existingResult.nariValueAdditionResultId },
             data: {
@@ -181,10 +189,26 @@ const nariValueAdditionRepository = {
                 netIncome: data.netIncome !== undefined ? parseFloat(data.netIncome) : undefined,
                 shelfLife: data.shelfLife !== undefined ? data.shelfLife : undefined,
                 fssaiCertified: data.fssaiCertified !== undefined ? data.fssaiCertified : undefined,
+                fssaiNumber,
             }
         });
     }
 };
+
+/**
+ * Enforce the FSSAI rule: when certification is "Yes", a non-empty FSSAI number
+ * is required; otherwise the number is cleared. Returns the value to persist.
+ */
+function resolveFssaiNumber(fssaiCertified, fssaiNumber) {
+    if (String(fssaiCertified) === 'Yes') {
+        const trimmed = String(fssaiNumber ?? '').trim();
+        if (!trimmed) {
+            throw new Error('FSSAI No is required when FSSAI Certification is Yes');
+        }
+        return trimmed;
+    }
+    return null;
+}
 
 function _mapResponse(r) {
     if (!r) return null;
@@ -237,6 +261,7 @@ function _mapResponse(r) {
                   netIncome: row.netIncome,
                   shelfLife: row.shelfLife,
                   fssaiCertified: row.fssaiCertified,
+                  fssaiNumber: row.fssaiNumber,
               }))
             : [],
         resultCount: Array.isArray(r.results) ? r.results.length : 0,

@@ -50,8 +50,20 @@ function shouldAllowDecimal(key) {
         k.includes('budget') ||
         k.includes('yield') ||
         k.includes('percentage') ||
+        k.includes('percent') ||
+        k.includes('return') ||
+        k.includes('bcr') ||
+        k.includes('quantity') ||
         k.includes('latitude') ||
         k.includes('longitude') ||
+        // weather / climate readings (NICRA basic info: RF mm, temperature, water depth)
+        k.includes('rfmm') ||
+        k.includes('rainfall') ||
+        k.includes('temperature') ||
+        k.includes('depth') ||
+        k.includes('water') ||
+        // ratings (e.g. NAAS rating)
+        k.includes('rating') ||
         // soil params
         k.includes('ph') ||
         k.includes('ec') ||
@@ -61,8 +73,15 @@ function shouldAllowDecimal(key) {
 
 function shouldAllowNegative(key) {
     const k = String(key || '').toLowerCase();
-    // Geographic coordinates can legitimately be negative.
-    return k.includes('latitude') || k.includes('longitude');
+    // Geographic coordinates and economic delta fields can legitimately be negative.
+    return (
+        k.includes('latitude') ||
+        k.includes('longitude') ||
+        k.includes('netreturn') ||
+        k.includes('net_return') ||
+        k.includes('percent') ||
+        k.includes('increase')
+    );
 }
 
 function isValidNumberString(v) {
@@ -132,8 +151,11 @@ function validateNoFutureDates(body) {
         const dt = parseDateOnly(value);
         if (!dt) continue;
 
-        // Allow future dates only for "target date"-type fields.
-        if (String(key).toLowerCase().includes('target')) continue;
+        // Allow future dates for forward-looking fields (target, expected, planned).
+        const lowerKey = String(key).toLowerCase();
+        if (lowerKey.includes('target')) continue;
+        if (lowerKey.includes('expected')) continue;
+        if (lowerKey.includes('planned')) continue;
 
         if (dt.getTime() > today.getTime()) {
             throw new ValidationError(`"${key}" cannot be in the future`, key);

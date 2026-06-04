@@ -1,4 +1,4 @@
-const swachhtaBharatService = require('../../services/forms/swachhtaBharatService');
+const swachhtaBharatService = require('../../services/forms/swachhtaBharatService.js');
 
 const createControllerLayer = (service) => ({
     findAll: async (req, res) => {

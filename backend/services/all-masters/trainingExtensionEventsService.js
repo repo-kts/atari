@@ -1,7 +1,7 @@
 const trainingExtensionEventsRepository = require('../../repositories/all-masters/trainingExtensionEventsRepository.js');
 const { normalizeListLimit, DEFAULT_MASTER_LIST_PAGE_SIZE } = require('../../constants/masterListPagination.js');
 const { getEntityConfig } = require('../../repositories/all-masters/trainingExtensionEventsRepository.js');
-const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler');
+const { ValidationError, NotFoundError, ConflictError, translatePrismaError } = require('../../utils/errorHandler.js');
 
 /**
  * Training, Extension & Events Master Data Service

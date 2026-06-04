@@ -12,11 +12,13 @@ export interface NariValueAdditionResultValue {
     netIncome: string | number
     shelfLife: string
     fssaiCertified: 'Yes' | 'No' | ''
+    fssaiNumber: string
 }
 
 /** API row may include this id; not submitted as form fields */
 type NariValueAdditionResultInitial = Partial<NariValueAdditionResultValue> & {
     nariValueAdditionResultId?: number
+    fssaiNo?: string | number | null
 }
 
 interface NariValueAdditionResultFormProps {
@@ -34,6 +36,7 @@ const defaultValue: NariValueAdditionResultValue = {
     netIncome: '',
     shelfLife: '',
     fssaiCertified: '',
+    fssaiNumber: '',
 }
 
 function mapApiToForm(
@@ -49,6 +52,12 @@ function mapApiToForm(
     const fssai = initial.fssaiCertified
     const fssaiCertified: NariValueAdditionResultValue['fssaiCertified'] =
         fssai === 'Yes' || fssai === 'No' ? fssai : ''
+    // Accept either `fssaiNumber` (form) or `fssaiNo` (API) for the number.
+    const rawFssaiNumber = initial.fssaiNumber ?? initial.fssaiNo
+    const fssaiNumber =
+        fssaiCertified === 'Yes' && rawFssaiNumber != null
+            ? String(rawFssaiNumber)
+            : ''
 
     return {
         reportingYear,
@@ -58,6 +67,7 @@ function mapApiToForm(
         netIncome: initial.netIncome ?? '',
         shelfLife: initial.shelfLife != null ? String(initial.shelfLife) : '',
         fssaiCertified,
+        fssaiNumber,
     }
 }
 
@@ -81,11 +91,23 @@ export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormPr
         setValue(mapApiToForm(initialValue))
     }, [syncKey]) // eslint-disable-line react-hooks/exhaustive-deps -- initialValue read when syncKey changes
 
+    const fssaiNumberRequired = value.fssaiCertified === 'Yes'
+    const [fssaiNumberError, setFssaiNumberError] = useState('')
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (fssaiNumberRequired && !value.fssaiNumber.trim()) {
+            setFssaiNumberError('FSSAI No is required when FSSAI Certification is Yes')
+            return
+        }
+        setFssaiNumberError('')
         setSubmitting(true)
         try {
-            await onSubmit(value)
+            // Drop the number when not certified so stale values never persist.
+            await onSubmit({
+                ...value,
+                fssaiNumber: fssaiNumberRequired ? value.fssaiNumber.trim() : '',
+            })
             onClose()
         } finally {
             setSubmitting(false)
@@ -156,12 +178,33 @@ export const NariValueAdditionResultForm: React.FC<NariValueAdditionResultFormPr
                             label="FSSAI Certification"
                             required
                             value={value.fssaiCertified}
-                            onChange={(e) => setValue((v) => ({ ...v, fssaiCertified: e.target.value as any }))}
+                            onChange={(e) => {
+                                const next = e.target.value as NariValueAdditionResultValue['fssaiCertified']
+                                setValue((v) => ({
+                                    ...v,
+                                    fssaiCertified: next,
+                                    // Clear the number whenever certification is not Yes.
+                                    fssaiNumber: next === 'Yes' ? v.fssaiNumber : '',
+                                }))
+                                if (next !== 'Yes') setFssaiNumberError('')
+                            }}
                             options={[
                                 { value: 'Yes', label: 'Yes' },
                                 { value: 'No', label: 'No' },
                             ]}
                         />
+                        {fssaiNumberRequired && (
+                            <FormInput
+                                label="FSSAI No"
+                                required
+                                value={value.fssaiNumber}
+                                error={fssaiNumberError}
+                                onChange={(e) => {
+                                    setValue((v) => ({ ...v, fssaiNumber: e.target.value }))
+                                    if (fssaiNumberError) setFssaiNumberError('')
+                                }}
+                            />
+                        )}
                     </div>
 
                     <div className="flex justify-end gap-3 pt-6 border-t border-[#F0F0F0]">

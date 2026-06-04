@@ -1,5 +1,5 @@
 const kvkAwardService = require('../../services/forms/kvkAwardService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const kvkAwardController = {
     /**

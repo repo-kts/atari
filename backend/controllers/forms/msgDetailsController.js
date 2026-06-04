@@ -1,5 +1,5 @@
 const msgDetailsService = require('../../services/forms/msgDetailsService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const msgDetailsController = {
     create: async (req, res) => {

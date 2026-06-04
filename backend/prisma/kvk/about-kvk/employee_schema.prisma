@@ -10,7 +10,7 @@ model KvkStaff {
   sanctionedPostId            Int?
   positionOrder               Int                         @map("position_order")
   disciplineId                Int?
-  payScale                    String?                     @map("pay_scale")
+  payScaleId                  Int?                        @map("pay_scale_id")
   dateOfJoining               DateTime                    @map("date_of_joining")
   jobType                     JobType?                    @map("job_type")
   allowances                  String?                     @map("allowances")
@@ -32,6 +32,7 @@ model KvkStaff {
   kvk                         Kvk                         @relation(fields: [kvkId], references: [kvkId], onDelete: Cascade)
   originalKvk                 Kvk?                        @relation("OriginalKvk", fields: [originalKvkId], references: [kvkId])
   payLevel                    PayLevelMaster?             @relation(fields: [payLevelId], references: [payLevelId])
+  payScale                    PayScaleMaster?             @relation(fields: [payScaleId], references: [payScaleId], onDelete: SetNull)
   sanctionedPost              SanctionedPost?             @relation(fields: [sanctionedPostId], references: [sanctionedPostId])
   staffCategory               StaffCategoryMaster?        @relation(fields: [staffCategoryId], references: [staffCategoryId])
   transferHistory             StaffTransferHistory[]
@@ -46,6 +47,7 @@ model KvkStaff {
   @@index([originalKvkId])
   @@index([staffCategoryId])
   @@index([payLevelId])
+  @@index([payScaleId])
   @@map("kvk_staff")
 }
 

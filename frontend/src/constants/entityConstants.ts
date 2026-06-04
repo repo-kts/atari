@@ -35,6 +35,10 @@ export const ENTITY_TYPES = {
     // Employee Masters
     STAFF_CATEGORY: 'staff-category',
     PAY_LEVEL: 'pay-level',
+    PAY_SCALE: 'pay-scale',
+    ASSET_FUNDING_SOURCE: 'asset-funding-source',
+    EQUIPMENT_TYPE: 'equipment-type',
+    EQUIPMENT_MASTER: 'equipment-master',
     DISCIPLINE: 'discipline',
 
     // Extension Masters
@@ -93,11 +97,11 @@ export const ENTITY_TYPES = {
     KVK_EMPLOYEES: 'kvk-employees',
     KVK_STAFF_TRANSFERRED: 'kvk-staff-transferred',
     KVK_INFRASTRUCTURE: 'kvk-infrastructure',
+    KVK_LAND_DETAILS: 'kvk-land-details',
     KVK_VEHICLES: 'kvk-vehicles',
     KVK_VEHICLE_DETAILS: 'kvk-vehicle-details',
     KVK_EQUIPMENTS: 'kvk-equipments',
     KVK_EQUIPMENT_DETAILS: 'kvk-equipment-details',
-    KVK_FARM_IMPLEMENTS: 'kvk-farm-implements',
     KVKS: 'kvks',
 
     // Achievements (OFT & FLD)
@@ -111,6 +115,7 @@ export const ENTITY_TYPES = {
     ACHIEVEMENT_OTHER_EXTENSION: 'achievement-other-extension',
     ACHIEVEMENT_TECHNOLOGY_WEEK: 'achievement-technology-week',
     ACHIEVEMENT_CELEBRATION_DAYS: 'achievement-celebration-days',
+    ACHIEVEMENT_POSHAN_MAHA: 'achievement-poshan-maha',
     ACHIEVEMENT_PRODUCTION_SUPPLY: 'achievement-production-supply',
     ACHIEVEMENT_PUBLICATION_DETAILS: 'achievement-publication-details',
     ACHIEVEMENT_SOIL_EQUIPMENT: 'achievement-soil-equipment',
@@ -146,6 +151,8 @@ export const ENTITY_TYPES = {
 
     PROJECT_CSISA: 'project-csisa',
     PROJECT_TSP_SCSP: 'project-tsp-scsp',
+    PROJECT_TSP_ACTIVITY: 'project-tsp-activity',
+    PROJECT_SCSP_ACTIVITY: 'project-scsp-activity',
 
     PROJECT_NICRA_BASIC: 'project-nicra-basic',
     PROJECT_NICRA_DETAILS: 'project-nicra-details',
@@ -212,7 +219,6 @@ export const ENTITY_TYPES = {
 
     // Performance Indicators - Linkages
     PERFORMANCE_FUNCTIONAL_LINKAGE: 'performance-functional-linkage',
-    PERFORMANCE_SPECIAL_PROGRAMMES: 'performance-special-programmes',
 
     // Digital Information
     MISC_DIGITAL_MOBILE_APP: 'misc-digital-mobile-app',
@@ -293,11 +299,11 @@ export const ENTITY_PATHS = {
     KVK_EMPLOYEES: '/forms/about-kvk/employee-details',
     KVK_STAFF_TRANSFERRED: '/forms/about-kvk/staff-transferred',
     KVK_INFRASTRUCTURE: '/forms/about-kvk/infrastructure',
+    KVK_LAND_DETAILS: '/forms/about-kvk/land-details',
     KVK_VEHICLES: '/forms/about-kvk/vehicles',
     KVK_VEHICLE_DETAILS: '/forms/about-kvk/vehicle-details',
     KVK_EQUIPMENTS: '/forms/about-kvk/equipments',
     KVK_EQUIPMENT_DETAILS: '/forms/about-kvk/equipment-details',
-    KVK_FARM_IMPLEMENTS: '/forms/about-kvk/farm-implements',
     KVK_DETAILS: '/forms/about-kvk/details',
     KVK_VIEW: '/forms/about-kvk/view-kvks',
     KVK_VIEW_DETAILS: '/forms/about-kvk/view-kvks/:id',
@@ -316,6 +322,10 @@ export const ENTITY_PATHS = {
     // Employee Masters
     STAFF_CATEGORY: '/all-master/staff-category',
     PAY_LEVEL: '/all-master/pay-level',
+    PAY_SCALE: '/all-master/pay-scale',
+    ASSET_FUNDING_SOURCE: '/all-master/asset-funding-source',
+    EQUIPMENT_TYPE: '/all-master/equipment-type',
+    EQUIPMENT_MASTER: '/all-master/equipment-master',
     DISCIPLINE: '/all-master/discipline',
 
     // Extension Masters

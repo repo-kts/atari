@@ -1,5 +1,5 @@
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 const PERMISSION_ACTIONS = ['VIEW', 'ADD', 'EDIT', 'DELETE'];
 const NEW_MODULES = [

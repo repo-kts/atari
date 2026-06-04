@@ -78,7 +78,8 @@ async function getHrdProgramReportData(kvkId, filters = {}) {
             startDate: r.startDate,
             endDate: r.endDate,
             durationDays,
-            organizerVenue: r.organizerVenue || '',
+            organizer: r.organizer || '',
+            venue: r.venue || '',
         };
     });
 }

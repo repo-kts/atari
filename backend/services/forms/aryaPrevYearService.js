@@ -1,4 +1,4 @@
-const aryaPrevYearRepository = require('../../repositories/forms/aryaPrevYearRepository');
+const aryaPrevYearRepository = require('../../repositories/forms/aryaPrevYearRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const aryaPrevYearService = {

@@ -1,4 +1,4 @@
-const drmrActivityService = require('../../services/forms/drmrActivityService');
+const drmrActivityService = require('../../services/forms/drmrActivityService.js');
 
 const mapError = (error) => {
     const msg = String(error?.message || '');

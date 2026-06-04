@@ -1,4 +1,4 @@
-const nariTrainingRepository = require('../../repositories/forms/nariTrainingRepository');
+const nariTrainingRepository = require('../../repositories/forms/nariTrainingRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const nariTrainingService = {

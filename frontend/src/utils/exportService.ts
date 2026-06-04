@@ -116,11 +116,11 @@ function getHeaders(type: string, sampleItem: any): string[] {
                 'KVK Name',
                 'State',
                 'District',
-                'University',
+                'Host',
                 'Mobile',
                 'Email',
                 'Address',
-                'Organization',
+                'Institute',
                 'Sanction Year',
             ]
         case 'bank':

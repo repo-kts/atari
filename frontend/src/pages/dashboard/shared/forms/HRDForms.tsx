@@ -87,9 +87,16 @@ export const HRDForms: React.FC<HRDProps> = ({
         [setFormData]
     )
 
-    const handleOrganizerVenueChange = useCallback(
+    const handleOrganizerChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            setFormData((prev: any) => ({ ...prev, organizerVenue: e.target.value }))
+            setFormData((prev: any) => ({ ...prev, organizer: e.target.value }))
+        },
+        [setFormData]
+    )
+
+    const handleVenueChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            setFormData((prev: any) => ({ ...prev, venue: e.target.value }))
         },
         [setFormData]
     )
@@ -124,7 +131,7 @@ export const HRDForms: React.FC<HRDProps> = ({
                     </div>
 
                     {/* Row 2 */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
                             label="Start Date"
                             type="date"
@@ -139,11 +146,21 @@ export const HRDForms: React.FC<HRDProps> = ({
                             value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ''}
                             onChange={handleEndDateChange}
                         />
+                    </div>
+
+                    {/* Row 3 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Organizer/Venue"
+                            label="Organizer"
                             required
-                            value={formData.organizerVenue ?? ''}
-                            onChange={handleOrganizerVenueChange}
+                            value={formData.organizer ?? ''}
+                            onChange={handleOrganizerChange}
+                        />
+                        <FormInput
+                            label="Venue"
+                            required
+                            value={formData.venue ?? ''}
+                            onChange={handleVenueChange}
                         />
                     </div>
                 </div>

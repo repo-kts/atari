@@ -11,8 +11,8 @@
  * Run: node scripts/seed-kvk-data.js   or   npm run seed:kvk
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
-const { hashPassword } = require('../utils/password');
+const prisma = require('../config/prisma.js');
+const { hashPassword } = require('../utils/password.js');
 
 // Helper function to get or create master data
 async function getOrCreateZone(name) {
@@ -267,6 +267,17 @@ async function seedKvks() {
   const post1 = await getOrCreateSanctionedPost('Programme Coordinator');
   const post2 = await getOrCreateSanctionedPost('Subject Matter Specialist');
 
+  const payLevel10 = await prisma.payLevelMaster.upsert({
+    where: { levelName: 'Level 10' },
+    update: {},
+    create: { levelName: 'Level 10' },
+  });
+  const payLevel11 = await prisma.payLevelMaster.upsert({
+    where: { levelName: 'Level 11' },
+    update: {},
+    create: { levelName: 'Level 11' },
+  });
+
   const oftSubject1 = await getOrCreateOftSubject(
     'Technologies Assessed under Various Crops by KVKs (Crop Production)'
   );
@@ -397,7 +408,7 @@ async function seedKvks() {
         sanctionedPostId: post1.sanctionedPostId,
         positionOrder: 1,
         disciplineId: discipline1.disciplineId,
-        payScale: 'Level 10',
+        payLevelId: payLevel10.payLevelId,
         dateOfJoining: new Date('2015-06-01'),
         jobType: 'PERMANENT',
         transferStatus: 'ACTIVE',
@@ -411,7 +422,7 @@ async function seedKvks() {
         sanctionedPostId: post2.sanctionedPostId,
         positionOrder: 2,
         disciplineId: discipline2.disciplineId,
-        payScale: 'Level 11',
+        payLevelId: payLevel11.payLevelId,
         dateOfJoining: new Date('2018-03-15'),
         jobType: 'PERMANENT',
         transferStatus: 'ACTIVE',
@@ -467,6 +478,16 @@ async function seedKvks() {
 
   // Seed Equipment
   console.log('\n   🔧 Seeding Equipment...');
+  const fundingIcar = await prisma.assetFundingSourceMaster.upsert({
+    where: { name: 'ICAR' },
+    update: {},
+    create: { name: 'ICAR' },
+  });
+  const fundingStateGovt = await prisma.assetFundingSourceMaster.upsert({
+    where: { name: 'State Govt' },
+    update: {},
+    create: { name: 'State Govt' },
+  });
   for (const kvk of kvks) {
     const equipment = [
       {
@@ -474,16 +495,14 @@ async function seedKvks() {
         equipmentName: 'Tractor',
         yearOfPurchase: 2020,
         totalCost: 500000,
-        sourceOfFunding: 'ICAR',
-        type: 'EQUIPMENT',
+        assetFundingSourceId: fundingIcar.assetFundingSourceId,
       },
       {
         kvkId: kvk.kvkId,
         equipmentName: 'Harvester',
         yearOfPurchase: 2021,
         totalCost: 800000,
-        sourceOfFunding: 'State Government',
-        type: 'EQUIPMENT',
+        assetFundingSourceId: fundingStateGovt.assetFundingSourceId,
       },
     ];
 
@@ -643,7 +662,7 @@ async function seedKvks() {
 
     const oftData = {
       kvkId: kvk.kvkId,
-      reportingYear: new Date('2024-01-01'),
+      expectedCompletionDate: new Date('2024-12-31'),
       seasonId: season1.seasonId,
       staffId: staff.kvkStaffId,
       oftSubjectId: oftSubject1.oftSubjectId,
@@ -654,7 +673,7 @@ async function seedKvks() {
       sourceOfTechnology: 'ICAR Research',
       productionSystem: 'Cereal Production',
       performanceIndicators: 'Yield, Cost, BCR',
-      areaHaNumber: 1.0,
+      quantity: 1.0,
       numberOfLocation: 3,
       numberOfTrialReplication: 3,
       oftStartDate: new Date('2024-06-01'),
@@ -689,7 +708,7 @@ async function seedKvks() {
     const existing = await prisma.kvkoft.findFirst({
       where: {
         kvkId: kvk.kvkId,
-        reportingYear: new Date('2024-01-01'),
+        expectedCompletionDate: new Date('2024-12-31'),
         seasonId: season1.seasonId,
       },
     });
@@ -774,7 +793,9 @@ async function seedKvks() {
           cropId: fldCrop1.cropId,
           fldName: `FLD - ${kvk.kvkName}`,
           noOfDemonstration: 5,
-          areaHa: 2.5,
+          quantity: 2.5,
+          unit: 'ha',
+          expectedCompletionDate: new Date('2024-12-31'),
           startDate: new Date('2024-06-01'),
           generalM: 20,
           generalF: 10,

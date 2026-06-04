@@ -78,7 +78,7 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="font-size:12px;font-weight:bold;border-bottom:none;margin-bottom:16px;">2.2. OFT</h1>`;
+    <h1 class="section-title" style="font-size:12px;font-weight:bold;border-bottom:none;margin-bottom:16px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
 
     const multiKvk = _isMultiKvk(records);
     let cardIndex = 0;
@@ -147,7 +147,8 @@ function _renderCard(record, cardNumber) {
         ['Final recommendation for micro level situation', esc(resultReport.finalRecommendation)],
         ['Constraints identified and feedback for research', esc(resultReport.constraintsFeedback)],
         ['Process of farmers participation and their reaction', esc(resultReport.farmersParticipationProcess)],
-        ['Area (ha)/ No of units', esc(record.areaHaNumber)],
+        ['Quantity', esc(record.quantity)],
+        ['Unit', esc(record.unit)],
         ['No. of Trial/Replication', esc(record.numberOfTrialReplication)],
         ['OFT Start on', this._escapeHtml(_formatMonthYear(record.oftStartDate))],
         ['OFT End on', this._escapeHtml(_formatMonthYear(record.oftEndDate))],

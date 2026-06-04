@@ -12,6 +12,10 @@ import type { ExtendedEntityType } from './masterUtils';
  * Map of entity types to their ID field names
  */
 export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
+    // Present-status masters (edit needs the real PK, not the 'id' default)
+    [ENTITY_TYPES.VEHICLE_PRESENT_STATUS]: 'vehicleStatusId',
+    [ENTITY_TYPES.EQUIPMENT_PRESENT_STATUS]: 'equipmentStatusId',
+
     // Basic Masters
     [ENTITY_TYPES.ZONES]: 'zoneId',
     [ENTITY_TYPES.STATES]: 'stateId',
@@ -36,6 +40,10 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     // Employee Masters
     [ENTITY_TYPES.STAFF_CATEGORY]: 'staffCategoryId',
     [ENTITY_TYPES.PAY_LEVEL]: 'payLevelId',
+    [ENTITY_TYPES.PAY_SCALE]: 'payScaleId',
+    [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: 'assetFundingSourceId',
+    [ENTITY_TYPES.EQUIPMENT_TYPE]: 'equipmentTypeId',
+    [ENTITY_TYPES.EQUIPMENT_MASTER]: 'equipmentMasterId',
     [ENTITY_TYPES.DISCIPLINE]: 'disciplineId',
 
     // Extension Masters
@@ -87,11 +95,11 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.KVK_EMPLOYEES]: 'kvkStaffId',
     [ENTITY_TYPES.KVK_STAFF_TRANSFERRED]: 'kvkStaffId',
     [ENTITY_TYPES.KVK_INFRASTRUCTURE]: 'infraId',
+    [ENTITY_TYPES.KVK_LAND_DETAILS]: 'landId',
     [ENTITY_TYPES.KVK_VEHICLES]: 'vehicleId',
     [ENTITY_TYPES.KVK_VEHICLE_DETAILS]: 'vehicleId',
     [ENTITY_TYPES.KVK_EQUIPMENTS]: 'equipmentId',
     [ENTITY_TYPES.KVK_EQUIPMENT_DETAILS]: 'equipmentId',
-    [ENTITY_TYPES.KVK_FARM_IMPLEMENTS]: 'implementId',
 
     // Achievements
     [ENTITY_TYPES.ACHIEVEMENT_OFT]: 'id',
@@ -175,6 +183,8 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
 
     // TSP/SCSP
     [ENTITY_TYPES.PROJECT_TSP_SCSP]: 'id',
+    [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: 'id',
+    [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: 'id',
 
     // Miscellaneous
     [ENTITY_TYPES.MISC_PREVALENT_DISEASES_CROPS]: 'prevalentDiseaseId',
@@ -213,7 +223,6 @@ export const ENTITY_ID_FIELD_MAP: Record<string, string> = {
     [ENTITY_TYPES.PERFORMANCE_REVENUE_GENERATION]: 'revenueGenerationId',
     [ENTITY_TYPES.PERFORMANCE_RESOURCE_GENERATION]: 'resourceGenerationId',
     [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: 'functionalLinkageId',
-    [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: 'specialProgrammeId',
     [ENTITY_TYPES.IMPACT_SPECIFIC_AREA]: 'specificAreaId',
     [ENTITY_TYPES.ENTERPRISE_TYPE]: 'enterpriseTypeId',
     [ENTITY_TYPES.ACCOUNT_TYPE]: 'accountTypeId',

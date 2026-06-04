@@ -1,4 +1,4 @@
-const fpoManagementService = require('../../services/forms/fpoManagementService');
+const fpoManagementService = require('../../services/forms/fpoManagementService.js');
 
 const mapError = (error) => {
     const msg = String(error?.message || '');

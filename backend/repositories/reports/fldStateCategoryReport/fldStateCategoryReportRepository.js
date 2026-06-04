@@ -32,9 +32,9 @@ function normalizePrismaRow(r) {
         thematicAreaName: r.thematicArea?.thematicAreaName || '—',
         fldName: r.fldName || '—',
         noOfDemonstration: safeInt(r.noOfDemonstration),
-        areaHa: Number(r.areaHa) || 0,
+        areaHa: Number(r.quantity ?? r.areaHa) || 0,
         farmers: totalFarmersFromRow(r),
-        reportingYear: r.reportingYear,
+        reportingYear: r.expectedCompletionDate ?? r.reportingYear,
         fldResult: r.fldResult || null,
     };
 }

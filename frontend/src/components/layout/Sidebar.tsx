@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import {
+    aboutKvkRoutes,
+    viewKvkRoutes,
+    achievementsRoutes,
+    projectsRoutes,
+    performanceIndicatorRoutes,
+    miscellaneousRoutes,
+    digitalInformationRoutes,
+    swachhtaBharatAbhiyaanRoutes,
+    meetingsRoutes,
+} from '../../config/route'
+import {
     LayoutDashboard,
     LayoutList,
     FileText,
@@ -13,6 +24,7 @@ import {
     Settings,
     Bell,
     Image as ImageIcon,
+    Images as GalleryIcon,
     Target,
     History,
     FileBarChart,
@@ -40,6 +52,36 @@ interface MenuItem {
 }
 
 // Super Admin menu items with dropdown support
+// Sub-item (tab) search index: maps each Form Management leaf path to the
+// tab/feature routes shown on that page. Lets the sidebar search surface deep
+// tabs (e.g. "Employee Details" under About KVK) as recommendations.
+interface SubItem {
+    label: string
+    path: string
+    moduleCode?: string
+}
+
+const buildSubItems = (routes: { title: string; path: string; moduleCode?: string }[]): SubItem[] => {
+    const seen = new Set<string>()
+    const out: SubItem[] = []
+    for (const r of routes) {
+        if (!r?.path || !r?.title || seen.has(r.path)) continue
+        seen.add(r.path)
+        out.push({ label: r.title, path: r.path, moduleCode: r.moduleCode })
+    }
+    return out
+}
+
+const SIDEBAR_SUBITEMS: Record<string, SubItem[]> = {
+    '/forms/about-kvk': buildSubItems([...aboutKvkRoutes, ...viewKvkRoutes]),
+    '/forms/achievements': buildSubItems(achievementsRoutes),
+    '/forms/achievements/projects': buildSubItems(projectsRoutes),
+    '/forms/performance': buildSubItems(performanceIndicatorRoutes),
+    '/forms/meetings': buildSubItems(meetingsRoutes),
+    '/forms/swachhta-bharat-abhiyaan': buildSubItems(swachhtaBharatAbhiyaanRoutes),
+    '/forms/miscellaneous': buildSubItems([...miscellaneousRoutes, ...digitalInformationRoutes]),
+}
+
 const superAdminMenuItems: MenuItem[] = [
     {
         label: 'Dashboard',
@@ -92,7 +134,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'Other Masters',
                 path: '/all-master/other-masters',
                 icon: <Folder className="w-4 h-4" />,
-                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_vehicle_present_status_master', 'all_masters_equipment_present_status_master', 'all_masters_events_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master'],
+                moduleCodes: ['all_masters_season_master', 'all_masters_sanctioned_post_master', 'all_masters_staff_category_master', 'all_masters_pay_level_master', 'all_masters_pay_scale_master', 'all_masters_discipline_master', 'all_masters_crop_type_master', 'all_masters_infrastructure_master', 'all_masters_vehicle_present_status_master', 'all_masters_equipment_present_status_master', 'all_masters_events_master', 'all_masters_financial_project_master', 'all_masters_funding_agency_master'],
             },
         ],
     },
@@ -118,7 +160,7 @@ const superAdminMenuItems: MenuItem[] = [
                 label: 'About KVK',
                 path: '/forms/about-kvk',
                 icon: <Building2 className="w-4 h-4" />,
-                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details'],
+                moduleCodes: ['about_kvks_view_kvks', 'about_kvks_bank_account_details', 'about_kvks_employee_details', 'about_kvks_staff_details', 'about_kvks_infrastructure_details', 'about_kvks_vehicle_details', 'about_kvks_equipment_details', 'about_kvks_farm_implement_details', 'performance_indicators_infrastructure'],
             },
             {
                 label: 'Achievements',
@@ -140,16 +182,13 @@ const superAdminMenuItems: MenuItem[] = [
                 moduleCodes: ['performance_indicators_impact', 'performance_indicators_district_village', 'performance_indicators_infrastructure', 'performance_indicators_financial', 'performance_indicators_linkages'],
             },
             {
-                label: 'Miscellaneous',
-                path: '/forms/miscellaneous',
+                label: 'Meetings',
+                path: '/forms/meetings',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['misc_prevalent_diseases_crops', 'misc_prevalent_diseases_livestock', 'misc_nyk_training', 'misc_ppv_fra_training', 'misc_rawe_fet', 'misc_vip_visitors'],
-            },
-            {
-                label: 'Digital Information',
-                path: '/forms/digital-information',
-                icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['digital_mobile_app', 'digital_web_portal', 'digital_kisan_sarthi', 'digital_kisan_advisory', 'digital_messages_other_channels'],
+                moduleCodes: [
+                    'meetings_sac',
+                    'meetings_other_atari',
+                ],
             },
             {
                 label: 'Swachhta Bharat Abhiyaan',
@@ -158,10 +197,24 @@ const superAdminMenuItems: MenuItem[] = [
                 moduleCodes: ['swachh_observation_sewa', 'swachh_pakhwada', 'swachh_budget_expenditure'],
             },
             {
-                label: 'Meetings',
-                path: '/forms/meetings',
+                label: 'Miscellaneous',
+                path: '/forms/miscellaneous',
                 icon: <FileCheck className="w-4 h-4" />,
-                moduleCodes: ['meetings_sac', 'meetings_other_atari'],
+                moduleCodes: [
+                    'misc_prevalent_diseases_crops',
+                    'misc_prevalent_diseases_livestock',
+                    'misc_nyk_training',
+                    'misc_ppv_fra_training',
+                    'misc_rawe_fet',
+                    'misc_vip_visitors',
+                    // Digital Information forms now live under Miscellaneous in the UI;
+                    // grant the sidebar entry whenever the user has any of these.
+                    'digital_mobile_app',
+                    'digital_web_portal',
+                    'digital_kisan_sarthi',
+                    'digital_kisan_advisory',
+                    'digital_messages_other_channels',
+                ],
             },
         ],
     },
@@ -169,6 +222,12 @@ const superAdminMenuItems: MenuItem[] = [
         label: 'Module Images',
         path: '/module-images',
         icon: <ImageIcon className="w-5 h-5" />,
+        moduleCode: 'module_images',
+    },
+    {
+        label: 'Gallery',
+        path: '/gallery',
+        icon: <GalleryIcon className="w-5 h-5" />,
         moduleCode: 'module_images',
     },
     {
@@ -275,6 +334,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         return () => clearTimeout(timer)
     }, [searchQuery])
 
+    // Return the tab/feature sub-items of a leaf path whose labels match the
+    // query, filtered by VIEW permission. Used to recommend deep tabs in search.
+    const getSubItemMatches = React.useCallback(
+        (leafPath: string, rawQuery: string): SubItem[] => {
+            const query = rawQuery.trim().toLowerCase()
+            if (!query) return []
+            const subItems = SIDEBAR_SUBITEMS[leafPath]
+            if (!subItems) return []
+            return subItems.filter(sub => {
+                if (sub.path === leafPath) return false
+                const labelMatch =
+                    sub.label.toLowerCase().includes(query) ||
+                    sub.path.toLowerCase().includes(query)
+                if (!labelMatch) return false
+                // Respect permissions: only recommend tabs the user can view.
+                return sub.moduleCode ? hasPermission('VIEW', sub.moduleCode) : true
+            })
+        },
+        [hasPermission]
+    )
+
     // Filter menu items based on search
     const filteredMenuItems = React.useMemo(() => {
         if (!debouncedSearchQuery.trim()) return menuItems
@@ -303,12 +383,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 return item.children.some(child =>
                     child.label.toLowerCase().includes(query) ||
                     child.path.toLowerCase().includes(query) ||
-                    fuzzyMatch(child.label.toLowerCase(), query)
+                    fuzzyMatch(child.label.toLowerCase(), query) ||
+                    // Keep the section if any of a child's deep tabs match.
+                    getSubItemMatches(child.path, query).length > 0
                 )
             }
             return false
         })
-    }, [menuItems, debouncedSearchQuery])
+    }, [menuItems, debouncedSearchQuery, getSubItemMatches])
 
     // Auto-expand items based on active route or search query
     // Use menuItemsRef to avoid menuItems in deps (it can change ref on re-renders and cause infinite loop)
@@ -339,7 +421,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                 if (item.children && item.dropdown) {
                     const hasMatchingChild = item.children.some(child =>
                         child.label.toLowerCase().includes(query) ||
-                        child.path.toLowerCase().includes(query)
+                        child.path.toLowerCase().includes(query) ||
+                        getSubItemMatches(child.path, query).length > 0
                     )
                     if (hasMatchingChild) {
                         itemsToExpand.push(item.path)
@@ -402,8 +485,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
         { pattern: /^\/all-master\/(training-type|training-area|training-thematic|training-clientele|funding-source|extension-activity|other-extension-activity|events|training-extension)/, parentPath: '/all-master/training' },
         { pattern: /^\/all-master\/(product-category|product-type|product|cra-croping-system|cra-farming-system|arya-enterprise|natural-farming-activity|natural-farming-soil-parameter|agri-drone-demonstrations-on)/, parentPath: '/all-master/production-projects' },
         { pattern: /^\/forms\/(about-kvk|achievements|success-stories)/, parentPath: '/forms' },
+        // Staff Quarters lives under the performance URL tree but belongs to the About KVK group in the sidebar.
+        { pattern: /^\/forms\/performance\/infrastructure\/staff-quarters/, parentPath: '/forms/about-kvk' },
         { pattern: /^\/all-master\/(publications|publication-item)/, parentPath: '/all-master/publications' },
-        { pattern: /^\/all-master\/(staff-category|pay-level|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
+        { pattern: /^\/all-master\/(staff-category|pay-level|pay-scale|asset-funding-source|equipment-type|equipment-master|sanctioned-post|discipline|season|year|crop-type|infrastructure-master|vehicle-present-status|equipment-present-status|important-day|soil-water-analysis|nicra-category|nicra-sub-category|nicra-seed-bank-fodder-bank|nicra-dignitary-type|nicra-pi-type)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(nari-activity|nari-nutrition-garden-type|nari-crop-category)/, parentPath: '/all-master/other-masters' },
         { pattern: /^\/all-master\/(impact-specific-area|enterprise-type|account-type|programme-type|ppv-fra-training-type|dignitary-type|financial-project|funding-agency)/, parentPath: '/all-master/other-masters' },
     ]
@@ -434,7 +519,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
     const isActive = (path: string): boolean => {
         if (path === '#') return false
         if (location.pathname === path) return true
+        const effectiveParent = getEffectiveParent(location.pathname)
         if (location.pathname.startsWith(path + '/')) {
+            // If the route is explicitly mapped to a *specific* parent group, don't activate this one.
+            // The bare '/forms' mapping is only a catch-all for the Form Management dropdown — it must not
+            // suppress deeper leaf items (e.g. Projects) whose children also live under /forms/achievements.
+            if (effectiveParent && effectiveParent !== path && effectiveParent !== '/forms') return false
             // Check if a more specific menu path matches — if so, this shorter prefix is NOT active
             const hasMoreSpecificMatch = allMenuPaths.some(
                 p => p !== path && p.length > path.length && p.startsWith(path + '/') &&
@@ -443,7 +533,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
             if (hasMoreSpecificMatch) return false
             return true
         }
-        const effectiveParent = getEffectiveParent(location.pathname)
         if (effectiveParent && path === effectiveParent) {
             return true
         }
@@ -565,6 +654,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
                                     onToggleExpand={toggleExpanded}
                                     searchQuery={debouncedSearchQuery}
                                     highlightMatch={highlightMatch}
+                                    getSubItemMatches={getSubItemMatches}
                                     onMobileClose={() => setIsMobileMenuOpen(false)}
                                 />
                             ))
@@ -590,20 +680,24 @@ const SidebarDropdownItem: React.FC<{
     onToggleExpand: (path: string) => void
     searchQuery: string
     highlightMatch: (text: string, query: string) => React.ReactNode
+    getSubItemMatches: (leafPath: string, query: string) => SubItem[]
     onMobileClose: () => void
-}> = ({ item, isOpen, isExpanded, isActive, isSectionActive, onToggleExpand, searchQuery, highlightMatch, onMobileClose }) => {
+}> = ({ item, isOpen, isExpanded, isActive, isSectionActive, onToggleExpand, searchQuery, highlightMatch, getSubItemMatches, onMobileClose }) => {
     const [isHovered, setIsHovered] = useState(false)
     const sectionActive = isSectionActive(item)
 
-    // Filter children if searching
+    // Filter children if searching. Keep a child when its own label/path
+    // matches OR when one of its deep tab sub-items matches (e.g. "infra"
+    // matches "Infrastructure Details" under About KVK).
     const displayedChildren = React.useMemo(() => {
         if (!searchQuery.trim()) return item.children
         const query = searchQuery.toLowerCase()
         return item.children?.filter(child =>
             child.label.toLowerCase().includes(query) ||
-            child.path.toLowerCase().includes(query)
+            child.path.toLowerCase().includes(query) ||
+            getSubItemMatches(child.path, query).length > 0
         )
-    }, [item.children, searchQuery])
+    }, [item.children, searchQuery, getSubItemMatches])
 
     return (
         <div
@@ -648,26 +742,45 @@ const SidebarDropdownItem: React.FC<{
                         <div className="px-2 pb-2 pt-1 space-y-1">
                             {displayedChildren?.map(child => {
                                 const childActive = isActive(child.path)
+                                const subMatches = searchQuery ? getSubItemMatches(child.path, searchQuery) : []
                                 return (
-                                    <Link
-                                        key={child.path}
-                                        to={child.path}
-                                        target={child.target}
-                                        onClick={() => onMobileClose()}
-                                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
-                                            ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
-                                            : 'text-white/85 hover:bg-white/10 hover:text-white'
-                                            }`}
-                                    >
-                                        {child.icon && (
-                                            <span className={`shrink-0 ${childActive ? 'text-[#3d6540]' : ''}`}>
-                                                {child.icon}
+                                    <React.Fragment key={child.path}>
+                                        <Link
+                                            to={child.path}
+                                            target={child.target}
+                                            onClick={() => onMobileClose()}
+                                            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${childActive
+                                                ? 'bg-white text-[#2d4a2f] font-semibold shadow-sm'
+                                                : 'text-white/85 hover:bg-white/10 hover:text-white'
+                                                }`}
+                                        >
+                                            {child.icon && (
+                                                <span className={`shrink-0 ${childActive ? 'text-[#3d6540]' : ''}`}>
+                                                    {child.icon}
+                                                </span>
+                                            )}
+                                            <span className="text-sm truncate">
+                                                {searchQuery ? highlightMatch(child.label, searchQuery) : child.label}
                                             </span>
+                                        </Link>
+                                        {subMatches.length > 0 && (
+                                            <div className="ml-5 pl-2 border-l border-white/15 space-y-0.5">
+                                                {subMatches.map(sub => (
+                                                    <Link
+                                                        key={sub.path}
+                                                        to={sub.path}
+                                                        onClick={() => onMobileClose()}
+                                                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                                    >
+                                                        <span className="shrink-0 w-1 h-1 rounded-full bg-white/40" />
+                                                        <span className="truncate">
+                                                            {highlightMatch(sub.label, searchQuery)}
+                                                        </span>
+                                                    </Link>
+                                                ))}
+                                            </div>
                                         )}
-                                        <span className="text-sm truncate">
-                                            {searchQuery ? highlightMatch(child.label, searchQuery) : child.label}
-                                        </span>
-                                    </Link>
+                                    </React.Fragment>
                                 )
                             })}
                         </div>
@@ -687,6 +800,7 @@ const SidebarItem: React.FC<{
     onToggleExpand: (path: string) => void
     searchQuery: string
     highlightMatch: (text: string, query: string) => React.ReactNode
+    getSubItemMatches: (leafPath: string, query: string) => SubItem[]
     onMobileClose: () => void
 }> = (props) => {
     if (props.item.children && props.item.dropdown) {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const vipVisitorsController = require('../../controllers/forms/vipVisitorsController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const vipVisitorsController = require('../../controllers/forms/vipVisitorsController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

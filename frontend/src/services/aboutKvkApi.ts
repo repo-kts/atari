@@ -10,14 +10,14 @@ import type {
     KvkInfrastructure,
     KvkVehicle,
     KvkEquipment,
-    KvkFarmImplement,
+    KvkLandDetail,
     KvkFormData,
     KvkBankAccountFormData,
     KvkEmployeeFormData,
     KvkInfrastructureFormData,
     KvkVehicleFormData,
     KvkEquipmentFormData,
-    KvkFarmImplementFormData,
+    KvkLandDetailFormData,
 } from '../types/aboutKvk';
 
 const BASE_URL = '/forms/about-kvk';
@@ -35,13 +35,13 @@ const BANK_ACCOUNT_ALLOWED_KEYS = [
 
 const STAFF_ALLOWED_KEYS = [
     'kvkId', 'staffName', 'email', 'mobile', 'dateOfBirth', 'photoPath', 'resumePath',
-    'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScale', 'dateOfJoining',
+    'sanctionedPostId', 'positionOrder', 'disciplineId', 'payScaleId', 'dateOfJoining',
     'jobType', 'allowances', 'transferStatus', 'sourceKvkIds', 'originalKvkId',
-    'staffCategoryId', 'payLevelId',
+    'staffCategoryId', 'payLevelId', 'attachmentIds',
 ] as const;
 
 const INFRASTRUCTURE_ALLOWED_KEYS = [
-    'kvkId', 'infraMasterId', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
+    'kvkId', 'infraMasterId', 'specifyName', 'notYetStarted', 'completedPlinthLevel', 'completedLintelLevel',
     'completedRoofLevel', 'totallyCompleted', 'plinthAreaSqM', 'underUse', 'sourceOfFunding',
 ] as const;
 
@@ -50,19 +50,19 @@ const VEHICLE_ALLOWED_KEYS = [
 ] as const;
 
 const VEHICLE_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'sourceOfFunding', 'vehicleStatusId',
+    'kvkId', 'vehicleId', 'reportingYear', 'totalRun', 'repairingCost', 'assetFundingSourceId', 'vehicleStatusId',
 ] as const;
 
 const EQUIPMENT_ALLOWED_KEYS = [
-    'kvkId', 'equipmentName', 'yearOfPurchase', 'totalCost', 'sourceOfFunding', 'type',
+    'kvkId', 'equipmentTypeId', 'equipmentMasterId', 'equipmentName', 'companyBrandModel', 'identifierCode', 'yearOfPurchase', 'totalCost', 'assetFundingSourceId',
 ] as const;
 
 const EQUIPMENT_DETAIL_ALLOWED_KEYS = [
-    'kvkId', 'equipmentId', 'reportingYear', 'sourceOfFunding', 'equipmentStatusId',
+    'kvkId', 'equipmentId', 'reportingYear', 'assetFundingSourceId', 'equipmentStatusId',
 ] as const;
 
-const FARM_IMPLEMENT_ALLOWED_KEYS = [
-    'kvkId', 'implementName', 'yearOfPurchase', 'totalCost', 'presentStatus', 'sourceOfFund',
+const LAND_DETAIL_ALLOWED_KEYS = [
+    'kvkId', 'item', 'areaHa',
 ] as const;
 
 function normalizeBankAccountType(value: unknown): 'KVK' | 'REVOLVING_FUND' | 'OTHER' {
@@ -266,13 +266,13 @@ export const aboutKvkApi = {
     deleteKvkEquipmentDetails: createDeleteEndpoint('/equipment-details'),
 
     // ============================================
-    // Farm Implements
+    // Land Details
     // ============================================
-    getKvkFarmImplements: createGetEndpoint<KvkFarmImplement>('/farm-implements'),
-    getKvkFarmImplementById: createGetByIdEndpoint<KvkFarmImplement>('/farm-implements'),
-    createKvkFarmImplement: createSanitizedPostEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
-    updateKvkFarmImplement: createSanitizedPutEndpoint<KvkFarmImplementFormData, KvkFarmImplement>('/farm-implements', FARM_IMPLEMENT_ALLOWED_KEYS, normalizeCommonStringFields),
-    deleteKvkFarmImplement: createDeleteEndpoint('/farm-implements'),
+    getKvkLandDetails: createGetEndpoint<KvkLandDetail>('/land-details'),
+    getKvkLandDetailById: createGetByIdEndpoint<KvkLandDetail>('/land-details'),
+    createKvkLandDetail: createSanitizedPostEndpoint<KvkLandDetailFormData, KvkLandDetail>('/land-details', LAND_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    updateKvkLandDetail: createSanitizedPutEndpoint<KvkLandDetailFormData, KvkLandDetail>('/land-details', LAND_DETAIL_ALLOWED_KEYS, normalizeCommonStringFields),
+    deleteKvkLandDetail: createDeleteEndpoint('/land-details'),
 
     // ============================================
     // Master Data (for dropdowns)

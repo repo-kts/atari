@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository');
-const specialProgrammeRepository = require('../../repositories/forms/specialProgrammeRepository');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);
@@ -54,8 +53,5 @@ const createRoutes = (path, repository) => {
 
 // 1. Functional Linkage
 createRoutes('functional-linkages', functionalLinkageRepository);
-
-// 2. Special Programmes
-createRoutes('special-programmes', specialProgrammeRepository);
 
 module.exports = router;

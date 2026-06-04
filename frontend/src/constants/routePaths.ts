@@ -40,6 +40,7 @@ export const ROUTE_PATHS = {
         OTHER_EXTENSION: '/forms/achievements/other-extension',
         TECHNOLOGY_WEEK: '/forms/achievements/technology-week',
         CELEBRATION_DAYS: '/forms/achievements/celebration-days',
+        POSHAN_MAHA: '/forms/achievements/poshan-maha',
         PRODUCTION_SUPPLY: '/forms/achievements/production-supply',
         PUBLICATIONS: '/forms/achievements/publication-details',
         SOIL_EQUIPMENT: '/forms/achievements/soil-equipment',
@@ -91,7 +92,11 @@ export const ROUTE_PATHS = {
                 EVALUATION: '/forms/achievements/projects/arya-evaluation',
             },
             CSISA: '/forms/achievements/projects/csisa',
-            TSP_SCSP: '/forms/achievements/projects/sub-plan-activity',
+            TSP_SCSP: {
+                BASE: '/forms/achievements/projects/sub-plan-activity',
+                TSP: '/forms/achievements/projects/sub-plan-activity/tsp',
+                SCSP: '/forms/achievements/projects/sub-plan-activity/scsp',
+            },
             NICRA: {
                 BASE: '/forms/achievements/projects/nicra',
                 BASIC_INFORMATION: '/forms/achievements/projects/nicra/basic-information',
@@ -157,7 +162,6 @@ export const ROUTE_PATHS = {
         },
         LINKAGES: {
             FUNCTIONAL_LINKAGE: '/forms/performance/linkages/functional-linkage',
-            SPECIAL_PROGRAMMES: '/forms/performance/linkages/special-programmes',
         },
     },
     // Miscellaneous Routes
@@ -305,8 +309,6 @@ export const ROUTE_PATHS = {
                 '/forms/performance/infrastructure/rainwater-harvesting',
             FUNCTIONAL_LINKAGE:
                 '/forms/performance/linkages/functional-linkages',
-            SPECIAL_PROGRAMMES:
-                '/forms/performance/linkages/special-programmes',
             OPERATIONAL_AREA:
                 '/forms/performance/district-village/operational-areas',
             VILLAGE_ADOPTION:

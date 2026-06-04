@@ -1,4 +1,4 @@
-const drmrDetailsService = require('../../services/forms/drmrDetailsService');
+const drmrDetailsService = require('../../services/forms/drmrDetailsService.js');
 
 const mapError = (error) => {
     const msg = String(error?.message || '');

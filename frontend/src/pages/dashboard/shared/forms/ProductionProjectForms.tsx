@@ -108,18 +108,13 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
             productTypeId: value,
             prodSubCategory: selectedType?.productCategoryType || '',
             productId: '',
-            speciesName: '',
         })
     }, [formData, setFormData, productTypes])
 
     const handleProductChange = useCallback((value: string | number) => {
-        const selectedProduct = products.find((p: any) => p.productId === value)
-        setFormData({
-            ...formData,
-            productId: value,
-            speciesName: selectedProduct?.productName || '',
-        })
-    }, [formData, setFormData, products])
+        // Species / Breed / Variety is free text now — don't overwrite it.
+        setFormData({ ...formData, productId: value })
+    }, [formData, setFormData])
 
     const handleSpeciesNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, speciesName: e.target.value })
@@ -309,7 +304,7 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="Reporting Date"
                             required
                             type="date"
                             value={formData.reportingYear ?? ''}
@@ -360,12 +355,13 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                             loadingMessage="Loading products..."
                         />
 
-                        {/* Species / Breed / Variety */}
+                        {/* Species / Breed / Variety — free text */}
                         <FormInput
                             label="Species / Breed / Variety"
                             required
                             value={formData.speciesName ?? ''}
                             onChange={handleSpeciesNameChange}
+                            placeholder="Enter species / breed / variety"
                         />
 
                         {/* Unit and Quantity */}
@@ -454,6 +450,40 @@ export const ProductionProjectForms: React.FC<ProductionProjectFormsProps> = ({
                                 value={formData.st_f ?? ''}
                                 onChange={handleFarmerFieldChange('st_f')}
                             />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.st_m) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m) || 0) +
+                                        (Number(formData.gen_f) || 0) +
+                                        (Number(formData.obc_m) || 0) +
+                                        (Number(formData.obc_f) || 0) +
+                                        (Number(formData.sc_m) || 0) +
+                                        (Number(formData.sc_f) || 0) +
+                                        (Number(formData.st_m) || 0) +
+                                        (Number(formData.st_f) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </FormSection>
                 </div>

@@ -12,6 +12,7 @@ const OFT_INCLUDE = {
     oftSubject: { select: { subjectName: true } },
     oftThematicArea: { select: { thematicAreaName: true } },
     discipline: { select: { disciplineName: true } },
+    sourceOfFunding: { select: { fundingSourceId: true, name: true } },
     technologies: {
         include: { oftTechnologyType: true },
         orderBy: { kvkOftTechnologyId: 'asc' },
@@ -66,22 +67,38 @@ const oftRepository = {
             where.kvkId = parseInt(filters.kvkId);
         }
 
-        if (filters.reportingYearFrom || filters.reportingYearTo) {
-            where.reportingYear = {};
-            if (filters.reportingYearFrom) {
-                const from = parseReportingYearDate(filters.reportingYearFrom);
-                ensureNotFutureDate(from);
+        if (filters.expectedCompletionDateFrom || filters.expectedCompletionDateTo) {
+            where.expectedCompletionDate = {};
+            if (filters.expectedCompletionDateFrom) {
+                const from = parseReportingYearDate(filters.expectedCompletionDateFrom);
                 if (from) {
                     from.setHours(0, 0, 0, 0);
-                    where.reportingYear.gte = from;
+                    where.expectedCompletionDate.gte = from;
                 }
             }
-            if (filters.reportingYearTo) {
-                const to = parseReportingYearDate(filters.reportingYearTo);
-                ensureNotFutureDate(to);
+            if (filters.expectedCompletionDateTo) {
+                const to = parseReportingYearDate(filters.expectedCompletionDateTo);
                 if (to) {
                     to.setHours(23, 59, 59, 999);
-                    where.reportingYear.lte = to;
+                    where.expectedCompletionDate.lte = to;
+                }
+            }
+        }
+
+        if (filters.createdAtFrom || filters.createdAtTo) {
+            where.createdAt = {};
+            if (filters.createdAtFrom) {
+                const from = new Date(filters.createdAtFrom);
+                if (!isNaN(from.getTime())) {
+                    from.setHours(0, 0, 0, 0);
+                    where.createdAt.gte = from;
+                }
+            }
+            if (filters.createdAtTo) {
+                const to = new Date(filters.createdAtTo);
+                if (!isNaN(to.getTime())) {
+                    to.setHours(23, 59, 59, 999);
+                    where.createdAt.lte = to;
                 }
             }
         }
@@ -183,7 +200,7 @@ const oftRepository = {
         });
     },
 
-    transferToNextYearTx: async (sourceOft, targetReportingYearId) => {
+    transferToNextYearTx: async (sourceOft, targetStartDate, targetExpectedCompletionDate) => {
         const sourceId = sourceOft.kvkOftId;
         return prisma.$transaction(async (tx) => {
             await tx.kvkoft.update({
@@ -191,23 +208,31 @@ const oftRepository = {
                 data: { status: OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR },
             });
 
+            const resolvedStartDate = targetStartDate instanceof Date
+                ? targetStartDate
+                : (targetStartDate ? sanitizeDate(targetStartDate) : sourceOft.oftStartDate);
+
             const createData = removeIdFieldsForUpdate({
                 kvkId: sourceOft.kvkId,
-                reportingYear: parseReportingYearDate(targetReportingYearId),
+                expectedCompletionDate: targetExpectedCompletionDate instanceof Date
+                    ? targetExpectedCompletionDate
+                    : sanitizeDate(targetExpectedCompletionDate),
                 seasonId: sourceOft.seasonId,
                 staffId: sourceOft.staffId,
                 oftSubjectId: sourceOft.oftSubjectId,
                 oftThematicAreaId: sourceOft.oftThematicAreaId,
                 disciplineId: sourceOft.disciplineId,
+                sourceOfFundingId: sourceOft.sourceOfFundingId,
+                unit: sourceOft.unit,
                 title: sourceOft.title,
                 problemDiagnosed: sourceOft.problemDiagnosed,
                 sourceOfTechnology: sourceOft.sourceOfTechnology,
                 productionSystem: sourceOft.productionSystem,
                 performanceIndicators: sourceOft.performanceIndicators,
-                areaHaNumber: sourceOft.areaHaNumber,
+                quantity: sourceOft.quantity,
                 numberOfLocation: sourceOft.numberOfLocation,
                 numberOfTrialReplication: sourceOft.numberOfTrialReplication,
-                oftStartDate: sourceOft.oftStartDate,
+                oftStartDate: resolvedStartDate,
                 criticalInput: sourceOft.criticalInput,
                 costOfOft: sourceOft.costOfOft,
                 farmersGeneralM: sourceOft.farmersGeneralM,
@@ -304,13 +329,14 @@ const oftRepository = {
 };
 
 function _buildOftCreateData(data, kvkId) {
-    const reportingYear = parseReportingYearDate(safeGet(data, 'reportingYear'));
-    ensureNotFutureDate(reportingYear);
+    const expectedCompletionDate = sanitizeDate(safeGet(data, 'expectedCompletionDate'));
     const seasonId = sanitizeInteger(safeGet(data, 'seasonId'), { defaultValue: 1 });
     const staffId = sanitizeInteger(safeGet(data, 'staffId') || safeGet(data, 'staffName'), { defaultValue: 1 });
     const oftSubjectId = sanitizeInteger(safeGet(data, 'oftSubjectId'));
     const oftThematicAreaId = sanitizeInteger(safeGet(data, 'oftThematicAreaId') || safeGet(data, 'thematicArea'), { defaultValue: 1 });
     const disciplineId = sanitizeInteger(safeGet(data, 'disciplineId') || safeGet(data, 'discipline'), { defaultValue: 1 });
+    const sourceOfFundingId = sanitizeInteger(safeGet(data, 'sourceOfFundingId'));
+    const unit = sanitizeString(safeGet(data, 'unit'), { allowEmpty: true }) || null;
 
     if (!oftSubjectId || oftSubjectId === null) {
         throw new ValidationError('oftSubjectId is required', 'oftSubjectId');
@@ -318,18 +344,20 @@ function _buildOftCreateData(data, kvkId) {
 
     return {
         kvkId,
-        reportingYear,
+        expectedCompletionDate,
         seasonId,
         staffId,
         oftSubjectId,
         oftThematicAreaId,
         disciplineId,
+        sourceOfFundingId,
+        unit,
         title: sanitizeString(safeGet(data, 'title'), { allowEmpty: true }) || '',
         problemDiagnosed: sanitizeString(safeGet(data, 'problemDiagnosed'), { allowEmpty: true }) || '',
         sourceOfTechnology: sanitizeString(safeGet(data, 'sourceOfTechnology'), { allowEmpty: true }) || '',
         productionSystem: sanitizeString(safeGet(data, 'productionSystem'), { allowEmpty: true }) || '',
         performanceIndicators: sanitizeString(safeGet(data, 'performanceIndicators'), { allowEmpty: true }) || '',
-        areaHaNumber: sanitizeNumber(safeGet(data, 'areaHaNumber') || safeGet(data, 'area'), { defaultValue: 0 }),
+        quantity: sanitizeNumber(safeGet(data, 'quantity') ?? safeGet(data, 'areaHaNumber') ?? safeGet(data, 'area'), { defaultValue: 0 }),
         numberOfLocation: sanitizeInteger(safeGet(data, 'numberOfLocation') || safeGet(data, 'locations'), { defaultValue: 0 }),
         numberOfTrialReplication: sanitizeInteger(safeGet(data, 'numberOfTrialReplication') || safeGet(data, 'replications'), { defaultValue: 0 }),
         oftStartDate: sanitizeDate(safeGet(data, 'oftStartDate') || safeGet(data, 'duration')) || new Date(),
@@ -349,21 +377,24 @@ function _buildOftCreateData(data, kvkId) {
 
 function _buildOftUpdateData(data, existing) {
     const updateData = {};
-    if (data.reportingYear !== undefined) {
-        updateData.reportingYear = parseReportingYearDate(data.reportingYear);
-        ensureNotFutureDate(updateData.reportingYear);
+    if (data.expectedCompletionDate !== undefined) {
+        updateData.expectedCompletionDate = sanitizeDate(data.expectedCompletionDate);
     }
     if (data.seasonId !== undefined) updateData.seasonId = sanitizeInteger(data.seasonId);
     if (data.staffId !== undefined || data.staffName !== undefined) updateData.staffId = sanitizeInteger(data.staffId || data.staffName);
     if (data.oftSubjectId !== undefined) updateData.oftSubjectId = sanitizeInteger(data.oftSubjectId);
     if (data.oftThematicAreaId !== undefined || data.thematicArea !== undefined) updateData.oftThematicAreaId = sanitizeInteger(data.oftThematicAreaId || data.thematicArea);
     if (data.disciplineId !== undefined || data.discipline !== undefined) updateData.disciplineId = sanitizeInteger(data.disciplineId || data.discipline);
+    if (data.sourceOfFundingId !== undefined) updateData.sourceOfFundingId = sanitizeInteger(data.sourceOfFundingId);
+    if (data.unit !== undefined) updateData.unit = sanitizeString(data.unit, { allowEmpty: true }) || null;
     if (data.title !== undefined) updateData.title = sanitizeString(data.title, { allowEmpty: true }) || '';
     if (data.problemDiagnosed !== undefined) updateData.problemDiagnosed = sanitizeString(data.problemDiagnosed, { allowEmpty: true }) || '';
     if (data.sourceOfTechnology !== undefined) updateData.sourceOfTechnology = sanitizeString(data.sourceOfTechnology, { allowEmpty: true }) || '';
     if (data.productionSystem !== undefined) updateData.productionSystem = sanitizeString(data.productionSystem, { allowEmpty: true }) || '';
     if (data.performanceIndicators !== undefined) updateData.performanceIndicators = sanitizeString(data.performanceIndicators, { allowEmpty: true }) || '';
-    if (data.areaHaNumber !== undefined || data.area !== undefined) updateData.areaHaNumber = sanitizeNumber(data.areaHaNumber ?? data.area, { defaultValue: existing.areaHaNumber || 0 });
+    if (data.quantity !== undefined || data.areaHaNumber !== undefined || data.area !== undefined) {
+        updateData.quantity = sanitizeNumber(data.quantity ?? data.areaHaNumber ?? data.area, { defaultValue: existing.quantity || 0 });
+    }
     if (data.numberOfLocation !== undefined || data.locations !== undefined) updateData.numberOfLocation = sanitizeInteger(data.numberOfLocation ?? data.locations, { defaultValue: existing.numberOfLocation || 0 });
     if (data.numberOfTrialReplication !== undefined || data.replications !== undefined) updateData.numberOfTrialReplication = sanitizeInteger(data.numberOfTrialReplication ?? data.replications, { defaultValue: existing.numberOfTrialReplication || 0 });
     if (data.oftStartDate !== undefined || data.duration !== undefined) updateData.oftStartDate = sanitizeDate(data.oftStartDate || data.duration) || existing.oftStartDate;
@@ -401,7 +432,7 @@ function _mapOftResponse(r) {
         kvkOftId: r.kvkOftId,
         kvkId: r.kvkId,
         kvkName: r.kvk ? r.kvk.kvkName : undefined,
-        reportingYear: formatReportingYear(r.reportingYear),
+        expectedCompletionDate: r.expectedCompletionDate ? r.expectedCompletionDate.toISOString().split('T')[0] : '',
         seasonId: r.seasonId,
         seasonName: r.season ? r.season.seasonName : undefined,
         staffId: r.staffId,
@@ -412,27 +443,33 @@ function _mapOftResponse(r) {
         thematicAreaName: r.oftThematicArea ? r.oftThematicArea.thematicAreaName : undefined,
         disciplineId: r.disciplineId,
         disciplineName: r.discipline ? r.discipline.disciplineName : undefined,
+        unit: r.unit,
+        sourceOfFundingId: r.sourceOfFundingId,
+        sourceOfFundingName: r.sourceOfFunding ? r.sourceOfFunding.name : undefined,
         title: r.title,
         problemDiagnosed: r.problemDiagnosed,
         sourceOfTechnology: r.sourceOfTechnology,
         productionSystem: r.productionSystem,
         performanceIndicators: r.performanceIndicators,
-        areaHaNumber: r.areaHaNumber,
-        area: r.areaHaNumber,
+        quantity: r.quantity,
         numberOfLocation: r.numberOfLocation,
         locations: r.numberOfLocation,
         numberOfTrialReplication: r.numberOfTrialReplication,
         replications: r.numberOfTrialReplication,
         oftStartDate: r.oftStartDate,
+        startYear: r.oftStartDate ? new Date(r.oftStartDate).getFullYear() : null,
         duration: r.oftStartDate ? r.oftStartDate.toISOString().split('T')[0] : '',
         criticalInput: r.criticalInput,
         costOfOft: r.costOfOft,
         cost: r.costOfOft,
+        createdAt: r.createdAt,
 
         gen_m: r.farmersGeneralM, gen_f: r.farmersGeneralF,
         obc_m: r.farmersObcM, obc_f: r.farmersObcF,
         sc_m: r.farmersScM, sc_f: r.farmersScF,
         st_m: r.farmersStM, st_f: r.farmersStF,
+        totalMale: (r.farmersGeneralM || 0) + (r.farmersObcM || 0) + (r.farmersScM || 0) + (r.farmersStM || 0),
+        totalFemale: (r.farmersGeneralF || 0) + (r.farmersObcF || 0) + (r.farmersScF || 0) + (r.farmersStF || 0),
         ongoingCompleted: normalizeOftStatus(r.status),
         status: normalizeOftStatus(r.status),
    };

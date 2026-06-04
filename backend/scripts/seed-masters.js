@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 // Staff Masters
 const STAFF_CATEGORIES = [
@@ -19,6 +19,43 @@ const PAY_LEVELS = [
   'Level 7', 'Level 8', 'Level 9', 'Level 10', 'Level 11', 'Level 12',
   'Level 13', 'Level 14', 'Level 15', 'Level 16', 'Level 17', 'Level 18'
 ];
+
+const PAY_SCALES = [
+  '15600-39100',
+  '9300-34800',
+  '5200-20200',
+];
+
+const ASSET_FUNDING_SOURCES = [
+  'ICAR',
+  'State Govt',
+  'KVK Own Fund',
+  'World Bank',
+  'ATARI',
+  'Revolving Fund',
+];
+
+const EQUIPMENT_TYPES = [
+  'Tractor',
+  'Sprayer',
+  'Trailer',
+  'Harvester',
+  'Thresher',
+  'Tiller',
+  'Generator',
+  'Other',
+];
+
+const EQUIPMENT_MASTERS_BY_TYPE = {
+  'Tractor': ['John Deere 5050D', 'Mahindra 475 DI', 'Kubota L3408'],
+  'Sprayer': ['Knapsack Sprayer', 'Power Sprayer', 'Boom Sprayer'],
+  'Trailer': ['Tipping Trailer', 'Flatbed Trailer'],
+  'Harvester': ['Combine Harvester', 'Reaper Binder'],
+  'Thresher': ['Multi-crop Thresher', 'Paddy Thresher'],
+  'Tiller': ['Power Tiller', 'Rotary Tiller'],
+  'Generator': ['Diesel Generator 5kVA', 'Diesel Generator 10kVA'],
+  'Other': ['Other'],
+};
 
 // Training Masters — official Training Type → Training Area mapping (KVK)
 const TRAINING_TYPES = [
@@ -753,6 +790,59 @@ async function seedStaffMasters() {
       update: {},
       create: { levelName },
     });
+  }
+
+  for (const scaleName of PAY_SCALES) {
+    await prisma.payScaleMaster.upsert({
+      where: { scaleName },
+      update: {},
+      create: { scaleName },
+    });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedAssetFundingSources() {
+  console.log('🌱 Asset funding sources...');
+
+  for (const name of ASSET_FUNDING_SOURCES) {
+    await prisma.assetFundingSourceMaster.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+
+  console.log('   ✅ Done\n');
+}
+
+async function seedEquipmentMasters() {
+  console.log('🌱 Equipment type + equipment masters...');
+
+  for (const typeName of EQUIPMENT_TYPES) {
+    const type = await prisma.equipmentTypeMaster.upsert({
+      where: { name: typeName },
+      update: {},
+      create: { name: typeName },
+    });
+
+    const children = EQUIPMENT_MASTERS_BY_TYPE[typeName] || [];
+    for (const childName of children) {
+      await prisma.equipmentMaster.upsert({
+        where: {
+          equipmentTypeId_name: {
+            equipmentTypeId: type.equipmentTypeId,
+            name: childName,
+          },
+        },
+        update: {},
+        create: {
+          equipmentTypeId: type.equipmentTypeId,
+          name: childName,
+        },
+      });
+    }
   }
 
   console.log('   ✅ Done\n');
@@ -1735,6 +1825,8 @@ async function seedFldMasters() {
 async function run() {
   console.log('🌱 Seed all masters\n');
   await seedStaffMasters();
+  await seedAssetFundingSources();
+  await seedEquipmentMasters();
   await seedTrainingMasters();
   await seedExtensionMasters();
   await seedEventsMasters();

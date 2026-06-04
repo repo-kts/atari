@@ -1,4 +1,4 @@
-const ppvFraService = require('../../services/forms/ppvFraService');
+const ppvFraService = require('../../services/forms/ppvFraService.js');
 
 const makeResponder = (res) => ({
     ok: (data) => res.json({ success: true, data }),

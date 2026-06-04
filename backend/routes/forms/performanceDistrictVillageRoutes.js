@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const operationalAreaRepository = require('../../repositories/forms/operationalAreaRepository');
-const villageAdoptionRepository = require('../../repositories/forms/villageAdoptionRepository');
-const priorityThrustAreaRepository = require('../../repositories/forms/priorityThrustAreaRepository');
-const districtLevelDataRepository = require('../../repositories/forms/districtLevelDataRepository');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const operationalAreaRepository = require('../../repositories/forms/operationalAreaRepository.js');
+const villageAdoptionRepository = require('../../repositories/forms/villageAdoptionRepository.js');
+const priorityThrustAreaRepository = require('../../repositories/forms/priorityThrustAreaRepository.js');
+const districtLevelDataRepository = require('../../repositories/forms/districtLevelDataRepository.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

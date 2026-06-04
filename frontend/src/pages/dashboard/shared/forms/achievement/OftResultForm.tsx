@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { DynamicReportTableBuilder, ResultTable } from '@/components/common/dynamic-table/DynamicReportTableBuilder'
-import { FormInput, FormTextArea, FormSection } from '../shared/FormComponents'
+import { FormTextArea, FormSection } from '../shared/FormComponents'
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
+import type { FormAttachmentRow } from '@/services/formAttachmentsApi'
+
+const FORM_CODE = 'oft_result'
 
 export interface OftResultFormValue {
     finalRecommendation: string
@@ -9,13 +13,11 @@ export interface OftResultFormValue {
     farmersParticipationProcess: string
     resultText: string
     remark: string
-    supplementaryDatasheetSize?: number
-    supplementaryDatasheetName?: string
-    supplementaryDatasheetMime?: string
-    photographSize?: number
-    photographName?: string
-    photographMime?: string
     tables: ResultTable[]
+    attachmentIds?: number[]
+    photos?: FormAttachmentRow[]
+    datasheets?: FormAttachmentRow[]
+    oftResultReportId?: number | null
 }
 
 interface OftResultFormProps {
@@ -25,6 +27,7 @@ interface OftResultFormProps {
     onSubmit: (value: OftResultFormValue) => Promise<void>
     embedded?: boolean
     sourceRows?: Array<{ optionKey: string; optionName: string }>
+    kvkId?: number | null
 }
 
 const defaultValue: OftResultFormValue = {
@@ -36,6 +39,38 @@ const defaultValue: OftResultFormValue = {
     tables: [],
 }
 
+function buildSeedTables(
+    sourceRows: Array<{ optionKey: string; optionName: string }>
+): ResultTable[] {
+    const techColumn = {
+        columnKey: 'tech_option',
+        columnLabel: 'Technology options with detailed treatments',
+        isMandatory: true,
+        sortOrder: 1,
+    }
+    const proposed = { columnKey: 'proposed', columnLabel: 'Proposed', isMandatory: false, sortOrder: 2 }
+    const actual = { columnKey: 'actual', columnLabel: 'Actual', isMandatory: false, sortOrder: 3 }
+
+    const table1: ResultTable = {
+        tableTitle: 'Table 1',
+        sortOrder: 1,
+        columns: [techColumn, proposed, actual],
+        rows: sourceRows.map((src, idx) => ({
+            optionKey: src.optionKey,
+            rowLabel: src.optionName,
+            sortOrder: idx + 1,
+            cells: { tech_option: src.optionName },
+        })),
+    }
+    const table2: ResultTable = {
+        tableTitle: 'Table 2',
+        sortOrder: 2,
+        columns: [techColumn, proposed, actual],
+        rows: [],
+    }
+    return [table1, table2]
+}
+
 function normalizeInitialValue(
     initialValue?: Partial<OftResultFormValue>,
     sourceRows: Array<{ optionKey: string; optionName: string }> = []
@@ -43,7 +78,7 @@ function normalizeInitialValue(
     const merged: any = { ...defaultValue, ...(initialValue || {}) }
     const rawTables = Array.isArray(merged.tables) ? merged.tables : []
 
-    const normalizedTables = rawTables.map((table: any, tableIndex: number) => {
+    const normalizedTables: ResultTable[] = rawTables.map((table: any, tableIndex: number) => {
         const columns = Array.isArray(table.columns) ? table.columns : []
         const rows = Array.isArray(table.rows) ? table.rows : []
         const columnIdToKey = new Map<number, string>()
@@ -88,30 +123,28 @@ function normalizeInitialValue(
         }
     })
 
-    const withRowsReconciled = normalizedTables.map((table: any) => {
-        if (!sourceRows.length) return table
-        const byKey = new Map((table.rows || []).map((row: any) => [String(row.optionKey || ''), row]))
-        const rows = sourceRows.map((src, idx) => {
-            const existing: any = byKey.get(src.optionKey)
-            return {
-                optionKey: src.optionKey,
-                rowLabel: src.optionName,
-                sortOrder: idx + 1,
-                cells: { ...(existing?.cells || {}), tech_option: src.optionName },
-            }
-        })
-        return { ...table, rows }
-    })
+    const tables = normalizedTables.length > 0 ? normalizedTables : buildSeedTables(sourceRows)
 
     return {
         ...merged,
-        tables: withRowsReconciled,
+        tables,
     }
 }
 
-export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue, onClose, onSubmit, embedded = false, sourceRows = [] }) => {
+export const OftResultForm: React.FC<OftResultFormProps> = ({
+    mode,
+    initialValue,
+    onClose,
+    onSubmit,
+    embedded = false,
+    sourceRows = [],
+    kvkId,
+}) => {
     const [submitting, setSubmitting] = useState(false)
     const [value, setValue] = useState<OftResultFormValue>(normalizeInitialValue(initialValue, sourceRows))
+    const [photoIds, setPhotoIds] = useState<number[]>([])
+    const [datasheetIds, setDatasheetIds] = useState<number[]>([])
+    const recordId = (initialValue?.oftResultReportId ?? null) as number | null
 
     const title = useMemo(() => mode === 'create' ? 'Add OFT Result' : 'Edit OFT Result', [mode])
 
@@ -121,9 +154,14 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!kvkId) {
+            alert('KVK context missing — cannot save attachments.')
+            return
+        }
         setSubmitting(true)
         try {
-            await onSubmit(value)
+            const attachmentIds = [...photoIds, ...datasheetIds]
+            await onSubmit({ ...value, attachmentIds })
             onClose()
         } finally {
             setSubmitting(false)
@@ -162,45 +200,36 @@ export const OftResultForm: React.FC<OftResultFormProps> = ({ mode, initialValue
                     value={value.remark}
                     onChange={(e) => setValue((v) => ({ ...v, remark: e.target.value }))}
                 />
-                <div>
-                    <FormInput
-                        label="Supplementary Datasheet (max 2 MB)"
-                        type="file"
-                        helperText={`Selected: ${value.supplementaryDatasheetName || 'None'}`}
-                        onChange={(e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0]
-                            setValue((v) => ({
-                                ...v,
-                                supplementaryDatasheetName: file?.name,
-                                supplementaryDatasheetSize: file?.size,
-                                supplementaryDatasheetMime: file?.type,
-                            }))
-                        }}
-                    />
-                </div>
-                <div>
-                    <FormInput
-                        label="Photograph (max 1 MB)"
-                        type="file"
-                        helperText={`Selected: ${value.photographName || 'None'}`}
-                        onChange={(e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0]
-                            setValue((v) => ({
-                                ...v,
-                                photographName: file?.name,
-                                photographSize: file?.size,
-                                photographMime: file?.type,
-                            }))
-                        }}
-                    />
-                </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormAttachmentSection
+                    title="Photographs"
+                    formCode={FORM_CODE}
+                    kind="PHOTO"
+                    kvkId={kvkId}
+                    recordId={recordId}
+                    showCaption
+                    initialAttachments={initialValue?.photos}
+                    onAttachmentIdsChange={setPhotoIds}
+                />
+                <FormAttachmentSection
+                    title="Supplementary Datasheets"
+                    formCode={FORM_CODE}
+                    kind="DATASHEET"
+                    kvkId={kvkId}
+                    recordId={recordId}
+                    showCaption={false}
+                    initialAttachments={initialValue?.datasheets}
+                    onAttachmentIdsChange={setDatasheetIds}
+                />
+            </div>
+
             <FormSection title="Dynamic Result Tables">
                 <DynamicReportTableBuilder
                     tables={value.tables || []}
                     onChange={(tables) => setValue((v) => ({ ...v, tables }))}
                     sourceRows={sourceRows}
-                    lockSourceRows
                 />
             </FormSection>
 

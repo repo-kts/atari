@@ -69,6 +69,9 @@ const ENTITY_CONFIG = {
             },
             payLevel: {
                 select: { payLevelId: true, levelName: true }
+            },
+            payScale: {
+                select: { payScaleId: true, scaleName: true }
             }
         }
     },
@@ -95,6 +98,9 @@ const ENTITY_CONFIG = {
             },
             payLevel: {
                 select: { payLevelId: true, levelName: true }
+            },
+            payScale: {
+                select: { payScaleId: true, scaleName: true }
             }
         }
     },
@@ -123,6 +129,7 @@ const ENTITY_CONFIG = {
             kvk: { select: { kvkId: true, kvkName: true } },
             vehicle: { select: { vehicleId: true, vehicleName: true, registrationNo: true, yearOfPurchase: true, totalCost: true } },
             vehicleStatus: { select: { vehicleStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
     'kvk-equipments': {
@@ -131,6 +138,9 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentName',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
+            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
     'kvk-equipment-details': {
@@ -139,14 +149,24 @@ const ENTITY_CONFIG = {
         nameField: 'equipmentId',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } },
-            equipment: { select: { equipmentId: true, equipmentName: true, yearOfPurchase: true, totalCost: true, sourceOfFunding: true } },
+            equipment: {
+                select: {
+                    equipmentId: true, equipmentName: true, companyBrandModel: true, identifierCode: true,
+                    yearOfPurchase: true, totalCost: true, equipmentTypeId: true, equipmentMasterId: true,
+                    assetFundingSourceId: true,
+                    equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+                    equipmentType: { select: { equipmentTypeId: true, name: true } },
+                    assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
+                }
+            },
             equipmentStatus: { select: { equipmentStatusId: true, statusCode: true, statusLabel: true, hideInNextYear: true } },
+            assetFundingSource: { select: { assetFundingSourceId: true, name: true } },
         }
     },
-    'kvk-farm-implements': {
-        model: 'kvkFarmImplement',
-        idField: 'implementId',
-        nameField: 'implementName',
+    'kvk-land-details': {
+        model: 'kvkLandDetail',
+        idField: 'landId',
+        nameField: 'item',
         includes: {
             kvk: { select: { kvkId: true, kvkName: true } }
         }
@@ -223,7 +243,7 @@ async function findAll(entityName, options = {}, user = null) {
     }
     const {
         page = 1,
-        limit = 100,
+        limit = 10000,
         search = '',
         sortBy,
         sortOrder = 'asc',
@@ -232,7 +252,7 @@ async function findAll(entityName, options = {}, user = null) {
 
     const actualSortBy = sortBy || config.idField;
     const skip = (page - 1) * limit;
-    const take = Math.min(limit, 100);
+    const take = Math.min(limit, 10000);
 
     let where = {};
 
@@ -518,6 +538,15 @@ function convertRelationFieldsForStaff(data) {
         delete converted.payLevelId;
     }
 
+    if (converted.payScaleId !== undefined) {
+        if (converted.payScaleId === null || converted.payScaleId === '') {
+            converted.payScale = { disconnect: true };
+        } else {
+            converted.payScale = { connect: { payScaleId: converted.payScaleId } };
+        }
+        delete converted.payScaleId;
+    }
+
     if (converted.originalKvkId !== undefined) {
         if (converted.originalKvkId === null || converted.originalKvkId === '') {
             converted.originalKvk = { disconnect: true };
@@ -571,7 +600,7 @@ const KVK_STAFF_ALLOWED_FIELDS = [
     'sanctionedPostId',
     'positionOrder',
     'disciplineId',
-    'payScale',
+    'payScaleId',
     'dateOfJoining',
     'jobType',
     'allowances',
@@ -585,6 +614,7 @@ const KVK_STAFF_ALLOWED_FIELDS = [
 const KVK_INFRA_ALLOWED_FIELDS = [
     'kvkId',
     'infraMasterId',
+    'specifyName',
     'notYetStarted',
     'completedPlinthLevel',
     'completedLintelLevel',
@@ -772,11 +802,14 @@ function sanitizeData(entityName, data) {
     if (entityName === 'kvk-equipments') {
         const allowedFields = [
             'kvkId',
+            'equipmentTypeId',
+            'equipmentMasterId',
             'equipmentName',
+            'companyBrandModel',
+            'identifierCode',
             'yearOfPurchase',
             'totalCost',
-            'sourceOfFunding',
-            'type',
+            'assetFundingSourceId',
         ];
 
         Object.keys(sanitized).forEach(field => {
@@ -832,6 +865,11 @@ function sanitizeData(entityName, data) {
         if (sanitized.sourceOfFunding !== undefined) {
             sanitized.sourceOfFunding = sanitizeString(safeGet(data, 'sourceOfFunding'), { allowEmpty: false });
         }
+        if (sanitized.specifyName !== undefined) {
+            // Only meaningful when infrastructure is "Others"; store trimmed/null.
+            const v = sanitizeString(safeGet(data, 'specifyName'), { allowEmpty: true });
+            sanitized.specifyName = v && v.trim() ? v.trim() : null;
+        }
         if (sanitized.plinthAreaSqM !== undefined) {
             const numericValue = Number(safeGet(data, 'plinthAreaSqM'));
             sanitized.plinthAreaSqM = Number.isNaN(numericValue) ? 0 : numericValue;
@@ -845,7 +883,7 @@ function sanitizeData(entityName, data) {
             'reportingYear',
             'totalRun',
             'repairingCost',
-            'sourceOfFunding',
+            'assetFundingSourceId',
             'vehicleStatusId',
         ];
 
@@ -861,7 +899,7 @@ function sanitizeData(entityName, data) {
             'kvkId',
             'equipmentId',
             'reportingYear',
-            'sourceOfFunding',
+            'assetFundingSourceId',
             'equipmentStatusId',
         ];
 
@@ -870,6 +908,27 @@ function sanitizeData(entityName, data) {
                 delete sanitized[field];
             }
         });
+    }
+
+    if (entityName === 'kvk-land-details') {
+        const allowedFields = ['kvkId', 'item', 'areaHa'];
+
+        Object.keys(sanitized).forEach((field) => {
+            if (!allowedFields.includes(field)) {
+                delete sanitized[field];
+            }
+        });
+
+        if (sanitized.kvkId !== undefined) {
+            sanitized.kvkId = sanitizeInteger(safeGet(data, 'kvkId'));
+        }
+        if (sanitized.item !== undefined) {
+            sanitized.item = sanitizeString(safeGet(data, 'item'), { allowEmpty: false });
+        }
+        if (sanitized.areaHa !== undefined) {
+            const numericValue = Number(safeGet(data, 'areaHa'));
+            sanitized.areaHa = Number.isNaN(numericValue) ? 0 : numericValue;
+        }
     }
 
     return sanitized;
@@ -909,7 +968,9 @@ async function create(entityName, data) {
             reportingYear: parsedReportingYear,
             totalRun: sanitizedData.totalRun ? String(sanitizedData.totalRun) : '',
             repairingCost: sanitizedData.repairingCost !== undefined ? Number(sanitizedData.repairingCost) : null,
-            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
+                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
+                : null,
             vehicleStatusId: sanitizeInteger(sanitizedData.vehicleStatusId),
         };
 
@@ -925,7 +986,9 @@ async function create(entityName, data) {
             kvkId: sanitizeInteger(sanitizedData.kvkId),
             equipmentId: sanitizeInteger(sanitizedData.equipmentId),
             reportingYear: parsedReportingYear,
-            sourceOfFunding: sanitizedData.sourceOfFunding || null,
+            assetFundingSourceId: sanitizedData.assetFundingSourceId != null
+                ? sanitizeInteger(sanitizedData.assetFundingSourceId)
+                : null,
             equipmentStatusId: sanitizeInteger(sanitizedData.equipmentStatusId),
         };
 
@@ -1037,7 +1100,11 @@ async function update(entityName, id, data) {
         }
         if (sanitizedData.totalRun !== undefined) finalUpdateData.totalRun = String(sanitizedData.totalRun || '');
         if (sanitizedData.repairingCost !== undefined) finalUpdateData.repairingCost = sanitizedData.repairingCost === null ? null : Number(sanitizedData.repairingCost);
-        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.assetFundingSourceId !== undefined) {
+            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
+                ? null
+                : sanitizeInteger(sanitizedData.assetFundingSourceId);
+        }
         if (sanitizedData.vehicleStatusId !== undefined) finalUpdateData.vehicleStatusId = sanitizeInteger(sanitizedData.vehicleStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1058,7 +1125,11 @@ async function update(entityName, id, data) {
             ensureNotFutureDate(parsedReportingYear);
             finalUpdateData.reportingYear = parsedReportingYear;
         }
-        if (sanitizedData.sourceOfFunding !== undefined) finalUpdateData.sourceOfFunding = sanitizedData.sourceOfFunding || null;
+        if (sanitizedData.assetFundingSourceId !== undefined) {
+            finalUpdateData.assetFundingSourceId = sanitizedData.assetFundingSourceId == null
+                ? null
+                : sanitizeInteger(sanitizedData.assetFundingSourceId);
+        }
         if (sanitizedData.equipmentStatusId !== undefined) finalUpdateData.equipmentStatusId = sanitizeInteger(sanitizedData.equipmentStatusId);
 
         return executePrismaWrite(entityName, 'update', async () => {
@@ -1400,8 +1471,17 @@ async function getEquipmentsForDropdown(kvkId, reportingYear) {
             kvkId: parsedKvkId,
             ...(hiddenAssetIds.length ? { equipmentId: { notIn: hiddenAssetIds } } : {}),
         },
-        select: { equipmentId: true, equipmentName: true },
-        orderBy: { equipmentName: 'asc' },
+        select: {
+            equipmentId: true,
+            equipmentName: true,
+            companyBrandModel: true,
+            identifierCode: true,
+            equipmentTypeId: true,
+            equipmentMasterId: true,
+            equipmentType: { select: { equipmentTypeId: true, name: true } },
+            equipmentMaster: { select: { equipmentMasterId: true, name: true } },
+        },
+        orderBy: [{ equipmentTypeId: 'asc' }, { equipmentMasterId: 'asc' }, { equipmentName: 'asc' }],
     });
 }
 

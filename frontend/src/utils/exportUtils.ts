@@ -16,6 +16,16 @@ const CUSTOM_LABELS: Record<string, string> = {
     'minTemperature': 'Min. Temperature 0C',
     'kvkName': 'KVK',
     'nutritionGardenCropResults': 'Crop production & consumption (results)',
+    // UI rename (labels only — data keys preserved):
+    // Organisation/Organization -> Institute, University -> Host
+    'orgName': 'Institute Name',
+    'organizationName': 'Institute Name',
+    'universityName': 'Host Name',
+    'equipmentTypeName': 'Equipment Type',
+    'companyBrandModel': 'Company / Brand / Model',
+    'startYear': 'Start Year',
+    'totalMale': 'Total Male',
+    'totalFemale': 'Total Female',
 }
 
 export function formatHeaderLabel(field: string): string {

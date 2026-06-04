@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { ENTITY_TYPES } from '@/constants/entityConstants';
 import { MONTHS } from '@/constants/monthConstants';
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents';
@@ -8,6 +8,7 @@ import { DependentDropdown } from '@/components/common/DependentDropdown';
 import { createMasterDataOptions } from '@/utils/formHelpers';
 import { useSeasons, useCropTypes, useCfldExtensionActivityTypes, useBudgetItems } from '@/hooks/useOtherMastersData';
 import { useCfldCrops } from '@/hooks/useOftFldData';
+import { FormAttachmentSection } from '@/components/common/FormAttachmentSection';
 import { calculatePercentIncrease } from '@/utils/cfldCalculations';
 
 interface CfldFormsProps {
@@ -202,7 +203,7 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         photoFields.forEach(field => {
             // Map legacy field names to new standardized array fields if needed
             let rawValue = formData[field];
-            
+
             // Handle cross-mapping for Cfld technical parameters specifically
             if (!rawValue && field === 'trainingPhotos') rawValue = formData.trainingPhotoPath;
             if (!rawValue && field === 'actionPhotos') rawValue = formData.qualityActionPhotoPath;
@@ -362,6 +363,28 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [setFormData]
     );
 
+    // Economic plot inputs: Net Return and B:C ratio are derived from Gross Cost / Gross Return.
+    //   Net Return = Gross Return − Gross Cost
+    //   B:C ratio  = Gross Return ÷ Gross Cost
+    const handleEconomicChange = useCallback(
+        (plot: 'existing' | 'demonstration', field: 'GrossCost' | 'GrossReturn', value: any) => {
+            setFormData((prev: any) => {
+                const prefix = plot === 'existing' ? 'existingPlot' : 'demonstrationPlot';
+                const next = { ...prev, [`${prefix}${field}`]: value };
+                const cost = parseFloat(field === 'GrossCost' ? value : next[`${prefix}GrossCost`]);
+                const ret = parseFloat(field === 'GrossReturn' ? value : next[`${prefix}GrossReturn`]);
+                next[`${prefix}NetReturn`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) ? (ret - cost).toFixed(2) : '';
+                next[`${prefix}Bcr`] =
+                    Number.isFinite(cost) && Number.isFinite(ret) && cost !== 0
+                        ? (ret / cost).toFixed(2)
+                        : '';
+                return next;
+            });
+        },
+        [setFormData]
+    );
+
     // Month change handler
     const handleMonthChange = useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -425,72 +448,6 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [handleFieldChange]
     );
 
-    const removePhoto = (field: string, index: number) => {
-        setFormData((prev: any) => {
-            const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : []
-            existingPhotos.splice(index, 1)
-            return { ...prev, [field]: existingPhotos }
-        })
-    }
-
-    const updatePhotoCaption = (field: string, index: number, caption: string) => {
-        setFormData((prev: any) => {
-            const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : []
-            if (existingPhotos[index]) {
-                existingPhotos[index] = { ...existingPhotos[index], caption }
-            }
-            return { ...prev, [field]: existingPhotos }
-        })
-    }
-
-    const renderPhotoFields = (field: string, label: string) => (
-        <div className="space-y-4">
-            <FormInput
-                label={label}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange(field, true)}
-                helperText="Only images allowed. Multiple uploads supported."
-            />
-
-            {Array.isArray(formData[field]) && formData[field].length > 0 && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
-                    {formData[field].map((item: any, idx: number) => {
-                        const src = item.preview || (typeof item.image === 'string' ? (item.image.startsWith('data:') || item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image.startsWith('/') ? '' : '/'}${item.image}`) : '');
-                        return (
-                            <div key={idx} className="relative bg-white border border-gray-200 rounded-xl p-2 shadow-sm flex flex-col group">
-                                <div className="relative aspect-square mb-2 overflow-hidden rounded-lg border border-gray-50">
-                                    <img
-                                        src={src}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                        alt={`${label} ${idx + 1}`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => removePhoto(field, idx)}
-                                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors z-10 scale-90"
-                                    >
-                                        <X className="w-3 h-3 stroke-[2.5]" />
-                                    </button>
-                                </div>
-                                <div className="space-y-1 mt-auto">
-                                    <textarea
-                                        placeholder="Caption..."
-                                        className="w-full text-[12px] font-medium bg-gray-50/50 border border-gray-100 rounded-md focus:bg-white focus:ring-1 focus:ring-green-200 px-2 py-1.5 outline-none transition-all placeholder:text-gray-400 text-gray-700 min-h-[3.5rem] resize-none"
-                                        value={item.caption || ''}
-                                        onChange={(e) => updatePhotoCaption(field, idx, e.target.value)}
-                                        rows={3}
-                                    />
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-        </div>
-    );
-
     const setActiveSection = useCallback(
         (next: CfldSection) => {
             setCfldSection(next)
@@ -502,67 +459,25 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
         [setFormData]
     )
 
-    // File upload handlers
-    const handleFileChange = useCallback(
-        (field: string, multiple: boolean = false) => async (e: React.ChangeEvent<HTMLInputElement>) => {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-
-            const convertToBase64 = (file: File): Promise<string> => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = error => reject(error);
-                });
-            };
-
-            try {
-                if (multiple) {
-                    const base64Files = await Promise.all(Array.from(files).map(convertToBase64));
-                    const newPhotos = base64Files.map(base64 => ({
-                        preview: base64,
-                        image: base64,
-                        caption: ''
-                    }));
-
-                    setFormData((prev: any) => {
-                        const existingPhotos = Array.isArray(prev[field]) ? [...prev[field]] : [];
-                        return { 
-                            ...prev, 
-                            [field]: [...existingPhotos, ...newPhotos] 
-                        };
-                    });
-                } else {
-                    const base64 = await convertToBase64(files[0]);
-                    setFormData((prev: any) => ({ ...prev, [field]: base64 }));
-                }
-            } catch (error) {
-                console.error("Error converting files down to base64:", error);
-            }
-        },
-        [setFormData]
-    );
-
     const renderEconomicParametersForm = () => (
         <div className="space-y-8">
             <h2 className="text-xl font-semibold text-[#487749]">Economic Parameters of CFLD</h2>
 
             <FormSection title="Farmer’s Existing plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('existingPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} onChange={(e) => handleFieldChange('existingPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('existing', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.existingPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.existingPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
             <FormSection title="Demonstration plot">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossCost', e.target.value)} />
-                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotGrossReturn', e.target.value)} />
-                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotNetReturn', e.target.value)} />
-                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} onChange={(e) => handleFieldChange('demonstrationPlotBcr', e.target.value)} />
+                    <FormInput label="Gross Cost (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossCost ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossCost', e.target.value)} />
+                    <FormInput label="Gross return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotGrossReturn ?? ''} onChange={(e) => handleEconomicChange('demonstration', 'GrossReturn', e.target.value)} />
+                    <FormInput label="Net Return (Rs/ha)" required type="number" step="0.01" value={formData.demonstrationPlotNetReturn ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return − Gross Cost" />
+                    <FormInput label="B:C ratio" required type="number" step="0.01" value={formData.demonstrationPlotBcr ?? ''} readOnly disabled onChange={() => { }} helperText="Auto-calculated: Gross Return ÷ Gross Cost" />
                 </div>
             </FormSection>
 
@@ -760,10 +675,10 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         type="number"
                         step="1"
                         value={formData.percentIncrease ?? ''}
-                        onChange={(e) => {
-                            setIsPercentIncreaseManuallyEdited(true)
-                            handleFieldChange('percentIncrease', e.target.value)
-                        }}
+                        readOnly
+                        disabled
+                        onChange={() => { }}
+                        helperText="Auto-calculated from Farmer yield and Average demo yield"
                     />
                 </div>
             </FormSection>
@@ -885,9 +800,64 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
                 </div>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    {renderPhotoFields('trainingPhotos', "Farmers' training photographs")}
-                    {renderPhotoFields('actionPhotos', "Quality Action Photographs of field visits/field days and technology demonstrated")}
+                    <FormAttachmentSection
+                        title="Farmers' Training Photographs"
+                        formCode="cfld_technical_training"
+                        kind="PHOTO"
+                        kvkId={formData.kvkId ?? null}
+                        recordId={formData.cfldTechId ?? formData.id ?? null}
+                        showCaption
+                        initialAttachments={formData?.trainingPhotos}
+                        onAttachmentIdsChange={(ids) =>
+                            setFormData((prev: any) => ({ ...prev, trainingAttachmentIds: ids }))
+                        }
+                    />
+                    <FormAttachmentSection
+                        title="Quality Action Photographs (field visits / technology demos)"
+                        formCode="cfld_technical_action"
+                        kind="PHOTO"
+                        kvkId={formData.kvkId ?? null}
+                        recordId={formData.cfldTechId ?? formData.id ?? null}
+                        showCaption
+                        initialAttachments={formData?.actionPhotos}
+                        onAttachmentIdsChange={(ids) =>
+                            setFormData((prev: any) => ({ ...prev, actionAttachmentIds: ids }))
+                        }
+                    />
                 </div>
                 <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
                     {formData.trainingPhotoPath ? (
@@ -1025,6 +995,39 @@ export const CfldForms: React.FC<CfldFormsProps> = ({
                         value={formData.stF ?? ''}
                         onChange={(e) => handleFieldChange('stF', e.target.value)}
                     />
+                </div>
+                <div className="col-span-2 flex flex-wrap gap-3 mt-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                        <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                        <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.stM) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                        <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                        <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                            {(Number(formData.genF) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                        <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                        <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                            {(Number(formData.genM) || 0) +
+                                (Number(formData.genF) || 0) +
+                                (Number(formData.obcM) || 0) +
+                                (Number(formData.obcF) || 0) +
+                                (Number(formData.scM) || 0) +
+                                (Number(formData.scF) || 0) +
+                                (Number(formData.stM) || 0) +
+                                (Number(formData.stF) || 0)}
+                        </span>
+                    </div>
                 </div>
             </FormSection>
         </div>

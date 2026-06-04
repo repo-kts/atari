@@ -1,5 +1,5 @@
 const kisanSarathiService = require('../../services/forms/kisanSarathiService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const kisanSarathiController = {
     create: async (req, res) => {

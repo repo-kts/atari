@@ -1,4 +1,4 @@
-const aryaCurrentYearService = require('../../services/forms/aryaCurrentYearService');
+const aryaCurrentYearService = require('../../services/forms/aryaCurrentYearService.js');
 
 const mapError = (error) => {
     const msg = String(error?.message || '');

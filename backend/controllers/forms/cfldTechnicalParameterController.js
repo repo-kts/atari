@@ -1,4 +1,4 @@
-const cfldTechnicalParameterService = require('../../services/forms/cfldTechnicalParameterService');
+const cfldTechnicalParameterService = require('../../services/forms/cfldTechnicalParameterService.js');
 const { translatePrismaError } = require('../../utils/errorHandler.js');
 
 const RESOURCE = 'CFLD technical parameter';

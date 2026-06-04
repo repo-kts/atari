@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const budgetDetailRepository = require('../../repositories/forms/budgetDetailRepository');
-const revolvingFundRepository = require('../../repositories/forms/revolvingFundRepository');
-const revenueGenerationRepository = require('../../repositories/forms/revenueGenerationRepository');
-const resourceGenerationRepository = require('../../repositories/forms/resourceGenerationRepository');
-const projectBudgetRepository = require('../../repositories/forms/projectBudgetRepository');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const budgetDetailRepository = require('../../repositories/forms/budgetDetailRepository.js');
+const revolvingFundRepository = require('../../repositories/forms/revolvingFundRepository.js');
+const revenueGenerationRepository = require('../../repositories/forms/revenueGenerationRepository.js');
+const resourceGenerationRepository = require('../../repositories/forms/resourceGenerationRepository.js');
+const projectBudgetRepository = require('../../repositories/forms/projectBudgetRepository.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 // All routes require authentication
 router.use(authenticateToken);

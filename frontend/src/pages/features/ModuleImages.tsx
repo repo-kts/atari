@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Plus, Search, X } from 'lucide-react'
+import { ChevronLeft, ImagePlus, Plus, Search, X } from 'lucide-react'
 import { Breadcrumbs } from '../../components/common/Breadcrumbs'
 import { Card, CardContent } from '../../components/ui/Card'
 import { getBreadcrumbsForPath, getRouteConfig } from '../../config/route'
@@ -149,13 +149,15 @@ export const ModuleImages: React.FC = () => {
 
   const createMutation = useCreateModuleImage()
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
+  const addFiles = async (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return
 
     const newImagesArr: UploadImage[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) {
+        alert({ title: 'Unsupported File', message: `${file.name} is not an image.`, variant: 'error' })
+        continue
+      }
       if (file.size > 5 * 1024 * 1024) {
         alert({ title: 'File Too Large', message: `File ${file.name} is larger than 5MB.`, variant: 'error' })
         continue
@@ -174,7 +176,20 @@ export const ModuleImages: React.FC = () => {
     }
 
     setUploadImages((prev) => [...prev, ...newImagesArr])
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    await addFiles(e.target.files)
     e.target.value = ''
+  }
+
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDrop = async (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (createMutation.isPending) return
+    await addFiles(e.dataTransfer.files)
   }
 
   const removeUploadImage = (id: string) => {
@@ -327,23 +342,43 @@ export const ModuleImages: React.FC = () => {
                 </div>
 
                 <div className="mb-6">
-                  <div className="border border-[#7D9E77] rounded-xl overflow-hidden mb-6">
-                    <div className="p-4 bg-white border-b border-[#7D9E77]">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleFileChange}
-                        className="w-full text-[15px] text-[#212121] bg-transparent cursor-pointer"
-                        disabled={createMutation.isPending}
-                      />
-                    </div>
-                    <div className="bg-[#F8F9FA] p-3 text-[14px] text-[#5c6873]">
-                      Only images allowed. Uploading new files will be added to the list. Only the first image uploaded will appear in the table. (Max 5MB per file)
-                    </div>
-                  </div>
+                  <label
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      if (!createMutation.isPending) setIsDragging(true)
+                    }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    className={`mb-6 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
+                      isDragging
+                        ? 'border-[#487749] bg-[#487749]/5'
+                        : 'border-[#7D9E77] bg-[#FAFCF9] hover:border-[#487749] hover:bg-[#487749]/5'
+                    } ${createMutation.isPending ? 'cursor-not-allowed opacity-50' : ''}`}
+                  >
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#487749]/10 text-[#487749]">
+                      <ImagePlus className="h-6 w-6" />
+                    </span>
+                    <span className="text-sm font-semibold text-[#212121]">
+                      <span className="text-[#487749]">Click to upload</span> or drag and drop
+                    </span>
+                    <span className="text-xs text-[#757575]">
+                      Images only · up to 5MB each · the first image appears in the table
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileChange}
+                      className="hidden"
+                      disabled={createMutation.isPending}
+                    />
+                  </label>
 
                   {uploadImages.length > 0 && (
+                    <>
+                    <p className="mb-3 text-sm font-semibold text-[#212121]">
+                      {uploadImages.length} image{uploadImages.length > 1 ? 's' : ''} selected
+                    </p>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                       {uploadImages.map((img) => (
                         <div key={img.id} className="bg-white border text-center border-[#E0E0E0] rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow">
@@ -368,6 +403,7 @@ export const ModuleImages: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                    </>
                   )}
                 </div>
 

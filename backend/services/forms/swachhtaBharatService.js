@@ -1,4 +1,4 @@
-const swachhtaBharatRepository = require('../../repositories/forms/swachhtaBharatRepository');
+const swachhtaBharatRepository = require('../../repositories/forms/swachhtaBharatRepository.js');
 
 const createServiceLayer = (repo) => ({
     create: async (data, user) => {

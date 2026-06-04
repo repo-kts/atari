@@ -1,4 +1,4 @@
-const meetingsService = require('../../services/forms/meetingsService');
+const meetingsService = require('../../services/forms/meetingsService.js');
 
 const createControllerLayer = (service) => ({
     findAll: async (req, res) => {

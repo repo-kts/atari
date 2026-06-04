@@ -1,4 +1,4 @@
-const prevalentDiseaseService = require('../../services/forms/prevalentDiseaseService');
+const prevalentDiseaseService = require('../../services/forms/prevalentDiseaseService.js');
 
 const prevalentDiseaseController = {
     // Crops

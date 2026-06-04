@@ -55,6 +55,18 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 10,
     },
+    [FIELD_NAMES.ACTIVITY_DATE]: {
+        extractor: (item: any) => {
+            const dateVal = item.activityDate || item.date;
+            if (!dateVal) return null;
+            try {
+                const date = new Date(dateVal);
+                if (isNaN(date.getTime())) return null;
+                return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch { return null; }
+        },
+        priority: 10,
+    },
     [FIELD_NAMES.START_DATE]: {
         extractor: (item: any) => {
             const dateVal = item.startDate || item.start_date;
@@ -167,11 +179,26 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         priority: 9,
     },
     [FIELD_NAMES.VEHICLE_NAME]: {
-        extractor: (item: any) => item.vehicleName || item.vehicle?.vehicleName || null,
+        extractor: (item: any) => {
+            const name = item.vehicleName || item.vehicle?.vehicleName;
+            if (name) return name;
+            if (!name) return null;
+        },
         priority: 8,
     },
     [FIELD_NAMES.EQUIPMENT_NAME]: {
-        extractor: (item: any) => item.equipmentName || item.equipment?.equipmentName || null,
+        extractor: (item: any) => {
+            // Prefer joined EquipmentMaster name (new schema); fall back to
+            // legacy equipmentName column for rows created before the merge.
+            const masterName =
+                item.equipmentMaster?.name ||
+                item.equipment?.equipmentMaster?.name;
+            const legacy = item.equipmentName || item.equipment?.equipmentName;
+            const display = masterName || legacy;
+            if (!display) return null;
+            const code = item.identifierCode || item.equipment?.identifierCode;
+            return code ? `${display} — ${code}` : display;
+        },
         priority: 8,
     },
     [FIELD_NAMES.IMPLEMENT_NAME]: {
@@ -308,6 +335,17 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.CATEGORY_NAME]: {
         extractor: (item: any) => item.category?.categoryName || item.categoryName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.EQUIPMENT_TYPE_NAME]: {
+        extractor: (item: any) => item.equipmentType?.name || item.equipmentTypeName || null,
+        priority: 5,
+    },
+    [FIELD_NAMES.COMPANY_BRAND_MODEL]: {
+        extractor: (item: any) =>
+            item.companyBrandModel ||
+            item.equipment?.companyBrandModel ||
+            null,
         priority: 5,
     },
     [FIELD_NAMES.SUB_CATEGORY_NAME]: {
@@ -738,6 +776,14 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         },
         priority: 6,
     },
+    [FIELD_NAMES.PAY_SCALE]: {
+        extractor: (item: any) => {
+            if (item?.payScale?.scaleName) return item.payScale.scaleName;
+            if (typeof item?.payScale === 'string' && item.payScale) return item.payScale;
+            return null;
+        },
+        priority: 7,
+    },
     [FIELD_NAMES.RESUME_PATH]: {
         extractor: (item: any) => {
             // Handle resumePath - show value even if it's "NA" or empty string
@@ -846,7 +892,11 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
     },
     [FIELD_NAMES.SOURCE_OF_FUND]: {
         extractor: (item: any) => {
-            // Map sourceOfFund to sourceOfFunding (for equipment and farm implements)
+            // Prefer joined AssetFundingSourceMaster name (new schema); fall back
+            // to legacy string columns for rows predating the migration.
+            if (item.assetFundingSource?.name) return item.assetFundingSource.name;
+            if (item.vehicle?.assetFundingSource?.name) return item.vehicle.assetFundingSource.name;
+            if (item.equipment?.assetFundingSource?.name) return item.equipment.assetFundingSource.name;
             if (item.sourceOfFunding) return item.sourceOfFunding;
             if (item.vehicle?.sourceOfFunding) return item.vehicle.sourceOfFunding;
             if (item.equipment?.sourceOfFunding) return item.equipment.sourceOfFunding;
@@ -1273,7 +1323,12 @@ const fieldExtractors: Record<string, FieldExtractorConfig> = {
         extractor: (item: any) => item.courseName || item.course_name || null,
     },
     [FIELD_NAMES.ORGANIZER]: {
-        extractor: (item: any) => item.organizerVenue || item.organizer_venue || null,
+        // Read from the new split column with a fallback to the legacy combined
+        // column so any cached pre-migration responses still render.
+        extractor: (item: any) => item.organizer || item.organizerVenue || item.organizer_venue || null,
+    },
+    [FIELD_NAMES.VENUE]: {
+        extractor: (item: any) => item.venue || null,
     },
     [FIELD_NAMES.DATE_OF_REGISTRATION]: {
         extractor: (item: any) => {

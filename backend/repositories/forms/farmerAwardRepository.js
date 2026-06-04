@@ -5,7 +5,7 @@ const {
     parseInteger,
     validateKvkExists,
     validateUUID,
-} = require('../../utils/repositoryHelpers');
+} = require('../../utils/repositoryHelpers.js');
 const { normalizeRequiredIndianMobile } = require('../../utils/validation.js');
 const { parseReportingYearDate, ensureNotFutureDate, formatReportingYear } = require('../../utils/reportingYearUtils.js');
 
@@ -174,7 +174,9 @@ const farmerAwardRepository = {
             const amount = _parseInteger(data.amount, 'Amount', false);
             const achievement = _normalizeString(data.achievement, 'Achievement', false);
             const conferringAuthority = _normalizeString(data.conferringAuthority, 'Conferring Authority', false);
-            const image = _normalizeString(data.image, 'Image', false);
+            // Legacy `image` column kept for backward read but no longer
+            // required — photos now live in form_attachments via attachmentIds.
+            const image = _normalizeString(data.image, 'Image', true);
 
             // Prepare create data
             const createData = {

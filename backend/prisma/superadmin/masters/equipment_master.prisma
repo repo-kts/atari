@@ -1,0 +1,14 @@
+model EquipmentMaster {
+  equipmentMasterId Int      @id @default(autoincrement()) @map("equipment_master_id")
+  equipmentTypeId   Int      @map("equipment_type_id")
+  name              String   @map("name")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  equipmentType EquipmentTypeMaster @relation(fields: [equipmentTypeId], references: [equipmentTypeId], onDelete: Cascade)
+  equipments    KvkEquipment[]
+
+  @@unique([equipmentTypeId, name])
+  @@index([equipmentTypeId])
+  @@map("equipment_master")
+}

@@ -1,4 +1,4 @@
-const seedHubRepository = require('../../repositories/forms/seedHubRepository');
+const seedHubRepository = require('../../repositories/forms/seedHubRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const seedHubService = {

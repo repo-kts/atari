@@ -167,11 +167,35 @@ exports.createPayLevel = create('pay-level');
 exports.updatePayLevel = update('pay-level');
 exports.deletePayLevel = deleteEntity('pay-level');
 
+exports.getAllPayScales = getAll('pay-scale');
+exports.getPayScaleById = getById('pay-scale');
+exports.createPayScale = create('pay-scale');
+exports.updatePayScale = update('pay-scale');
+exports.deletePayScale = deleteEntity('pay-scale');
+
 exports.getAllDisciplines = getAll('discipline');
 exports.getDisciplineById = getById('discipline');
 exports.createDiscipline = create('discipline');
 exports.updateDiscipline = update('discipline');
 exports.deleteDiscipline = deleteEntity('discipline');
+
+exports.getAllAssetFundingSources = getAll('asset-funding-source');
+exports.getAssetFundingSourceById = getById('asset-funding-source');
+exports.createAssetFundingSource = create('asset-funding-source');
+exports.updateAssetFundingSource = update('asset-funding-source');
+exports.deleteAssetFundingSource = deleteEntity('asset-funding-source');
+
+exports.getAllEquipmentTypes = getAll('equipment-type');
+exports.getEquipmentTypeById = getById('equipment-type');
+exports.createEquipmentType = create('equipment-type');
+exports.updateEquipmentType = update('equipment-type');
+exports.deleteEquipmentType = deleteEntity('equipment-type');
+
+exports.getAllEquipmentMasters = getAll('equipment-master');
+exports.getEquipmentMasterById = getById('equipment-master');
+exports.createEquipmentMaster = create('equipment-master');
+exports.updateEquipmentMaster = update('equipment-master');
+exports.deleteEquipmentMaster = deleteEntity('equipment-master');
 
 // ============================================
 // Extension Masters Controllers

@@ -1,4 +1,4 @@
-const fpoManagementRepository = require('../../repositories/forms/fpoManagementRepository');
+const fpoManagementRepository = require('../../repositories/forms/fpoManagementRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const fpoManagementService = {

@@ -4,7 +4,7 @@
  * Run: node scripts/roles.js   or   npm run seed:roles
  */
 require('dotenv').config();
-const prisma = require('../config/prisma');
+const prisma = require('../config/prisma.js');
 
 const ROLES = [
   { roleName: 'super_admin', description: 'Super Administrator - Full system access' },

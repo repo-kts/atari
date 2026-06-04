@@ -1,5 +1,5 @@
 const productionSupplyService = require('../../services/forms/productionSupplyService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const productionSupplyController = {
     /**

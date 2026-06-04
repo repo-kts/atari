@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo } from 'react'
+import { X } from 'lucide-react'
 import { ENTITY_TYPES } from '../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../utils/masterUtils'
 import { FormInput, FormSelect, FormTextArea, FormSection } from './shared/FormComponents'
@@ -18,6 +19,7 @@ import {
 } from '../../../../hooks/useOftFldData'
 import { useDisciplines } from '../../../../hooks/forms/useAboutKvkData'
 import { useKvkStaffForDropdown } from '../../../../hooks/forms/useAboutKvkData'
+import { useFundingSources } from '../../../../hooks/useOtherMastersData'
 import { useAuth } from '../../../../contexts/AuthContext'
 import { useProjectData } from '../../../../hooks/useProjectData'
 import { oftFldApi } from '../../../../services/oftFldApi'
@@ -40,6 +42,118 @@ const createTechnologyOption = () => ({
     details: '',
 })
 
+const OFT_UNIT_OPTIONS: Array<{ value: string; label: string }> = [
+    { value: 'ha', label: 'ha' },
+    { value: 'Number', label: 'Number' },
+    { value: 'Acre', label: 'Acre' },
+    { value: 'Kg', label: 'Kg' },
+    { value: 'Quintal', label: 'Quintal' },
+    { value: 'Ton', label: 'Ton' },
+    { value: 'Litre', label: 'Litre' },
+]
+
+const FIXED_TECHNOLOGY_OPTIONS = [
+    'Farmer Practice',
+    'TO1',
+    'TO2',
+    'TO3',
+    'TO4',
+    'TO5',
+    'CV',
+    'CD',
+] as const
+
+const buildFixedTechnologyOptions = () =>
+    FIXED_TECHNOLOGY_OPTIONS.map((name) => ({
+        optionKey: `fixed_${name.toLowerCase().replace(/\s+/g, '_')}`,
+        optionName: name,
+        details: '',
+        isFixed: true,
+    }))
+
+const isFixedTechnologyName = (name: string) =>
+    (FIXED_TECHNOLOGY_OPTIONS as readonly string[]).includes(String(name).trim())
+
+const PerformanceIndicatorTagInput: React.FC<{
+    value: string
+    onChange: (value: string) => void
+}> = ({ value, onChange }) => {
+    const [draft, setDraft] = React.useState('')
+    const tags = React.useMemo(
+        () => String(value || '').split(',').map((s) => s.trim()).filter(Boolean),
+        [value],
+    )
+
+    const commit = (raw: string) => {
+        const next = raw.trim()
+        if (!next) return
+        if (tags.includes(next)) return
+        const merged = [...tags, next].join(', ')
+        onChange(merged)
+    }
+
+    const removeTag = (idx: number) => {
+        const next = tags.filter((_, i) => i !== idx).join(', ')
+        onChange(next)
+    }
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+                Performance indicators of the technology<span className="text-red-500"> *</span>
+            </label>
+            <div className="min-h-[44px] w-full rounded-lg border border-gray-300 px-2 py-1 flex flex-wrap gap-2 items-center">
+                {tags.map((tag, i) => (
+                    <span key={`${tag}-${i}`} className="inline-flex items-center gap-1 bg-[#E8F5E9] text-[#487749] px-2 py-1 rounded-full text-sm">
+                        {tag}
+                        <button
+                            type="button"
+                            className="text-[#487749] hover:text-red-600"
+                            onClick={() => removeTag(i)}
+                            aria-label={`remove ${tag}`}
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </span>
+                ))}
+                <input
+                    type="text"
+                    className="flex-1 min-w-[140px] outline-none border-0 px-1 py-1 text-sm"
+                    placeholder={tags.length === 0 ? 'Type indicator and press comma or Enter…' : ''}
+                    value={draft}
+                    onChange={(e) => {
+                        const v = e.target.value
+                        if (v.endsWith(',')) {
+                            commit(v.slice(0, -1))
+                            setDraft('')
+                            return
+                        }
+                        setDraft(v)
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault()
+                            commit(draft)
+                            setDraft('')
+                        } else if (e.key === 'Backspace' && draft === '' && tags.length > 0) {
+                            removeTag(tags.length - 1)
+                        }
+                    }}
+                    onBlur={() => {
+                        if (draft.trim()) {
+                            commit(draft)
+                            setDraft('')
+                        }
+                    }}
+                />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+                Tip: type each indicator and press <kbd className="px-1 bg-gray-100 rounded">,</kbd> or <kbd className="px-1 bg-gray-100 rounded">Enter</kbd> to add it as a tag.
+            </p>
+        </div>
+    )
+}
+
 export const OftFldForms: React.FC<OftFldFormsProps> = ({
     entityType,
     formData,
@@ -61,6 +175,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
 
     // We'll call them here. React Query hooks will trigger fetches if component is mounted.
 
+    const { data: fundingSources = [] } = useFundingSources()
     const { data: oftSubjects = [] } = useOftSubjects()
     const { data: fldSectors = [] } = useSectors()
     const { data: fldCategories = [] } = useFldCategories()
@@ -89,7 +204,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
     const fldOptionsByKvkAndYear = useMemo(() => {
         return (fldList as any[]).filter((f: any) => {
             const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-            const fldYear = getYearValue(f.reportingYear)
+            const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
             const selectedYear = getYearValue(selectedReportingYear)
             const kvkMatch = activeKvkId ? Number(fldKvkId) === Number(activeKvkId) : true
             const yearMatch = selectedYear ? Number(fldYear) === Number(selectedYear) : false
@@ -171,7 +286,7 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
         return (fldList as any[])
             .filter((f: any) => {
                 const fldKvkId = f.kvkId ?? f.kvk?.kvkId
-                const fldYear = getYearValue(f.reportingYear)
+                const fldYear = getYearValue(f.expectedCompletionDate ?? f.startDate ?? f.reportingYear)
                 return Number(fldKvkId) === kvkId && Number(fldYear) === reportingYear
             })
             .map((f: any) => ({
@@ -215,12 +330,13 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 optionKey: `legacy_${key}`,
                 optionName: key.replace(/^tech_/, '').trim(),
                 details: formData[key] || '',
+                isFixed: isFixedTechnologyName(key.replace(/^tech_/, '').trim()),
             }))
             .filter((row) => row.optionName)
 
         setFormData((prev: any) => ({
             ...prev,
-            technologyOptions: legacyOptions.length > 0 ? legacyOptions : [createTechnologyOption()],
+            technologyOptions: legacyOptions.length > 0 ? legacyOptions : buildFixedTechnologyOptions(),
         }))
     }, [entityType, formData, setFormData])
 
@@ -454,16 +570,33 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
             {/* Achievement OFT forms-------------- */}
             {entityType === ENTITY_TYPES.ACHIEVEMENT_OFT && (
                 <div className="space-y-8">
-                    {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="OFT Start Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.duration ?? formData.oftStartDate ?? ''}
+                            onChange={(e) => {
+                                const next = e.target.value
+                                const expected = formData.expectedCompletionDate
+                                const expectedInvalid = expected && next && expected < next
+                                setFormData({
+                                    ...formData,
+                                    duration: next,
+                                    oftStartDate: next,
+                                    ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
+                                })
+                            }}
                         />
-                        {/* Name of SMS/KVK Head - From KVK Staff API */}
+                        <FormInput
+                            label="Expected Completion Date"
+                            required
+                            type="date"
+                            min={(formData.duration ?? formData.oftStartDate ?? '') as string}
+                            value={formData.expectedCompletionDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
+                        />
+
                         <DependentDropdown
                             label="Name of SMS/KVK Head"
                             required
@@ -474,15 +607,12 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 value: activeKvkId,
                                 field: 'kvkId',
                             }}
-                            // Don't use onOptionsLoad - we already have data from useKvkStaffForDropdown hook
-                            // This prevents duplicate API calls
                             cacheKey="kvk-staff-dropdown"
                             emptyMessage="No SMS/KVK Head staff available for this KVK"
                             loadingMessage="Loading staff..."
                             isLoading={isLoadingKvkStaff}
                         />
 
-                        {/* Season - From Season Master */}
                         <MasterDataDropdown
                             label="Season"
                             required
@@ -492,7 +622,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             emptyMessage="No seasons available"
                         />
 
-                        {/* OFT Subject - From OFT Subject Master */}
                         <MasterDataDropdown
                             label="OFT Subject"
                             required
@@ -501,15 +630,14 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                                 setFormData({
                                     ...formData,
                                     oftSubjectId: value as number,
-                                    oftThematicAreaId: '', // Reset thematic area when subject changes
-                                    thematicArea: '' // Reset text input if used
+                                    oftThematicAreaId: '',
+                                    thematicArea: ''
                                 });
                             }}
                             options={createMasterDataOptions(oftSubjects, 'oftSubjectId', 'subjectName')}
                             emptyMessage="No OFT subjects available"
                         />
 
-                        {/* Thematic Area - Dependent on OFT Subject */}
                         <DependentDropdown
                             label="Thematic Area"
                             required
@@ -537,7 +665,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             isLoading={isLoadingOftThematicAreas}
                         />
 
-                        {/* Discipline - From Discipline Master */}
                         <MasterDataDropdown
                             label="Discipline"
                             required
@@ -572,43 +699,58 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.sourceOfTechnology ?? ''}
                             onChange={(e) => setFormData({ ...formData, sourceOfTechnology: e.target.value })}
                         />
+                        <MasterDataDropdown
+                            label="Source of Funding"
+                            required
+                            value={formData.sourceOfFundingId ?? ''}
+                            onChange={(value) => setFormData({ ...formData, sourceOfFundingId: value as number })}
+                            options={createMasterDataOptions(fundingSources as any[], 'fundingSourceId', 'name')}
+                            emptyMessage="No funding sources available"
+                        />
                         <FormInput
                             label="Production system and thematic area"
                             required
                             value={formData.productionSystem ?? ''}
                             onChange={(e) => setFormData({ ...formData, productionSystem: e.target.value })}
                         />
-                        <FormInput
-                            label="Performance indicators of the technology"
-                            required
-                            value={formData.performanceIndicators ?? ''}
-                            onChange={(e) => setFormData({ ...formData, performanceIndicators: e.target.value })}
-                        />
-                        <FormInput
-                            label="Area(ha)/Number"
-                            required
-                            value={formData.area ?? ''}
-                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                        />
-                        <FormInput
-                            label="No. of location"
-                            required
-                            value={formData.locations ?? ''}
-                            onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
-                        />
-                        <FormInput
-                            label="No. of Trial/Replication"
-                            required
-                            value={formData.replications ?? ''}
-                            onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
-                        />
-                        <FormInput
-                            label="OFT Start Date"
-                            required
-                            type="date"
-                            value={formData.duration ?? ''}
-                            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                        />
+
+                        <div className="md:col-span-2">
+                            <PerformanceIndicatorTagInput
+                                value={formData.performanceIndicators ?? ''}
+                                onChange={(next) => setFormData({ ...formData, performanceIndicators: next })}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-[120px_1fr] gap-3">
+                            <FormSelect
+                                label="Unit"
+                                required
+                                value={formData.unit ?? ''}
+                                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                options={OFT_UNIT_OPTIONS}
+                            />
+                            <FormInput
+                                label="Quantity"
+                                required
+                                type="number"
+                                value={formData.quantity ?? formData.area ?? ''}
+                                onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <FormInput
+                                label="No. of location"
+                                required
+                                value={formData.locations ?? ''}
+                                onChange={(e) => setFormData({ ...formData, locations: e.target.value })}
+                            />
+                            <FormInput
+                                label="No. of Trial/Replication"
+                                required
+                                value={formData.replications ?? ''}
+                                onChange={(e) => setFormData({ ...formData, replications: e.target.value })}
+                            />
+                        </div>
                         <FormInput
                             label="Critical Input"
                             required
@@ -624,63 +766,107 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                         />
                     </div>
 
-                    {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
-                            <FormInput label="General_F" type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
-                            <FormInput label="OBC_M" type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
-                            <FormInput label="OBC_F" type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
+                        <div className="col-span-2 space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <FormInput label="General_M" type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} required />
+                                <FormInput label="General_F" type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} required />
+                                <FormInput label="OBC_M" type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} required />
+                                <FormInput label="OBC_F" type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} required />
 
-                            <FormInput label="SC_M" type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
-                            <FormInput label="SC_F" type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
-                            <FormInput label="ST_M" type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
-                            <FormInput label="ST_F" type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
+                                <FormInput label="SC_M" type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} required />
+                                <FormInput label="SC_F" type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} required />
+                                <FormInput label="ST_M" type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} required />
+                                <FormInput label="ST_F" type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} required />
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                    <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                    <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.st_m) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                    <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                    <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                        {(Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                    <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                    <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_m) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </FormSection>
 
-                    {/* Technologies Section */}
                     <div className="space-y-4">
                         <h3 className="text-lg font-semibold text-[#487749] pb-2 border-b border-[#E8F5E9]">
                             Details of technologies selected for assessment/refinement:
                         </h3>
                         <div className="space-y-3">
-                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => (
-                                <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-                                    <FormInput
-                                        label={index === 0 ? 'Technology Option Name' : ''}
-                                        placeholder="Enter option name"
-                                        value={tech.optionName ?? ''}
-                                        onChange={(e) => {
-                                            const next = [...(formData.technologyOptions || [])]
-                                            next[index] = { ...next[index], optionName: e.target.value }
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                        required
-                                    />
-                                    <FormInput
-                                        label={index === 0 ? 'Details (Optional)' : ''}
-                                        placeholder="Enter details"
-                                        value={tech.details ?? ''}
-                                        onChange={(e) => {
-                                            const next = [...(formData.technologyOptions || [])]
-                                            next[index] = { ...next[index], details: e.target.value }
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="h-10 px-3 border border-red-300 text-red-600 rounded-lg disabled:opacity-50"
-                                        disabled={(formData.technologyOptions || []).length <= 1}
-                                        onClick={() => {
-                                            const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
-                                            setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
-                                        }}
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
+                            <div className="grid grid-cols-[1fr_1fr_auto] gap-3 text-sm font-medium text-gray-600">
+                                <div>Technology options<span className="text-red-500">*</span></div>
+                                <div>Details<span className="text-red-500">*</span></div>
+                                <div></div>
+                            </div>
+                            {(Array.isArray(formData.technologyOptions) ? formData.technologyOptions : []).map((tech: any, index: number) => {
+                                const fixed = tech.isFixed || isFixedTechnologyName(tech.optionName)
+                                return (
+                                    <div key={tech.optionKey || index} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-start">
+                                        <input
+                                            type="text"
+                                            className={`h-10 w-full rounded-lg border px-3 ${fixed ? 'bg-gray-50 text-gray-700 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
+                                            placeholder="Enter option name"
+                                            value={tech.optionName ?? ''}
+                                            readOnly={fixed}
+                                            onChange={(e) => {
+                                                if (fixed) return
+                                                const next = [...(formData.technologyOptions || [])]
+                                                next[index] = { ...next[index], optionName: e.target.value }
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        />
+                                        <textarea
+                                            className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[40px]"
+                                            placeholder="Description"
+                                            value={tech.details ?? ''}
+                                            onChange={(e) => {
+                                                const next = [...(formData.technologyOptions || [])]
+                                                next[index] = { ...next[index], details: e.target.value }
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="h-10 px-3 border border-red-300 text-red-600 rounded-lg hover:bg-red-50"
+                                            title="Remove"
+                                            onClick={() => {
+                                                const next = (formData.technologyOptions || []).filter((_: any, i: number) => i !== index)
+                                                setFormData({ ...formData, technologyOptions: next, hasTechnologiesUpdate: true })
+                                            }}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                )
+                            })}
                             <button
                                 type="button"
                                 className="px-3 py-2 border border-gray-300 rounded-lg"
@@ -702,11 +888,28 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                     {/* Basic Information Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="Start Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.startDate ?? ''}
+                            onChange={(e) => {
+                                const next = e.target.value
+                                const expected = formData.expectedCompletionDate
+                                const expectedInvalid = expected && next && expected < next
+                                setFormData({
+                                    ...formData,
+                                    startDate: next,
+                                    ...(expectedInvalid ? { expectedCompletionDate: '' } : {}),
+                                })
+                            }}
+                        />
+                        <FormInput
+                            label="Expected Completion Date"
+                            required
+                            type="date"
+                            min={(formData.startDate ?? '') as string}
+                            value={formData.expectedCompletionDate ?? ''}
+                            onChange={(e) => setFormData({ ...formData, expectedCompletionDate: e.target.value })}
                         />
 
                         {/* Name of SMS/KVK Head - From KVK Staff API */}
@@ -743,12 +946,16 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             required
                             value={formData.sectorId ?? ''}
                             onChange={(value) => {
+                                const sectorName = fldSectors.find((s: any) => s.sectorId === value)?.sectorName ?? ''
+                                const isWomenEmpowerment = sectorName.trim().toLowerCase() === 'women empowerment'
                                 setFormData({
                                     ...formData,
                                     sectorId: value as number,
                                     categoryId: '', // Reset category when sector changes
                                     subCategoryId: '', // Reset subcategory when sector changes
-                                    cropId: '' // Reset crop when sector changes
+                                    cropId: '', // Reset crop when sector changes
+                                    // Women Empowerment has no measurable unit/quantity — clear any stale values.
+                                    ...(isWomenEmpowerment ? { unit: '', quantity: '', area: '' } : {}),
                                 });
                             }}
                             options={createMasterDataOptions(fldSectors, 'sectorId', 'sectorName')}
@@ -897,34 +1104,79 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             value={formData.demoCount ?? ''}
                             onChange={(e) => setFormData({ ...formData, demoCount: e.target.value })}
                         />
-                        <FormInput
-                            label="Start Date"
-                            required
-                            type="date"
-                            value={formData.startDate ?? ''}
-                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                        />
-                        <FormInput
-                            label="Area(ha)"
-                            required
-                            type="number"
-                            value={formData.area ?? ''}
-                            onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                        />
+                        {(() => {
+                            const selectedSectorName = fldSectors.find((s: any) => s.sectorId === formData.sectorId)?.sectorName ?? ''
+                            const isWomenEmpowerment = selectedSectorName.trim().toLowerCase() === 'women empowerment'
+                            if (isWomenEmpowerment) return null
+                            return (
+                                <div className="grid grid-cols-[120px_1fr] gap-3">
+                                    <FormSelect
+                                        label="Unit"
+                                        required
+                                        value={formData.unit ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                        options={OFT_UNIT_OPTIONS}
+                                    />
+                                    <FormInput
+                                        label="Quantity"
+                                        required
+                                        type="number"
+                                        value={formData.quantity ?? formData.area ?? ''}
+                                        onChange={(e) => setFormData({ ...formData, quantity: e.target.value, area: e.target.value })}
+                                    />
+                                </div>
+                            )
+                        })()}
                     </div>
 
                     {/* Farmers Details Section */}
                     <FormSection title="Farmers Details">
-                        <div className="col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
-                            <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
-                            <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
-                            <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
+                        <div className="col-span-2 space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <FormInput label="General_M" required type="number" value={formData.gen_m ?? ''} onChange={e => setFormData({ ...formData, gen_m: e.target.value })} />
+                                <FormInput label="General_F" required type="number" value={formData.gen_f ?? ''} onChange={e => setFormData({ ...formData, gen_f: e.target.value })} />
+                                <FormInput label="OBC_M" required type="number" value={formData.obc_m ?? ''} onChange={e => setFormData({ ...formData, obc_m: e.target.value })} />
+                                <FormInput label="OBC_F" required type="number" value={formData.obc_f ?? ''} onChange={e => setFormData({ ...formData, obc_f: e.target.value })} />
 
-                            <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
-                            <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
-                            <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
-                            <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                                <FormInput label="SC_M" required type="number" value={formData.sc_m ?? ''} onChange={e => setFormData({ ...formData, sc_m: e.target.value })} />
+                                <FormInput label="SC_F" required type="number" value={formData.sc_f ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value })} />
+                                <FormInput label="ST_M" required type="number" value={formData.st_m ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value })} />
+                                <FormInput label="ST_F" required type="number" value={formData.st_f ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value })} />
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                    <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                    <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.st_m) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                    <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                    <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                        {(Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                    <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                    <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                        {(Number(formData.gen_m) || 0) +
+                                            (Number(formData.gen_f) || 0) +
+                                            (Number(formData.obc_m) || 0) +
+                                            (Number(formData.obc_f) || 0) +
+                                            (Number(formData.sc_m) || 0) +
+                                            (Number(formData.sc_f) || 0) +
+                                            (Number(formData.st_m) || 0) +
+                                            (Number(formData.st_f) || 0)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </FormSection>
                 </div>
@@ -935,11 +1187,24 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                 <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput
-                            label="Reporting Year"
+                            label="Activity Date"
                             required
                             type="date"
-                            value={formData.reportingYear ?? ''}
-                            onChange={(e) => setFormData({ ...formData, reportingYear: e.target.value })}
+                            value={formData.activityDate || formData.date || ''}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                activityDate: e.target.value,
+                                date: e.target.value,
+                                // Mirror activity date as reportingYear so the FLD dropdown (gated
+                                // on reportingYear) loads and downstream filters/reports — which
+                                // key on reportingYear — bucket by the activity date.
+                                reportingYear: e.target.value,
+                                // numberOfActivities is NOT NULL in the DB but no longer surfaced;
+                                // pin to 1 so the create payload stays valid.
+                                numberOfActivities: formData.numberOfActivities || 1,
+                                noOfActivities: formData.noOfActivities || 1,
+                                activityCount: formData.activityCount || 1,
+                            })}
                         />
 
                         <DependentDropdown
@@ -968,8 +1233,8 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             cacheKey="fld-by-kvk-year-extension-training"
                             emptyMessage={
                                 selectedReportingYearNumber
-                                    ? `No FLD available for reporting year ${selectedReportingYearNumber}`
-                                    : 'Select reporting year to load FLD'
+                                    ? `No FLD available for date ${selectedReportingYearNumber}`
+                                    : 'Select date to load FLD'
                             }
                             loadingMessage="Loading FLD..."
                         />
@@ -988,27 +1253,6 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             }}
                             options={createMasterDataOptions(activityList, 'activityId', 'activityName')}
                             emptyMessage="No activities available"
-                        />
-
-                        <FormInput
-                            label="Date"
-                            required
-                            type="date"
-                            value={formData.activityDate || formData.date || ''}
-                            onChange={(e) => setFormData({ ...formData, activityDate: e.target.value, date: e.target.value })}
-                        />
-
-                        <FormInput
-                            label="No. of activities"
-                            required
-                            type="number"
-                            value={formData.numberOfActivities || formData.noOfActivities || formData.activityCount || ''}
-                            onChange={(e) => setFormData({
-                                ...formData,
-                                numberOfActivities: e.target.value,
-                                noOfActivities: e.target.value,
-                                activityCount: e.target.value
-                            })}
                         />
                     </div>
 
@@ -1030,6 +1274,40 @@ export const OftFldForms: React.FC<OftFldFormsProps> = ({
                             <FormInput label="SC_F" required type="number" value={(formData.sc_f ?? formData.scF) ?? ''} onChange={e => setFormData({ ...formData, sc_f: e.target.value, scF: e.target.value })} />
                             <FormInput label="ST_M" required type="number" value={(formData.st_m ?? formData.stM) ?? ''} onChange={e => setFormData({ ...formData, st_m: e.target.value, stM: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={(formData.st_f ?? formData.stF) ?? ''} onChange={e => setFormData({ ...formData, st_f: e.target.value, stF: e.target.value })} />
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-4">
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9]">
+                                <span className="text-xs font-semibold text-[#2E7D32] uppercase">Total Male</span>
+                                <span className="text-sm font-bold text-[#1B5E20] tabular-nums">
+                                    {(Number(formData.gen_m ?? formData.generalM) || 0) +
+                                        (Number(formData.obc_m ?? formData.obcM) || 0) +
+                                        (Number(formData.sc_m ?? formData.scM) || 0) +
+                                        (Number(formData.st_m ?? formData.stM) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#FCE4EC] border border-[#F8BBD0]">
+                                <span className="text-xs font-semibold text-[#AD1457] uppercase">Total Female</span>
+                                <span className="text-sm font-bold text-[#880E4F] tabular-nums">
+                                    {(Number(formData.gen_f ?? formData.generalF) || 0) +
+                                        (Number(formData.obc_f ?? formData.obcF) || 0) +
+                                        (Number(formData.sc_f ?? formData.scF) || 0) +
+                                        (Number(formData.st_f ?? formData.stF) || 0)}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#E3F2FD] border border-[#BBDEFB]">
+                                <span className="text-xs font-semibold text-[#1565C0] uppercase">Overall Total</span>
+                                <span className="text-sm font-bold text-[#0D47A1] tabular-nums">
+                                    {(Number(formData.gen_m ?? formData.generalM) || 0) +
+                                        (Number(formData.gen_f ?? formData.generalF) || 0) +
+                                        (Number(formData.obc_m ?? formData.obcM) || 0) +
+                                        (Number(formData.obc_f ?? formData.obcF) || 0) +
+                                        (Number(formData.sc_m ?? formData.scM) || 0) +
+                                        (Number(formData.sc_f ?? formData.scF) || 0) +
+                                        (Number(formData.st_m ?? formData.stM) || 0) +
+                                        (Number(formData.st_f ?? formData.stF) || 0)}
+                                </span>
+                            </div>
                         </div>
                     </FormSection>
                 </div>

@@ -1,4 +1,4 @@
-const soilWaterService = require('../../services/forms/soilWaterService');
+const soilWaterService = require('../../services/forms/soilWaterService.js');
 
 const soilWaterController = {
     // Equipment

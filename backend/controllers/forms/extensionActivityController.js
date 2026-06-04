@@ -1,5 +1,5 @@
 const extensionActivityService = require('../../services/forms/extensionActivityService.js');
-const { RepositoryError } = require('../../utils/repositoryHelpers');
+const { RepositoryError } = require('../../utils/repositoryHelpers.js');
 
 const extensionActivityController = {
     /**

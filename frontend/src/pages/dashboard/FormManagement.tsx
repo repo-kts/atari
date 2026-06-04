@@ -5,7 +5,6 @@ import {
     Trophy,
     BarChart3,
     FolderTree,
-    Smartphone,
     Sparkles,
     Calendar,
 } from 'lucide-react'
@@ -16,7 +15,6 @@ const AboutKVKTab = lazy(() => import('./forms/AboutKVKTab').then(m => ({ defaul
 const AchievementsTab = lazy(() => import('./forms/AchievementsTab').then(m => ({ default: m.AchievementsTab })))
 const PerformanceTab = lazy(() => import('./forms/PerformanceTab').then(m => ({ default: m.PerformanceTab })))
 const MiscellaneousTab = lazy(() => import('./forms/MiscellaneousTab').then(m => ({ default: m.MiscellaneousTab })))
-const DigitalInformationTab = lazy(() => import('./forms/DigitalInformationTab').then(m => ({ default: m.DigitalInformationTab })))
 const SwachhtaBharatAbhiyaanTab = lazy(() => import('./forms/SwachhtaBharatAbhiyaanTab').then(m => ({ default: m.SwachhtaBharatAbhiyaanTab })))
 const MeetingsTab = lazy(() => import('./forms/MeetingsTab').then(m => ({ default: m.MeetingsTab })))
 
@@ -56,13 +54,6 @@ const tabs: Tab[] = [
         path: '/forms/miscellaneous',
         icon: <FolderTree className="w-4 h-4" />,
         component: <MiscellaneousTab />,
-    },
-    {
-        id: 'digital-information',
-        label: 'Digital Information',
-        path: '/forms/digital-information',
-        icon: <Smartphone className="w-4 h-4" />,
-        component: <DigitalInformationTab />,
     },
     {
         id: 'swachhta-bharat-abhiyaan',

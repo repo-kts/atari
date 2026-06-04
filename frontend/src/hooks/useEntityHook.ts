@@ -50,6 +50,10 @@ import {
     useSanctionedPosts,
     useStaffCategories,
     usePayLevels,
+    usePayScales,
+    useAssetFundingSources,
+    useEquipmentTypes,
+    useEquipmentMasters,
     useDisciplines,
     useExtensionActivityTypes,
     useOtherExtensionActivityTypes,
@@ -78,7 +82,7 @@ import {
     useVehiclePresentStatuses,
     useEquipmentPresentStatuses,
 } from './useOtherMastersData'
-import { useProjectData } from './useProjectData'
+import { useProjectData, useTspScspFilteredProjectData } from './useProjectData'
 import { getEntityTypeChecks } from '../utils/entityTypeHelpers'
 
 /**
@@ -144,6 +148,10 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.SANCTIONED_POST]: () => useSanctionedPosts(),
     [ENTITY_TYPES.STAFF_CATEGORY]: () => useStaffCategories(),
     [ENTITY_TYPES.PAY_LEVEL]: () => usePayLevels(),
+    [ENTITY_TYPES.PAY_SCALE]: () => usePayScales(),
+    [ENTITY_TYPES.ASSET_FUNDING_SOURCE]: () => useAssetFundingSources(),
+    [ENTITY_TYPES.EQUIPMENT_TYPE]: () => useEquipmentTypes(),
+    [ENTITY_TYPES.EQUIPMENT_MASTER]: () => useEquipmentMasters(),
     [ENTITY_TYPES.DISCIPLINE]: () => useDisciplines(),
     [ENTITY_TYPES.EXTENSION_ACTIVITY_TYPE]: () => useExtensionActivityTypes(),
     [ENTITY_TYPES.OTHER_EXTENSION_ACTIVITY_TYPE]: () => useOtherExtensionActivityTypes(),
@@ -191,6 +199,8 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PROJECT_ARYA_EVALUATION]: () => useProjectData(ENTITY_TYPES.PROJECT_ARYA_EVALUATION),
     [ENTITY_TYPES.PROJECT_CSISA]: () => useProjectData(ENTITY_TYPES.PROJECT_CSISA),
     [ENTITY_TYPES.PROJECT_TSP_SCSP]: () => useProjectData(ENTITY_TYPES.PROJECT_TSP_SCSP),
+    [ENTITY_TYPES.PROJECT_TSP_ACTIVITY]: () => useTspScspFilteredProjectData('TSP'),
+    [ENTITY_TYPES.PROJECT_SCSP_ACTIVITY]: () => useTspScspFilteredProjectData('SCSP'),
     [ENTITY_TYPES.PROJECT_NICRA_BASIC]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_BASIC),
     [ENTITY_TYPES.PROJECT_NICRA_DETAILS]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_DETAILS),
     [ENTITY_TYPES.PROJECT_NICRA_TRAINING]: () => useProjectData(ENTITY_TYPES.PROJECT_NICRA_TRAINING),
@@ -276,7 +286,6 @@ const ENTITY_HOOK_MAP: Record<string, HookFactory> = {
     [ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_VILLAGE_ADOPTION),
     [ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_PRIORITY_THRUST),
     [ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_FUNCTIONAL_LINKAGE),
-    [ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_SPECIAL_PROGRAMMES),
     [ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_BUDGET_DETAILS),
     [ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_PROJECT_BUDGET),
     [ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND]: () => useProjectData(ENTITY_TYPES.PERFORMANCE_REVOLVING_FUND),
@@ -292,11 +301,11 @@ const ABOUT_KVK_ENTITIES: string[] = [
     ENTITY_TYPES.KVK_EMPLOYEES,
     ENTITY_TYPES.KVK_STAFF_TRANSFERRED,
     ENTITY_TYPES.KVK_INFRASTRUCTURE,
+    ENTITY_TYPES.KVK_LAND_DETAILS,
     ENTITY_TYPES.KVK_VEHICLES,
     ENTITY_TYPES.KVK_VEHICLE_DETAILS,
     ENTITY_TYPES.KVK_EQUIPMENTS,
     ENTITY_TYPES.KVK_EQUIPMENT_DETAILS,
-    ENTITY_TYPES.KVK_FARM_IMPLEMENTS,
     ENTITY_TYPES.KVKS,
 ]
 

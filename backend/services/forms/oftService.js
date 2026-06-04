@@ -2,12 +2,19 @@ const oftRepository = require('../../repositories/forms/oftRepository.js');
 const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js');
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
 const { validateFileSize } = require('../../utils/fileValidation.js');
+const { createAttachmentBinding } = require('./formAttachmentBinding.js');
+
+const resultAttachments = createAttachmentBinding({
+    formCode: 'oft_result',
+    primaryKey: 'oftResultReportId',
+});
 
 const oftService = {
     createOft: async (data, user) => {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.create(payload, user);
     },
 
@@ -23,6 +30,7 @@ const oftService = {
         const payload = { ...(data || {}) };
         delete payload.status;
         delete payload.ongoingCompleted;
+        _assertExpectedCompletionDate(payload);
         return await oftRepository.update(id, payload, user);
     },
 
@@ -37,17 +45,25 @@ const oftService = {
             throw new ValidationError('Only ONGOING OFT records can be transferred');
         }
 
-        if (!source.reportingYear) {
-            throw new ValidationError('Cannot transfer OFT without reportingYear');
+        const sourceStartDate = source.oftStartDate ? new Date(source.oftStartDate) : null;
+        if (!sourceStartDate || Number.isNaN(sourceStartDate.getTime())) {
+            throw new ValidationError('Cannot transfer OFT without a valid start date');
         }
 
-        const nextReportingYear = new Date(source.reportingYear);
-        if (Number.isNaN(nextReportingYear.getTime())) {
-            throw new ValidationError('Invalid source reportingYear for transfer');
+        const nextYear = sourceStartDate.getFullYear() + 1;
+        const currentYear = new Date().getFullYear();
+        if (nextYear > currentYear) {
+            throw new ValidationError(
+                `Cannot transfer to ${nextYear}: transfer to a future year is not allowed`
+            );
         }
-        nextReportingYear.setFullYear(nextReportingYear.getFullYear() + 1);
 
-        return oftRepository.transferToNextYearTx(source, nextReportingYear);
+        const nextStartDate = new Date(sourceStartDate);
+        nextStartDate.setFullYear(nextYear);
+        // Expected Completion Date defaults to the last date (31-Dec) of the new start year.
+        const nextExpectedCompletionDate = new Date(nextYear, 11, 31);
+
+        return oftRepository.transferToNextYearTx(source, nextStartDate, nextExpectedCompletionDate);
     },
 
     addResult: async (id, payload, user) => {
@@ -62,9 +78,15 @@ const oftService = {
         const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
         _validateResultPayload(payload, sourceRows);
 
+        const { attachmentIds } = resultAttachments.strip(payload);
         const result = await oftRepository.createResultReportTx(id, payload);
         await oftRepository.updateStatus(id, OFT_STATUS.COMPLETED);
-        return result;
+        await resultAttachments.attach(
+            { ...result, kvkId: source.kvkId },
+            attachmentIds,
+            user,
+        );
+        return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
     editResult: async (id, payload, user) => {
@@ -78,7 +100,14 @@ const oftService = {
 
         const sourceRows = await oftRepository.getTechnologyOptionsByOftId(id);
         _validateResultPayload(payload, sourceRows);
-        return oftRepository.updateResultReportTx(id, payload);
+        const { attachmentIds } = resultAttachments.strip(payload);
+        const result = await oftRepository.updateResultReportTx(id, payload);
+        await resultAttachments.attach(
+            { ...result, kvkId: source.kvkId },
+            attachmentIds,
+            user,
+        );
+        return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
     getResult: async (id, user) => {
@@ -86,13 +115,21 @@ const oftService = {
         if (!source) throw new NotFoundError('OFT record');
         const result = await oftRepository.getResultByOftId(id);
         if (!result) throw new NotFoundError('OFT result report');
-        return result;
+        return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
     deleteOft: async (id, user) => {
         return await oftRepository.delete(id, user);
     },
 };
+
+function _assertExpectedCompletionDate(payload) {
+    const raw = payload ? payload.expectedCompletionDate : null;
+    const date = raw ? new Date(raw) : null;
+    if (!raw || !date || Number.isNaN(date.getTime())) {
+        throw new ValidationError('Expected Completion Date is required', 'expectedCompletionDate');
+    }
+}
 
 function _validateResultPayload(payload, sourceRows = []) {
     if (!payload || typeof payload !== 'object') {
@@ -115,34 +152,22 @@ function _validateResultPayload(payload, sourceRows = []) {
     const sourceByKey = new Map(
         (sourceRows || []).map((row) => [String(row.optionKey), String(row.optionName)])
     );
-    if (sourceByKey.size === 0) {
-        throw new ValidationError('At least one OFT technology option is required before adding result', 'technologyOptions');
-    }
 
     payload.tables.forEach((table, tableIndex) => {
         const rows = Array.isArray(table?.rows) ? table.rows : [];
-        const tableKeys = new Set();
         rows.forEach((row, rowIndex) => {
             const optionKey = String(row?.optionKey || '').trim();
-            if (!optionKey || !sourceByKey.has(optionKey)) {
+            if (optionKey && !sourceByKey.has(optionKey)) {
                 throw new ValidationError(
-                    `Invalid source row at table ${tableIndex + 1}, row ${rowIndex + 1}`,
+                    `Unknown source row optionKey at table ${tableIndex + 1}, row ${rowIndex + 1}`,
                     `tables.${tableIndex}.rows.${rowIndex}.optionKey`
                 );
             }
-            tableKeys.add(optionKey);
         });
-
-        if (tableKeys.size !== sourceByKey.size) {
-            throw new ValidationError(
-                `Result table ${tableIndex + 1} must contain all source technology rows`,
-                `tables.${tableIndex}.rows`
-            );
-        }
     });
 
-    validateFileSize({ size: payload.supplementaryDatasheetSize }, 2 * 1024 * 1024, 'Supplementary Datasheet');
-    validateFileSize({ size: payload.photographSize }, 1 * 1024 * 1024, 'Photograph');
+    validateFileSize({ size: payload.supplementaryDatasheetSize }, 5 * 1024 * 1024, 'Supplementary Datasheet');
+    validateFileSize({ size: payload.photographSize }, 5 * 1024 * 1024, 'Photograph');
 }
 
 module.exports = oftService;

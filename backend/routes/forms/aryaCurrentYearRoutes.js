@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const aryaCurrentYearController = require('../../controllers/forms/aryaCurrentYearController');
-const { authenticateToken, requireRole } = require('../../middleware/auth');
+const aryaCurrentYearController = require('../../controllers/forms/aryaCurrentYearController.js');
+const { authenticateToken, requireRole } = require('../../middleware/auth.js');
 
 router.use(authenticateToken);
 

@@ -27,7 +27,7 @@ if (isServerless) {
 
 const ExcelJS = require('exceljs');
 const { Document, Packer, Paragraph, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, AlignmentType, PageOrientation } = require('docx');
-const { reportConfig } = require('../config/reportConfig');
+const { reportConfig } = require('../config/reportConfig.js');
 
 /**
  * Generates a PDF buffer from HTML using Puppeteer

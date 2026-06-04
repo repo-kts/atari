@@ -1,4 +1,4 @@
-const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository');
+const functionalLinkageRepository = require('../../repositories/forms/functionalLinkageRepository.js');
 const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
 
 const functionalLinkageService = {
