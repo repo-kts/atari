@@ -412,21 +412,28 @@ class ReportTemplateService {
     async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
         let html = '';
         let isFirstSection = true;
-        const seenChapters = new Set(); // chapter header is shown once per chapter
+        const seenChapters = new Set(); // chapter header shown once per chapter
+        const seenSections = new Set(); // section (group) heading shown once per group
 
         for (const rawSection of selectedSections) {
             const sectionConfig = getSectionConfig(rawSection.id);
             const sectionData = sectionsData[rawSection.id];
             const sectionId = `section-${rawSection.id.replace(/\./g, '-')}`;
 
-            // Section heading = group ("1.1 Basic Information"); subsection = feature
-            // ("1.1.A KVKs Details"). Data/anchor lookups keep the real id.
+            // Section heading = group ("1.1 Basic Information"), shown once per
+            // group; subsection = feature ("1.1.A KVKs Details"). On later
+            // features of the same group, the feature becomes the main heading so
+            // the section isn't repeated. Data/anchor lookups keep the real id.
             const heading = headingById.get(String(rawSection.id));
+            const firstInGroup = heading ? !seenSections.has(heading.sectionNumber) : true;
+            if (heading) seenSections.add(heading.sectionNumber);
+            const promoteFeature = heading && heading.featureNumber && !firstInGroup;
+
             const section = heading
                 ? {
                     ...rawSection,
-                    id: heading.sectionNumber,
-                    title: heading.sectionTitle,
+                    id: promoteFeature ? heading.featureNumber : heading.sectionNumber,
+                    title: promoteFeature ? heading.featureTitle : heading.sectionTitle,
                     featureNumber: heading.featureNumber,
                     featureTitle: heading.featureTitle,
                 }
@@ -453,7 +460,7 @@ class ReportTemplateService {
                 }
             }
 
-            html += this._withSectionHeaders(chunk || '', heading, seenChapters);
+            html += this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup);
             isFirstSection = false;
         }
 
@@ -464,18 +471,20 @@ class ReportTemplateService {
      * Decorate a section page:
      *  - a centered chapter header ("About KVK") shown once, on the first page
      *    of each chapter;
-     *  - a subsection heading ("1.1.A KVKs Details") just under the section
-     *    title ("1.1 Basic Information").
+     *  - a subsection heading ("1.1.A KVKs Details") under the section title
+     *    ("1.1 Basic Information") — only on the group's first feature, so the
+     *    section heading isn't repeated on later features.
      */
-    _withSectionHeaders(chunk, heading, seenChapters) {
+    _withSectionHeaders(chunk, heading, seenChapters, firstInGroup) {
         if (!chunk || !heading) return chunk;
         const titleStart = chunk.indexOf('<h1 class="section-title"');
         if (titleStart === -1) return chunk;
 
         let result = chunk;
 
-        // Subsection heading after the section title's closing tag.
-        if (heading.featureNumber) {
+        // Subsection heading under the section title — only when the section
+        // title is the group (i.e. the group's first feature).
+        if (firstInGroup && heading.featureNumber) {
             const titleEnd = result.indexOf('</h1>', titleStart);
             if (titleEnd !== -1) {
                 const insertAt = titleEnd + '</h1>'.length;
