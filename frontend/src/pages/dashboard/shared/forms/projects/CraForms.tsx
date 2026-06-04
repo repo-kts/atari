@@ -1,6 +1,7 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormSection } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
@@ -158,6 +159,11 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
                             <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['genF', 'obcF', 'scF', 'stF']}
+                        />
                     </FormSection>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -251,6 +257,11 @@ export const CraForms: React.FC<CraFormsProps> = ({
                             <FormInput label="ST_M" required type="number" wholeNumberOnly value={formData.stM || ''} onChange={e => setFormData({ ...formData, stM: e.target.value })} />
                             <FormInput label="ST_F" required type="number" wholeNumberOnly value={formData.stF || ''} onChange={e => setFormData({ ...formData, stF: e.target.value })} />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['genF', 'obcF', 'scF', 'stF']}
+                        />
                     </FormSection>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

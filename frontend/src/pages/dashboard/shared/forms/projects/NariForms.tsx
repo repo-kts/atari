@@ -76,8 +76,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                     </div>
 
                     {/* Beneficiary Details Section */}
-                    <div className="p-8 border border-gray-100 rounded-2xl bg-white shadow-sm space-y-8">
-                        <h3 className="text-xl font-semibold text-gray-800">No. of beneficiaries</h3>
+                    <div className="space-y-6">
+                        <h3 className="text-base font-semibold text-gray-800">No. of beneficiaries</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
@@ -221,8 +221,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                     </div>
 
                     {/* Beneficiary Details Section */}
-                    <div className="p-8 border border-gray-100 rounded-2xl bg-white shadow-sm space-y-8">
-                        <h3 className="text-xl font-semibold text-gray-800">No. of beneficiaries</h3>
+                    <div className="space-y-6">
+                        <h3 className="text-base font-semibold text-gray-800">No. of beneficiaries</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
@@ -342,8 +342,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                     </div>
 
                     {/* Beneficiary Details Section */}
-                    <div className="p-8 border border-gray-100 rounded-2xl bg-white shadow-sm space-y-8">
-                        <h3 className="text-xl font-semibold text-gray-800">No. of beneficiaries</h3>
+                    <div className="space-y-6">
+                        <h3 className="text-base font-semibold text-gray-800">No. of beneficiaries</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
@@ -414,6 +414,11 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
@@ -491,8 +496,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                     </div>
 
                     {/* Beneficiary Details Section */}
-                    <div className="p-8 border border-gray-100 rounded-2xl bg-white shadow-sm space-y-8">
-                        <h3 className="text-xl font-semibold text-gray-800">No. of beneficiaries</h3>
+                    <div className="space-y-6">
+                        <h3 className="text-base font-semibold text-gray-800">No. of beneficiaries</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
@@ -563,6 +568,11 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
@@ -609,8 +619,8 @@ export const NariForms: React.FC<NariFormsProps> = ({
                     </div>
 
                     {/* Beneficiary Details Section */}
-                    <div className="p-8 border border-gray-100 rounded-2xl bg-white shadow-sm space-y-8">
-                        <h3 className="text-xl font-semibold text-gray-800">No. of beneficiaries</h3>
+                    <div className="space-y-6">
+                        <h3 className="text-base font-semibold text-gray-800">No. of beneficiaries</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                             <FormInput
@@ -681,6 +691,11 @@ export const NariForms: React.FC<NariFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: parseInt(e.target.value) || 0 })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}

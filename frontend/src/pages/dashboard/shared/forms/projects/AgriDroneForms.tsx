@@ -1,6 +1,7 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
@@ -281,6 +282,11 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
                         <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                     </div>
+                    <CasteGenderTotals
+                        values={formData}
+                        maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                        femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                    />
                 </div>
             )}
         </>
