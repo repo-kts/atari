@@ -1,6 +1,7 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect, FormTextArea } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
@@ -271,7 +272,7 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <FormInput label="General_M" required type="number" value={formData.generalM ?? ''} onChange={(e) => setFormData({ ...formData, generalM: e.target.value })} />
                         <FormInput label="General_F" required type="number" value={formData.generalF ?? ''} onChange={(e) => setFormData({ ...formData, generalF: e.target.value })} />
                         <FormInput label="OBC_M" required type="number" value={formData.obcM ?? ''} onChange={(e) => setFormData({ ...formData, obcM: e.target.value })} />
@@ -281,6 +282,11 @@ export const AgriDroneForms: React.FC<AgriDroneFormsProps> = ({
                         <FormInput label="ST_M" required type="number" value={formData.stM ?? ''} onChange={(e) => setFormData({ ...formData, stM: e.target.value })} />
                         <FormInput label="ST_F" required type="number" value={formData.stF ?? ''} onChange={(e) => setFormData({ ...formData, stF: e.target.value })} />
                     </div>
+                    <CasteGenderTotals
+                        values={formData}
+                        maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                        femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                    />
                 </div>
             )}
         </>

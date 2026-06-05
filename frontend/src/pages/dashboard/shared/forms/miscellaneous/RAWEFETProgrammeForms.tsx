@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
 
 const FORM_CODE = 'rawe_fet'
@@ -113,6 +114,11 @@ export const RAWEFETProgrammeForms: React.FC<RAWEFETProgrammeFormsProps> = ({
                             value={formData.femaleStudents ?? ''}
                             onChange={handleNumberChange('femaleStudents')}
                             placeholder="0"
+                        />
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['maleStudents']}
+                            femaleFields={['femaleStudents']}
                         />
                     </FormSection>
                 </div>

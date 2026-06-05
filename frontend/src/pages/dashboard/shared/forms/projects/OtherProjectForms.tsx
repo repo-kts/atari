@@ -1,6 +1,7 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 
 interface OtherProjectFormsProps {
     entityType: string
@@ -111,6 +112,11 @@ export const OtherProjectForms: React.FC<OtherProjectFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, farmersStF: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['farmersGeneralM', 'farmersObcM', 'farmersScM', 'farmersStM']}
+                            femaleFields={['farmersGeneralF', 'farmersObcF', 'farmersScF', 'farmersStF']}
+                        />
                     </div>
                 </div>
             )}

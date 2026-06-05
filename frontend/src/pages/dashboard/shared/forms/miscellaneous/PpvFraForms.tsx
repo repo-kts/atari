@@ -1,5 +1,6 @@
 import React from 'react'
 import { FormInput, FormSelect, FormTextArea, FormSection } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { ENTITY_TYPES } from '../../../../../constants/entityConstants'
 import { ExtendedEntityType } from '../../../../../utils/masterUtils'
 import { useMasterData } from '../../../../../hooks/useMasterData'
@@ -128,6 +129,11 @@ const PpvFraTrainingForm: React.FC<PpvFraTrainingFormProps> = ({ formData, setFo
                         placeholder="0"
                     />
                 </div>
+                <CasteGenderTotals
+                    values={formData}
+                    maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                    femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                />
             </div>
         </div>
     )

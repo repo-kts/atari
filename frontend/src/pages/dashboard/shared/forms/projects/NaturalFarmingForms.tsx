@@ -2,6 +2,7 @@ import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { cleanIndianMobileInput } from '@/utils/indianPhone'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
@@ -223,6 +224,11 @@ export const NaturalFarmingForms: React.FC<NaturalFarmingFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
 
                     <div className="space-y-6">

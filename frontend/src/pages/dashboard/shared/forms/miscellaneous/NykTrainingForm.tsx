@@ -1,5 +1,6 @@
 import React from 'react'
 import { FormInput } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 
 interface NykTrainingFormProps {
     formData: any
@@ -115,6 +116,11 @@ export const NykTrainingForm: React.FC<NykTrainingFormProps> = ({ formData, setF
                         placeholder="0"
                     />
                 </div>
+                <CasteGenderTotals
+                    values={formData}
+                    maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                    femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

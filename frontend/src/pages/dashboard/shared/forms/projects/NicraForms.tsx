@@ -4,6 +4,7 @@ import { formatLocalDateYmd } from '@/utils/dateLocalYmd'
 import { FormInput, FormSelect } from '../shared/FormComponents'
 import { MasterDataDropdown } from '@/components/common/MasterDataDropdown'
 import { MonthYearInput } from '@/components/common/MonthYearInput'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 import { DependentDropdown } from '@/components/common/DependentDropdown'
 import { createMasterDataOptions } from '@/utils/formHelpers'
 import { FormAttachmentSection } from '@/components/common/FormAttachmentSection'
@@ -442,6 +443,11 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
 
                     <div className="space-y-6">
@@ -592,6 +598,11 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
@@ -696,6 +707,11 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
                 </div>
             )}
@@ -902,6 +918,11 @@ export const NicraForms: React.FC<NicraFormsProps> = ({
                                 onChange={(e) => setFormData({ ...formData, stFemale: e.target.value })}
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['genMale', 'obcMale', 'scMale', 'stMale']}
+                            femaleFields={['genFemale', 'obcFemale', 'scFemale', 'stFemale']}
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
