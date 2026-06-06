@@ -103,6 +103,16 @@ function renderSectorTable(ctx, { agg, sectorList, states, perState }) {
     const esc = (v) => ctx._escapeHtml(v);
     const valueGroups = perState ? states.length + 1 : 1; // per-state groups + Total, or just Total
     const colCount = 1 + valueGroups * 3;
+    // The per-state table gets very wide (states x 3). Force it to the page
+    // width (table-layout:fixed) and scale the font down as columns grow so the
+    // right-most border always stays inside the page.
+    const tableClass = perState ? 'data-table oft-statewise' : 'data-table';
+    let tableStyle = '';
+    if (perState) {
+        const groups = states.length + 1; // per-state + Total
+        const fs = groups <= 3 ? 7.5 : groups <= 5 ? 6 : groups <= 7 ? 5 : groups <= 9 ? 4.3 : 3.8;
+        tableStyle = ` style="font-size:${fs}pt;"`;
+    }
 
     let head = '';
     if (perState) {
@@ -170,7 +180,7 @@ function renderSectorTable(ctx, { agg, sectorList, states, perState }) {
     }
     body += `<td style="text-align:center;">${grandTotal.techs}</td><td style="text-align:center;">${grandTotal.locations}</td><td style="text-align:center;">${grandTotal.trials}</td></tr>`;
 
-    return `<table class="data-table"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+    return `<table class="${tableClass}"${tableStyle}><thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
 // ── Main render function ────────────────────────────────────────────

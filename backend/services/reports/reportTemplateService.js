@@ -1244,6 +1244,27 @@ class ReportTemplateService {
         word-wrap: break-word;
     }
 
+    /* Wide per-state OFT table: fit to page width, inherit the (scaled) table
+       font, tight padding, and wrap long headers so nothing crops. */
+    .oft-statewise {
+        width: 100%;
+        table-layout: fixed;
+    }
+    .oft-statewise th,
+    .oft-statewise td {
+        padding: 1.5px 2px;
+        font-size: inherit;
+        line-height: 1.1;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        text-align: center;
+    }
+    .oft-statewise th:first-child,
+    .oft-statewise td:first-child {
+        width: 13%;
+        text-align: left;
+    }
+
     .data-table tr:nth-child(even),
     .grouped-table tr:nth-child(even) {
         background-color: #FAFAFA;
