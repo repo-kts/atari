@@ -365,37 +365,44 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
 }
 
 /**
- * "B. State Wise OFT Details" — a per-state roll-up of technologies assessed,
- * locations and trials (mirrors the FLD state-wise table). Always rendered,
- * even for a single state.
+ * "B. State Wise OFT Details" — per-state farmer participation broken down by
+ * category and gender (mirrors the FLD state-wise table). Always rendered, even
+ * for a single state.
  */
+const FARMER_KEYS = ['genM', 'genF', 'obcM', 'obcF', 'scM', 'scF', 'stM', 'stF'];
+
 function renderStateWiseBlock(section, records) {
     const byState = new Map();
     for (const r of records) {
         const stateName = r.kvk?.state?.stateName || r.kvk?.kvkName || 'Unknown';
-        if (!byState.has(stateName)) byState.set(stateName, { techs: 0, locations: 0, trials: 0 });
+        if (!byState.has(stateName)) {
+            byState.set(stateName, { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 });
+        }
         const b = byState.get(stateName);
-        b.techs += 1;
-        b.locations += Number(r.numberOfLocation) || 0;
-        b.trials += Number(r.numberOfTrialReplication) || 0;
+        b.genM += Number(r.farmersGeneralM) || 0;
+        b.genF += Number(r.farmersGeneralF) || 0;
+        b.obcM += Number(r.farmersObcM) || 0;
+        b.obcF += Number(r.farmersObcF) || 0;
+        b.scM += Number(r.farmersScM) || 0;
+        b.scF += Number(r.farmersScF) || 0;
+        b.stM += Number(r.farmersStM) || 0;
+        b.stF += Number(r.farmersStF) || 0;
     }
 
-    const total = { techs: 0, locations: 0, trials: 0 };
+    const sumRow = (b) => FARMER_KEYS.reduce((acc, k) => acc + b[k], 0);
+    const total = { genM: 0, genF: 0, obcM: 0, obcF: 0, scM: 0, scF: 0, stM: 0, stF: 0 };
     let rows = '';
     for (const [stateName, b] of byState) {
-        total.techs += b.techs;
-        total.locations += b.locations;
-        total.trials += b.trials;
+        for (const k of FARMER_KEYS) total[k] += b[k];
         rows += `
             <tr>
                 <td>${this._escapeHtml(stateName)}</td>
-                <td style="text-align:center;">${b.techs}</td>
-                <td style="text-align:center;">${b.locations}</td>
-                <td style="text-align:center;">${b.trials}</td>
+                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${b[k]}</td>`).join('')}
+                <td style="text-align:center;font-weight:bold;">${sumRow(b)}</td>
             </tr>`;
     }
     if (!rows) {
-        rows = `<tr><td colspan="4" style="text-align:center;">No data</td></tr>`;
+        rows = `<tr><td colspan="10" style="text-align:center;">No data</td></tr>`;
     }
 
     return `
@@ -404,21 +411,26 @@ function renderStateWiseBlock(section, records) {
         <thead>
             <tr>
                 <th rowspan="2" style="vertical-align:middle;">States</th>
-                <th colspan="3" style="text-align:center;">On Farm Trials (OFTs)</th>
+                <th colspan="8" style="text-align:center;">No. of Farmers</th>
+                <th rowspan="2" style="vertical-align:middle;text-align:center;">Total</th>
             </tr>
             <tr>
-                <th style="text-align:center;">No. of technologies assessed</th>
-                <th style="text-align:center;">No. of Locations</th>
-                <th style="text-align:center;">No. of Trial/Replications</th>
+                <th style="text-align:center;">General M</th>
+                <th style="text-align:center;">General F</th>
+                <th style="text-align:center;">OBC M</th>
+                <th style="text-align:center;">OBC F</th>
+                <th style="text-align:center;">SC M</th>
+                <th style="text-align:center;">SC F</th>
+                <th style="text-align:center;">ST M</th>
+                <th style="text-align:center;">ST F</th>
             </tr>
         </thead>
         <tbody>
             ${rows}
             <tr style="font-weight:bold;">
                 <td>Total</td>
-                <td style="text-align:center;">${total.techs}</td>
-                <td style="text-align:center;">${total.locations}</td>
-                <td style="text-align:center;">${total.trials}</td>
+                ${FARMER_KEYS.map(k => `<td style="text-align:center;">${total[k]}</td>`).join('')}
+                <td style="text-align:center;">${sumRow(total)}</td>
             </tr>
         </tbody>
     </table>`;
