@@ -190,6 +190,9 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         sectorList.push(...seenSubjects.values());
     }
 
+    // Order sectors by their key (A, B, C, D, E …) — the DB subjects are sorted
+    // by name, which gives a random A–E order otherwise.
+    sectorList.sort((a, b) => String(a.key).localeCompare(String(b.key)));
 
     // ── Headings ────────────────────────────────────────────────
     let html = `
