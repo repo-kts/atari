@@ -1244,14 +1244,17 @@ class ReportTemplateService {
         word-wrap: break-word;
     }
 
-    /* Wide per-state OFT table: fit to page width, inherit the (scaled) table
-       font, tight padding, and wrap long headers so nothing crops. */
-    .oft-statewise {
+    /* Wide tables (OFT/FLD state-wise & details): fit to page width, inherit the
+       (scaled) table font, tight padding, wrap long headers so nothing crops. */
+    .oft-statewise,
+    .report-fit {
         width: 100%;
         table-layout: fixed;
     }
     .oft-statewise th,
-    .oft-statewise td {
+    .oft-statewise td,
+    .report-fit th,
+    .report-fit td {
         padding: 1.5px 2px;
         font-size: inherit;
         line-height: 1.1;
@@ -1260,7 +1263,9 @@ class ReportTemplateService {
         text-align: center;
     }
     .oft-statewise th:first-child,
-    .oft-statewise td:first-child {
+    .oft-statewise td:first-child,
+    .report-fit th:first-child,
+    .report-fit td:first-child {
         width: 13%;
         text-align: left;
     }
