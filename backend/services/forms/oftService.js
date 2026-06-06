@@ -3,6 +3,21 @@ const { ValidationError, NotFoundError } = require('../../utils/errorHandler.js'
 const { OFT_STATUS, normalizeOftStatus, canTransition } = require('../../constants/oftStatus.js');
 const { validateFileSize } = require('../../utils/fileValidation.js');
 const { createAttachmentBinding } = require('./formAttachmentBinding.js');
+const reportCacheInvalidationService = require('../reports/reportCacheInvalidationService.js');
+
+/**
+ * Drop cached report data for this KVK's OFT sections so a freshly generated
+ * report reflects the change. Best-effort — never blocks the write.
+ */
+async function _invalidateOftReports(kvkId) {
+    if (!kvkId) return;
+    try {
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('oftSummary', kvkId);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk('oftDetailCards', kvkId);
+    } catch (err) {
+        console.warn('[oft] report cache invalidation failed:', err.message);
+    }
+}
 
 const resultAttachments = createAttachmentBinding({
     formCode: 'oft_result',
@@ -15,7 +30,9 @@ const oftService = {
         delete payload.status;
         delete payload.ongoingCompleted;
         _assertExpectedCompletionDate(payload);
-        return await oftRepository.create(payload, user);
+        const created = await oftRepository.create(payload, user);
+        await _invalidateOftReports(created?.kvkId ?? user?.kvkId);
+        return created;
     },
 
     getAllOft: async (filters = {}, user) => {
@@ -31,7 +48,9 @@ const oftService = {
         delete payload.status;
         delete payload.ongoingCompleted;
         _assertExpectedCompletionDate(payload);
-        return await oftRepository.update(id, payload, user);
+        const updated = await oftRepository.update(id, payload, user);
+        await _invalidateOftReports(updated?.kvkId ?? user?.kvkId);
+        return updated;
     },
 
     transferToNextYear: async (id, user) => {
@@ -63,7 +82,9 @@ const oftService = {
         // Expected Completion Date defaults to the last date (31-Dec) of the new start year.
         const nextExpectedCompletionDate = new Date(nextYear, 11, 31);
 
-        return oftRepository.transferToNextYearTx(source, nextStartDate, nextExpectedCompletionDate);
+        const transferred = await oftRepository.transferToNextYearTx(source, nextStartDate, nextExpectedCompletionDate);
+        await _invalidateOftReports(source.kvkId);
+        return transferred;
     },
 
     addResult: async (id, payload, user) => {
@@ -86,6 +107,7 @@ const oftService = {
             attachmentIds,
             user,
         );
+        await _invalidateOftReports(source.kvkId);
         return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
@@ -107,6 +129,7 @@ const oftService = {
             attachmentIds,
             user,
         );
+        await _invalidateOftReports(source.kvkId);
         return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 
@@ -119,7 +142,10 @@ const oftService = {
     },
 
     deleteOft: async (id, user) => {
-        return await oftRepository.delete(id, user);
+        const source = await oftRepository.findRawById(id, user);
+        const result = await oftRepository.delete(id, user);
+        await _invalidateOftReports(source?.kvkId ?? user?.kvkId);
+        return result;
     },
 };
 

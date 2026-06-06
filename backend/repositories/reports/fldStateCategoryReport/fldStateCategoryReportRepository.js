@@ -24,9 +24,13 @@ function applyReportingYear(where, filters) {
 function normalizePrismaRow(r) {
     const stateName = (r.kvk && r.kvk.state && r.kvk.state.stateName) ? r.kvk.state.stateName : 'Unknown';
     const categoryName = (r.category && r.category.categoryName) ? r.category.categoryName : 'Uncategorized';
+    const sectorName = (r.sector && r.sector.sectorName)
+        ? r.sector.sectorName
+        : (r.category && r.category.sector && r.category.sector.sectorName) || 'Other';
     return {
         kvkFldId: r.kvkFldId,
         stateName,
+        sectorName,
         categoryName,
         cropName: r.crop?.cropName || '—',
         thematicAreaName: r.thematicArea?.thematicAreaName || '—',
@@ -88,7 +92,9 @@ function mergeFldResultsForRows(rows) {
 }
 
 function buildSectionA(records) {
-    const categories = [...new Set(records.map((r) => r.categoryName))].sort((a, b) =>
+    // State-wise table columns are SECTORS (Crop Production, Horticultural Crops,
+    // Livestock & Fisheries, …) — see Table 00 in the official report.
+    const sectors = [...new Set(records.map((r) => r.sectorName))].sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: 'base' }),
     );
     const states = [...new Set(records.map((r) => r.stateName))].sort((a, b) =>
@@ -98,13 +104,13 @@ function buildSectionA(records) {
     const matrix = {};
     states.forEach((s) => {
         matrix[s] = {};
-        categories.forEach((c) => {
+        sectors.forEach((c) => {
             matrix[s][c] = { farmers: 0, demos: 0, area: 0 };
         });
     });
 
     for (const r of records) {
-        const cell = matrix[r.stateName]?.[r.categoryName];
+        const cell = matrix[r.stateName]?.[r.sectorName];
         if (cell) {
             cell.farmers += r.farmers;
             cell.demos += r.noOfDemonstration;
@@ -112,33 +118,32 @@ function buildSectionA(records) {
         }
     }
 
-    const stateRows = states.map((stateName) => ({
-        stateName,
-        cells: categories.map((c) => ({
-            categoryName: c,
-            ...matrix[stateName][c],
-        })),
-    }));
+    const sumCells = (cells) => cells.reduce(
+        (t, c) => ({ farmers: t.farmers + c.farmers, demos: t.demos + c.demos, area: t.area + c.area }),
+        { farmers: 0, demos: 0, area: 0 },
+    );
 
-    const totalRow = {
-        stateName: 'Total',
-        cells: categories.map((c) => {
-            let farmers = 0;
-            let demos = 0;
-            let area = 0;
-            states.forEach((s) => {
-                const x = matrix[s][c];
-                if (x) {
-                    farmers += x.farmers;
-                    demos += x.demos;
-                    area += x.area;
-                }
-            });
-            return { categoryName: c, farmers, demos, area };
-        }),
+    const stateRows = states.map((stateName) => {
+        const cells = sectors.map((c) => ({ sectorName: c, ...matrix[stateName][c] }));
+        return { stateName, cells, total: sumCells(cells) };
+    });
+
+    const totalCells = sectors.map((c) => {
+        const agg = { sectorName: c, farmers: 0, demos: 0, area: 0 };
+        states.forEach((s) => {
+            const x = matrix[s][c];
+            agg.farmers += x.farmers;
+            agg.demos += x.demos;
+            agg.area += x.area;
+        });
+        return agg;
+    });
+
+    return {
+        sectors,
+        stateRows,
+        totalRow: { stateName: 'Total', cells: totalCells, total: sumCells(totalCells) },
     };
-
-    return { categories, stateRows, totalRow };
 }
 
 function buildDetailRowsForCategory(catRecords) {
@@ -228,8 +233,8 @@ function buildPayloadFromRecords(records) {
     if (norm.length === 0) {
         return {
             yearLabel,
-            categories: [],
-            sectionA: { categories: [], stateRows: [], totalRow: null },
+            sectors: [],
+            sectionA: { sectors: [], stateRows: [], totalRow: null },
             sectionB: [],
         };
     }
@@ -253,7 +258,7 @@ function buildPayloadFromRecords(records) {
 
     return {
         yearLabel,
-        categories: sectionA.categories,
+        sectors: sectionA.sectors,
         sectionA,
         sectionB,
     };
@@ -274,6 +279,7 @@ async function fetchFldRecords(kvkId, filters = {}) {
                 },
             },
             category: { select: { categoryId: true, categoryName: true } },
+            sector: { select: { sectorName: true } },
             crop: { select: { cropName: true } },
             thematicArea: { select: { thematicAreaName: true } },
             fldResult: true,
@@ -297,8 +303,8 @@ function resolveFldStateCategoryPayload(data) {
     if (!data) {
         return {
             yearLabel: '',
-            categories: [],
-            sectionA: { categories: [], stateRows: [], totalRow: null },
+            sectors: [],
+            sectionA: { sectors: [], stateRows: [], totalRow: null },
             sectionB: [],
         };
     }
