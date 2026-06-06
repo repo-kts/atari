@@ -113,14 +113,27 @@ function renderValueCells(isMultiState, stateKeys, stateMap) {
 // ── Main render function ────────────────────────────────────────────
 
 function renderOftSummarySection(section, data, sectionId, isFirstSection) {
-    // data can be { records, subjects } from data service, or plain array from combined template
-    let records, subjects;
-    if (data && !Array.isArray(data) && data.records) {
+    // Accept all shapes:
+    //  - { records, subjects }                         (single-KVK)
+    //  - [ { records, subjects }, ... ]                (aggregated: one chunk per KVK)
+    //  - [ ...oftRows ]                                (plain rows, combined template)
+    let records = [];
+    let subjects = [];
+    if (Array.isArray(data)) {
+        if (data.some(d => d && (d.records || d.subjects))) {
+            // Aggregated chunks — merge records, keep first non-empty subjects (master data).
+            for (const chunk of data) {
+                if (Array.isArray(chunk?.records)) records.push(...chunk.records);
+                if (subjects.length === 0 && Array.isArray(chunk?.subjects)) subjects = chunk.subjects;
+            }
+        } else {
+            records = data;
+        }
+    } else if (data && Array.isArray(data.records)) {
         records = data.records;
         subjects = data.subjects || [];
-    } else {
-        records = Array.isArray(data) ? data : (data ? [data] : []);
-        subjects = [];
+    } else if (data) {
+        records = [data];
     }
 
     if (records.length === 0 && subjects.length === 0) {
@@ -176,6 +189,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         }
         sectorList.push(...seenSubjects.values());
     }
+
 
     // ── Headings ────────────────────────────────────────────────
     let html = `
@@ -255,6 +269,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
         // Render ALL thematic areas from DB (with 0 defaults)
         const renderedAreas = new Set();
 
+        // console.log("----them areas", sector)
         for (const areaName of sector.thematicAreas) {
             renderedAreas.add(areaName);
             const stateMap = thematicMap.get(areaName) || new Map();
@@ -263,7 +278,8 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
             html += `
             <tr>
                 <td>${this._escapeHtml(areaName)}</td>`;
-            html += renderValueCells(isMultiState, stateKeys, stateMap);
+            const cellsData = renderValueCells(isMultiState, stateKeys, stateMap)
+            html += cellsData
             html += `</tr>`;
 
             if (isMultiState) {
