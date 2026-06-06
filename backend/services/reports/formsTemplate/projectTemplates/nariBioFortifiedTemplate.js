@@ -166,18 +166,21 @@ function buildTable1(rows, escFn) {
 /* ── Table 2 renderer ─────────────────────────────────────────────────────── */
 
 function buildTable2(rows, escFn) {
-    const bodyRows = rows.map((row, idx) => `<tr>
+    // Consumption-pattern rows live in the `results` relation (one or more per crop).
+    const resultRows = rows.flatMap(row => (Array.isArray(row.results) ? row.results : []));
+
+    const bodyRows = resultRows.map((res, idx) => `<tr>
         <td>${idx + 1}</td>
-        <td class="left">${escFn(row.nameOfCrop || row.cropName || '-')}</td>
-        <td class="left">${escFn(row.variety || '-')}</td>
-        <td>${fmt(row.areaHa)}</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
-        <td>-</td>
+        <td class="left">${escFn(res.cropName || '-')}</td>
+        <td class="left">${escFn(res.variety || '-')}</td>
+        <td>${fmt(res.areaHa)}</td>
+        <td>${fmt(res.productionKg)}</td>
+        <td>${fmt(res.consumptionGm)}</td>
+        <td class="left">${escFn(res.formOfConsumption || '-')}</td>
+        <td>${fmt(res.daysInYear)}</td>
     </tr>`).join('');
 
-    const emptyRow = rows.length === 0
+    const emptyRow = resultRows.length === 0
         ? `<tr><td colspan="8" class="nbf-no-data">No records found.</td></tr>`
         : '';
 

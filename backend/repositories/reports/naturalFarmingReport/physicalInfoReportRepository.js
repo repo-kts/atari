@@ -75,7 +75,10 @@ async function getNaturalFarmingPhysicalInfoData(kvkId, filters = {}) {
 			remarks: r.remarks || '',
 			innovativeProgrammeName: r.innovativeProgrammeName || '',
 			significanceOfInnovativeProgramme: r.significanceOfInnovativeProgramme || '',
-			isOtherActivity: !r.trainingTitle && !r.trainingDate && !r.venue, // per repository semantics
+			// Match the write path (naturalFarmingRepository): "other activity" is
+			// determined by the activity name, NOT by absent training fields — otherwise
+			// a normal activity saved without title/date/venue is wrongly bucketed here.
+			isOtherActivity: String(r.activityMaster?.activityName || '').trim().toLowerCase() === 'other activity',
 		};
 		const totals = computeRowTotals(r);
 		return { ...base, ...totals };
