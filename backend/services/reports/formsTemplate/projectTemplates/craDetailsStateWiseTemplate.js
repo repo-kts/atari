@@ -145,7 +145,7 @@ function renderCraDetailsStateWiseSection(section, data, sectionId, isFirstSecti
     <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
     <style>
         .cra-table-wrap { width: 100%; overflow: visible; }
-        .cra-details-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+        .cra-details-table { width: 100%; table-layout: auto; border-collapse: collapse; }
         .cra-details-table th, .cra-details-table td { padding: 2px 3px !important; font-size: 6.6pt !important; line-height: 1.15; word-break: keep-all; overflow-wrap: normal; white-space: normal; }
         .cra-details-table thead th { text-align: center; vertical-align: middle; }
     </style>

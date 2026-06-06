@@ -1249,7 +1249,9 @@ class ReportTemplateService {
     .oft-statewise,
     .report-fit {
         width: 100%;
-        table-layout: fixed;
+        /* auto layout sizes columns to content, so words/numbers stay on one
+           line and never overlap; the scaled font keeps it within the page. */
+        table-layout: auto;
     }
     .oft-statewise th,
     .oft-statewise td,
@@ -1268,7 +1270,6 @@ class ReportTemplateService {
     .oft-statewise td:first-child,
     .report-fit th:first-child,
     .report-fit td:first-child {
-        width: 13%;
         text-align: left;
     }
 
