@@ -181,14 +181,15 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     let html = `
 <div id="${sectionId}" class="${pageClass}">`;
 
-    // Section heading = group (e.g. "2.1 On Farm Trial"); inner items numbered
-    // off the subsection/feature number (e.g. 2.1.A.1).
-    const base = section.featureNumber || section.id;
+    // Section heading = group (e.g. "2.2 On Farm Trial"). Like the FLD report,
+    // this single section renders two labeled sub-blocks: A. OFT Summary and
+    // B. State Wise OFT Details (KVK Wise OFT Details is its own section).
     html += `
-    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>`;
+    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
+    <h2 class="section-subtitle">${section.id}.A OFT Summary</h2>`;
     if (isMultiState) {
         html += `
-    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">${base}.1 Technology Assessed by KVK (Discipline wise)</p>`;
+    <p style="font-size:11px;font-weight:bold;margin-bottom:12px;">Technology Assessed by KVK (Discipline wise)</p>`;
     }
 
     // ── Table header ────────────────────────────────────────────
@@ -352,10 +353,72 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
     }
     html += `</tr>
         </tbody>
-    </table>
+    </table>`;
+
+    // ── B. State Wise OFT Details ───────────────────────────────
+    html += renderStateWiseBlock.call(this, section, records);
+
+    html += `
 </div>`;
 
     return html;
+}
+
+/**
+ * "B. State Wise OFT Details" — a per-state roll-up of technologies assessed,
+ * locations and trials (mirrors the FLD state-wise table). Always rendered,
+ * even for a single state.
+ */
+function renderStateWiseBlock(section, records) {
+    const byState = new Map();
+    for (const r of records) {
+        const stateName = r.kvk?.state?.stateName || 'Unknown';
+        if (!byState.has(stateName)) byState.set(stateName, { techs: 0, locations: 0, trials: 0 });
+        const b = byState.get(stateName);
+        b.techs += 1;
+        b.locations += Number(r.numberOfLocation) || 0;
+        b.trials += Number(r.numberOfTrialReplication) || 0;
+    }
+
+    const total = { techs: 0, locations: 0, trials: 0 };
+    let rows = '';
+    for (const [stateName, b] of byState) {
+        total.techs += b.techs;
+        total.locations += b.locations;
+        total.trials += b.trials;
+        rows += `
+            <tr>
+                <td>${this._escapeHtml(stateName)}</td>
+                <td style="text-align:center;">${b.techs}</td>
+                <td style="text-align:center;">${b.locations}</td>
+                <td style="text-align:center;">${b.trials}</td>
+            </tr>`;
+    }
+    if (!rows) {
+        rows = `<tr><td colspan="4" style="text-align:center;">No data</td></tr>`;
+    }
+
+    return `
+    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State Wise OFT Details</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>States</th>
+                <th style="text-align:center;">No. of technologies assessed</th>
+                <th style="text-align:center;">No. of Locations</th>
+                <th style="text-align:center;">No. of Trial/Replications</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${rows}
+            <tr style="font-weight:bold;">
+                <td>Total</td>
+                <td style="text-align:center;">${total.techs}</td>
+                <td style="text-align:center;">${total.locations}</td>
+                <td style="text-align:center;">${total.trials}</td>
+            </tr>
+        </tbody>
+    </table>`;
 }
 
 module.exports = { renderOftSummarySection };
