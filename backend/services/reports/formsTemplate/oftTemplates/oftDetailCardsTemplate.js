@@ -93,13 +93,13 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
     </div>`;
             for (const record of kvkRecords) {
                 cardIndex++;
-                html += _renderCard.call(this, record, cardIndex);
+                html += _renderCard.call(this, record, cardIndex, section.id);
             }
         }
     } else {
         for (const record of records) {
             cardIndex++;
-            html += _renderCard.call(this, record, cardIndex);
+            html += _renderCard.call(this, record, cardIndex, section.id);
         }
     }
 
@@ -111,7 +111,7 @@ function renderOftDetailCardsSection(section, data, sectionId, isFirstSection) {
 
 // ─── Single card ────────────────────────────────────────────────────────────
 
-function _renderCard(record, cardNumber) {
+function _renderCard(record, cardNumber, base = '2.2') {
     const esc = (v) => this._escapeHtml(v != null && v !== '' ? String(v) : '-');
     const resultReport = record.resultReport || {};
 
@@ -123,7 +123,7 @@ function _renderCard(record, cardNumber) {
     let html = `
     <div style="margin-bottom:32px;">
         <p style="margin:0 0 8px 0;font-size:11px;font-weight:bold;">
-            2.2.${cardNumber}. OFT (${esc(disciplineName)})
+            ${base}.${cardNumber}. OFT (${esc(disciplineName)})
         </p>
         <p style="margin:0 0 4px 16px;font-size:10px;">
             &bull; <strong>Thematic area:</strong> ${esc(thematicAreaName)}
