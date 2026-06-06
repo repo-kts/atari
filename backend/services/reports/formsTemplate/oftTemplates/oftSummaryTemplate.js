@@ -372,7 +372,7 @@ function renderOftSummarySection(section, data, sectionId, isFirstSection) {
 function renderStateWiseBlock(section, records) {
     const byState = new Map();
     for (const r of records) {
-        const stateName = r.kvk?.state?.stateName || 'Unknown';
+        const stateName = r.kvk?.state?.stateName || r.kvk?.kvkName || 'Unknown';
         if (!byState.has(stateName)) byState.set(stateName, { techs: 0, locations: 0, trials: 0 });
         const b = byState.get(stateName);
         b.techs += 1;
@@ -403,7 +403,10 @@ function renderStateWiseBlock(section, records) {
     <table class="data-table">
         <thead>
             <tr>
-                <th>States</th>
+                <th rowspan="2" style="vertical-align:middle;">States</th>
+                <th colspan="3" style="text-align:center;">On Farm Trials (OFTs)</th>
+            </tr>
+            <tr>
                 <th style="text-align:center;">No. of technologies assessed</th>
                 <th style="text-align:center;">No. of Locations</th>
                 <th style="text-align:center;">No. of Trial/Replications</th>
