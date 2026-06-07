@@ -10,7 +10,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:baseline:user-permissions": "prisma db execute --file ./prisma/migrations/20260204000000_add_user_permissions/migration.sql && prisma migrate resolve --applied \"20260204000000_add_user_permissions\"",
+    "db:baseline": "prisma migrate resolve --applied 0_init",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed": "node scripts/seed.js",
