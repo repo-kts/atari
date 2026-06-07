@@ -1,6 +1,7 @@
 const reportDataService = require('./reportDataService.js');
 const pdfGenerationService = require('./pdfGenerationService.js');
 const reportExcelService = require('./reportExcelService.js');
+const reportWordService = require('./reportWordService.js');
 const reportAggregationService = require('./reportAggregationService.js');
 const { validateSectionIds, getAllSections } = require('../../config/reportConfig.js');
 
@@ -68,6 +69,23 @@ class ReportService {
         const excelBuffer = await reportExcelService.generateReportExcel(kvkInfo, sectionsData, filters, generatedBy);
 
         return { excelBuffer, kvkInfo, sectionsData };
+    }
+
+    /**
+     * Generate KVK report as a Word document (same structure as the PDF).
+     */
+    async generateKvkReportWord(kvkId, options = {}) {
+        const { sectionIds = [], filters = {}, generatedBy = 'System' } = options;
+        if (sectionIds.length === 0) {
+            sectionIds.push(...getAllSections().map(s => s.id));
+        }
+        validateSectionIds(sectionIds);
+
+        const kvkInfo = await reportDataService.getKvkInfoForHeader(kvkId);
+        const sectionsData = await reportDataService.getMultipleSectionData(sectionIds, kvkId, filters);
+        const wordBuffer = await reportWordService.generateReportWord(kvkInfo, sectionsData, filters, generatedBy);
+
+        return { wordBuffer, kvkInfo, sectionsData };
     }
 
     /**
@@ -191,6 +209,28 @@ class ReportService {
         const excelBuffer = await reportExcelService.generateReportExcel(kvkInfo, sectionsData, filters, generatedBy);
 
         return { excelBuffer, kvkInfo, sectionsData, kvkCount: kvkIds.length };
+    }
+
+    /**
+     * Generate aggregated (super-admin) report as a Word document (matches PDF).
+     */
+    async generateAggregatedReportWord(scope, options = {}) {
+        const { sectionIds = [], filters = {}, generatedBy = 'System' } = options;
+        if (sectionIds.length === 0) {
+            sectionIds.push(...getAllSections().map(s => s.id));
+        }
+        validateSectionIds(sectionIds);
+
+        const kvkIds = await reportAggregationService.getKvkIdsForScope(scope);
+        if (kvkIds.length === 0) {
+            throw new Error('No KVKs found for the selected scope');
+        }
+
+        const sectionsData = await reportAggregationService.aggregateMultipleSections(sectionIds, kvkIds, filters);
+        const kvkInfo = await this._buildAggregatedKvkInfo(scope, kvkIds);
+        const wordBuffer = await reportWordService.generateReportWord(kvkInfo, sectionsData, filters, generatedBy);
+
+        return { wordBuffer, kvkInfo, sectionsData, kvkCount: kvkIds.length };
     }
 
     /**

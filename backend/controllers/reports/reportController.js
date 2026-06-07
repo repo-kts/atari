@@ -1,6 +1,5 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
-const { generateWord } = require('../../utils/exportHelper.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 
 /**
@@ -79,21 +78,17 @@ const generateKvkReport = async (req, res) => {
         }
 
         if (format === 'docx') {
-            // TODO: structured DOCX (planned). Compact tabular fallback for now.
-            const data = await reportService.getReportData(targetKvkId, {
+            // Structured Word document mirroring the PDF (see reportWordService).
+            const result = await reportService.generateKvkReportWord(targetKvkId, {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
+                generatedBy,
             });
-            const headers = ['Section', 'Data'];
-            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
-                try { return [section, JSON.stringify(value)]; } catch { return [section, String(value)]; }
-            });
-            const buffer = await generateWord(`KVK Report ${targetKvkId}`, headers, rows);
             const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-            res.setHeader('Content-Length', buffer.length);
-            return res.send(Buffer.from(buffer));
+            res.setHeader('Content-Length', result.wordBuffer.length);
+            return res.send(result.wordBuffer);
         }
 
         // Default: Generate PDF
@@ -245,21 +240,17 @@ const generateAggregatedReport = async (req, res) => {
         }
 
         if (format === 'docx') {
-            // TODO: structured DOCX (planned). Compact tabular fallback for now.
-            const data = await reportService.getAggregatedReportData(scope, {
+            // Structured Word document mirroring the PDF.
+            const result = await reportService.generateAggregatedReportWord(scope, {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
+                generatedBy,
             });
-            const headers = ['Section', 'Data'];
-            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
-                try { return [section, JSON.stringify(value)]; } catch { return [section, String(value)]; }
-            });
-            const buffer = await generateWord('Aggregated Report', headers, rows);
             const fileName = `Aggregated_Report_${Date.now()}.docx`;
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
             res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-            res.setHeader('Content-Length', buffer.length);
-            return res.send(Buffer.from(buffer));
+            res.setHeader('Content-Length', result.wordBuffer.length);
+            return res.send(result.wordBuffer);
         }
 
         // Default: PDF
