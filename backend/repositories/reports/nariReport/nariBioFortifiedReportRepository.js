@@ -94,6 +94,17 @@ function mapRecord(record) {
 
         // ── reporting year ────────────────────────────────────────────────
         reportingYear: record.reportingYear || null,
+
+        // ── consumption pattern rows (sub-table 2) ─────────────────────────
+        results: (record.results || []).map(res => ({
+            cropName: res.cropName || '',
+            variety: res.variety || '',
+            areaHa: Number(res.areaHa || 0),
+            productionKg: Number(res.productionKg || 0),
+            consumptionGm: Number(res.consumptionGm || 0),
+            formOfConsumption: res.formOfConsumption || '',
+            daysInYear: Number(res.daysInYear || 0),
+        })),
     };
 }
 
@@ -119,6 +130,7 @@ async function getNariBioFortifiedData(kvkId, filters = {}) {
             season: { select: { seasonName: true } },
             activity: { select: { activityName: true } },
             cropCategory: { select: { name: true } },
+            results: true,
         },
         orderBy: [
             { reportingYear: 'asc' },

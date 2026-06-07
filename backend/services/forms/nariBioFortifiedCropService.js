@@ -44,11 +44,23 @@ const nariBioFortifiedCropService = {
     },
 
     createResult: async (id, data) => {
-        return await nariBioFortifiedCropRepository.createResult(id, data);
+        const result = await nariBioFortifiedCropRepository.createResult(id, data);
+        const parent = await nariBioFortifiedCropRepository.findById(id);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk(
+            'nariBioFortified',
+            parent?.kvkId,
+        );
+        return result;
     },
 
     updateResult: async (id, data) => {
-        return await nariBioFortifiedCropRepository.updateResult(id, data);
+        const result = await nariBioFortifiedCropRepository.updateResult(id, data);
+        const parent = await nariBioFortifiedCropRepository.findById(id);
+        await reportCacheInvalidationService.invalidateDataSourceForKvk(
+            'nariBioFortified',
+            parent?.kvkId,
+        );
+        return result;
     }
 };
 

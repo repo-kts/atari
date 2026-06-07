@@ -85,6 +85,14 @@ function buildWhere(kvkId, filters = {}) {
     return where;
 }
 
+function payloadLabel(p) {
+    if (!p) return '';
+    const kvk = String(p.kvkName || '').trim();
+    if (!kvk) return '';
+    const loc = String(p.stateName || '').trim();
+    return loc ? `${kvk} — ${loc}` : kvk;
+}
+
 async function getAgriDroneDemonstrationDetailsData(kvkId, filters = {}) {
     const where = buildWhere(kvkId, filters);
     const records = await prisma.kvkAgriDroneDemonstration.findMany({
@@ -92,11 +100,22 @@ async function getAgriDroneDemonstrationDetailsData(kvkId, filters = {}) {
         include: {
             district: { select: { districtName: true } },
             demonstrationsOn: { select: { demonstrationsOnName: true } },
+            kvk: {
+                select: {
+                    kvkName: true,
+                    state: { select: { stateName: true } },
+                },
+            },
         },
         orderBy: [{ dateOfDemonstration: 'desc' }, { agriDroneDemonstrationId: 'desc' }],
     });
     const rows = records.map(mapDemonstrationRecord).filter(Boolean);
-    return { rows };
+    const first = records[0];
+    return {
+        kvkName: first?.kvk?.kvkName || '',
+        stateName: first?.kvk?.state?.stateName || '',
+        rows,
+    };
 }
 
 /**
@@ -108,20 +127,38 @@ function resolveAgriDroneDemonstrationDetailsPayload(data) {
     if (d && typeof d === 'object' && !Array.isArray(d) && d.data) {
         d = d.data;
     }
-    if (d && typeof d === 'object' && !Array.isArray(d) && Array.isArray(d.rows)) {
-        const first = d.rows[0];
-        if (first && typeof first.grandM === 'number') {
-            return { rows: d.rows };
-        }
-        return { rows: d.rows.map((r) => mapDemonstrationRecord(r)).filter(Boolean) };
-    }
     const list = Array.isArray(d) ? d : [d];
-    const rows = [];
+
+    // One block per KVK so super-admin aggregated output can be labelled.
+    const blocks = [];
     for (const item of list) {
         if (!item || typeof item !== 'object') continue;
+
+        if (Array.isArray(item.rows)) {
+            // Already-built per-KVK payload. Skip empty ones so KVKs without
+            // demonstrations don't render a phantom empty block.
+            const mapped = item.rows
+                .map((r) => (r && typeof r.grandM === 'number') ? r : mapDemonstrationRecord(r))
+                .filter(Boolean);
+            if (mapped.length === 0) continue;
+            blocks.push({ label: payloadLabel(item), rows: mapped });
+            continue;
+        }
+
         const row = mapDemonstrationRecord(item);
-        if (row) rows.push(row);
+        if (row) blocks.push({ label: '', rows: [row] });
     }
+
+    if (blocks.length === 0) return { rows: [] };
+    // Single KVK: keep the original look (no per-block header).
+    if (blocks.length === 1) return { rows: blocks[0].rows };
+
+    const rows = [];
+    blocks.forEach((b, i) => {
+        if (i > 0) rows.push({ _spacer: true });
+        if (b.label) rows.push({ _header: true, label: b.label });
+        rows.push(...b.rows);
+    });
     return { rows };
 }
 

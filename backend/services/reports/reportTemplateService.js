@@ -1249,7 +1249,9 @@ class ReportTemplateService {
     .oft-statewise,
     .report-fit {
         width: 100%;
-        table-layout: fixed;
+        /* auto layout sizes columns to content, so words/numbers stay on one
+           line and never overlap; the scaled font keeps it within the page. */
+        table-layout: auto;
     }
     .oft-statewise th,
     .oft-statewise td,
@@ -1258,15 +1260,16 @@ class ReportTemplateService {
         padding: 1.5px 2px;
         font-size: inherit;
         line-height: 1.1;
-        word-break: break-word;
-        overflow-wrap: break-word;
+        /* Wrap only at spaces — never split a word or a number. */
+        word-break: keep-all;
+        overflow-wrap: normal;
+        white-space: normal;
         text-align: center;
     }
     .oft-statewise th:first-child,
     .oft-statewise td:first-child,
     .report-fit th:first-child,
     .report-fit td:first-child {
-        width: 13%;
         text-align: left;
     }
 
