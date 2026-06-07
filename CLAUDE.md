@@ -17,9 +17,10 @@ Top-level `.md` files (`ARCHITECTURE_FLOW.md`, `PROJECT_DEEP_DIVE.md`, `GRANULAR
 ```bash
 npm run dev                 # start dev server (node --watch), default port 5000
 npm run db:generate         # prisma generate
-npm run db:migrate          # prisma migrate dev (creates + applies migration)
-npm run db:migrate:deploy   # prisma migrate deploy (prod)
-npm run db:push             # push schema without migration history
+npm run db:migrate          # prisma migrate dev (creates + applies a new migration from schema changes)
+npm run db:migrate:deploy   # prisma migrate deploy — apply pending migrations (use on a FRESH/empty DB)
+npm run db:baseline         # prisma migrate resolve --applied 0_init (mark an EXISTING DB as at the baseline)
+npm run db:push             # prisma db push — push schema straight to the DB, no migration history (quick sync / prototyping)
 npm run db:studio           # Prisma Studio
 npm run seed:all            # full seed (roles, permissions, users, masters, forms, kvk)
 npm run seed:roles | seed:permissions | seed:users | seed:masters | seed:forms | seed:kvk
@@ -50,7 +51,12 @@ bun run type-check          # tsc --noEmit
 - **Two cross-cutting middlewares** wrap every `/api/forms` route in that order: `validateFormRobustness` (number/date coercion) then `reportingYearNormalizer` (resolves the active reporting year). Any new form route inherits both automatically via `router.use('/forms', …)`.
 - **Auth** (`middleware/auth.js`): reads `accessToken` HTTP-only cookie, verifies JWT, then calls `permissionResolverService` to hydrate `req.user` with `userId`, `roleId`, `roleName`, scope IDs (`zoneId/stateId/districtId/orgId/kvkId`), and `permissionsByModule`. Permissions and user profiles are Redis-cached (`services/cache/redisCacheService.js`) with DB fallback — prefer the resolver service over direct repository calls.
 - **Prisma schema is multi-file**, split between two folders: `prisma/superadmin/` (roles, users, zones, masters, cross-KVK entities like OFT/FLD/publications) and `prisma/kvk/` (per-KVK data: about-kvk, achievements, performance-indicators, meetings, soil_water, etc.). The `prisma` folder is passed as a whole in `prisma.config.ts` — Prisma globs all `.prisma` files. Migrations live in `prisma/migrations/`.
-- A one-off baseline exists for user-permissions: `npm run db:baseline:user-permissions` (applies a specific SQL file then marks the migration resolved).
+- **Database workflow — migrations are canonical.** History was squashed into a single correct baseline `prisma/migrations/0_init/migration.sql` (the 36 prior granular migrations were broken — they couldn't `migrate deploy` from empty and had drifted from the schema; they remain in git history on `main`). Going forward:
+  - **Schema change** → edit the `.prisma` files, then `npm run db:migrate` (`prisma migrate dev`) to generate + apply a new timestamped migration.
+  - **Fresh/empty DB** (e.g. a new AWS Postgres) → `npm run db:migrate:deploy` applies `0_init` (and any later migrations) with full history, then `npm run db:generate` and `npm run seed:all`.
+  - **Existing DB that already matches the schema** (the current prod/dev/staging Neon branches, built via `db push` with no history) → `npm run db:baseline` (`prisma migrate resolve --applied 0_init`) to mark it baselined WITHOUT re-running. Do **not** run `migrate deploy` on these first — they have data and no history, so it would try to recreate existing tables and fail.
+  - **Push schema straight to a DB** (quick sync / prototyping, no migration history) → `npm run db:push` (`prisma db push`); add `--accept-data-loss` for destructive diffs. This is what historically built the Neon branches.
+  - **Re-derive the baseline** anytime from the schema: `prisma migrate diff --from-empty --to-schema prisma --script`.
 
 ### Frontend architecture
 - **Routing is declarative and data-driven** (`src/App.tsx`): static routes for dashboard/admin pages, then arrays of route configs (`projectsRoutes`, `allMastersRoutes`, `aboutKvkRoutes`, `achievementsRoutes`, `performanceIndicatorRoutes`, `miscellaneousRoutes`, `digitalInformationRoutes`, `swachhtaBharatAbhiyaanRoutes`, `meetingsRoutes`) exported from `src/config/route/` are `.map`'d into `<Route>` elements, most rendering the generic `DataManagementView` with `title`/`description`/`fields`. **When adding a new form/module, add a route entry to the relevant array instead of writing a new route block.**
