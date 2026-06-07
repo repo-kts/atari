@@ -2,6 +2,7 @@ import React, { useCallback } from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { ExtendedEntityType } from '@/utils/masterUtils'
 import { FormInput, FormSection } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 
 interface NehruYuvaKendraFormsProps {
     entityType: ExtendedEntityType | null
@@ -150,6 +151,11 @@ export const NehruYuvaKendraForms: React.FC<NehruYuvaKendraFormsProps> = ({
                                 placeholder="Enter number"
                             />
                         </div>
+                        <CasteGenderTotals
+                            values={formData}
+                            maleFields={['generalM', 'obcM', 'scM', 'stM']}
+                            femaleFields={['generalF', 'obcF', 'scF', 'stF']}
+                        />
                         <div className="pt-2 w-full md:w-1/2">
                             <FormInput
                                 label="Amount of Fund Received (Rs)"

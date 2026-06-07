@@ -195,6 +195,7 @@ async function seedStaff(kvkIds) {
   const disciplines = await prisma.discipline.findMany({ take: 5 });
   const staffCategories = await prisma.staffCategoryMaster.findMany({ take: 3 });
   const payLevels = await prisma.payLevelMaster.findMany({ take: 5 });
+  const payScales = await prisma.payScaleMaster.findMany({ take: 5 });
 
   if (sanctionedPosts.length === 0 || disciplines.length === 0) {
     console.log('   ⚠️  Required masters not found. Run seed:masters first.\n');
@@ -234,7 +235,7 @@ async function seedStaff(kvkIds) {
             sanctionedPostId: sanctionedPosts[i % sanctionedPosts.length].sanctionedPostId,
             positionOrder: i + 1,
             disciplineId: disciplines[i % disciplines.length].disciplineId,
-            payScale: `₹${Math.floor(Math.random() * 50000) + 30000}-${Math.floor(Math.random() * 100000) + 80000}`,
+            payScaleId: payScales.length > 0 ? payScales[i % payScales.length].payScaleId : null,
             dateOfJoining: new Date(2020 + Math.floor(Math.random() * 5), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1),
             jobType: Math.random() > 0.3 ? 'PERMANENT' : 'TEMPORARY',
             transferStatus: 'ACTIVE',

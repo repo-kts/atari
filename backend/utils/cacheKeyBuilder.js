@@ -17,8 +17,9 @@ class CacheKeyBuilder {
      */
     static sectionData(kvkId, sectionId, filters = {}) {
         const filterHash = this._hashFilters(filters);
-        // v2: bust stale entries after payload shape changes (e.g. nested result rows)
-        return `report:kvk:section:v2:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
+        // v3: bust stale entries after payload shape changes (OFT summary now
+        // carries farmer counts; older cached entries lacked them -> rendered 0s).
+        return `report:kvk:section:v3:${kvkId}:${sectionId}${filterHash ? `:${filterHash}` : ''}`;
     }
 
     /**
@@ -40,14 +41,14 @@ class CacheKeyBuilder {
      * Build pattern for invalidating all sections of a KVK
      */
     static kvkSectionsPattern(kvkId) {
-        return `report:kvk:section:v2:${kvkId}:*`;
+        return `report:kvk:section:v3:${kvkId}:*`;
     }
 
     /**
      * Build pattern for invalidating all sections of a KVK for a specific section
      */
     static kvkSectionPattern(kvkId, sectionId) {
-        return `report:kvk:section:v2:${kvkId}:${sectionId}*`;
+        return `report:kvk:section:v3:${kvkId}:${sectionId}*`;
     }
 
     /**

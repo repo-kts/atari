@@ -1,220 +1,194 @@
-const { resolveFldStateCategoryPayload } = require('../../../../repositories/reports/fldStateCategoryReport/fldStateCategoryReportRepository.js');
+/**
+ * FLD report (section 2.4 "Front Line Demonstration").
+ *
+ * Renders three labeled sub-blocks from the resolved payload:
+ *   A. FLD Summary             — sector-wise totals (demos / area / farmers).
+ *   B. State Wise Details      — states (rows) x sector column-groups
+ *                                (No. of demo / Area(ha) / No. of farmers) + Total.
+ *   C. Details of FLD          — per category: crops x states with yield and
+ *                                economics (demonstration vs check).
+ *
+ * Wide tables auto-shrink (font scales with column count) so they never crop.
+ *
+ * Bound to reportTemplateService (`this`).
+ */
 
-function esc(t) {
-    if (t === null || t === undefined) return '';
-    const m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return String(t).replace(/[&<>"']/g, (c) => m[c]);
-}
-
-function fmtNum(v, decimals = 2) {
-    if (v === null || v === undefined || Number.isNaN(Number(v))) return '—';
-    const n = Number(v);
-    if (!Number.isFinite(n)) return '—';
-    return n.toFixed(decimals);
-}
+const {
+    resolveFldStateCategoryPayload,
+} = require('../../../../repositories/reports/fldStateCategoryReport/fldStateCategoryReportRepository.js');
 
 function fmtInt(v) {
-    if (v === null || v === undefined || v === '') return '—';
     const n = Number(v);
-    if (!Number.isFinite(n)) return '—';
-    return String(Math.round(n));
+    return Number.isFinite(n) ? String(Math.round(n)) : '0';
+}
+function fmtNum(v, d = 2) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toFixed(d) : '—';
 }
 
-function tableCss() {
-    return `
-  .fld-sc-wrap { width:100%; font-size:5.5pt; line-height:1.15; }
-  .fld-sc-sub { font-size:7.5pt; font-weight:bold; margin:10px 0 5px 0; }
-  .fld-sc-cat { font-size:7pt; font-weight:bold; margin:12px 0 4px 0; }
-  .fld-sc-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:10px; page-break-inside:avoid; }
-  .fld-sc-tbl th, .fld-sc-tbl td { border:0.35pt solid #000; padding:2px 2px; vertical-align:middle; text-align:center; word-break:break-word; }
-  .fld-sc-tbl thead th { background:#e8e8e8; font-weight:bold; }
-  .fld-sc-tbl .l { text-align:left; }
-  .fld-sc-tbl .grand { font-weight:bold; background:#f5f5f5; }
-  .fld-sc-foot { font-size:5pt; margin-top:6px; }
-`;
+/** Font size (pt) that keeps a wide table inside the page as columns grow. */
+function fitFont(colCount) {
+    if (colCount <= 8) return 7.5;
+    if (colCount <= 12) return 6.5;
+    if (colCount <= 16) return 5.5;
+    if (colCount <= 22) return 4.6;
+    return 4;
 }
 
-function renderSectionA(payload) {
-    const { categories = [], stateRows = [], totalRow } = payload.sectionA || {};
-    const y = payload.yearLabel || '';
+// ── A. FLD Summary (sector totals) ───────────────────────────────────
+function renderSummary(ctx, sectionA) {
+    const esc = (v) => ctx._escapeHtml(v);
+    const cells = (sectionA && sectionA.totalRow && sectionA.totalRow.cells) || [];
+    const grand = (sectionA && sectionA.totalRow && sectionA.totalRow.total) || { demos: 0, area: 0, farmers: 0 };
 
-    if (!categories.length) {
-        return `<p class="no-data">No summary data.</p>`;
+    let body = '';
+    for (const c of cells) {
+        body += `<tr><td>${esc(c.sectorName)}</td><td style="text-align:center;">${fmtInt(c.demos)}</td><td style="text-align:center;">${fmtNum(c.area, 2)}</td><td style="text-align:center;">${fmtInt(c.farmers)}</td></tr>`;
     }
+    if (!body) body = `<tr><td colspan="4" style="text-align:center;">No data</td></tr>`;
 
-    const catHeader = categories.map((c) => `<th colspan="3">${esc(c)}</th>`).join('');
-    const subHeader = categories.map(() => `
-        <th>No. of farmers</th>
-        <th>No. of demo</th>
-        <th>Area(ha)</th>`).join('');
-
-    const bodyRows = stateRows.map((row) => {
-        const cells = row.cells.map((cell) => `
-        <td>${fmtInt(cell.farmers)}</td>
-        <td>${fmtInt(cell.demos)}</td>
-        <td>${fmtNum(cell.area, 2)}</td>`).join('');
-        return `
-      <tr>
-        <td class="l">${esc(row.stateName)}</td>
-        ${cells}
-      </tr>`;
-    }).join('');
-
-    const totalCells = (totalRow && totalRow.cells)
-        ? totalRow.cells.map((cell) => `
-        <td>${fmtInt(cell.farmers)}</td>
-        <td>${fmtInt(cell.demos)}</td>
-        <td>${fmtNum(cell.area, 2)}</td>`).join('')
-        : '';
-
-    const grandRow = totalRow
-        ? `
-      <tr class="grand">
-        <td class="l">${esc(totalRow.stateName || 'Total')}</td>
-        ${totalCells}
-      </tr>`
-        : '';
-
-    return `
-  <div class="fld-sc-sub">A. State wise details of Front-Line Demonstration during the year ${esc(y)}</div>
-  <table class="fld-sc-tbl">
-    <thead>
-      <tr>
-        <th rowspan="2" class="l">States</th>
-        ${catHeader}
-      </tr>
-      <tr>
-        ${subHeader}
-      </tr>
-    </thead>
-    <tbody>
-      ${bodyRows}
-      ${grandRow}
-    </tbody>
-  </table>`;
+    return `<table class="data-table">
+        <thead><tr>
+            <th>Sector</th>
+            <th style="text-align:center;">No. of Demonstrations</th>
+            <th style="text-align:center;">Area (ha)</th>
+            <th style="text-align:center;">No. of Farmers</th>
+        </tr></thead>
+        <tbody>
+            ${body}
+            <tr style="font-weight:bold;"><td>Total</td><td style="text-align:center;">${fmtInt(grand.demos)}</td><td style="text-align:center;">${fmtNum(grand.area, 2)}</td><td style="text-align:center;">${fmtInt(grand.farmers)}</td></tr>
+        </tbody>
+    </table>`;
 }
 
-function renderDetailRow(fr) {
-    if (!fr) {
-        return '<td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>';
+// ── B. State wise details (sectors as column groups) ─────────────────
+function renderStateWise(ctx, sectionA, yearLabel) {
+    const esc = (v) => ctx._escapeHtml(v);
+    const sectors = (sectionA && sectionA.sectors) || [];
+    if (sectors.length === 0) return '<p class="no-data">No data.</p>';
+
+    const groups = sectors.length + 1; // sectors + Total
+    const fs = fitFont(1 + groups * 3);
+
+    // Header: 2 rows — group names, then 3 sub-cols each.
+    let head = `<tr><th rowspan="2" style="vertical-align:middle;">States</th>`;
+    for (const s of sectors) head += `<th colspan="3" style="text-align:center;">${esc(s)}</th>`;
+    head += `<th colspan="3" style="text-align:center;">Total</th></tr><tr>`;
+    for (let i = 0; i <= sectors.length; i++) {
+        head += `<th style="text-align:center;">No. of demo</th><th style="text-align:center;">Area (ha)</th><th style="text-align:center;">No. of farmers</th>`;
     }
-    return `
-        <td>${fr.demoYield != null ? fmtNum(fr.demoYield, 2) : '—'}</td>
-        <td>${fr.checkYield != null ? fmtNum(fr.checkYield, 2) : '—'}</td>
-        <td>${fr.increasePercent != null ? fmtNum(fr.increasePercent, 2) : '—'}</td>
-        <td>${fr.demoGrossCost != null ? fmtNum(fr.demoGrossCost, 1) : '—'}</td>
-        <td>${fr.demoGrossReturn != null ? fmtNum(fr.demoGrossReturn, 1) : '—'}</td>
-        <td>${fr.demoNetReturn != null ? fmtNum(fr.demoNetReturn, 1) : '—'}</td>
-        <td>${fr.demoBcr != null ? fmtNum(fr.demoBcr, 2) : '—'}</td>
-        <td>${fr.checkGrossCost != null ? fmtNum(fr.checkGrossCost, 1) : '—'}</td>
-        <td>${fr.checkGrossReturn != null ? fmtNum(fr.checkGrossReturn, 1) : '—'}</td>
-        <td>${fr.checkNetReturn != null ? fmtNum(fr.checkNetReturn, 1) : '—'}</td>
-        <td>${fr.checkBcr != null ? fmtNum(fr.checkBcr, 2) : '—'}</td>`;
+    head += `</tr>`;
+
+    const cellTrio = (c) => `<td style="text-align:center;">${fmtInt(c.demos)}</td><td style="text-align:center;">${fmtNum(c.area, 2)}</td><td style="text-align:center;">${fmtInt(c.farmers)}</td>`;
+
+    const rowHtml = (row, bold) => {
+        let h = `<tr${bold ? ' style="font-weight:bold;"' : ''}><td>${esc(row.stateName)}</td>`;
+        for (const c of row.cells) h += cellTrio(c);
+        h += cellTrio(row.total);
+        return h + '</tr>';
+    };
+
+    let body = '';
+    for (const row of sectionA.stateRows) body += rowHtml(row, false);
+    if (sectionA.totalRow) body += rowHtml(sectionA.totalRow, true);
+
+    return `<table class="data-table report-fit" style="font-size:${fs}pt;">
+        <thead>${head}</thead>
+        <tbody>${body}</tbody>
+    </table>`;
 }
 
-function renderCategoryDetailTable(cropGroups) {
-    if (!cropGroups || cropGroups.length === 0) {
-        return '<p class="no-data">No detail rows.</p>';
-    }
+// ── C. Details (per category: crops x states, yield + economics) ─────
+function renderDetailTable(ctx, cropGroups) {
+    const esc = (v) => ctx._escapeHtml(v);
+    // Columns: Crop, States, Demo, Area, Farmers, 3 yield, 4 demo econ, 4 check econ = 16
+    const fs = fitFont(16);
 
-    let html = '';
+    const fr = (r) => r.fldResult || {};
+    const detailCells = (r) => {
+        const f = fr(r);
+        return `<td style="text-align:center;">${f.demoYield != null ? fmtNum(f.demoYield, 2) : '—'}</td><td style="text-align:center;">${f.checkYield != null ? fmtNum(f.checkYield, 2) : '—'}</td><td style="text-align:center;">${f.increasePercent != null ? fmtNum(f.increasePercent, 2) : '—'}</td><td style="text-align:center;">${f.demoGrossCost != null ? fmtNum(f.demoGrossCost, 1) : '—'}</td><td style="text-align:center;">${f.demoGrossReturn != null ? fmtNum(f.demoGrossReturn, 1) : '—'}</td><td style="text-align:center;">${f.demoNetReturn != null ? fmtNum(f.demoNetReturn, 1) : '—'}</td><td style="text-align:center;">${f.demoBcr != null ? fmtNum(f.demoBcr, 2) : '—'}</td><td style="text-align:center;">${f.checkGrossCost != null ? fmtNum(f.checkGrossCost, 1) : '—'}</td><td style="text-align:center;">${f.checkGrossReturn != null ? fmtNum(f.checkGrossReturn, 1) : '—'}</td><td style="text-align:center;">${f.checkNetReturn != null ? fmtNum(f.checkNetReturn, 1) : '—'}</td><td style="text-align:center;">${f.checkBcr != null ? fmtNum(f.checkBcr, 2) : '—'}</td>`;
+    };
+
+    let body = '';
     for (const cg of cropGroups) {
-        for (const row of cg.rows || []) {
-            html += `
-      <tr>
-        <td class="l">${esc(row.crop)}</td>
-        <td class="l">${esc(row.state)}</td>
-        <td>${fmtInt(row.farmers)}</td>
-        <td>${fmtInt(row.demos)}</td>
-        <td>${row.areaHa != null ? fmtNum(row.areaHa, 2) : '—'}</td>
-        ${renderDetailRow(row.fldResult)}
-      </tr>`;
-        }
-        const tr = cg.totalRow;
-        if (tr) {
-            html += `
-      <tr class="grand">
-        <td class="l">${esc(tr.crop)}</td>
-        <td class="l">${esc(tr.state)}</td>
-        <td>${fmtInt(tr.farmers)}</td>
-        <td>${fmtInt(tr.demos)}</td>
-        <td>${tr.areaHa != null ? fmtNum(tr.areaHa, 2) : '—'}</td>
-        ${renderDetailRow(tr.fldResult)}
-      </tr>`;
+        const rows = cg.rows || [];
+        const span = rows.length + (cg.totalRow ? 1 : 0);
+        rows.forEach((r, i) => {
+            body += `<tr>`;
+            if (i === 0) body += `<td rowspan="${span}" style="font-weight:bold;vertical-align:middle;">${esc(cg.cropName)}</td>`;
+            body += `<td>${esc(r.state)}</td><td style="text-align:center;">${fmtInt(r.demos)}</td><td style="text-align:center;">${fmtNum(r.areaHa, 2)}</td><td style="text-align:center;">${fmtInt(r.farmers)}</td>${detailCells(r)}</tr>`;
+        });
+        if (cg.totalRow) {
+            body += `<tr style="font-weight:bold;">`;
+            if (rows.length === 0) body += `<td style="font-weight:bold;">${esc(cg.cropName)}</td>`;
+            body += `<td>Total</td><td style="text-align:center;">${fmtInt(cg.totalRow.demos)}</td><td style="text-align:center;">${fmtNum(cg.totalRow.areaHa, 2)}</td><td style="text-align:center;">${fmtInt(cg.totalRow.farmers)}</td>${detailCells(cg.totalRow)}</tr>`;
         }
     }
+    if (!body) body = `<tr><td colspan="16" style="text-align:center;">No data</td></tr>`;
 
-    return `
-  <table class="fld-sc-tbl">
-    <thead>
-      <tr>
-        <th rowspan="2" class="l">Crop</th>
-        <th rowspan="2" class="l">States</th>
-        <th rowspan="2">No of Farmers</th>
-        <th rowspan="2">No of Demonstration</th>
-        <th rowspan="2">Area(ha)</th>
-        <th colspan="3">Yield(q/ha)</th>
-        <th colspan="4">Economics of demonstration(Rs/ha)</th>
-        <th colspan="4">Economics of check(Rs/ha)</th>
-      </tr>
-      <tr>
-        <th>Demo</th><th>Check</th><th>Increase(%)</th>
-        <th>Gross Cost</th><th>Gross Return</th><th>Net Return</th><th>BCR</th>
-        <th>Gross Cost</th><th>Gross Return</th><th>Net Return</th><th>BCR</th>
-      </tr>
-    </thead>
-    <tbody>${html}</tbody>
-  </table>`;
+    return `<table class="data-table report-fit" style="font-size:${fs}pt;">
+        <thead>
+            <tr>
+                <th rowspan="2">Crop</th>
+                <th rowspan="2">States</th>
+                <th rowspan="2" style="text-align:center;">No of Demonstration</th>
+                <th rowspan="2" style="text-align:center;">Area (ha)</th>
+                <th rowspan="2" style="text-align:center;">No of Farmers</th>
+                <th colspan="3" style="text-align:center;">Yield (q/ha)</th>
+                <th colspan="4" style="text-align:center;">Economics of demonstration (Rs/ha)</th>
+                <th colspan="4" style="text-align:center;">Economics of check (Rs/ha)</th>
+            </tr>
+            <tr>
+                <th style="text-align:center;">Demo</th><th style="text-align:center;">Check</th><th style="text-align:center;">Increase (%)</th>
+                <th style="text-align:center;">Gross Cost</th><th style="text-align:center;">Gross Return</th><th style="text-align:center;">Net Return</th><th style="text-align:center;">BCR</th>
+                <th style="text-align:center;">Gross Cost</th><th style="text-align:center;">Gross Return</th><th style="text-align:center;">Net Return</th><th style="text-align:center;">BCR</th>
+            </tr>
+        </thead>
+        <tbody>${body}</tbody>
+    </table>`;
 }
 
-function renderSectionB(payload) {
-    const blocks = payload.sectionB || [];
-    if (!blocks.length) {
-        return '';
+function renderDetails(ctx, sectionB, yearLabel) {
+    const esc = (v) => ctx._escapeHtml(v);
+    if (!sectionB || sectionB.length === 0) return '<p class="no-data">No data.</p>';
+    let out = '';
+    for (const cat of sectionB) {
+        out += `<h3 class="about-kvk-subheading" style="margin-top:12px;">Details of Front-Line Demonstration on ${esc(cat.categoryName)}</h3>`;
+        out += renderDetailTable(ctx, cat.cropGroups || []);
     }
-
-    const y = payload.yearLabel || '';
-    let out = `<div class="fld-sc-sub">B. Details of Front-Line Demonstration by Category during the year ${esc(y)}</div>`;
-
-    for (const b of blocks) {
-        out += `
-  <div class="fld-sc-cat">Details of Front-Line Demonstration on ${esc(b.categoryName)}</div>
-  ${renderCategoryDetailTable(b.cropGroups)}`;
-    }
-
-    out += `
-  <div class="fld-sc-foot">
-    * Economics to be worked out based on total cost of production per unit area and not on critical inputs alone.<br/>
-    ** BCR = GROSS RETURN / GROSS COST
-  </div>`;
-
+    out += `<p style="font-size:7pt;color:#555;margin-top:6px;">* Economics worked out on total cost of production per unit area, not on critical inputs alone.&nbsp;&nbsp;** BCR = Gross Return / Gross Cost.</p>`;
     return out;
 }
 
+// ── Section entry ────────────────────────────────────────────────────
 function renderFldStateCategoryReportSection(section, data, sectionId, isFirstSection) {
     const payload = resolveFldStateCategoryPayload(data);
-    const hasData = (payload.sectionA && payload.sectionA.categories && payload.sectionA.categories.length > 0)
-        || (payload.sectionB && payload.sectionB.length > 0);
+    const sectionA = payload.sectionA || { sectors: [], stateRows: [], totalRow: null };
+    const sectionB = payload.sectionB || [];
+    const yearLabel = payload.yearLabel || '';
 
+    const hasData = (sectionA.sectors && sectionA.sectors.length) || sectionB.length;
     if (!hasData) {
-        return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-  <p class="no-data">No data available for this section.</p>
-</div>`;
+        return this._generateEmptySection(section, null, sectionId, isFirstSection);
     }
 
+    const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+    const yr = yearLabel ? ` during the year ${this._escapeHtml(yearLabel)}` : '';
+
     return `
-<div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <style>${tableCss()}</style>
-  <div class="fld-sc-wrap">
-    <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
-    ${renderSectionA(payload)}
-    ${renderSectionB(payload)}
-  </div>
+<div id="${sectionId}" class="${pageClass}">
+    <h1 class="section-title" style="margin-bottom:8px;">${section.id} ${this._escapeHtml(section.title)}</h1>
+
+    <h2 class="section-subtitle">${section.id}.A FLD Summary</h2>
+    ${renderSummary(this, sectionA)}
+
+    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.B State wise details of Front-Line Demonstration${yr}</h2>
+    ${renderStateWise(this, sectionA, yearLabel)}
+
+    <h2 class="section-subtitle" style="margin-top:14px;">${section.id}.C Details of Front-Line Demonstration${yr}</h2>
+    ${renderDetails(this, sectionB, yearLabel)}
 </div>`;
 }
 
-module.exports = {
-    renderFldStateCategoryReportSection,
-};
+module.exports = { renderFldStateCategoryReportSection };

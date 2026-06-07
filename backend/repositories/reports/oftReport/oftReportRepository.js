@@ -11,6 +11,14 @@ async function getOftSummaryData(kvkId, filters = {}) {
             kvkOftId: true,
             numberOfLocation: true,
             numberOfTrialReplication: true,
+            farmersGeneralM: true,
+            farmersGeneralF: true,
+            farmersObcM: true,
+            farmersObcF: true,
+            farmersScM: true,
+            farmersScF: true,
+            farmersStM: true,
+            farmersStF: true,
             oftSubjectId: true,
             oftThematicAreaId: true,
             oftSubject: {
@@ -41,7 +49,7 @@ async function getOftDetailCards(kvkId, filters = {}) {
     const where = { kvkId };
     applyCreatedAtFilters(where, filters);
 
-    return await prisma.kvkoft.findMany({
+    const rows = await prisma.kvkoft.findMany({
         where,
         include: {
             kvk: {
@@ -92,6 +100,14 @@ async function getOftDetailCards(kvkId, filters = {}) {
             { title: 'asc' },
         ],
     });
+
+    // The OFT form doesn't capture a dedicated end date yet (only the expected
+    // completion date), so oftEndDate is always null. Fall back to it so the
+    // report's "OFT End on" is populated instead of showing "-".
+    return rows.map((r) => ({
+        ...r,
+        oftEndDate: r.oftEndDate ?? r.expectedCompletionDate ?? null,
+    }));
 }
 
 /**

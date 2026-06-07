@@ -1,6 +1,7 @@
 import React from 'react'
 import { ENTITY_TYPES } from '@/constants/entityConstants'
 import { FormInput } from '../shared/FormComponents'
+import { CasteGenderTotals } from '@/components/common/CasteGenderTotals'
 
 interface DrmrFormsProps {
     entityType: string
@@ -21,6 +22,7 @@ const DemographicFields: React.FC<{
     }
 
     return (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <FormInput
                 label="General_M"
@@ -71,6 +73,12 @@ const DemographicFields: React.FC<{
                 onChange={(e) => handleChange('st_f', e.target.value)}
             />
         </div>
+        <CasteGenderTotals
+            values={formData}
+            maleFields={[`${prefix}general_m`, `${prefix}obc_m`, `${prefix}sc_m`, `${prefix}st_m`]}
+            femaleFields={[`${prefix}general_f`, `${prefix}obc_f`, `${prefix}sc_f`, `${prefix}st_f`]}
+        />
+        </>
     )
 }
 
