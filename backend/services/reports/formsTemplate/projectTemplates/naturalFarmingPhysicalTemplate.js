@@ -38,15 +38,69 @@ function isOtherRow(r) {
     return (!r.trainingTitle && !r.trainingDate && !r.venue);
 }
 
+function isGroupedObject(o) {
+    return Boolean(
+        o && typeof o === 'object' && !Array.isArray(o)
+        && o.activityGroups && typeof o.activityGroups === 'object',
+    );
+}
+
+/**
+ * Merge several per-KVK grouped objects (super-admin aggregation) into one
+ * combined grouped structure. Without this, an array of grouped objects is
+ * mistaken for raw records and every KVK collapses into a single empty
+ * "Other activities" row.
+ */
+function mergeGroupedObjects(list) {
+    const activityGroups = {};
+    const activityOrder = [];
+    const stateMap = new Map();
+    const META = ['stateName', 'totalProgrammes', 'totM', 'totF', 'totT', 'other'];
+
+    for (const g of list) {
+        if (!isGroupedObject(g)) continue;
+        const order = Array.isArray(g.activityOrder) ? g.activityOrder : Object.keys(g.activityGroups);
+        for (const key of order) {
+            const rows = g.activityGroups[key] || [];
+            if (!activityGroups[key]) { activityGroups[key] = []; activityOrder.push(key); }
+            activityGroups[key].push(...rows);
+        }
+        for (const sa of (g.stateAggregates || [])) {
+            const stKey = sa.stateName || '-';
+            if (!stateMap.has(stKey)) {
+                stateMap.set(stKey, { stateName: stKey, totalProgrammes: 0, totM: 0, totF: 0, totT: 0, other: 0 });
+            }
+            const agg = stateMap.get(stKey);
+            agg.totalProgrammes += n(sa.totalProgrammes);
+            agg.totM += n(sa.totM);
+            agg.totF += n(sa.totF);
+            agg.totT += n(sa.totT);
+            agg.other += n(sa.other);
+            for (const k of Object.keys(sa)) {
+                if (META.includes(k)) continue;
+                agg[k] = n(agg[k]) + n(sa[k]);
+            }
+        }
+    }
+    const activityNames = activityOrder.filter(k => k !== OTHER_KEY);
+    const stateAggregates = Array.from(stateMap.values()).sort((a, b) => a.stateName.localeCompare(b.stateName));
+    return { activityGroups, activityOrder, activityNames, stateAggregates };
+}
+
 /**
  * Build dynamic grouped structure from either:
  *   – a pre-grouped object from the report repository  { activityGroups, activityOrder, activityNames, stateAggregates }
+ *   – an array of per-KVK grouped objects (super-admin aggregation)
  *   – a flat array of PhysicalInfo records from the form page
  */
 function buildGroupedData(data) {
-    // Already grouped (from report data service)
-    if (data && !Array.isArray(data) && data.activityGroups) {
+    // Already grouped (single KVK / report data service)
+    if (isGroupedObject(data)) {
         return data;
+    }
+    // Array of per-KVK grouped objects (super-admin aggregation)
+    if (Array.isArray(data) && data.some(isGroupedObject)) {
+        return mergeGroupedObjects(data.filter(isGroupedObject));
     }
     // Flat array (from form page export)
     const flatRows = Array.isArray(data) ? data : (data ? [data] : []);
@@ -135,11 +189,12 @@ function renderAggregateTop(stateAggregates, activityNames) {
 }
 
 /* ── Activity detail table (same layout for every dynamic activity) ── */
-function renderActivityBlock(title, rows) {
+function renderActivityBlock(title, rows, showKvk) {
     if (!rows || rows.length === 0) return '';
     const body = rows.map((r, idx) => `
     <tr>
       <td>${idx + 1}</td>
+      ${showKvk ? `<td class="l">${esc(r.kvkName || '')}</td>` : ''}
       <td class="l">${esc(r.trainingTitle || r.activityName || '')}</td>
       <td>${esc(r.trainingDate || '')}</td>
       <td class="l">${esc(r.venue || '')}</td>
@@ -157,6 +212,7 @@ function renderActivityBlock(title, rows) {
       <thead>
         <tr>
           <th rowspan="2">S.No.</th>
+          ${showKvk ? '<th rowspan="2">KVK</th>' : ''}
           <th rowspan="2">Title of Natural Farming ${esc(title)} programme</th>
           <th rowspan="2">Date of programme</th>
           <th rowspan="2">Venue of programme</th>
@@ -181,11 +237,12 @@ function renderActivityBlock(title, rows) {
 }
 
 /* ── "Other activities" block (different column layout) ── */
-function renderOtherActivitiesBlock(rows) {
+function renderOtherActivitiesBlock(rows, showKvk) {
     if (!rows || rows.length === 0) return '';
     const body = rows.map((r, idx) => `
     <tr>
       <td>${idx + 1}</td>
+      ${showKvk ? `<td class="l">${esc(r.kvkName || '')}</td>` : ''}
       <td class="l">${esc(r.innovativeProgrammeName || '')}</td>
       <td class="l">${esc(r.significanceOfInnovativeProgramme || '')}</td>
       <td class="l">${esc(r.remarks || '')}</td>
@@ -197,6 +254,7 @@ function renderOtherActivitiesBlock(rows) {
       <thead>
         <tr>
           <th>S.No.</th>
+          ${showKvk ? '<th>KVK</th>' : ''}
           <th>Name of the Innovative programme organized</th>
           <th>Significance of innovative programme</th>
           <th>Remarks/Observation/Feedback Recorded</th>
@@ -215,12 +273,22 @@ function renderNaturalFarmingPhysicalSection(section, data, sectionId, isFirstSe
     const activityNames = resolved.activityNames || [];
     const stateAggregates = resolved.stateAggregates || [];
 
+    // Super-admin view spans many KVKs → add a KVK column so each programme is
+    // attributable. Single-KVK (KVK side) shows only its own rows, no KVK column.
+    const kvkSet = new Set();
+    for (const key of Object.keys(activityGroups)) {
+        for (const r of (activityGroups[key] || [])) {
+            if (r && r.kvkName) kvkSet.add(r.kvkName);
+        }
+    }
+    const showKvk = kvkSet.size > 1;
+
     // Dynamically render one block per activity category (in insertion order)
     const activityBlocksHtml = activityOrder.map(key => {
         if (key === OTHER_KEY) {
-            return renderOtherActivitiesBlock(activityGroups[key]);
+            return renderOtherActivitiesBlock(activityGroups[key], showKvk);
         }
-        return renderActivityBlock(key, activityGroups[key]);
+        return renderActivityBlock(key, activityGroups[key], showKvk);
     }).join('');
 
     return `

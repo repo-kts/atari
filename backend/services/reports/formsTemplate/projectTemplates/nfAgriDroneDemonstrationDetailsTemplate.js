@@ -22,11 +22,20 @@ function tableCss() {
   .ad-demo-tbl th, .ad-demo-tbl td { border:0.35pt solid #000; padding:2px 2px; vertical-align:middle; text-align:center; word-break:break-word; }
   .ad-demo-tbl thead th { background:#e8e8e8; font-weight:bold; }
   .ad-demo-tbl td.l { text-align:left; }
+  .ad-demo-tbl tr.ad-demo-kvk td { background:#d9d9d9; font-weight:bold; text-align:left; }
+  .ad-demo-tbl tr.ad-demo-spacer td { border:none; height:8px; }
 `;
 }
 
 function renderBody(rows) {
-    return rows.map((r) => `
+    return rows.map((r) => {
+        if (r._spacer) {
+            return '<tr class="ad-demo-spacer"><td colspan="22"></td></tr>';
+        }
+        if (r._header) {
+            return `<tr class="ad-demo-kvk"><td colspan="22">${esc(r.label)}</td></tr>`;
+        }
+        return `
       <tr>
         <td class="l">${esc(r.demonstrationsOn)}</td>
         <td class="l">${esc(r.districtName)}</td>
@@ -40,7 +49,8 @@ function renderBody(rows) {
         <td>${num(r.scM)}</td><td>${num(r.scF)}</td><td>${num(r.scT)}</td>
         <td>${num(r.stM)}</td><td>${num(r.stF)}</td><td>${num(r.stT)}</td>
         <td>${num(r.grandM)}</td><td>${num(r.grandF)}</td><td>${num(r.grandT)}</td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
 }
 
 function renderAgriDroneDemonstrationDetailsSection(section, data, sectionId, isFirstSection) {
