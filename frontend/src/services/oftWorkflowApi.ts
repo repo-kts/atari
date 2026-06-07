@@ -14,6 +14,10 @@ export const oftWorkflowApi = {
         return apiClient.post(`/forms/achievements/oft/${id}/transfer-next-year`)
     },
 
+    revokeTransfer: async (id: number | string) => {
+        return apiClient.post(`/forms/achievements/oft/${id}/revoke-transfer`)
+    },
+
     getResult: async (id: number | string) => {
         return apiClient.get(`/forms/achievements/oft/${id}/result`)
     },

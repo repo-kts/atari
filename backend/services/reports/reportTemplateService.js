@@ -242,7 +242,9 @@ class ReportTemplateService {
             isStandalone: false,
         };
         // Filter sections that have valid data (not errors, not null/undefined)
+        // and aren't explicitly excluded from the report index.
         const selectedSections = sections.filter(s => {
+            if (s.hideInReport) return false;
             const sectionData = sectionsData[s.id];
             return sectionData &&
                 !sectionData.error &&
@@ -253,7 +255,30 @@ class ReportTemplateService {
         // Curated/clean index numbering (raw section.id values are unreliable).
         const numbering = buildSectionNumbering(selectedSections);
 
-        const sectionsBody = await this._generateSectionPages(selectedSections, sectionsData, reportContext, numbering.headingById);
+        // Render the section pages in the SAME order as the curated index
+        // (taxonomy), not raw section-id order — otherwise e.g. HR Development
+        // (2.59) prints before Awards (2.56), and soil-water lands out of place.
+        const orderIndex = new Map();
+        let _oi = 0;
+        for (const chapter of numbering.chapters) {
+            if (chapter.type === 'grouped') {
+                for (const group of (chapter.groups || [])) {
+                    for (const feature of (group.features || [])) {
+                        const sid = String(feature.sectionId);
+                        if (sid && !orderIndex.has(sid)) orderIndex.set(sid, _oi++);
+                    }
+                }
+            } else {
+                for (const s of (chapter.sections || [])) {
+                    const sid = String(s.sectionId);
+                    if (sid && !orderIndex.has(sid)) orderIndex.set(sid, _oi++);
+                }
+            }
+        }
+        const orderRank = (id) => (orderIndex.has(String(id)) ? orderIndex.get(String(id)) : Number.MAX_SAFE_INTEGER);
+        const orderedSections = [...selectedSections].sort((a, b) => orderRank(a.id) - orderRank(b.id));
+
+        const sectionsBody = await this._generateSectionPages(orderedSections, sectionsData, reportContext, numbering.headingById);
 
         const html = `
 <!DOCTYPE html>
@@ -386,11 +411,16 @@ class ReportTemplateService {
         </li>`;
 
             if (chapter.type === 'grouped') {
-                // TOC lists section (group) level only, e.g. "1.1 Basic Information".
-                // The lettered features (sub-sections) appear only as body headings.
+                // List the group row (e.g. "2.2 On Farm Trial") followed by its
+                // lettered features (e.g. "2.2.A OFT Summary"), each a clickable
+                // link that jumps to the backing section.
                 chapter.groups.forEach((group) => {
                     const firstSection = group.features[0] && group.features[0].sectionId;
-                    tocHtml += tocItem(group.number, group.label, firstSection, '');
+                    tocHtml += tocItem(group.number, group.label, firstSection, 'toc-group');
+                    group.features.forEach((feature) => {
+                        if (!feature.label || !feature.number) return;
+                        tocHtml += tocItem(feature.number, feature.label, feature.sectionId, 'toc-subitem');
+                    });
                 });
             } else {
                 chapter.sections.forEach((s) => {
@@ -1121,6 +1151,25 @@ class ReportTemplateService {
 
     .toc-feature {
         margin-left: 34px;
+    }
+
+    .toc-item.toc-group {
+        margin-left: 18px;
+    }
+
+    .toc-item.toc-group .toc-section-id,
+    .toc-item.toc-group .toc-section-title {
+        font-weight: bold;
+    }
+
+    .toc-item.toc-subitem {
+        margin-left: 40px;
+    }
+
+    .toc-item.toc-subitem .toc-section-id,
+    .toc-item.toc-subitem .toc-section-title {
+        font-weight: normal;
+        font-size: 7.5pt;
     }
 
     .toc-link {

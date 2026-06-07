@@ -87,6 +87,29 @@ const oftService = {
         return transferred;
     },
 
+    // Revoke/undo a transfer (super-admin). Deletes the generated next-year copy
+    // and restores the source OFT to ONGOING — only when that copy is untouched.
+    revokeTransfer: async (id, user) => {
+        const source = await oftRepository.findRawById(id, user);
+        if (!source) {
+            throw new NotFoundError('OFT record');
+        }
+        if (normalizeOftStatus(source.status) !== OFT_STATUS.TRANSFERRED_TO_NEXT_YEAR) {
+            throw new ValidationError('Only transferred OFT records can have their transfer revoked');
+        }
+        const children = await oftRepository.findTransferChildren(id);
+        for (const child of children) {
+            if (normalizeOftStatus(child.status) !== OFT_STATUS.ONGOING) {
+                throw new ValidationError(
+                    'Cannot revoke: the next-year OFT already has results or was transferred again.'
+                );
+            }
+        }
+        const restored = await oftRepository.revokeTransferTx(id, children.map(c => c.kvkOftId));
+        await _invalidateOftReports(source.kvkId);
+        return restored;
+    },
+
     addResult: async (id, payload, user) => {
         const source = await oftRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('OFT record');
@@ -137,7 +160,9 @@ const oftService = {
         const source = await oftRepository.findRawById(id, user);
         if (!source) throw new NotFoundError('OFT record');
         const result = await oftRepository.getResultByOftId(id);
-        if (!result) throw new NotFoundError('OFT result report');
+        // No result entered yet → return null (200) so the UI can open an empty
+        // result form for first-time entry instead of treating it as an error.
+        if (!result) return null;
         return resultAttachments.decorate({ ...result, kvkId: source.kvkId }, user);
     },
 

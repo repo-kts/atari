@@ -1,69 +1,77 @@
 /**
  * Swachhta Budget (Quarterly Expenditure) Template
  *
- * One table per KVK with 2 rows:
- *   1. Vermicomposting
- *   2. Other than vermicomposting activities under Swachata
+ * One combined table, one row per KVK, with grouped columns:
+ *   Vermicomposting (No of village covered | Total Expenditure) |
+ *   Other than vermicomposting activities under Swachata (No of village covered | Total Expenditure)
  *
- * Columns: KVK | Activities | No of village covered | Total Expenditure(Rs.in Lakhs)
+ * KVK side (single KVK)  : simple list (KVK + the 4 value columns).
+ * Super-admin (aggregated): structured — State | KVK prepended, sorted by State then KVK.
  */
 
-const COLGROUP = `
-        <colgroup>
-            <col style="width:15%;"><col style="width:45%;"><col style="width:18%;"><col style="width:22%;">
-        </colgroup>`;
+function _num(v) {
+    return v != null && v !== '' ? v : 0;
+}
 
-const THEAD = `
-        <thead>
-            <tr>
-                <th>KVK</th>
-                <th>Activities</th>
-                <th>No of village covered</th>
-                <th>Total Expenditure(Rs.in Lakhs)</th>
-            </tr>
-        </thead>`;
-
-function renderSwachhtaBudgetSection(section, data, sectionId, isFirstSection) {
+function renderSwachhtaBudgetSection(section, data, sectionId, isFirstSection, reportContext = {}) {
     const records = Array.isArray(data) ? data : (data ? [data] : []);
+    const isAgg = Boolean(reportContext.isAggregatedReport);
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
+
+    const stateOf = (r) => r.kvk?.state?.stateName || '';
+    const kvkOf = (r) => r.kvk?.kvkName || '-';
+    const rows = isAgg
+        ? [...records].sort((a, b) =>
+            (stateOf(a).localeCompare(stateOf(b))) || (kvkOf(a).localeCompare(kvkOf(b))))
+        : records;
+
+    const leadHead = isAgg
+        ? `<th rowspan="2" style="vertical-align:bottom;">State</th>
+                <th rowspan="2" style="vertical-align:bottom;">KVK</th>`
+        : `<th rowspan="2" style="vertical-align:bottom;">KVK</th>`;
+    const leadCount = isAgg ? 2 : 1;
+    const colCount = leadCount + 4;
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
-    <h1 class="section-title" style="margin-bottom:16px;">Other than vermicomposting activities under Swachata</h1>`;
-
-    if (records.length === 0) {
-        html += `
+    <h1 class="section-title" style="margin-bottom:12px;">${section.id} ${this._escapeHtml(section.title)}</h1>
     <table class="data-table" style="width:100%;table-layout:fixed;">
-        ${COLGROUP}${THEAD}
-        <tbody>
-            <tr><td colspan="4" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>
-        </tbody>
-    </table>`;
-    } else {
-        records.forEach(row => {
-            const kvk = row.kvk?.kvkName || '-';
-            html += `
-    <table class="data-table" style="width:100%;table-layout:fixed;margin-bottom:20px;">
-        ${COLGROUP}${THEAD}
-        <tbody>
+        <thead>
             <tr>
-                <td>${this._escapeHtml(kvk)}</td>
-                <td>Vermicomposting</td>
-                <td style="text-align:center;">${row.vermiVillageCovered != null ? row.vermiVillageCovered : 0}</td>
-                <td style="text-align:center;">${row.vermiTotalExpenditure != null ? row.vermiTotalExpenditure : 0}</td>
+                ${leadHead}
+                <th colspan="2" style="text-align:center;">Vermicomposting</th>
+                <th colspan="2" style="text-align:center;">Other than vermicomposting activities under Swachata</th>
             </tr>
             <tr>
-                <td>${this._escapeHtml(kvk)}</td>
-                <td>Other than vermicomposting activities under Swachata</td>
-                <td style="text-align:center;">${row.otherVillageCovered != null ? row.otherVillageCovered : 0}</td>
-                <td style="text-align:center;">${row.otherTotalExpenditure != null ? row.otherTotalExpenditure : 0}</td>
+                <th style="text-align:center;">No of village covered</th>
+                <th style="text-align:center;">Total Expenditure (Rs. in Lakhs)</th>
+                <th style="text-align:center;">No of village covered</th>
+                <th style="text-align:center;">Total Expenditure (Rs. in Lakhs)</th>
             </tr>
-        </tbody>
-    </table>`;
-        });
+        </thead>
+        <tbody>`;
+
+    if (rows.length === 0) {
+        html += `<tr><td colspan="${colCount}" style="text-align:center;color:#666;font-style:italic;padding:12px;">No data available for this section.</td></tr>`;
     }
 
+    rows.forEach(row => {
+        const lead = isAgg
+            ? `<td>${this._escapeHtml(stateOf(row) || '-')}</td><td>${this._escapeHtml(kvkOf(row))}</td>`
+            : `<td>${this._escapeHtml(kvkOf(row))}</td>`;
+        html += `
+            <tr>
+                ${lead}
+                <td style="text-align:center;">${_num(row.vermiVillageCovered)}</td>
+                <td style="text-align:center;">${_num(row.vermiTotalExpenditure)}</td>
+                <td style="text-align:center;">${_num(row.otherVillageCovered)}</td>
+                <td style="text-align:center;">${_num(row.otherTotalExpenditure)}</td>
+            </tr>`;
+    });
+
     html += `
+        </tbody>
+    </table>
 </div>`;
     return html;
 }

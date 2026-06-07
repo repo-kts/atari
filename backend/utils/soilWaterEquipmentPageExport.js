@@ -11,7 +11,7 @@ const {
     HeadingLevel,
 } = require('docx');
 
-const MAIN_TITLE = '7. SOIL & WATER TESTING';
+const MAIN_TITLE = '2.7. SOIL & WATER TESTING';
 const SUB_TITLE = 'A. Details of equipment available in Soil and Water Testing Laboratory.';
 
 function isAggregatedPayload(payload) {

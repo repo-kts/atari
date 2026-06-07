@@ -113,14 +113,30 @@ function renderValueCells(isMultiState, stateKeys, stateMap) {
 // ── Main render function ────────────────────────────────────────────
 
 function renderOftSummarySection(section, data, sectionId, isFirstSection) {
-    // data can be { records, subjects } from data service, or plain array from combined template
-    let records, subjects;
-    if (data && !Array.isArray(data) && data.records) {
+    // Accept every shape the orchestration can hand us:
+    //   - { records, subjects }                  single KVK (data service)
+    //   - [ { records, subjects }, ... ]         super-admin: one chunk per KVK
+    //   - [ ...oftRows ]                          plain rows (combined template)
+    //   - single oft row / object
+    // Without the chunk handling, super-admin aggregation treats each
+    // { records, subjects } object as an OFT row → sector "Unknown",
+    // thematic "Other", farmer counts 0.
+    let records = [];
+    let subjects = [];
+    if (data && !Array.isArray(data) && Array.isArray(data.records)) {
         records = data.records;
         subjects = data.subjects || [];
-    } else {
-        records = Array.isArray(data) ? data : (data ? [data] : []);
-        subjects = [];
+    } else if (Array.isArray(data)) {
+        if (data.some(d => d && (Array.isArray(d.records) || Array.isArray(d.subjects)))) {
+            for (const chunk of data) {
+                if (Array.isArray(chunk?.records)) records.push(...chunk.records);
+                if (subjects.length === 0 && Array.isArray(chunk?.subjects)) subjects = chunk.subjects;
+            }
+        } else {
+            records = data;
+        }
+    } else if (data) {
+        records = [data];
     }
 
     if (records.length === 0 && subjects.length === 0) {

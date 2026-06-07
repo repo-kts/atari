@@ -695,19 +695,37 @@ class ReportAggregationService {
                 });
                 return districts.map(d => ({ id: d.districtId, name: d.districtName }));
 
-            case 'districts':
+            case 'districts': {
                 // Get orgs for selected districts (handle null districtId)
                 const orgs = await prisma.orgMaster.findMany({
-                    where: { 
-                        districtId: { 
+                    where: {
+                        districtId: {
                             in: parentIds,
-                            not: null 
-                        } 
+                            not: null
+                        }
                     },
-                    select: { orgId: true, orgName: true },
+                    select: {
+                        orgId: true,
+                        orgName: true,
+                        district: { select: { districtName: true } },
+                    },
                     orderBy: { orgName: 'asc' },
                 });
-                return orgs.map(o => ({ id: o.orgId, name: o.orgName || 'Unknown' }));
+                // The same org name can exist once per district (e.g. ICAR in two
+                // districts). Append the district to disambiguate duplicates so the
+                // scope list doesn't show identical-looking rows.
+                const nameCounts = {};
+                orgs.forEach(o => {
+                    const n = o.orgName || 'Unknown';
+                    nameCounts[n] = (nameCounts[n] || 0) + 1;
+                });
+                return orgs.map(o => {
+                    const base = o.orgName || 'Unknown';
+                    const dist = o.district?.districtName;
+                    const name = nameCounts[base] > 1 && dist ? `${base} (${dist})` : base;
+                    return { id: o.orgId, name };
+                });
+            }
 
             case 'orgs':
                 // Get KVKs for selected orgs

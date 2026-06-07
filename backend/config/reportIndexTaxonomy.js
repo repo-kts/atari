@@ -93,7 +93,7 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'State Wise OFT Details', sectionId: '2.4' },
+                    { label: 'State Wise FLD Details', sectionId: '2.4' },
                     { label: 'FLD Details', sectionId: '2.4' },
                     { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },
