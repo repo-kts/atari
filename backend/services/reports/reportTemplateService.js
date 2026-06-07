@@ -235,14 +235,13 @@ class ReportTemplateService {
     /**
      * Generate complete HTML for the report
      */
-    async generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
+    /**
+     * Pick the sections that have data (and aren't excluded), and order them to
+     * match the curated taxonomy index. Shared by the PDF and Excel exports so
+     * both use the exact same section set, order, and numbering.
+     */
+    _selectAndOrderSections(sectionsData) {
         const sections = getAllSections();
-        const reportContext = {
-            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
-            isStandalone: false,
-        };
-        // Filter sections that have valid data (not errors, not null/undefined)
-        // and aren't explicitly excluded from the report index.
         const selectedSections = sections.filter(s => {
             if (s.hideInReport) return false;
             const sectionData = sectionsData[s.id];
@@ -255,30 +254,48 @@ class ReportTemplateService {
         // Curated/clean index numbering (raw section.id values are unreliable).
         const numbering = buildSectionNumbering(selectedSections);
 
-        // Render the section pages in the SAME order as the curated index
-        // (taxonomy), not raw section-id order — otherwise e.g. HR Development
-        // (2.59) prints before Awards (2.56), and soil-water lands out of place.
+        // Order to match the curated index (taxonomy), not raw section-id order —
+        // otherwise e.g. HR (2.59) prints before Awards (2.56).
         const orderIndex = new Map();
-        let _oi = 0;
+        let oi = 0;
         for (const chapter of numbering.chapters) {
-            if (chapter.type === 'grouped') {
-                for (const group of (chapter.groups || [])) {
-                    for (const feature of (group.features || [])) {
-                        const sid = String(feature.sectionId);
-                        if (sid && !orderIndex.has(sid)) orderIndex.set(sid, _oi++);
-                    }
-                }
-            } else {
-                for (const s of (chapter.sections || [])) {
-                    const sid = String(s.sectionId);
-                    if (sid && !orderIndex.has(sid)) orderIndex.set(sid, _oi++);
+            const featureLists = chapter.type === 'grouped'
+                ? (chapter.groups || []).map(g => g.features || [])
+                : [(chapter.sections || [])];
+            for (const list of featureLists) {
+                for (const f of list) {
+                    const sid = String(f.sectionId);
+                    if (sid && !orderIndex.has(sid)) orderIndex.set(sid, oi++);
                 }
             }
         }
-        const orderRank = (id) => (orderIndex.has(String(id)) ? orderIndex.get(String(id)) : Number.MAX_SAFE_INTEGER);
-        const orderedSections = [...selectedSections].sort((a, b) => orderRank(a.id) - orderRank(b.id));
+        const rank = (id) => (orderIndex.has(String(id)) ? orderIndex.get(String(id)) : Number.MAX_SAFE_INTEGER);
+        const orderedSections = [...selectedSections].sort((a, b) => rank(a.id) - rank(b.id));
 
-        const sectionsBody = await this._generateSectionPages(orderedSections, sectionsData, reportContext, numbering.headingById);
+        return { orderedSections, numbering };
+    }
+
+    /**
+     * Render every selected section to its own HTML chunk plus index metadata.
+     * Returns { numbering, chunks: [{ sectionId, chapter, sectionNumber,
+     * sectionTitle, featureNumber, featureTitle, html }] }. Used by both the PDF
+     * (chunks joined) and the Excel export (one sheet per chunk).
+     */
+    async generateSectionChunks(sectionsData, reportContext = {}) {
+        const { orderedSections, numbering } = this._selectAndOrderSections(sectionsData);
+        const chunks = await this._renderSectionChunks(
+            orderedSections, sectionsData, reportContext, numbering.headingById,
+        );
+        return { numbering, chunks };
+    }
+
+    async generateReportHTML(kvkInfo, sectionsData, filters, generatedBy) {
+        const reportContext = {
+            isAggregatedReport: kvkInfo?.kvkId === null || kvkInfo?.kvkId === undefined,
+            isStandalone: false,
+        };
+        const { numbering, chunks } = await this.generateSectionChunks(sectionsData, reportContext);
+        const sectionsBody = chunks.map(c => c.html).join('');
 
         const html = `
 <!DOCTYPE html>
@@ -437,10 +454,13 @@ class ReportTemplateService {
     }
 
     /**
-     * Generate section pages with unique IDs for TOC linking
+     * Render each selected section to its own HTML chunk (with chapter/feature
+     * headers applied) plus the index metadata for that section. Returns an array
+     * of { sectionId, chapter, sectionNumber, sectionTitle, featureNumber,
+     * featureTitle, html }.
      */
-    async _generateSectionPages(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
-        let html = '';
+    async _renderSectionChunks(selectedSections, sectionsData, reportContext = {}, headingById = new Map()) {
+        const chunks = [];
         let isFirstSection = true;
         const seenChapters = new Set(); // chapter header shown once per chapter
         const seenSections = new Set(); // section (group) heading shown once per group
@@ -490,11 +510,19 @@ class ReportTemplateService {
                 }
             }
 
-            html += this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup);
+            chunks.push({
+                sectionId: rawSection.id,
+                chapter: heading?.chapter || '',
+                sectionNumber: heading?.sectionNumber || rawSection.id,
+                sectionTitle: heading?.sectionTitle || rawSection.title,
+                featureNumber: heading?.featureNumber || null,
+                featureTitle: heading?.featureTitle || null,
+                html: this._withSectionHeaders(chunk || '', heading, seenChapters, firstInGroup),
+            });
             isFirstSection = false;
         }
 
-        return html;
+        return chunks;
     }
 
     /**
