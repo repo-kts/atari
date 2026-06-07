@@ -1,6 +1,18 @@
 const { resolveExtensionOutreachPayload } = require('../../../../repositories/reports/extensionOutreachReport/extensionOutreachReportRepository.js');
 const { outreachTableCss, renderOutreachTable } = require('./extensionOutreachHelpers.js');
 
+function tableCss() {
+    return `
+  .wsd-page-wrap { width:100%; font-size:5.5pt; line-height:1.15; }
+  .wsd-page-title { font-size:8pt; font-weight:bold; margin:0 0 4px 0; }
+  .wsd-page-tbl { width:100%; border-collapse:collapse; table-layout:fixed; margin-bottom:10px; page-break-inside:avoid; }
+  .wsd-page-tbl th, .wsd-page-tbl td { border:0.35pt solid #000; padding:2px 3px; vertical-align:middle; }
+  .wsd-page-tbl thead th { background:#e8e8e8; font-weight:bold; text-align:center; }
+  .wsd-page-tbl .c { text-align:center; }
+  .wsd-page-tbl .l { text-align:left; }
+  .wsd-page-tbl .muted { color:#444; font-size:6pt; margin:4px 0 8px 0; }
+`;
+}
 function renderExtensionOutreachReportSection(section, data, sectionId, isFirstSection) {
     const payload = resolveExtensionOutreachPayload(data);
     const y = payload.yearLabel || '';
@@ -35,10 +47,10 @@ function renderExtensionOutreachReportSection(section, data, sectionId, isFirstS
 
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <style>${outreachTableCss()}</style>
+  <style>${tableCss()} ${outreachTableCss()}</style>
   <div class="eox-wrap">
-    <div class="eox-title">${this._escapeHtml(t1)}</div>
-    <div class="eox-sub">${this._escapeHtml(sub)}</div>
+    <h1 class="section-title">${this._escapeHtml(t1)}</h1>
+    <div class="">${this._escapeHtml(sub)}</div>
     ${stateBlock}
     ${actBlock}
   </div>

@@ -36,7 +36,7 @@ function renderSoilWaterEquipmentPageReportSection(section, data, sectionId, isF
   if (rows.length === 0) {
     return `
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
-  <h1 class="section-title">${this._escapeHtml(section.title)}</h1>
+  <h1 class="section-title">${section.id} ${this._escapeHtml(section.title)}</h1>
   <p class="no-data">No data found</p>
 </div>`;
   }
@@ -75,8 +75,8 @@ function renderSoilWaterEquipmentPageReportSection(section, data, sectionId, isF
 <div id="${sectionId}" class="${isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued'}">
   <style>${tableCss()}</style>
   <div class="swe-page-wrap">
-    <div class="swe-page-title">7. SOIL &amp; WATER TESTING</div>
-    <div class="swe-page-sub">A. Details of equipment available in Soil and Water Testing Laboratory.</div>
+    <h1 class="section-title">${section.id} ${esc(section.title)}</h1>
+    <div class="swe-page-sub">Details of equipment available in Soil and Water Testing Laboratory.</div>
     ${y ? `<div class="muted">Reporting year ${esc(y)}</div>` : ''}
     <table class="swe-page-tbl">
       <thead>${head}</thead>

@@ -1,6 +1,5 @@
 const reportService = require('../../services/reports/reportService.js');
 const reportAggregationService = require('../../services/reports/reportAggregationService.js');
-const { generateExcel, generateWord } = require('../../utils/exportHelper.js');
 const { normalizeReportKvkId } = require('../../utils/reportKvkId.js');
 
 /**
@@ -63,35 +62,33 @@ const generateKvkReport = async (req, res) => {
         const { targetKvkId } = resolved;
         const generatedBy = user.name || user.email || 'Unknown User';
 
-        if (format === 'excel' || format === 'docx') {
-            // Build a compact tabular export from report data
-            const data = await reportService.getReportData(targetKvkId, {
+        if (format === 'excel') {
+            // Structured workbook: one tab per sub-section, grouped per chapter,
+            // mirroring the PDF (see reportExcelService).
+            const result = await reportService.generateKvkReportExcel(targetKvkId, {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
+                generatedBy,
             });
-            const headers = ['Section', 'Data'];
-            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
-                try {
-                    return [section, JSON.stringify(value)];
-                } catch {
-                    return [section, String(value)];
-                }
+            const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.xlsx`;
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.setHeader('Content-Length', result.excelBuffer.length);
+            return res.send(result.excelBuffer);
+        }
+
+        if (format === 'docx') {
+            // Structured Word document mirroring the PDF (see reportWordService).
+            const result = await reportService.generateKvkReportWord(targetKvkId, {
+                sectionIds: sectionIds || [],
+                filters: filters || {},
+                generatedBy,
             });
-            if (format === 'excel') {
-                const buffer = await generateExcel(`KVK Report ${targetKvkId}`, headers, rows);
-                const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.xlsx`;
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-                res.setHeader('Content-Length', buffer.length);
-                return res.send(Buffer.from(buffer));
-            } else {
-                const buffer = await generateWord(`KVK Report ${targetKvkId}`, headers, rows);
-                const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.docx`;
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-                res.setHeader('Content-Length', buffer.length);
-                return res.send(Buffer.from(buffer));
-            }
+            const fileName = `KVK_Report_${targetKvkId}_${Date.now()}.docx`;
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.setHeader('Content-Length', result.wordBuffer.length);
+            return res.send(result.wordBuffer);
         }
 
         // Default: Generate PDF
@@ -228,34 +225,32 @@ const generateAggregatedReport = async (req, res) => {
 
         const generatedBy = user.name || user.email || 'Unknown User';
 
-        if (format === 'excel' || format === 'docx') {
-            const data = await reportService.getAggregatedReportData(scope, {
+        if (format === 'excel') {
+            // Structured workbook mirroring the PDF (tabs per sub-section).
+            const result = await reportService.generateAggregatedReportExcel(scope, {
                 sectionIds: sectionIds || [],
                 filters: filters || {},
+                generatedBy,
             });
-            const headers = ['Section', 'Data'];
-            const rows = Object.entries(data.sectionsData || {}).map(([section, value]) => {
-                try {
-                    return [section, JSON.stringify(value)];
-                } catch {
-                    return [section, String(value)];
-                }
+            const fileName = `Aggregated_Report_${Date.now()}.xlsx`;
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.setHeader('Content-Length', result.excelBuffer.length);
+            return res.send(result.excelBuffer);
+        }
+
+        if (format === 'docx') {
+            // Structured Word document mirroring the PDF.
+            const result = await reportService.generateAggregatedReportWord(scope, {
+                sectionIds: sectionIds || [],
+                filters: filters || {},
+                generatedBy,
             });
-            if (format === 'excel') {
-                const buffer = await generateExcel('Aggregated Report', headers, rows);
-                const fileName = `Aggregated_Report_${Date.now()}.xlsx`;
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-                res.setHeader('Content-Length', buffer.length);
-                return res.send(Buffer.from(buffer));
-            } else {
-                const buffer = await generateWord('Aggregated Report', headers, rows);
-                const fileName = `Aggregated_Report_${Date.now()}.docx`;
-                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-                res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-                res.setHeader('Content-Length', buffer.length);
-                return res.send(Buffer.from(buffer));
-            }
+            const fileName = `Aggregated_Report_${Date.now()}.docx`;
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+            res.setHeader('Content-Length', result.wordBuffer.length);
+            return res.send(result.wordBuffer);
         }
 
         // Default: PDF

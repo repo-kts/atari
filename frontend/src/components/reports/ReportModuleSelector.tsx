@@ -19,6 +19,8 @@ interface ReportModuleSelectorProps {
     selectedSections: Set<string>;
     onSectionToggle: (sectionId: string) => void;
     onCategorySelectAll: (sectionIds: string[]) => void;
+    onSelectAllForms?: () => void;
+    allFormsSelected?: boolean;
     collapsed?: boolean;
     onToggleCollapse?: () => void;
 }
@@ -28,6 +30,8 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
     selectedSections,
     onSectionToggle,
     onCategorySelectAll,
+    onSelectAllForms,
+    allFormsSelected = false,
     collapsed = false,
     onToggleCollapse,
 }) => {
@@ -147,6 +151,18 @@ export const ReportModuleSelector: React.FC<ReportModuleSelectorProps> = ({
                         className="flex items-center gap-2"
                         onClick={event => event.stopPropagation()}
                     >
+                        {onSelectAllForms && (
+                            <button
+                                type="button"
+                                onClick={onSelectAllForms}
+                                className="h-8 px-3 rounded-lg border border-[#D8E3D8] bg-white text-[11px] font-medium text-[#487749] hover:bg-[#F5FAF5] flex items-center gap-1.5"
+                            >
+                                <div className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center ${allFormsSelected ? 'bg-[#487749] border-[#487749]' : 'bg-white border-[#D1D1D1]'}`}>
+                                    {allFormsSelected && <Check className="w-2.5 h-2.5 text-white" strokeWidth={5} />}
+                                </div>
+                                {allFormsSelected ? 'Clear all' : 'Select all'}
+                            </button>
+                        )}
                         <div className={`overflow-hidden transition-all duration-200 ease-out ${isSearchOpen ? 'w-44 opacity-100' : 'w-0 opacity-0'}`}>
                             <input
                                 id={searchInputId}

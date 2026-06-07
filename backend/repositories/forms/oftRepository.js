@@ -244,6 +244,8 @@ const oftRepository = {
                 farmersStM: sourceOft.farmersStM,
                 farmersStF: sourceOft.farmersStF,
                 status: OFT_STATUS.ONGOING,
+                // Record the transfer chain so the transfer can be revoked later.
+                transferredFromOftId: sourceId,
                 technologies: {
                     create: (sourceOft.technologies || []).map((tech) => ({
                         oftTechnologyTypeId: tech.oftTechnologyTypeId || null,
@@ -268,6 +270,30 @@ const oftRepository = {
                 source: _mapOftResponse(sourceRecord),
                 transferred: _mapOftResponse(newRecord),
             };
+        });
+    },
+
+    // Next-year copies generated from a transferred OFT (the transfer chain).
+    findTransferChildren: async (sourceId) => {
+        return prisma.kvkoft.findMany({
+            where: { transferredFromOftId: parseInt(sourceId) },
+            select: { kvkOftId: true, status: true },
+        });
+    },
+
+    // Undo a transfer: delete the generated next-year copies (technologies and
+    // any result rows cascade) and set the source OFT back to ONGOING.
+    revokeTransferTx: async (sourceId, childIds = []) => {
+        return prisma.$transaction(async (tx) => {
+            if (childIds.length) {
+                await tx.kvkoft.deleteMany({ where: { kvkOftId: { in: childIds } } });
+            }
+            const restored = await tx.kvkoft.update({
+                where: { kvkOftId: parseInt(sourceId) },
+                data: { status: OFT_STATUS.ONGOING },
+                include: OFT_INCLUDE,
+            });
+            return _mapOftResponse(restored);
         });
     },
 

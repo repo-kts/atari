@@ -201,6 +201,7 @@ const reportConfig = {
                 dateFields: ['createdAt'],
             },
             fields: [
+                { dbField: 'kvkName', displayName: 'KVK' },
                 { dbField: 'equipmentName', displayName: 'Equipment Name' },
                 { dbField: 'yearOfPurchase', displayName: 'Year of Purchase' },
                 { dbField: 'totalCost', displayName: 'Total Cost', type: 'currency' },
@@ -401,6 +402,9 @@ const reportConfig = {
             title: 'Soil & Water Testing - Laboratory Equipment',
             description: 'Equipment available in the Soil and Water Testing Laboratory (name and quantity)',
             subsection: true,
+            // Excluded from the report index (not part of the approved Achievements
+            // structure); only "Analysis Details" (2.14) shows under Soil & Water Testing.
+            hideInReport: true,
             parentSectionId: '2',
             dataSource: 'soilWaterEquipmentReport',
             format: 'custom',
@@ -1902,6 +1906,7 @@ function _buildTaxonomyChapter(parent, taxonomy, selectedById, consumed, heading
 function _appendLeftovers(chapter, parentId, selectedById, consumed, headingById, taxonomyGroupCount = 0) {
     const leftovers = [];
     selectedById.forEach((section, id) => {
+        if (section.hideInReport) { consumed.add(id); return; }
         if (String(section.parentSectionId) === parentId && !consumed.has(id)) {
             leftovers.push(section);
         }

@@ -93,7 +93,7 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Front Line Demonstration',
                 features: [
                     { label: 'FLD Summary', sectionId: '2.4' },
-                    { label: 'State Wise OFT Details', sectionId: '2.4' },
+                    { label: 'State Wise FLD Details', sectionId: '2.4' },
                     { label: 'FLD Details', sectionId: '2.4' },
                     { label: 'Extension & Training activities under FLD', sectionId: '2.5' },
                     { label: 'Technical Feedback on FLD', sectionId: '2.6' },
@@ -155,6 +155,128 @@ const REPORT_INDEX_TAXONOMY = {
                     { label: 'KVK Awards', sectionId: '2.56' },
                     { label: 'Scientist Awards', sectionId: '2.57' },
                     { label: 'Farmer Awards', sectionId: '2.58' },
+                ],
+            },
+        ],
+    },
+
+    // ── 3. Projects ──────────────────────────────────────────────────────────
+    // Grouped to mirror the Projects form page: each card is a group, its links
+    // are the lettered features. Features with sectionId '' have no backing
+    // report section yet and are skipped in the report.
+    '3': {
+        title: 'Projects',
+        groups: [
+            {
+                label: 'CFLD',
+                features: [
+                    { label: 'Technical Parameter', sectionId: '2.16' },
+                    { label: 'Extension Activity', sectionId: '2.17' },
+                    { label: 'Budget Utilization', sectionId: '2.18' },
+                ],
+            },
+            {
+                label: 'NICRA',
+                features: [
+                    { label: 'Basic Information', sectionId: '2.34' },
+                    { label: 'Details', sectionId: '' },
+                    { label: 'Training', sectionId: '2.35' },
+                    { label: 'Extension Activity', sectionId: '2.36' },
+                ],
+            },
+            {
+                label: 'NICRA Others',
+                features: [
+                    { label: 'Intervention', sectionId: '2.37' },
+                    { label: 'Revenue Generated', sectionId: '' },
+                    { label: 'Custom Hiring', sectionId: '2.38' },
+                    { label: 'VCRMC', sectionId: '2.39' },
+                    { label: 'Soil Health Card', sectionId: '2.40' },
+                    { label: 'Convergence Programme', sectionId: '' },
+                    { label: 'Dignitaries Visited', sectionId: '' },
+                    { label: 'PI/Co-PI List', sectionId: '' },
+                ],
+            },
+            {
+                label: 'ARYA / SAFAL',
+                features: [
+                    { label: 'Current Year Details', sectionId: '2.30' },
+                    { label: 'Previous Year Evaluation', sectionId: '2.31' },
+                ],
+            },
+            {
+                label: 'Natural Farming',
+                features: [
+                    { label: 'Geographical Information', sectionId: '' },
+                    { label: 'Physical Information', sectionId: '2.44' },
+                    { label: 'Demonstration Information', sectionId: '2.46' },
+                    { label: 'Farmers Practicing', sectionId: '2.47' },
+                    { label: 'Beneficiaries', sectionId: '' },
+                    { label: 'Soil Data', sectionId: '2.49' },
+                    { label: 'Budget Expenditure', sectionId: '2.50' },
+                ],
+            },
+            {
+                label: 'TSP/SCSP',
+                features: [
+                    { label: 'TSP Activities', sectionId: '2.33' },
+                    { label: 'SCSP Activities', sectionId: '2.33' },
+                ],
+            },
+            {
+                label: 'NARI',
+                features: [
+                    { label: 'Nutrition Garden', sectionId: '2.25' },
+                    { label: 'Bio-fortified Crops', sectionId: '2.26' },
+                    { label: 'Value Addition', sectionId: '2.27' },
+                    { label: 'Training Program', sectionId: '2.28' },
+                    { label: 'Extension Activities', sectionId: '2.29' },
+                ],
+            },
+            {
+                label: 'Agri-Drone',
+                features: [
+                    { label: 'Introduction', sectionId: '2.51' },
+                    { label: 'Demonstration', sectionId: '2.52' },
+                ],
+            },
+            {
+                label: 'FPO and CBBO',
+                features: [
+                    { label: 'Details FPO and CBBO', sectionId: '2.21' },
+                    { label: 'FPO Management', sectionId: '2.22' },
+                ],
+            },
+            {
+                label: 'DRMR',
+                features: [
+                    { label: 'DRMR Details', sectionId: '2.23' },
+                    { label: 'DRMR Activity', sectionId: '2.24' },
+                ],
+            },
+            {
+                label: 'Climate Resilient Agriculture (CRA)',
+                features: [
+                    { label: 'CRA Details', sectionId: '2.19' },
+                    { label: 'Extension Activity', sectionId: '2.20' },
+                ],
+            },
+            {
+                label: 'CSISA',
+                features: [
+                    { label: 'CSISA', sectionId: '2.32' },
+                ],
+            },
+            {
+                label: 'Seed Hub Program',
+                features: [
+                    { label: 'Seed Hub Program', sectionId: '2.53' },
+                ],
+            },
+            {
+                label: 'Other Programmes',
+                features: [
+                    { label: 'Other Programmes', sectionId: '2.54' },
                 ],
             },
         ],
