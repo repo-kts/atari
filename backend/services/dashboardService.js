@@ -236,8 +236,14 @@ const dashboardService = {
         _count: { _all: true },
       }),
       prisma.userLoginActivity.findMany({
-        // Hide activity of soft-deleted users.
-        where: { ...buildLoginLogWhere(actor), user: { is: { deletedAt: null } } },
+        // Hide activity of soft-deleted users; keep anonymous rows
+        // (userId null, e.g. failed logins) visible.
+        where: {
+          AND: [
+            buildLoginLogWhere(actor),
+            { OR: [{ userId: null }, { user: { is: { deletedAt: null } } }] },
+          ],
+        },
         orderBy: [{ eventAt: 'desc' }, { logId: 'desc' }],
         take: 12,
         select: {

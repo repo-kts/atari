@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma.js');
 const { OFT_STATUS } = require('../constants/oftStatus.js');
 const { FLD_STATUS } = require('../constants/fldStatus.js');
+const { getCurrentFiscalYear } = require('../utils/fiscalYear.js');
 
 const ROLE_SCOPE_KEYS = {
   zone_admin: 'zoneId',
@@ -47,12 +48,6 @@ const PRODUCTION_CATEGORY_ALIASES = {
 function toNumber(value) {
   const num = Number(value);
   return Number.isFinite(num) ? num : 0;
-}
-
-function getCurrentFiscalYear() {
-  const now = new Date();
-  // Fiscal year runs April–March, so Jan–Mar belongs to the previous year's FY.
-  return now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear();
 }
 
 function parseReportingYear(inputYear) {

@@ -25,6 +25,12 @@ const TH_NOWRAP = `${TH} whitespace-nowrap`
 const TD = 'px-1.5 py-1 border border-[#D6D6D6] text-center text-[12px] whitespace-nowrap'
 const TD_PUB = 'px-1.5 py-1 border border-[#D6D6D6] text-left text-[12px]'
 
+/** Fiscal year runs April–March: Jan–Mar belongs to the previous year's FY (mirrors the backend default). */
+function getCurrentFiscalYear() {
+    const now = new Date()
+    return now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear()
+}
+
 const emptyParticipant: ParticipantAchievement = {
     general: { m: 0, f: 0 },
     obc: { m: 0, f: 0 },
@@ -248,13 +254,13 @@ export const TechnicalAchievementSummary: React.FC = () => {
         if (!filterOptions) return
         if (appliedYear !== null) return
 
-        const defaultYear = filterOptions.defaultReportingYear || new Date().getFullYear()
+        const defaultYear = filterOptions.defaultReportingYear || getCurrentFiscalYear()
         setAppliedYear(defaultYear)
         setSelectedYear(String(defaultYear))
     }, [filterOptions, appliedYear])
 
     const summaryParams = useMemo(() => {
-        const year = appliedYear ?? filterOptions?.defaultReportingYear ?? new Date().getFullYear()
+        const year = appliedYear ?? filterOptions?.defaultReportingYear ?? getCurrentFiscalYear()
         const kvkId = canFilterByKvk ? appliedKvkId : undefined
         return { reportingYear: year, kvkId }
     }, [appliedYear, appliedKvkId, canFilterByKvk, filterOptions?.defaultReportingYear])

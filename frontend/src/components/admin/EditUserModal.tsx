@@ -589,7 +589,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.stateId || ''}
                         onChange={(value) => {
                             const stateId = value ? Number(value) : ''
-                            handleChange('stateId', stateId)
                             setFormData(prev => ({
                                 ...prev,
                                 stateId: stateId as number | '',
@@ -597,6 +596,8 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                                 orgId: '',
                                 kvkId: '',
                             }))
+                            if (errors.stateId) setErrors(prev => ({ ...prev, stateId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: currentUser?.zoneId,
@@ -626,13 +627,14 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.districtId || ''}
                         onChange={(value) => {
                             const districtId = value ? Number(value) : ''
-                            handleChange('districtId', districtId)
                             setFormData(prev => ({
                                 ...prev,
                                 districtId: districtId as number | '',
                                 orgId: '',
                                 kvkId: '',
                             }))
+                            if (errors.districtId) setErrors(prev => ({ ...prev, districtId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: showStateForSubAdmin ? formData.stateId : currentUser?.stateId,
@@ -662,12 +664,13 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.orgId || ''}
                         onChange={(value) => {
                             const orgId = value ? Number(value) : ''
-                            handleChange('orgId', orgId)
                             setFormData(prev => ({
                                 ...prev,
                                 orgId: orgId as number | '',
                                 kvkId: '',
                             }))
+                            if (errors.orgId) setErrors(prev => ({ ...prev, orgId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: showDistrictForSubAdmin ? formData.districtId : (showStateForSubAdmin ? formData.stateId : currentUser?.districtId),
@@ -714,7 +717,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.zoneId || ''}
                         onChange={(value) => {
                             const zoneId = value ? Number(value) : ''
-                            handleChange('zoneId', zoneId)
                             setFormData(prev => ({
                                 ...prev,
                                 zoneId: zoneId as number | '',
@@ -723,6 +725,8 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                                 orgId: '',
                                 kvkId: '',
                             }))
+                            if (errors.zoneId) setErrors(prev => ({ ...prev, zoneId: undefined }))
+                            setSubmitError(null)
                         }}
                         options={zones.map(z => ({ value: z.zoneId, label: z.zoneName }))}
                         emptyMessage="No zones available"
@@ -738,7 +742,6 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.stateId || ''}
                         onChange={(value) => {
                             const stateId = value ? Number(value) : ''
-                            handleChange('stateId', stateId)
                             setFormData(prev => ({
                                 ...prev,
                                 stateId: stateId as number | '',
@@ -746,6 +749,8 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                                 orgId: '',
                                 kvkId: '',
                             }))
+                            if (errors.stateId) setErrors(prev => ({ ...prev, stateId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: showZoneField ? formData.zoneId : undefined,
@@ -774,13 +779,14 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.districtId || ''}
                         onChange={(value) => {
                             const districtId = value ? Number(value) : ''
-                            handleChange('districtId', districtId)
                             setFormData(prev => ({
                                 ...prev,
                                 districtId: districtId as number | '',
                                 orgId: '',
                                 kvkId: '',
                             }))
+                            if (errors.districtId) setErrors(prev => ({ ...prev, districtId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: showStateField ? formData.stateId : undefined,
@@ -809,12 +815,13 @@ export const EditUserModal: React.FC<EditUserModalProps> = ({
                         value={formData.orgId || ''}
                         onChange={(value) => {
                             const orgId = value ? Number(value) : ''
-                            handleChange('orgId', orgId)
                             setFormData(prev => ({
                                 ...prev,
                                 orgId: orgId as number | '',
                                 kvkId: '',
                             }))
+                            if (errors.orgId) setErrors(prev => ({ ...prev, orgId: undefined }))
+                            setSubmitError(null)
                         }}
                         dependsOn={{
                             value: showDistrictField ? formData.districtId : (showStateField ? formData.stateId : undefined),

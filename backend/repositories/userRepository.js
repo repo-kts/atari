@@ -207,7 +207,9 @@ const userRepository = {
       data: {
         deletedAt,
         // Free the email for reuse; keep the original readable for audit.
-        email: `deleted-${Math.floor(deletedAt.getTime() / 1000)}.${user.email}`,
+        // userId makes the value collision-proof (same email deleted twice
+        // within one second would otherwise hit the unique constraint).
+        email: `deleted-${userId}-${Math.floor(deletedAt.getTime() / 1000)}.${user.email}`,
       },
     });
   },
