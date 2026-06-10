@@ -37,7 +37,8 @@ const REPORT_INDEX_TAXONOMY = {
                 label: 'Employee Information',
                 features: [
                     { label: 'Employee Details', sectionId: '1.3' },
-                    { label: 'Staff Transferred', sectionId: '1.4' },
+                    { label: 'All KVK Staff', sectionId: '1.4' },
+                    { label: 'Staff Transferred', sectionId: '1.11' },
                 ],
             },
             {

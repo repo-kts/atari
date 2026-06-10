@@ -118,6 +118,9 @@ const reportConfig = {
                 { dbField: 'payLevel.levelName', displayName: 'Pay Scale with Present Basic', optional: true },
                 { dbField: 'dateOfJoining', displayName: 'Date of joining', type: 'date' },
                 { dbField: 'staffCategory.categoryName', displayName: 'Category (SC/ST/ OBC/ General)', optional: true },
+                { dbField: 'jobType', displayName: 'Job Type', optional: true },
+                { dbField: 'mobile', displayName: 'Mobile', optional: true },
+                { dbField: 'email', displayName: 'Email', optional: true },
             ],
         },  
         {
@@ -230,6 +233,26 @@ const reportConfig = {
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
                 { dbField: 'sourceOfFunding', displayName: 'Source of fund' },
                 { dbField: 'presentStatus', displayName: 'Present status' },
+            ],
+        },
+        {
+            id: '1.11',
+            title: 'Staff Transferred',
+            description: 'Staff transferred in/out of the KVK (who, from, to, when)',
+            subsection: true,
+            parentSectionId: '1',
+            dataSource: 'kvkStaffTransferred',
+            format: 'custom',
+            customTemplate: 'about-kvk-staff-transferred',
+            filters: {
+                dateFields: [],
+            },
+            fields: [
+                { dbField: 'staffName', displayName: 'Name' },
+                { dbField: 'originalKvk.kvkName', displayName: 'Transferred From' },
+                { dbField: 'kvk.kvkName', displayName: 'Transferred To' },
+                { dbField: 'lastTransferDate', displayName: 'Transfer Date', type: 'date' },
+                { dbField: 'transferCount', displayName: 'No. of Transfers' },
             ],
         },
 

@@ -2,6 +2,7 @@ const { getSectionConfig, getAllSections, buildSectionNumbering } = require('../
 const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/simpleTableTemplate.js');
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
+const { renderStaffTransferredSection } = require('./formsTemplate/aboutkvkTemplates/staffTransferredTemplate.js');
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
@@ -121,6 +122,7 @@ class ReportTemplateService {
             'about-kvk-bank-accounts': renderSimpleTableSection.bind(this),
             'about-kvk-employee-contacts': renderEmployeeContactsSection.bind(this),
             'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
+            'about-kvk-staff-transferred': renderStaffTransferredSection.bind(this),
             'about-kvk-vehicles': renderVehiclesSection.bind(this),
             'about-kvk-vehicle-details': renderVehicleDetailsSection.bind(this),
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
