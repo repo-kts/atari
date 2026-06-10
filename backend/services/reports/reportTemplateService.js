@@ -948,12 +948,21 @@ class ReportTemplateService {
             return null;
         }
 
-        for (const path of candidatePaths) {
-            const value = path.includes('.')
-                ? this._getNestedValue(obj, path)
-                : obj[path];
+        const usable = (v) => v !== null && v !== undefined && v !== '';
 
-            if (value !== null && value !== undefined && value !== '') {
+        for (const path of candidatePaths) {
+            // Try the literal key FIRST. Transformed report rows are keyed by
+            // display name, some of which contain a dot (e.g. "Cost (Rs.)").
+            // Treating those as dotted nested paths split them on "." and lost
+            // the value. Only fall back to nested traversal when there is no
+            // literal property and the path actually looks nested (e.g.
+            // "kvk.kvkName").
+            let value = obj[path];
+            if (!usable(value) && path.includes('.')) {
+                value = this._getNestedValue(obj, path);
+            }
+
+            if (usable(value)) {
                 return value;
             }
         }
