@@ -1,5 +1,6 @@
 const prisma = require('../../../config/prisma.js');
 const { buildReportingYearFilter } = require('../agriDroneReport/agriDroneIntroductionReportRepository.js');
+const { yearLabelFromFilters } = require('../aboutkvkReport/commonFilters.js');
 
 function safeInt(v) {
     if (v === null || v === undefined || v === '') return 0;
@@ -17,8 +18,11 @@ function totalFarmersFromRow(r) {
 }
 
 function applyReportingYear(where, filters) {
+    // KvkFldIntroduction has no `reportingYear` column — filtering on it threw a
+    // Prisma validation error, which dropped the whole FLD section whenever a
+    // year/range was selected (#227). Filter on the real event date `startDate`.
     const ry = buildReportingYearFilter(filters);
-    if (ry) where.reportingYear = ry;
+    if (ry) where.startDate = ry;
 }
 
 function normalizePrismaRow(r) {
@@ -227,9 +231,10 @@ function buildDetailRowsForCategory(catRecords) {
     return cropGroups;
 }
 
-function buildPayloadFromRecords(records) {
+function buildPayloadFromRecords(records, filters = {}) {
     const norm = records.map((r) => (typeof r.stateName === 'string' ? r : normalizePrismaRow(r)));
-    const yearLabel = inferYearLabel(norm);
+    // Year label comes from the selected filter (not the data) — see #223.
+    const yearLabel = yearLabelFromFilters(filters);
     if (norm.length === 0) {
         return {
             yearLabel,
@@ -292,7 +297,7 @@ async function fetchFldRecords(kvkId, filters = {}) {
 
 async function getFldStateCategoryReportData(kvkId, filters = {}) {
     const records = await fetchFldRecords(kvkId, filters);
-    const payload = buildPayloadFromRecords(records);
+    const payload = buildPayloadFromRecords(records, filters);
     return {
         payload,
         records,

@@ -17,25 +17,33 @@ function renderSacMeetingSection(section, data, sectionId, isFirstSection) {
 
     let html = `
 <div id="${sectionId}" class="${pageClass}">
+    <style>
+      .sac-table { width:100%; table-layout:fixed; border-collapse:collapse; }
+      .sac-table th, .sac-table td {
+        font-size:7.5pt; line-height:1.25; padding:3px 4px; vertical-align:top;
+        white-space:normal; word-break:break-word; overflow-wrap:anywhere;
+      }
+      .sac-table th { vertical-align:bottom; text-align:center; }
+    </style>
     <h1 class="section-title" style="margin-bottom:10px;">Details of Scientific Advisory Committee(SAC) Meetings</h1>
-    <table class="data-table" style="width:100%;table-layout:fixed;">
+    <table class="data-table sac-table">
         <colgroup>
-            <col style="width:8%;"><col style="width:6%;"><col style="width:6%;"><col style="width:5%;">
-            <col style="width:6%;"><col style="width:50%;"><col style="width:5%;"><col style="width:14%;">
+            <col style="width:10%;"><col style="width:8%;"><col style="width:8%;"><col style="width:7%;">
+            <col style="width:9%;"><col style="width:38%;"><col style="width:6%;"><col style="width:14%;">
         </colgroup>
         <thead>
             <tr>
-                <th rowspan="2" style="vertical-align:bottom;">KVK</th>
-                <th rowspan="2" style="vertical-align:bottom;">Start Date</th>
-                <th rowspan="2" style="vertical-align:bottom;">End Date</th>
-                <th rowspan="2" style="vertical-align:bottom;">No of Participants</th>
-                <th rowspan="2" style="vertical-align:bottom;">Total Statutory Members Present</th>
-                <th rowspan="2" style="vertical-align:bottom;">Salient Recommendations</th>
-                <th colspan="2" style="text-align:center;">Action</th>
+                <th rowspan="2">KVK</th>
+                <th rowspan="2">Start Date</th>
+                <th rowspan="2">End Date</th>
+                <th rowspan="2">No of Participants</th>
+                <th rowspan="2">Total Statutory Members Present</th>
+                <th rowspan="2">Salient Recommendations</th>
+                <th colspan="2">Action</th>
             </tr>
             <tr>
-                <th style="text-align:center;">Reason</th>
-                <th style="text-align:center;"></th>
+                <th>Taken</th>
+                <th>Reason</th>
             </tr>
         </thead>
         <tbody>`;

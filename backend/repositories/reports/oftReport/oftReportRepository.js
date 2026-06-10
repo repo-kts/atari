@@ -1,9 +1,9 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
 
 async function getOftSummaryData(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'oftStartDate');
 
     return await prisma.kvkoft.findMany({
         where,
@@ -47,7 +47,7 @@ async function getOftSummaryData(kvkId, filters = {}) {
 
 async function getOftDetailCards(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'oftStartDate');
 
     const rows = await prisma.kvkoft.findMany({
         where,
@@ -104,9 +104,14 @@ async function getOftDetailCards(kvkId, filters = {}) {
     // The OFT form doesn't capture a dedicated end date yet (only the expected
     // completion date), so oftEndDate is always null. Fall back to it so the
     // report's "OFT End on" is populated instead of showing "-".
+    // BUT: an ONGOING OFT has no end date yet — don't show the expected
+    // completion date as if the trial had ended.
     return rows.map((r) => ({
         ...r,
-        oftEndDate: r.oftEndDate ?? r.expectedCompletionDate ?? null,
+        oftEndDate:
+            r.status === 'ONGOING'
+                ? r.oftEndDate ?? null
+                : r.oftEndDate ?? r.expectedCompletionDate ?? null,
     }));
 }
 

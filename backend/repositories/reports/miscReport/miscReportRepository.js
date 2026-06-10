@@ -1,9 +1,9 @@
 const prisma = require('../../../config/prisma.js');
-const { applyCreatedAtFilters } = require('../aboutkvkReport/commonFilters.js');
+const { applyDateFilters } = require('../aboutkvkReport/commonFilters.js');
 
 async function getPrevalentDiseasesCrops(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'dateOfOutbreak');
 
     return await prisma.prevalentDiseasesInCrop.findMany({
         where,
@@ -16,7 +16,7 @@ async function getPrevalentDiseasesCrops(kvkId, filters = {}) {
 
 async function getPrevalentDiseasesLivestock(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'dateOfOutbreak');
 
     return await prisma.prevalentDiseasesOnLivestock.findMany({
         where,
@@ -29,7 +29,7 @@ async function getPrevalentDiseasesLivestock(kvkId, filters = {}) {
 
 async function getNykTraining(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'startDate');
 
     return await prisma.nykTraining.findMany({
         where,
@@ -42,7 +42,7 @@ async function getNykTraining(kvkId, filters = {}) {
 
 async function getPpvFraPlantVarieties(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'reportingYearDate');
 
     return await prisma.ppvFraPlantVarieties.findMany({
         where,
@@ -55,7 +55,7 @@ async function getPpvFraPlantVarieties(kvkId, filters = {}) {
 
 async function getVipVisitors(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'dateOfVisit');
 
     return await prisma.vipVisitor.findMany({
         where,
@@ -69,7 +69,7 @@ async function getVipVisitors(kvkId, filters = {}) {
 
 async function getRaweFetFit(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'startDate');
 
     return await prisma.raweFetFitProgramme.findMany({
         where,
@@ -83,7 +83,7 @@ async function getRaweFetFit(kvkId, filters = {}) {
 
 async function getPpvFraTraining(kvkId, filters = {}) {
     const where = { kvkId };
-    applyCreatedAtFilters(where, filters);
+    applyDateFilters(where, filters, 'programmeDate');
 
     return await prisma.ppvFraTraining.findMany({
         where,

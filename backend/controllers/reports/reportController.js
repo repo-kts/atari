@@ -50,6 +50,15 @@ const generateKvkReport = async (req, res) => {
         if (format === 'doc' || format === 'word') format = 'docx';
         if (format === 'xls') format = 'excel';
 
+        // Require an explicit module selection — do not silently render the
+        // entire report when nothing is chosen (#216).
+        if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please select at least one report module.',
+            });
+        }
+
         const resolved = resolveSingleKvkReportTarget(user, kvkId, {
             forbiddenMessage: 'Access denied: You can only generate reports for your own KVK',
         });
@@ -210,6 +219,14 @@ const generateAggregatedReport = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 error: 'Scope is required for aggregated reports',
+            });
+        }
+
+        // Require an explicit module selection (#216).
+        if (!Array.isArray(sectionIds) || sectionIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Please select at least one report module.',
             });
         }
 

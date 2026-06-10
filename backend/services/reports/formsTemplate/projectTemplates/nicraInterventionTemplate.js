@@ -44,26 +44,64 @@ const STYLE = `
   .nicra-int-no-data { color: #777; font-style: italic; font-size: 9pt; padding: 4px 0; }
 </style>`;
 
-/* ── build paired rows from raw flat form records (module export) ──────────── */
+/* ── build paired rows from intervention records ───────────────────────────── */
 
-function buildPairsFromRawRecords(records) {
-    const seedRows   = records.filter(r => /seed/i.test(r.seedBankFodderBank || ''));
-    const fodderRows = records.filter(r => /fodder/i.test(r.seedBankFodderBank || ''));
-    const len = Math.max(seedRows.length, fodderRows.length);
+/**
+ * Normalise a record into a common shape regardless of source:
+ *   - all-report repo  → { bankType, cropWithVariety, quantityQ, kvkName, stateName }
+ *   - module export    → { seedBankFodderBank (string|{name}), crop, variety, quantityQ }
+ */
+function normalizeRow(r) {
+    let bank = r.bankType;
+    if (!bank) {
+        const sb = r.seedBankFodderBank;
+        bank = typeof sb === 'string' ? sb : sb?.name || '';
+    }
+    let cropVariety = r.cropWithVariety;
+    if (cropVariety == null) {
+        cropVariety = r.variety
+            ? `${r.crop || ''} ${r.variety}`.trim()
+            : r.crop || '';
+    }
+    return {
+        kvkName: r.kvkName || '',
+        stateName: r.stateName || '',
+        bank: bank || '',
+        cropVariety: cropVariety || '',
+        qty: r.quantityQ != null ? num(r.quantityQ) : null,
+    };
+}
+
+function buildPairs(records) {
+    // Group per KVK so seed/fodder entries pair within the same KVK row.
+    const groups = new Map();
+    for (const raw of records) {
+        const r = normalizeRow(raw);
+        const key = `${r.stateName}::${r.kvkName}`;
+        if (!groups.has(key)) {
+            groups.set(key, { stateName: r.stateName, kvkName: r.kvkName, seed: [], fodder: [] });
+        }
+        const g = groups.get(key);
+        if (/fodder/i.test(r.bank)) g.fodder.push(r);
+        else g.seed.push(r); // seed bank, or unknown → seed column
+    }
 
     const pairs = [];
-    for (let i = 0; i < len; i++) {
-        const s = seedRows[i];
-        const f = fodderRows[i];
-        const base = s || f;
-        pairs.push({
-            kvkName:          base?.kvkName || '',
-            stateName:        base?.stateName || '',
-            seedCropVariety:  s ? `${s.crop || ''} ${s.variety || ''}`.trim() : '',
-            seedQuantityQ:    s ? num(s.quantityQ) : null,
-            fodderCropVariety: f ? `${f.crop || ''} ${f.variety || ''}`.trim() : '',
-            fodderQuantityQ:  f ? num(f.quantityQ) : null,
-        });
+    for (const g of groups.values()) {
+        const len = Math.max(g.seed.length, g.fodder.length);
+        for (let i = 0; i < len; i++) {
+            const s = g.seed[i];
+            const f = g.fodder[i];
+            if (!s && !f) continue;
+            pairs.push({
+                kvkName: g.kvkName,
+                stateName: g.stateName,
+                seedCropVariety: s ? s.cropVariety : '',
+                seedQuantityQ: s ? s.qty : null,
+                fodderCropVariety: f ? f.cropVariety : '',
+                fodderQuantityQ: f ? f.qty : null,
+            });
+        }
     }
     return pairs;
 }
@@ -128,14 +166,14 @@ function renderNicraInterventionSection(section, data, sectionId, isFirstSection
 
     let pairs;
 
-    // Mode 1 – all-report: data is already an array of pair objects
-    if (Array.isArray(data) && (data.length === 0 || data[0]?.seedCropVariety !== undefined)) {
-        pairs = data;
-    } else if (Array.isArray(data)) {
-        // Mode 2 – module export: flat raw records from forms repository
-        pairs = buildPairsFromRawRecords(data);
-    } else {
+    if (!Array.isArray(data)) {
         pairs = [];
+    } else if (data.length > 0 && data[0]?.seedCropVariety !== undefined) {
+        // Already paired (some callers pre-pair the rows).
+        pairs = data;
+    } else {
+        // Flat intervention rows (all-report repo or module export) → pair them.
+        pairs = buildPairs(data);
     }
 
     return `
