@@ -37,8 +37,8 @@ const userRepository = {
    * Find user by email
    */
   findByEmail: async (email) => {
-    return await prisma.user.findUnique({
-      where: { email },
+    return await prisma.user.findFirst({
+      where: { email, deletedAt: null },
       include: {
         role: true,
       },
@@ -193,10 +193,21 @@ const userRepository = {
    * @returns {Promise<object>} Updated user
    */
   softDeleteUser: async (userId) => {
+    const user = await prisma.user.findUnique({
+      where: { userId },
+      select: { email: true },
+    });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const deletedAt = new Date();
     return await prisma.user.update({
       where: { userId },
       data: {
-        deletedAt: new Date(),
+        deletedAt,
+        // Free the email for reuse; keep the original readable for audit.
+        email: `deleted-${Math.floor(deletedAt.getTime() / 1000)}.${user.email}`,
       },
     });
   },
