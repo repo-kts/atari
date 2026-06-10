@@ -67,7 +67,7 @@ function renderStateTable(block, y) {
         ${participantCells(gt)}
       </tr>`;
     return `
-  <div class="tcap-sub">${esc(block.letter)}. State-wise details of training programme for ${esc(sectionLabel(block))} during the year ${esc(y)}</div>
+  <div class="tcap-sub">${esc(block.letter)}. State-wise details of training programme for ${esc(sectionLabel(block))}${y ? ` for ${esc(y)}` : ''}</div>
   <table class="tcap-tbl">
     <thead>
       <tr>
@@ -110,7 +110,7 @@ function renderTrainingAreaSummaryTable(block, y) {
         ${participantCells(gt)}
       </tr>`;
     return `
-  <div class="tcap-sub">Training area wise details of training programs of ${esc(sectionLabel(block))} during the year ${esc(y)}</div>
+  <div class="tcap-sub">Training area wise details of training programs of ${esc(sectionLabel(block))}${y ? ` for ${esc(y)}` : ''}</div>
   <table class="tcap-tbl">
     <thead>
       <tr>

@@ -93,7 +93,7 @@ function renderThematicTable(rows, grandTotal, yearLabel, caption) {
         ${participantCells(gt)}
       </tr>`;
     return `
-  <div class="tp-sub">${esc(caption)} during the year ${esc(yearLabel)}</div>
+  <div class="tp-sub">${esc(caption)}${yearLabel ? ` for ${esc(yearLabel)}` : ''}</div>
   <table class="tp-tbl">
     ${thematicTableHead()}
     <tbody>${body}${grandRow}</tbody>

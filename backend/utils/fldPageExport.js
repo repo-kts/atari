@@ -36,7 +36,7 @@ async function generateFldPageExcelBuffer(reportTitle, payload) {
     tCell.alignment = { horizontal: 'center' };
 
     const y = payload.yearLabel || '';
-    const subA = ws.addRow([`A. Overall achievements of FLDs conducted during the year ${y}`]);
+    const subA = ws.addRow([`A. Overall achievements of FLDs conducted${y ? ` for ${y}` : ''}`]);
     subA.getCell(1).font = { bold: true };
 
     const aHeaders = [
@@ -76,7 +76,7 @@ async function generateFldPageExcelBuffer(reportTitle, payload) {
     ]);
     ws.addRow([]);
 
-    const subB = ws.addRow([`B. Details of FLDs conducted during the year ${y}`]);
+    const subB = ws.addRow([`B. Details of FLDs conducted${y ? ` for ${y}` : ''}`]);
     subB.getCell(1).font = { bold: true };
 
     const bHead = [
@@ -154,7 +154,7 @@ async function generateFldPageWordBuffer(reportTitle, payload) {
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
-            text: `A. Overall achievements of FLDs conducted during the year ${y}`,
+            text: `A. Overall achievements of FLDs conducted${y ? ` for ${y}` : ''}`,
             heading: HeadingLevel.HEADING_2,
         }),
     ];
@@ -203,7 +203,7 @@ async function generateFldPageWordBuffer(reportTitle, payload) {
         }),
         new Paragraph({ text: '' }),
         new Paragraph({
-            text: `B. Details of FLDs conducted during the year ${y}`,
+            text: `B. Details of FLDs conducted${y ? ` for ${y}` : ''}`,
             heading: HeadingLevel.HEADING_2,
         }),
     );

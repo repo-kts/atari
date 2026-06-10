@@ -174,7 +174,7 @@ function renderFldStateCategoryReportSection(section, data, sectionId, isFirstSe
     }
 
     const pageClass = isFirstSection ? 'section-page section-page-first' : 'section-page section-page-continued';
-    const yr = yearLabel ? ` during the year ${this._escapeHtml(yearLabel)}` : '';
+    const yr = yearLabel ? ` for ${this._escapeHtml(yearLabel)}` : '';
 
     return `
 <div id="${sectionId}" class="${pageClass}">
