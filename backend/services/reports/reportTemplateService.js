@@ -6,6 +6,7 @@ const { renderStaffTransferredSection } = require('./formsTemplate/aboutkvkTempl
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
+const { renderEquipmentDetailsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentDetailsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
 const { renderOftSummarySection } = require('./formsTemplate/oftTemplates/oftSummaryTemplate.js');
 const { renderOftDetailCardsSection } = require('./formsTemplate/oftTemplates/oftDetailCardsTemplate.js');
@@ -128,6 +129,7 @@ class ReportTemplateService {
             'about-kvk-equipment-records': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-record': renderEquipmentRecordsSection.bind(this),
             'about-kvk-equipment-details': renderEquipmentRecordsSection.bind(this),
+            'about-kvk-equipment-details-table': renderEquipmentDetailsSection.bind(this),
             'oft-summary': renderOftSummarySection.bind(this),
             'oft-detail-cards': renderOftDetailCardsSection.bind(this),
             'oft-combined': renderOftCombinedSection.bind(this),
