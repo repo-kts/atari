@@ -92,7 +92,6 @@ const reportConfig = {
             fields: [
                 { dbField: 'kvk.kvkName', displayName: 'KVK' },
                 { dbField: 'staffName', displayName: 'Name' },
-                { dbField: 'residence', displayName: 'Residence', optional: true },
                 { dbField: 'mobile', displayName: 'Mobile' },
                 { dbField: 'email', displayName: 'Email' },
             ],
@@ -230,6 +229,24 @@ const reportConfig = {
                 { dbField: 'totalCost', displayName: 'Cost (Rs.)' },
                 { dbField: 'sourceOfFunding', displayName: 'Source of fund' },
                 { dbField: 'presentStatus', displayName: 'Present status' },
+            ],
+        },
+        {
+            id: '1.10',
+            title: 'Land Details',
+            description: 'Land holdings of the KVK (item-wise area)',
+            subsection: true,
+            parentSectionId: '1',
+            dataSource: 'kvkLandDetails',
+            format: 'custom',
+            customTemplate: 'about-kvk-land',
+            filters: {
+                dateFields: [],
+            },
+            fields: [
+                { dbField: 'kvk.kvkName', displayName: 'KVK' },
+                { dbField: 'item', displayName: 'Item' },
+                { dbField: 'areaHa', displayName: 'Area (ha)' },
             ],
         },
 

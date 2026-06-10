@@ -3,6 +3,7 @@ const { renderSimpleTableSection } = require('./formsTemplate/aboutkvkTemplates/
 const { renderEmployeeContactsSection } = require('./formsTemplate/aboutkvkTemplates/employeeContactsTemplate.js');
 const { renderEmployeesFullSection } = require('./formsTemplate/aboutkvkTemplates/employeesFullTemplate.js');
 const { renderVehiclesSection } = require('./formsTemplate/aboutkvkTemplates/vehiclesTemplate.js');
+const { renderLandDetailsSection } = require('./formsTemplate/aboutkvkTemplates/landDetailsTemplate.js');
 const { renderVehicleDetailsSection } = require('./formsTemplate/aboutkvkTemplates/vehicleDetailsTemplate.js');
 const { renderEquipmentRecordsSection } = require('./formsTemplate/aboutkvkTemplates/equipmentRecordsTemplate.js');
 const { renderAboutKvkSection } = require('./formsTemplate/aboutkvkTemplates/aboutKvkTemplate.js');
@@ -109,6 +110,29 @@ const { renderSacMeetingSection } = require('./formsTemplate/meetingsTemplates/s
 const { renderOtherMeetingSection } = require('./formsTemplate/meetingsTemplates/otherMeetingTemplate.js');
 const { renderAgriDroneIntroductionSection } = require('./formsTemplate/projectTemplates/nfAgriDroneIntroductionTemplate.js');
 const { renderAgriDroneDemonstrationDetailsSection } = require('./formsTemplate/projectTemplates/nfAgriDroneDemonstrationDetailsTemplate.js');
+const fs = require('fs');
+const path = require('path');
+
+// Embed a Devanagari-capable font so Hindi text (e.g. SAC meeting "Salient
+// Recommendations") renders in PDFs even in serverless Chromium, which ships
+// with no Indic fonts. Base64 data-URI = no network / file-path dependency.
+// Loaded once at module init and reused for every report.
+const DEVANAGARI_FONT_CSS = (() => {
+    try {
+        const fontPath = path.join(__dirname, '../../assets/fonts/NotoSansDevanagari-Regular.ttf');
+        const b64 = fs.readFileSync(fontPath).toString('base64');
+        return `
+    @font-face {
+        font-family: 'Noto Sans Devanagari';
+        font-style: normal;
+        font-weight: 400 700;
+        src: url(data:font/ttf;base64,${b64}) format('truetype');
+    }`;
+    } catch (e) {
+        console.warn('Devanagari font not embedded (Hindi text may not render in PDF):', e.message);
+        return '';
+    }
+})();
 
 /**
  * Report Template Service
@@ -118,6 +142,7 @@ class ReportTemplateService {
     constructor() {
         this.customTemplateHandlers = {
             'about-kvk-view': renderAboutKvkSection.bind(this),
+            'about-kvk-land': renderLandDetailsSection.bind(this),
             'about-kvk-bank-accounts': renderSimpleTableSection.bind(this),
             'about-kvk-employee-contacts': renderEmployeeContactsSection.bind(this),
             'about-kvk-employees-full': renderEmployeesFullSection.bind(this),
@@ -1059,6 +1084,7 @@ class ReportTemplateService {
     _getStyles() {
         return `
 <style>
+    ${DEVANAGARI_FONT_CSS}
     * {
         margin: 0;
         padding: 0;
@@ -1066,7 +1092,7 @@ class ReportTemplateService {
     }
 
     body {
-        font-family: 'Arial', 'Helvetica', sans-serif;
+        font-family: 'Arial', 'Helvetica', 'Noto Sans Devanagari', sans-serif;
         font-size: 8pt;
         line-height: 1.3;
         color: #000000;
